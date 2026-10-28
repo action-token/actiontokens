@@ -133,7 +133,7 @@ export function CardBack({
  */
 export function HoloCard({
   pin,
-  brand,
+  artist,
   creatorBack = false,
   interactive = false,
   onClick,
@@ -145,7 +145,7 @@ export function HoloCard({
   onFlip,
 }: {
   pin: ArPin;
-  brand?: ArArtist | null;
+  artist?: ArArtist | null;
   /**
    * Put the creator/trainer card on the *back* face, so the front stays the
    * drop itself. A physical trading card works this way round: the face is
@@ -341,7 +341,7 @@ export function HoloCard({
           {!oneFace && (
             <div className="tcg-card__face tcg-card__back">
               {creatorBack && isLoaded ? (
-                <PokemonTcgCreatorFront pin={pin} brand={brand} priority={priority} />
+                <PokemonTcgCreatorFront pin={pin} artist={artist} priority={priority} />
               ) : (
                 <CardBack loading={!isLoaded} pin={pin} />
               )}
@@ -514,12 +514,12 @@ function TcgFooter({
  */
 function PokemonTcgCreatorFront({
   pin,
-  brand,
+  artist,
   priority,
   onImageLoaded,
 }: {
   pin: ArPin;
-  brand?: ArArtist | null;
+  artist?: ArArtist | null;
   priority?: boolean;
   /**
    * Optional: only the *front* face gates the card's loading state on its art
@@ -528,20 +528,20 @@ function PokemonTcgCreatorFront({
    */
   onImageLoaded?: () => void;
 }) {
-  const creatorName = brand?.name ?? pin.artistName;
-  const avatarUrl = brand?.avatarUrl ?? pin.artistImageUrl;
-  const handle = brand?.handle ? `@${brand.handle}` : "@creator";
+  const creatorName = artist?.name ?? pin.artistName;
+  const avatarUrl = artist?.avatarUrl ?? pin.artistImageUrl;
+  const handle = artist?.handle ? `@${artist.handle}` : "@creator";
   const origin =
-    nonBlank(brand?.categories?.slice(0, 2).join(" • ")) ??
-    nonBlank(brand?.region) ??
+    nonBlank(artist?.categories?.slice(0, 2).join(" • ")) ??
+    nonBlank(artist?.region) ??
     "Stellar creator";
   const bio =
-    nonBlank(brand?.bio) ??
-    nonBlank(brand?.tagline) ??
+    nonBlank(artist?.bio) ??
+    nonBlank(artist?.tagline) ??
     `Official ${site.name} creator placing drops in the real world.`;
-  const followersCount = brand?.followers ?? 0;
-  const dropsCount = brand?.pinCount ?? 1;
-  const verified = brand?.verified ?? false;
+  const followersCount = artist?.followers ?? 0;
+  const dropsCount = artist?.pinCount ?? 1;
+  const verified = artist?.verified ?? false;
   const accent = "var(--ar-accent)";
 
   return (

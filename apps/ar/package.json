@@ -35,6 +35,7 @@
     "react-dom": "catalog:",
     "react-hot-toast": "catalog:",
     "react-map-gl": "catalog:",
+    "react-qr-code": "catalog:",
     "superjson": "catalog:",
     "supercluster": "catalog:",
     "three": "catalog:",

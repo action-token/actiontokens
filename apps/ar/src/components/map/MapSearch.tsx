@@ -229,7 +229,7 @@ export function MapSearch({
                       No matches
                     </p>
                     <p className="text-ar-faint mt-1 text-[12px]">
-                      Try a brand name, a drop title, or a street or area.
+                      Try an artist name, a drop title, or a street or area.
                     </p>
                   </div>
                 )}

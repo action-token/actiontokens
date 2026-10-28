@@ -1,5 +1,6 @@
 import { AnimatePresence, motion, type PanInfo } from "framer-motion";
 import { type ReactNode, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 import { cn } from "@bandcoin/ui/lib/cn";
 
@@ -7,6 +8,9 @@ import { cn } from "@bandcoin/ui/lib/cn";
  * The app's one overlay primitive. Everything that isn't a full screen — pin
  * details, filters, directions, the login gate — arrives as a sheet from the
  * bottom, because that's the only edge a thumb owns.
+ *
+ * It portals into the phone screen (`data-ar-app-frame`), so a sheet opened
+ * from deep inside a scrolling page still covers the screen, not the page.
  *
  * Dragging down past 90px (or flicking) dismisses. The drag is elastic in one
  * direction only, so the sheet can't be pulled up off its own header.
@@ -39,7 +43,7 @@ export function BottomSheet({
     if (info.offset.y > 90 || info.velocity.y > 620) onClose();
   };
 
-  return (
+  const sheet = (
     <AnimatePresence>
       {open && (
         <div className="absolute inset-0 z-50 flex items-end">
@@ -87,4 +91,7 @@ export function BottomSheet({
       )}
     </AnimatePresence>
   );
+  // Closed sheets render nothing, so the server render never needs the frame.
+  const frame = typeof document === "undefined" ? null : document.querySelector("[data-ar-app-frame]");
+  return frame ? createPortal(sheet, frame) : sheet;
 }

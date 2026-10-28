@@ -71,7 +71,7 @@ export async function loadSale(db: Db, listingId: string) {
 
 export type Sale = Awaited<ReturnType<typeof loadSale>>;
 
-function minterOf(
+export function minterOf(
   token: { issuer: string; issuerAccount: { publicKey: string } | null },
   artistIssuer: { publicKey: string; activatedAt: Date | null } | null,
 ) {
