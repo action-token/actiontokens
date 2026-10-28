@@ -20,7 +20,7 @@ const PAGE_SIZE = 20;
 const SNIPPET = 250;
 const bountyInput = z.object({ bountyId: z.string().min(1) });
 
-const artistSelect = { name: true, slug: true, avatarUrl: true, userId: true } as const;
+const artistSelect = { id: true, name: true, slug: true, avatarUrl: true, userId: true } as const;
 const userSelect = { username: true, displayName: true, avatarUrl: true } as const;
 
 /** Only funded bounties are shown: the prize must already sit in escrow. */
@@ -222,11 +222,18 @@ export const bountyRouter = createRouter({
       where: { ...fundedWhere, status: "RUNNING" },
       orderBy: { prizeAmount: "desc" },
       take: 5,
-      select: { id: true, title: true, prizeAmount: true, prizeCurrency: true },
+      select: {
+        id: true,
+        title: true,
+        prizeAmount: true,
+        prizeCurrency: true,
+        artist: { select: { name: true, avatarUrl: true } },
+      },
     });
     return rows.map((row) => ({
       id: row.id,
       title: row.title,
+      artist: row.artist,
       prize: prizeOf(row.prizeAmount, row.prizeCurrency, ctx.chain.config),
     }));
   }),

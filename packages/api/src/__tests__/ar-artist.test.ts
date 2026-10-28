@@ -96,3 +96,24 @@ describe("ar artist.setFollowing", () => {
     await expect(setup(null).caller.artist.setFollowing({ artistId: "a1", following: true })).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });
+
+describe("ar bounty", () => {
+  it("serves the fan app's bounties, with the artist on Top bounties", async () => {
+    const findMany = vi.fn().mockResolvedValue([
+      { id: "b1", title: "Stream it", prizeAmount: 30000, prizeCurrency: "XLM", artist: { name: "Luna Vale", avatarUrl: null } },
+    ]);
+    const chain = { config: { name: "testnet", assets: {} } } as unknown as ChainGateway;
+    const caller = createCallerFactory(arRouter)(
+      createContext({ db: { bounty: { findMany } } as unknown as Db, chain, app: "ar", session: null }),
+    );
+    await expect(caller.bounty.top()).resolves.toEqual([
+      {
+        id: "b1",
+        title: "Stream it",
+        artist: { name: "Luna Vale", avatarUrl: null },
+        prize: { amount: "30000", currency: "XLM", explorerUrl: "https://stellar.expert/explorer/testnet/asset/XLM" },
+      },
+    ]);
+    expect(findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { fundTxHash: { not: null }, status: "RUNNING" } }));
+  });
+});
