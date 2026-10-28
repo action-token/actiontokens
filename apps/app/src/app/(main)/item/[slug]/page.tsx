@@ -166,7 +166,7 @@ export default async function ItemPage({ params }: Props) {
                     label="Price"
                     note={<>≈ <Money amount={primary.priceUsd} currency="USD" /></>}
                   >
-                    <Money amount={primary.priceBandcoin} currency="BANDCOIN" />
+                    <Money amount={primary.priceBandcoin} currency="BANDCOIN" onBrand />
                   </Sticker>
                 )}
                 <Sticker className="text-fg rotate-1 bg-white" label="Edition" note={`${item.sold.toLocaleString()} sold`}>

@@ -8,7 +8,7 @@ import { MediaCarousel } from "@bandcoin/ui/patterns/media-carousel";
 import { Money } from "~/components/money";
 import type { RouterOutputs } from "~/trpc/react";
 
-import { ItemCard } from "../catalog/item-card";
+import { ItemCard, POSTER_WIDTH } from "../catalog/item-card";
 import { Avatar } from "../shell/context-panel";
 import { Hero } from "./hero";
 
@@ -25,13 +25,13 @@ export function HomeView({ home }: { home: Home }) {
     <div className="grid gap-9">
       <Hero items={home.hero} />
 
-      <MediaCarousel title="Trending this week" action={seeAll("/marketplace?sort=popular")}>
+      <MediaCarousel title="Trending this week" action={seeAll("/marketplace?sort=popular")} itemWidth={POSTER_WIDTH}>
         {home.trending.map((item) => (
           <ItemCard key={item.id} item={item} queue={home.trending} />
         ))}
       </MediaCarousel>
 
-      <MediaCarousel title="New music" action={seeAll("/music")}>
+      <MediaCarousel title="New music" action={seeAll("/music")} itemWidth={POSTER_WIDTH}>
         {home.newMusic.map((item) => (
           <ItemCard key={item.id} item={item} queue={home.newMusic} />
         ))}

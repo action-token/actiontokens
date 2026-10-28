@@ -15,17 +15,20 @@ export function Money({
   currency,
   short,
   className,
+  onBrand,
 }: {
   amount: string | number;
   currency: DisplayCurrency;
   /** 2 decimals, for headlines */
   short?: boolean;
   className?: string;
+  /** On a brand-coloured background the coin gets a dark backing so it stays visible */
+  onBrand?: boolean;
 }) {
   if (currency === "USD") return <span className={cn("num", className)}>{formatAmount(amount, "USD")}</span>;
   return (
     <span className={cn("num inline-flex items-center gap-[0.3em] whitespace-nowrap", className)}>
-      <CurrencyIcon currency={currency} className="size-[1.1em]" />
+      <CurrencyIcon currency={currency} className={cn("size-[1.1em]", onBrand && "rounded-full bg-black/85 p-[0.12em]")} />
       {formatAmount(amount, currency, { short })}
       <span className="sr-only"> {currency}</span>
     </span>

@@ -14,7 +14,7 @@ import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
 import { api, type RouterInputs } from "~/trpc/react";
 
-import { type ItemCardData, ItemCard } from "../catalog/item-card";
+import { type ItemCardData, ItemCard, POSTER_WIDTH } from "../catalog/item-card";
 import { usePlayer } from "../player/player-store";
 import { TrackRow } from "./track-row";
 
@@ -60,7 +60,7 @@ function AllMusic() {
   return (
     <>
       {overview.data && overview.data.newest.length > 0 && (
-        <MediaCarousel title="New songs">
+        <MediaCarousel title="New songs" itemWidth={POSTER_WIDTH}>
           {overview.data.newest.map((item) => (
             <ItemCard key={item.id} item={item} queue={overview.data.newest} />
           ))}
