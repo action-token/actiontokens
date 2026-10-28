@@ -14,6 +14,9 @@
 @import "@fontsource-variable/unbounded";
 @import "@fontsource-variable/onest";
 @import "@fontsource-variable/jetbrains-mono";
+/* Poster fonts for the connect-wallet dialog: tall condensed headings and hand-written notes */
+@import "@fontsource/bebas-neue";
+@import "@fontsource/caveat-brush";
 @import "tw-animate-css";
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
@@ -236,21 +239,20 @@
   }
 }
 
-/* Type helpers shared with Wadzzo's components (the connect-wallet dialog). */
+/* Poster type for the connect-wallet dialog (Wadzzo's look in Bandcoin fonts). */
 @utility display {
-  font-family: var(--font-display);
-  font-weight: 800;
+  font-family: "Bebas Neue", "Arial Narrow", sans-serif;
+  font-weight: 400;
   text-transform: uppercase;
-  line-height: 0.95;
-  letter-spacing: -0.01em;
+  line-height: 0.9;
+  letter-spacing: 0.01em;
 }
 
-/* A hand-written-style note: small, bold, uppercase. */
+/* A hand-written note. */
 @utility marker {
-  font-family: var(--font-sans);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-family: "Caveat Brush", "Comic Sans MS", cursive;
+  font-weight: 400;
+  letter-spacing: 0.01em;
   line-height: 1.1;
 }
 
@@ -265,6 +267,7 @@
 }
 
 @utility font-hud {
-  font-family: var(--font-display);
-  font-weight: 700;
+  font-family: "Bebas Neue", "Arial Narrow", sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.04em;
 }

@@ -258,7 +258,7 @@ export function ConnectWalletDialog() {
           </div>
           <div className="min-w-0 flex-1 pt-1.5">
             <div className="flex items-center gap-1.5">
-              <p className="display text-foreground truncate text-lg">{name}</p>
+              <p className="display text-foreground truncate text-2xl">{name}</p>
               <CheckCircle2 className="text-primary-text size-4 shrink-0" />
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
@@ -376,7 +376,7 @@ export function ConnectWalletDialog() {
           Apple
         </button>
 
-        <span className="marker text-muted-foreground text-xs">or</span>
+        <span className="marker text-muted-foreground text-base">or</span>
 
         <button
           onClick={() => void googleProvider.login()}
@@ -419,8 +419,8 @@ export function ConnectWalletDialog() {
               <div className="absolute inset-0 flex items-center">
                 <span className="border-foreground/15 w-full border-t-2 border-dashed" />
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background marker text-muted-foreground px-2">
+              <div className="relative flex justify-center text-base">
+                <span className="bg-surface marker text-muted-foreground px-2">
                   or continue with
                 </span>
               </div>
@@ -580,11 +580,11 @@ export function ConnectWalletDialog() {
             {/* Header */}
             <div>
               <DialogTitle
-                className={clsx("display text-foreground", authUser ? "text-xl" : "text-[1.75rem]")}
+                className={clsx("display text-foreground", authUser ? "text-3xl" : "text-[2.6rem]")}
               >
                 Action Auth System
               </DialogTitle>
-              <p className="marker text-primary-text mt-2 -rotate-1 text-xs">{subtitle}</p>
+              <p className="marker text-primary-text mt-2 -rotate-1 text-lg">{subtitle}</p>
             </div>
 
             {/* Tabs — controlled so switching is stable */}
@@ -596,13 +596,13 @@ export function ConnectWalletDialog() {
               <TabsList className="bg-surface-2 grid h-12 w-full grid-cols-2 rounded-2xl p-1">
                 <TabsTrigger
                   value="action"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground font-hud rounded-xl text-xs tracking-wide uppercase data-[state=active]:shadow-none dark:data-[state=active]:border-transparent"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground font-hud rounded-xl text-base tracking-wide uppercase data-[state=active]:shadow-none dark:data-[state=active]:border-transparent"
                 >
                   Action Login
                 </TabsTrigger>
                 <TabsTrigger
                   value="stellar"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground font-hud rounded-xl text-xs tracking-wide uppercase data-[state=active]:shadow-none dark:data-[state=active]:border-transparent"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground font-hud rounded-xl text-base tracking-wide uppercase data-[state=active]:shadow-none dark:data-[state=active]:border-transparent"
                 >
                   Stellar Login
                 </TabsTrigger>
@@ -634,8 +634,8 @@ export function ConnectWalletDialog() {
             }
           >
             <div className="p-6 pb-3">
-              <p className="marker text-primary-text text-sm">*scan to connect*</p>
-              <h3 className="display text-foreground mt-2 text-[1.75rem]">Connect Wallet</h3>
+              <p className="marker text-primary-text text-xl">*scan to connect*</p>
+              <h3 className="display text-foreground mt-2 text-5xl">Connect Wallet</h3>
             </div>
 
             <div className="flex flex-1 items-center justify-center px-6">
@@ -670,8 +670,8 @@ export function ConnectWalletDialog() {
                   className="shrink-0 rounded-full"
                 />
                 <div>
-                  <p className="marker text-muted-foreground text-[11px]">works with</p>
-                  <p className="display text-sm">Lobstr Mobile App</p>
+                  <p className="marker text-muted-foreground text-base">works with</p>
+                  <p className="display text-xl">Lobstr Mobile App</p>
                 </div>
               </button>
             </div>

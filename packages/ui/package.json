@@ -20,6 +20,8 @@
     "@fontsource-variable/jetbrains-mono": "catalog:",
     "@fontsource-variable/onest": "catalog:",
     "@fontsource-variable/unbounded": "catalog:",
+    "@fontsource/bebas-neue": "catalog:",
+    "@fontsource/caveat-brush": "catalog:",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
     "lucide-react": "catalog:",
