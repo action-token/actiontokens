@@ -550,14 +550,14 @@ export function ConnectWalletDialog() {
               : clsx(
                   // as tall as its content (no inner scroll), never shorter than the email view so switching tabs
                   // doesn't resize it; the 92dvh cap only matters on very short screens
-                  "border-foreground/15 flex max-w-[820px] gap-0 overflow-hidden rounded-[1.6rem] border-2 p-0 shadow-[10px_11px_0_0_var(--color-primary)] lg:grid lg:min-h-[min(624px,92dvh)] lg:grid-cols-[290px_1fr] lg:grid-rows-[minmax(0,1fr)]",
+                  "border-foreground/15 flex max-w-[820px] gap-0 overflow-hidden rounded-[1.6rem] border-2 p-0 shadow-[10px_11px_0_0_var(--color-primary)] lg:grid lg:min-h-[min(624px,92dvh)] lg:grid-cols-[1fr_290px] lg:grid-rows-[minmax(0,1fr)]",
                 )
           }
         >
           {/* ── Left panel ── */}
           <div
             className={clsx(
-              "flex min-h-0 w-full flex-1 flex-col overflow-y-auto lg:order-2",
+              "flex min-h-0 w-full flex-1 flex-col overflow-y-auto",
               isFramedHost
                 ? "gap-4 px-4 pt-10 pb-4"
                 : authUser
@@ -587,7 +587,7 @@ export function ConnectWalletDialog() {
               <DialogTitle
                 className={clsx("display text-foreground", authUser ? "text-xl" : "text-[1.75rem]")}
               >
-                {title}
+                Action Auth System
               </DialogTitle>
               <p className="marker text-primary-text mt-2 -rotate-1 text-xs">{subtitle}</p>
             </div>
@@ -635,12 +635,12 @@ export function ConnectWalletDialog() {
             className={
               isFramedHost
                 ? "hidden"
-                : "bg-primary/10 dark:bg-primary/15 text-foreground border-foreground/10 relative hidden flex-col overflow-hidden border-r-2 lg:order-1 lg:flex"
+                : "bg-primary/10 dark:bg-primary/15 text-foreground border-foreground/10 relative hidden flex-col overflow-hidden border-l-2 lg:flex"
             }
           >
             <div className="p-6 pb-3">
               <p className="marker text-primary-text text-sm">*scan to connect*</p>
-              <h3 className="display mt-2 text-2xl">Action Auth System</h3>
+              <h3 className="display mt-2 text-2xl">{title}</h3>
             </div>
 
             <div className="flex flex-1 items-center justify-center px-6">
