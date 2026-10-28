@@ -12,5 +12,6 @@ export {
   publicProcedure,
 } from "./trpc";
 export { appRouter, type AppRouter } from "./root-app";
+export { arRouter, type ArRouter } from "./root-ar";
 export { PREVIEW_SECONDS, previewByteRange } from "./services/media/playback";
 export { lastFmAuthUrl, lastFmKeys, lastFmSession } from "./services/lastfm";

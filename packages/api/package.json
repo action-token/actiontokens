@@ -17,11 +17,14 @@
     "testnet:buy": "tsx --env-file=../db/.env --env-file=../../apps/app/.env.local scripts/testnet-buy.ts"
   },
   "dependencies": {
+    "@bandcoin/ar-core": "workspace:*",
     "@bandcoin/chain": "workspace:*",
     "@bandcoin/db": "workspace:*",
     "@bandcoin/errors": "workspace:*",
     "@bandcoin/storage": "workspace:*",
+    "@bandcoin/utils": "workspace:*",
     "@bandcoin/wallet": "workspace:*",
+    "@photostructure/tz-lookup": "catalog:",
     "@stellar/stellar-sdk": "catalog:",
     "@trpc/server": "catalog:",
     "superjson": "catalog:",

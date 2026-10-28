@@ -1,0 +1,65 @@
+@import "tailwindcss";
+@import "@bandcoin/ui/styles/theme.css";
+@import "tailwind-scrollbar-hide/v4";
+
+/* Class names used inside shared packages (Tailwind only scans the app by default). */
+@source "../../../../packages/ui/src";
+@source "../../../../packages/wallet/src";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * The arcade palette (arcade.css sets the values per theme). `inline` keeps
+ * utilities reading the variables live, so switching `.dark` recolours
+ * everything without regenerating CSS.
+ */
+@theme inline {
+  --color-ar-void: hsl(var(--ar-void));
+  --color-ar-bg: hsl(var(--ar-bg));
+  --color-ar-surface: hsl(var(--ar-surface));
+  --color-ar-surface-2: hsl(var(--ar-surface-2));
+  --color-ar-surface-3: hsl(var(--ar-surface-3));
+  --color-ar-line: hsl(var(--ar-line));
+  --color-ar-line-bright: hsl(var(--ar-line-bright));
+  --color-ar-text: hsl(var(--ar-text));
+  --color-ar-dim: hsl(var(--ar-text-dim));
+  --color-ar-faint: hsl(var(--ar-text-faint));
+  --color-ar-accent: hsl(var(--ar-accent));
+  --color-ar-accent-hot: hsl(var(--ar-accent-hot));
+  --color-ar-accent-deep: hsl(var(--ar-accent-deep));
+  --color-ar-accent-ink: hsl(var(--ar-accent-ink));
+  --color-ar-danger: hsl(var(--ar-danger));
+  --color-ar-locked: hsl(var(--ar-locked));
+
+  --color-rarity-common: hsl(var(--rarity-common));
+  --color-rarity-rare: hsl(var(--rarity-rare));
+  --color-rarity-epic: hsl(var(--rarity-epic));
+  --color-rarity-legendary: hsl(var(--rarity-legendary));
+  --color-rarity-mythic: hsl(var(--rarity-mythic));
+
+  --radius-ar: var(--ar-r);
+  --radius-ar-lg: var(--ar-r-lg);
+  --radius-ar-xl: var(--ar-r-xl);
+
+  /* The phone the app is shown as on a desktop: iPhone Pro Max logical size. */
+  --container-device: 430px;
+  --container-tablet: 600px;
+
+  --animate-gradient-x: gradient-x 3s ease infinite;
+
+  @keyframes gradient-x {
+    0%,
+    100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+}
+
+/* The HUD's two families, from the Bandcoin theme: Unbounded for chrome, Onest for prose. */
+:root {
+  --nf-display: "Unbounded Variable";
+  --nf-body: "Onest Variable";
+}
