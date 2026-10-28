@@ -1,5 +1,5 @@
 import type { Currency, OnChainCurrency } from "../currency";
-import { applyBps, sum, toAmount, toDisplay, toStroops, usdTo } from "../money";
+import { applyBps, sum, toAmount, toDisplay, toStroops, toUsd, usdTo } from "../money";
 
 /**
  * The price breakdown for any payment. Pure: the server feeds it prices,
@@ -12,6 +12,9 @@ import { applyBps, sum, toAmount, toDisplay, toStroops, usdTo } from "../money";
  *   chose, the quote says how much is missing.
  * - The buyer pays every cost: price, platform fee, trustline reserve and the
  *   network fee. The platform account never fronts anything.
+ * - Card buyers pay the XLM costs in dollars too (the platform sends the XLM
+ *   and is paid back by the card), and the seller is paid in BANDCOIN at the
+ *   artist's BANDCOIN price.
  */
 
 /** XLM a new trustline locks in the buyer's account (refundable). */
@@ -24,7 +27,7 @@ export type QuoteInput = {
   quantity: number;
   /** Price of one copy, as the artist set it */
   unitPrice: { bandcoin: string; usd: string };
-  /** USD per XLM and per USDC, from the live feed (only the one being paid in is needed) */
+  /** USD per XLM and per USDC, from the live feed (the one being paid in; XLM for card) */
   rates: { xlmUsd?: string; usdcUsd?: string };
   platformFeeBps: number;
   /** Resales: the creator's cut, taken out of the seller's share */
@@ -69,6 +72,11 @@ export type Quote = {
   totals: { currency: Currency; amount: string }[];
   /** Where the money goes, in `currency` */
   payout: { seller: string; royalty: string; platform: string };
+  /**
+   * Card only: what the platform pays out on-chain for the card charge — the
+   * seller and royalty in BANDCOIN, and the XLM it sends the buyer's account.
+   */
+  cardSettlement: { seller: string; royalty: string; reserveXlm: string; networkFeeXlm: string } | null;
   ok: boolean;
   problems: QuoteProblem[];
   expiresAt: string;
@@ -91,6 +99,10 @@ export function buildQuote(input: QuoteInput): Quote {
   const royalty = applyBps(price, input.royaltyBps ?? 0);
   const reserve = toStroops(TRUSTLINE_RESERVE_XLM) * BigInt(input.newTrustlines);
   const networkFee = toStroops(input.networkFeeXlm);
+  const card = currency === "USD";
+  // Card: the XLM costs are charged in dollars, at the live XLM price.
+  const xlmCost = (xlm: bigint) =>
+    card ? { amount: toUsd(xlm, toStroops(required(input.rates.xlmUsd, "XLM"))), currency } : { amount: xlm, currency: "XLM" as const };
 
   const lines: QuoteLine[] = [
     {
@@ -109,16 +121,24 @@ export function buildQuote(input: QuoteInput): Quote {
     },
   ];
   if (reserve > 0n) {
+    const cost = xlmCost(reserve);
     lines.push({
       key: "reserve",
       label: "Trustline",
-      detail: "first time only",
+      detail: card ? `${toDisplay(reserve)} XLM, first time only` : "first time only",
       hint: "Reserve that lets your wallet hold this item. It stays yours and comes back if you remove the trustline.",
-      amount: toAmount(reserve),
-      currency: "XLM",
+      amount: toAmount(cost.amount),
+      currency: cost.currency,
     });
   }
-  lines.push({ key: "networkFee", label: "Network fee", amount: toAmount(networkFee), currency: "XLM" });
+  const fee = xlmCost(networkFee);
+  lines.push({
+    key: "networkFee",
+    label: "Network fee",
+    ...(card ? { detail: `${toDisplay(networkFee)} XLM` } : {}),
+    amount: toAmount(fee.amount),
+    currency: fee.currency,
+  });
 
   const totals = totalsOf(lines);
   const problems = findProblems(input, totals);
@@ -135,9 +155,21 @@ export function buildQuote(input: QuoteInput): Quote {
       royalty: toAmount(royalty),
       platform: toAmount(platformFee),
     },
+    cardSettlement: card ? cardSettlementOf(input, reserve, networkFee) : null,
     ok: problems.length === 0,
     problems,
     expiresAt: new Date(input.now.getTime() + QUOTE_TTL_SECONDS * 1000).toISOString(),
+  };
+}
+
+function cardSettlementOf(input: QuoteInput, reserve: bigint, networkFee: bigint) {
+  const price = toStroops(input.unitPrice.bandcoin) * BigInt(input.quantity);
+  const royalty = applyBps(price, input.royaltyBps ?? 0);
+  return {
+    seller: toAmount(price - royalty),
+    royalty: toAmount(royalty),
+    reserveXlm: toAmount(reserve),
+    networkFeeXlm: toAmount(networkFee),
   };
 }
 

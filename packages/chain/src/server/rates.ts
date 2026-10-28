@@ -30,7 +30,7 @@ export async function liveRates(fetcher: Fetcher = defaultFetcher, now = Date.no
   const xlmUsd = (await fromStellarExpert(fetcher)) ?? (await fromBinance(fetcher));
   if (xlmUsd === null) {
     throw new AppError(ErrorCodes.EXTERNAL_SERVICE_FAILED, {
-      message: "Couldn't load the XLM price. Pay with BANDCOIN or card, or try again in a moment.",
+      message: "Couldn't load the XLM price. Pay with BANDCOIN, or try again in a moment.",
     });
   }
   const rates = { xlmUsd: xlmUsd.toFixed(7), usdcUsd: "1" };

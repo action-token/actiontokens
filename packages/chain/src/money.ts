@@ -51,6 +51,12 @@ export function usdTo(usd: bigint, usdPerUnit: bigint): bigint {
   return ceilDiv(usd * STROOPS_PER_UNIT, usdPerUnit);
 }
 
+/** An amount of another currency in USD, given USD per unit of it. Rounded up. */
+export function toUsd(amount: bigint, usdPerUnit: bigint): bigint {
+  if (usdPerUnit <= 0n) throw new RangeError("Exchange rate must be positive");
+  return ceilDiv(amount * usdPerUnit, STROOPS_PER_UNIT);
+}
+
 /** Cents for a card charge, rounded up. */
 export function toCents(usd: bigint): number {
   return Number(ceilDiv(usd, 100_000n));

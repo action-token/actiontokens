@@ -1,4 +1,4 @@
-import { type Account, Memo, TransactionBuilder } from "@stellar/stellar-sdk";
+import { type Account, Memo, type Transaction, TransactionBuilder } from "@stellar/stellar-sdk";
 
 import { toAmount } from "./money";
 import { QUOTE_TTL_SECONDS } from "./quote";
@@ -59,4 +59,14 @@ export function finish(
 /** The network fee for `operations` operations, in XLM, for quotes. */
 export function networkFeeXlm(operations: number, baseFee: string): string {
   return toAmount(BigInt(baseFee) * BigInt(Math.max(1, operations)));
+}
+
+/**
+ * Card orders: the treasury pays the network fee the card was charged for, so
+ * a buyer with no spare XLM can still be the transaction's source. Wraps the
+ * signed transaction; the inner hash (the order's txHash) is unchanged.
+ */
+export function wrapInFeeBump(signedXdr: string, feeSource: string, network: NetworkParams): string {
+  const inner = TransactionBuilder.fromXDR(signedXdr, network.passphrase) as Transaction;
+  return TransactionBuilder.buildFeeBumpTransaction(feeSource, network.baseFee, inner, network.passphrase).toXDR();
 }

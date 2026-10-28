@@ -1,4 +1,4 @@
-import { Account, Asset, Keypair, Networks, type Transaction, TransactionBuilder } from "@stellar/stellar-sdk";
+import { Account, Asset, FeeBumpTransaction, Keypair, Networks, type Transaction, TransactionBuilder } from "@stellar/stellar-sdk";
 import { describe, expect, it } from "vitest";
 
 import { buildClassicPurchase, classicPurchaseOperations } from "../classic/purchase";
@@ -9,7 +9,7 @@ import { buildBountyFund } from "../escrow/calls";
 import { buildNftBuyEdition, buildNftBuyListed } from "../nft/calls";
 import { buildPlatformPayment } from "../payments/platform-payment";
 import { buildRoyaltyPayouts } from "../royalty/payout";
-import { memoFor, networkFeeXlm } from "../transaction";
+import { memoFor, networkFeeXlm, wrapInFeeBump } from "../transaction";
 import { memoText, verifyTransaction } from "../verify";
 
 const network = { passphrase: Networks.TESTNET, baseFee: "100" };
@@ -61,24 +61,40 @@ describe("buildClassicPurchase", () => {
     expect(built.serverSigners).toEqual([storage, issuer]);
     expect(built.hash).toMatch(/^[0-9a-f]{64}$/);
     expect(
-      classicPurchaseOperations({ openTrustline: true, paid: true, royalty: true, fromStock: true, mint: true }),
+      classicPurchaseOperations({ card: false, openTrustline: true, royalty: true, fromStock: true, mint: true }),
     ).toBe(tx.operations.length);
   });
 
-  it("only delivers for a card order (the card already paid)", () => {
+  it("card order: treasury tops up the reserve, pays the seller in BANDCOIN, and fee-bumps", () => {
     const built = buildClassicPurchase({
       buyer: account(),
       network,
       orderId,
       item,
-      openTrustline: false,
-      payment: null,
+      openTrustline: true,
+      topUp: { from: treasury, amount: "0.5" },
+      payment: { asset: bandcoin, from: treasury, seller: { to: seller, amount: "20" } },
       delivery: { mint: { issuer, amount: "2" } },
     });
     const tx = parse(built.xdr);
     expect(tx.source).toBe(buyerKey);
-    expect(tx.operations).toHaveLength(1);
-    expect(tx.operations[0]).toMatchObject({ type: "payment", source: issuer, destination: buyerKey, amount: "2.0000000" });
+    expect(tx.operations.map((op) => [op.type, op.source ?? "buyer"])).toEqual([
+      ["payment", treasury],
+      ["changeTrust", "buyer"],
+      ["payment", treasury],
+      ["payment", issuer],
+    ]);
+    expect(tx.operations[0]).toMatchObject({ destination: buyerKey, amount: "0.5000000" });
+    expect(built.serverSigners).toEqual([treasury, issuer]);
+
+    const bumped = TransactionBuilder.fromXDR(wrapInFeeBump(built.xdr, treasury, network), Networks.TESTNET);
+    expect(bumped).toBeInstanceOf(FeeBumpTransaction);
+    const fee = bumped as FeeBumpTransaction;
+    expect(fee.feeSource).toBe(treasury);
+    expect(Buffer.from(fee.innerTransaction.hash()).toString("hex")).toBe(built.hash);
+    expect(Number(fee.fee)).toBe(
+      100 * classicPurchaseOperations({ card: true, openTrustline: true, royalty: false, fromStock: false, mint: true }),
+    );
   });
 
   it("skips zero payouts and refuses a purchase that delivers nothing", () => {

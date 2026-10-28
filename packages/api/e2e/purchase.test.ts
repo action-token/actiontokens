@@ -1,4 +1,4 @@
-import { type Horizon, Keypair, Networks, type Transaction, TransactionBuilder } from "@stellar/stellar-sdk";
+import { FeeBumpTransaction, type Horizon, Keypair, Networks, type Transaction, TransactionBuilder } from "@stellar/stellar-sdk";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { db } from "@bandcoin/db/server";
@@ -173,8 +173,10 @@ describe("buying a classic token", () => {
     const usdc = await caller.order.quote(purchase("USDC"));
     expect(usdc.problems.map((problem) => problem.message)).toContain("The seller can't receive USDC yet.");
 
+    // Card: $5 + 2.5 % + the 0.5 XLM reserve and 5-op fee bump at $0.25, all in USD
     const card = await caller.order.quote(purchase("USD"));
-    expect(card.totals[0]).toEqual({ currency: "USD", amount: "5.1250000" });
+    expect(card.totals).toEqual([{ currency: "USD", amount: "5.2500125" }]);
+    expect(card.cardSettlement).toMatchObject({ seller: "20.0000000", reserveXlm: "0.5000000" });
     expect(card.ok).toBe(true);
 
     expect((await callerFor(null).order.quote(purchase("BANDCOIN"))).problems[0]?.code).toBe("SIGN_IN");
@@ -223,12 +225,30 @@ describe("buying a classic token", () => {
     await caller.order.cancel({ orderId: second.orderId });
   });
 
-  it("charges the card the USD total before delivering", async () => {
+  it("card: charges USD for everything, the treasury pays XLM and the seller in BANDCOIN", async () => {
     const caller = callerFor(buyer);
     const started = await caller.order.start(purchase("USD", 1));
+    const tx = TransactionBuilder.fromXDR(started.xdr, Networks.TESTNET) as Transaction;
+    expect(tx.source).toBe(keys.buyer.publicKey());
+    const treasury = keys.treasury.publicKey();
+    expect(tx.operations.map((op) => [op.type, op.source ?? "buyer"])).toEqual([
+      ["payment", treasury], // 0.5 XLM for the trustline reserve
+      ["changeTrust", "buyer"],
+      ["payment", treasury], // the seller's 10 BANDCOIN
+      ["payment", keys.issuer.publicKey()],
+    ]);
+    expect(tx.operations[2]).toMatchObject({ destination: keys.artist.publicKey(), amount: "10.0000000" });
+
     const done = await caller.order.submit({ orderId: started.orderId, xdr: started.xdr, card: { sourceId: "cnon:ok" } });
     expect(done.status).toBe("DELIVERED");
-    expect(charges.at(-1)).toEqual({ orderId: started.orderId, cents: 257 }); // $2.50 + 2.5 % = $2.5625 → 257 ¢
+    // $2.50 + 2.5 % + 0.5 XLM + 0.00005 XLM at $0.25 = $2.6875125 → 269 ¢
+    expect(charges.at(-1)).toEqual({ orderId: started.orderId, cents: 269 });
+    const sent = TransactionBuilder.fromXDR(submitted.at(-1)!, Networks.TESTNET);
+    expect(sent).toBeInstanceOf(FeeBumpTransaction);
+    expect((sent as FeeBumpTransaction).feeSource).toBe(treasury);
+    expect(Buffer.from((sent as FeeBumpTransaction).innerTransaction.hash()).toString("hex")).toBe(
+      (await db.order.findUniqueOrThrow({ where: { id: started.orderId } })).txHash,
+    );
   });
 
   it("refunds the card when Stellar rejects the delivery", async () => {

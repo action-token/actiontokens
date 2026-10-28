@@ -5,10 +5,12 @@ import {
   buildClassicPurchase,
   classicPurchaseOperations,
   type Currency,
+  type OnChainCurrency,
   networkFeeXlm,
   toCents,
   toStroops,
   verifyTransaction,
+  wrapInFeeBump,
 } from "@bandcoin/chain";
 import { buildQuote, type Quote, type QuoteProblem } from "@bandcoin/chain/quote";
 import { fundsOf } from "@bandcoin/chain/server";
@@ -30,6 +32,9 @@ import { loadSale, planDelivery, type Sale } from "./sale";
  *   confirm → the worker re-checks orders whose submit result was lost
  *
  * No conversion anywhere: the buyer pays in the currency they chose or not at all.
+ * Card orders: the card pays everything in USD, including the XLM costs; the
+ * treasury sends that XLM, pays the network fee (fee bump) and pays the seller
+ * in BANDCOIN at the artist's BANDCOIN price, all in the same transaction.
  */
 
 type PurchaseInput = { listingId: string; quantity: number; currency: Currency };
@@ -61,9 +66,13 @@ async function priceSale(ctx: ServiceCtx, user: SessionUser | null, sale: Sale, 
       message: sale.remaining === 0 ? "Sold out." : `Only ${sale.remaining} left.`,
     });
   }
-  const payAsset = input.currency === "USD" ? null : assetFor(input.currency, chain.config.assets);
-  if (payAsset && !(sellerAccount && holdsLine(sellerAccount, payAsset))) {
-    extraProblems.push({ code: "UNAVAILABLE", message: `The seller can't receive ${input.currency} yet.` });
+  const card = input.currency === "USD";
+  const payoutAsset = assetFor(input.currency === "USD" ? "BANDCOIN" : input.currency, chain.config.assets);
+  if (!(sellerAccount && holdsLine(sellerAccount, payoutAsset))) {
+    extraProblems.push({
+      code: "UNAVAILABLE",
+      message: card ? "The seller can't receive card payments yet." : `The seller can't receive ${input.currency} yet.`,
+    });
   }
 
   const openTrustline = !(buyerAccount && holdsLine(buyerAccount, sale.asset));
@@ -83,13 +92,13 @@ async function priceSale(ctx: ServiceCtx, user: SessionUser | null, sale: Sale, 
   }
 
   const operations = classicPurchaseOperations({
+    card,
     openTrustline,
-    paid: input.currency !== "USD",
     royalty: royaltyBps > 0,
     fromStock: Boolean(delivery?.fromStock),
     mint: Boolean(delivery?.mint),
   });
-  const needsRate = input.currency === "XLM" || input.currency === "USDC";
+  const needsRate = input.currency !== "BANDCOIN";
   const quote = buildQuote({
     currency: input.currency,
     quantity: input.quantity,
@@ -148,23 +157,13 @@ export async function startPurchase(ctx: ServiceCtx, user: SessionUser, input: P
   });
   ctx.activity.set({ targetType: "Order", targetId: order.id, amount: mainTotal, currency: input.currency });
 
-  const payAsset = input.currency === "USD" ? null : assetFor(input.currency, ctx.chain.config.assets);
   const built = buildClassicPurchase({
     buyer: new Account(buyerAccount.accountId(), buyerAccount.sequenceNumber()),
     network: ctx.chain.config.network,
     orderId: order.id,
     item: sale.asset,
     openTrustline: priced.openTrustline,
-    payment: payAsset
-      ? {
-          asset: payAsset,
-          seller: { to: sale.seller, amount: quote.payout.seller },
-          platformFee: { to: priced.feeRecipient, amount: quote.payout.platform },
-          ...(sale.creator && toStroops(quote.payout.royalty) > 0n
-            ? { royalty: { to: sale.creator, amount: quote.payout.royalty } }
-            : {}),
-        }
-      : null,
+    ...payoutsFor(quote, sale, { treasury: ctx.chain.config.treasury, feeRecipient: priced.feeRecipient }, ctx.chain.config.assets),
     delivery,
   });
 
@@ -211,10 +210,15 @@ export async function submitPurchase(
 
   let xdr = await userSignature(ctx, user, order.txHash, input.xdr);
   const sale = await loadSale(db, order.listingId!);
-  xdr = await chain.signWithServerKeys(xdr, serverSignersOf(xdr, chain.config.network.passphrase, user.walletAddress, sale));
+  const card = order.method === "CARD";
+  const platformKeys = [sale.stockAccount, sale.minter, card ? chain.config.treasury : null];
+  xdr = await chain.signWithServerKeys(xdr, serverSignersOf(xdr, chain.config.network.passphrase, user.walletAddress, platformKeys));
+  if (card) {
+    xdr = await chain.signWithServerKeys(wrapInFeeBump(xdr, chain.config.treasury, chain.config.network), [chain.config.treasury]);
+  }
 
   let cardPaymentId: string | null = null;
-  if (order.method === "CARD") {
+  if (card) {
     if (!input.card) throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "Add a card to pay." });
     ({ paymentId: cardPaymentId } = await chain.card.charge({
       orderId: order.id,
@@ -326,11 +330,46 @@ function assertSameTransaction(xdr: string, txHash: string, passphrase: string) 
   }
 }
 
+/**
+ * Who pays whom. Wallet orders: the buyer pays seller, fee and royalty in the
+ * chosen currency. Card orders: the treasury pays the seller and royalty in
+ * BANDCOIN and tops up the reserve; the platform fee stays with the card charge.
+ */
+function payoutsFor(
+  quote: Quote,
+  sale: Sale,
+  platform: { treasury: string; feeRecipient: string },
+  assets: Parameters<typeof assetFor>[1],
+): Pick<Parameters<typeof buildClassicPurchase>[0], "payment" | "topUp"> {
+  const royaltyTo = (amount: string) =>
+    sale.creator && toStroops(amount) > 0n ? { royalty: { to: sale.creator, amount } } : {};
+  const settlement = quote.cardSettlement;
+  if (!settlement) {
+    return {
+      payment: {
+        asset: assetFor(quote.currency as OnChainCurrency, assets),
+        seller: { to: sale.seller, amount: quote.payout.seller },
+        platformFee: { to: platform.feeRecipient, amount: quote.payout.platform },
+        ...royaltyTo(quote.payout.royalty),
+      },
+    };
+  }
+  return {
+    payment: {
+      asset: assetFor("BANDCOIN", assets),
+      from: platform.treasury,
+      seller: { to: sale.seller, amount: settlement.seller },
+      ...royaltyTo(settlement.royalty),
+    },
+    ...(toStroops(settlement.reserveXlm) > 0n ? { topUp: { from: platform.treasury, amount: settlement.reserveXlm } } : {}),
+  };
+}
+
 /** Platform keys this transaction needs: the operation sources that aren't the buyer. */
-function serverSignersOf(xdr: string, passphrase: string, buyer: string, sale: Sale) {
+function serverSignersOf(xdr: string, passphrase: string, buyer: string, platformKeys: (string | null)[]) {
   const tx = TransactionBuilder.fromXDR(xdr, passphrase);
   const sources = "operations" in tx ? tx.operations.map((op) => op.source).filter(Boolean) : [];
-  const allowed = new Set([sale.stockAccount, sale.minter].filter(Boolean));
+  const allowed = new Set(platformKeys.filter(Boolean));
   return [...new Set(sources as string[])].filter((source) => source !== buyer && allowed.has(source));
 }
 

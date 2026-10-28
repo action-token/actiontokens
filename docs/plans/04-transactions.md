@@ -16,9 +16,10 @@
 
 1. **No automatic conversion.** Today `buy-quote.ts` and `account-validation.ts` swap XLM into Bandcoin, or Bandcoin into XLM, when one is short. That goes. The buyer picks a currency and pays in it. If the balance is short, the buy panel says exactly how much is missing, with an "Add funds" link. It never swaps.
 2. **Simple and visible.** Every payment shows a price breakdown before signing.
-3. **The user pays every cost, never the platform's mother account** (except bounties). The user is the source of every payment transaction, so they pay the network fee, any trustline reserve and the platform fee. Card orders: the card covers the price plus platform fee in USD; the buyer's own account still pays the small XLM network fee and reserve. Bounties are the one exception: the platform may pay a claim's network fee.
+3. **The user pays every cost, never the platform's mother account** (except bounties). The user is the source of every payment transaction, so they pay the network fee, any trustline reserve and the platform fee. Card orders (decided 2026-10-28): the card pays everything in USD — price, 2.5 % fee, and the XLM reserve and network fee at the live XLM price. The treasury sends that XLM in the same transaction and fee-bumps it, so a buyer with no XLM can pay by card. The seller (and any royalty) is paid instantly in BANDCOIN at the artist's BANDCOIN price, from the treasury. Bounties are the one exception: the platform may pay a claim's network fee.
 4. **One issuer per artist** (as in Wadzzo). The artist pays once to open it (`buildIssuerSetup`, 1.5 XLM). Their fan token and every item they create are issued by it. Copies are minted when fans buy (lazy mint) or come from minted stock in the artist's storage first.
 5. **Custodial users can cancel.** Email and Google wallets have no signing popup, so they get a countdown toast with a Cancel button before the server signs. Wallet-extension users cancel in their wallet popup.
+6. **Platform fee: 2.5 % on top** (decided 2026-10-28), in every currency; admins can change it in AppSetting. Replaces bandfan's flat 6000 BANDCOIN.
 
 ## Prices
 

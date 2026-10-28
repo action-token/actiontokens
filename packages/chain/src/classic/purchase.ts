@@ -1,4 +1,4 @@
-import { type Account, type Asset, Operation } from "@stellar/stellar-sdk";
+import { type Account, Asset, Operation } from "@stellar/stellar-sdk";
 
 import { finish, type NetworkParams, startTransaction } from "../transaction";
 
@@ -12,16 +12,21 @@ export type ClassicPurchaseInput = {
   orderId: string;
   item: Asset;
   /**
-   * What the buyer pays. Null for a card order: the card was charged the
-   * price and fee, and this transaction only delivers.
+   * The payouts. Wallet orders: the buyer pays seller, fee and royalty.
+   * Card orders: `from` is the treasury, paying the seller (and royalty) in
+   * BANDCOIN; the platform fee stays with the card charge.
    */
   payment: {
     asset: Asset;
+    /** Payer when it isn't the buyer (card orders: the treasury) */
+    from?: string;
     seller: Payout;
-    platformFee: Payout;
+    platformFee?: Payout;
     /** Resales only: the creator's cut */
     royalty?: Payout;
   } | null;
+  /** Card orders: XLM the treasury sends the buyer for the trustline reserve (charged to the card) */
+  topUp?: { from: string; amount: string };
   /** Where the copies come from: already minted stock, minted now by the artist's issuer, or both */
   delivery: {
     fromStock?: { account: string; amount: string };
@@ -34,7 +39,9 @@ export type ClassicPurchaseInput = {
 /**
  * One transaction for a classic-token purchase: the buyer opens the trustline
  * if needed, pays the seller, the platform fee and any royalty, and receives
- * the copies. Payment and delivery succeed or fail together.
+ * the copies. Payment and delivery succeed or fail together. The buyer is
+ * always the source; card orders are fee-bumped by the treasury on submit
+ * (`wrapInFeeBump`), since the card already paid those costs.
  */
 export function buildClassicPurchase(input: ClassicPurchaseInput) {
   const buyer = input.buyer.accountId();
@@ -44,13 +51,23 @@ export function buildClassicPurchase(input: ClassicPurchaseInput) {
   const builder = startTransaction(input.buyer, input.network, { memo: input.orderId });
   const serverSigners: string[] = [];
 
+  if (input.topUp && !isZero(input.topUp.amount)) {
+    builder.addOperation(
+      Operation.payment({ source: input.topUp.from, destination: buyer, asset: Asset.native(), amount: input.topUp.amount }),
+    );
+    serverSigners.push(input.topUp.from);
+  }
+
   if (input.openTrustline) builder.addOperation(Operation.changeTrust({ asset: input.item }));
 
   if (input.payment) {
-    const { asset, seller, platformFee, royalty } = input.payment;
+    const { asset, from, seller, platformFee, royalty } = input.payment;
     for (const payout of [seller, platformFee, royalty]) {
       if (!payout || isZero(payout.amount)) continue;
-      builder.addOperation(Operation.payment({ destination: payout.to, asset, amount: payout.amount }));
+      builder.addOperation(
+        Operation.payment({ ...(from ? { source: from } : {}), destination: payout.to, asset, amount: payout.amount }),
+      );
+      if (from) serverSigners.push(from);
     }
   }
 
@@ -75,20 +92,21 @@ export function buildClassicPurchase(input: ClassicPurchaseInput) {
   return finish(builder, serverSigners);
 }
 
-/** Operations a purchase will have, for the network-fee line of the quote. */
+/**
+ * Operations a purchase will have, for the network-fee line of the quote.
+ * Card orders pay the seller (and royalty) from the treasury, top up the
+ * reserve, and are wrapped in a fee bump, which counts as one more.
+ */
 export function classicPurchaseOperations(p: {
+  card: boolean;
   openTrustline: boolean;
-  paid: boolean;
   royalty: boolean;
   fromStock: boolean;
   mint: boolean;
 }) {
-  return (
-    Number(p.openTrustline) +
-    (p.paid ? 2 + Number(p.royalty) : 0) +
-    Number(p.fromStock) +
-    Number(p.mint)
-  );
+  const payouts = 1 + Number(p.royalty) + Number(!p.card);
+  const cardExtras = p.card ? Number(p.openTrustline) + 1 : 0;
+  return Number(p.openTrustline) + payouts + Number(p.fromStock) + Number(p.mint) + cardExtras;
 }
 
 export const isZero = (amount: string) => /^0*(\.0*)?$/.test(amount);

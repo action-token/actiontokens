@@ -79,13 +79,34 @@ describe("buildQuote", () => {
     expect(quote.rateUsd).toBe("0.2500000");
   });
 
-  it("prices USDC from USD and card in USD, with XLM costs paid by the buyer", () => {
+  it("prices USDC from USD, with the XLM costs paid in XLM", () => {
     const usdc = buildQuote({ ...base, currency: "USDC", funds: { ...base.funds!, USDC: "10" } });
     expect(total(usdc, "USDC")).toBe("5.1250000");
-    const card = buildQuote({ ...base, currency: "USD" });
-    expect(total(card, "USD")).toBe("5.1250000");
-    expect(total(card, "XLM")).toBe("0.5000100");
+    expect(total(usdc, "XLM")).toBe("0.5000100");
+    expect(usdc.cardSettlement).toBeNull();
+  });
+
+  it("card: one USD total that includes the XLM costs, and the seller is paid in BANDCOIN", () => {
+    // no XLM at all: a card buyer doesn't need any
+    const card = buildQuote({ ...base, currency: "USD", funds: { BANDCOIN: "0", XLM: "0", USDC: "0" } });
+    expect(card.lines.map((line) => [line.key, line.amount, line.currency, line.detail])).toEqual([
+      ["price", "5.0000000", "USD", "2 × 2.5 USD"],
+      ["platformFee", "0.1250000", "USD", "2.5 %"],
+      ["reserve", "0.1250000", "USD", "0.5 XLM, first time only"],
+      ["networkFee", "0.0000025", "USD", "0.00001 XLM"],
+    ]);
+    expect(card.totals).toEqual([{ currency: "USD", amount: "5.2500025" }]);
     expect(card.ok).toBe(true);
+    expect(card.cardSettlement).toEqual({
+      seller: "20.0000000",
+      royalty: "0.0000000",
+      reserveXlm: "0.5000000",
+      networkFeeXlm: "0.0000100",
+    });
+    expect(buildQuote({ ...base, currency: "USD", royaltyBps: 1000 }).cardSettlement).toMatchObject({
+      seller: "18.0000000",
+      royalty: "2.0000000",
+    });
   });
 
   it("never converts: a short buyer gets exactly how much is missing", () => {
