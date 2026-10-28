@@ -1,0 +1,62 @@
+import { type Account, Memo, TransactionBuilder } from "@stellar/stellar-sdk";
+
+import { toAmount } from "./money";
+import { QUOTE_TTL_SECONDS } from "./quote";
+
+/** Network settings every builder needs. Passed in, so builders never read env. */
+export type NetworkParams = {
+  passphrase: string;
+  /** Per-operation base fee, in stroops */
+  baseFee: string;
+};
+
+/** What a builder returns: the unsigned XDR and which platform-held keys must co-sign it. */
+export type BuiltTransaction = {
+  xdr: string;
+  hash: string;
+  /** Public keys the server signs with (issuer, storage) after the user signs */
+  serverSigners: string[];
+};
+
+/**
+ * A transaction whose source (and fee payer) is `source`. Every payment
+ * builder makes the user the source, so the user always pays the network fee.
+ */
+export function startTransaction(
+  source: Account,
+  network: NetworkParams,
+  options: { memo?: string; timeoutSeconds?: number } = {},
+) {
+  const builder = new TransactionBuilder(source, {
+    fee: network.baseFee,
+    networkPassphrase: network.passphrase,
+  });
+  if (options.memo) builder.addMemo(memoFor(options.memo));
+  return builder.setTimeout(options.timeoutSeconds ?? QUOTE_TTL_SECONDS);
+}
+
+/**
+ * Order ids go in the memo so `order.confirm` can match the transaction.
+ * A cuid fits a 28-byte text memo; anything longer is rejected, not cut.
+ */
+export function memoFor(id: string) {
+  if (new TextEncoder().encode(id).length > 28) throw new RangeError(`Memo too long: ${id}`);
+  return Memo.text(id);
+}
+
+export function finish(
+  builder: TransactionBuilder,
+  serverSigners: Iterable<string> = [],
+): BuiltTransaction {
+  const tx = builder.build();
+  return {
+    xdr: tx.toXDR(),
+    hash: Buffer.from(tx.hash()).toString("hex"),
+    serverSigners: [...new Set(serverSigners)],
+  };
+}
+
+/** The network fee for `operations` operations, in XLM, for quotes. */
+export function networkFeeXlm(operations: number, baseFee: string): string {
+  return toAmount(BigInt(baseFee) * BigInt(Math.max(1, operations)));
+}

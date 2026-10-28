@@ -1,0 +1,5 @@
+{
+  "extends": "@bandcoin/tsconfig/base.json",
+  "compilerOptions": { "lib": ["ES2022"], "types": ["node"] },
+  "include": ["src", "e2e"]
+}
