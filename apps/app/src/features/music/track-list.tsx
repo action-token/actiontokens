@@ -1,6 +1,7 @@
 "use client";
 
 import { Pause, Play, Shuffle } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { cn } from "@bandcoin/ui/lib/cn";
@@ -10,11 +11,18 @@ import { currentTrack, usePlayer } from "../player/player-store";
 import { TrackRow } from "./track-row";
 
 /** A numbered list of songs; tapping a row plays from there. */
-export function TrackList({ tracks }: { tracks: ItemCardData[] }) {
+export function TrackList({
+  tracks,
+  actionFor,
+}: {
+  tracks: ItemCardData[];
+  /** A per-row action instead of "Add to playlist" */
+  actionFor?: (track: ItemCardData) => ReactNode;
+}) {
   return (
     <ol className="grid gap-0.5">
       {tracks.map((track, index) => (
-        <TrackRow key={track.id} track={track} position={index} list={tracks} />
+        <TrackRow key={track.id} track={track} position={index} list={tracks} action={actionFor?.(track)} />
       ))}
     </ol>
   );

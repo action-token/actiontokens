@@ -11,6 +11,7 @@ import { Money } from "~/components/money";
 import { ItemPurchase } from "~/features/buy/item-purchase";
 import { ItemCard } from "~/features/catalog/item-card";
 import { PlayButton } from "~/features/player/play-button";
+import { AddToPlaylist } from "~/features/playlist/add-to-playlist";
 import { TYPE_LABEL } from "~/lib/item-types";
 import { Avatar } from "~/features/shell/context-panel";
 import { serverApi } from "~/server/api";
@@ -31,13 +32,24 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const item = await loadItem((await params).slug);
-  const description = (item.description ?? `${item.title} by ${item.artist?.name ?? "Bandcoin"}`).slice(0, 180);
+  const description = (
+    item.description ?? `${item.title} by ${item.artist?.name ?? "Bandcoin"}`
+  ).slice(0, 180);
   return {
     title: `${item.title} by ${item.artist?.name ?? "Bandcoin"}`,
     description,
     alternates: { canonical: `/item/${item.slug}` },
-    openGraph: { title: item.title, description, images: [{ url: item.coverUrl, alt: item.title }] },
-    twitter: { card: "summary_large_image", title: item.title, description, images: [item.coverUrl] },
+    openGraph: {
+      title: item.title,
+      description,
+      images: [{ url: item.coverUrl, alt: item.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: item.title,
+      description,
+      images: [item.coverUrl],
+    },
   };
 }
 
@@ -48,12 +60,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
  */
 export default async function ItemPage({ params }: Props) {
   const { slug } = await params;
-  const [item, more] = await Promise.all([loadItem(slug), (await serverApi()).catalog.moreFromArtist({ itemSlug: slug })]);
+  const [item, more] = await Promise.all([
+    loadItem(slug),
+    (await serverApi()).catalog.moreFromArtist({ itemSlug: slug }),
+  ]);
   const artistName = item.artist?.name ?? item.track?.artistName ?? "Bandcoin";
   const label = TYPE_LABEL[item.type] ?? item.type;
   const primary = item.listings.find((listing) => listing.kind === "PRIMARY") ?? item.listings[0];
   const left = primary?.remaining ?? null;
-  const royalty = Number(item.royaltyPercent ?? (item.contractNft ? item.contractNft.royaltyBps / 100 : 0));
+  const royalty = Number(
+    item.royaltyPercent ?? (item.contractNft ? item.contractNft.royaltyBps / 100 : 0),
+  );
   const explorer = item.classicToken
     ? `https://stellar.expert/explorer/${item.network === "mainnet" ? "public" : "testnet"}/asset/${item.classicToken.code}-${item.classicToken.issuer}`
     : null;
@@ -80,13 +97,18 @@ export default async function ItemPage({ params }: Props) {
     ...(item.classicToken
       ? ([
           ["Token code", item.classicToken.code],
-          ["Issuer", `${item.classicToken.issuer.slice(0, 6)}…${item.classicToken.issuer.slice(-6)}`],
+          [
+            "Issuer",
+            `${item.classicToken.issuer.slice(0, 6)}…${item.classicToken.issuer.slice(-6)}`,
+          ],
         ] as [string, string][])
       : []),
     ["Supply", item.supply === null ? "Unlimited" : item.supply.toLocaleString()],
     ["Sold", item.sold.toLocaleString()],
     ["Holders", item.holders.toLocaleString()],
-    ...(royalty > 0 ? ([["Artist royalty", `${royalty}% of every resale`]] as [string, string][]) : []),
+    ...(royalty > 0
+      ? ([["Artist royalty", `${royalty}% of every resale`]] as [string, string][])
+      : []),
     ["Network", item.network === "mainnet" ? "Stellar" : "Stellar testnet"],
   ];
 
@@ -105,11 +127,20 @@ export default async function ItemPage({ params }: Props) {
           aria-hidden
           className="absolute inset-0 -z-10 size-full scale-110 object-cover opacity-60 blur-sm"
         />
-        <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-r from-black/95 via-black/80 to-black/45" />
-        <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10 bg-gradient-to-r from-black/95 via-black/80 to-black/45"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10 bg-gradient-to-t from-black/80 via-transparent to-transparent"
+        />
 
         <div className="mx-auto max-w-[80rem] px-4 pt-6 pb-10 sm:px-8 lg:pb-12">
-          <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-white/70">
+          <nav
+            aria-label="Breadcrumb"
+            className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-white/70"
+          >
             <Link href="/marketplace" className="hover:text-white">
               Marketplace
             </Link>
@@ -147,7 +178,10 @@ export default async function ItemPage({ params }: Props) {
                 <p className="marker -rotate-2 text-lg text-white/75">
                   *by{" "}
                   {item.artist ? (
-                    <Link href={`/artist/${item.artist.slug}`} className="text-primary hover:underline">
+                    <Link
+                      href={`/artist/${item.artist.slug}`}
+                      className="text-primary hover:underline"
+                    >
                       {artistName}
                     </Link>
                   ) : (
@@ -155,11 +189,16 @@ export default async function ItemPage({ params }: Props) {
                   )}
                   *
                 </p>
-                <h1 className="display text-4xl break-words sm:text-5xl xl:text-6xl">{item.title}</h1>
+                <h1 className="display text-4xl break-words sm:text-5xl xl:text-6xl">
+                  {item.title}
+                </h1>
                 {item.track?.album && (
                   <p className="text-sm text-white/65">
                     From{" "}
-                    <Link href={`/album/${item.track.album.slug}`} className="font-semibold text-white hover:underline">
+                    <Link
+                      href={`/album/${item.track.album.slug}`}
+                      className="font-semibold text-white hover:underline"
+                    >
                       {item.track.album.title}
                     </Link>
                   </p>
@@ -171,19 +210,31 @@ export default async function ItemPage({ params }: Props) {
                   <Sticker
                     className="bg-primary text-primary-foreground -rotate-2"
                     label="Price"
-                    note={<>≈ <Money amount={primary.priceUsd} currency="USD" /></>}
+                    note={
+                      <>
+                        ≈ <Money amount={primary.priceUsd} currency="USD" />
+                      </>
+                    }
                   >
                     <Money amount={primary.priceBandcoin} currency="BANDCOIN" onBrand />
                   </Sticker>
                 )}
-                <Sticker className="text-fg rotate-1 bg-white" label="Edition" note={`${item.sold.toLocaleString()} sold`}>
+                <Sticker
+                  className="text-fg rotate-1 bg-white"
+                  label="Edition"
+                  note={`${item.sold.toLocaleString()} sold`}
+                >
                   {item.supply === null ? "Open" : item.supply.toLocaleString()}
                 </Sticker>
                 {left !== null && (
                   <Sticker
                     className="-rotate-1 bg-white/15"
                     label="Left"
-                    note={item.supply ? `${Math.min(100, Math.round((item.sold / item.supply) * 100))}% sold` : undefined}
+                    note={
+                      item.supply
+                        ? `${Math.min(100, Math.round((item.sold / item.supply) * 100))}% sold`
+                        : undefined
+                    }
                   >
                     {left === 0 ? "Sold out" : left.toLocaleString()}
                   </Sticker>
@@ -194,22 +245,44 @@ export default async function ItemPage({ params }: Props) {
                   </Sticker>
                 )}
               </div>
+              {item.media?.mediaType === "AUDIO" && (
+                <AddToPlaylist
+                  itemId={item.id}
+                  title={item.title}
+                  variant="button"
+                  className="w-fit bg-white/15 text-white hover:bg-white/25"
+                />
+              )}
             </div>
 
             <div className="mx-auto w-full max-w-[22rem]">
               <div className="relative">
                 <div className="bg-surface overflow-hidden rounded-[1.4rem] border-[3px] border-white shadow-[10px_12px_0_0_var(--color-primary)] lg:rotate-2">
                   {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
-                  <img src={item.coverUrl} alt={item.title} className="aspect-square w-full object-cover" />
+                  <img
+                    src={item.coverUrl}
+                    alt={item.title}
+                    className="aspect-square w-full object-cover"
+                  />
                 </div>
                 {item.media?.mediaType === "AUDIO" && (
                   <PlayButton
-                    track={{ id: item.id, slug: item.slug, title: item.title, artistName, coverUrl: item.coverUrl }}
+                    track={{
+                      id: item.id,
+                      slug: item.slug,
+                      title: item.title,
+                      artistName,
+                      coverUrl: item.coverUrl,
+                    }}
                     className="absolute right-4 bottom-4 lg:right-2 lg:bottom-6"
                   />
                 )}
                 <span className="marker bg-primary text-primary-foreground pointer-events-none absolute -top-3 -left-3 -rotate-12 rounded-lg px-2.5 py-1 text-base">
-                  {left === 0 ? "sold out!" : left !== null && left <= 10 ? `only ${left} left!` : `${label.toLowerCase()} drop!`}
+                  {left === 0
+                    ? "sold out!"
+                    : left !== null && left <= 10
+                      ? `only ${left} left!`
+                      : `${label.toLowerCase()} drop!`}
                 </span>
               </div>
             </div>
@@ -250,7 +323,11 @@ export default async function ItemPage({ params }: Props) {
                     <span className="min-w-0 flex-1">
                       <span className="marker text-fg-muted block text-sm">made by</span>
                       <span className="display block truncate text-xl">{item.artist.name}</span>
-                      {item.artist.bio && <span className="text-fg-muted line-clamp-1 text-sm">{item.artist.bio}</span>}
+                      {item.artist.bio && (
+                        <span className="text-fg-muted line-clamp-1 text-sm">
+                          {item.artist.bio}
+                        </span>
+                      )}
                     </span>
                     <span className="bg-primary text-primary-foreground flex size-10 shrink-0 items-center justify-center rounded-full transition-transform group-hover:-rotate-45">
                       <ChevronRight className="size-5" strokeWidth={2.6} />
@@ -277,7 +354,10 @@ export default async function ItemPage({ params }: Props) {
             ) : (
               <ul className="divide-border divide-y text-sm">
                 {item.recentSales.map((sale) => (
-                  <li key={sale.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
+                  <li
+                    key={sale.id}
+                    className="flex flex-wrap items-center justify-between gap-2 py-2.5"
+                  >
                     <span>
                       <b className="font-semibold">{sale.buyer}</b> bought {sale.quantity}
                     </span>
@@ -295,14 +375,20 @@ export default async function ItemPage({ params }: Props) {
         </div>
 
         {more && more.items.length > 0 && (
-          <section className="grid gap-4 pt-4" aria-label={`More from ${more.artist?.name ?? artistName}`}>
+          <section
+            className="grid gap-4 pt-4"
+            aria-label={`More from ${more.artist?.name ?? artistName}`}
+          >
             <div className="flex items-end justify-between gap-3">
               <div>
                 <h2 className="display text-2xl">More from {more.artist?.name ?? artistName}</h2>
                 <p className="marker text-fg-muted text-base">same artist, more drops</p>
               </div>
               {more.artist && (
-                <Link href={`/artist/${more.artist.slug}`} className="text-fg-muted hover:text-fg text-sm font-semibold">
+                <Link
+                  href={`/artist/${more.artist.slug}`}
+                  className="text-fg-muted hover:text-fg text-sm font-semibold"
+                >
                   See all
                 </Link>
               )}

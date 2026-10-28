@@ -2,6 +2,7 @@
 
 import { Pause, Play } from "lucide-react";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { cn } from "@bandcoin/ui/lib/cn";
 
@@ -9,6 +10,7 @@ import { Money } from "~/components/money";
 
 import type { ItemCardData } from "../catalog/item-card";
 import { currentTrack, usePlayer } from "../player/player-store";
+import { AddToPlaylist } from "../playlist/add-to-playlist";
 
 const clock = (seconds: number | null) =>
   seconds === null ? "" : `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
@@ -22,11 +24,14 @@ export function TrackRow({
   position,
   list,
   badge,
+  action,
 }: {
   track: ItemCardData;
   position: number;
   list: ItemCardData[];
   badge?: string;
+  /** Replaces the row's "Add to playlist" (e.g. Remove on your own playlist) */
+  action?: ReactNode;
 }) {
   const { playQueue, toggle } = usePlayer();
   const isCurrent = usePlayer((state) => currentTrack(state)?.id === track.id);
@@ -47,7 +52,7 @@ export function TrackRow({
           }
         }}
         className={cn(
-          "hover:bg-surface-2 group grid cursor-pointer grid-cols-[28px_44px_minmax(0,1fr)_auto] items-center gap-3 rounded-md px-2 py-2 sm:grid-cols-[28px_44px_minmax(0,1fr)_auto_64px]",
+          "hover:bg-surface-2 group grid cursor-pointer grid-cols-[28px_44px_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-md px-2 py-2 sm:grid-cols-[28px_44px_minmax(0,1fr)_auto_auto_56px]",
           isCurrent && "bg-primary-soft",
         )}
       >
@@ -84,6 +89,13 @@ export function TrackRow({
         </div>
         <span className="num text-fg-muted text-xs">
           {track.price && <Money amount={track.price.bandcoin} currency="BANDCOIN" />}
+        </span>
+        <span
+          className="opacity-100 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 [@media(pointer:fine)]:opacity-0"
+          onClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
+        >
+          {action ?? <AddToPlaylist itemId={track.id} title={track.title} />}
         </span>
         <span className="num text-fg-faint hidden text-right text-xs sm:block">{clock(track.durationSec)}</span>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy, Layers, LogOut, Settings, Wallet } from "lucide-react";
+import { Check, Copy, Layers, LogOut, Settings, UserRound, Wallet } from "lucide-react";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
@@ -75,6 +75,13 @@ function AccountMenu({ me }: { me: Me }) {
           <p className="text-warning px-2 pb-2 text-xs">Your wallet isn&apos;t active yet. Add XLM to start.</p>
         )}
         <DropdownMenuSeparator />
+        {me.username && (
+          <DropdownMenuItem asChild>
+            <Link href={`/u/${me.username}`}>
+              <UserRound /> Your profile
+            </Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem asChild>
           <Link href="/collection">
             <Layers /> My collection
