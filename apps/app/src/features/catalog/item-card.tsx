@@ -91,7 +91,16 @@ export function ItemCard({ item, queue, className }: { item: ItemCardData; queue
         </div>
 
         <div className="absolute inset-x-0 bottom-0 grid gap-1 p-3 text-white transition-transform duration-200 group-hover:-translate-y-0.5">
-          <p className="truncate text-xs font-semibold text-white/80">{item.artistName}</p>
+          {item.artistSlug ? (
+            <Link
+              href={`/artist/${item.artistSlug}`}
+              className="relative z-10 w-fit max-w-full truncate text-xs font-semibold text-white/80 hover:text-white hover:underline"
+            >
+              {item.artistName}
+            </Link>
+          ) : (
+            <p className="truncate text-xs font-semibold text-white/80">{item.artistName}</p>
+          )}
           <p className="display line-clamp-2 pr-10 text-[1.15rem] leading-[1.05] break-words">{item.title}</p>
         </div>
       </div>

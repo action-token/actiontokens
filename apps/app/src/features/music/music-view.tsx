@@ -16,6 +16,7 @@ import { api, type RouterInputs } from "~/trpc/react";
 
 import { type ItemCardData, ItemCard, POSTER_WIDTH } from "../catalog/item-card";
 import { usePlayer } from "../player/player-store";
+import { AlbumCard } from "../catalog/album-card";
 import { TrackRow } from "./track-row";
 
 type Sort = NonNullable<RouterInputs["music"]["tracks"]["sort"]>;
@@ -67,6 +68,13 @@ function AllMusic() {
         <MediaCarousel title="New songs" note="just dropped" itemWidth={POSTER_WIDTH}>
           {overview.data.newest.map((item) => (
             <ItemCard key={item.id} item={item} queue={overview.data.newest} />
+          ))}
+        </MediaCarousel>
+      )}
+      {overview.data && overview.data.albums.length > 0 && (
+        <MediaCarousel title="Albums" note="full releases" itemWidth="minmax(160px,188px)">
+          {overview.data.albums.map((album) => (
+            <AlbumCard key={album.slug} album={{ ...album, artistName: album.artist?.name }} />
           ))}
         </MediaCarousel>
       )}

@@ -156,7 +156,14 @@ export default async function ItemPage({ params }: Props) {
                   *
                 </p>
                 <h1 className="display text-4xl break-words sm:text-5xl xl:text-6xl">{item.title}</h1>
-                {item.track?.album && <p className="text-sm text-white/65">From {item.track.album.title}</p>}
+                {item.track?.album && (
+                  <p className="text-sm text-white/65">
+                    From{" "}
+                    <Link href={`/album/${item.track.album.slug}`} className="font-semibold text-white hover:underline">
+                      {item.track.album.title}
+                    </Link>
+                  </p>
+                )}
               </div>
 
               <div className="flex flex-wrap items-stretch gap-3">

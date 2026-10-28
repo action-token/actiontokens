@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import type { Prisma } from "@bandcoin/db";
+import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import { itemCardSelect, listedItemWhere, toItemCard } from "../../services/catalog/item-card";
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
@@ -26,14 +27,56 @@ export const musicRouter = createRouter({
       ctx.db.album.findMany({
         orderBy: { createdAt: "desc" },
         take: 12,
-        select: { title: true, slug: true, coverUrl: true, artist: { select: { name: true, slug: true } }, _count: { select: { tracks: true } } },
+        select: {
+          title: true,
+          slug: true,
+          coverUrl: true,
+          createdAt: true,
+          artist: { select: { name: true, slug: true } },
+          _count: { select: { tracks: true } },
+        },
       }),
     ]);
     return {
       newest: newest.map(toItemCard),
-      albums: albums.map((album) => ({ ...album, trackCount: album._count.tracks })),
+      albums: albums.map(({ _count, createdAt, ...album }) => ({ ...album, year: createdAt.getFullYear(), trackCount: _count.tracks })),
     };
   }),
+
+  /** An album and its songs, in track order. */
+  album: publicProcedure
+    .input(z.object({ slug: z.string().min(1).max(200) }))
+    .query(async ({ ctx, input }) => {
+      const album = await ctx.db.album.findUnique({
+        where: { slug: input.slug },
+        select: {
+          title: true,
+          slug: true,
+          description: true,
+          coverUrl: true,
+          createdAt: true,
+          artist: { select: { name: true, slug: true, avatarUrl: true } },
+          tracks: {
+            where: { item: listedItemWhere },
+            orderBy: [{ trackNumber: "asc" }, { item: { createdAt: "asc" } }],
+            select: { item: { select: itemCardSelect } },
+          },
+        },
+      });
+      if (!album)
+        throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "This album doesn't exist." });
+      const tracks = album.tracks.map((track) => toItemCard(track.item));
+      return {
+        title: album.title,
+        slug: album.slug,
+        description: album.description,
+        coverUrl: album.coverUrl,
+        year: album.createdAt.getFullYear(),
+        artist: album.artist,
+        tracks,
+        durationSec: tracks.reduce((sum, track) => sum + (track.durationSec ?? 0), 0),
+      };
+    }),
 
   /** Every song, sortable, a page at a time. */
   tracks: publicProcedure
@@ -64,6 +107,9 @@ export const musicRouter = createRouter({
       take: 500,
       select: { ...itemCardSelect, createdById: true },
     });
-    return rows.map((row) => ({ ...toItemCard(row), source: row.createdById === userId ? ("created" as const) : ("owned" as const) }));
+    return rows.map((row) => ({
+      ...toItemCard(row),
+      source: row.createdById === userId ? ("created" as const) : ("owned" as const),
+    }));
   }),
 });

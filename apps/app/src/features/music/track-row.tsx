@@ -72,7 +72,13 @@ export function TrackRow({
             {track.title}
           </Link>
           <span className="text-fg-muted block truncate text-xs">
-            {track.artistName}
+            {track.artistSlug ? (
+              <Link href={`/artist/${track.artistSlug}`} onClick={(event) => event.stopPropagation()} className="hover:text-fg hover:underline">
+                {track.artistName}
+              </Link>
+            ) : (
+              track.artistName
+            )}
             {badge && <span className="bg-surface-3 text-fg ml-2 rounded-full px-1.5 py-px text-[10px] font-semibold">{badge}</span>}
           </span>
         </div>
