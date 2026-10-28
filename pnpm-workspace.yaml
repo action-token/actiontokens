@@ -93,6 +93,7 @@ catalog:
   framer-motion: "^14.1.0"
   google-auth-library: "^11.2.0"
   formidable: "^3.5.4"
+  jsqr: "^1.4.0"
   jsonwebtoken: "^9.0.3"
   "jwks-rsa": "^4.1.0"
   lucide-react: "^1.55.0"

@@ -26,6 +26,7 @@
     "@trpc/react-query": "catalog:",
     "@trpc/server": "catalog:",
     "framer-motion": "catalog:",
+    "jsqr": "catalog:",
     "lucide-react": "catalog:",
     "mapbox-gl": "catalog:",
     "next": "catalog:",
