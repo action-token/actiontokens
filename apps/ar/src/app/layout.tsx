@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 
 import { site } from "@bandcoin/ar-core/site";
 
+import { fontVariables } from "~/lib/fonts";
 import { TRPCReactProvider } from "~/trpc/react";
 
 export const metadata: Metadata = {
@@ -52,7 +53,7 @@ const themeBootScript = `
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     // The boot script may change the theme before hydration.
-    <html lang="en" className="dark" data-theme="dark" suppressHydrationWarning>
+    <html lang="en" className={`dark ${fontVariables}`} data-theme="dark" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       </head>

@@ -44,8 +44,8 @@ export function SkeletonText({ lines = 2, className }: { lines?: number; classNa
   );
 }
 
-/** Matches `BrandRow` on /brands — same 52px avatar and three text lines. */
-export function BrandRowSkeleton() {
+/** Matches `ArtistRow` on /artists — same 52px avatar and three text lines. */
+export function ArtistRowSkeleton() {
   return (
     <div className="ar-bevel rounded-ar relative flex items-center gap-3 overflow-hidden p-3">
       <Skeleton className="h-[52px] w-[52px] shrink-0" rounded="rounded-[14px]" />

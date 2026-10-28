@@ -1,0 +1,335 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { BadgeCheck, ChevronLeft, Share2 } from "lucide-react";
+import { useQueryParams, useRouter } from "~/lib/navigation";
+import { useState } from "react";
+
+import { ArtistAvatar } from "~/components/artist/ArtistAvatar";
+import { HoloCard } from "~/components/cards/HoloCard";
+import { AppShell } from "~/components/shell/AppShell";
+import { CardSkeleton, Skeleton, SkeletonText, StatRowSkeleton } from "~/components/ui/Skeleton";
+import { ArButton, ArLinkButton } from "~/components/ui/ArButton";
+import { StatBlock } from "~/components/ui/Badges";
+import { SegmentedTabs } from "~/components/ui/SegmentedTabs";
+import { useAuth } from "~/lib/ar/store";
+import { useArtistPinsQuery, useToggleFollow } from "~/lib/ar/usePins";
+import { api } from "~/trpc/react";
+
+const compact = (n: number) =>
+  n >= 1_000 ? `${(n / 1_000).toFixed(n >= 10_000 ? 0 : 1)}k` : String(n);
+
+type Tab = "live" | "yours";
+
+/**
+ * How many cards the drops grid is willing to mount at once.
+ *
+ * `HoloCard` is expensive per instance in a way the markup doesn't advertise:
+ * each one establishes its own compositing layer (`perspective` +
+ * `preserve-3d` + a transform that is never `none`, even at rest) and stacks
+ * three `mix-blend-mode` foil layers over its art. Fine for a dozen. The
+ * busiest Wadzzo account had 102 live drops, and mounting all of them put ~400
+ * blended layers, 309 images and 8k DOM nodes on a single page — enough to
+ * exhaust the GPU memory budget on iOS Safari, which kills the tab outright
+ * rather than degrading. Capping the mounted set bounds that cost regardless
+ * of how many drops an artist runs.
+ */
+const PAGE_SIZE = 24;
+
+/**
+ * ── /artists/[id] ───────────────────────────────────────────────────────────
+ *
+ * A artist's page, split into what they have out right now and what you've
+ * already taken from them. Those are genuinely different questions — one is
+ * "where do I go next", the other is "what have I got" — and merging them
+ * into one grid makes both harder to answer.
+ */
+export default function ArtistDetail() {
+  const router = useRouter();
+  const { query: urlQuery, ready: urlReady } = useQueryParams();
+  const id = typeof urlQuery.id === "string" ? urlQuery.id : null;
+
+  const artistQuery = api.artist.byId.useQuery({ id: id ?? "" }, { enabled: Boolean(id), retry: false });
+  const artistsLoading = !urlReady || (Boolean(id) && artistQuery.isLoading);
+  const {
+    toggle: toggleFollow,
+    pendingId: followPendingId,
+    labelFor: followLabel,
+    error: followError,
+  } = useToggleFollow();
+  const requireAuth = useAuth((s) => s.requireAuth);
+  const signedIn = useAuth((s) => Boolean(s.user));
+
+  const [tab, setTab] = useState<Tab>("live");
+
+  const artist = artistQuery.data ?? null;
+
+  // Counts for the tab labels. These come from the two paginated queries'
+  // `total`, not from a client-side filter over every pin on the map — see
+  // `useArtistPinsQuery`.
+  const liveQuery = useArtistPinsQuery({
+    artistId: id,
+    tab: "live",
+    pageSize: PAGE_SIZE,
+  });
+  const yoursQuery = useArtistPinsQuery({
+    artistId: signedIn ? id : null,
+    tab: "yours",
+    pageSize: PAGE_SIZE,
+  });
+
+  const active = tab === "live" ? liveQuery : yoursQuery;
+
+  // Same reasoning as the card page: absence is only true once the list has
+  // actually loaded.
+  if (artistsLoading) {
+    return (
+      <AppShell>
+        <div className="ar-scroll h-full" role="status" aria-label="Loading artist">
+          <Skeleton className="h-[188px] w-full" rounded="rounded-none" />
+          <div className="px-5">
+            <Skeleton className="-mt-10 h-[76px] w-[76px]" rounded="rounded-[20px]" />
+            <Skeleton rounded="rounded-full" className="mt-3 h-5 w-2/3" />
+            <Skeleton rounded="rounded-full" className="mt-2 h-3 w-1/3" />
+            <SkeletonText lines={2} className="mt-3.5" />
+            <StatRowSkeleton count={3} />
+            <Skeleton className="mt-4 h-10 w-full" rounded="rounded-full" />
+          </div>
+        </div>
+      </AppShell>
+    );
+  }
+
+  if (!artist) {
+    return (
+      <AppShell>
+        <div className="flex h-full flex-col items-center justify-center gap-4 px-8 text-center">
+          <p className="font-hud text-ar-dim text-[15px] font-bold tracking-[0.12em] uppercase">
+            Artist not found
+          </p>
+          <ArLinkButton href="/artists" variant="primary" size="md">
+            All artists
+          </ArLinkButton>
+        </div>
+      </AppShell>
+    );
+  }
+
+  const visible = active.pins;
+  const remaining = active.total - visible.length;
+
+  return (
+    <AppShell>
+      <div className="ar-scroll h-full">
+        {/* ── Cover ────────────────────────────────────────────────── */}
+        <div className="relative h-[188px]">
+          {}
+          {/* Not every creator has uploaded a cover; the gradient below
+              carries the header on its own when they haven't. */}
+          {artist.coverUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={artist.coverUrl} alt="" className="h-full w-full object-cover" />
+          )}
+          <div className="from-ar-void/70 to-ar-bg absolute inset-0 bg-linear-to-b via-transparent" />
+          <div className="ar-grid absolute inset-0 opacity-25" />
+
+          <div
+            className="absolute inset-x-0 top-0 flex items-center justify-between px-4"
+            style={{ paddingTop: "calc(var(--ar-top-inset) + 14px)" }}
+          >
+            <button
+              onClick={() => router.back()}
+              aria-label="Back"
+              className="ar-glass text-ar-text flex h-9 w-9 items-center justify-center rounded-full"
+            >
+              <ChevronLeft size={17} strokeWidth={2.4} />
+            </button>
+            <button
+              aria-label="Share this artist"
+              onClick={() => {
+                void navigator
+                  .share?.({
+                    title: artist.name,
+                    text: artist.tagline ?? artist.bio,
+                    url: window.location.href,
+                  })
+                  .catch(() => undefined);
+              }}
+              className="ar-glass text-ar-text flex h-9 w-9 items-center justify-center rounded-full"
+            >
+              <Share2 size={15} strokeWidth={2.2} />
+            </button>
+          </div>
+        </div>
+
+        {/* ── Identity ─────────────────────────────────────────────── */}
+        <div className="relative -mt-11 px-5">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 320, damping: 24 }}
+            className="w-fit"
+          >
+            <ArtistAvatar
+              src={artist.avatarUrl}
+              loading="eager"
+              className="ring-ar-bg h-[84px] w-[84px] rounded-[22px] ring-[3px]"
+            />
+          </motion.div>
+
+          <h1 className="text-ar-text mt-3 flex items-center gap-1.5 text-[21px] leading-tight font-semibold">
+            <span className="min-w-0 truncate">{artist.name}</span>
+            {artist.verified && (
+              <BadgeCheck
+                size={17}
+                strokeWidth={2.4}
+                className="text-ar-accent-hot shrink-0"
+                aria-label="Verified"
+              />
+            )}
+          </h1>
+          <p className="font-hud text-ar-faint mt-0.5 text-[11px] tracking-[0.14em] uppercase">
+            {/* No column names a artist's place, so the separator only earns
+                its space when there's actually something after it. */}
+            @{artist.handle}
+            {artist.region && <> &middot; {artist.region}</>}
+          </p>
+          {/* The tagline only: the bio is shown once, under About. */}
+          {artist.tagline && (
+            <p className="text-ar-dim mt-2.5 text-[13px] leading-relaxed">{artist.tagline}</p>
+          )}
+        </div>
+
+        {/* ── Stats + follow ───────────────────────────────────────── */}
+        <div className="rounded-ar border-ar-line mx-5 mt-4 flex items-center justify-around border bg-white/[0.03] py-3">
+          <StatBlock label="Followers" value={compact(artist.followers)} />
+          <span className="bg-ar-line h-8 w-px" />
+          <StatBlock label="Live now" value={liveQuery.total} accent />
+          <span className="bg-ar-line h-8 w-px" />
+          <StatBlock label="You hold" value={yoursQuery.total} />
+        </div>
+
+        {/* A failed follow is otherwise silent — the button just returns to
+            "Follow" and the user is left guessing whether they mis-tapped. */}
+        {followError && (
+          <div className="rounded-ar border-ar-danger/40 bg-ar-danger/10 mx-5 mt-3 border px-3.5 py-2.5">
+            <p className="text-ar-danger text-[12px] leading-relaxed">{followError}</p>
+          </div>
+        )}
+
+        <div className="mt-3 flex gap-2 px-5">
+          <ArButton
+            size="md"
+            variant={artist.followed ? "outline" : "primary"}
+            block
+            busy={followPendingId === artist.id}
+            onClick={() => {
+              if (!requireAuth("follow")) return;
+              toggleFollow(artist);
+            }}
+          >
+            {followLabel(artist)}
+          </ArButton>
+          <ArLinkButton href="/map" size="md" variant="outline" className="shrink-0">
+            On map
+          </ArLinkButton>
+        </div>
+
+        {artist.followed && (
+          <p className="text-ar-faint mt-2 px-5 text-[11px] leading-relaxed">
+            Their follower-only pins now show on your map. Members pins need their fan token.
+          </p>
+        )}
+
+        {/* ── Bio ──────────────────────────────────────────────────── */}
+        {artist.bio && (
+          <section className="mt-6 px-5">
+            <h2 className="font-hud text-ar-faint mb-2 text-[9.5px] font-semibold tracking-[0.24em] uppercase">
+              About
+            </h2>
+            <p className="text-ar-dim text-[13px] leading-relaxed">{artist.bio}</p>
+          </section>
+        )}
+
+        {/* ── Drops ────────────────────────────────────────────────── */}
+        <section className="mt-6">
+          <SegmentedTabs
+            layoutId="artist-detail-tabs"
+            value={tab}
+            onChange={setTab}
+            className="mx-5"
+            tabs={[
+              { id: "live", label: "Live drops", count: liveQuery.total },
+              {
+                id: "yours",
+                label: "Your collectibles",
+                count: yoursQuery.total,
+              },
+            ]}
+          />
+
+          <div className="mt-4 px-5 pb-8">
+            {/* A grid still fetching its first page is not an empty grid.
+                Without this the "Nothing live right now" copy flashes on every
+                visit before the cards land, which reads as a artist with no
+                drops rather than as loading. */}
+            {active.isLoading ? (
+              <div className="grid grid-cols-2 gap-3.5" role="status" aria-label="Loading drops">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <CardSkeleton key={i} />
+                ))}
+              </div>
+            ) : visible.length > 0 ? (
+              <>
+                <div className="grid grid-cols-2 gap-3.5">
+                  {visible.map((pin, i) => (
+                    <HoloCard
+                      key={pin.id}
+                      pin={pin}
+                      oneFace
+                      className="tcg-card--windowed"
+                      priority={i < 2}
+                      onClick={() => void router.push(`/collection/${pin.id}`)}
+                    />
+                  ))}
+
+                  {/* The next page lands *below* what's on screen, so its
+                      placeholders go in the same grid rather than replacing
+                      it — the cards you were already looking at stay put. */}
+                  {active.isFetchingNextPage &&
+                    Array.from({
+                      length: Math.min(remaining, PAGE_SIZE),
+                    }).map((_, i) => <CardSkeleton key={`next-${i}`} />)}
+                </div>
+
+                {remaining > 0 && !active.isFetchingNextPage && (
+                  <div className="mt-5 flex justify-center">
+                    <ArButton
+                      variant="outline"
+                      size="md"
+                      onClick={() => void active.fetchNextPage()}
+                    >
+                      Show {Math.min(remaining, PAGE_SIZE)} more
+                      <span className="text-ar-faint ml-1">&middot; {remaining} left</span>
+                    </ArButton>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="py-12 text-center">
+                <p className="font-hud text-ar-dim text-[13px] font-bold tracking-[0.14em] uppercase">
+                  {tab === "live" ? "Nothing live right now" : "None yet"}
+                </p>
+                <p className="text-ar-faint mx-auto mt-1.5 max-w-[17rem] text-[12.5px] leading-relaxed">
+                  {tab === "live"
+                    ? `Follow ${artist.name} and you'll see their next drop the moment it lands.`
+                    : `Capture one of ${artist.name}'s pins and it'll show up here.`}
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
+    </AppShell>
+  );
+}
