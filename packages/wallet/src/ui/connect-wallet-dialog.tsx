@@ -195,11 +195,6 @@ export function ConnectWalletDialog() {
   const authUser =
     session.status === "authenticated" && !!session.data?.user.emailVerified && isAccountActivate;
 
-  const title = authUser
-    ? "Switch account"
-    : activeTab === "stellar"
-      ? "Connect Wallet"
-      : "Welcome back";
   const subtitle = authUser
     ? activeTab === "stellar"
       ? "Use another Stellar wallet"
@@ -640,7 +635,7 @@ export function ConnectWalletDialog() {
           >
             <div className="p-6 pb-3">
               <p className="marker text-primary-text text-sm">*scan to connect*</p>
-              <h3 className="display mt-2 text-2xl">{title}</h3>
+              <h3 className="display text-foreground mt-2 text-[1.75rem]">Connect Wallet</h3>
             </div>
 
             <div className="flex flex-1 items-center justify-center px-6">
