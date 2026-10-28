@@ -16,6 +16,12 @@ export interface WalletProvider {
    * Resolves `false` if the user didn't sign; throws `StellarTransactionError` if Stellar refuses it.
    */
   signAndSubmit(xdr: string, publicKey: string): Promise<boolean>;
+  /**
+   * Signs `xdr` and returns it without submitting, for flows where the server
+   * submits (purchases). Absent for custodial accounts: the server signs those.
+   * Throws an `AppError` (WALLET_SIGNING_REJECTED) if the user declines.
+   */
+  sign?(xdr: string, publicKey: string): Promise<string>;
 }
 
 /**

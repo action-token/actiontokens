@@ -1,6 +1,8 @@
 import albedo, { type PublicKeyIntentResult } from "@albedo-link/intent";
 import toast from "react-hot-toast";
 
+import { AppError, ErrorCodes } from "@bandcoin/errors";
+
 import { stellarNetwork } from "../../config/stellar-network";
 import { StellarTransactionError } from "../../errors/stellar-transaction-error";
 import { signInWithAlbedo } from "../../session/sign-in-with-credentials";
@@ -43,6 +45,15 @@ export const albedoProvider: WalletProvider = {
 
     if (result?.ok) toast.success("Public Key : " + abbreviateAddress(intent.pubkey, 10));
     if (result?.error) toast.error(result.error);
+  },
+
+  async sign(xdr, publicKey) {
+    try {
+      const result = await albedo.tx({ xdr, pubkey: publicKey, network: stellarNetwork.albedoNetwork, submit: false });
+      return result.signed_envelope_xdr;
+    } catch (cause) {
+      throw new AppError(ErrorCodes.WALLET_SIGNING_REJECTED, { message: "Transaction declined in Albedo.", cause });
+    }
   },
 
   async signAndSubmit(xdr, publicKey) {

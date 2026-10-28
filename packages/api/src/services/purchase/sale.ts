@@ -7,6 +7,8 @@ import { toAmount, toStroops } from "@bandcoin/chain";
 /** A listing with everything a purchase needs to price, build and deliver it. */
 export async function loadSale(db: Db, listingId: string) {
   const listing = await db.listing.findUnique({
+    // One SQL query instead of one per relation: this runs on every quote.
+    relationLoadStrategy: "join",
     where: { id: listingId },
     include: {
       seller: {

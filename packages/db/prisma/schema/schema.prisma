@@ -8,8 +8,10 @@
 // - Secret keys live only in ChainAccount.secretEncrypted, never next to public data.
 
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+  provider        = "prisma-client-js"
+  binaryTargets   = ["native", "rhel-openssl-1.0.x"]
+  /// relationLoadStrategy: "join" loads a record and its relations in one query
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {

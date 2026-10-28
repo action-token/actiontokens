@@ -12,7 +12,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "test": "vitest run",
-    "test:e2e": "vitest run --config vitest.e2e.config.mts"
+    "test:e2e": "vitest run --config vitest.e2e.config.mts",
+    "testnet:demo": "tsx --env-file=../db/.env --env-file=../../apps/app/.env.local scripts/testnet-demo.ts",
+    "testnet:buy": "tsx --env-file=../db/.env --env-file=../../apps/app/.env.local scripts/testnet-buy.ts"
   },
   "dependencies": {
     "@bandcoin/chain": "workspace:*",
@@ -31,6 +33,7 @@
     "@types/node": "catalog:",
     "dotenv": "catalog:",
     "eslint": "catalog:",
+    "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

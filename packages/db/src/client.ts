@@ -6,6 +6,15 @@ import { isEnvValidationSkipped, requireEnv } from "@bandcoin/errors";
 const CONNECTION_TIMEOUT_MS = 30_000;
 
 /**
+ * node-postgres already treats sslmode=require/prefer/verify-ca as verify-full
+ * and warns on every connection that this will change. Saying verify-full
+ * keeps today's (stricter) behaviour and silences the warning.
+ */
+export function withExplicitSslMode(url: string | undefined) {
+  return url?.replace(/([?&]sslmode=)(require|prefer|verify-ca)\b/, "$1verify-full");
+}
+
+/**
  * Prisma 7 connects through a driver adapter (node-postgres) instead of the
  * old Rust query engine's own connection. One client per process; in dev it
  * survives hot reloads on globalThis.
@@ -18,12 +27,15 @@ function createDbClient() {
 
   return new PrismaClient({
     adapter: new PrismaPg({
-      connectionString,
+      connectionString: withExplicitSslMode(connectionString),
       connectionTimeoutMillis: CONNECTION_TIMEOUT_MS,
       // Poolers and embedded databases may allow only a few connections.
       ...(poolMax ? { max: poolMax } : {}),
     }),
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+    // A sleeping Neon database can take a few seconds to hand out a
+    // connection; Prisma's 2 s default would fail the transaction.
+    transactionOptions: { maxWait: 10_000, timeout: 15_000 },
     // Secret keys are never loaded unless a query asks for them by name
     // (`select: { secretEncrypted: true }`), so a stray `include` can't send
     // them to the browser.

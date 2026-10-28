@@ -70,6 +70,8 @@ export function createExtensionProvider(wallet: ExtensionWallet): WalletProvider
       if (result?.error) toast.error(result.error);
     },
 
+    sign: (xdr, publicKey) => wallet.signTransaction(xdr, publicKey),
+
     async signAndSubmit(xdr, publicKey) {
       let signedXdr: string;
       try {

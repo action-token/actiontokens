@@ -187,6 +187,12 @@ export const walletConnectProvider: WalletProvider = {
   label: "WalletConnect",
   login,
 
+  async sign(xdr) {
+    const signed = await requestSignature(xdr, STELLAR_METHODS.SIGN);
+    if (typeof signed !== "string") throw new AppError(ErrorCodes.WALLET_SIGNING_REJECTED);
+    return signed;
+  },
+
   async signAndSubmit(xdr) {
     // The wallet submits the transaction itself.
     const result = await requestSignature(xdr, STELLAR_METHODS.SIGN_AND_SUBMIT);

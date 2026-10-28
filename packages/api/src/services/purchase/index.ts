@@ -43,17 +43,27 @@ type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 const DEFAULT_FEE_BPS = 250;
 
 export async function quotePurchase(ctx: ServiceCtx, user: SessionUser | null, input: PurchaseInput) {
-  const sale = await loadSale(ctx.db, input.listingId);
-  return priceSale(ctx, user, sale, input);
+  // Everything that doesn't depend on the listing loads alongside it.
+  const [sale, buyerAccount, settings] = await Promise.all([
+    loadSale(ctx.db, input.listingId),
+    user ? ctx.chain.loadAccount(user.walletAddress) : null,
+    ctx.db.appSetting.findUnique({ where: { id: 1 } }),
+  ]);
+  return priceSale(ctx, user, sale, input, { buyerAccount, settings });
 }
 
-async function priceSale(ctx: ServiceCtx, user: SessionUser | null, sale: Sale, input: PurchaseInput) {
+async function priceSale(
+  ctx: ServiceCtx,
+  user: SessionUser | null,
+  sale: Sale,
+  input: PurchaseInput,
+  loaded: { buyerAccount: Horizon.AccountResponse | null; settings: { platformFeeBps: number; platformFeeRecipient: string | null } | null },
+) {
   const { chain } = ctx;
-  const [buyerAccount, stockAccount, sellerAccount, settings] = await Promise.all([
-    user ? chain.loadAccount(user.walletAddress) : null,
+  const { buyerAccount, settings } = loaded;
+  const [stockAccount, sellerAccount] = await Promise.all([
     sale.stockAccount ? chain.loadAccount(sale.stockAccount) : null,
     chain.loadAccount(sale.seller),
-    ctx.db.appSetting.findUnique({ where: { id: 1 } }),
   ]);
   const extraProblems: QuoteProblem[] = [];
 

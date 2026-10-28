@@ -19,7 +19,7 @@ import { cn } from "../lib/cn";
 export type TransactionStep =
   | { kind: "countdown"; summary: string; seconds: number }
   | { kind: "confirm"; summary: string; walletName: string }
-  | { kind: "submitting"; summary: string }
+  | { kind: "submitting"; summary: string; title?: string }
   | { kind: "success"; title: string; body: string }
   | { kind: "canceled" }
   | { kind: "failed"; reason: string };
@@ -200,7 +200,7 @@ export function TransactionToast({
         />
       );
     case "submitting":
-      return <ToastFrame tone="wait" icon={<Spin />} title="Sending to Stellar…" body={step.summary} />;
+      return <ToastFrame tone="wait" icon={<Spin />} title={step.title ?? "Sending to Stellar…"} body={step.summary} />;
     case "success":
       return <ToastFrame tone="ok" icon={<Check />} title={step.title} body={step.body} actions={actions} />;
     case "canceled":

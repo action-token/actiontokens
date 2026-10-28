@@ -19,4 +19,6 @@ export {
   signAndSubmitTransaction,
   type SignAndSubmitTransactionInput,
 } from "./signing/sign-and-submit-transaction";
+export { signTransaction } from "./signing/sign-transaction";
+export { getWalletProvider } from "./providers/registry";
 export { useCustodialSigner } from "./session/use-custodial-signer";
