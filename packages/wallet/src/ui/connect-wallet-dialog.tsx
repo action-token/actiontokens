@@ -258,7 +258,7 @@ export function ConnectWalletDialog() {
           </div>
           <div className="min-w-0 flex-1 pt-1.5">
             <div className="flex items-center gap-1.5">
-              <p className="display text-foreground truncate text-2xl">{name}</p>
+              <p className="display text-foreground truncate text-xl">{name}</p>
               <CheckCircle2 className="text-primary-text size-4 shrink-0" />
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
@@ -580,7 +580,7 @@ export function ConnectWalletDialog() {
             {/* Header */}
             <div>
               <DialogTitle
-                className={clsx("display text-foreground", authUser ? "text-3xl" : "text-[2.6rem]")}
+                className={clsx("display text-foreground", authUser ? "text-2xl" : "text-3xl")}
               >
                 Action Auth System
               </DialogTitle>
@@ -596,13 +596,13 @@ export function ConnectWalletDialog() {
               <TabsList className="bg-surface-2 grid h-12 w-full grid-cols-2 rounded-2xl p-1">
                 <TabsTrigger
                   value="action"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground font-hud rounded-xl text-base tracking-wide uppercase data-[state=active]:shadow-none dark:data-[state=active]:border-transparent"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground font-hud rounded-xl text-sm data-[state=active]:shadow-none dark:data-[state=active]:border-transparent"
                 >
                   Action Login
                 </TabsTrigger>
                 <TabsTrigger
                   value="stellar"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground font-hud rounded-xl text-base tracking-wide uppercase data-[state=active]:shadow-none dark:data-[state=active]:border-transparent"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground font-hud rounded-xl text-sm data-[state=active]:shadow-none dark:data-[state=active]:border-transparent"
                 >
                   Stellar Login
                 </TabsTrigger>
@@ -635,7 +635,7 @@ export function ConnectWalletDialog() {
           >
             <div className="p-6 pb-3">
               <p className="marker text-primary-text text-xl">*scan to connect*</p>
-              <h3 className="display text-foreground mt-2 text-5xl">Connect Wallet</h3>
+              <h3 className="display text-foreground mt-2 text-3xl">Connect Wallet</h3>
             </div>
 
             <div className="flex flex-1 items-center justify-center px-6">
@@ -671,7 +671,7 @@ export function ConnectWalletDialog() {
                 />
                 <div>
                   <p className="marker text-muted-foreground text-base">works with</p>
-                  <p className="display text-xl">Lobstr Mobile App</p>
+                  <p className="display text-base">Lobstr Mobile App</p>
                 </div>
               </button>
             </div>

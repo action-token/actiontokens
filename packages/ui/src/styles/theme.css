@@ -14,8 +14,7 @@
 @import "@fontsource-variable/unbounded";
 @import "@fontsource-variable/onest";
 @import "@fontsource-variable/jetbrains-mono";
-/* Poster fonts for the connect-wallet dialog: tall condensed headings and hand-written notes */
-@import "@fontsource/bebas-neue";
+/* Hand-written notes in the connect-wallet dialog */
 @import "@fontsource/caveat-brush";
 @import "tw-animate-css";
 
@@ -239,13 +238,12 @@
   }
 }
 
-/* Poster type for the connect-wallet dialog (Wadzzo's look in Bandcoin fonts). */
+/* Connect-wallet dialog type: Bandcoin headings, hand-written notes (Wadzzo's look). */
 @utility display {
-  font-family: "Bebas Neue", "Arial Narrow", sans-serif;
-  font-weight: 400;
-  text-transform: uppercase;
-  line-height: 0.9;
-  letter-spacing: 0.01em;
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
 }
 
 /* A hand-written note. */
@@ -267,7 +265,6 @@
 }
 
 @utility font-hud {
-  font-family: "Bebas Neue", "Arial Narrow", sans-serif;
-  font-weight: 400;
-  letter-spacing: 0.04em;
+  font-family: var(--font-display);
+  font-weight: 700;
 }
