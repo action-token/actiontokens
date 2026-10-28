@@ -9,13 +9,17 @@ const DECIMALS: Record<DisplayCurrency, number> = { BANDCOIN: 2, XLM: 7, USDC: 2
 
 /**
  * "20.5000000" → "20.5", "0.0000400" → "0.00004", 1234.5 → "1,234.5".
- * `short` rounds to 2 decimals for headlines; breakdowns keep every digit.
+ * `short` rounds to 2 decimals for headlines and writes millions and up as
+ * "25B"; breakdowns keep every digit.
  */
 export function formatAmount(amount: string | number, currency: DisplayCurrency, options: { short?: boolean } = {}) {
   const value = typeof amount === "number" ? amount : Number(amount);
   if (currency === "USD") {
     if (value > 0 && value < 0.01) return "< $0.01";
     return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
+  }
+  if (options.short && value >= 1_000_000) {
+    return value.toLocaleString("en-US", { notation: "compact", maximumFractionDigits: 1 });
   }
   return value.toLocaleString("en-US", { maximumFractionDigits: options.short ? 2 : DECIMALS[currency] });
 }

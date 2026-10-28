@@ -19,12 +19,11 @@ import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { abbreviateAddress } from "@bandcoin/utils/address";
 import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
+import { Money } from "~/components/money";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 type Me = NonNullable<RouterOutputs["account"]["me"]>;
 
-const formatBalance = (amount: string) =>
-  Number(amount).toLocaleString(undefined, { maximumFractionDigits: Number(amount) < 10 ? 2 : 0 });
 
 /** The header's sign-in button, or, when signed in, the account menu with balances. */
 export function AccountButton() {
@@ -54,7 +53,7 @@ function AccountMenu({ me }: { me: Me }) {
             {me.avatarUrl && <AvatarImage src={me.avatarUrl} alt="" />}
             <AvatarFallback className="text-xs">{name.slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
-          <span className="num hidden sm:inline">{formatBalance(me.balances.BANDCOIN)} BANDCOIN</span>
+          <Money amount={me.balances.BANDCOIN} currency="BANDCOIN" short className="hidden sm:inline-flex" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-72">
@@ -66,7 +65,9 @@ function AccountMenu({ me }: { me: Me }) {
           {(["BANDCOIN", "XLM", "USDC"] as const).map((currency) => (
             <div key={currency} className="bg-surface-2 grid gap-0.5 rounded-sm px-2 py-1.5">
               <dt className="text-fg-faint text-[11px] font-medium">{currency}</dt>
-              <dd className="num truncate text-sm font-semibold">{formatBalance(me.balances[currency])}</dd>
+              <dd className="truncate text-sm font-semibold">
+                <Money amount={me.balances[currency]} currency={currency} short />
+              </dd>
             </div>
           ))}
         </dl>

@@ -10,7 +10,6 @@ import type { RouterOutputs } from "~/trpc/react";
 
 import { ItemCard, POSTER_WIDTH } from "../catalog/item-card";
 import { Avatar } from "../shell/context-panel";
-import { Hero } from "./hero";
 
 type Home = RouterOutputs["catalog"]["home"];
 
@@ -20,10 +19,10 @@ const seeAll = (href: string) => (
   </Link>
 );
 
+/** Home below the hero: trending, new music, top artists, live bounties. */
 export function HomeView({ home }: { home: Home }) {
   return (
     <div className="grid gap-9">
-      <Hero items={home.hero} />
 
       <MediaCarousel title="Trending this week" action={seeAll("/marketplace?sort=popular")} itemWidth={POSTER_WIDTH}>
         {home.trending.map((item) => (

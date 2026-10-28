@@ -1,89 +1,184 @@
 "use client";
 
-import { Play } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Play, Zap } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
 import { cn } from "@bandcoin/ui/lib/cn";
 
 import { Money } from "~/components/money";
+import { TYPE_LABEL } from "~/lib/item-types";
 import type { RouterOutputs } from "~/trpc/react";
 
-import { TYPE_LABEL } from "~/lib/item-types";
 import { usePlayer } from "../player/player-store";
 
 type HeroItem = RouterOutputs["catalog"]["home"]["hero"][number];
 
 const ROTATE_MS = 7000;
 
-/** The featured drops, one at a time, rotating until someone interacts. */
+/**
+ * Featured drops across the full width (after Wadzzo's home): the name in
+ * huge type, the price as a tilted sticker, chunky buttons, and the cover as
+ * a tilted sticker with a hand-written tag. Dots fill up until the next
+ * slide; hovering pauses, swiping changes slides on phones.
+ */
 export function Hero({ items }: { items: HeroItem[] }) {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [touchX, setTouchX] = useState<number | null>(null);
   const playQueue = usePlayer((state) => state.playQueue);
+  const count = items.length;
+  const go = useCallback((to: number) => setActive(((to % count) + count) % count), [count]);
 
   useEffect(() => {
-    if (paused || items.length < 2) return;
-    const timer = setInterval(() => setActive((index) => (index + 1) % items.length), ROTATE_MS);
-    return () => clearInterval(timer);
-  }, [paused, items.length]);
+    if (paused || count < 2) return;
+    const timer = setTimeout(() => go(active + 1), ROTATE_MS);
+    return () => clearTimeout(timer);
+  }, [active, paused, count, go]);
 
   const item = items[active];
   if (!item) return null;
+  const label = TYPE_LABEL[item.type] ?? item.type;
 
   return (
     <section
       aria-roledescription="carousel"
-      aria-label="Featured"
+      aria-label="Featured drops"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
-      onFocus={() => setPaused(true)}
-      className="relative isolate grid min-h-[260px] items-end overflow-hidden rounded-xl p-6 sm:min-h-[300px] sm:p-8"
+      onTouchStart={(event) => setTouchX(event.touches[0]?.clientX ?? null)}
+      onTouchEnd={(event) => {
+        const end = event.changedTouches[0]?.clientX;
+        if (touchX !== null && end !== undefined && Math.abs(end - touchX) > 40) go(active + (end < touchX ? 1 : -1));
+        setTouchX(null);
+      }}
+      className="relative isolate overflow-hidden border-b"
     >
+      {/* the cover, blurred, as a soft wash behind everything */}
       {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
-      <img key={item.id} src={item.coverUrl} alt="" className="animate-in fade-in absolute inset-0 -z-20 size-full object-cover duration-500" />
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgb(5_8_9/0.88),rgb(5_8_9/0.55)_55%,rgb(5_8_9/0.15))]" />
-      <div className="grid max-w-[460px] gap-3 text-white">
-        <span className="text-[11px] font-semibold tracking-[0.18em] text-white/70 uppercase">
-          {TYPE_LABEL[item.type] ?? item.type} · {item.artistName}
-        </span>
-        <h2 className="font-display text-[clamp(24px,3.4vw,38px)] leading-[1.05] font-extrabold tracking-tight">{item.title}</h2>
-        {item.description && <p className="line-clamp-2 text-sm text-white/80">{item.description}</p>}
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          {item.playable && (
-            <Button onClick={() => playQueue([item])}>
-              <Play className="fill-current" /> Play preview
-            </Button>
-          )}
-          <Button asChild variant="secondary" className="bg-white/15 text-white hover:bg-white/25">
-            <Link href={`/item/${item.slug}`}>
-              {item.price ? (
-                <>
-                  Buy · <Money amount={item.price.bandcoin} currency="BANDCOIN" />
-                </>
+      <img
+        key={`wash-${item.id}`}
+        src={item.coverUrl}
+        alt=""
+        aria-hidden
+        className="animate-in fade-in absolute inset-0 -z-10 size-full scale-125 object-cover opacity-25 blur-3xl duration-700"
+      />
+
+      <div className="mx-auto grid min-h-[min(72svh,620px)] max-w-[80rem] grid-rows-[1fr_auto] px-4 pt-8 sm:px-8 lg:pt-10">
+        <div
+          key={item.id}
+          role="group"
+          aria-roledescription="slide"
+          aria-label={`${active + 1} of ${count}: ${item.title}`}
+          className="animate-in fade-in slide-in-from-bottom-3 grid items-center gap-8 duration-500 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] md:gap-10"
+        >
+          <div className="relative order-first flex justify-center md:order-last">
+            <div className="relative w-[min(60vw,15rem)] rotate-3 sm:w-[18rem] md:w-full md:max-w-[24rem]">
+              <Link href={`/item/${item.slug}`} tabIndex={-1} className="group block">
+                <div className="border-fg bg-surface overflow-hidden rounded-[1.6rem] border-[3px] shadow-[10px_12px_0_0_var(--color-primary)] transition-transform duration-300 group-hover:-translate-y-1 group-hover:-rotate-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
+                  <img src={item.coverUrl} alt={item.title} className="aspect-square w-full object-cover" />
+                </div>
+              </Link>
+              <span className="marker bg-primary text-primary-foreground pointer-events-none absolute -top-5 -left-4 -rotate-12 rounded-lg px-2.5 py-1 text-base sm:-left-8">
+                {label.toLowerCase()} drop!
+              </span>
+            </div>
+          </div>
+
+          <div className="grid min-w-0 content-center gap-6 pb-4">
+            <div className="grid gap-2">
+              <p className="marker -rotate-2 text-lg text-fg-muted">
+                *by{" "}
+                {item.artistSlug ? (
+                  <Link href={`/artist/${item.artistSlug}`} className="text-primary-text hover:underline">
+                    {item.artistName}
+                  </Link>
+                ) : (
+                  item.artistName
+                )}
+                *
+              </p>
+              <h2 className="display line-clamp-3 text-5xl break-words sm:text-6xl xl:text-7xl">{item.title}</h2>
+              {item.description && <p className="text-fg-muted line-clamp-2 max-w-xl text-[15px]">{item.description}</p>}
+            </div>
+
+            {item.price && (
+              <div className="bg-primary text-primary-foreground inline-grid w-fit -rotate-2 gap-1 rounded-2xl px-5 py-3">
+                <Money amount={item.price.bandcoin} currency="BANDCOIN" short onBrand className="display text-5xl leading-none" />
+                <p className="marker text-base">
+                  ≈ <Money amount={item.price.usd} currency="USD" /> · to own it
+                </p>
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                href={`/item/${item.slug}`}
+                className="bg-primary text-primary-foreground inline-flex h-14 -rotate-1 items-center gap-2.5 rounded-2xl px-7 transition-transform duration-200 hover:scale-[1.03] hover:rotate-0"
+              >
+                <Zap className="size-5 fill-current" />
+                <span className="marker text-xl">Buy now</span>
+              </Link>
+              {item.playable ? (
+                <button
+                  type="button"
+                  onClick={() => playQueue([item])}
+                  className="bg-surface-3 inline-flex h-14 rotate-1 items-center gap-2.5 rounded-2xl px-6 transition-transform duration-200 hover:scale-[1.03] hover:rotate-0"
+                >
+                  <Play className="size-5 fill-current" />
+                  <span className="marker text-xl">Play preview</span>
+                </button>
               ) : (
-                "View"
+                <Link
+                  href="/marketplace"
+                  className="bg-surface-3 inline-flex h-14 rotate-1 items-center gap-2.5 rounded-2xl px-6 transition-transform duration-200 hover:scale-[1.03] hover:rotate-0"
+                >
+                  <span className="marker text-xl">Explore market</span>
+                  <ArrowRight className="size-5" strokeWidth={2.6} />
+                </Link>
               )}
-            </Link>
-          </Button>
+            </div>
+          </div>
         </div>
+
+        {count > 1 && (
+          <div className="flex items-center justify-between gap-3 pt-6 pb-8">
+            <div className="flex items-center gap-2" role="tablist" aria-label="Featured drops">
+              {items.map((entry, index) => (
+                <button
+                  key={entry.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={index === active}
+                  aria-label={`Show ${entry.title}`}
+                  onClick={() => go(index)}
+                  className={cn(
+                    "relative h-3 overflow-hidden rounded-full transition-[width,background-color] duration-300",
+                    index === active ? "bg-fg/20 w-12" : "bg-fg/30 hover:bg-fg/60 w-3",
+                  )}
+                >
+                  {index === active && (
+                    <span
+                      key={`${active}-${paused}`}
+                      className={cn("bg-primary absolute inset-0 origin-left rounded-full", !paused && "animate-[hero-progress_7s_linear]")}
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
+            <div className="hidden gap-2 sm:flex">
+              <button type="button" onClick={() => go(active - 1)} aria-label="Previous slide" className="bg-surface hover:border-border-strong grid size-11 place-items-center rounded-full border">
+                <ChevronLeft className="size-5" />
+              </button>
+              <button type="button" onClick={() => go(active + 1)} aria-label="Next slide" className="bg-surface hover:border-border-strong grid size-11 place-items-center rounded-full border">
+                <ChevronRight className="size-5" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-      {items.length > 1 && (
-        <div className="absolute right-6 bottom-6 flex gap-1.5" role="tablist" aria-label="Choose a featured drop">
-          {items.map((entry, index) => (
-            <button
-              key={entry.id}
-              type="button"
-              role="tab"
-              aria-selected={index === active}
-              aria-label={entry.title}
-              onClick={() => setActive(index)}
-              className={cn("h-1.5 rounded-full bg-white/40 transition-all", index === active ? "w-6 bg-white" : "w-1.5")}
-            />
-          ))}
-        </div>
-      )}
+      <style>{"@keyframes hero-progress{from{transform:scaleX(0)}to{transform:scaleX(1)}}"}</style>
     </section>
   );
 }
