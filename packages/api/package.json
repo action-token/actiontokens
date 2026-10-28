@@ -24,9 +24,11 @@
     "@bandcoin/storage": "workspace:*",
     "@bandcoin/utils": "workspace:*",
     "@bandcoin/wallet": "workspace:*",
+    "@huggingface/transformers": "catalog:",
     "@photostructure/tz-lookup": "catalog:",
     "@stellar/stellar-sdk": "catalog:",
     "@trpc/server": "catalog:",
+    "google-auth-library": "catalog:",
     "superjson": "catalog:",
     "zod": "catalog:"
   },
