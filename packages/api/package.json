@@ -20,6 +20,7 @@
     "@bandcoin/chain": "workspace:*",
     "@bandcoin/db": "workspace:*",
     "@bandcoin/errors": "workspace:*",
+    "@bandcoin/storage": "workspace:*",
     "@bandcoin/wallet": "workspace:*",
     "@stellar/stellar-sdk": "catalog:",
     "@trpc/server": "catalog:",

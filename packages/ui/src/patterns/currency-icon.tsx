@@ -12,7 +12,7 @@ export function CurrencyIcon({ currency, className }: { currency: CurrencyIconNa
   const size = cn("size-5 shrink-0", className);
   switch (currency) {
     case "BANDCOIN":
-      return <img src={BANDCOIN_ICON} alt="" aria-hidden className={cn(size, "object-contain")} />;
+      return <img src={BANDCOIN_ICON} alt="" aria-hidden className={cn(size, "scale-[1.3] object-contain")} />;
     case "XLM":
       return (
         <svg viewBox="0 0 32 32" aria-hidden className={size}>

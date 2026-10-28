@@ -17,9 +17,9 @@ import { cn } from "../lib/cn";
  * failed      Stellar or the server refused; plain-words reason
  */
 export type TransactionStep =
-  | { kind: "countdown"; summary: string; seconds: number }
-  | { kind: "confirm"; summary: string; walletName: string }
-  | { kind: "submitting"; summary: string; title?: string }
+  | { kind: "countdown"; summary: ReactNode; seconds: number }
+  | { kind: "confirm"; summary: ReactNode; walletName: string }
+  | { kind: "submitting"; summary: ReactNode; title?: string }
   | { kind: "success"; title: string; body: string }
   | { kind: "canceled" }
   | { kind: "failed"; reason: string };
@@ -122,7 +122,7 @@ function CountdownToast({
   onSend,
   onCancel,
 }: {
-  summary: string;
+  summary: ReactNode;
   seconds: number;
   onSend: () => void;
   onCancel: () => void;
@@ -140,7 +140,7 @@ function CountdownToast({
           Sending in <span className="num">{secondsLeft}</span> s
         </>
       }
-      body={`${summary}. Changed your mind? Cancel now.`}
+      body={<>{summary}. Changed your mind? Cancel now.</>}
       progressMs={seconds * 1000}
       actions={
         <>
@@ -195,7 +195,7 @@ export function TransactionToast({
           tone="wait"
           icon={<PenLine />}
           title={`Confirm in ${step.walletName}`}
-          body={`${step.summary}. Check the amount in the ${step.walletName} window, then approve.`}
+          body={<>{step.summary}. Check the amount in the {step.walletName} window, then approve.</>}
           actions={actions}
         />
       );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useRef, useState } from "react";
+import { type ReactNode, useRef, useState } from "react";
 
 import { isAppError } from "@bandcoin/errors";
 import { CUSTODIAL_COUNTDOWN_SECONDS, type TransactionStep } from "@bandcoin/ui/patterns/transaction-toast";
@@ -37,7 +37,7 @@ export function usePurchase({ itemTitle }: { itemTitle: string }) {
 
   const busy = step !== null && (step.kind === "countdown" || step.kind === "confirm" || step.kind === "submitting");
 
-  async function buy(input: PurchaseInput & { summary: string; card?: Card }) {
+  async function buy(input: PurchaseInput & { summary: ReactNode; card?: Card }) {
     const { summary, card, ...purchase } = input;
     let started;
     try {

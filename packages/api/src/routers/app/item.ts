@@ -29,7 +29,9 @@ export const itemRouter = createRouter({
         releaseAt: true,
         saleEndsAt: true,
         playCount: true,
-        artist: { select: { name: true, slug: true, avatarUrl: true } },
+        artist: { select: { name: true, slug: true, avatarUrl: true, bio: true } },
+        classicToken: { select: { code: true, issuer: true } },
+        contractNft: { select: { contractAddress: true, mintedCount: true, royaltyBps: true } },
         track: { select: { artistName: true, album: { select: { title: true, slug: true } } } },
         media: { select: { mediaType: true, previewStartSec: true, durationSec: true } },
         tier: { select: { name: true } },
@@ -51,12 +53,28 @@ export const itemRouter = createRouter({
     });
     if (!item) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "This item doesn't exist." });
 
-    const owned = viewerId
-      ? await ctx.db.ownership.findUnique({
-          where: { userId_itemId: { userId: viewerId, itemId: item.id } },
-          select: { quantity: true },
-        })
-      : null;
+    const [owned, recentSales] = await Promise.all([
+      viewerId
+        ? ctx.db.ownership.findUnique({
+            where: { userId_itemId: { userId: viewerId, itemId: item.id } },
+            select: { quantity: true },
+          })
+        : null,
+      ctx.db.order.findMany({
+        where: { itemId: item.id, status: "DELIVERED" },
+        orderBy: { createdAt: "desc" },
+        take: 8,
+        select: {
+          id: true,
+          quantity: true,
+          total: true,
+          currency: true,
+          txHash: true,
+          createdAt: true,
+          buyer: { select: { username: true, displayName: true } },
+        },
+      }),
+    ]);
 
     const { listings, _count, ...rest } = item;
     return {
@@ -65,6 +83,18 @@ export const itemRouter = createRouter({
       holders: _count.ownerships,
       likes: _count.likes,
       ownedQuantity: owned ? Number(owned.quantity) : 0,
+      /** Copies the artist has sold (primary sales) */
+      sold: listings.filter((listing) => listing.kind === "PRIMARY").reduce((sum, listing) => sum + listing.quantitySold, 0),
+      network: ctx.chain.config.name,
+      recentSales: recentSales.map((sale) => ({
+        id: sale.id,
+        quantity: sale.quantity,
+        total: sale.total.toString(),
+        currency: sale.currency,
+        txHash: sale.txHash,
+        at: sale.createdAt,
+        buyer: sale.buyer?.displayName ?? sale.buyer?.username ?? "A fan",
+      })),
       listings: listings.map((listing) => ({
         id: listing.id,
         kind: listing.kind,

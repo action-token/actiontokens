@@ -17,6 +17,7 @@
     "@bandcoin/auth": "workspace:*",
     "@bandcoin/db": "workspace:*",
     "@bandcoin/errors": "workspace:*",
+    "@bandcoin/storage": "workspace:*",
     "@bandcoin/ui": "workspace:*",
     "@bandcoin/utils": "workspace:*",
     "@bandcoin/wallet": "workspace:*",
@@ -31,7 +32,8 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "superjson": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "zustand": "catalog:"
   },
   "devDependencies": {
     "@bandcoin/eslint-config": "workspace:*",

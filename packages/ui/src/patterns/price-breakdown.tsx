@@ -5,17 +5,17 @@ import { cn } from "../lib/cn";
 
 export type BreakdownLine = {
   label: string;
-  /** Small second line under the label, e.g. "2 × 25,000 BANDCOIN". */
-  detail?: string;
+  /** Small second line under the label, e.g. "2 × 25,000". */
+  detail?: ReactNode;
   /** Already formatted, e.g. "50,000 BANDCOIN". Several lines allowed. */
   value: ReactNode;
 };
 
 export type BreakdownBalance = {
-  /** Formatted balance in the paying currency, e.g. "60,000 BANDCOIN". */
-  value: string;
-  /** Formatted shortfall, e.g. "8,500 BANDCOIN". Empty when the balance covers it. */
-  shortBy?: string;
+  /** The balance in the paying currency, already formatted. */
+  value: ReactNode;
+  /** The shortfall, already formatted. Empty when the balance covers it. */
+  shortBy?: ReactNode;
 };
 
 /**
@@ -43,7 +43,15 @@ export function PriceBreakdown({
       {balance && (
         <Row
           label="Your balance"
-          value={balance.shortBy ? `${balance.value} · ${balance.shortBy} short` : `${balance.value} ✓`}
+          value={
+            balance.shortBy ? (
+              <span className="inline-flex flex-wrap items-center justify-end gap-1">
+                {balance.value} · {balance.shortBy} short
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1">{balance.value} ✓</span>
+            )
+          }
           className={balance.shortBy ? "[&_dd]:text-danger" : "[&_dd]:text-success"}
         />
       )}
@@ -58,7 +66,7 @@ function Row({
   className,
 }: {
   label: string;
-  detail?: string;
+  detail?: ReactNode;
   value: ReactNode;
   className?: string;
 }) {
@@ -74,7 +82,7 @@ function Row({
 }
 
 /** Shown under the breakdown when the chosen currency can't cover the total. Never offers a swap. */
-export function ShortfallNotice({ currency, shortBy }: { currency: string; shortBy: string }) {
+export function ShortfallNotice({ currency, shortBy }: { currency: string; shortBy: ReactNode }) {
   return (
     <div role="alert" className="bg-danger-soft grid grid-cols-[auto_minmax(0,1fr)] gap-3 rounded-md p-3 text-[13px]">
       <CircleAlert className="text-danger mt-px size-[18px]" />

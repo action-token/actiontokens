@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { cn } from "@bandcoin/ui/lib/cn";
 
-import { formatMoney } from "~/lib/format";
+import { Money } from "~/components/money";
 import type { RouterOutputs } from "~/trpc/react";
 
 import { BuyPanel } from "./buy-panel";
@@ -19,14 +19,14 @@ export function ItemPurchase({ itemTitle, listings }: { itemTitle: string; listi
 
   if (!selected) {
     return (
-      <aside className="bg-surface text-fg-muted rounded-xl border p-5 text-sm">
+      <aside className="text-fg-muted text-sm">
         {listings.length > 0 ? "You're the only seller of this item." : "This item isn't for sale right now."}
       </aside>
     );
   }
 
   return (
-    <div className="grid content-start gap-4 lg:sticky lg:top-20">
+    <div className="grid content-start gap-4">
       <BuyPanel key={selected.id} itemTitle={itemTitle} listing={selected} />
       {buyable.length > 1 && (
         <section aria-label="Sellers" className="bg-surface grid gap-1 rounded-xl border p-3">
@@ -48,9 +48,7 @@ export function ItemPurchase({ itemTitle, listings }: { itemTitle: string; listi
                   {listing.remaining === null ? "Unlimited" : `${listing.remaining} left`}
                 </span>
               </span>
-              <span className="num shrink-0 text-[13px] font-semibold">
-                {formatMoney(listing.priceBandcoin, "BANDCOIN")}
-              </span>
+              <Money amount={listing.priceBandcoin} currency="BANDCOIN" className="shrink-0 text-[13px] font-semibold" />
             </button>
           ))}
         </section>

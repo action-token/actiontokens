@@ -15,7 +15,8 @@ import { QuantityStepper } from "@bandcoin/ui/patterns/quantity-stepper";
 import { ToastViewport, TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
 import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
-import { cardChargeUsd, type DisplayCurrency, formatAmount, formatMoney } from "~/lib/format";
+import { Money, MoneyTotals } from "~/components/money";
+import type { DisplayCurrency } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import { useSquareCard } from "./square-card";
@@ -46,7 +47,9 @@ export function BuyPanel({ itemTitle, listing }: { itemTitle: string; listing: L
   const [quantity, setQuantity] = useState(1);
   const me = api.account.me.useQuery(undefined, { enabled: status === "authenticated" });
   const purchase = usePurchase({ itemTitle });
-  const { container: cardField, ...card } = useSquareCard(currency === "USD" && status === "authenticated");
+  const { container: cardField, ...card } = useSquareCard(
+    currency === "USD" && status === "authenticated",
+  );
 
   const maxQuantity = Math.max(1, Math.min(MAX_PER_ORDER, listing.remaining ?? MAX_PER_ORDER));
   const quote = api.order.quote.useQuery(
@@ -68,7 +71,11 @@ export function BuyPanel({ itemTitle, listing }: { itemTitle: string; listing: L
       listingId: listing.id,
       quantity,
       currency,
-      summary: `${totalText(quote.data)} for ${quantity} × ${itemTitle}`,
+      summary: (
+        <>
+          <MoneyTotals totals={quote.data.totals} /> for {quantity} × {itemTitle}
+        </>
+      ),
       card: cardToken ?? undefined,
     });
   }
@@ -76,92 +83,122 @@ export function BuyPanel({ itemTitle, listing }: { itemTitle: string; listing: L
   // The artist's own prices show right away; XLM and USDC wait for the live rate.
   const unitPrice =
     quote.data?.currency === currency
-      ? formatAmount(quote.data.unitPrice, currency, { short: true })
+      ? quote.data.unitPrice
       : currency === "BANDCOIN"
-        ? formatAmount(listing.priceBandcoin, "BANDCOIN")
+        ? listing.priceBandcoin
         : currency === "USD"
-          ? formatAmount(listing.priceUsd, "USD")
+          ? listing.priceUsd
           : null;
 
   return (
-    <aside aria-label="Buy" className="bg-surface shadow-raised grid gap-5 rounded-xl border p-5 lg:sticky lg:top-20">
-      <div className="flex items-baseline justify-between gap-3">
-        <div className="num text-[30px] leading-none font-semibold tracking-tight">
-          {unitPrice ?? <Skeleton className="inline-block h-7 w-28 align-middle" />}
-          {currency !== "USD" && <small className="text-fg-muted ml-1.5 text-sm">{currency}</small>}
+    <section aria-label="Buy" className="grid gap-6 md:grid-cols-2 md:gap-x-10">
+      <div className="grid content-start gap-5">
+        <div className="flex items-baseline justify-between gap-3">
+          <div className="text-[30px] leading-none font-semibold tracking-tight">
+            {unitPrice === null ? (
+              <Skeleton className="inline-block h-7 w-28 align-middle" />
+            ) : (
+              <Money amount={unitPrice} currency={currency} short />
+            )}
+          </div>
+          <Badge>{listing.kind === "PRIMARY" ? "per copy" : "resale"}</Badge>
         </div>
-        <Badge>{listing.kind === "PRIMARY" ? "per copy" : "resale"}</Badge>
-      </div>
 
-      <div className="grid gap-1.5">
-        <span className="eyebrow">Pay with</span>
-        <div role="group" aria-label="Currency" className="grid grid-cols-2 gap-2">
-          {CURRENCIES.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              disabled={purchase.busy}
-              aria-pressed={option.value === currency}
-              onClick={() => setCurrency(option.value)}
-              className={cn(
-                "bg-surface-2 hover:border-border-strong grid min-w-0 gap-0.5 rounded-md border p-2.5 text-left transition-colors",
-                option.value === currency && "border-primary-text bg-primary-soft",
-              )}
-            >
-              <b className="flex items-center gap-2 text-[13px]">
-                <CurrencyIcon currency={option.value} />
-                {option.label}
-              </b>
-              <span className={cn("text-fg-muted truncate text-[11px]", me.data && option.value !== "USD" && "num")}>
-                {option.value === "USD"
-                  ? "Debit or credit"
-                  : me.data
-                    ? `Balance ${formatAmount(me.data.balances[option.value], option.value)}`
-                    : "Stellar wallet"}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <b className="text-sm">Quantity</b>
-          <p className="text-fg-faint text-xs">
-            {listing.remaining === null ? "Unlimited copies" : `${listing.remaining.toLocaleString()} left`}
-          </p>
-        </div>
-        <QuantityStepper value={quantity} onChange={setQuantity} max={maxQuantity} disabled={purchase.busy || soldOut} />
-      </div>
-
-      {quote.isPending ? (
-        <div className="grid gap-2 border-t pt-3">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-5 w-full" />
-        </div>
-      ) : quote.error ? (
-        <Problem message={quote.error.message} />
-      ) : (
-        <Breakdown quote={quote.data} balances={me.data?.balances} />
-      )}
-
-      {currency === "USD" && status === "authenticated" && (
         <div className="grid gap-1.5">
-          <div ref={cardField} className={cn("min-h-[90px]", card.loading && "bg-surface-2 animate-pulse rounded-md")} />
-          {card.error && <p className="text-danger text-xs">{card.error}</p>}
+          <span className="eyebrow">Pay with</span>
+          <div role="group" aria-label="Currency" className="grid grid-cols-2 gap-2">
+            {CURRENCIES.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                disabled={purchase.busy}
+                aria-pressed={option.value === currency}
+                onClick={() => setCurrency(option.value)}
+                className={cn(
+                  "bg-surface-2 hover:border-border-strong grid min-w-0 gap-0.5 rounded-md border p-2.5 text-left transition-colors",
+                  option.value === currency && "border-primary-text bg-primary-soft",
+                )}
+              >
+                <b className="flex items-center gap-2 text-[13px]">
+                  <CurrencyIcon currency={option.value} />
+                  {option.label}
+                </b>
+                <span
+                  className={cn(
+                    "text-fg-muted truncate text-[11px]",
+                    me.data && option.value !== "USD" && "num",
+                  )}
+                >
+                  {option.value === "USD" ? (
+                    "Debit or credit"
+                  ) : me.data ? (
+                    <>
+                      Balance{" "}
+                      <Money amount={me.data.balances[option.value]} currency={option.value} />
+                    </>
+                  ) : (
+                    "Stellar wallet"
+                  )}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
-      )}
 
-      <PayButton
-        quote={quote.data}
-        signedOut={status === "unauthenticated"}
-        soldOut={soldOut}
-        busy={purchase.busy || quote.isFetching}
-        cardNotReady={currency === "USD" && !card.ready}
-        onSignIn={() => openSignIn(true)}
-        onPay={() => void pay()}
-      />
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <b className="text-sm">Quantity</b>
+            <p className="text-fg-faint text-xs">
+              {listing.remaining === null
+                ? "Unlimited copies"
+                : `${listing.remaining.toLocaleString()} left`}
+            </p>
+          </div>
+          <QuantityStepper
+            value={quantity}
+            onChange={setQuantity}
+            max={maxQuantity}
+            disabled={purchase.busy || soldOut}
+          />
+        </div>
+      </div>
+
+      <div className="grid content-start gap-5">
+        {quote.isPending ? (
+          <div className="grid gap-2 border-t pt-3">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-5 w-full" />
+          </div>
+        ) : quote.error ? (
+          <Problem message={quote.error.message} />
+        ) : (
+          <Breakdown quote={quote.data} balances={me.data?.balances} />
+        )}
+
+        {currency === "USD" && status === "authenticated" && (
+          <div className="grid gap-1.5">
+            <div
+              ref={cardField}
+              className={cn(
+                "min-h-[90px]",
+                card.loading && "bg-surface-2 animate-pulse rounded-md",
+              )}
+            />
+            {card.error && <p className="text-danger text-xs">{card.error}</p>}
+          </div>
+        )}
+
+        <PayButton
+          quote={quote.data}
+          signedOut={status === "unauthenticated"}
+          soldOut={soldOut}
+          busy={purchase.busy || quote.isFetching}
+          cardNotReady={currency === "USD" && !card.ready}
+          onSignIn={() => openSignIn(true)}
+          onPay={() => void pay()}
+        />
+      </div>
 
       {purchase.step && (
         <ToastViewport>
@@ -176,16 +213,31 @@ export function BuyPanel({ itemTitle, listing }: { itemTitle: string; listing: L
                   <Button asChild size="sm" variant="secondary" className="h-8 px-3 text-[13px]">
                     <Link href="/collection">View collection</Link>
                   </Button>
-                  <Button size="sm" variant="ghost" className="h-8 px-3 text-[13px]" onClick={purchase.close}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 px-3 text-[13px]"
+                    onClick={purchase.close}
+                  >
                     Close
                   </Button>
                 </>
               ) : purchase.step.kind === "confirm" ? (
-                <Button size="sm" variant="secondary" className="h-8 px-3 text-[13px]" onClick={purchase.stop}>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="h-8 px-3 text-[13px]"
+                  onClick={purchase.stop}
+                >
                   Cancel
                 </Button>
               ) : (
-                <Button size="sm" variant="secondary" className="h-8 px-3 text-[13px]" onClick={purchase.close}>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="h-8 px-3 text-[13px]"
+                  onClick={purchase.close}
+                >
                   Close
                 </Button>
               )
@@ -193,21 +245,20 @@ export function BuyPanel({ itemTitle, listing }: { itemTitle: string; listing: L
           />
         </ToastViewport>
       )}
-    </aside>
+    </section>
   );
 }
 
-/** "20.5 BANDCOIN + 0.50004 XLM", or the card charge "$5.26". */
-function totalText(quote: Quote) {
-  return quote.totals
-    .map((total) =>
-      total.currency === "USD" ? formatMoney(cardChargeUsd(total.amount), "USD") : formatMoney(total.amount, total.currency),
-    )
-    .join(" + ");
-}
-
-function Breakdown({ quote, balances }: { quote: Quote; balances?: Record<"BANDCOIN" | "XLM" | "USDC", string> }) {
-  const shortfalls = quote.problems.flatMap((problem) => (problem.code === "INSUFFICIENT_FUNDS" ? [problem.shortfall] : []));
+function Breakdown({
+  quote,
+  balances,
+}: {
+  quote: Quote;
+  balances?: Record<"BANDCOIN" | "XLM" | "USDC", string>;
+}) {
+  const shortfalls = quote.problems.flatMap((problem) =>
+    problem.code === "INSUFFICIENT_FUNDS" ? [problem.shortfall] : [],
+  );
   const unavailable = quote.problems.filter((problem) => problem.code === "UNAVAILABLE");
   const paying = quote.currency === "USD" ? null : quote.currency;
   const short = shortfalls.find((shortfall) => shortfall.currency === paying);
@@ -218,24 +269,23 @@ function Breakdown({ quote, balances }: { quote: Quote; balances?: Record<"BANDC
         lines={quote.lines.map((line) => ({
           label: line.label,
           detail:
-            line.key === "price"
-              ? `${quote.quantity} × ${formatMoney(quote.unitPrice, quote.currency)}`
-              : line.detail,
-          value: formatMoney(line.amount, line.currency),
+            line.key === "price" ? (
+              <span className="inline-flex items-center gap-1">
+                {quote.quantity} × <Money amount={quote.unitPrice} currency={quote.currency} />
+              </span>
+            ) : (
+              line.detail
+            ),
+          value: <Money amount={line.amount} currency={line.currency} />,
         }))}
-        total={quote.totals.map((total, index) => (
-          <span key={total.currency} className="block">
-            {index > 0 && "+ "}
-            {total.currency === "USD"
-              ? formatMoney(cardChargeUsd(total.amount), "USD")
-              : formatMoney(total.amount, total.currency)}
-          </span>
-        ))}
+        total={<MoneyTotals totals={quote.totals} stacked />}
         balance={
           paying && balances
             ? {
-                value: formatMoney(balances[paying], paying),
-                shortBy: short ? formatMoney(short.short, short.currency) : undefined,
+                value: <Money amount={balances[paying]} currency={paying} />,
+                shortBy: short ? (
+                  <Money amount={short.short} currency={short.currency} />
+                ) : undefined,
               }
             : undefined
         }
@@ -244,7 +294,7 @@ function Breakdown({ quote, balances }: { quote: Quote; balances?: Record<"BANDC
         <ShortfallNotice
           key={shortfall.currency}
           currency={shortfall.currency}
-          shortBy={formatMoney(shortfall.short, shortfall.currency)}
+          shortBy={<Money amount={shortfall.short} currency={shortfall.currency} />}
         />
       ))}
       {unavailable.map((problem) => (
@@ -256,7 +306,10 @@ function Breakdown({ quote, balances }: { quote: Quote; balances?: Record<"BANDC
 
 function Problem({ message }: { message: string }) {
   return (
-    <div role="alert" className="bg-surface-2 text-fg-muted flex gap-2.5 rounded-md p-3 text-[13px]">
+    <div
+      role="alert"
+      className="bg-surface-2 text-fg-muted flex gap-2.5 rounded-md p-3 text-[13px]"
+    >
       <CircleAlert className="text-warning mt-px size-4 shrink-0" />
       {message}
     </div>
@@ -280,9 +333,25 @@ function PayButton({
   onSignIn: () => void;
   onPay: () => void;
 }) {
-  if (soldOut) return <Button size="lg" disabled>Sold out</Button>;
-  if (signedOut) return <Button size="lg" onClick={onSignIn}>Sign in to buy</Button>;
-  if (!quote) return <Button size="lg" disabled>Getting the price…</Button>;
+  if (soldOut)
+    return (
+      <Button size="lg" disabled>
+        Sold out
+      </Button>
+    );
+  // The quote decides: a stale browser session still gets "Sign in".
+  if (signedOut || quote?.problems.some((problem) => problem.code === "SIGN_IN"))
+    return (
+      <Button size="lg" onClick={onSignIn}>
+        Sign in to buy
+      </Button>
+    );
+  if (!quote)
+    return (
+      <Button size="lg" disabled>
+        Getting the price…
+      </Button>
+    );
   if (quote.problems.some((problem) => problem.code === "INSUFFICIENT_FUNDS")) {
     return (
       <Button asChild size="lg" variant="secondary">
@@ -292,7 +361,13 @@ function PayButton({
   }
   return (
     <Button size="lg" disabled={!quote.ok || busy || cardNotReady} onClick={onPay}>
-      {quote.ok ? `Pay ${totalText(quote)}` : "Can't buy right now"}
+      {quote.ok ? (
+        <>
+          Pay <MoneyTotals totals={quote.totals} />
+        </>
+      ) : (
+        "Can't buy right now"
+      )}
     </Button>
   );
 }
