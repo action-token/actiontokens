@@ -10,8 +10,10 @@ import { BrandMark } from "@bandcoin/ui/patterns/boot-screen";
 
 import { AccountButton } from "~/features/account/account-button";
 import { PlayerBar } from "~/features/player/player-bar";
+import { usePlayer } from "~/features/player/player-store";
 
 import { ContextPanel } from "./context-panel";
+import { hasContextPanel } from "./panel-rule";
 
 const AR_URL = process.env.NEXT_PUBLIC_AR_URL ?? "https://ar.bandcoin.io";
 
@@ -31,14 +33,8 @@ const LIBRARY = [
 /** Bottom tabs on phones (the sidebar's main entries). */
 const MOBILE_NAV = [NAV[0], NAV[1], NAV[2], NAV[3], LIBRARY[0]];
 
-const isActive = (pathname: string, href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
-
-/**
- * Pages about listening and discovery get the right panel (now playing, up
- * next, bounties, artists). Item, marketplace and account pages use the
- * full width instead.
- */
-const hasContextPanel = (pathname: string) => pathname === "/" || pathname.startsWith("/music");
+const isActive = (pathname: string, href: string) =>
+  href === "/" ? pathname === "/" : pathname.startsWith(href);
 
 /**
  * The frame around every fan page: sidebar, top bar with search and account,
@@ -47,7 +43,8 @@ const hasContextPanel = (pathname: string) => pathname === "/" || pathname.start
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const panel = hasContextPanel(pathname);
+  const hasTrack = usePlayer((state) => state.queue.length > 0);
+  const panel = hasContextPanel(pathname, hasTrack);
 
   return (
     <div
@@ -56,16 +53,30 @@ export function AppShell({ children }: { children: ReactNode }) {
         panel ? "xl:grid-cols-[220px_minmax(0,1fr)_288px]" : "xl:grid-cols-[220px_minmax(0,1fr)]",
       )}
     >
-      <nav aria-label="Main" className="bg-surface sticky top-0 hidden h-dvh content-start gap-1 overflow-y-auto border-r px-3 py-4 sm:grid">
-        <Link href="/" className="flex items-center justify-center gap-2 pb-5 xl:justify-start xl:px-2">
+      <nav
+        aria-label="Main"
+        className="bg-surface sticky top-0 hidden h-dvh content-start gap-1 overflow-y-auto border-r px-3 py-4 sm:grid"
+      >
+        <Link
+          href="/"
+          className="flex items-center justify-center gap-2 pb-5 xl:justify-start xl:px-2"
+        >
           <BrandMark className="size-[28px]" />
-          <span className="font-display hidden text-[15px] font-extrabold tracking-tight xl:inline">Bandcoin</span>
+          <span className="font-display hidden text-[15px] font-extrabold tracking-tight xl:inline">
+            Bandcoin
+          </span>
         </Link>
         {NAV.map((entry) => (
-          <NavLink key={entry.label} {...entry} active={!("external" in entry) && isActive(pathname, entry.href)} />
+          <NavLink
+            key={entry.label}
+            {...entry}
+            active={!("external" in entry) && isActive(pathname, entry.href)}
+          />
         ))}
         <div className="bg-border mx-2 my-3 h-px" />
-        <span className="text-fg-faint hidden px-3 pb-1 text-[11px] font-semibold tracking-wider uppercase xl:block">Library</span>
+        <span className="text-fg-faint hidden px-3 pb-1 text-[11px] font-semibold tracking-wider uppercase xl:block">
+          Library
+        </span>
         {LIBRARY.map((entry) => (
           <NavLink key={entry.label} {...entry} active={isActive(pathname, entry.href)} />
         ))}
@@ -83,14 +94,25 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
 
       {panel && (
-        <aside aria-label="For this page" className="bg-surface sticky top-0 hidden h-dvh overflow-y-auto border-l p-4 xl:block">
+        <aside
+          aria-label="For this page"
+          className="bg-surface sticky top-0 hidden h-dvh overflow-y-auto border-l p-4 xl:block"
+        >
           <ContextPanel />
         </aside>
       )}
 
-      <div className={cn("fixed inset-x-0 bottom-0 z-40 sm:left-[72px] xl:left-[220px]", panel && "xl:right-[288px]")}>
+      <div
+        className={cn(
+          "fixed inset-x-0 bottom-0 z-40 sm:left-[72px] xl:left-[220px]",
+          panel && "xl:right-[288px]",
+        )}
+      >
         <PlayerBar />
-        <nav aria-label="Tabs" className="bg-surface grid grid-cols-5 border-t pb-[env(safe-area-inset-bottom)] sm:hidden">
+        <nav
+          aria-label="Tabs"
+          className="bg-surface grid grid-cols-5 border-t pb-[env(safe-area-inset-bottom)] sm:hidden"
+        >
           {MOBILE_NAV.map(({ href, icon: Icon, label }) => (
             <Link
               key={label}
@@ -136,7 +158,12 @@ function NavLink({
       {content}
     </a>
   ) : (
-    <Link href={href} aria-current={active ? "page" : undefined} className={className} title={label}>
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={className}
+      title={label}
+    >
       {content}
     </Link>
   );

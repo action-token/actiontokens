@@ -13,7 +13,7 @@ import { currentTrack, usePlayer } from "../player/player-store";
 
 /**
  * The right-hand panel on Home and Music: what's playing and up next, then
- * live bounties and top artists (Home) or listening tips (Music).
+ * live bounties and top artists on Home.
  */
 export function ContextPanel() {
   const pathname = usePathname();
@@ -22,7 +22,6 @@ export function ContextPanel() {
     <div className="grid content-start gap-7">
       <NowPlaying />
       {pathname === "/" && <HomeExtras />}
-      {pathname.startsWith("/music") && <ListeningTips />}
     </div>
   );
 }
@@ -47,7 +46,11 @@ function NowPlaying() {
       <Section title="Now playing">
         <Link href={`/item/${track.slug}`} className="grid gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
-          <img src={track.coverUrl} alt="" className="aspect-square w-full rounded-md border object-cover" />
+          <img
+            src={track.coverUrl}
+            alt=""
+            className="aspect-square w-full rounded-md border object-cover"
+          />
           <div>
             <h3 className="truncate text-base font-bold">{track.title}</h3>
             <p className="text-fg-muted truncate text-[13px]">{track.artistName}</p>
@@ -91,14 +94,21 @@ function HomeExtras() {
           <ul className="grid gap-2">
             {home.data.bounties.map((bounty) => (
               <li key={bounty.id}>
-                <Link href={`/bounty/${bounty.id}`} className="bg-surface-2 hover:bg-surface-3 grid gap-1 rounded-md p-3 text-[13px] transition-colors">
+                <Link
+                  href={`/bounty/${bounty.id}`}
+                  className="bg-surface-2 hover:bg-surface-3 grid gap-1 rounded-md p-3 text-[13px] transition-colors"
+                >
                   <b className="flex items-center gap-1.5 font-semibold">
                     <Trophy className="text-primary-text size-3.5 shrink-0" />
                     <span className="truncate">{bounty.title}</span>
                   </b>
                   <span className="text-fg-muted flex items-center justify-between gap-2">
                     <span className="truncate">{bounty.artist.name}</span>
-                    <Money amount={bounty.prize.amount} currency={bounty.prize.currency} className="text-fg shrink-0" />
+                    <Money
+                      amount={bounty.prize.amount}
+                      currency={bounty.prize.currency}
+                      className="text-fg shrink-0"
+                    />
                   </span>
                 </Link>
               </li>
@@ -110,11 +120,16 @@ function HomeExtras() {
         <ul className="grid gap-1">
           {home.data.artists.slice(0, 6).map((artist) => (
             <li key={artist.slug}>
-              <Link href={`/artist/${artist.slug}`} className="hover:bg-surface-2 flex items-center gap-3 rounded-sm p-1.5 text-[13px]">
+              <Link
+                href={`/artist/${artist.slug}`}
+                className="hover:bg-surface-2 flex items-center gap-3 rounded-sm p-1.5 text-[13px]"
+              >
                 <Avatar name={artist.name} url={artist.avatarUrl} />
                 <span className="min-w-0 flex-1">
                   <b className="block truncate font-semibold">{artist.name}</b>
-                  <span className="text-fg-muted">{artist.followers.toLocaleString()} followers</span>
+                  <span className="text-fg-muted">
+                    {artist.followers.toLocaleString()} followers
+                  </span>
                 </span>
               </Link>
             </li>
@@ -125,23 +140,25 @@ function HomeExtras() {
   );
 }
 
-function ListeningTips() {
-  return (
-    <Section title="Listening">
-      <ul className="text-fg-muted grid gap-3 text-[13px]">
-        <li>Tap any song to hear a 30 second preview. The rest of the list plays after it.</li>
-        <li>Songs you own play in full, everywhere: here, in playlists and in Your items.</li>
-      </ul>
-    </Section>
-  );
-}
-
-export function Avatar({ name, url, className }: { name: string; url: string | null; className?: string }) {
+export function Avatar({
+  name,
+  url,
+  className,
+}: {
+  name: string;
+  url: string | null;
+  className?: string;
+}) {
   return url ? (
     // eslint-disable-next-line @next/next/no-img-element -- avatars come from many hosts
     <img src={url} alt="" className={className ?? "size-9 shrink-0 rounded-full object-cover"} />
   ) : (
-    <span className={className ?? "bg-surface-3 grid size-9 shrink-0 place-items-center rounded-full text-xs font-bold"}>
+    <span
+      className={
+        className ??
+        "bg-surface-3 grid size-9 shrink-0 place-items-center rounded-full text-xs font-bold"
+      }
+    >
       {name.slice(0, 2).toUpperCase()}
     </span>
   );
