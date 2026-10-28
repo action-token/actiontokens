@@ -25,6 +25,7 @@
     "@trpc/client": "catalog:",
     "@trpc/react-query": "catalog:",
     "@trpc/server": "catalog:",
+    "@uiw/react-md-editor": "catalog:",
     "lucide-react": "catalog:",
     "next": "catalog:",
     "next-auth": "catalog:",
@@ -32,6 +33,8 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-hot-toast": "catalog:",
+    "react-markdown": "catalog:",
+    "remark-gfm": "catalog:",
     "superjson": "catalog:",
     "zod": "catalog:",
     "zustand": "catalog:"

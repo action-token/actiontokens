@@ -22,6 +22,7 @@ import {
   STUDIO_PRICES,
   audio,
   cover,
+  musicBounty,
   nudge,
   type DemoArtist,
 } from "./demo-data";
@@ -281,9 +282,10 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
     data: {
       artistId: artist.id, title: `Cover ${demo.album.tracks[0]!.title}`, summary: "Record your own version.",
       description: "Post a 60-second cover. The artist picks the winner.", instructions: ["Record up to 60 s", "Tag the artist"],
-      prizeCurrency: "XLM", prizeAmount: 50, maxWinners: 1, escrowContractId: `demo-escrow-${demo.slug}`, eventId: event.id,
+      prizeCurrency: "XLM", prizeAmount: 50, maxWinners: 1, escrowContractId: `demo-escrow-${demo.slug}`, fundTxHash: `demo-fund-${demo.slug}`, eventId: event.id,
     },
   });
+  await db.bounty.create({ data: musicBounty(artist.id, demo) });
   if (index === 0) {
     await db.mapEmbed.create({ data: { artistId: artist.id, name: "Website map", centerLat: lat, centerLng: lng, zoom: 13, pinSource: "ARTIST" } });
   }

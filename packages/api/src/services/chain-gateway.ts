@@ -8,6 +8,7 @@ import {
   findTransaction,
   liveRates,
   loadAccount,
+  prepareContractCall,
   type Rates,
   submit,
 } from "@bandcoin/chain/server";
@@ -30,6 +31,8 @@ export type ChainGateway = {
   signWithServerKeys(xdr: string, publicKeys: string[]): Promise<string>;
   /** Signs for an email/Google/Apple account, whose key the platform keeps */
   signForCustodialUser(xdr: string, email: string): Promise<string>;
+  /** Simulates a contract call and fills in its footprint and fee, ready to sign */
+  prepareContractCall(xdr: string): Promise<string>;
   submit(xdr: string): Promise<{ hash: string }>;
   findTransaction(hash: string): Promise<{ successful: boolean; envelopeXdr: string } | null>;
   card: {
@@ -64,6 +67,7 @@ export function createChainGateway(db: Db): ChainGateway {
     async signForCustodialUser(xdr, email) {
       return addSignatures(xdr, [await fetchCustodialAccountSecret(email)]);
     },
+    prepareContractCall: (xdr) => prepareContractCall(xdr),
     submit,
     findTransaction,
     card: { charge: chargeCard, refund: refundCard },

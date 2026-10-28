@@ -58,7 +58,7 @@ export const artistRouter = createRouter({
         },
       }),
       ctx.db.bounty.findMany({
-        where: { artistId: artist.id, status: "RUNNING" },
+        where: { artistId: artist.id, status: "RUNNING", fundTxHash: { not: null } },
         orderBy: { createdAt: "desc" },
         take: 4,
         select: {

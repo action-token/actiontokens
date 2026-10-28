@@ -1,0 +1,264 @@
+"use client";
+
+import { Activity, FileText, Trophy, UserPlus, Zap } from "lucide-react";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { type ReactNode, useCallback, useEffect, useRef } from "react";
+
+import { Skeleton } from "@bandcoin/ui/components/skeleton";
+import { cn } from "@bandcoin/ui/lib/cn";
+import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
+import { FilterChips, SearchInput, Toolbar } from "@bandcoin/ui/patterns/toolbar";
+
+import { Money } from "~/components/money";
+import { timeAgo } from "~/lib/format";
+import { api, type RouterInputs, type RouterOutputs } from "~/trpc/react";
+
+import { BountyCard, BountyCardSkeleton } from "./bounty-card";
+
+type List = RouterInputs["bounty"]["list"];
+type Filter = NonNullable<List["filter"]>;
+type Sort = NonNullable<List["sort"]>;
+type ActivityRow = RouterOutputs["bounty"]["recent"][number];
+
+const SORTS: { value: Sort; label: string }[] = [
+  { value: "newest", label: "Newest" },
+  { value: "prize", label: "Highest prize" },
+];
+
+/**
+ * Every bounty, as on the old Bandcoin: search, sort (newest or highest
+ * prize), All / Not joined / Joined, and an endless grid; Top Bounties and
+ * Recent Activity sit alongside. Filters live in the URL so a view can be shared.
+ */
+export function BountiesView() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const { status } = useSession();
+  const filter = (params.get("filter") ?? "all") as Filter;
+  const sort = (params.get("sort") ?? "newest") as Sort;
+  const search = params.get("search") ?? "";
+
+  const setParam = useCallback(
+    (key: string, value: string, fallback: string) => {
+      const next = new URLSearchParams(params.toString());
+      if (value && value !== fallback) next.set(key, value);
+      else next.delete(key);
+      const query = next.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    },
+    [params, pathname, router],
+  );
+  const onSearch = useCallback((value: string) => setParam("search", value, ""), [setParam]);
+
+  const list = api.bounty.list.useInfiniteQuery(
+    { filter, sort, search: search || undefined },
+    { getNextPageParam: (page) => page.nextCursor },
+  );
+  const bounties = list.data?.pages.flatMap((page) => page.items) ?? [];
+  const filters: { value: Filter; label: string }[] = [
+    { value: "all", label: "All" },
+    { value: "not_joined", label: "Not joined" },
+    ...(status === "authenticated" ? [{ value: "joined" as const, label: "Joined" }] : []),
+  ];
+
+  // Load the next page as the end of the grid scrolls into view.
+  const end = useRef<HTMLDivElement>(null);
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = list;
+  useEffect(() => {
+    const node = end.current;
+    if (!node || !hasNextPage) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry?.isIntersecting && !isFetchingNextPage) void fetchNextPage();
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  return (
+    <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="grid gap-5">
+        <Toolbar>
+          <SearchInput
+            key={search}
+            value={search}
+            onSearch={onSearch}
+            placeholder="Search bounties…"
+          />
+          <label className="text-fg-muted flex items-center gap-2 text-sm sm:ml-auto">
+            Sort
+            <select
+              value={sort}
+              onChange={(event) => setParam("sort", event.target.value, "newest")}
+              className="bg-surface text-fg h-9 rounded-full border px-3 text-sm font-medium"
+            >
+              {SORTS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </Toolbar>
+        <FilterChips
+          label="Show"
+          value={filter}
+          onChange={(value) => setParam("filter", value, "all")}
+          options={filters}
+        />
+
+        {list.isPending ? (
+          <Grid>
+            {Array.from({ length: 6 }, (_, index) => (
+              <BountyCardSkeleton key={index} />
+            ))}
+          </Grid>
+        ) : bounties.length === 0 ? (
+          <EmptyState
+            icon={Trophy}
+            title="No bounties found"
+            description="Check back soon for new challenges."
+          />
+        ) : (
+          <Grid>
+            {bounties.map((bounty) => (
+              <BountyCard key={bounty.id} bounty={bounty} />
+            ))}
+            {isFetchingNextPage &&
+              Array.from({ length: 2 }, (_, index) => <BountyCardSkeleton key={`more-${index}`} />)}
+          </Grid>
+        )}
+        <div ref={end} className="h-px" />
+      </div>
+
+      <aside className="grid gap-5 lg:sticky lg:top-20">
+        <TopBounties />
+        <RecentActivity />
+      </aside>
+    </div>
+  );
+}
+
+function Grid({ children }: { children: ReactNode }) {
+  return <div className="grid gap-4 sm:grid-cols-2">{children}</div>;
+}
+
+function Panel({
+  icon: Icon,
+  title,
+  children,
+}: {
+  icon: typeof Zap;
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="bg-surface overflow-hidden rounded-[1.4rem] border-2">
+      <h2 className="display flex items-center gap-2 border-b px-4 py-3 text-sm">
+        <Icon className="text-primary-text size-4" /> {title}
+      </h2>
+      <div className="grid max-h-80 gap-1 overflow-y-auto p-2">{children}</div>
+    </section>
+  );
+}
+
+function TopBounties() {
+  const top = api.bounty.top.useQuery(undefined, { staleTime: 60_000 });
+  return (
+    <Panel icon={Zap} title="Top bounties">
+      {top.isPending ? (
+        <PanelSkeleton />
+      ) : !top.data?.length ? (
+        <p className="text-fg-muted py-4 text-center text-xs">No bounties yet</p>
+      ) : (
+        top.data.map((bounty, index) => (
+          <Link
+            key={bounty.id}
+            href={`/bounty/${bounty.id}`}
+            className="hover:bg-surface-2 flex items-center gap-3 rounded-lg p-2 transition-colors"
+          >
+            <span
+              className={cn(
+                "marker w-6 shrink-0 text-lg",
+                index === 0 ? "text-primary-text" : "text-fg-faint",
+              )}
+            >
+              #{index + 1}
+            </span>
+            <span className="min-w-0 flex-1">
+              <b className="block truncate text-[13px] font-semibold">{bounty.title}</b>
+              <Money
+                amount={bounty.prize.amount}
+                currency={bounty.prize.currency}
+                short
+                className="text-fg-muted text-xs"
+              />
+            </span>
+          </Link>
+        ))
+      )}
+    </Panel>
+  );
+}
+
+const ACTIVITY: Record<ActivityRow["type"], { icon: typeof Trophy; verb: string; tone: string }> = {
+  win: { icon: Trophy, verb: "won", tone: "bg-primary text-primary-foreground" },
+  submit: { icon: FileText, verb: "submitted on", tone: "bg-surface-3 text-fg" },
+  join: { icon: UserPlus, verb: "joined", tone: "bg-surface-2 text-fg-muted" },
+};
+
+function RecentActivity() {
+  const recent = api.bounty.recent.useQuery(undefined, { staleTime: 30_000 });
+  return (
+    <Panel icon={Activity} title="Recent activity">
+      {recent.isPending ? (
+        <PanelSkeleton />
+      ) : !recent.data?.length ? (
+        <p className="text-fg-muted py-4 text-center text-xs">No recent activity</p>
+      ) : (
+        recent.data.map((row) => {
+          const kind = ACTIVITY[row.type];
+          return (
+            <div key={row.id} className="flex items-start gap-3 rounded-lg p-2">
+              <span
+                className={cn(
+                  "mt-0.5 grid size-7 shrink-0 place-items-center rounded-full",
+                  kind.tone,
+                )}
+              >
+                <kind.icon className="size-3.5" />
+              </span>
+              <span className="grid min-w-0 gap-0.5 text-xs">
+                <span>
+                  <b className="font-semibold">
+                    {row.user.displayName ?? row.user.username ?? "Someone"}
+                  </b>{" "}
+                  <span className="text-fg-muted">{kind.verb}</span>
+                </span>
+                <Link
+                  href={`/bounty/${row.bounty.id}`}
+                  className="line-clamp-2 font-medium hover:underline"
+                >
+                  {row.bounty.title}
+                </Link>
+                <span className="text-fg-faint text-[11px]">{timeAgo(row.at)}</span>
+              </span>
+            </div>
+          );
+        })
+      )}
+    </Panel>
+  );
+}
+
+function PanelSkeleton() {
+  return (
+    <div className="grid gap-2 p-2">
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-10 w-full" />
+    </div>
+  );
+}

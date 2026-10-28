@@ -105,3 +105,23 @@ export const REAL_ARTISTS = [
     walletAddress: "GCMTJCWDCE6AVBJMFCYIIPSLISCOTG3W62MMYKQOWBC2M4SJ65DEMUYK",
   },
 ];
+
+/** A listening bounty: play every song on the album twice to qualify. */
+export const musicBounty = (artistId: string, demo: DemoArtist) => ({
+  artistId, title: `Stream ${demo.album.title}`, summary: `Play ${demo.album.title} and win BANDCOIN.`,
+  description: `Listen to every song on ${demo.album.title} twice. Three listeners who finish share the prize.`,
+  instructions: ["Connect Last.fm", "Play each song twice", "Your progress updates as you listen"],
+  prizeCurrency: "BANDCOIN" as const, prizeAmount: 30000, maxWinners: 3,
+  escrowContractId: `demo-escrow-${demo.slug}-music`, fundTxHash: `demo-fund-${demo.slug}-music`,
+  musicRule: {
+    create: {
+      mode: "MUSIC_ONLY" as const, ruleType: "ALL" as const,
+      tracks: {
+        create: demo.album.tracks.map((track) => ({
+          title: track.title, artistName: demo.name, albumName: demo.album.title, durationSec: track.durationSec, targetPlays: 2,
+          lastFmUrl: `https://www.last.fm/music/${encodeURIComponent(demo.name)}/_/${encodeURIComponent(track.title)}`,
+        })),
+      },
+    },
+  },
+});

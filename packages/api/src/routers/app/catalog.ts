@@ -38,7 +38,7 @@ export const catalogRouter = createRouter({
         select: { name: true, slug: true, avatarUrl: true, _count: { select: { followers: true, items: true } } },
       }),
       ctx.db.bounty.findMany({
-        where: { status: "RUNNING" },
+        where: { status: "RUNNING", fundTxHash: { not: null } },
         orderBy: { createdAt: "desc" },
         take: 4,
         select: {

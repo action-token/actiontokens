@@ -1,5 +1,6 @@
 import { accountRouter } from "./routers/app/account";
 import { artistRouter } from "./routers/app/artist";
+import { bountyRouter } from "./routers/app/bounty";
 import { catalogRouter } from "./routers/app/catalog";
 import { collectionRouter } from "./routers/app/collection";
 import { itemRouter } from "./routers/app/item";
@@ -14,6 +15,7 @@ import { createRouter } from "./trpc";
 export const appRouter = createRouter({
   account: accountRouter,
   artist: artistRouter,
+  bounty: bountyRouter,
   catalog: catalogRouter,
   collection: collectionRouter,
   item: itemRouter,
