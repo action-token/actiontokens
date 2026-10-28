@@ -1,0 +1,83 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+import { cn } from "../lib/cn";
+
+const SEEN_KEY = "bc-boot-seen";
+const BOOT_MS = 600;
+
+/**
+ * The Bandcoin mark: the chartreuse guitar pick with the white block "B"
+ * (same shape as the favicon and logo).
+ */
+export function BrandMark({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 32 36" aria-hidden className={cn("h-8 w-auto", className)}>
+      <path
+        d="M16 1C25.5 1 31 4.6 31 11.2 31 20.3 22.6 30 17.6 34.2a2.5 2.5 0 0 1-3.2 0C9.4 30 1 20.3 1 11.2 1 4.6 6.5 1 16 1Z"
+        fill="#dbdc2c"
+      />
+      <path
+        d="M10.5 12.5h8.6a3.3 3.3 0 0 1 2.4 5.6 3.4 3.4 0 0 1-2.2 6H10.5Zm3.2 3v2.2h4.4v-2.2Zm0 4.9v1.9h4.9v-1.9Z"
+        fill="#fff"
+      />
+    </svg>
+  );
+}
+
+/** Five bars that bounce like a level meter. */
+export function Equalizer({ className }: { className?: string }) {
+  return (
+    <div aria-hidden className={cn("flex h-11 items-end gap-[5px]", className)}>
+      {[0, -200, -450, -650, -300].map((delay) => (
+        <span
+          key={delay}
+          className="bg-primary animate-eq h-[30%] w-[7px] rounded-[3px]"
+          style={{ animationDelay: `${delay}ms` }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Splash shown over the first visit only. The page renders underneath it and
+ * nothing waits on it; it fades after BOOT_MS. Repeat visits never see it.
+ * Pass `always` to show it on every mount (design preview).
+ */
+export function BootScreen({ always = false, replayKey }: { always?: boolean; replayKey?: number }) {
+  const [visible, setVisible] = useState(always);
+
+  useEffect(() => {
+    let seen = false;
+    try {
+      seen = localStorage.getItem(SEEN_KEY) === "1";
+      localStorage.setItem(SEEN_KEY, "1");
+    } catch {
+      // storage blocked: treat as a first visit
+    }
+    if (seen && !always) return;
+    setVisible(true);
+    const timer = setTimeout(() => setVisible(false), always ? 1400 : BOOT_MS);
+    return () => clearTimeout(timer);
+  }, [always, replayKey]);
+
+  return (
+    <div
+      aria-hidden
+      className={cn(
+        "bg-bg absolute inset-0 z-50 grid place-items-center transition-[opacity,visibility] duration-400",
+        visible ? "visible opacity-100" : "invisible opacity-0",
+      )}
+    >
+      <div className="grid justify-items-center gap-4">
+        <BrandMark className="h-14" />
+        <Equalizer className="h-6 [&>span]:w-1" />
+        <div key={replayKey} className="font-display animate-reveal text-[22px] leading-none font-extrabold tracking-tight [clip-path:inset(0_100%_0_0)]">
+          Bandcoin
+        </div>
+      </div>
+    </div>
+  );
+}

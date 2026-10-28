@@ -1,0 +1,32 @@
+{
+  "name": "@bandcoin/stellar",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Stellar account reads, quotes and price lookups shared by the web apps.",
+  "exports": {
+    "./account": "./src/account.ts",
+    "./quote": "./src/quote.ts",
+    "./prices": "./src/prices.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@stellar/stellar-sdk": "catalog:",
+    "@bandcoin/errors": "workspace:*",
+    "@bandcoin/wallet": "workspace:*",
+    "axios": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@bandcoin/eslint-config": "workspace:*",
+    "@bandcoin/tsconfig": "workspace:*",
+    "@bandcoin/vitest-config": "workspace:*",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

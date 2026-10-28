@@ -1,0 +1,48 @@
+{
+  "name": "@bandcoin/ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Bandcoin design system: tokens, fonts, primitives and patterns shared by every web app.",
+  "exports": {
+    "./components/use-toast": "./src/components/use-toast.ts",
+    "./components/*": "./src/components/*.tsx",
+    "./patterns/*": "./src/patterns/*.tsx",
+    "./lib/*": "./src/lib/*.ts",
+    "./styles/*": "./src/styles/*"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@bandcoin/utils": "workspace:*",
+    "@fontsource-variable/jetbrains-mono": "catalog:",
+    "@fontsource-variable/onest": "catalog:",
+    "@fontsource-variable/unbounded": "catalog:",
+    "class-variance-authority": "catalog:",
+    "clsx": "catalog:",
+    "lucide-react": "catalog:",
+    "radix-ui": "catalog:",
+    "react-day-picker": "catalog:",
+    "tailwind-merge": "catalog:",
+    "tw-animate-css": "catalog:",
+    "vaul": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "next": "catalog:"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@bandcoin/eslint-config": "workspace:*",
+    "@bandcoin/tsconfig": "workspace:*",
+    "eslint": "catalog:",
+    "next": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "typescript": "catalog:"
+  }
+}

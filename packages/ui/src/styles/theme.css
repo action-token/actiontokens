@@ -1,0 +1,237 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Bandcoin theme: tokens, fonts, Tailwind mapping and base layer.
+   Import once, right after Tailwind, in every app's globals.css:
+
+     @import "tailwindcss";
+     @import "@bandcoin/ui/styles/theme.css";
+     @source "../../../packages/ui/src";
+
+   Dark first. next-themes sets data-theme="light" | "dark" on <html>; with no
+   attribute the OS setting decides. Components use the Tailwind names below
+   (bg-surface, text-fg-muted, bg-primary…), never raw hex values.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@import "@fontsource-variable/unbounded";
+@import "@fontsource-variable/onest";
+@import "@fontsource-variable/jetbrains-mono";
+@import "tw-animate-css";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
+
+/* ── Tokens ─────────────────────────────────────────────────────────────── */
+:root {
+  /* dark (default): a stage at night, warm graphite with an olive bias so the chartreuse pick belongs */
+  --bc-bg: #0e0f0b;
+  --bc-surface: #161812;
+  --bc-surface-2: #1d1f18;
+  --bc-surface-3: #26291f;
+  --bc-border: #2b2e23;
+  --bc-border-strong: #3a3e2f;
+  --bc-fg: #f3f4ea;
+  --bc-fg-muted: #a6a998;
+  --bc-fg-faint: #75786a;
+  --bc-primary: #dbdc2c;
+  --bc-primary-strong: #c6c71c;
+  --bc-primary-ink: #1b1c05;
+  --bc-primary-text: #dbdc2c;
+  --bc-primary-soft: rgb(219 220 44 / 0.12);
+  --bc-success: #4ade80;
+  --bc-warning: #f5a524;
+  --bc-danger: #ff6b6b;
+  --bc-danger-soft: rgb(255 107 107 / 0.12);
+  --bc-overlay: rgb(8 9 6 / 0.72);
+  --bc-shadow: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 12px 32px -12px rgb(0 0 0 / 0.6);
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bc-bg: #f7f7f2;
+    --bc-surface: #ffffff;
+    --bc-surface-2: #f0f1e8;
+    --bc-surface-3: #e6e7dc;
+    --bc-border: #dfe0d3;
+    --bc-border-strong: #c8cab9;
+    --bc-fg: #1a1b14;
+    --bc-fg-muted: #56584a;
+    --bc-fg-faint: #808272;
+    --bc-primary: #dbdc2c;
+    --bc-primary-strong: #c9ca1a;
+    --bc-primary-ink: #1b1c05;
+    --bc-primary-text: #626300;
+    --bc-primary-soft: rgb(219 220 44 / 0.22);
+    --bc-success: #18834a;
+    --bc-warning: #a35f00;
+    --bc-danger: #c93636;
+    --bc-danger-soft: rgb(201 54 54 / 0.08);
+    --bc-overlay: rgb(247 247 242 / 0.8);
+    --bc-shadow: 0 1px 2px rgb(26 27 20 / 0.06), 0 12px 28px -14px rgb(26 27 20 / 0.18);
+    color-scheme: light;
+  }
+}
+
+:root[data-theme="light"] {
+  --bc-bg: #f7f7f2;
+  --bc-surface: #ffffff;
+  --bc-surface-2: #f0f1e8;
+  --bc-surface-3: #e6e7dc;
+  --bc-border: #dfe0d3;
+  --bc-border-strong: #c8cab9;
+  --bc-fg: #1a1b14;
+  --bc-fg-muted: #56584a;
+  --bc-fg-faint: #808272;
+  --bc-primary: #dbdc2c;
+  --bc-primary-strong: #c9ca1a;
+  --bc-primary-ink: #1b1c05;
+  --bc-primary-text: #626300;
+  --bc-primary-soft: rgb(219 220 44 / 0.22);
+  --bc-success: #18834a;
+  --bc-warning: #a35f00;
+  --bc-danger: #c93636;
+  --bc-danger-soft: rgb(201 54 54 / 0.08);
+  --bc-overlay: rgb(247 247 242 / 0.8);
+  --bc-shadow: 0 1px 2px rgb(26 27 20 / 0.06), 0 12px 28px -14px rgb(26 27 20 / 0.18);
+  color-scheme: light;
+}
+
+/* ── Tailwind mapping ───────────────────────────────────────────────────── */
+@theme inline {
+  --font-display: "Unbounded Variable", "Arial Black", system-ui, sans-serif;
+  --font-sans: "Onest Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --color-bg: var(--bc-bg);
+  --color-surface: var(--bc-surface);
+  --color-surface-2: var(--bc-surface-2);
+  --color-surface-3: var(--bc-surface-3);
+  --color-fg: var(--bc-fg);
+  --color-fg-muted: var(--bc-fg-muted);
+  --color-fg-faint: var(--bc-fg-faint);
+  --color-border-strong: var(--bc-border-strong);
+  --color-primary-strong: var(--bc-primary-strong);
+  --color-primary-soft: var(--bc-primary-soft);
+  /* accent as TEXT: chartreuse in dark, deep olive in light (chartreuse on white is unreadable) */
+  --color-primary-text: var(--bc-primary-text);
+  --color-danger: var(--bc-danger);
+  --color-danger-soft: var(--bc-danger-soft);
+  --color-overlay: var(--bc-overlay);
+
+  /* shadcn names, so Radix-based components keep working */
+  --color-background: var(--bc-bg);
+  --color-foreground: var(--bc-fg);
+  --color-card: var(--bc-surface);
+  --color-card-foreground: var(--bc-fg);
+  --color-popover: var(--bc-surface);
+  --color-popover-foreground: var(--bc-fg);
+  --color-primary: var(--bc-primary);
+  --color-primary-foreground: var(--bc-primary-ink);
+  --color-secondary: var(--bc-surface-3);
+  --color-secondary-foreground: var(--bc-fg);
+  --color-muted: var(--bc-surface-2);
+  --color-muted-foreground: var(--bc-fg-muted);
+  --color-accent: var(--bc-surface-3);
+  --color-accent-foreground: var(--bc-fg);
+  --color-destructive: var(--bc-danger);
+  --color-destructive-foreground: #ffffff;
+  --color-success: var(--bc-success);
+  --color-warning: var(--bc-warning);
+  --color-border: var(--bc-border);
+  --color-input: var(--bc-border);
+  --color-ring: var(--bc-primary-text);
+
+  /* radii: sm controls inside things, md/lg cards and inputs, xl big panels */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 12px;
+  --radius-xl: 20px;
+  --shadow-raised: var(--bc-shadow);
+
+  /* motion: 150 / 250 / 400 ms, one curve */
+  --ease-out-soft: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --animate-shimmer: bc-shimmer 1.4s linear infinite;
+  --animate-eq: bc-eq 900ms var(--ease-out-soft) infinite alternate;
+  --animate-reveal: bc-reveal 520ms 120ms var(--ease-out-soft) forwards;
+
+  @keyframes bc-shimmer {
+    from { background-position: 100% 0; }
+    to { background-position: -100% 0; }
+  }
+  @keyframes bc-eq {
+    from { height: 18%; }
+    to { height: 100%; }
+  }
+  @keyframes bc-reveal {
+    from { clip-path: inset(0 100% 0 0); }
+    to { clip-path: inset(0 0 0 0); }
+  }
+}
+
+/* ── Base ───────────────────────────────────────────────────────────────── */
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--bc-border);
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    background: var(--bc-bg);
+    color: var(--bc-fg);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  :focus-visible {
+    outline: 2px solid var(--bc-primary-text);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 1ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 1ms !important;
+    }
+  }
+}
+
+/* ── Utilities ──────────────────────────────────────────────────────────── */
+/* Prices, balances, durations: monospace digits that line up. */
+@utility num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+/* Small uppercase label above a heading or field group. */
+@utility eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bc-fg-faint);
+}
+/* Loading placeholder with a moving sheen. */
+@utility skeleton {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--bc-surface-2) 0%, var(--bc-surface-3) 40%, var(--bc-surface-2) 80%);
+  background-size: 300% 100%;
+  animation: var(--animate-shimmer);
+}
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

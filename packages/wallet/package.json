@@ -1,0 +1,68 @@
+{
+  "name": "@bandcoin/wallet",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Connect a Stellar wallet or a custodial account, sign transactions, on testnet or mainnet.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./server": "./src/server.ts",
+    "./shared": "./src/shared.ts",
+    "./config": "./src/config/index.ts",
+    "./stellar": "./src/stellar.ts",
+    "./firebase": "./src/firebase.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@albedo-link/intent": "catalog:",
+    "@creit.tech/xbull-wallet-connect": "catalog:",
+    "@heroicons/react": "catalog:",
+    "@hookform/resolvers": "catalog:",
+    "@hot-wallet/sdk": "catalog:",
+    "@stellar/freighter-api": "catalog:",
+    "@stellar/stellar-sdk": "catalog:",
+    "@tanstack/react-query": "catalog:",
+    "@bandcoin/errors": "workspace:*",
+    "@bandcoin/ui": "workspace:*",
+    "@bandcoin/utils": "workspace:*",
+    "@walletconnect/sign-client": "catalog:",
+    "@walletconnect/utils": "catalog:",
+    "@web3modal/core": "catalog:",
+    "@web3modal/standalone": "catalog:",
+    "@web3modal/ui": "catalog:",
+    "axios": "catalog:",
+    "clsx": "catalog:",
+    "firebase": "catalog:",
+    "firebase-admin": "catalog:",
+    "jsonwebtoken": "catalog:",
+    "jwks-rsa": "catalog:",
+    "lucide-react": "catalog:",
+    "react-hook-form": "catalog:",
+    "react-hot-toast": "catalog:",
+    "zod": "catalog:",
+    "zustand": "catalog:"
+  },
+  "peerDependencies": {
+    "next": "catalog:",
+    "next-auth": "catalog:",
+    "react": "catalog:"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@bandcoin/eslint-config": "workspace:*",
+    "@bandcoin/tsconfig": "workspace:*",
+    "@bandcoin/vitest-config": "workspace:*",
+    "eslint": "catalog:",
+    "next": "catalog:",
+    "next-auth": "catalog:",
+    "react": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
