@@ -671,7 +671,7 @@ export function ConnectWalletDialog() {
                 />
                 <div>
                   <p className="marker text-muted-foreground text-base">works with</p>
-                  <p className="display text-base">Lobstr Mobile App</p>
+                  <p className="display text-sm whitespace-nowrap">Lobstr Mobile App</p>
                 </div>
               </button>
             </div>
