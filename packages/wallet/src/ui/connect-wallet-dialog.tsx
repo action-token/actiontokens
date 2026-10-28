@@ -635,7 +635,7 @@ export function ConnectWalletDialog() {
           >
             <div className="p-6 pb-3">
               <p className="marker text-primary-text text-xl">*scan to connect*</p>
-              <h3 className="display text-foreground mt-2 text-3xl">Connect Wallet</h3>
+              <h3 className="display text-foreground mt-2 text-[22px] whitespace-nowrap">Connect Wallet</h3>
             </div>
 
             <div className="flex flex-1 items-center justify-center px-6">
