@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function MarketplacePage() {
   return (
     <PageBody wide className="grid gap-6">
-      <PageHeader title="Marketplace" description="Music, artwork, tickets and fan tokens, straight from the artists." />
+      <PageHeader title="Marketplace" note="*music, art, tickets & fan tokens, straight from the artists*" />
       <Suspense>
         <MarketplaceView />
       </Suspense>

@@ -81,7 +81,7 @@ export function PlayerBar() {
         {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
         <img src={track.coverUrl} alt="" className="size-11 shrink-0 rounded-sm object-cover" />
         <div className="min-w-0">
-          <b className="block truncate text-sm">{track.title}</b>
+          <b className="display block truncate text-sm">{track.title}</b>
           <span className="text-fg-muted block truncate text-xs">
             {track.artistName}
             {preview && " · 30 s preview"}

@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function MusicPage() {
   return (
     <PageBody wide className="grid gap-6">
-      <PageHeader title="Music" description="Hear a 30 second preview of any song. Own it to play it in full." />
+      <PageHeader title="Music" note="*hear 30 seconds of anything, own it to hear it all*" />
       <Suspense>
         <MusicView />
       </Suspense>

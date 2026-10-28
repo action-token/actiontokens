@@ -11,6 +11,7 @@ import { pageContainerClass } from "./page-layout";
  */
 export function PageHeader({
   title,
+  note,
   description,
   eyebrow,
   actions,
@@ -18,6 +19,8 @@ export function PageHeader({
   className,
 }: {
   title: ReactNode;
+  /** A hand-written line under the title (the display/marker pairing used across the apps) */
+  note?: ReactNode;
   description?: ReactNode;
   eyebrow?: string;
   actions?: ReactNode;
@@ -43,9 +46,8 @@ export function PageHeader({
             {eyebrow}
           </p>
         )}
-        <h1 className="font-display text-foreground text-2xl leading-tight font-bold tracking-tight sm:text-[28px]">
-          {title}
-        </h1>
+        <h1 className="display text-foreground text-3xl sm:text-4xl">{title}</h1>
+        {note && <p className="marker text-primary-text mt-1 -rotate-1 text-lg">{note}</p>}
         {description && (
           <p className="text-muted-foreground mt-1 max-w-2xl text-sm">{description}</p>
         )}

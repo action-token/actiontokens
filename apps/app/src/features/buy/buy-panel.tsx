@@ -98,7 +98,7 @@ export function BuyPanel({ itemTitle, listing }: { itemTitle: string; listing: L
             {unitPrice === null ? (
               <Skeleton className="inline-block h-7 w-28 align-middle" />
             ) : (
-              <Money amount={unitPrice} currency={currency} short />
+              <Money amount={unitPrice} currency={currency} short className="display" />
             )}
           </div>
           <Badge>{listing.kind === "PRIMARY" ? "per copy" : "resale"}</Badge>

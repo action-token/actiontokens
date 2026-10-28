@@ -9,7 +9,7 @@ import { Button } from "@bandcoin/ui/components/button";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
 import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { MediaCarousel } from "@bandcoin/ui/patterns/media-carousel";
+import { MediaCarousel, SectionTitle } from "@bandcoin/ui/patterns/media-carousel";
 import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
 import { api, type RouterInputs } from "~/trpc/react";
@@ -38,8 +38,12 @@ export function MusicView() {
       className="gap-6"
     >
       <TabsList className="w-fit">
-        <TabsTrigger value="all">Music</TabsTrigger>
-        <TabsTrigger value="mine">Your items</TabsTrigger>
+        <TabsTrigger value="all" className="font-hud">
+          Music
+        </TabsTrigger>
+        <TabsTrigger value="mine" className="font-hud">
+          Your items
+        </TabsTrigger>
       </TabsList>
       <TabsContent value="all" className="grid gap-9">
         <AllMusic />
@@ -60,7 +64,7 @@ function AllMusic() {
   return (
     <>
       {overview.data && overview.data.newest.length > 0 && (
-        <MediaCarousel title="New songs" itemWidth={POSTER_WIDTH}>
+        <MediaCarousel title="New songs" note="just dropped" itemWidth={POSTER_WIDTH}>
           {overview.data.newest.map((item) => (
             <ItemCard key={item.id} item={item} queue={overview.data.newest} />
           ))}
@@ -68,7 +72,7 @@ function AllMusic() {
       )}
       <section className="grid gap-3" aria-label="All songs">
         <div className="flex items-center justify-between gap-3">
-          <h3 className="text-[17px] font-bold">All songs</h3>
+          <SectionTitle title="All songs" note="tap a row to listen" />
           <SortSelect value={sort} onChange={setSort} />
         </div>
         <TrackList tracks={list} loading={tracks.isPending} />

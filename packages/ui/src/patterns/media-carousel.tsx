@@ -11,12 +11,15 @@ import { cn } from "../lib/cn";
  */
 export function MediaCarousel({
   title,
+  note,
   action,
   children,
   itemWidth = "minmax(150px,172px)",
   className,
 }: {
   title: string;
+  /** A short hand-written line under the title, e.g. "what fans play most" */
+  note?: string;
   /** e.g. a "See all" link */
   action?: ReactNode;
   children: ReactNode;
@@ -32,8 +35,8 @@ export function MediaCarousel({
 
   return (
     <section className={cn("grid gap-3", className)} aria-label={title}>
-      <div className="flex items-center justify-between gap-3">
-        <h3 className="text-[17px] font-bold">{title}</h3>
+      <div className="flex items-end justify-between gap-3">
+        <SectionTitle title={title} note={note} />
         <div className="flex items-center gap-2">
           {action}
           <button type="button" className={arrow} aria-label="Scroll left" onClick={() => scroll(-1)}>
@@ -53,5 +56,15 @@ export function MediaCarousel({
         {children}
       </div>
     </section>
+  );
+}
+
+/** A section heading: the title in the display face and an optional hand-written note under it. */
+export function SectionTitle({ title, note, className }: { title: ReactNode; note?: ReactNode; className?: string }) {
+  return (
+    <div className={cn("grid min-w-0", className)}>
+      <h3 className="display text-xl sm:text-2xl">{title}</h3>
+      {note && <p className="marker text-fg-muted -rotate-1 text-base">{note}</p>}
+    </div>
   );
 }

@@ -25,9 +25,11 @@ export function Money({
   /** On a brand-coloured background the coin gets a dark backing so it stays visible */
   onBrand?: boolean;
 }) {
-  if (currency === "USD") return <span className={cn("num", className)}>{formatAmount(amount, "USD")}</span>;
+  // The display face replaces the mono figures (headline prices); both keep equal-width digits.
+  const face = className?.includes("display") ? "tabular-nums" : "num";
+  if (currency === "USD") return <span className={cn(face, className)}>{formatAmount(amount, "USD")}</span>;
   return (
-    <span className={cn("num inline-flex items-center gap-[0.3em] whitespace-nowrap", className)}>
+    <span className={cn(face, "inline-flex items-center gap-[0.3em] whitespace-nowrap", className)}>
       <CurrencyIcon currency={currency} className={cn("size-[1.1em]", onBrand && "rounded-full bg-black/85 p-[0.12em]")} />
       {formatAmount(amount, currency, { short })}
       <span className="sr-only"> {currency}</span>
