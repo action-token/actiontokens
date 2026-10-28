@@ -1,0 +1,43 @@
+{
+  "name": "@bandcoin/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The shared database: Prisma schema (one file per domain), generated client, the app-wide `db` instance and the legacy migration script.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./server": "./src/server.ts"
+  },
+  "scripts": {
+    "generate": "prisma generate",
+    "postinstall": "prisma generate",
+    "studio": "prisma studio",
+    "validate": "prisma validate",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "legacy:dry-run": "tsx scripts/migrate-legacy/index.ts --dry-run",
+    "legacy:run": "tsx scripts/migrate-legacy/index.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "seed": "tsx scripts/seed/index.ts",
+    "seed:reset": "tsx scripts/seed/index.ts --reset"
+  },
+  "dependencies": {
+    "@bandcoin/errors": "workspace:*",
+    "@prisma/adapter-pg": "catalog:",
+    "@prisma/client": "catalog:",
+    "dotenv": "catalog:"
+  },
+  "devDependencies": {
+    "@bandcoin/eslint-config": "workspace:*",
+    "@bandcoin/tsconfig": "workspace:*",
+    "@stellar/stellar-sdk": "catalog:",
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
+    "eslint": "catalog:",
+    "pg": "catalog:",
+    "prisma": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:"
+  }
+}

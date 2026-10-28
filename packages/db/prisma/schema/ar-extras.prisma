@@ -1,0 +1,336 @@
+// AR extras from Wadzzo AR: murals fans scan for coins, artist events with
+// RSVPs, announcements, and the pin map artists embed on their own sites.
+
+// ── Murals and coins ─────────────────────────────────────────────────────
+
+enum MuralStatus {
+  /// Fewer than MuralSettings.confirmationsNeeded distinct scanners
+  DISCOVERED
+  /// In the admin queue
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum MuralRejectReason {
+  /// Fans keep the coins they earned
+  NOT_A_MURAL
+  /// Coins earned from it are revoked (never below 0)
+  FRAUD
+}
+
+/// Public wall art found by fans. The first scanners register it; an admin approves it.
+model Mural {
+  id               String             @id @default(cuid())
+  /// e.g. "Mural on Bedford Ave", from reverse geocoding the first scan
+  autoTitle        String
+  title            String?
+  artistName       String?
+  /// The early scanner who named it (first one wins)
+  namedById        String?
+  latitude         Float
+  longitude        Float
+  coverUrl         String
+  status           MuralStatus        @default(DISCOVERED)
+  rejectReason     MuralRejectReason?
+  decidedAt        DateTime?
+  decidedById      String?
+  distinctScanners Int                @default(0)
+  scanCount        Int                @default(0)
+  discovererId     String
+  discoverer       User               @relation("MuralDiscoverer", fields: [discovererId], references: [id], onDelete: Cascade)
+  /// Set when an admin merges a duplicate into another mural
+  mergedIntoId     String?
+  mergedInto       Mural?             @relation("MuralMerge", fields: [mergedIntoId], references: [id], onDelete: SetNull)
+  mergedFrom       Mural[]            @relation("MuralMerge")
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  embeddings MuralEmbedding[]
+  scans      MuralScan[]
+  coinLedger CoinLedgerEntry[]
+
+  @@index([status])
+  @@index([latitude, longitude])
+  @@map("murals")
+}
+
+/// Image embedding used to recognise a mural from a new scan.
+model MuralEmbedding {
+  id        String   @id @default(cuid())
+  muralId   String
+  mural     Mural    @relation(fields: [muralId], references: [id], onDelete: Cascade)
+  vector    Float[]
+  scanId    String?
+  createdAt DateTime @default(now())
+
+  @@index([muralId])
+  @@map("mural_embeddings")
+}
+
+model MuralScan {
+  id            String   @id @default(cuid())
+  muralId       String
+  mural         Mural    @relation(fields: [muralId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  latitude      Float
+  longitude     Float
+  accuracyM     Float
+  /// IANA zone from the GPS fix, never from the device
+  timeZone      String
+  /// YYYY-MM-DD in timeZone; the per-mural daily limit counts on this
+  localDay      String
+  /// S3 URLs of the left, centre and right frames (admin and scanner only)
+  keyframes     String[]
+  /// Vision and on-device scores, kept for review and tuning
+  vision        Json
+  /// "web" | "ios" | "android"
+  platform      String
+  /// 1..confirmationsNeeded for the first distinct scanners
+  discoveryRank Int?
+  coinsAwarded  Int
+  createdAt     DateTime @default(now())
+
+  @@index([userId, muralId, localDay])
+  @@index([muralId])
+  @@map("mural_scans")
+}
+
+/// One scan attempt, open while the frames upload.
+model MuralScanSession {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  latitude   Float
+  longitude  Float
+  accuracyM  Float
+  frameKeys  String[]
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  /// "accepted" or a reject code
+  outcome    String?
+  scanId     String?   @unique
+  /// Vision API units spent on this attempt
+  costUnits  Int       @default(0)
+
+  @@index([userId, startedAt])
+  @@map("mural_scan_sessions")
+}
+
+/// Single row (id = 1): how many coins scans pay and the anti-abuse limits.
+model MuralSettings {
+  id                  Int      @id @default(1)
+  coinsPerScan        Int      @default(10)
+  discoveryBonus      Int      @default(50)
+  dailyScansPerMural  Int      @default(3)
+  confirmationsNeeded Int      @default(3)
+  updatedById         String?
+  updatedAt           DateTime @updatedAt
+
+  @@map("mural_settings")
+}
+
+enum CoinReason {
+  MURAL_SCAN
+  MURAL_DISCOVERY
+  MURAL_REVOKE
+  ADMIN_ADJUST
+}
+
+/// AR coins a fan has earned (off-chain points, separate from studio coins).
+model CoinBalance {
+  userId    String   @id
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balance   Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@map("coin_balances")
+}
+
+model CoinLedgerEntry {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Negative for revokes
+  amount    Int
+  reason    CoinReason
+  muralId   String?
+  mural     Mural?     @relation(fields: [muralId], references: [id], onDelete: SetNull)
+  scanId    String?
+  note      String?
+  createdAt DateTime   @default(now())
+
+  @@index([userId, createdAt])
+  @@index([muralId])
+  @@map("coin_ledger_entries")
+}
+
+// ── Events ───────────────────────────────────────────────────────────────
+
+/// A gig, signing or listening party. In person, online, or both.
+model Event {
+  id          String   @id @default(cuid())
+  artistId    String
+  artist      Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  coverUrl    String?
+  startsAt    DateTime
+  endsAt      DateTime
+  venueName   String?
+  address     String?
+  latitude    Float?
+  longitude   Float?
+  link        String?
+  linkLabel   String?
+  /// null = unlimited RSVPs
+  capacity    Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  pins     Pin[]
+  bounties Bounty[]
+  rsvps    EventRsvp[]
+  comments EventComment[]
+
+  @@index([artistId])
+  @@index([startsAt])
+  @@map("events")
+}
+
+model EventRsvp {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([eventId, userId])
+  @@map("event_rsvps")
+}
+
+model EventComment {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([eventId, createdAt])
+  @@map("event_comments")
+}
+
+// ── Announcements ────────────────────────────────────────────────────────
+
+model Announcement {
+  id        String    @id @default(cuid())
+  artistId  String
+  artist    Artist    @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  imageUrls String[]  @default([])
+  isPinned  Boolean   @default(false)
+  ctaLabel  String?
+  ctaUrl    String?
+  /// Hidden from the feed after this; null = never expires
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  comments AnnouncementComment[]
+
+  @@index([artistId])
+  @@index([createdAt])
+  @@map("announcements")
+}
+
+model AnnouncementComment {
+  id             String       @id @default(cuid())
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  authorId       String
+  author         User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body           String
+  createdAt      DateTime     @default(now())
+
+  @@index([announcementId, createdAt])
+  @@map("announcement_comments")
+}
+
+// ── Embeddable map ───────────────────────────────────────────────────────
+
+enum EmbedTheme {
+  AUTO
+  LIGHT
+  DARK
+}
+
+enum EmbedPinSource {
+  /// Every artist's live pins in view
+  ALL
+  /// Only the embed owner's pins
+  ARTIST
+}
+
+enum EmbedGesture {
+  /// Page scroll wins; zoom needs Ctrl/Cmd + scroll or two fingers
+  COOPERATIVE
+  /// The map takes every scroll and drag, like the app
+  GREEDY
+}
+
+/// A pin map an artist embeds on their own website.
+model MapEmbed {
+  id               String         @id @default(cuid())
+  artistId         String
+  artist           Artist         @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  name             String
+  isEnabled        Boolean        @default(true)
+  centerLat        Float
+  centerLng        Float
+  zoom             Float          @default(12)
+  /// Adds a "Near me" button that asks for location only when tapped
+  showUserLocation Boolean        @default(false)
+  gestureMode      EmbedGesture   @default(COOPERATIVE)
+  theme            EmbedTheme     @default(AUTO)
+  accentColor      String         @default("#dbdc2c")
+  pinSource        EmbedPinSource @default(ALL)
+  /// Empty = every pin type
+  pinTypes         PinType[]      @default([])
+  showFilterChips  Boolean        @default(false)
+  showSearch       Boolean        @default(true)
+  showNearby       Boolean        @default(true)
+  showMurals       Boolean        @default(true)
+  eventsLabel      String         @default("Find events")
+  eventsUrl        String?
+  bountiesLabel    String         @default("View bounties")
+  bountiesUrl      String?
+  /// Hostnames allowed to frame this embed; empty = any site
+  allowedDomains   String[]       @default([])
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  stats MapEmbedDailyStat[]
+
+  @@index([artistId])
+  @@map("map_embeds")
+}
+
+model MapEmbedDailyStat {
+  embedId        String
+  embed          MapEmbed @relation(fields: [embedId], references: [id], onDelete: Cascade)
+  /// UTC day
+  day            DateTime @db.Date
+  views          Int      @default(0)
+  pinTaps        Int      @default(0)
+  openClicks     Int      @default(0)
+  eventsClicks   Int      @default(0)
+  bountiesClicks Int      @default(0)
+
+  @@id([embedId, day])
+  @@map("map_embed_daily_stats")
+}

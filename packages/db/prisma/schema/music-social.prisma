@@ -1,0 +1,208 @@
+// Listening (playlists, favorites, plays, stem mixes) and the social layer
+// (posts, likes, comments, collectible posts, notifications).
+
+model Playlist {
+  id          String   @id @default(cuid())
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  coverUrl    String?
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tracks PlaylistTrack[]
+
+  @@unique([ownerId, name])
+  @@map("playlists")
+}
+
+/// Any track can be added; playback gives owners the full song, others the preview.
+model PlaylistTrack {
+  playlistId String
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  itemId     String
+  item       Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  sortOrder  Int      @default(0)
+  addedAt    DateTime @default(now())
+
+  @@id([playlistId, itemId])
+  @@index([playlistId, sortOrder])
+  @@map("playlist_tracks")
+}
+
+model TrackFavorite {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, itemId])
+  @@map("track_favorites")
+}
+
+/// One counted play (or preview play). Append-only.
+model PlayEvent {
+  id        BigInt   @id @default(autoincrement())
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  userId    String?
+  sessionId String
+  isPreview Boolean
+  createdAt DateTime @default(now())
+
+  @@index([itemId, createdAt])
+  @@index([sessionId, itemId, createdAt])
+  @@map("play_events")
+}
+
+/// A listener's saved stem mix for one item or post audio.
+model StemMix {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// "item:<id>" or "post-media:<id>"
+  targetKey String
+  /// { [stemId]: { on, volume, pan, mute, solo } }
+  settings  Json
+  updatedAt DateTime @updatedAt
+
+  @@id([userId, targetKey])
+  @@map("stem_mixes")
+}
+
+/// An artist post (was PostGroup).
+model Post {
+  id             String          @id @default(cuid())
+  artistId       String
+  artist         Artist          @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  title          String
+  body           String
+  summary        String?
+  /// Members of this tier only; null = public
+  tierId         String?
+  tier           MembershipTier? @relation(fields: [tierId], references: [id], onDelete: SetNull)
+  facebookPostId String?         @unique
+  /// Imported from Facebook and not shown in the feed
+  isImportOnly   Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  media        PostMedia[]
+  likes        PostLike[]
+  comments     PostComment[]
+  collectibles PostCollectible[]
+
+  @@index([artistId, createdAt])
+  @@map("posts")
+}
+
+model PostMedia {
+  id           String    @id @default(cuid())
+  postId       String
+  post         Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  type         MediaType
+  url          String
+  title        String?
+  artistName   String?
+  albumName    String?
+  thumbnailUrl String?
+  durationSec  Int?
+  sortOrder    Int       @default(0)
+
+  stems ItemStem[]
+
+  @@index([postId])
+  @@map("post_media")
+}
+
+model PostLike {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, postId])
+  @@index([postId])
+  @@map("post_likes")
+}
+
+model PostComment {
+  id        String        @id @default(cuid())
+  postId    String
+  post      Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parent    PostComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   PostComment[] @relation("CommentReplies")
+  body      String
+  createdAt DateTime      @default(now())
+
+  @@index([postId, createdAt])
+  @@map("post_comments")
+}
+
+/// A limited copy of a post a fan can collect (one per fan per post).
+model PostCollectible {
+  id          String    @id @default(cuid())
+  postId      String
+  post        Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  collectorId String?
+  collector   User?     @relation(fields: [collectorId], references: [id], onDelete: SetNull)
+  collectedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@unique([postId, collectorId])
+  @@index([postId, collectedAt])
+  @@map("post_collectibles")
+}
+
+enum NotificationType {
+  LIKE
+  COMMENT
+  REPLY
+  FOLLOW
+  MEMBERSHIP
+  POST
+  NEW_ITEM
+  PURCHASE
+  BOUNTY
+  BOUNTY_JOINED
+  BOUNTY_SUBMISSION
+  BOUNTY_WINNER
+  BOUNTY_COMMENT
+}
+
+/// Something that happened, fanned out to recipients as Notification rows.
+model NotificationEvent {
+  id        String           @id @default(cuid())
+  type      NotificationType
+  actorId   String
+  actor     User             @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  /// Id of the post/item/bounty… the event is about
+  entityId  String?
+  createdAt DateTime         @default(now())
+
+  notifications Notification[]
+
+  @@index([actorId, createdAt])
+  @@map("notification_events")
+}
+
+model Notification {
+  id          String            @id @default(cuid())
+  eventId     String
+  event       NotificationEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  recipientId String
+  recipient   User              @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+  /// Shown in the artist portal instead of the fan app
+  isForArtist Boolean           @default(false)
+  seenAt      DateTime?
+  createdAt   DateTime          @default(now())
+
+  @@index([recipientId, isForArtist, createdAt])
+  @@map("notifications")
+}

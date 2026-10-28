@@ -1,0 +1,317 @@
+// The catalog: every thing that can be owned is an Item, whether it lives on
+// Stellar as a classic token or as a Soroban nft_oz NFT.
+
+enum ItemType {
+  TRACK
+  VIDEO
+  IMAGE
+  MODEL_3D
+  DOCUMENT
+  ROYALTY
+  TICKET
+  MERCH
+  /// An artist's fan token; tiers are "hold N of it"
+  FAN_TOKEN
+}
+
+enum ChainType {
+  /// Fungible classic Stellar asset (code + issuer); supply = editions
+  CLASSIC_TOKEN
+  /// Soroban nft_oz contract; each copy is a numbered NftEdition
+  CONTRACT_NFT
+}
+
+model Item {
+  id             String          @id @default(cuid())
+  type           ItemType
+  chainType      ChainType
+  title          String
+  slug           String          @unique
+  description    String?
+  coverUrl       String
+  /// Dominant cover color, for the item page glow
+  accentColor    String?
+  visibility     Visibility      @default(PUBLIC)
+  tierId         String?
+  tier           MembershipTier? @relation(fields: [tierId], references: [id], onDelete: SetNull)
+  /// Total copies; null = unlimited
+  supply         Int?
+  /// ROYALTY items: share of revenue the holders split, in percent
+  royaltyPercent Decimal?        @db.Decimal(7, 4)
+  releaseAt      DateTime?
+  saleEndsAt     DateTime?
+  playCount      Int             @default(0)
+  /// null = a platform (admin) item
+  artistId       String?
+  artist         Artist?         @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  createdById    String
+  createdBy      User            @relation("ItemCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  collectionId   String?
+  collection     ItemCollection? @relation(fields: [collectionId], references: [id], onDelete: SetNull)
+  deletedAt      DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  classicToken   ClassicToken?
+  contractNft    ContractNft?
+  media          ItemMedia?
+  track          Track?
+  stems          ItemStem[]
+  editions       NftEdition[]
+  lockedContents LockedContent[]
+  listings       Listing[]
+  orders         Order[]
+  ownerships     Ownership[]
+  likes          ItemLike[]
+  redeemCodes    RedeemCode[]
+  royaltyReports RoyaltyReport[]
+  royaltyPayouts RoyaltyPayout[]
+  playlistTracks PlaylistTrack[]
+  favorites      TrackFavorite[]
+  playEvents     PlayEvent[]
+  rewardPins     Pin[]           @relation("PinRewardItem")
+  unlockPins     Pin[]           @relation("PinUnlockItem")
+  fanTokenOf     Artist?         @relation("ArtistFanToken")
+
+  @@index([artistId, createdAt])
+  @@index([type, visibility, createdAt])
+  @@index([collectionId])
+  @@map("items")
+}
+
+/// Chain details of a classic-token Item.
+model ClassicToken {
+  itemId          String        @id
+  item            Item          @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  code            String
+  issuer          String
+  /// The key that mints more copies: the artist's issuer for new tokens, a
+  /// per-asset issuer for tokens copied from bandfan, null for an external asset
+  issuerAccountId String?
+  issuerAccount   ChainAccount? @relation(fields: [issuerAccountId], references: [id], onDelete: SetNull)
+  /// An existing asset the artist brought (not issued here)
+  isExternal      Boolean       @default(false)
+
+  @@unique([code, issuer])
+  @@map("classic_tokens")
+}
+
+enum NftMintStatus {
+  PENDING
+  MINTED
+}
+
+/// Chain details of a contract-NFT Item.
+model ContractNft {
+  itemId           String        @id
+  item             Item          @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  contractAddress  String?
+  onChainEditionId String?
+  royaltyBps       Int           @default(0)
+  mintedCount      Int           @default(0)
+  status           NftMintStatus @default(PENDING)
+  mintTxHash       String?
+
+  @@map("contract_nfts")
+}
+
+/// One numbered copy of a contract NFT.
+model NftEdition {
+  id        String   @id @default(cuid())
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  tokenId   String   @unique
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  listing        Listing?
+  contentRedeems LockedContentRedeem[]
+  unlockPins     Pin[]                 @relation("PinUnlockEdition")
+
+  @@index([itemId])
+  @@index([ownerId])
+  @@map("nft_editions")
+}
+
+enum MediaStatus {
+  /// Uploaded before the transcode pipeline; served as-is
+  LEGACY
+  PENDING
+  PROCESSING
+  READY
+  FAILED
+}
+
+/// The playable/viewable file of an Item, plus its transcoded versions.
+/// Owners get a signed URL to streamKey; everyone else only previewKey.
+model ItemMedia {
+  itemId          String      @id
+  item            Item        @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  mediaType       MediaType
+  sourceUrl       String
+  /// Hand-made demo/preview file, if the artist uploaded one
+  demoUrl         String?
+  status          MediaStatus @default(LEGACY)
+  streamKey       String?
+  previewKey      String?
+  waveformKey     String?
+  /// Where the 30 s preview starts
+  previewStartSec Int         @default(0)
+  durationSec     Int?
+
+  @@map("item_media")
+}
+
+/// Music details of a TRACK item.
+model Track {
+  itemId      String  @id
+  item        Item    @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  albumId     String?
+  album       Album?  @relation(fields: [albumId], references: [id], onDelete: SetNull)
+  artistName  String
+  trackNumber Int?
+
+  @@index([albumId])
+  @@map("tracks")
+}
+
+model Album {
+  id          String   @id @default(cuid())
+  artistId    String?
+  artist      Artist?  @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  title       String
+  slug        String   @unique
+  description String?
+  coverUrl    String
+  createdAt   DateTime @default(now())
+
+  tracks Track[]
+
+  @@index([artistId])
+  @@map("albums")
+}
+
+/// One stem (vocals, drums…) of an item or a post's audio. Owners can mix them.
+model ItemStem {
+  id           String     @id @default(cuid())
+  itemId       String?
+  item         Item?      @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  postMediaId  String?
+  postMedia    PostMedia? @relation(fields: [postMediaId], references: [id], onDelete: Cascade)
+  name         String
+  sourceUrl    String
+  /// Transcoded AAC (private), set by the media worker
+  streamKey    String?
+  color        String     @default("#dbdc2c")
+  trackIndex   Int        @default(0)
+  startSec     Float      @default(0)
+  endSec       Float      @default(0)
+  trimStartSec Float      @default(0)
+  trimEndSec   Float      @default(0)
+  volume       Float      @default(1)
+  isMuted      Boolean    @default(false)
+  isSoloed     Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+
+  @@index([itemId])
+  @@index([postMediaId])
+  @@map("item_stems")
+}
+
+/// A user-made set of items (was Collection).
+model ItemCollection {
+  id          String   @id @default(cuid())
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  coverUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  items Item[]
+  likes CollectionLike[]
+
+  @@unique([ownerId, name])
+  @@map("item_collections")
+}
+
+model ItemLike {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, itemId])
+  @@index([itemId])
+  @@map("item_likes")
+}
+
+model CollectionLike {
+  userId       String
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  collectionId String
+  collection   ItemCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime       @default(now())
+
+  @@id([userId, collectionId])
+  @@map("collection_likes")
+}
+
+enum LockedContentType {
+  SONG
+  IMAGE
+  VIDEO
+  OTHER
+}
+
+/// Bonus content inside an NFT (VIP ticket rewards), opened by holders,
+/// optionally only after visiting places (UnlockRule).
+model LockedContent {
+  id         String            @id @default(cuid())
+  itemId     String
+  item       Item              @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  url        String
+  type       LockedContentType
+  label      String?
+  sortOrder  Int               @default(0)
+  /// Index of this content in the contract
+  chainIndex Int
+  createdAt  DateTime          @default(now())
+
+  unlockRule UnlockRule?
+  redeems    LockedContentRedeem[]
+  unlockPins Pin[]                 @relation("PinUnlockContent")
+
+  @@index([itemId])
+  @@map("locked_contents")
+}
+
+/// "Visit these places to unlock".
+model UnlockRule {
+  id              String        @id @default(cuid())
+  lockedContentId String        @unique
+  lockedContent   LockedContent @relation(fields: [lockedContentId], references: [id], onDelete: Cascade)
+  radiusMeters    Float         @default(50)
+  createdAt       DateTime      @default(now())
+
+  points UnlockPoint[]
+
+  @@map("unlock_rules")
+}
+
+model UnlockPoint {
+  id        String     @id @default(cuid())
+  ruleId    String
+  rule      UnlockRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  label     String?
+  latitude  Float
+  longitude Float
+  sortOrder Int        @default(0)
+
+  @@index([ruleId])
+  @@map("unlock_points")
+}

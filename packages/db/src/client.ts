@@ -1,0 +1,46 @@
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "@prisma/client";
+import { isEnvValidationSkipped, requireEnv } from "@bandcoin/errors";
+
+/** Neon databases sleep when idle; give a cold start time to wake. */
+const CONNECTION_TIMEOUT_MS = 30_000;
+
+/**
+ * Prisma 7 connects through a driver adapter (node-postgres) instead of the
+ * old Rust query engine's own connection. One client per process; in dev it
+ * survives hot reloads on globalThis.
+ */
+function createDbClient() {
+  const poolMax = Number(process.env.DATABASE_POOL_MAX) || undefined;
+  const connectionString = isEnvValidationSkipped()
+    ? process.env.DATABASE_URL
+    : requireEnv("DATABASE_URL", process.env.DATABASE_URL);
+
+  return new PrismaClient({
+    adapter: new PrismaPg({
+      connectionString,
+      connectionTimeoutMillis: CONNECTION_TIMEOUT_MS,
+      // Poolers and embedded databases may allow only a few connections.
+      ...(poolMax ? { max: poolMax } : {}),
+    }),
+    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+    // Secret keys are never loaded unless a query asks for them by name
+    // (`select: { secretEncrypted: true }`), so a stray `include` can't send
+    // them to the browser.
+    omit: {
+      chainAccount: { secretEncrypted: true },
+      facebookConnection: { pageTokenEncrypted: true },
+    },
+  });
+}
+
+const globalForPrisma = globalThis as unknown as {
+  bandcoinDb: ReturnType<typeof createDbClient> | undefined;
+};
+
+export const db = globalForPrisma.bandcoinDb ?? createDbClient();
+
+/** The shared client's type (with the secret omits), for helpers that take `db`. */
+export type Db = typeof db;
+
+if (process.env.NODE_ENV !== "production") globalForPrisma.bandcoinDb = db;

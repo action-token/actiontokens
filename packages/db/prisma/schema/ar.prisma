@@ -1,0 +1,196 @@
+// AR and the map: pins fans walk to and claim, scheduled hotspots, tags.
+
+enum PinType {
+  EVENT
+  BOUNTY
+  EXPERIENCE
+  LAUNCH
+  LANDMARK
+  OTHER
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+/// A reward drop on the map (was LocationGroup). It has one or more spots.
+model Pin {
+  id                    String          @id @default(cuid())
+  artistId              String
+  artist                Artist          @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  type                  PinType         @default(OTHER)
+  title                 String
+  description           String?
+  imageUrl              String?
+  link                  String?
+  visibility            Visibility      @default(PUBLIC)
+  tierId                String?
+  tier                  MembershipTier? @relation(fields: [tierId], references: [id], onDelete: SetNull)
+  /// What a claim gives; null with rewardsFanToken = the artist's fan token
+  rewardItemId          String?
+  rewardItem            Item?           @relation("PinRewardItem", fields: [rewardItemId], references: [id], onDelete: Cascade)
+  rewardsFanToken       Boolean         @default(false)
+  claimLimit            Int             @default(0)
+  claimsLeft            Int             @default(0)
+  startsAt              DateTime
+  endsAt                DateTime
+  latitude              Float
+  longitude             Float
+  radiusMeters          Float
+  isMultiSpot           Boolean         @default(false)
+  isHidden              Boolean         @default(false)
+  approval              ApprovalStatus  @default(PENDING)
+  aiUrlDescriptions     String[]        @default([])
+  hotspotId             String?
+  hotspot               Hotspot?        @relation(fields: [hotspotId], references: [id], onDelete: SetNull)
+  /// Only this user can see/claim it
+  restrictedToUserId    String?
+  restrictedToUser      User?           @relation("PinRestrictedTo", fields: [restrictedToUserId], references: [id], onDelete: Cascade)
+  /// Visiting it unlocks locked NFT content
+  unlockItemId          String?
+  unlockItem            Item?           @relation("PinUnlockItem", fields: [unlockItemId], references: [id], onDelete: Cascade)
+  unlockEditionId       String?
+  unlockEdition         NftEdition?     @relation("PinUnlockEdition", fields: [unlockEditionId], references: [id], onDelete: Cascade)
+  unlockLockedContentId String?
+  unlockLockedContent   LockedContent?  @relation("PinUnlockContent", fields: [unlockLockedContentId], references: [id], onDelete: Cascade)
+  onChainUnlockedAt     DateTime?
+  onChainUnlockTxHash   String?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  spots   PinSpot[]
+  tags    PinTagLink[]
+  event   Event?       @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  eventId String?
+
+  @@unique([unlockEditionId, unlockLockedContentId])
+  @@index([artistId, createdAt])
+  @@index([approval, endsAt])
+  @@index([latitude, longitude])
+  @@map("pins")
+}
+
+/// One coordinate of a pin (was Location).
+model PinSpot {
+  id          String  @id @default(cuid())
+  pinId       String
+  pin         Pin     @relation(fields: [pinId], references: [id], onDelete: Cascade)
+  latitude    Float
+  longitude   Float
+  isHidden    Boolean @default(false)
+  autoCollect Boolean @default(false)
+
+  claims PinClaim[]
+
+  @@index([pinId])
+  @@map("pin_spots")
+}
+
+/// A fan collecting a pin spot (was LocationConsumer).
+model PinClaim {
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  spotId         String
+  spot           PinSpot   @relation(fields: [spotId], references: [id], onDelete: Cascade)
+  redeemCode     String    @unique
+  isRedeemed     Boolean   @default(false)
+  redeemedAt     DateTime?
+  claimedAt      DateTime?
+  tokenClaimedAt DateTime?
+  viewedAt       DateTime?
+  isHidden       Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@index([spotId])
+  @@map("pin_claims")
+}
+
+/// An area where pins drop on a schedule.
+model Hotspot {
+  id              String    @id @default(cuid())
+  artistId        String
+  artist          Artist    @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  dropEveryDays   Int
+  pinDurationDays Int
+  startsAt        DateTime
+  endsAt          DateTime
+  autoCollect     Boolean   @default(false)
+  isMultiSpot     Boolean   @default(false)
+  shape           String
+  geoJson         Json
+  isActive        Boolean   @default(true)
+  isHidden        Boolean   @default(false)
+  nextDropAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  pins Pin[]
+
+  @@index([isActive, nextDropAt])
+  @@map("hotspots")
+}
+
+model PinTag {
+  id       String @id @default(cuid())
+  artistId String
+  artist   Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  name     String @unique
+  label    String
+
+  pins PinTagLink[]
+
+  @@map("pin_tags")
+}
+
+model PinTagLink {
+  pinId String
+  pin   Pin    @relation(fields: [pinId], references: [id], onDelete: Cascade)
+  tagId String
+  tag   PinTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([pinId, tagId])
+  @@map("pin_tag_links")
+}
+
+/// AI-suggested tags per pin title, cached.
+model PinTagCache {
+  title     String   @id
+  tags      String[]
+  createdAt DateTime @default(now())
+
+  @@map("pin_tag_cache")
+}
+
+/// Reverse-geocode and place lookups, cached.
+model GeoCache {
+  key       String   @id
+  value     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("geo_cache")
+}
+
+/// Progress of a batch "create many pins" run (agent or CSV).
+model PinBatchJob {
+  id         String    @id @default(cuid())
+  artistId   String
+  artist     Artist    @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  status     JobStatus @default(QUEUED)
+  total      Int       @default(0)
+  completed  Int       @default(0)
+  payload    Json
+  /// "separate" | "shared" redeem codes
+  redeemMode String    @default("separate")
+  log        Json      @default("[]")
+  error      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([artistId, createdAt])
+  @@map("pin_batch_jobs")
+}

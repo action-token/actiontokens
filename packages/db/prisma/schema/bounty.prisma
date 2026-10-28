@@ -1,0 +1,209 @@
+// Bounties: an artist funds a prize in escrow, fans join and submit, the
+// artist picks winners. Music bounties also track listening via Last.fm.
+
+enum BountyStatus {
+  RUNNING
+  PAUSED
+  COMPLETED
+}
+
+model Bounty {
+  id                String       @id @default(cuid())
+  artistId          String
+  artist            Artist       @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  title             String
+  summary           String
+  description       String
+  instructions      String[]
+  /// The escrow holds one asset per bounty: BANDCOIN, XLM or USDC
+  prizeCurrency     Currency
+  prizeAmount       Decimal      @db.Decimal(20, 7)
+  rewardNote        String?
+  maxWinners        Int          @default(1)
+  status            BountyStatus @default(RUNNING)
+  escrowContractId  String
+  fundTxHash        String?
+  fundedFromStorage Boolean      @default(false)
+  requiresActionCam Boolean      @default(false)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  musicRule    BountyMusicRule?
+  participants BountyParticipant[]
+  submissions  BountySubmission[]
+  winners      BountyWinner[]
+  event        Event?              @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  eventId      String?
+
+  @@index([artistId])
+  @@index([status, createdAt])
+  @@map("bounties")
+}
+
+model BountyParticipant {
+  id       String   @id @default(cuid())
+  bountyId String
+  bounty   Bounty   @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt DateTime @default(now())
+
+  trackProgress BountyTrackProgress[]
+
+  @@unique([bountyId, userId])
+  @@index([userId])
+  @@map("bounty_participants")
+}
+
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model BountySubmission {
+  id        String           @id @default(cuid())
+  bountyId  String
+  bounty    Bounty           @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  body      String
+  status    SubmissionStatus @default(PENDING)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  attachments SubmissionAttachment[]
+  captures    SubmissionCapture[]
+
+  @@index([bountyId, createdAt])
+  @@index([userId])
+  @@map("bounty_submissions")
+}
+
+model SubmissionAttachment {
+  id           String           @id @default(cuid())
+  submissionId String
+  submission   BountySubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  url          String
+  type         MediaType
+  fileName     String?
+  createdAt    DateTime         @default(now())
+
+  @@index([submissionId])
+  @@map("submission_attachments")
+}
+
+enum CaptureType {
+  PHOTO
+  VIDEO
+}
+
+/// A sealed photo/video taken with the Action Cam: hashes, place, time and an
+/// HMAC signature prove where and when it was shot.
+model SubmissionCapture {
+  id            String           @id @default(cuid())
+  submissionId  String
+  submission    BountySubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  type          CaptureType
+  originalHash  String
+  sealedHash    String
+  latitude      Float?
+  longitude     Float?
+  capturedAt    DateTime?
+  walletAddress String?
+  /// HMAC-SHA256 hex (Action Cam only)
+  signature     String?
+  sealedAt      DateTime?
+  storageUrl    String
+  /// Stamped preview (Action Cam only)
+  previewUrl    String?
+  status        SubmissionStatus @default(PENDING)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([submissionId])
+  @@index([status])
+  @@map("submission_captures")
+}
+
+model BountyWinner {
+  id          String    @id @default(cuid())
+  bountyId    String
+  bounty      Bounty    @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prizeAmount Decimal   @db.Decimal(20, 7)
+  txHash      String?
+  claimedAt   DateTime?
+  selectedAt  DateTime  @default(now())
+
+  @@unique([bountyId, userId])
+  @@index([userId])
+  @@map("bounty_winners")
+}
+
+enum BountyMusicMode {
+  MUSIC_ONLY
+  HYBRID
+}
+
+enum BountyRuleType {
+  /// Listen to every track
+  ALL
+  /// Listen to N of the tracks
+  ANY_N
+  /// Reach a total play count across tracks
+  TOTAL_PLAYS
+}
+
+model BountyMusicRule {
+  bountyId       String          @id
+  bounty         Bounty          @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  mode           BountyMusicMode @default(HYBRID)
+  ruleType       BountyRuleType  @default(ANY_N)
+  requiredTracks Int?
+  totalPlays     Int?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  tracks BountyTrack[]
+
+  @@map("bounty_music_rules")
+}
+
+model BountyTrack {
+  id          String          @id @default(cuid())
+  bountyId    String
+  rule        BountyMusicRule @relation(fields: [bountyId], references: [bountyId], onDelete: Cascade)
+  title       String
+  artistName  String
+  albumName   String?
+  albumArtUrl String?
+  durationSec Int             @default(180)
+  targetPlays Int             @default(1)
+  lastFmUrl   String
+  spotifyUrl  String?
+  youtubeUrl  String?
+  createdAt   DateTime        @default(now())
+
+  progress BountyTrackProgress[]
+
+  @@index([bountyId])
+  @@map("bounty_tracks")
+}
+
+model BountyTrackProgress {
+  participantId String
+  participant   BountyParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  trackId       String
+  track         BountyTrack       @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  currentPlays  Int               @default(0)
+  targetPlays   Int               @default(1)
+  /// Last.fm play count when the fan joined
+  baselinePlays Int               @default(0)
+  isSatisfied   Boolean           @default(false)
+  updatedAt     DateTime          @updatedAt
+
+  @@id([participantId, trackId])
+  @@map("bounty_track_progress")
+}

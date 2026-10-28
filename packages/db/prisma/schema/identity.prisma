@@ -1,0 +1,104 @@
+// People, roles and the Stellar accounts the platform holds keys for.
+// Sessions are JWTs (NextAuth credentials), so there are no session tables.
+
+enum UserRole {
+  FAN
+  ARTIST
+  ADMIN
+}
+
+/// Anyone who signed in. Wallet users have walletAddress; email/social users
+/// get a custodial wallet whose key the accounts service holds.
+model User {
+  id                String    @id @default(cuid())
+  walletAddress     String?   @unique
+  email             String?   @unique
+  emailVerifiedAt   DateTime?
+  username          String?   @unique
+  usernameChangedAt DateTime?
+  displayName       String?
+  bio               String?
+  avatarUrl         String?
+  coverUrl          String?
+  role              UserRole  @default(FAN)
+  /// e.g. "wallet", "email", "google", "apple"
+  signUpMethod      String?
+  signedUpFromApp   Boolean   @default(false)
+  showCollection    Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  artist               Artist?
+  chainAccounts        ChainAccount[]
+  follows              Follow[]
+  lastFmAccount        LastFmAccount?
+  createdItems         Item[]                @relation("ItemCreatedBy")
+  ownerships           Ownership[]
+  editions             NftEdition[]
+  listings             Listing[]
+  orders               Order[]
+  itemLikes            ItemLike[]
+  collections          ItemCollection[]
+  collectionLikes      CollectionLike[]
+  redeemClaims         RedeemClaim[]
+  playlists            Playlist[]
+  trackFavorites       TrackFavorite[]
+  stemMixes            StemMix[]
+  postLikes            PostLike[]
+  postComments         PostComment[]
+  postCollects         PostCollectible[]
+  notificationEvents   NotificationEvent[]
+  notifications        Notification[]
+  pinClaims            PinClaim[]
+  restrictedPins       Pin[]                 @relation("PinRestrictedTo")
+  bountyEntries        BountyParticipant[]
+  bountySubmissions    BountySubmission[]
+  bountyWins           BountyWinner[]
+  studioBalance        StudioBalance?
+  studioLedger         StudioLedgerEntry[]
+  generations          Generation[]
+  stemProjects         StemProject[]
+  uploads              Upload[]
+  activity             ActivityLog[]
+  discoveredMurals     Mural[]               @relation("MuralDiscoverer")
+  muralScans           MuralScan[]
+  muralScanSessions    MuralScanSession[]
+  coinBalance          CoinBalance?
+  coinLedger           CoinLedgerEntry[]
+  eventRsvps           EventRsvp[]
+  eventComments        EventComment[]
+  announcementComments AnnouncementComment[]
+
+  @@map("users")
+}
+
+enum ChainAccountKind {
+  /// An artist's storage account (holds their items before sale)
+  STORAGE
+  /// An artist's issuer (one per artist), or a legacy per-asset issuer
+  ISSUER
+  /// Platform-owned (studio treasury, fee recipient…)
+  PLATFORM
+}
+
+/// A Stellar account whose secret key the platform holds. The secret is
+/// AES-256-GCM encrypted ("iv:tag:ciphertext", hex) and is omitted from every
+/// query unless selected by name.
+model ChainAccount {
+  id              String           @id @default(cuid())
+  kind            ChainAccountKind
+  publicKey       String           @unique
+  secretEncrypted String
+  ownerId         String?
+  owner           User?            @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  /// Set once the account exists on-chain
+  activatedAt     DateTime?
+  createdAt       DateTime         @default(now())
+
+  storageOf    Artist?        @relation("ArtistStorage")
+  issuerOf     Artist?        @relation("ArtistIssuer")
+  issuedTokens ClassicToken[]
+
+  @@index([ownerId, kind])
+  @@map("chain_accounts")
+}

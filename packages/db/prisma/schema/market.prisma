@@ -1,0 +1,255 @@
+// Selling and owning: listings, orders, ownership, redeem codes, royalty payouts.
+
+enum ListingKind {
+  /// The artist (or platform) selling new copies
+  PRIMARY
+  /// A fan reselling an edition they own
+  RESALE
+}
+
+enum ListingStatus {
+  ACTIVE
+  PAUSED
+  SOLD_OUT
+  CLOSED
+}
+
+/// An offer to sell an Item. The seller sets two prices: BANDCOIN and USD
+/// (USD is also the card price). XLM and USDC are computed from USD at the
+/// live rate when a quote is made.
+model Listing {
+  id            String        @id @default(cuid())
+  itemId        String
+  item          Item          @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  sellerId      String
+  seller        User          @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  /// RESALE of one contract-NFT copy
+  editionId     String?       @unique
+  edition       NftEdition?   @relation(fields: [editionId], references: [id], onDelete: Cascade)
+  kind          ListingKind   @default(PRIMARY)
+  status        ListingStatus @default(ACTIVE)
+  priceBandcoin Decimal       @db.Decimal(20, 7)
+  priceUsd      Decimal       @db.Decimal(20, 7)
+  /// Copies offered; null = all remaining supply
+  quantity      Int?
+  quantitySold  Int           @default(0)
+  /// Placed on the marketplace by an admin (platform pick)
+  isFeatured    Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  orders Order[]
+
+  @@index([status, createdAt])
+  @@index([itemId, status])
+  @@index([sellerId])
+  @@map("listings")
+}
+
+enum PayMethod {
+  WALLET
+  CARD
+}
+
+/// QUOTED → AWAITING_SIGNATURE → SUBMITTED → CONFIRMED → DELIVERED
+///                  ↘ CANCELED        ↘ FAILED
+enum OrderStatus {
+  QUOTED
+  AWAITING_SIGNATURE
+  SUBMITTED
+  CONFIRMED
+  DELIVERED
+  CANCELED
+  FAILED
+  REFUNDED
+}
+
+enum OrderKind {
+  ITEM_PURCHASE
+  GIFT
+  VANITY
+  STUDIO_COINS
+}
+
+/// One payment by a buyer. Every money flow with a buyer goes through here,
+/// so the state machine, fees and reconciliation exist once.
+model Order {
+  id             String      @id @default(cuid())
+  kind           OrderKind   @default(ITEM_PURCHASE)
+  buyerId        String?
+  buyer          User?       @relation(fields: [buyerId], references: [id], onDelete: SetNull)
+  /// Card checkout without an account
+  guestEmail     String?
+  listingId      String?
+  listing        Listing?    @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  itemId         String?
+  item           Item?       @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  quantity       Int         @default(1)
+  currency       Currency
+  unitPrice      Decimal     @db.Decimal(20, 7)
+  platformFee    Decimal     @db.Decimal(20, 7)
+  total          Decimal     @db.Decimal(20, 7)
+  method         PayMethod
+  status         OrderStatus @default(QUOTED)
+  quoteExpiresAt DateTime?
+  /// The quote the buyer saw: lines, rate, payouts (see @bandcoin/chain Quote)
+  breakdown      Json?
+  /// USD per unit of `currency` when quoted (XLM and USDC are priced live from USD)
+  rateUsd        Decimal?    @db.Decimal(20, 7)
+  /// What the seller and the creator receive, in `currency`
+  sellerAmount   Decimal?    @db.Decimal(20, 7)
+  royaltyAmount  Decimal?    @db.Decimal(20, 7)
+  txHash         String?     @unique
+  cardPaymentId  String?     @unique
+  /// AppError code when FAILED
+  failureCode    String?
+  /// Contract NFTs: the token ids delivered
+  firstTokenId   String?
+  lastTokenId    String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  vanityPayment VanityPayment?
+
+  @@index([buyerId, createdAt])
+  @@index([itemId, createdAt])
+  @@index([status, updatedAt])
+  @@map("orders")
+}
+
+enum OwnershipSource {
+  PURCHASE
+  GIFT
+  TRANSFER
+  CREATOR
+  REDEEM
+  PIN_CLAIM
+  BOUNTY
+  /// Read from the chain (Horizon) by the sync job
+  SYNC
+}
+
+/// What a user holds. A cache of the chain, kept fresh by orders and the sync
+/// job; the chain is the truth.
+model Ownership {
+  userId     String
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId     String
+  item       Item            @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  quantity   Decimal         @db.Decimal(20, 7)
+  source     OwnershipSource
+  acquiredAt DateTime        @default(now())
+  syncedAt   DateTime        @updatedAt
+
+  @@id([userId, itemId])
+  @@index([itemId])
+  @@map("ownerships")
+}
+
+/// A code anyone can redeem (up to maxClaims times) for a copy of an item.
+model RedeemCode {
+  code      String   @id
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  maxClaims Int
+  createdAt DateTime @default(now())
+
+  claims RedeemClaim[]
+
+  @@map("redeem_codes")
+}
+
+model RedeemClaim {
+  id        String     @id @default(cuid())
+  code      String
+  redeem    RedeemCode @relation(fields: [code], references: [code], onDelete: Cascade)
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  claimedAt DateTime   @default(now())
+
+  @@unique([userId, code])
+  @@map("redeem_claims")
+}
+
+/// A single-use code for one piece of locked content of one NFT edition.
+model LockedContentRedeem {
+  code            String        @id
+  editionId       String
+  edition         NftEdition    @relation(fields: [editionId], references: [id], onDelete: Cascade)
+  lockedContentId String
+  lockedContent   LockedContent @relation(fields: [lockedContentId], references: [id], onDelete: Cascade)
+  redeemedAt      DateTime?
+  redeemedById    String?
+  createdAt       DateTime      @default(now())
+
+  @@unique([editionId, lockedContentId])
+  @@map("locked_content_redeems")
+}
+
+/// A revenue report the artist attaches to a royalty payout.
+model RoyaltyReport {
+  id        String   @id @default(cuid())
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  fileUrl   String
+  fileName  String
+  fileSize  Int
+  fileType  String
+  createdAt DateTime @default(now())
+
+  payouts RoyaltyPayout[]
+
+  @@map("royalty_reports")
+}
+
+enum PayoutStatus {
+  DRAFT
+  SUBMITTING
+  PARTIAL
+  COMPLETE
+  FAILED
+}
+
+/// The artist pays holders of a ROYALTY item, in proportion to their balance,
+/// in batches of up to 100 payments per transaction.
+model RoyaltyPayout {
+  id          String         @id @default(cuid())
+  itemId      String
+  item        Item           @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  artistId    String
+  artist      Artist         @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  reportId    String?
+  report      RoyaltyReport? @relation(fields: [reportId], references: [id], onDelete: SetNull)
+  currency    Currency
+  totalAmount Decimal        @db.Decimal(20, 7)
+  status      PayoutStatus   @default(DRAFT)
+  createdAt   DateTime       @default(now())
+
+  lines RoyaltyPayoutLine[]
+
+  @@index([itemId])
+  @@index([artistId])
+  @@map("royalty_payouts")
+}
+
+enum PayoutLineStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model RoyaltyPayoutLine {
+  id            String           @id @default(cuid())
+  payoutId      String
+  payout        RoyaltyPayout    @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  holderAddress String
+  balance       Decimal          @db.Decimal(20, 7)
+  amount        Decimal          @db.Decimal(20, 7)
+  batchNo       Int
+  txHash        String?
+  status        PayoutLineStatus @default(PENDING)
+
+  @@index([payoutId])
+  @@index([holderAddress])
+  @@map("royalty_payout_lines")
+}

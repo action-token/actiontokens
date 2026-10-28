@@ -1,0 +1,114 @@
+// Platform-wide: settings, uploads, activity log, worker job queue and the
+// id map used by the one-time legacy migration.
+
+/// Single row (id = 1) of settings admins can change.
+model AppSetting {
+  id                       Int      @id @default(1)
+  nearbyPinRadiusMeters    Float    @default(500)
+  platformFeeBps           Int      @default(250)
+  platformFeeRecipient     String?
+  vanityMonthlyBandcoin    Decimal? @db.Decimal(20, 7)
+  vanityMonthlyUsd         Decimal? @db.Decimal(20, 7)
+  vanityNameChangeBandcoin Decimal? @db.Decimal(20, 7)
+  vanityNameChangeUsd      Decimal? @db.Decimal(20, 7)
+  /// { TEXT: per 1k tokens, IMAGE: per image, MUSIC: per 30 s, VIDEO: per 5 s }
+  studioPrices             Json?
+  updatedAt                DateTime @updatedAt
+
+  @@map("app_settings")
+}
+
+/// Every object we put in S3, so unused uploads can be cleaned up.
+model Upload {
+  key       String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String
+  sizeBytes BigInt
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("uploads")
+}
+
+enum ActorRole {
+  GUEST
+  FAN
+  ARTIST
+  ADMIN
+  SYSTEM
+}
+
+enum ActivityStatus {
+  SUCCESS
+  FAILED
+}
+
+/// One row per mutation and sign-in, written by tRPC middleware. Append-only:
+/// nothing updates or deletes rows except the retention job (1 year, money
+/// rows kept forever).
+model ActivityLog {
+  id         BigInt         @id @default(autoincrement())
+  actorId    String?
+  actor      User?          @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  actorRole  ActorRole
+  /// Procedure name, e.g. "order.create", "pin.claim", "admin.artist.ban"
+  action     String
+  targetType String?
+  targetId   String?
+  /// Request input with secrets, signed XDR, tokens and emails masked
+  input      Json?
+  status     ActivityStatus
+  errorCode  String?
+  txHash     String?
+  amount     Decimal?       @db.Decimal(20, 7)
+  currency   Currency?
+  /// "app" | "artist" | "ar" | "studio" | "worker"
+  app        String
+  ip         String?
+  userAgent  String?
+  requestId  String?
+  durationMs Int?
+  createdAt  DateTime       @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([targetType, targetId])
+  @@index([action, createdAt])
+  @@index([status, createdAt])
+  @@map("activity_logs")
+}
+
+/// The worker's queue. Picked with FOR UPDATE SKIP LOCKED; retried with backoff.
+model Job {
+  id          String    @id @default(cuid())
+  /// e.g. "media.transcode", "generation.run", "hotspot.drop"
+  type        String
+  payload     Json
+  status      JobStatus @default(QUEUED)
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(5)
+  runAt       DateTime  @default(now())
+  lockedAt    DateTime?
+  lockedBy    String?
+  lastError   String?
+  result      Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status, runAt])
+  @@index([type, createdAt])
+  @@map("jobs")
+}
+
+/// Old bandfan id → new id, so the legacy migration can re-run and later
+/// steps can find foreign keys. Drop after cutover.
+model LegacyIdMap {
+  legacyTable String
+  legacyId    String
+  newId       String
+  createdAt   DateTime @default(now())
+
+  @@id([legacyTable, legacyId])
+  @@index([newId])
+  @@map("legacy_id_map")
+}

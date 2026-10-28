@@ -1,0 +1,55 @@
+// Bandcoin database. One file per domain in this folder; this one holds the
+// generator, the datasource and enums shared by several domains.
+//
+// Conventions
+// - Models are singular PascalCase; tables are snake_case plurals (@@map).
+// - Ids are cuid strings, except append-only event tables (BigInt).
+// - Money is Decimal(20, 7): Stellar's precision. Never Float.
+// - Secret keys live only in ChainAccount.secretEncrypted, never next to public data.
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  // Prisma 7: the connection URL lives in prisma.config.ts.
+}
+
+/// Ways to pay. USD means card (Square).
+enum Currency {
+  BANDCOIN
+  XLM
+  USDC
+  USD
+}
+
+/// What a media file is.
+enum MediaType {
+  AUDIO
+  VIDEO
+  IMAGE
+  MODEL_3D
+  DOCUMENT
+}
+
+/// Who may see something.
+enum Visibility {
+  DRAFT
+  PUBLIC
+  FOLLOWERS
+  /// Holders of any membership tier
+  MEMBERS
+  /// Holders of the tier in tierId
+  TIER
+}
+
+/// Lifecycle of a background or async job.
+enum JobStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELED
+}
