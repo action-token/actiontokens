@@ -128,7 +128,7 @@ const WALLET_BUTTON_ART: Partial<
   [WalletType.xBull]: { image: xbullLogo },
   [WalletType.hana]: { icon: <HanaIcon /> },
   [WalletType.metamask]: { icon: <MetaMaskIcon /> },
-  [WalletType.hotWallet]: { image: "https://storage.herewallet.app/logo.png" },
+  [WalletType.hotWallet]: { icon: <Wallet className="size-6" /> },
 };
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -160,7 +160,7 @@ export function ConnectWalletDialog() {
 
   const checkStatus = useCallback(async () => {
     const user = session.data?.user;
-    if (user) await checkAccountActivity(user.id);
+    if (user) await checkAccountActivity(user.walletAddress);
   }, [checkAccountActivity, session.data?.user]);
 
   // Plain browser navigation, not next/router or next/navigation: this
@@ -172,7 +172,7 @@ export function ConnectWalletDialog() {
 
   function toolTipsAddr(walletType: WalletType) {
     const user = session.data?.user;
-    if (user && selectedWallet === walletType) return abbreviateAddress(user.id, 10);
+    if (user && selectedWallet === walletType) return abbreviateAddress(user.walletAddress, 10);
   }
 
   useEffect(() => {
@@ -216,7 +216,7 @@ export function ConnectWalletDialog() {
     if (session.status !== "authenticated" || !session.data) return null;
     const user = session.data.user;
     const profile = dialogModalState.profile;
-    const name = profile?.name ?? (user as { name?: string }).name ?? abbreviateAddress(user.id, 8);
+    const name = profile?.name ?? (user as { name?: string }).name ?? abbreviateAddress(user.walletAddress, 8);
     const image = profile?.image ?? (user as { image?: string | null }).image;
     const cover = profile?.coverImage;
     const initials = name.slice(0, 2).toUpperCase();
@@ -229,7 +229,7 @@ export function ConnectWalletDialog() {
           isFramedHost ? "-mx-4 -mt-10" : "-mx-6 -mt-6 lg:-mx-8 lg:-mt-5",
         )}
       >
-        <div className="side-scope relative h-[4.5rem] bg-[hsl(var(--side-bg,var(--primary)))]">
+        <div className="bg-primary relative h-[4.5rem]">
           {cover ? (
             <>
               <img src={cover} alt="" className="absolute inset-0 size-full object-cover" />
@@ -246,7 +246,7 @@ export function ConnectWalletDialog() {
               style={{
                 backgroundImage:
                   "repeating-linear-gradient(135deg, currentColor 0 2px, transparent 2px 14px)",
-                color: "hsl(var(--side-ink, var(--primary-foreground)))",
+                color: "var(--color-primary-foreground)",
               }}
             />
           )}
@@ -263,19 +263,19 @@ export function ConnectWalletDialog() {
           </div>
           <div className="min-w-0 flex-1 pt-1.5">
             <div className="flex items-center gap-1.5">
-              <p className="display text-foreground truncate text-2xl">{name}</p>
+              <p className="display text-foreground truncate text-lg">{name}</p>
               <CheckCircle2 className="text-primary-text size-4 shrink-0" />
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
               <span className="text-muted-foreground font-mono">
-                {abbreviateAddress(user.id, 6)}
+                {abbreviateAddress(user.walletAddress, 6)}
               </span>
             </div>
           </div>
           <div className="flex shrink-0 gap-1.5 pt-1.5">
             <button
               onClick={() => {
-                void toast.promise(navigator.clipboard.writeText(user.id), {
+                void toast.promise(navigator.clipboard.writeText(user.walletAddress), {
                   loading: "Copying…",
                   success: "Address copied",
                   error: "Failed to copy",
@@ -342,7 +342,7 @@ export function ConnectWalletDialog() {
               variant="outline"
               size="sm"
               onClick={() => {
-                const id = session.data.user.id;
+                const id = session.data.user.walletAddress;
                 void navigator.clipboard
                   .writeText(id)
                   .then(() => toast.success("Copied: " + abbreviateAddress(id)));
@@ -550,7 +550,7 @@ export function ConnectWalletDialog() {
               : clsx(
                   // as tall as its content (no inner scroll), never shorter than the email view so switching tabs
                   // doesn't resize it; the 92dvh cap only matters on very short screens
-                  "border-foreground/15 flex max-w-[820px] gap-0 overflow-hidden rounded-[1.6rem] border-2 p-0 shadow-[10px_11px_0_0_hsl(var(--primary))] lg:grid lg:min-h-[min(624px,92dvh)] lg:grid-cols-[1fr_290px] lg:grid-rows-[minmax(0,1fr)]",
+                  "border-foreground/15 flex max-w-[820px] gap-0 overflow-hidden rounded-[1.6rem] border-2 p-0 shadow-[10px_11px_0_0_var(--color-primary)] lg:grid lg:min-h-[min(624px,92dvh)] lg:grid-cols-[1fr_290px] lg:grid-rows-[minmax(0,1fr)]",
                 )
           }
         >
@@ -585,11 +585,11 @@ export function ConnectWalletDialog() {
             {/* Header */}
             <div>
               <DialogTitle
-                className={clsx("display text-foreground", authUser ? "text-3xl" : "text-[2.6rem]")}
+                className={clsx("display text-foreground", authUser ? "text-xl" : "text-[1.75rem]")}
               >
                 {title}
               </DialogTitle>
-              <p className="marker text-primary-text mt-2 -rotate-1 text-sm">{subtitle}</p>
+              <p className="marker text-primary-text mt-2 -rotate-1 text-xs">{subtitle}</p>
             </div>
 
             {/* Tabs — controlled so switching is stable */}
@@ -601,13 +601,13 @@ export function ConnectWalletDialog() {
               <TabsList className="bg-surface-2 grid h-12 w-full grid-cols-2 rounded-2xl p-1">
                 <TabsTrigger
                   value="action"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground font-hud rounded-xl text-sm tracking-wide uppercase data-[state=active]:shadow-none dark:data-[state=active]:border-transparent"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground font-hud rounded-xl text-xs tracking-wide uppercase data-[state=active]:shadow-none dark:data-[state=active]:border-transparent"
                 >
                   Action Login
                 </TabsTrigger>
                 <TabsTrigger
                   value="stellar"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground font-hud rounded-xl text-sm tracking-wide uppercase data-[state=active]:shadow-none dark:data-[state=active]:border-transparent"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground font-hud rounded-xl text-xs tracking-wide uppercase data-[state=active]:shadow-none dark:data-[state=active]:border-transparent"
                 >
                   Stellar Login
                 </TabsTrigger>
@@ -640,7 +640,7 @@ export function ConnectWalletDialog() {
           >
             <div className="p-6 pb-3">
               <p className="marker text-primary-text text-sm">*scan to connect*</p>
-              <h3 className="display mt-2 text-4xl">Action Auth System</h3>
+              <h3 className="display mt-2 text-2xl">Action Auth System</h3>
             </div>
 
             <div className="flex flex-1 items-center justify-center px-6">
@@ -676,7 +676,7 @@ export function ConnectWalletDialog() {
                 />
                 <div>
                   <p className="marker text-muted-foreground text-[11px]">works with</p>
-                  <p className="display text-xl">Lobstr Mobile App</p>
+                  <p className="display text-sm">Lobstr Mobile App</p>
                 </div>
               </button>
             </div>

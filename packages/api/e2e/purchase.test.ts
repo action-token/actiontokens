@@ -136,7 +136,7 @@ beforeAll(async () => {
   });
   listingId = listing.id;
 
-  buyer = { id: buyerUser.id, role: "FAN", walletAddress: keys.buyer.publicKey(), walletType: "email", email: buyerUser.email };
+  buyer = { id: buyerUser.id, role: "FAN", walletAddress: keys.buyer.publicKey(), walletType: "emailPass", email: buyerUser.email };
   wallets.set(keys.buyer.publicKey(), { xlm: "10", lines: [{ ...BANDCOIN, balance: "100" }] });
   wallets.set(keys.artist.publicKey(), { xlm: "10", lines: [{ ...BANDCOIN, balance: "0" }] });
 });

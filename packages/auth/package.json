@@ -1,0 +1,39 @@
+{
+  "name": "@bandcoin/auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Sign-in for every web app: turns a credential (wallet signature, Firebase token, email + password) into a user, logs the attempt, and the NextAuth options built on it.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@albedo-link/signature-verification": "catalog:",
+    "@bandcoin/db": "workspace:*",
+    "@bandcoin/errors": "workspace:*",
+    "@bandcoin/utils": "workspace:*",
+    "@bandcoin/wallet": "workspace:*",
+    "axios": "catalog:",
+    "firebase": "catalog:"
+  },
+  "peerDependencies": {
+    "next": "catalog:",
+    "next-auth": "catalog:"
+  },
+  "devDependencies": {
+    "@bandcoin/eslint-config": "workspace:*",
+    "@bandcoin/tsconfig": "workspace:*",
+    "@bandcoin/vitest-config": "workspace:*",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "next": "catalog:",
+    "next-auth": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

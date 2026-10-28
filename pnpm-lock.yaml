@@ -167,6 +167,9 @@ catalogs:
     '@albedo-link/intent':
       specifier: ^0.13.0
       version: 0.13.0
+    '@albedo-link/signature-verification':
+      specifier: ^0.1.2
+      version: 0.1.2
     '@aws-sdk/client-s3':
       specifier: ^3.1150.0
       version: 3.1157.0
@@ -212,6 +215,12 @@ catalogs:
     '@tanstack/react-query':
       specifier: ^5.104.2
       version: 5.105.0
+    '@trpc/client':
+      specifier: ^11.19.0
+      version: 11.19.0
+    '@trpc/react-query':
+      specifier: ^11.19.0
+      version: 11.19.0
     '@trpc/server':
       specifier: ^11.19.0
       version: 11.19.0
@@ -382,18 +391,48 @@ importers:
 
   apps/app:
     dependencies:
+      '@bandcoin/api':
+        specifier: workspace:*
+        version: link:../../packages/api
+      '@bandcoin/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@bandcoin/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@bandcoin/errors':
+        specifier: workspace:*
+        version: link:../../packages/errors
       '@bandcoin/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@bandcoin/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      '@bandcoin/wallet':
+        specifier: workspace:*
+        version: link:../../packages/wallet
+      '@tanstack/react-query':
+        specifier: 'catalog:'
+        version: 5.105.0(@types/react@19.3.0)(react@19.3.0)
+      '@trpc/client':
+        specifier: 'catalog:'
+        version: 11.19.0(@trpc/server@11.19.0(typescript@6.0.3))(typescript@6.0.3)
+      '@trpc/react-query':
+        specifier: 'catalog:'
+        version: 11.19.0(@tanstack/react-query@5.105.0(@types/react@19.3.0)(react@19.3.0))(@trpc/client@11.19.0(@trpc/server@11.19.0(typescript@6.0.3))(typescript@6.0.3))(@trpc/server@11.19.0(typescript@6.0.3))(react@19.3.0)(typescript@6.0.3)
+      '@trpc/server':
+        specifier: 'catalog:'
+        version: 11.19.0(typescript@6.0.3)
       lucide-react:
         specifier: 'catalog:'
         version: 1.62.0(@types/react@19.3.0)(react@19.3.0)
       next:
         specifier: 'catalog:'
         version: 16.4.3(@babel/core@7.29.7)(@opentelemetry/api@1.10.0)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      next-auth:
+        specifier: 'catalog:'
+        version: 4.24.15(next@16.4.3(@babel/core@7.29.7)(@opentelemetry/api@1.10.0)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       next-themes:
         specifier: 'catalog:'
         version: 0.4.6(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -403,6 +442,12 @@ importers:
       react-dom:
         specifier: 'catalog:'
         version: 19.3.0(react@19.3.0)
+      superjson:
+        specifier: 'catalog:'
+        version: 2.2.6
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.7
     devDependencies:
       '@bandcoin/eslint-config':
         specifier: workspace:*
@@ -483,6 +528,58 @@ importers:
       eslint:
         specifier: 'catalog:'
         version: 10.13.0(jiti@2.7.0)
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+
+  packages/auth:
+    dependencies:
+      '@albedo-link/signature-verification':
+        specifier: 'catalog:'
+        version: 0.1.2
+      '@bandcoin/db':
+        specifier: workspace:*
+        version: link:../db
+      '@bandcoin/errors':
+        specifier: workspace:*
+        version: link:../errors
+      '@bandcoin/utils':
+        specifier: workspace:*
+        version: link:../utils
+      '@bandcoin/wallet':
+        specifier: workspace:*
+        version: link:../wallet
+      axios:
+        specifier: 'catalog:'
+        version: 1.21.0(debug@4.4.3)
+      firebase:
+        specifier: 'catalog:'
+        version: 13.1.0
+    devDependencies:
+      '@bandcoin/eslint-config':
+        specifier: workspace:*
+        version: link:../../tooling/eslint
+      '@bandcoin/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/typescript
+      '@bandcoin/vitest-config':
+        specifier: workspace:*
+        version: link:../../tooling/vitest
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.6.5
+      eslint:
+        specifier: 'catalog:'
+        version: 10.13.0(jiti@2.7.0)
+      next:
+        specifier: 'catalog:'
+        version: 16.4.3(@babel/core@7.29.7)(@opentelemetry/api@1.10.0)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      next-auth:
+        specifier: 'catalog:'
+        version: 4.24.15(next@16.4.3(@babel/core@7.29.7)(@opentelemetry/api@1.10.0)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -935,6 +1032,9 @@ packages:
 
   '@albedo-link/intent@0.13.0':
     resolution: {integrity: sha512-A8CBXqGQEBMXhwxNXj5inC6HLjyx5Do7jW99NOFeecYd1nPUq8gfM0tvoNoR8H8JQ11aTl9tyQBuu/+l3xeBnQ==}
+
+  '@albedo-link/signature-verification@0.1.2':
+    resolution: {integrity: sha512-sIH+5FskulnqyQ5MfEcR1jMt7XLao9L0HvLYud6+hDcyeo/+0R8iK6XjFHT9fmHsy7HIWPiqD6vex4GZrk2sKA==}
 
   '@alloc/quick-lru@5.3.0':
     resolution: {integrity: sha512-U4+70Pc5ZS9osnCBCE5Jha/ciHM+Yp+CNMNC/7HvYbNRk1Ldd+f7qO65W5qfhu/TCv+/ozljlXXe9Nj8419DMA==}
@@ -3329,6 +3429,22 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  '@trpc/client@11.19.0':
+    resolution: {integrity: sha512-0MKkPq6MejsKB5Opca1Rl22KVIaqo2+A1EiXyZ8EGUsl9TLrPdpGn+Usux20TZKFwnSC2+wI/WilqNJaP4ODfw==}
+    hasBin: true
+    peerDependencies:
+      '@trpc/server': 11.19.0
+      typescript: '>=5.7.2'
+
+  '@trpc/react-query@11.19.0':
+    resolution: {integrity: sha512-TrqZBa/6weXX27mf0P2dMCI65duqO3B/wf9BkP1MezUWSUg7SRGJrIv6K8vjgjeHdafFBI1mmcqPEYXHF4AlVQ==}
+    peerDependencies:
+      '@tanstack/react-query': ^5.80.3
+      '@trpc/client': 11.19.0
+      '@trpc/server': 11.19.0
+      react: '>=18.2.0'
+      typescript: '>=5.7.2'
 
   '@trpc/server@11.19.0':
     resolution: {integrity: sha512-7C1goiDurz82yFKtZUbEzjXd0Rg/jyisaIZQhdvus+1l7E6mwcEYZXjZ1US/HF8kOyz1LERL8UN3bcboJtjcyQ==}
@@ -6267,6 +6383,11 @@ packages:
   setprototypeof@1.1.1:
     resolution: {integrity: sha512-JvdAWfbXeIGaZ9cILp38HntZSFSo3mWg6xGcJJsd+d4aRMOqauag1C63dJfDw7OaMYwEbHMOxEZ1lqVRYP2OAw==}
 
+  sha.js@2.4.12:
+    resolution: {integrity: sha512-8LzC5+bvI45BjpfXU8V5fdU2mfeKiQe1D1gIMn7XUlF3OTUrpdJpPPH4EMAnF0DsHHdSZqCdSss5qCmJKuiO3w==}
+    engines: {node: '>= 0.10'}
+    hasBin: true
+
   sha1@1.1.1:
     resolution: {integrity: sha512-dZBS6OrMjtgVkopB1Gmo4RQCDKiZsqcpAQpkV/aaj+FCrCg8r4I4qMkDPQjBgLIxlmu9k4nUbWq6ohXahOneYA==}
 
@@ -6478,6 +6599,10 @@ packages:
   tinyglobby@0.2.17:
     resolution: {integrity: sha512-wXR/dYpcqKmfWpEdZjiKJOwCNFndD0DMnrW/cYjVGttEkBfVgcLFHoNrlj47mjOVic9yyNu65alsgF4NQyTa2g==}
     engines: {node: '>=12.0.0'}
+
+  to-buffer@1.2.2:
+    resolution: {integrity: sha512-db0E3UJjcFhpDhAF4tLo03oli3pwl3dbnzXOUIlRKrp+ldk/VUxzpWYZENsw2SZiuBjHAk7DfB0VU7NKdpb6sw==}
+    engines: {node: '>= 0.4'}
 
   to-regex-range@5.0.1:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
@@ -7001,6 +7126,11 @@ packages:
 snapshots:
 
   '@albedo-link/intent@0.13.0': {}
+
+  '@albedo-link/signature-verification@0.1.2':
+    dependencies:
+      sha.js: 2.4.12
+      tweetnacl: 1.0.3
 
   '@alloc/quick-lru@5.3.0': {}
 
@@ -9562,6 +9692,19 @@ snapshots:
       react: 19.3.0
     optionalDependencies:
       '@types/react': 19.3.0
+
+  '@trpc/client@11.19.0(@trpc/server@11.19.0(typescript@6.0.3))(typescript@6.0.3)':
+    dependencies:
+      '@trpc/server': 11.19.0(typescript@6.0.3)
+      typescript: 6.0.3
+
+  '@trpc/react-query@11.19.0(@tanstack/react-query@5.105.0(@types/react@19.3.0)(react@19.3.0))(@trpc/client@11.19.0(@trpc/server@11.19.0(typescript@6.0.3))(typescript@6.0.3))(@trpc/server@11.19.0(typescript@6.0.3))(react@19.3.0)(typescript@6.0.3)':
+    dependencies:
+      '@tanstack/react-query': 5.105.0(@types/react@19.3.0)(react@19.3.0)
+      '@trpc/client': 11.19.0(@trpc/server@11.19.0(typescript@6.0.3))(typescript@6.0.3)
+      '@trpc/server': 11.19.0(typescript@6.0.3)
+      react: 19.3.0
+      typescript: 6.0.3
 
   '@trpc/server@11.19.0(typescript@6.0.3)':
     dependencies:
@@ -13118,6 +13261,12 @@ snapshots:
 
   setprototypeof@1.1.1: {}
 
+  sha.js@2.4.12:
+    dependencies:
+      inherits: 2.0.4
+      safe-buffer: 5.2.1
+      to-buffer: 1.2.2
+
   sha1@1.1.1:
     dependencies:
       charenc: 0.0.2
@@ -13378,6 +13527,12 @@ snapshots:
     dependencies:
       fdir: 6.5.0(picomatch@4.0.7)
       picomatch: 4.0.7
+
+  to-buffer@1.2.2:
+    dependencies:
+      isarray: 2.0.5
+      safe-buffer: 5.2.1
+      typed-array-buffer: 1.0.3
 
   to-regex-range@5.0.1:
     dependencies:

@@ -4,8 +4,11 @@ import type { WalletType } from "../wallet-type";
 
 /** What every app's next-auth session carries about the signed-in user. */
 export type BandcoinSessionUser = DefaultSession["user"] & {
-  /** The user's Stellar public key. */
+  /** The user's id (User.id) */
   id: string;
+  /** The user's Stellar public key */
+  walletAddress: string;
+  role: "FAN" | "ARTIST" | "ADMIN";
   walletType: WalletType;
   emailVerified: boolean;
 };

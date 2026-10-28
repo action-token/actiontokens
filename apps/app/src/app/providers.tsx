@@ -1,13 +1,24 @@
 "use client";
 
+import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
+
+import { ConnectWalletPopups } from "@bandcoin/wallet";
+
+import { TRPCReactProvider } from "~/trpc/react";
 
 /** Client providers shared by every page. */
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem disableTransitionOnChange>
-      {children}
+      <SessionProvider>
+        <TRPCReactProvider>
+          {children}
+          {/* the connect dialog and the toaster every wallet and payment toast uses */}
+          <ConnectWalletPopups className="" />
+        </TRPCReactProvider>
+      </SessionProvider>
     </ThemeProvider>
   );
 }

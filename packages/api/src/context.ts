@@ -1,23 +1,24 @@
 import { randomUUID } from "node:crypto";
 
 import type { Currency, Db, UserRole } from "@bandcoin/db";
+import { isCustodialWallet } from "@bandcoin/wallet/shared";
 
 import type { ChainGateway } from "./services/chain-gateway";
 
 /** The five apps that call the API, written to every activity log row. */
 export type AppName = "app" | "artist" | "ar" | "studio" | "worker";
 
-/** What NextAuth puts in the JWT session (built in phase 4's auth package). */
+/** The signed-in user, from the NextAuth session (`@bandcoin/auth` `sessionUserOf`). */
 export type SessionUser = {
   id: string;
   role: UserRole;
   walletAddress: string;
-  /** "wallet" for Freighter/xBull/Albedo…; anything else is custodial (email, google, apple) */
+  /** A `WalletType`: Freighter, Albedo… sign themselves; email/Google/Apple are custodial */
   walletType: string;
   email?: string | null;
 };
 
-export const isCustodial = (user: Pick<SessionUser, "walletType">) => user.walletType !== "wallet";
+export const isCustodial = (user: Pick<SessionUser, "walletType">) => isCustodialWallet(user.walletType);
 
 /** Facts a procedure adds to its own activity log row (`ctx.activity.set`). */
 export type ActivityFacts = {

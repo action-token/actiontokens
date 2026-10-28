@@ -235,3 +235,36 @@
     display: none;
   }
 }
+
+/* Type helpers shared with Wadzzo's components (the connect-wallet dialog). */
+@utility display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+}
+
+/* A hand-written-style note: small, bold, uppercase. */
+@utility marker {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+}
+
+/* Small uppercase label above a value or field. */
+@utility label-caps {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-fg-muted);
+}
+
+@utility font-hud {
+  font-family: var(--font-display);
+  font-weight: 700;
+}

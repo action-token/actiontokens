@@ -71,7 +71,7 @@ describe("order state machine", () => {
   });
 });
 
-const fan: SessionUser = { id: "u1", role: "FAN", walletAddress: "GABC", walletType: "email", email: "nadia@demo.bandcoin.io" };
+const fan: SessionUser = { id: "u1", role: "FAN", walletAddress: "GABC", walletType: "emailPass", email: "nadia@demo.bandcoin.io" };
 
 function harness(session: Context["session"] = { user: fan }) {
   const create = vi.fn<(args: { data: Record<string, unknown> }) => Promise<unknown>>().mockResolvedValue({});

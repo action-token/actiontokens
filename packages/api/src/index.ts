@@ -11,3 +11,4 @@ export {
   createRouter,
   publicProcedure,
 } from "./trpc";
+export { appRouter, type AppRouter } from "./root-app";
