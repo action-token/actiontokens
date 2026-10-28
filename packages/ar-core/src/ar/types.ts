@@ -175,7 +175,7 @@ export interface ArEventDetail extends ArEventCard {
   linkLabel: string | null;
   /** Linked drops — `id` is a `PinSpot` id, the same one `pin.byId` takes. */
   pins: { id: string; title: string; imageUrl: string }[];
-  bounties: { id: number; title: string; imageUrl: string | null }[];
+  bounties: { id: string; title: string; imageUrl: string | null }[];
   commentCount: number;
   isFull: boolean;
   isPast: boolean;

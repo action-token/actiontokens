@@ -25,6 +25,7 @@
     "@trpc/client": "catalog:",
     "@trpc/react-query": "catalog:",
     "@trpc/server": "catalog:",
+    "date-fns": "catalog:",
     "framer-motion": "catalog:",
     "jsqr": "catalog:",
     "lucide-react": "catalog:",

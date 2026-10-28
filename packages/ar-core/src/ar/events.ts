@@ -64,7 +64,7 @@ export function venueMapImage(
   size = { w: 600, h: 260 },
 ) {
   const style = theme === "dark" ? "dark-v11" : "light-v11";
-  const marker = `pin-l+39ff88(${lng},${lat})`;
+  const marker = `pin-l+dbdc2c(${lng},${lat})`;
   return `https://api.mapbox.com/styles/v1/mapbox/${style}/static/${marker}/${lng},${lat},14.5,0/${size.w}x${size.h}@2x?access_token=${token}&attribution=false&logo=false`;
 }
 

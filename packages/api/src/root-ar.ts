@@ -2,6 +2,7 @@ import { accountRouter } from "./routers/app/account";
 import { bountyRouter } from "./routers/app/bounty";
 import { artistRouter } from "./routers/ar/artist";
 import { claimRouter } from "./routers/ar/claim";
+import { eventRouter } from "./routers/ar/event";
 import { muralRouter } from "./routers/ar/mural";
 import { pinRouter } from "./routers/ar/pin";
 import { createRouter } from "./trpc";
@@ -12,6 +13,7 @@ export const arRouter = createRouter({
   artist: artistRouter,
   bounty: bountyRouter,
   claim: claimRouter,
+  event: eventRouter,
   mural: muralRouter,
   pin: pinRouter,
 });

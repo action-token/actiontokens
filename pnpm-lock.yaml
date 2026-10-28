@@ -587,6 +587,9 @@ importers:
       '@trpc/server':
         specifier: 'catalog:'
         version: 11.19.0(typescript@6.0.3)
+      date-fns:
+        specifier: 'catalog:'
+        version: 4.4.0
       framer-motion:
         specifier: 'catalog:'
         version: 14.7.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
