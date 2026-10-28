@@ -5,8 +5,8 @@ import { site } from "../site";
  * ── Website embed config ───────────────────────────────────────────────────
  *
  * What `/embed/[id]` needs from a `MapEmbed` row, in a JSON-safe shape (it
- * crosses getServerSideProps). The same shape is what the brand portal's editor
- * sends for a live preview (`/embed/preview?c=…`), so the preview and the
+ * crosses from the server page to the client). The same shape is what the
+ * artist portal's editor sends for a live preview (`/embed/preview?c=…`), so the preview and the
  * saved embed render through exactly one code path.
  */
 export interface EmbedConfig {
@@ -20,15 +20,15 @@ export interface EmbedConfig {
   gestureMode: "COOPERATIVE" | "GREEDY";
   theme: "AUTO" | "LIGHT" | "DARK";
   accentColor: string;
-  /** "CREATOR" = only the embed owner's pins; "ALL" = every brand's. */
-  pinSource: "ALL" | "CREATOR";
-  /** The embed owner (a Creator id). Null only for a malformed preview. */
-  creatorId: string | null;
+  /** "ARTIST" = only the embed owner's pins; "ALL" = every artist's. */
+  pinSource: "ALL" | "ARTIST";
+  /** The embed owner (an Artist id). Null only for a malformed preview. */
+  artistId: string | null;
   pinTypes: ArPinType[];
   showFilterChips: boolean;
   showSearch: boolean;
   showNearby: boolean;
-  /** Approved murals in view (the AR app docs/murals/plan.md §7; on by default). */
+  /** Approved murals in view (on by default). */
   showMurals: boolean;
   eventsLabel: string;
   eventsUrl: string | null;
@@ -78,23 +78,24 @@ export function normalizeConfig(raw: Record<string, unknown>, id: string): Embed
     centerLat: num(raw.centerLat, -85, 85, 39.5),
     centerLng: num(raw.centerLng, -180, 180, -98.35),
     zoom: num(raw.zoom, 2, 18, 12),
-    userLocation: raw.userLocation === true,
+    // `showUserLocation` on a saved row, `userLocation` in the editor's preview
+    userLocation: raw.userLocation === true || raw.showUserLocation === true,
     gestureMode: raw.gestureMode === "GREEDY" ? "GREEDY" : "COOPERATIVE",
     theme: raw.theme === "LIGHT" || raw.theme === "DARK" ? raw.theme : "AUTO",
     accentColor:
       typeof raw.accentColor === "string" && HEX.test(raw.accentColor)
         ? raw.accentColor
         : site.colors.embedAccent,
-    pinSource: raw.pinSource === "CREATOR" ? "CREATOR" : "ALL",
-    creatorId: typeof raw.creatorId === "string" && raw.creatorId ? raw.creatorId : null,
+    pinSource: raw.pinSource === "ARTIST" ? "ARTIST" : "ALL",
+    artistId: typeof raw.artistId === "string" && raw.artistId ? raw.artistId : null,
     pinTypes,
     showFilterChips: raw.showFilterChips === true,
     showSearch: raw.showSearch !== false,
     showNearby: raw.showNearby !== false,
     showMurals: raw.showMurals !== false,
-    eventsLabel: text(raw.eventsLabel, "Find Events"),
+    eventsLabel: text(raw.eventsLabel, "Find events"),
     eventsUrl: httpUrl(raw.eventsUrl),
-    bountiesLabel: text(raw.bountiesLabel, "View Bounties"),
+    bountiesLabel: text(raw.bountiesLabel, "View bounties"),
     bountiesUrl: httpUrl(raw.bountiesUrl),
   };
 }
@@ -111,10 +112,10 @@ export function decodePreview(c: string | undefined): Record<string, unknown> | 
   }
 }
 
-/** Origins of the brand portal, which may always frame embeds (editor preview). */
-export function brandOrigins(): string[] {
+/** Origins of the artist portal, which may always frame embeds (editor preview). */
+export function artistPortalOrigins(): string[] {
   return (
-    process.env.BRAND_APP_ORIGINS ?? `${site.urls.artistPortal} http://localhost:3001`
+    process.env.ARTIST_APP_ORIGINS ?? `${site.urls.artistPortal} http://localhost:3001`
   )
     .split(/[\s,]+/)
     .filter(Boolean);
@@ -139,7 +140,7 @@ export function normalizeDomain(input: string): string | null {
  * a Referer check, it can't be spoofed from the embedding page.
  *
  * Each domain also covers its subdomains (www., maps., …) and both schemes
- * (plenty of small-town sites are still on http). the brand portal is always
+ * (plenty of small sites are still on http). The artist portal is always
  * allowed so the editor's preview works. Empty allowlist = any site.
  */
 export function frameAncestors(domains: string[]): string {
@@ -150,10 +151,10 @@ export function frameAncestors(domains: string[]): string {
       ? ["http://localhost:*", "https://localhost:*"]
       : [`https://${h}`, `https://*.${h}`, `http://${h}`, `http://*.${h}`],
   );
-  return `frame-ancestors 'self' ${[...brandOrigins(), ...sources].join(" ")}`;
+  return `frame-ancestors 'self' ${[...artistPortalOrigins(), ...sources].join(" ")}`;
 }
 
-/** "#39ff88" → "146 100% 61%" — the triplet format the `--ar-*` tokens use. */
+/** "#dbdc2c" → "60 72% 52%" — the triplet format the `--ar-*` tokens use. */
 export function hexToHslTriplet(hex: string): string {
   const n = parseInt(hex.slice(1), 16);
   const r = ((n >> 16) & 255) / 255;
@@ -173,21 +174,32 @@ export function hexToHslTriplet(hex: string): string {
   return `${Math.round(h)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 }
 
+/** WCAG relative luminance, 0 (black) to 1 (white). */
+function luminance(hex: string) {
+  const n = parseInt(hex.slice(1), 16);
+  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((c) => {
+    const v = c / 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+}
+
 /** Brighter / darker companions for the accent, clamped to stay readable. */
 export function accentVars(hex: string): Record<string, string> {
   const [h, s, l] = hexToHslTriplet(hex).split(" ");
   const L = parseInt(l!, 10);
   return {
-    "--ar-green": `${h} ${s} ${L}%`,
-    "--ar-green-hot": `${h} ${s} ${Math.min(L + 12, 85)}%`,
-    "--ar-green-deep": `${h} ${s} ${Math.max(L - 16, 18)}%`,
-    // Text on an accent-filled button: dark on light accents, white on dark.
-    "--ar-green-ink": L > 55 ? "150 60% 6%" : "0 0% 100%",
+    "--ar-accent": `${h} ${s} ${L}%`,
+    "--ar-accent-hot": `${h} ${s} ${Math.min(L + 12, 85)}%`,
+    "--ar-accent-deep": `${h} ${s} ${Math.max(L - 16, 18)}%`,
+    // Text on an accent-filled button: dark on bright accents, white on dark ones.
+    // Judged by perceived brightness, not HSL lightness: yellow at L 52% is bright.
+    "--ar-accent-ink": luminance(hex) > 0.35 ? "63 70% 6%" : "0 0% 100%",
   };
 }
 
-/** The brand to restrict pins to, or undefined for every brand. */
-export const brandFilter = (c: Pick<EmbedConfig, "pinSource" | "creatorId">) =>
-  c.pinSource === "CREATOR" && c.creatorId ? c.creatorId : undefined;
+/** The artist to restrict pins to, or undefined for every artist. */
+export const artistFilter = (c: Pick<EmbedConfig, "pinSource" | "artistId">) =>
+  c.pinSource === "ARTIST" && c.artistId ? c.artistId : undefined;
 
 export type EmbedEvent = "view" | "pinTap" | "open" | "events" | "bounties";
