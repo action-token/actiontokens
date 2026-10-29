@@ -17,8 +17,10 @@ const defaultFetcher: Fetcher = async (url) => {
 };
 
 let cache: { rates: Rates; at: number } | null = null;
+let bandcoinCache: { price: string; at: number } | null = null;
 export const clearRateCache = () => {
   cache = null;
+  bandcoinCache = null;
 };
 
 const usable = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value) && value > 0;
@@ -55,4 +57,44 @@ async function fromBinance(fetcher: Fetcher) {
   } catch {
     return null;
   }
+}
+
+/**
+ * USD per BANDCOIN. On mainnet, the asset's market price. On testnet a test
+ * asset has no market, so the price comes from `devPrice` (BANDCOIN_USD_PRICE)
+ * and is never used on mainnet. Refuses rather than guessing.
+ */
+export async function liveBandcoinUsd(
+  input: { name: "mainnet" | "testnet"; asset: { code: string; issuer: string }; devPrice?: string },
+  fetcher: Fetcher = defaultFetcher,
+  now = Date.now(),
+): Promise<string> {
+  if (input.name === "testnet") {
+    const dev = Number.parseFloat(input.devPrice ?? "");
+    if (!usable(dev)) {
+      throw new AppError(ErrorCodes.CONFIG_MISSING, {
+        message: "BANDCOIN has no market price on testnet. Set BANDCOIN_USD_PRICE for development.",
+        details: { name: "BANDCOIN_USD_PRICE" },
+      });
+    }
+    return dev.toFixed(7);
+  }
+  if (bandcoinCache && now - bandcoinCache.at < CACHE_TTL_MS) return bandcoinCache.price;
+
+  let price: number | null = null;
+  try {
+    const data = (await fetcher(
+      `https://api.stellar.expert/explorer/public/asset/${input.asset.code}-${input.asset.issuer}`,
+    )) as { price?: unknown };
+    price = usable(data.price) ? data.price : null;
+  } catch {
+    price = null;
+  }
+  if (price === null) {
+    throw new AppError(ErrorCodes.EXTERNAL_SERVICE_FAILED, {
+      message: "Couldn't load the BANDCOIN price. Try again in a moment.",
+    });
+  }
+  bandcoinCache = { price: price.toFixed(7), at: now };
+  return bandcoinCache.price;
 }

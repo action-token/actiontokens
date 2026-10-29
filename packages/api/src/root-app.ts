@@ -7,6 +7,7 @@ import { itemRouter } from "./routers/app/item";
 import { mediaRouter } from "./routers/app/media";
 import { musicRouter } from "./routers/app/music";
 import { orderRouter } from "./routers/app/order";
+import { rechargeRouter } from "./routers/app/recharge";
 import { playlistRouter } from "./routers/app/playlist";
 import { profileRouter } from "./routers/app/profile";
 import { createRouter } from "./trpc";
@@ -22,6 +23,7 @@ export const appRouter = createRouter({
   media: mediaRouter,
   music: musicRouter,
   order: orderRouter,
+  recharge: rechargeRouter,
   playlist: playlistRouter,
   profile: profileRouter,
 });

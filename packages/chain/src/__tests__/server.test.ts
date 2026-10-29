@@ -2,7 +2,7 @@ import { Keypair } from "@stellar/stellar-sdk";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { chainConfig } from "../server/config";
-import { clearRateCache, liveRates } from "../server/rates";
+import { clearRateCache, liveBandcoinUsd, liveRates } from "../server/rates";
 import { decryptSecret, encryptSecret } from "../server/secrets";
 
 const KEY = "a".repeat(64);
@@ -63,5 +63,36 @@ describe("liveRates", () => {
 
   it("fails clearly when no price is available", async () => {
     await expect(liveRates(async () => ({ price: 0 }), 0)).rejects.toMatchObject({ code: "EXTERNAL_SERVICE_FAILED" });
+  });
+});
+
+describe("liveBandcoinUsd", () => {
+  beforeEach(clearRateCache);
+  const asset = { code: "BANDCOIN", issuer: "GISSUER" };
+
+  it("on mainnet reads the market price of the asset and caches it for a minute", async () => {
+    const urls: string[] = [];
+    const fetcher = async (url: string) => {
+      urls.push(url);
+      return { price: 0.0023 };
+    };
+    expect(await liveBandcoinUsd({ name: "mainnet", asset }, fetcher, 0)).toBe("0.0023000");
+    await liveBandcoinUsd({ name: "mainnet", asset }, fetcher, 30_000);
+    expect(urls).toEqual(["https://api.stellar.expert/explorer/public/asset/BANDCOIN-GISSUER"]);
+  });
+
+  it("on mainnet ignores the dev price and refuses when the market has none", async () => {
+    await expect(liveBandcoinUsd({ name: "mainnet", asset, devPrice: "1" }, async () => ({}), 0)).rejects.toMatchObject({
+      code: "EXTERNAL_SERVICE_FAILED",
+    });
+  });
+
+  it("on testnet uses the dev price, since a test asset has no market, and says so when it's missing", async () => {
+    const never = async () => {
+      throw new Error("must not call the network");
+    };
+    expect(await liveBandcoinUsd({ name: "testnet", asset, devPrice: "0.002" }, never, 0)).toBe("0.0020000");
+    await expect(liveBandcoinUsd({ name: "testnet", asset }, never, 0)).rejects.toMatchObject({ code: "CONFIG_MISSING" });
+    await expect(liveBandcoinUsd({ name: "testnet", asset, devPrice: "free" }, never, 0)).rejects.toMatchObject({ code: "CONFIG_MISSING" });
   });
 });

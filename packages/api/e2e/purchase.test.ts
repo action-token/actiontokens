@@ -71,6 +71,7 @@ function fakeAccount(id: string): Horizon.AccountResponse | null {
 
 const chain: ChainGateway = {
   prepareContractCall: (xdr) => Promise.resolve(xdr),
+  bandcoinUsd: () => Promise.resolve("0.002"),
   config: {
     name: "testnet",
     network: { passphrase: Networks.TESTNET, baseFee: "100" },

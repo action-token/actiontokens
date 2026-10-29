@@ -6,6 +6,7 @@ import {
   type ChainConfig,
   decryptSecret,
   findTransaction,
+  liveBandcoinUsd,
   liveRates,
   loadAccount,
   prepareContractCall,
@@ -27,6 +28,8 @@ export type ChainGateway = {
   config: ChainConfig;
   loadAccount(id: string): Promise<Horizon.AccountResponse | null>;
   rates(): Promise<Rates>;
+  /** USD per BANDCOIN: the market price, or BANDCOIN_USD_PRICE on testnet */
+  bandcoinUsd(): Promise<string>;
   /** Signs with the platform-held keys (issuer, storage) the builder listed */
   signWithServerKeys(xdr: string, publicKeys: string[]): Promise<string>;
   /** Signs for an email/Google/Apple account, whose key the platform keeps */
@@ -49,6 +52,10 @@ export function createChainGateway(db: Db): ChainGateway {
     config: chainConfig(),
     loadAccount,
     rates: () => liveRates(),
+    bandcoinUsd() {
+      const config = chainConfig();
+      return liveBandcoinUsd({ name: config.name, asset: config.assets.bandcoin, devPrice: process.env.BANDCOIN_USD_PRICE });
+    },
     async signWithServerKeys(xdr, publicKeys) {
       // The mother account's key lives in env, not in the database.
       const { mother } = chainConfig();

@@ -275,7 +275,7 @@ export async function confirmPurchase(ctx: ServiceCtx, orderId: string) {
 }
 
 /** Records what the buyer now owns. Runs once: the CONFIRMED transition guards it. */
-async function deliverOrder(ctx: ServiceCtx, orderId: string) {
+export async function deliverOrder(ctx: ServiceCtx, orderId: string) {
   await ctx.db.$transaction(async (tx) => {
     await transitionOrder(tx, orderId, "CONFIRMED");
     const order = await tx.order.findUniqueOrThrow({ where: { id: orderId } });
@@ -302,7 +302,7 @@ async function deliverOrder(ctx: ServiceCtx, orderId: string) {
   return { orderId, status: "DELIVERED" as const };
 }
 
-async function failOrder(ctx: ServiceCtx, orderId: string, error: unknown, card: { paymentId: string; total: string } | null) {
+export async function failOrder(ctx: ServiceCtx, orderId: string, error: unknown, card: { paymentId: string; total: string } | null) {
   const failureCode = isAppError(error) ? error.code : ErrorCodes.INTERNAL;
   await transitionOrder(ctx.db, orderId, "FAILED", { failureCode });
   if (!card) return;
@@ -314,7 +314,7 @@ async function failOrder(ctx: ServiceCtx, orderId: string, error: unknown, card:
   }
 }
 
-async function ownOrder(ctx: ServiceCtx, user: SessionUser, orderId: string) {
+export async function ownOrder(ctx: ServiceCtx, user: SessionUser, orderId: string) {
   const order = await ctx.db.order.findUnique({ where: { id: orderId } });
   if (!order || order.buyerId !== user.id) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Order not found" });
   return order;
@@ -324,7 +324,7 @@ async function ownOrder(ctx: ServiceCtx, user: SessionUser, orderId: string) {
  * The buyer's signature on the transaction from `start`: their wallet's, or,
  * for a custodial account, the server's (the countdown ran out without Cancel).
  */
-async function userSignature(ctx: ServiceCtx, user: SessionUser, txHash: string, xdr: string | undefined) {
+export async function userSignature(ctx: ServiceCtx, user: SessionUser, txHash: string, xdr: string | undefined) {
   if (!xdr) throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "Missing the transaction to send." });
   assertSameTransaction(xdr, txHash, ctx.chain.config.network.passphrase);
   if (!isCustodial(user)) return xdr;
@@ -333,7 +333,7 @@ async function userSignature(ctx: ServiceCtx, user: SessionUser, txHash: string,
 }
 
 /** The submitted XDR must be the exact transaction `start` built for this order. */
-function assertSameTransaction(xdr: string, txHash: string, passphrase: string) {
+export function assertSameTransaction(xdr: string, txHash: string, passphrase: string) {
   const hash = Buffer.from(TransactionBuilder.fromXDR(xdr, passphrase).hash()).toString("hex");
   if (hash !== txHash) {
     throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "That transaction doesn't belong to this order." });
@@ -383,13 +383,13 @@ function serverSignersOf(xdr: string, passphrase: string, buyer: string, platfor
   return [...new Set(sources as string[])].filter((source) => source !== buyer && allowed.has(source));
 }
 
-const holdsLine = (account: Horizon.AccountResponse, asset: Asset) =>
+export const holdsLine = (account: Horizon.AccountResponse, asset: Asset) =>
   asset.isNative() ||
   account.balances.some(
     (balance) => "asset_code" in balance && balance.asset_code === asset.getCode() && balance.asset_issuer === asset.getIssuer(),
   );
 
-function balanceOf(account: Horizon.AccountResponse, asset: Asset) {
+export function balanceOf(account: Horizon.AccountResponse, asset: Asset) {
   const line = account.balances.find(
     (balance) => "asset_code" in balance && balance.asset_code === asset.getCode() && balance.asset_issuer === asset.getIssuer(),
   );
