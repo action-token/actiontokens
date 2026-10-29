@@ -1,4 +1,4 @@
-import type { Account } from "@stellar/stellar-sdk";
+import type { Account, Asset } from "@stellar/stellar-sdk";
 
 import { arg, buildContractCall } from "../soroban";
 import type { NetworkParams } from "../transaction";
@@ -136,6 +136,80 @@ export function buildNftUpdateEdition(
       arg.string(input.thumbnailUrl),
       arg.u32(input.supply),
       priceEntries(input.prices),
+    ],
+  });
+}
+
+/** Most copies an edition can ever have (MAX_SUPPLY in the contract). */
+export const NFT_MAX_SUPPLY = 100_000;
+const NFT_MAX_TITLE = 128;
+const NFT_MAX_DESCRIPTION = 2_000;
+const NFT_MAX_URI = 2_048;
+const NFT_MAX_PRICE_ENTRIES = 5;
+/** The most royalty an edition can pay its creator on resales: 90% (MAX_ROYALTY_BPS). */
+const NFT_MAX_ROYALTY_BPS = 9_000;
+
+/** The contract address of an asset (its Stellar Asset Contract): what `nft_oz` takes as a payment token. */
+export function tokenAddressOf(asset: Asset, passphrase: string) {
+  return asset.contractId(passphrase);
+}
+
+/**
+ * Registers an edition on the contract before its first sale. The price
+ * authority (`caller`) must authorise it; the artist is the transaction's
+ * source, so the artist pays the network fee and the platform pays nothing.
+ * Checks what the contract checks, so a bad edition fails here with a plain
+ * message instead of after the artist has signed.
+ */
+export function buildNftRegisterEdition(
+  input: Common & {
+    /** The price authority, which signs the authorisation (the platform's treasury) */
+    caller: string;
+    /** The app's own id for the item; resolves the edition later (`edition_by_ref`) */
+    editionRef: string;
+    title: string;
+    description: string;
+    thumbnailUrl: string;
+    mediaUrl: string;
+    mediaType: string;
+    creator: string;
+    royaltyBps: number;
+    supply: number;
+    prices: PriceEntry[];
+  },
+) {
+  const fail = (message: string): never => {
+    throw new RangeError(message);
+  };
+  if (input.title.length === 0) fail("Give it a title");
+  if (input.title.length > NFT_MAX_TITLE) fail(`Title can be at most ${NFT_MAX_TITLE} characters`);
+  if (input.description.length > NFT_MAX_DESCRIPTION) fail(`Description can be at most ${NFT_MAX_DESCRIPTION} characters`);
+  if (input.thumbnailUrl.length === 0 || input.thumbnailUrl.length > NFT_MAX_URI) fail("The cover address is missing or too long");
+  if (input.mediaUrl.length === 0 || input.mediaUrl.length > NFT_MAX_URI) fail("The file address is missing or too long");
+  if (!Number.isInteger(input.supply) || input.supply < 1 || input.supply > NFT_MAX_SUPPLY) fail(`Supply must be from 1 to ${NFT_MAX_SUPPLY}`);
+  if (input.royaltyBps < 0 || input.royaltyBps > NFT_MAX_ROYALTY_BPS) fail("Royalty can be at most 90%");
+  if (input.prices.length === 0) fail("Add at least one price");
+  if (input.prices.length > NFT_MAX_PRICE_ENTRIES) fail(`Use at most ${NFT_MAX_PRICE_ENTRIES} prices`);
+  if (input.prices.some((entry) => entry.price <= 0n)) fail("Prices must be above zero");
+
+  return buildContractCall({
+    ...input,
+    method: "register_edition",
+    serverSigners: [input.caller],
+    args: [
+      arg.address(input.caller),
+      arg.string(input.editionRef),
+      arg.struct({
+        title: arg.string(input.title),
+        description: arg.string(input.description),
+        thumbnail_url: arg.string(input.thumbnailUrl),
+        media_url: arg.string(input.mediaUrl),
+        media_type: arg.string(input.mediaType),
+        creator: arg.address(input.creator),
+        royalty_bps: arg.u32(input.royaltyBps),
+        supply: arg.u32(input.supply),
+        prices: priceEntries(input.prices),
+      }),
     ],
   });
 }
