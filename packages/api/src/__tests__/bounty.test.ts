@@ -275,11 +275,9 @@ describe("claiming a prize", () => {
     const signForCustodialUser = vi.fn().mockResolvedValue("signed");
     const submit = vi.fn().mockResolvedValue({ hash: "abc" });
     const custodial = { ...me, walletType: "emailPass", email: "fan@example.com" };
-    await caller(unclaimed(), custodial, { submit, signForCustodialUser }).bounty.claimSubmit({
-      bountyId: "b1",
-      xdr: claimXdr(),
-    });
-    expect(signForCustodialUser).toHaveBeenCalledWith(claimXdr(), "fan@example.com");
+    const xdr = claimXdr();
+    await caller(unclaimed(), custodial, { submit, signForCustodialUser }).bounty.claimSubmit({ bountyId: "b1", xdr });
+    expect(signForCustodialUser).toHaveBeenCalledWith(xdr, "fan@example.com");
     expect(submit).toHaveBeenCalledWith("signed");
   });
 });

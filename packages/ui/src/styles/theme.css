@@ -42,6 +42,7 @@
   --bc-warning: #f5a524;
   --bc-danger: #ff6b6b;
   --bc-danger-soft: rgb(255 107 107 / 0.12);
+  --bc-info: #60a5fa;
   --bc-overlay: rgb(8 9 6 / 0.72);
   --bc-shadow: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 12px 32px -12px rgb(0 0 0 / 0.6);
   color-scheme: dark;
@@ -67,6 +68,7 @@
     --bc-warning: #a35f00;
     --bc-danger: #c93636;
     --bc-danger-soft: rgb(201 54 54 / 0.08);
+    --bc-info: #1d5fbf;
     --bc-overlay: rgb(247 247 242 / 0.8);
     --bc-shadow: 0 1px 2px rgb(26 27 20 / 0.06), 0 12px 28px -14px rgb(26 27 20 / 0.18);
     color-scheme: light;
@@ -92,6 +94,7 @@
   --bc-warning: #a35f00;
   --bc-danger: #c93636;
   --bc-danger-soft: rgb(201 54 54 / 0.08);
+  --bc-info: #1d5fbf;
   --bc-overlay: rgb(247 247 242 / 0.8);
   --bc-shadow: 0 1px 2px rgb(26 27 20 / 0.06), 0 12px 28px -14px rgb(26 27 20 / 0.18);
   color-scheme: light;
@@ -138,6 +141,7 @@
   --color-destructive-foreground: #ffffff;
   --color-success: var(--bc-success);
   --color-warning: var(--bc-warning);
+  --color-info: var(--bc-info);
   --color-border: var(--bc-border);
   --color-input: var(--bc-border);
   --color-ring: var(--bc-primary-text);
@@ -223,6 +227,31 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--bc-fg-faint);
+}
+/* State labels (StatusPill): the tone's colour on a soft wash of itself. */
+@utility tone-success {
+  color: var(--bc-success);
+  background-color: color-mix(in oklab, var(--bc-success) 14%, transparent);
+}
+@utility tone-warning {
+  color: var(--bc-warning);
+  background-color: color-mix(in oklab, var(--bc-warning) 16%, transparent);
+}
+@utility tone-danger {
+  color: var(--bc-danger);
+  background-color: color-mix(in oklab, var(--bc-danger) 14%, transparent);
+}
+@utility tone-info {
+  color: var(--bc-info);
+  background-color: color-mix(in oklab, var(--bc-info) 14%, transparent);
+}
+@utility tone-primary {
+  color: var(--bc-primary-text);
+  background-color: var(--bc-primary-soft);
+}
+@utility tone-neutral {
+  color: var(--bc-fg-muted);
+  background-color: var(--bc-surface-2);
 }
 /* Loading placeholder with a moving sheen. */
 @utility skeleton {
