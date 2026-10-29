@@ -1,4 +1,4 @@
-import { BadgeCheck, LayoutDashboard, ListChecks, Package, Rocket, Users, type LucideIcon } from "lucide-react";
+import { BadgeCheck, LayoutDashboard, ListChecks, Music2, Package, Rocket, Users, type LucideIcon } from "lucide-react";
 
 import type { OnboardingStep } from "@bandcoin/api";
 
@@ -25,6 +25,7 @@ const ARTIST_TOOLS: Record<OnboardingStep, NavItem[]> = {
   WAITING_FOR_APPROVAL: [{ href: "/", icon: Rocket, label: "Get started", exact: true }],
   READY: [
     { href: "/", icon: LayoutDashboard, label: "Dashboard", exact: true },
+    { href: "/music", icon: Music2, label: "Music" },
     { href: "/items", icon: Package, label: "Items" },
   ],
   REJECTED: [{ href: "/", icon: Rocket, label: "Apply again", exact: true }],

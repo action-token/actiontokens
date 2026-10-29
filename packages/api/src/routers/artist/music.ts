@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { createAlbum, createSong, deleteAlbum, listAlbums, listSongs, updateAlbum, updateSong } from "../../services/artist/music";
+import { createAlbum, createSong, deleteAlbum, getSong, listAlbums, listSongs, updateAlbum, updateSong } from "../../services/artist/music";
 import { artistProcedure, createRouter } from "../../trpc";
 
 const price = z.string().trim().max(20);
@@ -8,6 +8,8 @@ const price = z.string().trim().max(20);
 /** The artist's songs and albums (see services/artist/music). Approved artists only. */
 export const musicRouter = createRouter({
   songs: artistProcedure.query(({ ctx }) => listSongs(ctx, ctx.artist)),
+
+  song: artistProcedure.input(z.object({ itemId: z.string().min(1) })).query(({ ctx, input }) => getSong(ctx, ctx.artist, input.itemId)),
 
   createSong: artistProcedure
     .input(

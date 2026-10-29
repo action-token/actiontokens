@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 
 import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { latestPreviewStart, PREVIEW_SECONDS } from "@bandcoin/utils/preview";
 import { slugFromName } from "@bandcoin/utils/slug";
 
 import type { Context } from "../../context";
@@ -16,13 +17,10 @@ import { checkOwnUrls, type CreateItemInput, createItem, invalid } from "./items
 type ServiceCtx = Pick<Context, "db" | "activity">;
 type ArtistRef = { id: string; slug: string; name: string; issuerAccountId: string | null };
 
-/** The preview is 30 seconds long, so it has to start at least that long before the end. */
-const PREVIEW_SECONDS = 30;
 const MAX_SONG_SECONDS = 6 * 60 * 60;
 
 function checkPreview(startSec: number, durationSec: number) {
-  const latest = Math.max(0, durationSec - PREVIEW_SECONDS);
-  if (!Number.isFinite(startSec) || startSec < 0 || startSec > latest) {
+  if (!Number.isFinite(startSec) || startSec < 0 || startSec > latestPreviewStart(durationSec)) {
     throw invalid(`Pick a preview that starts at least ${PREVIEW_SECONDS} seconds before the end.`);
   }
 }
@@ -105,6 +103,48 @@ export async function listSongs(ctx: Pick<ServiceCtx, "db">, artist: Pick<Artist
       createdAt: row.createdAt,
     };
   });
+}
+
+/** One song for the edit screen: what the collectible form needs plus the audio and music details. */
+export async function getSong(ctx: Pick<ServiceCtx, "db">, artist: Pick<ArtistRef, "id">, itemId: string) {
+  const song = await ctx.db.item.findFirst({
+    where: { id: itemId, artistId: artist.id, deletedAt: null, type: "TRACK" },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      coverUrl: true,
+      supply: true,
+      visibility: true,
+      classicToken: { select: { code: true } },
+      media: { select: { sourceUrl: true, durationSec: true, previewStartSec: true } },
+      track: { select: { artistName: true, trackNumber: true, albumId: true } },
+      listings: { where: { kind: "PRIMARY" }, take: 1, select: { priceBandcoin: true, priceUsd: true, quantitySold: true } },
+    },
+  });
+  if (!song) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Song not found" });
+  const listing = song.listings[0];
+  const sold = listing?.quantitySold ?? 0;
+  return {
+    id: song.id,
+    title: song.title,
+    description: song.description ?? "",
+    coverUrl: song.coverUrl,
+    code: song.classicToken?.code ?? null,
+    supply: song.supply,
+    sold,
+    /** After the first sale supply and code are fixed */
+    locked: sold > 0,
+    visibility: song.visibility,
+    priceBandcoin: listing?.priceBandcoin.toString() ?? "",
+    priceUsd: listing?.priceUsd.toString() ?? "",
+    audioUrl: song.media?.sourceUrl ?? null,
+    durationSec: song.media?.durationSec ?? 0,
+    previewStartSec: song.media?.previewStartSec ?? 0,
+    artistName: song.track?.artistName ?? "",
+    trackNumber: song.track?.trackNumber ?? null,
+    albumId: song.track?.albumId ?? null,
+  };
 }
 
 export type UpdateSongInput = {

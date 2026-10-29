@@ -9,6 +9,7 @@
     "./string": "./src/string.ts",
     "./slug": "./src/slug.ts",
     "./asset-code": "./src/asset-code.ts",
+    "./preview": "./src/preview.ts",
     "./ipfs": "./src/ipfs.ts",
     "./blank": "./src/blank.ts",
     "./redeem-code": "./src/redeem-code.ts",

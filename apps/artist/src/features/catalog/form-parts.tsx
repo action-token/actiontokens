@@ -1,0 +1,73 @@
+import type { ReactNode } from "react";
+
+import { Input } from "@bandcoin/ui/components/input";
+import { Label } from "@bandcoin/ui/components/label";
+import { cn } from "@bandcoin/ui/lib/cn";
+import { validatePrice } from "@bandcoin/utils/asset-code";
+
+export function Field({ label, htmlFor, error, children }: { label: string; htmlFor: string; error?: string | null; children: ReactNode }) {
+  return (
+    <div className="grid content-start gap-1.5">
+      <Label htmlFor={htmlFor}>{label}</Label>
+      {children}
+      {error && (
+        <p role="alert" className="text-danger text-xs">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+export const Note = ({ children }: { children: ReactNode }) => <p className="text-fg-faint text-xs">{children}</p>;
+
+export function Toggle({ pressed, disabled, onClick, children }: { pressed: boolean; disabled?: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={pressed}
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(
+        "h-9 rounded-full border px-3 text-sm font-medium transition-colors disabled:opacity-60",
+        pressed ? "bg-primary text-primary-foreground border-fg" : "text-fg-muted hover:bg-surface-2",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** What is wrong with the two prices, if anything: empty until the artist has typed something. */
+export const priceProblems = (bandcoin: string, usd: string) => ({
+  bandcoin: bandcoin ? validatePrice(bandcoin) : null,
+  usd: usd ? validatePrice(usd) : null,
+});
+
+/** The two prices an artist sets: BANDCOIN and USD (the card price). Nothing converts one into the other. */
+export function PriceFields({
+  bandcoin,
+  usd,
+  onBandcoin,
+  onUsd,
+  idPrefix,
+}: {
+  bandcoin: string;
+  usd: string;
+  onBandcoin: (value: string) => void;
+  onUsd: (value: string) => void;
+  idPrefix: string;
+}) {
+  const problems = priceProblems(bandcoin, usd);
+  return (
+    <div className="grid gap-5 sm:grid-cols-2">
+      <Field label="Price in BANDCOIN" htmlFor={`${idPrefix}-bandcoin`} error={problems.bandcoin}>
+        <Input id={`${idPrefix}-bandcoin`} inputMode="decimal" value={bandcoin} aria-invalid={Boolean(problems.bandcoin)} onChange={(event) => onBandcoin(event.target.value.trim())} />
+      </Field>
+      <Field label="Price in USD (card price)" htmlFor={`${idPrefix}-usd`} error={problems.usd}>
+        <Input id={`${idPrefix}-usd`} inputMode="decimal" value={usd} aria-invalid={Boolean(problems.usd)} onChange={(event) => onUsd(event.target.value.trim())} />
+      </Field>
+      <p className="text-fg-faint text-xs sm:col-span-2">You set both prices yourself. Nothing is converted between them.</p>
+    </div>
+  );
+}

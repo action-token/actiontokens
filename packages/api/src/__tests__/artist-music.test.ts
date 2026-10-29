@@ -6,7 +6,7 @@ import { createContext } from "../context";
 import { portalRouter } from "../root-portal";
 import type { ChainGateway } from "../services/chain-gateway";
 import { createCallerFactory } from "../trpc";
-import { createAlbum, createSong, deleteAlbum, listAlbums, listSongs, updateAlbum, updateSong } from "../services/artist/music";
+import { createAlbum, createSong, deleteAlbum, getSong, listAlbums, listSongs, updateAlbum, updateSong } from "../services/artist/music";
 
 vi.mock("@bandcoin/storage", () => ({ isOwnS3Url: (url: string) => url.startsWith("https://cdn.example/") }));
 
@@ -164,6 +164,27 @@ describe("albums", () => {
     db.album.findMany.mockResolvedValue([{ id: "al1", slug: "s", title: "EP", description: null, coverUrl: "c", createdAt: new Date("2026-10-01"), _count: { tracks: 4 } }]);
     await expect(listAlbums(ctx, artist)).resolves.toEqual([expect.objectContaining({ id: "al1", title: "EP", songCount: 4 })]);
     expect(db.album.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { artistId: "a1" }, orderBy: { createdAt: "desc" } }));
+  });
+});
+
+describe("getSong", () => {
+  it("returns the song with its music details for the edit screen", async () => {
+    const { ctx, db } = setup();
+    db.item.findFirst.mockResolvedValue({
+      id: "i1", title: "Gold Hour", description: "Single", coverUrl: "c", supply: null, visibility: "PUBLIC", royaltyPercent: null, type: "TRACK", chainType: "CLASSIC_TOKEN",
+      classicToken: { code: "GOLDHOUR" }, contractNft: null,
+      media: { mediaType: "AUDIO", sourceUrl: "https://cdn.example/song.mp3", durationSec: 200, previewStartSec: 60 },
+      track: { artistName: "Luna Vale", trackNumber: 2, albumId: "al1" },
+      listings: [{ priceBandcoin: { toString: () => "5" }, priceUsd: { toString: () => "0.1" }, status: "ACTIVE", quantitySold: 0 }],
+    });
+    await expect(getSong(ctx, artist, "i1")).resolves.toMatchObject({
+      id: "i1", title: "Gold Hour", code: "GOLDHOUR", locked: false, priceBandcoin: "5", audioUrl: "https://cdn.example/song.mp3",
+      durationSec: 200, previewStartSec: 60, albumId: "al1", trackNumber: 2, artistName: "Luna Vale",
+    });
+  });
+
+  it("only shows the artist's own song", async () => {
+    await expect(getSong(setup({ item: null }).ctx, artist, "i1")).rejects.toMatchObject({ message: "Song not found" });
   });
 });
 

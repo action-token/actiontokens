@@ -21,6 +21,7 @@ export function FileField({
   onChange,
   preview,
   hint,
+  onFile,
 }: {
   id: string;
   accept: string;
@@ -28,6 +29,8 @@ export function FileField({
   onChange: (file: PickedFile | null) => void;
   preview?: boolean;
   hint?: string;
+  /** The raw file that was picked, for things only the browser can read (an audio's length) */
+  onFile?: (file: File) => void;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const { upload, busy } = useUpload();
@@ -35,6 +38,7 @@ export function FileField({
   async function pick(file: File | undefined) {
     if (!file) return;
     try {
+      onFile?.(file);
       onChange({ url: await upload(file), name: file.name, mime: file.type });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Couldn't upload that file.");

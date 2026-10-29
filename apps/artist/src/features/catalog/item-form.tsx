@@ -10,12 +10,12 @@ import { Input } from "@bandcoin/ui/components/input";
 import { Label } from "@bandcoin/ui/components/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@bandcoin/ui/components/select";
 import { Textarea } from "@bandcoin/ui/components/textarea";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { normalizeAssetCode, validateAssetCode, validatePrice } from "@bandcoin/utils/asset-code";
+import { normalizeAssetCode, validateAssetCode } from "@bandcoin/utils/asset-code";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import { FileField, type PickedFile } from "./file-field";
+import { Field, Note, PriceFields, priceProblems, Toggle } from "./form-parts";
 import { acceptFor, fileRequired, ITEM_TYPES, type ItemKind, mediaTypeFor } from "./item-types";
 
 type Existing = RouterOutputs["catalog"]["get"];
@@ -64,8 +64,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
   const shownCode = customCode ? code : codeFrom(title);
   const problems = {
     code: !nft && shownCode ? validateAssetCode(shownCode) : null,
-    bandcoin: priceBandcoin ? validatePrice(priceBandcoin) : null,
-    usd: priceUsd ? validatePrice(priceUsd) : null,
+    ...priceProblems(priceBandcoin, priceUsd),
   };
   const supplyNumber = Number(supply);
   const supplyOk = (!limited && !nft) || (Number.isInteger(supplyNumber) && supplyNumber >= 1 && supplyNumber <= (nft ? 100_000 : Infinity));
@@ -230,15 +229,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
           </Field>
         )}
 
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="Price in BANDCOIN" htmlFor="item-price-bandcoin" error={problems.bandcoin}>
-            <Input id="item-price-bandcoin" inputMode="decimal" value={priceBandcoin} aria-invalid={Boolean(problems.bandcoin)} onChange={(event) => setPriceBandcoin(event.target.value.trim())} />
-          </Field>
-          <Field label="Price in USD (card price)" htmlFor="item-price-usd" error={problems.usd}>
-            <Input id="item-price-usd" inputMode="decimal" value={priceUsd} aria-invalid={Boolean(problems.usd)} onChange={(event) => setPriceUsd(event.target.value.trim())} />
-          </Field>
-          <p className="text-fg-faint text-xs sm:col-span-2">You set both prices yourself. Nothing is converted between them.</p>
-        </div>
+        <PriceFields bandcoin={priceBandcoin} usd={priceUsd} onBandcoin={setPriceBandcoin} onUsd={setPriceUsd} idPrefix="item-price" />
 
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Copies" htmlFor="item-supply">
@@ -309,38 +300,5 @@ export function ItemForm({ existing }: { existing?: Existing }) {
         )}
       </fieldset>
     </form>
-  );
-}
-
-function Field({ label, htmlFor, error, children }: { label: string; htmlFor: string; error?: string | null; children: React.ReactNode }) {
-  return (
-    <div className="grid content-start gap-1.5">
-      <Label htmlFor={htmlFor}>{label}</Label>
-      {children}
-      {error && (
-        <p role="alert" className="text-danger text-xs">
-          {error}
-        </p>
-      )}
-    </div>
-  );
-}
-
-const Note = ({ children }: { children: React.ReactNode }) => <p className="text-fg-faint text-xs">{children}</p>;
-
-function Toggle({ pressed, disabled, onClick, children }: { pressed: boolean; disabled?: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={pressed}
-      disabled={disabled}
-      onClick={onClick}
-      className={cn(
-        "h-9 rounded-full border px-3 text-sm font-medium transition-colors disabled:opacity-60",
-        pressed ? "bg-primary text-primary-foreground border-fg" : "text-fg-muted hover:bg-surface-2",
-      )}
-    >
-      {children}
-    </button>
   );
 }

@@ -23,7 +23,7 @@ describe("portal navigation", () => {
   });
 
   it("opens the artist tools once approved", () => {
-    expect(labels({ signedIn: true, step: "READY", isAdmin: false })).toEqual(["Dashboard", "Items"]);
+    expect(labels({ signedIn: true, step: "READY", isAdmin: false })).toEqual(["Dashboard", "Music", "Items"]);
   });
 
   it("shows nothing to a banned artist", () => {
@@ -32,11 +32,11 @@ describe("portal navigation", () => {
 
   it("adds the admin group for admins, even before they are artists", () => {
     expect(navFor({ signedIn: true, step: null, isAdmin: true }).map((group) => group.title)).toEqual(["Artist", "Admin"]);
-    expect(labels({ signedIn: true, step: "READY", isAdmin: true })).toEqual(["Dashboard", "Items", "Artists", "Activity"]);
+    expect(labels({ signedIn: true, step: "READY", isAdmin: true })).toEqual(["Dashboard", "Music", "Items", "Artists", "Activity"]);
   });
 
   it("keeps Items lit on its nested pages", () => {
-    const [items] = navFor({ signedIn: true, step: "READY", isAdmin: false })[0]!.items.slice(1);
+    const items = navFor({ signedIn: true, step: "READY", isAdmin: false })[0]!.items.find((entry) => entry.label === "Items");
     expect(isActive(items!, "/items")).toBe(true);
     expect(isActive(items!, "/items/new")).toBe(true);
     expect(isActive(items!, "/")).toBe(false);
