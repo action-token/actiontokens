@@ -1,23 +1,11 @@
 import type { ReactNode } from "react";
 
 import { Input } from "@bandcoin/ui/components/input";
-import { Label } from "@bandcoin/ui/components/label";
 import { cn } from "@bandcoin/ui/lib/cn";
+import { Field } from "@bandcoin/ui/patterns/form-page";
 import { validatePrice } from "@bandcoin/utils/asset-code";
 
-export function Field({ label, htmlFor, error, children }: { label: string; htmlFor: string; error?: string | null; children: ReactNode }) {
-  return (
-    <div className="grid content-start gap-1.5">
-      <Label htmlFor={htmlFor}>{label}</Label>
-      {children}
-      {error && (
-        <p role="alert" className="text-danger text-xs">
-          {error}
-        </p>
-      )}
-    </div>
-  );
-}
+export { Field };
 
 export const Note = ({ children }: { children: ReactNode }) => <p className="text-fg-faint text-xs">{children}</p>;
 

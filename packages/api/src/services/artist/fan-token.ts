@@ -24,6 +24,31 @@ export type CreateFanTokenInput =
   | { mode: "CUSTOM"; code: string; coverUrl: string; description?: string }
   | { mode: "EXISTING"; code: string; issuer: string; coverUrl: string; description?: string };
 
+/** What we found out about a token the artist already issued on Stellar. */
+export type TokenCheck =
+  | { status: "OK"; code: string }
+  | { status: "INVALID" | "NOT_FOUND"; message: string }
+  | { status: "USED"; message: string; byYou: boolean };
+
+/**
+ * Is this existing Stellar asset usable as the fan token? It has to be a valid
+ * code and issuer, exist on Stellar, and not already be an item here (yours or
+ * another artist's). Used live while the artist types and again when they save.
+ */
+export async function checkExistingToken(ctx: Pick<ServiceCtx, "db" | "chain">, artist: Pick<ArtistRef, "id">, input: { code: string; issuer: string }): Promise<TokenCheck> {
+  const code = normalizeAssetCode(input.code);
+  const problem = validateAssetCode(code);
+  if (problem) return { status: "INVALID", message: problem };
+  if (!StrKey.isValidEd25519PublicKey(input.issuer)) return { status: "INVALID", message: "Enter the issuer's public key (it starts with G)." };
+  if (!(await ctx.chain.assetExists(code, input.issuer))) return { status: "NOT_FOUND", message: "We couldn't find that asset on Stellar. Check the code and the issuer." };
+  const used = await ctx.db.classicToken.findUnique({ where: { code_issuer: { code, issuer: input.issuer } }, select: { item: { select: { title: true, artistId: true } } } });
+  if (used) {
+    const byYou = used.item?.artistId === artist.id;
+    return { status: "USED", byYou, message: byYou ? `You already use this token for "${used.item?.title}".` : "That asset is already used for another item." };
+  }
+  return { status: "OK", code };
+}
+
 export async function createFanToken(ctx: ServiceCtx, artist: ArtistRef, user: { id: string }, input: CreateFanTokenInput) {
   const { db, chain } = ctx;
   if (artist.fanTokenItemId) throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "You already have a fan token." });
@@ -31,15 +56,9 @@ export async function createFanToken(ctx: ServiceCtx, artist: ArtistRef, user: {
 
   let token: { code: string; issuer: string; issuerAccountId?: string; isExternal: boolean };
   if (input.mode === "EXISTING") {
-    const code = normalizeAssetCode(input.code);
-    const problem = validateAssetCode(code);
-    if (problem) throw invalid(problem);
-    if (!StrKey.isValidEd25519PublicKey(input.issuer)) throw invalid("Enter the issuer's public key (it starts with G).");
-    if (!(await chain.assetExists(code, input.issuer))) throw invalid("We couldn't find that asset on Stellar. Check the code and the issuer.");
-    if (await db.classicToken.findUnique({ where: { code_issuer: { code, issuer: input.issuer } }, select: { itemId: true } })) {
-      throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "That asset is already used for another item." });
-    }
-    token = { code, issuer: input.issuer, isExternal: true };
+    const check = await checkExistingToken(ctx, artist, input);
+    if (check.status !== "OK") throw check.status === "USED" ? new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: check.message }) : invalid(check.message);
+    token = { code: check.code, issuer: input.issuer, isExternal: true };
   } else {
     const issuer = artist.issuerAccountId
       ? await db.chainAccount.findUnique({ where: { id: artist.issuerAccountId }, select: { id: true, publicKey: true, activatedAt: true } })

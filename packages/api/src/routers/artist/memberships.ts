@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { createFanToken, getFanToken } from "../../services/artist/fan-token";
+import { checkExistingToken, createFanToken, getFanToken } from "../../services/artist/fan-token";
 import { createTier, listTiers, removeTier, updateTier } from "../../services/artist/tiers";
 import { artistProcedure, createRouter } from "../../trpc";
 
@@ -16,6 +16,11 @@ const tierFields = {
 /** The artist's fan token and membership tiers (see services/artist/fan-token and tiers). */
 export const membershipsRouter = createRouter({
   fanToken: artistProcedure.query(({ ctx }) => getFanToken(ctx, ctx.artist)),
+
+  /** Live check of a token the artist already issued: valid, on Stellar, not already used. */
+  checkToken: artistProcedure
+    .input(z.object({ code: z.string().trim().max(12), issuer: z.string().trim().max(60) }))
+    .query(({ ctx, input }) => checkExistingToken(ctx, ctx.artist, input)),
 
   createFanToken: artistProcedure
     .input(

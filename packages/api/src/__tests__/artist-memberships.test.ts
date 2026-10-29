@@ -6,7 +6,7 @@ import { createContext } from "../context";
 import { portalRouter } from "../root-portal";
 import { createCallerFactory } from "../trpc";
 import type { ChainGateway } from "../services/chain-gateway";
-import { createFanToken, getFanToken } from "../services/artist/fan-token";
+import { checkExistingToken, createFanToken, getFanToken } from "../services/artist/fan-token";
 import { createTier, listTiers, removeTier, updateTier } from "../services/artist/tiers";
 
 vi.mock("@bandcoin/storage", () => ({ isOwnS3Url: (url: string) => url.startsWith("https://cdn.example/") }));
@@ -94,6 +94,22 @@ describe("createFanToken", () => {
     await expect(createFanToken(setup().ctx, artist, user, { mode: "EXISTING", code: "LUNA", issuer: "not-a-key", coverUrl: cover })).rejects.toMatchObject({
       message: "Enter the issuer's public key (it starts with G).",
     });
+  });
+
+  it("tells the artist whether an existing token is usable, and who already uses it", async () => {
+    const issuer = "GCIRB3GJI5PKOW7BUFERNGVB5DMMQT3RCD2I4Z7W4R4F4ED7QTL2K7HU";
+    await expect(checkExistingToken(setup().ctx, artist, { code: "luna", issuer })).resolves.toEqual({ status: "OK", code: "LUNA" });
+    await expect(checkExistingToken(setup().ctx, artist, { code: "LU NA", issuer })).resolves.toMatchObject({ status: "INVALID" });
+    await expect(checkExistingToken(setup().ctx, artist, { code: "LUNA", issuer: "G123" })).resolves.toMatchObject({ status: "INVALID" });
+    await expect(checkExistingToken(setup({ assetExists: false }).ctx, artist, { code: "LUNA", issuer })).resolves.toMatchObject({ status: "NOT_FOUND" });
+
+    const mine = setup();
+    (mine.db.classicToken.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ item: { title: "Old merch", artistId: "a1" } });
+    await expect(checkExistingToken(mine.ctx, artist, { code: "LUNA", issuer })).resolves.toEqual({ status: "USED", byYou: true, message: 'You already use this token for "Old merch".' });
+    const theirs = setup();
+    (theirs.db.classicToken.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ item: { title: "Their item", artistId: "a2" } });
+    await expect(checkExistingToken(theirs.ctx, artist, { code: "LUNA", issuer })).resolves.toEqual({ status: "USED", byYou: false, message: "That asset is already used for another item." });
+    await expect(createFanToken(theirs.ctx, artist, user, { mode: "EXISTING", code: "LUNA", issuer, coverUrl: cover })).rejects.toMatchObject({ message: "That asset is already used for another item." });
   });
 
   it("is one per artist, and needs an image from our storage", async () => {

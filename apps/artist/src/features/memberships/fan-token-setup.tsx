@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Sparkles, SquarePen, Link2 } from "lucide-react";
+import { CheckCircle2, Link2, Loader2, Sparkles, SquarePen, XCircle } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
@@ -9,7 +9,8 @@ import { Input } from "@bandcoin/ui/components/input";
 import { cn } from "@bandcoin/ui/lib/cn";
 import { assetCodeFrom, normalizeAssetCode, validateAssetCode } from "@bandcoin/utils/asset-code";
 
-import { api } from "~/trpc/react";
+import { useDebounced } from "~/lib/use-debounced";
+import { api, type RouterOutputs } from "~/trpc/react";
 
 import { FileField, type PickedFile } from "../catalog/file-field";
 import { Field, Note } from "../catalog/form-parts";
@@ -22,6 +23,31 @@ const WAYS: { mode: Mode; icon: typeof Sparkles; title: string; text: string }[]
   { mode: "CUSTOM", icon: SquarePen, title: "Choose my own code", text: "Pick the short name your fans will see, like LUNA." },
   { mode: "EXISTING", icon: Link2, title: "Use a token I already have", text: "Already issued a token on Stellar? Point us at it." },
 ];
+
+type CheckData = RouterOutputs["memberships"]["checkToken"];
+
+/** The result of checking an existing token, under the issuer field. */
+function TokenCheckLine({ active, settled, pending, status, failed }: { active: boolean; settled: boolean; pending: boolean; status: CheckData | undefined; failed: boolean }) {
+  if (!active) return null;
+  if (failed) return <p className="text-danger flex items-center gap-1.5 text-xs">Couldn&apos;t check it right now. Try again.</p>;
+  if (pending || !settled || !status)
+    return (
+      <p className="text-fg-muted flex items-center gap-1.5 text-xs">
+        <Loader2 className="size-3.5 animate-spin" /> Checking the token on Stellar…
+      </p>
+    );
+  if (status.status === "OK")
+    return (
+      <p className="text-success flex items-center gap-1.5 text-xs">
+        <CheckCircle2 className="size-3.5" /> Found on Stellar and not used here yet.
+      </p>
+    );
+  return (
+    <p role="alert" className="text-danger flex items-center gap-1.5 text-xs">
+      <XCircle className="size-3.5 shrink-0" /> {status.message}
+    </p>
+  );
+}
 
 const messageOf = (error: unknown) => (error instanceof Error ? error.message : "Something went wrong.");
 
@@ -41,7 +67,14 @@ export function FanTokenSetup() {
   const suggestion = assetCodeFrom(portal.artist?.name ?? "") || "FANS";
   const shownCode = mode === "GENERATE" ? suggestion : code;
   const codeProblem = mode !== "GENERATE" && code ? validateAssetCode(code) : null;
-  const ready = cover !== null && shownCode.length > 0 && !codeProblem && (mode !== "EXISTING" || issuer.length > 0);
+
+  // A token that already exists: check it as the artist types (valid, on Stellar, not already used).
+  const wanted = useDebounced({ code, issuer }, 600);
+  const checking = mode === "EXISTING" && !validateAssetCode(wanted.code) && wanted.issuer.length >= 56;
+  const check = api.memberships.checkToken.useQuery(wanted, { enabled: checking, retry: false });
+  const settled = checking && wanted.code === code && wanted.issuer === issuer;
+  const tokenOk = mode !== "EXISTING" || (settled && check.data?.status === "OK");
+  const ready = cover !== null && shownCode.length > 0 && !codeProblem && tokenOk;
 
   const create = api.memberships.createFanToken.useMutation({
     onSuccess: ({ code: made }) => {
@@ -101,12 +134,20 @@ export function FanTokenSetup() {
       {mode === "EXISTING" && (
         <Field label="Issuer (public key)" htmlFor="ft-issuer">
           <Input id="ft-issuer" value={issuer} maxLength={60} autoComplete="off" placeholder="G…" onChange={(event) => setIssuer(event.target.value.trim())} className="font-mono" />
-          <Note>We check the token exists on Stellar. We can only read it, so you hand it out yourself.</Note>
+          <TokenCheckLine active={checking} settled={settled} pending={check.isFetching} status={check.data} failed={check.isError} />
+          <Note>We can only read this token, so you hand it out yourself.</Note>
         </Field>
       )}
 
-      <Field label="Token image" htmlFor="ft-cover">
-        <FileField id="ft-cover" accept="image/jpeg,image/png,image/webp,image/gif" value={cover} onChange={setCover} preview hint="Shown wherever fans see the token." />
+      <Field label="Token image" htmlFor="ft-cover" required>
+        <FileField
+          id="ft-cover"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          value={cover}
+          onChange={setCover}
+          preview
+          hint={mode === "EXISTING" ? "Upload an image for your token. It exists on Stellar already, so this picture is only for Bandcoin." : "Shown wherever fans see the token."}
+        />
       </Field>
 
       <Button type="button" className="justify-self-start" disabled={!ready || create.isPending} onClick={submit}>

@@ -39,6 +39,12 @@ export const FILL_SCHEMAS = {
     priceUsd: z.number().min(0).nullable().describe("Only if the artist gave a price"),
     imagePrompt,
   }),
+  tier: z.object({
+    name: z.string().describe("Tier name, max 40 chars"),
+    description: z.string().describe("One sentence, max 200 chars"),
+    features: z.array(z.string()).max(6).describe("Up to 6 short perks, max 60 chars each"),
+    isPopular: z.boolean(),
+  }),
   song: z.object({
     title: z.string().describe("Song title, max 80 chars"),
     description: z.string().describe("1-3 sentences about the song for fans"),
@@ -56,5 +62,6 @@ export const FORM_BRIEF: Record<FillForm, string> = {
   event: "an event fans can RSVP to (a gig, signing or listening party)",
   announcement: "a short announcement in the artist's news feed",
   item: "a collectible the artist sells to fans",
+  tier: "a membership tier fans unlock by holding the artist's fan token",
   song: "a song the artist releases",
 };

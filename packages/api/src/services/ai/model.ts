@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import type { z } from "zod";
 
-import { requireEnv } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 /** Models are overridable per environment. */
 const TEXT_MODEL = process.env.OPENAI_TEXT_MODEL ?? "gpt-5.4-mini";
@@ -13,14 +13,18 @@ export type ImageSize = "1024x1024" | "1536x1024" | "1024x1536";
 /** The three things the portal asks an AI for. Tests pass a fake. */
 export type AiModel = {
   /** A form filled in as structured data; null when the model returned nothing usable. */
-  fill<S extends z.ZodType>(input: { system: string; user: string; schema: S }): Promise<z.infer<S> | null>;
-  write(input: { system: string; user: string }): Promise<string>;
+  fill: <S extends z.ZodType>(input: { system: string; user: string; schema: S }) => Promise<z.infer<S> | null>;
+  write: (input: { system: string; user: string }) => Promise<string>;
   /** PNG bytes, or null when no image came back. */
-  image(input: { prompt: string; size: ImageSize }): Promise<Buffer | null>;
+  image: (input: { prompt: string; size: ImageSize }) => Promise<Buffer | null>;
 };
 
 let client: OpenAI | undefined;
-const openai = () => (client ??= new OpenAI({ apiKey: requireEnv("OPENAI_API_KEY", process.env.OPENAI_API_KEY) }));
+const openai = () => {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new AppError(ErrorCodes.CONFIG_MISSING, { message: "AI help isn't switched on yet.", details: { name: "OPENAI_API_KEY" } });
+  return (client ??= new OpenAI({ apiKey }));
+};
 
 export const openaiModel: AiModel = {
   async fill({ system, user, schema }) {
