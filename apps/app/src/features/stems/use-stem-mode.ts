@@ -129,6 +129,7 @@ export function useStemMode({
     position,
     duration,
     available: sources.length > 0,
+    reset: () => setMix(Object.fromEntries(sources.map((source) => [source.id, defaultSetting()]))),
     start,
     /** Leave stem mode; returns where the stems were, for the normal audio to continue from. */
     stop,

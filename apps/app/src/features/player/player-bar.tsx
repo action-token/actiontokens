@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
+import { cn } from "@bandcoin/ui/lib/cn";
 import { Popover, PopoverContent, PopoverTrigger } from "@bandcoin/ui/components/popover";
 
 import { Money } from "~/components/money";
@@ -201,31 +202,63 @@ function StemsButton({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon-sm" aria-label="Stems" aria-pressed={stems.active} className={stems.active ? "text-primary-text bg-primary-soft" : undefined}>
-          {stems.loading ? <Loader2 className="animate-spin" /> : <AudioLines />}
-        </Button>
+        <button
+          type="button"
+          aria-label="Stems"
+          title="Mix this song's parts"
+          aria-pressed={stems.active}
+          className={cn(
+            "inline-flex h-7 items-center gap-1.5 rounded-full border-2 px-2 text-xs font-bold transition-colors",
+            stems.active ? "bg-primary text-primary-foreground border-fg" : "border-border-strong text-fg-muted hover:bg-surface-3 hover:text-fg",
+          )}
+        >
+          {stems.loading ? <Loader2 className="size-4 animate-spin" /> : <AudioLines className="size-4" />}
+          <span className="hidden 2xl:inline">Stems</span>
+        </button>
       </PopoverTrigger>
-      <PopoverContent align="end" side="top" className="grid max-h-[70dvh] w-[22rem] gap-3 overflow-y-auto">
-        <div>
-          <h3 className="display text-base">Stems</h3>
-          <p className="text-fg-muted text-xs">
-            {stems.active
-              ? "Mix this song's parts live."
-              : `Hear ${sources.length} separate parts of this song and mix them yourself.`}
-            {preview && " You get the first 30 seconds; own the song for all of it."}
-          </p>
+      <PopoverContent
+        align="end"
+        side="top"
+        sideOffset={10}
+        className="border-fg bg-surface grid max-h-[70dvh] w-[25rem] gap-3 overflow-y-auto rounded-2xl border-[3px] p-4 shadow-[6px_7px_0_0_var(--color-primary)]"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="display flex items-center gap-2 text-lg leading-none">
+              Stems
+              {stems.active && <span className="bg-primary text-primary-foreground rounded-full px-2 py-0.5 text-[10px] font-extrabold tracking-wide uppercase">live</span>}
+            </h3>
+            <p className="text-fg-muted mt-1.5 text-xs leading-snug">
+              {stems.active ? (
+                <>
+                  Drag a bar for volume. <b className="text-fg">M</b> mutes a part. <b className="text-fg">S</b> plays only that part.
+                </>
+              ) : (
+                `This song has ${sources.length} separate parts. Play them together and mix them yourself.`
+              )}
+            </p>
+          </div>
+          {stems.active && (
+            <Button variant="ghost" size="sm" className="-mt-1 -mr-2 h-7 shrink-0 px-2 text-xs" onClick={stems.reset}>
+              Reset
+            </Button>
+          )}
         </div>
+
         {stems.active ? (
           <>
             <StemRows stems={sources} mix={stems.mix} setMix={stems.setMix} compact />
-            <Button variant="secondary" size="sm" onClick={onStop}>
+            <Button variant="secondary" size="sm" className="border-fg border-2" onClick={onStop}>
               Back to the full song
             </Button>
           </>
         ) : (
-          <Button disabled={stems.loading} onClick={onStart}>
+          <Button size="lg" disabled={stems.loading} onClick={onStart} className="border-fg border-2 font-bold shadow-[2px_3px_0_0_var(--color-fg)]">
             {stems.loading ? <Loader2 className="animate-spin" /> : <AudioLines />} {stems.loading ? "Loading the parts…" : "Play with stems"}
           </Button>
+        )}
+        {preview && (
+          <p className="text-fg-faint text-[11px] leading-snug">You hear the first 30 seconds of each part. Own the song to hear it all.</p>
         )}
         {stems.error && (
           <p role="alert" className="text-danger text-xs">

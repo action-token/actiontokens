@@ -10,9 +10,10 @@ export type StemInfo = { id: string; name: string; color: string };
 
 /**
  * One mixer strip per stem: its colour and name, mute and solo, volume and
- * pan. `compact` stacks the two sliders under the name, for a small popover.
+ * pan. `compact` is the player's version: one line per stem, volume only.
  */
 export function StemRows({ stems, mix, setMix, compact }: { stems: StemInfo[]; mix: Mix; setMix: Dispatch<SetStateAction<Mix>>; compact?: boolean }) {
+  if (compact) return <CompactRows stems={stems} mix={mix} setMix={setMix} />;
   const update = (id: string, change: Partial<Mix[string]>) =>
     setMix((current) => ({ ...current, [id]: { ...(current[id] ?? defaultSetting()), ...change } }));
   const anySolo = Object.values(mix).some((entry) => entry.solo);
@@ -64,11 +65,52 @@ function StemToggle({ label, short, on, tone, onClick }: { label: string; short:
       aria-pressed={on}
       onClick={onClick}
       className={cn(
-        "grid size-8 place-items-center rounded-md border text-xs font-bold transition-colors",
-        on ? (tone === "danger" ? "bg-danger border-danger text-white" : "bg-primary text-primary-foreground border-fg") : "text-fg-muted hover:bg-surface-2",
+        "grid size-7 place-items-center rounded-md border-2 text-xs font-extrabold transition-colors",
+        on ? (tone === "danger" ? "bg-danger border-danger text-white" : "bg-primary text-primary-foreground border-fg") : "border-border-strong text-fg-muted hover:bg-surface-3",
       )}
     >
       {short}
     </button>
+  );
+}
+
+/**
+ * The player's mixer: one line per stem. The coloured bar is the volume (drag
+ * it); M silences the stem, S plays only that stem. A silenced stem dims and
+ * its name is struck through, so it is clear what you are hearing.
+ */
+function CompactRows({ stems, mix, setMix }: { stems: StemInfo[]; mix: Mix; setMix: Dispatch<SetStateAction<Mix>> }) {
+  const anySolo = Object.values(mix).some((entry) => entry.solo);
+  return (
+    <ul className="grid gap-1.5">
+      {stems.map((stem) => {
+        const setting = mix[stem.id] ?? defaultSetting();
+        const heard = !setting.mute && (!anySolo || setting.solo);
+        return (
+          <li key={stem.id} className="bg-surface-2 grid grid-cols-[5.25rem_auto_minmax(0,1fr)_1.75rem] items-center gap-2 rounded-xl px-2.5 py-2">
+            <span className={cn("flex min-w-0 items-center gap-1.5 text-sm font-bold", !heard && "text-fg-faint line-through")}>
+              <span aria-hidden className={cn("size-2.5 shrink-0 rounded-full", !heard && "opacity-40")} style={{ background: stem.color }} />
+              <span className="truncate">{stem.name}</span>
+            </span>
+            <span className="flex gap-1">
+              <StemToggle label={`Mute ${stem.name}`} short="M" on={setting.mute} tone="danger" onClick={() => setMix((current) => toggle(current, stem.id, "mute"))} />
+              <StemToggle label={`Solo ${stem.name}`} short="S" on={setting.solo} tone="primary" onClick={() => setMix((current) => toggle(current, stem.id, "solo"))} />
+            </span>
+            <input
+              type="range"
+              aria-label={`${stem.name} volume`}
+              min={0}
+              max={1}
+              step={0.01}
+              value={setting.volume}
+              onChange={(event) => setMix((current) => ({ ...current, [stem.id]: { ...(current[stem.id] ?? defaultSetting()), volume: clampVolume(Number(event.target.value)) } }))}
+              style={{ accentColor: stem.color }}
+              className={cn("h-2 min-w-0 cursor-pointer", !heard && "opacity-40")}
+            />
+            <span className="num text-fg-muted text-right text-xs">{Math.round(setting.volume * 100)}</span>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
