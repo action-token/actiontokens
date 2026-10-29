@@ -1,4 +1,4 @@
-import { Address, authorizeEntry, Keypair, Operation, rpc, type Transaction, TransactionBuilder, type xdr } from "@stellar/stellar-sdk";
+import { Address, authorizeEntry, Contract, Keypair, nativeToScVal, Operation, rpc, scValToNative, type Transaction, TransactionBuilder, type xdr } from "@stellar/stellar-sdk";
 
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
@@ -55,4 +55,25 @@ function addressOf(entry: xdr.SorobanAuthorizationEntry): string | null {
   const { credentials } = entry;
   if (credentials.type !== "sorobanCredentialsAddress") return null;
   return Address.fromScAddress(credentials.address.address).toString();
+}
+
+/**
+ * The id of the edition registered under `editionRef` on the nft_oz contract
+ * (`edition_by_ref`), or null when none exists. A read-only simulation, so it
+ * costs nothing and signs nothing; `reader` only has to be an account that exists.
+ */
+export async function readEditionId(contract: string | null, reader: string, editionRef: string): Promise<number | null> {
+  if (!contract) throw new AppError(ErrorCodes.CONFIG_MISSING, { message: "NFT_CONTRACT isn't set." });
+  const { passphrase } = chainConfig().network;
+  const account = await sorobanRpc().getAccount(reader);
+  const tx = new TransactionBuilder(account, { fee: "100", networkPassphrase: passphrase })
+    .addOperation(new Contract(contract).call("edition_by_ref", nativeToScVal(editionRef, { type: "string" })))
+    .setTimeout(30)
+    .build();
+  const simulation = await sorobanRpc().simulateTransaction(tx);
+  if (!rpc.Api.isSimulationSuccess(simulation) || !simulation.result) {
+    throw new AppError(ErrorCodes.STELLAR_TX_BUILD_FAILED, { message: "Couldn't read the edition from the contract." });
+  }
+  const id = scValToNative(simulation.result.retval) as number | null | undefined;
+  return id ?? null;
 }

@@ -3,4 +3,4 @@ export { chainConfig, type ChainConfig } from "./config";
 export { addSignatures, findTransaction, fundsOf, horizon, loadAccount, spendableXlm, submit, trusts } from "./horizon";
 export { clearRateCache, liveBandcoinUsd, liveRates, type Rates } from "./rates";
 export { decryptSecret, encryptSecret } from "./secrets";
-export { prepareContractCall } from "./soroban";
+export { prepareContractCall, readEditionId } from "./soroban";
