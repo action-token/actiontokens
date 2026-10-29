@@ -39,6 +39,7 @@ export function toItemCard(row: ItemCardRow) {
     artistSlug: row.artist?.slug ?? null,
     playable: row.media?.mediaType === "AUDIO",
     durationSec: row.media?.durationSec ?? null,
+    playCount: row.playCount,
     price: price ? { bandcoin: price.priceBandcoin.toString(), usd: price.priceUsd.toString() } : null,
   };
 }

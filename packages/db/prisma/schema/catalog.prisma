@@ -63,6 +63,7 @@ model Item {
   orders         Order[]
   ownerships     Ownership[]
   likes          ItemLike[]
+  dislikes       ItemDislike[]
   redeemCodes    RedeemCode[]
   royaltyReports RoyaltyReport[]
   royaltyPayouts RoyaltyPayout[]
@@ -248,6 +249,20 @@ model ItemLike {
   @@id([userId, itemId])
   @@index([itemId])
   @@map("item_likes")
+}
+
+/// A thumbs down on an item. Public count, like YouTube; one per fan, and a
+/// like and a dislike from the same fan cancel each other.
+model ItemDislike {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, itemId])
+  @@index([itemId])
+  @@map("item_dislikes")
 }
 
 model CollectionLike {

@@ -38,6 +38,7 @@ model User {
   listings             Listing[]
   orders               Order[]
   itemLikes            ItemLike[]
+  itemDislikes         ItemDislike[]
   collections          ItemCollection[]
   collectionLikes      CollectionLike[]
   redeemClaims         RedeemClaim[]
