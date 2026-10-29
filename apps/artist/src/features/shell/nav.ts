@@ -1,4 +1,4 @@
-import { BadgeCheck, CalendarDays, Crown, LayoutDashboard, ListChecks, Megaphone, Music2, Package, Rocket, Trophy, Users, type LucideIcon } from "lucide-react";
+import { BadgeCheck, CalendarDays, Crown, LayoutDashboard, ListChecks, Megaphone, MapPin, Music2, Package, Rocket, Trophy, Users, type LucideIcon } from "lucide-react";
 
 import type { OnboardingStep } from "@bandcoin/api";
 
@@ -24,6 +24,7 @@ const ADMIN: NavGroup = {
 const FAN_TOOLS: NavItem[] = [
   { href: "/events", icon: CalendarDays, label: "Events" },
   { href: "/announcements", icon: Megaphone, label: "Announcements" },
+  { href: "/pins", icon: MapPin, label: "Pins" },
   { href: "/bounties", icon: Trophy, label: "Bounties" },
 ];
 

@@ -186,7 +186,7 @@ export async function listPins(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef, n
       rewardItem: { select: { title: true, coverUrl: true } },
       event: { select: { title: true } },
       tags: { select: { tag: { select: { label: true } } } },
-      spots: { where: { isHidden: false }, select: { _count: { select: { claims: true } } } },
+      spots: { where: { isHidden: false }, select: { id: true, latitude: true, longitude: true, autoCollect: true, _count: { select: { claims: true } } } },
     },
   });
   return rows.map((pin) => ({
@@ -203,6 +203,9 @@ export async function listPins(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef, n
     longitude: pin.longitude,
     status: statusOf(pin, now),
     spots: pin.spots.length,
+    /** Where each spot is, for the map */
+    spotPoints: pin.spots.map((spot) => ({ id: spot.id, latitude: spot.latitude, longitude: spot.longitude, collected: spot._count.claims })),
+    autoCollect: pin.spots.some((spot) => spot.autoCollect),
     collected: pin.spots.reduce((sum, spot) => sum + spot._count.claims, 0),
     reward: pin.rewardItem?.title ?? (pin.rewardsFanToken ? "Fan token" : null),
     event: pin.event?.title ?? null,

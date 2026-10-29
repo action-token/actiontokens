@@ -260,7 +260,10 @@ describe("the pin list", () => {
     rewardsFanToken: false,
     event: null,
     tags: [{ tag: { label: "live" } }],
-    spots: [{ _count: { claims: 2 } }, { _count: { claims: 1 } }],
+    spots: [
+      { id: "s1", latitude: 1, longitude: 2, autoCollect: true, _count: { claims: 2 } },
+      { id: "s2", latitude: 1.1, longitude: 2.1, autoCollect: false, _count: { claims: 1 } },
+    ],
     ...over,
   });
 
@@ -275,6 +278,17 @@ describe("the pin list", () => {
     db.pin.findMany.mockResolvedValue([row(over)]);
     const [pin] = await listPins(ctx, artist, new Date(at));
     expect(pin).toMatchObject({ status, spots: 2, collected: 3, tags: ["live"], reward: null });
+  });
+
+  it("gives the map each spot's place and whether the pin collects itself", async () => {
+    const { ctx, db } = setup();
+    db.pin.findMany.mockResolvedValue([row({})]);
+    const [pin] = await listPins(ctx, artist, now);
+    expect(pin?.spotPoints).toEqual([
+      { id: "s1", latitude: 1, longitude: 2, collected: 2 },
+      { id: "s2", latitude: 1.1, longitude: 2.1, collected: 1 },
+    ]);
+    expect(pin?.autoCollect).toBe(true);
   });
 
   it("names the reward", async () => {
