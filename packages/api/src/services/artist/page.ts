@@ -120,7 +120,13 @@ export async function saveDraft(
     where: { id: layout.id },
     data: { draftBlocks: json(blocks), theme: theme.data },
   });
-  return { layoutId: layout.id, savedAt: new Date() };
+  const published = layout.publishedBlocks ? readDesign(layout.publishedBlocks) : null;
+  return {
+    layoutId: layout.id,
+    savedAt: new Date(),
+    /** The saved draft still differs from what visitors see */
+    hasUnpublishedChanges: !published || !sameDesign({ blocks, theme: theme.data }, published),
+  };
 }
 
 /** Visitors see the draft as it is now, from this moment. */

@@ -150,6 +150,23 @@ describe("saveDraft", () => {
     expect(test.activity.set).toHaveBeenCalledWith({ targetType: "PageLayout", targetId: "l1" });
   });
 
+  it("says whether the saved draft still differs from the published page", async () => {
+    const published = { blocks: [cover], theme: DEFAULT_THEME };
+    const test = setup(existing({ status: "PUBLISHED", publishedBlocks: published }));
+    expect(
+      await saveDraft(test.ctx, artist, { blocks: [cover], theme: DEFAULT_THEME }),
+    ).toMatchObject({ hasUnpublishedChanges: false });
+    expect(
+      await saveDraft(test.ctx, artist, {
+        blocks: [cover, { uid: "n", type: "about" }],
+        theme: DEFAULT_THEME,
+      }),
+    ).toMatchObject({ hasUnpublishedChanges: true });
+    expect(
+      await saveDraft(setup(existing()).ctx, artist, { blocks: [cover], theme: DEFAULT_THEME }),
+    ).toMatchObject({ hasUnpublishedChanges: true });
+  });
+
   it("refuses a bad theme and band photos that weren't uploaded here", async () => {
     const test = setup(existing());
     await expect(
