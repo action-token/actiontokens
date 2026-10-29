@@ -14,6 +14,7 @@ export {
 export { appRouter, type AppRouter } from "./root-app";
 export { arRouter, type ArRouter } from "./root-ar";
 export { portalRouter, type PortalRouter } from "./root-portal";
+export type { OnboardingStep } from "./routers/artist/portal";
 export { canPlayFull, PREVIEW_SECONDS, previewByteRange } from "./services/media/playback";
 export { wavPreview } from "./services/media/wav";
 export { lastFmAuthUrl, lastFmKeys, lastFmSession } from "./services/lastfm";

@@ -700,6 +700,100 @@ importers:
         specifier: 'catalog:'
         version: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
 
+  apps/artist:
+    dependencies:
+      '@bandcoin/api':
+        specifier: workspace:*
+        version: link:../../packages/api
+      '@bandcoin/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@bandcoin/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@bandcoin/errors':
+        specifier: workspace:*
+        version: link:../../packages/errors
+      '@bandcoin/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@bandcoin/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
+      '@bandcoin/wallet':
+        specifier: workspace:*
+        version: link:../../packages/wallet
+      '@tanstack/react-query':
+        specifier: 'catalog:'
+        version: 5.105.0(@types/react@19.3.0)(react@19.3.0)
+      '@trpc/client':
+        specifier: 'catalog:'
+        version: 11.19.0(@trpc/server@11.19.0(typescript@6.0.3))(typescript@6.0.3)
+      '@trpc/react-query':
+        specifier: 'catalog:'
+        version: 11.19.0(@tanstack/react-query@5.105.0(@types/react@19.3.0)(react@19.3.0))(@trpc/client@11.19.0(@trpc/server@11.19.0(typescript@6.0.3))(typescript@6.0.3))(@trpc/server@11.19.0(typescript@6.0.3))(react@19.3.0)(typescript@6.0.3)
+      '@trpc/server':
+        specifier: 'catalog:'
+        version: 11.19.0(typescript@6.0.3)
+      lucide-react:
+        specifier: 'catalog:'
+        version: 1.62.0(@types/react@19.3.0)(react@19.3.0)
+      next:
+        specifier: 'catalog:'
+        version: 16.4.3(@babel/core@7.29.7)(@opentelemetry/api@1.10.0)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      next-auth:
+        specifier: 'catalog:'
+        version: 4.24.15(next@16.4.3(@babel/core@7.29.7)(@opentelemetry/api@1.10.0)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      next-themes:
+        specifier: 'catalog:'
+        version: 0.4.6(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      react:
+        specifier: 'catalog:'
+        version: 19.3.0
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.3.0(react@19.3.0)
+      superjson:
+        specifier: 'catalog:'
+        version: 2.2.6
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.7
+    devDependencies:
+      '@bandcoin/eslint-config':
+        specifier: workspace:*
+        version: link:../../tooling/eslint
+      '@bandcoin/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/typescript
+      '@tailwindcss/postcss':
+        specifier: 'catalog:'
+        version: 4.3.3
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.6.5
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.3.0(@types/react@19.3.0)
+      eslint:
+        specifier: 'catalog:'
+        version: 10.13.0(jiti@2.7.0)
+      postcss:
+        specifier: 'catalog:'
+        version: 8.5.32
+      tailwindcss:
+        specifier: 'catalog:'
+        version: 4.3.3
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+
   packages/api:
     dependencies:
       '@bandcoin/ar-core':

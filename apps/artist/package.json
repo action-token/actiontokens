@@ -1,0 +1,49 @@
+{
+  "name": "@bandcoin/artist",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Bandcoin artist portal (artist.bandcoin.io): onboarding, catalog, music, pins, bounties, page, money, and /admin.",
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev --port 3001",
+    "lint": "eslint src",
+    "start": "next start",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "next typegen && tsc --noEmit"
+  },
+  "dependencies": {
+    "@bandcoin/api": "workspace:*",
+    "@bandcoin/auth": "workspace:*",
+    "@bandcoin/db": "workspace:*",
+    "@bandcoin/errors": "workspace:*",
+    "@bandcoin/ui": "workspace:*",
+    "@bandcoin/utils": "workspace:*",
+    "@bandcoin/wallet": "workspace:*",
+    "@tanstack/react-query": "catalog:",
+    "@trpc/client": "catalog:",
+    "@trpc/react-query": "catalog:",
+    "@trpc/server": "catalog:",
+    "lucide-react": "catalog:",
+    "next": "catalog:",
+    "next-auth": "catalog:",
+    "next-themes": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "superjson": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@bandcoin/eslint-config": "workspace:*",
+    "@bandcoin/tsconfig": "workspace:*",
+    "@tailwindcss/postcss": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "eslint": "catalog:",
+    "postcss": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
