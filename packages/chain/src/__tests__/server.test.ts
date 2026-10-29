@@ -1,6 +1,8 @@
 import { Keypair } from "@stellar/stellar-sdk";
 import { beforeEach, describe, expect, it } from "vitest";
 
+import { AppError, ErrorCodes } from "@bandcoin/errors";
+
 import { chainConfig } from "../server/config";
 import { clearRateCache, liveBandcoinUsd, liveRates } from "../server/rates";
 import { decryptSecret, encryptSecret } from "../server/secrets";
@@ -88,9 +90,7 @@ describe("liveBandcoinUsd", () => {
   });
 
   it("on testnet uses the dev price, since a test asset has no market, and says so when it's missing", async () => {
-    const never = async () => {
-      throw new Error("must not call the network");
-    };
+    const never = () => Promise.reject(new AppError(ErrorCodes.INTERNAL, { message: "must not call the network" }));
     expect(await liveBandcoinUsd({ name: "testnet", asset, devPrice: "0.002" }, never, 0)).toBe("0.0020000");
     await expect(liveBandcoinUsd({ name: "testnet", asset }, never, 0)).rejects.toMatchObject({ code: "CONFIG_MISSING" });
     await expect(liveBandcoinUsd({ name: "testnet", asset, devPrice: "free" }, never, 0)).rejects.toMatchObject({ code: "CONFIG_MISSING" });
