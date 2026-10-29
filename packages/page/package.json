@@ -1,0 +1,27 @@
+{
+  "name": "@bandcoin/page",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "An artist's public page as blocks: the block and theme contract, what each block's settings are, starter templates and the checks that keep saved pages safe. Pure code, shared by the page editor, the API and the fan page.",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@bandcoin/eslint-config": "workspace:*",
+    "@bandcoin/tsconfig": "workspace:*",
+    "@bandcoin/vitest-config": "workspace:*",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
