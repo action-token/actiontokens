@@ -1,6 +1,15 @@
 "use client";
 
-import { AudioLines, Loader2, Pause, Play, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react";
+import {
+  AudioLines,
+  Loader2,
+  Pause,
+  Play,
+  SkipBack,
+  SkipForward,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
@@ -40,8 +49,14 @@ export function PlayerBar() {
   const [previewEndedFor, setPreviewEndedFor] = useState<string | null>(null);
   const [muted, setMuted] = useState(false);
 
-  const playback = api.media.play.useQuery({ itemId: track?.id ?? "" }, { enabled: Boolean(track), staleTime: 30 * 60_000 });
-  api.media.play.useQuery({ itemId: upNext?.id ?? "" }, { enabled: Boolean(upNext), staleTime: 30 * 60_000 });
+  const playback = api.media.play.useQuery(
+    { itemId: track?.id ?? "" },
+    { enabled: Boolean(track), staleTime: 30 * 60_000 },
+  );
+  api.media.play.useQuery(
+    { itemId: upNext?.id ?? "" },
+    { enabled: Boolean(upNext), staleTime: 30 * 60_000 },
+  );
 
   const source = playback.data?.url;
   const recordPlay = api.media.recordPlay.useMutation();
@@ -51,8 +66,16 @@ export function PlayerBar() {
     next();
   };
 
-  const stemList = api.media.stems.useQuery({ itemId: track?.id ?? "" }, { enabled: Boolean(track), staleTime: 30 * 60_000 });
-  const stems = useStemMode({ trackId: track?.id ?? null, sources: stemList.data?.stems ?? [], playing, onEnded: finish });
+  const stemList = api.media.stems.useQuery(
+    { itemId: track?.id ?? "" },
+    { enabled: Boolean(track), staleTime: 30 * 60_000 },
+  );
+  const stems = useStemMode({
+    trackId: track?.id ?? null,
+    sources: stemList.data?.stems ?? [],
+    playing,
+    onEnded: finish,
+  });
 
   // The normal audio stays silent while the stems are playing.
   useEffect(() => {
@@ -82,7 +105,11 @@ export function PlayerBar() {
           muted={muted}
           onTimeUpdate={(event) => {
             const element = event.currentTarget;
-            setProgress({ trackId: track.id, current: element.currentTime, duration: element.duration || 0 });
+            setProgress({
+              trackId: track.id,
+              current: element.currentTime,
+              duration: element.duration || 0,
+            });
             // A preview cut by bytes can run a little long; it ends at its stated length.
             if (preview && duration && element.currentTime >= duration) {
               element.pause();
@@ -92,7 +119,11 @@ export function PlayerBar() {
           onPlay={(event) => {
             // A play counts when a song starts from the beginning, not when it resumes from pause.
             if (event.currentTarget.currentTime < 0.5) {
-              recordPlay.mutate({ itemId: track.id, sessionId: listeningSession(), isPreview: preview });
+              recordPlay.mutate({
+                itemId: track.id,
+                sessionId: listeningSession(),
+                isPreview: preview,
+              });
             }
           }}
           onEnded={finish}
@@ -113,7 +144,13 @@ export function PlayerBar() {
 
       <div className="grid justify-items-center gap-0.5">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon-sm" aria-label="Previous" className="hidden sm:inline-flex" onClick={previous}>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Previous"
+            className="hidden sm:inline-flex"
+            onClick={previous}
+          >
             <SkipBack className="fill-current" />
           </Button>
           <Button
@@ -125,7 +162,14 @@ export function PlayerBar() {
           >
             {playing ? <Pause className="fill-current" /> : <Play className="fill-current" />}
           </Button>
-          <Button variant="ghost" size="icon-sm" aria-label="Next" className="hidden sm:inline-flex" disabled={!upNext} onClick={next}>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Next"
+            className="hidden sm:inline-flex"
+            disabled={!upNext}
+            onClick={next}
+          >
             <SkipForward className="fill-current" />
           </Button>
         </div>
@@ -170,10 +214,23 @@ export function PlayerBar() {
             className="bg-primary text-primary-foreground border-fg ml-1 flex h-8 items-center gap-1.5 rounded-full border-2 px-3 text-[13px] font-bold whitespace-nowrap shadow-[2px_2px_0_0_var(--color-fg)] transition-transform hover:-translate-y-0.5"
           >
             Buy
-            {track.price && <Money amount={track.price.bandcoin} currency="BANDCOIN" short className="font-bold" onBrand />}
+            {track.price && (
+              <Money
+                amount={track.price.bandcoin}
+                currency="BANDCOIN"
+                short
+                className="font-bold"
+                onBrand
+              />
+            )}
           </Link>
         )}
-        <Button variant="ghost" size="icon-sm" aria-label={muted ? "Unmute" : "Mute"} onClick={() => setMuted((value) => !value)}>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label={muted ? "Unmute" : "Mute"}
+          onClick={() => setMuted((value) => !value)}
+        >
           {muted ? <VolumeX /> : <Volume2 />}
         </Button>
       </div>
@@ -209,10 +266,16 @@ function StemsButton({
           aria-pressed={stems.active}
           className={cn(
             "inline-flex h-7 items-center gap-1.5 rounded-full border-2 px-2 text-xs font-bold transition-colors",
-            stems.active ? "bg-primary text-primary-foreground border-fg" : "border-border-strong text-fg-muted hover:bg-surface-3 hover:text-fg",
+            stems.active
+              ? "bg-primary text-primary-foreground border-fg"
+              : "border-border-strong text-fg-muted hover:bg-surface-3 hover:text-fg",
           )}
         >
-          {stems.loading ? <Loader2 className="size-4 animate-spin" /> : <AudioLines className="size-4" />}
+          {stems.loading ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <AudioLines className="size-4" />
+          )}
           <span className="hidden 2xl:inline">Stems</span>
         </button>
       </PopoverTrigger>
@@ -226,12 +289,17 @@ function StemsButton({
           <div>
             <h3 className="display flex items-center gap-2 text-lg leading-none">
               Stems
-              {stems.active && <span className="bg-primary text-primary-foreground rounded-full px-2 py-0.5 text-[10px] font-extrabold tracking-wide uppercase">live</span>}
+              {stems.active && (
+                <span className="bg-primary text-primary-foreground rounded-full px-2 py-0.5 text-[10px] font-extrabold tracking-wide uppercase">
+                  live
+                </span>
+              )}
             </h3>
             <p className="text-fg-muted mt-1.5 text-xs leading-snug">
               {stems.active ? (
                 <>
-                  Drag a bar for volume. <b className="text-fg">M</b> mutes a part. <b className="text-fg">S</b> plays only that part.
+                  Drag a bar for volume. <b className="text-fg">M</b> mutes a part.{" "}
+                  <b className="text-fg">S</b> plays only that part.
                 </>
               ) : (
                 `This song has ${sources.length} separate parts. Play them together and mix them yourself.`
@@ -239,7 +307,12 @@ function StemsButton({
             </p>
           </div>
           {stems.active && (
-            <Button variant="ghost" size="sm" className="-mt-1 -mr-2 h-7 shrink-0 px-2 text-xs" onClick={stems.reset}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="-mt-1 -mr-2 h-7 shrink-0 px-2 text-xs"
+              onClick={stems.reset}
+            >
               Reset
             </Button>
           )}
@@ -253,12 +326,20 @@ function StemsButton({
             </Button>
           </>
         ) : (
-          <Button size="lg" disabled={stems.loading} onClick={onStart} className="border-fg border-2 font-bold shadow-[2px_3px_0_0_var(--color-fg)]">
-            {stems.loading ? <Loader2 className="animate-spin" /> : <AudioLines />} {stems.loading ? "Loading the parts…" : "Play with stems"}
+          <Button
+            size="lg"
+            disabled={stems.loading}
+            onClick={onStart}
+            className="border-fg border-2 font-bold shadow-[2px_3px_0_0_var(--color-fg)]"
+          >
+            {stems.loading ? <Loader2 className="animate-spin" /> : <AudioLines />}{" "}
+            {stems.loading ? "Loading the parts…" : "Play with stems"}
           </Button>
         )}
         {preview && (
-          <p className="text-fg-faint text-[11px] leading-snug">You hear the first 30 seconds of each part. Own the song to hear it all.</p>
+          <p className="text-fg-faint text-[11px] leading-snug">
+            You hear the first 30 seconds of each part. Own the song to hear it all.
+          </p>
         )}
         {stems.error && (
           <p role="alert" className="text-danger text-xs">

@@ -108,15 +108,21 @@ export default function BountyScreen() {
                     <span
                       className={cn(
                         "font-hud absolute top-2 left-2 flex h-6 min-w-6 items-center justify-center rounded-full border px-1.5 text-[11px] font-bold backdrop-blur-xs",
-                        i === 0 ? "border-rarity-legendary/60 bg-rarity-legendary/20 text-rarity-legendary" : "border-ar-line-bright bg-ar-void/50 text-ar-text",
+                        i === 0
+                          ? "border-rarity-legendary/60 bg-rarity-legendary/20 text-rarity-legendary"
+                          : "border-ar-line-bright bg-ar-void/50 text-ar-text",
                       )}
                     >
                       #{i + 1}
                     </span>
 
                     <div className="absolute inset-x-0 bottom-0 p-2.5">
-                      <p className="font-hud text-ar-faint truncate text-[9.5px] font-semibold tracking-[0.12em] uppercase">{b.artist.name}</p>
-                      <p className="text-ar-text mt-0.5 line-clamp-1 text-[13px] leading-snug font-semibold">{b.title}</p>
+                      <p className="font-hud text-ar-faint truncate text-[9.5px] font-semibold tracking-[0.12em] uppercase">
+                        {b.artist.name}
+                      </p>
+                      <p className="text-ar-text mt-0.5 line-clamp-1 text-[13px] leading-snug font-semibold">
+                        {b.title}
+                      </p>
                       <p className="font-hud text-ar-accent-hot text-glow-soft mt-1 flex items-center gap-1 text-[15px] leading-none font-bold tabular-nums">
                         <CurrencyIcon currency={b.prize.currency} className="size-3.5" />
                         {formatAmount(b.prize.amount)}
@@ -148,7 +154,12 @@ export default function BountyScreen() {
               <p className="text-ar-faint mx-auto mt-1.5 max-w-[17rem] text-[12.5px] leading-relaxed">
                 Sign in to join bounties, send reports and claim what you win.
               </p>
-              <ArButton variant="primary" icon={Wallet} className="mt-5" onClick={() => requireAuth("bounty")}>
+              <ArButton
+                variant="primary"
+                icon={Wallet}
+                className="mt-5"
+                onClick={() => requireAuth("bounty")}
+              >
                 Connect wallet
               </ArButton>
             </div>
@@ -166,7 +177,11 @@ export default function BountyScreen() {
                     className="text-ar-text placeholder:text-ar-faint min-w-0 flex-1 bg-transparent text-[13px] outline-hidden"
                   />
                   {query && (
-                    <button onClick={() => setQuery("")} aria-label="Clear search" className="text-ar-faint hover:text-ar-text shrink-0">
+                    <button
+                      onClick={() => setQuery("")}
+                      aria-label="Clear search"
+                      className="text-ar-faint hover:text-ar-text shrink-0"
+                    >
                       <X size={15} strokeWidth={2.4} />
                     </button>
                   )}
@@ -182,7 +197,8 @@ export default function BountyScreen() {
               </div>
 
               <div className="mt-3.5 space-y-3 px-5">
-                {list.isLoading && Array.from({ length: 3 }).map((_, i) => <BountyCardSkeleton key={i} />)}
+                {list.isLoading &&
+                  Array.from({ length: 3 }).map((_, i) => <BountyCardSkeleton key={i} />)}
 
                 {items.map((b) => (
                   <BountyCard key={b.id} bounty={b} />
@@ -192,7 +208,13 @@ export default function BountyScreen() {
 
                 {!list.isLoading && !list.isError && items.length === 0 && (
                   <Empty
-                    title={search ? "No matches" : segment === "joined" ? "Nothing joined yet" : "No open bounties"}
+                    title={
+                      search
+                        ? "No matches"
+                        : segment === "joined"
+                          ? "Nothing joined yet"
+                          : "No open bounties"
+                    }
                     body={
                       search
                         ? "Nothing matches that search."
@@ -205,7 +227,11 @@ export default function BountyScreen() {
 
                 {list.hasNextPage && (
                   <div className="flex justify-center pt-2">
-                    <ArButton variant="outline" busy={list.isFetchingNextPage} onClick={() => void list.fetchNextPage()}>
+                    <ArButton
+                      variant="outline"
+                      busy={list.isFetchingNextPage}
+                      onClick={() => void list.fetchNextPage()}
+                    >
                       Show more
                     </ArButton>
                   </div>
@@ -225,7 +251,10 @@ export default function BountyScreen() {
                   const { icon: Icon, verb } = ACTIVITY[event.type];
                   return (
                     <li key={event.id}>
-                      <Link href={`/bounty/${event.bounty.id}`} className="flex items-center gap-3 px-3.5 py-2.5">
+                      <Link
+                        href={`/bounty/${event.bounty.id}`}
+                        className="flex items-center gap-3 px-3.5 py-2.5"
+                      >
                         <span
                           className={
                             event.type === "win"
@@ -239,7 +268,9 @@ export default function BountyScreen() {
                           <b className="text-ar-text font-semibold">{nameOf(event.user)}</b> {verb}{" "}
                           <span className="text-ar-text">{event.bounty.title}</span>
                         </span>
-                        <span className="font-hud text-ar-faint shrink-0 text-[10px] font-semibold">{timeAgo(event.at)}</span>
+                        <span className="font-hud text-ar-faint shrink-0 text-[10px] font-semibold">
+                          {timeAgo(event.at)}
+                        </span>
                       </Link>
                     </li>
                   );
@@ -256,8 +287,12 @@ export default function BountyScreen() {
 function Empty({ title, body }: { title: string; body: string }) {
   return (
     <div className="py-14 text-center">
-      <p className="font-hud text-ar-dim text-[13px] font-bold tracking-[0.14em] uppercase">{title}</p>
-      <p className="text-ar-faint mx-auto mt-1.5 max-w-[17rem] text-[12.5px] leading-relaxed">{body}</p>
+      <p className="font-hud text-ar-dim text-[13px] font-bold tracking-[0.14em] uppercase">
+        {title}
+      </p>
+      <p className="text-ar-faint mx-auto mt-1.5 max-w-[17rem] text-[12.5px] leading-relaxed">
+        {body}
+      </p>
     </div>
   );
 }
@@ -266,7 +301,10 @@ function ErrorNote({ onRetry }: { onRetry: () => void }) {
   return (
     <div className="rounded-ar border-ar-danger/40 bg-ar-danger/10 flex items-center justify-between gap-3 border px-3.5 py-2.5">
       <p className="text-ar-danger text-[12px]">Couldn&rsquo;t load bounties.</p>
-      <button onClick={onRetry} className="font-hud text-ar-text text-[11px] font-semibold tracking-[0.1em] uppercase">
+      <button
+        onClick={onRetry}
+        className="font-hud text-ar-text text-[11px] font-semibold tracking-[0.1em] uppercase"
+      >
         Retry
       </button>
     </div>

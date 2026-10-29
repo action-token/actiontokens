@@ -16,8 +16,10 @@ export type Mix = Record<string, StemSetting>;
 
 export const defaultSetting = (): StemSetting => ({ volume: 1, pan: 0, mute: false, solo: false });
 
-export const clampVolume = (value: number) => (Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 1);
-export const clampPan = (value: number) => (Number.isFinite(value) ? Math.min(1, Math.max(-1, value)) : 0);
+export const clampVolume = (value: number) =>
+  Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 1;
+export const clampPan = (value: number) =>
+  Number.isFinite(value) ? Math.min(1, Math.max(-1, value)) : 0;
 
 /**
  * How loud one stem should play. If any stem is soloed, only soloed stems are

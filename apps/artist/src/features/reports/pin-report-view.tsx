@@ -1,7 +1,17 @@
 "use client";
 
 import { format, formatDistanceToNow } from "date-fns";
-import { CalendarDays, Copy, Download, Link2, MapPin, Pencil, ScanLine, Ticket, Users } from "lucide-react";
+import {
+  CalendarDays,
+  Copy,
+  Download,
+  Link2,
+  MapPin,
+  Pencil,
+  ScanLine,
+  Ticket,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
@@ -34,7 +44,10 @@ export function PinReportView({ pinId }: { pinId: string }) {
   const report = api.reports.pin.useQuery({ pinId }, { retry: false, refetchOnWindowFocus: false });
   return (
     <PageBody wide className="grid gap-4">
-      <Link href="/reports" className="text-fg-muted hover:text-fg inline-flex items-center gap-1 text-xs font-semibold tracking-wider uppercase">
+      <Link
+        href="/reports"
+        className="text-fg-muted hover:text-fg inline-flex items-center gap-1 text-xs font-semibold tracking-wider uppercase"
+      >
         ‹ Reports
       </Link>
       {report.isPending ? (
@@ -65,7 +78,14 @@ function Body({ report: r }: { report: Report }) {
 
   const rows = useMemo(() => {
     const q = query.toLowerCase();
-    return r.collectors.filter((c) => (!selectedSpot || c.spotId === selectedSpot) && (!q || [c.user.name, c.user.email, c.user.wallet, c.user.id].some((v) => v?.toLowerCase().includes(q))));
+    return r.collectors.filter(
+      (c) =>
+        (!selectedSpot || c.spotId === selectedSpot) &&
+        (!q ||
+          [c.user.name, c.user.email, c.user.wallet, c.user.id].some((v) =>
+            v?.toLowerCase().includes(q),
+          )),
+    );
   }, [r.collectors, selectedSpot, query]);
 
   const exportCsv = () =>
@@ -87,19 +107,43 @@ function Body({ report: r }: { report: Report }) {
     );
 
   const columns: Column<Collector>[] = [
-    { id: "who", header: "Collector", skeleton: "person", cell: (c) => <Person name={c.user.name} image={c.user.image} id={c.user.id} sub={c.user.email ?? (c.user.wallet ? <span className="font-mono">{abbreviateAddress(c.user.wallet, 5)}</span> : undefined)} /> },
+    {
+      id: "who",
+      header: "Collector",
+      skeleton: "person",
+      cell: (c) => (
+        <Person
+          name={c.user.name}
+          image={c.user.image}
+          id={c.user.id}
+          sub={
+            c.user.email ??
+            (c.user.wallet ? (
+              <span className="font-mono">{abbreviateAddress(c.user.wallet, 5)}</span>
+            ) : undefined)
+          }
+        />
+      ),
+    },
     {
       id: "where",
       header: "Spot",
       skeleton: "short",
-      cell: (c) => <span className="bg-primary text-primary-foreground num flex size-5 items-center justify-center rounded-full text-[10px] font-semibold">{index.get(c.spotId) ?? "?"}</span>,
+      cell: (c) => (
+        <span className="bg-primary text-primary-foreground num flex size-5 items-center justify-center rounded-full text-[10px] font-semibold">
+          {index.get(c.spotId) ?? "?"}
+        </span>
+      ),
     },
     {
       id: "when",
       header: "Collected",
       skeleton: "short",
       cell: (c) => (
-        <span className="text-fg-muted whitespace-nowrap" title={format(new Date(c.createdAt), "PPpp")}>
+        <span
+          className="text-fg-muted whitespace-nowrap"
+          title={format(new Date(c.createdAt), "PPpp")}
+        >
           {formatDistanceToNow(new Date(c.createdAt), { addSuffix: true })}
         </span>
       ),
@@ -128,7 +172,10 @@ function Body({ report: r }: { report: Report }) {
             onClick={(event) => {
               event.stopPropagation();
               const wallet = c.user.wallet;
-              if (wallet) void navigator.clipboard.writeText(wallet).then(() => toast.success("Wallet copied"));
+              if (wallet)
+                void navigator.clipboard
+                  .writeText(wallet)
+                  .then(() => toast.success("Wallet copied"));
             }}
             className="text-fg-muted hover:text-fg inline-flex items-center gap-1 font-mono text-xs"
           >
@@ -140,7 +187,15 @@ function Body({ report: r }: { report: Report }) {
     },
   ];
 
-  const bounds = r.spots.length > 1 ? ([Math.min(...r.spots.map((s) => s.longitude)), Math.min(...r.spots.map((s) => s.latitude)), Math.max(...r.spots.map((s) => s.longitude)), Math.max(...r.spots.map((s) => s.latitude))] as [number, number, number, number]) : null;
+  const bounds =
+    r.spots.length > 1
+      ? ([
+          Math.min(...r.spots.map((s) => s.longitude)),
+          Math.min(...r.spots.map((s) => s.latitude)),
+          Math.max(...r.spots.map((s) => s.longitude)),
+          Math.max(...r.spots.map((s) => s.latitude)),
+        ] as [number, number, number, number])
+      : null;
   const first = r.spots[0];
 
   return (
@@ -148,7 +203,11 @@ function Body({ report: r }: { report: Report }) {
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start">
         {r.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={r.imageUrl} alt="" className="aspect-video w-full rounded-xl border object-cover sm:aspect-square sm:size-28" />
+          <img
+            src={r.imageUrl}
+            alt=""
+            className="aspect-video w-full rounded-xl border object-cover sm:aspect-square sm:size-28"
+          />
         ) : (
           <span className="bg-surface-2 text-fg-muted hidden size-28 shrink-0 items-center justify-center rounded-xl sm:flex">
             <MapPin className="size-8" />
@@ -161,10 +220,16 @@ function Body({ report: r }: { report: Report }) {
           </div>
           <p className="text-fg-muted mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
             <span className="inline-flex items-center gap-1">
-              <CalendarDays className="size-3.5" /> {format(new Date(r.startsAt), "MMM d, yyyy")} → {format(new Date(r.endsAt), "MMM d, yyyy")}
+              <CalendarDays className="size-3.5" /> {format(new Date(r.startsAt), "MMM d, yyyy")} →{" "}
+              {format(new Date(r.endsAt), "MMM d, yyyy")}
             </span>
             {r.link && (
-              <a href={r.link} target="_blank" rel="noreferrer" className="text-primary-text inline-flex max-w-xs items-center gap-1 truncate hover:underline">
+              <a
+                href={r.link}
+                target="_blank"
+                rel="noreferrer"
+                className="text-primary-text inline-flex max-w-xs items-center gap-1 truncate hover:underline"
+              >
                 <Link2 className="size-3.5 shrink-0" /> <span className="truncate">{r.link}</span>
               </a>
             )}
@@ -184,31 +249,89 @@ function Body({ report: r }: { report: Report }) {
       </header>
 
       <dl className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-        <StatCard label="Collections" icon={ScanLine} value={total.toLocaleString()} hint={r.collectors[0] ? `Last ${formatDistanceToNow(new Date(r.collectors[0].createdAt), { addSuffix: true })}` : "None yet"} />
-        <StatCard label="Collectors" icon={Users} value={collectors.toLocaleString()} hint={total > collectors ? `${(total / Math.max(1, collectors)).toFixed(1)} each on average` : undefined} />
-        <StatCard label="Collections left" icon={MapPin} value={r.claimLimit > 0 ? `${r.claimsLeft.toLocaleString()} / ${r.claimLimit.toLocaleString()}` : "No limit"} hint={`${r.spots.length} spot${r.spots.length === 1 ? "" : "s"}`} />
-        <StatCard label="Redeemed" icon={Ticket} value={redeemed.toLocaleString()} hint={total ? `${Math.round((redeemed / total) * 100)}% of collections` : undefined} />
+        <StatCard
+          label="Collections"
+          icon={ScanLine}
+          value={total.toLocaleString()}
+          hint={
+            r.collectors[0]
+              ? `Last ${formatDistanceToNow(new Date(r.collectors[0].createdAt), { addSuffix: true })}`
+              : "None yet"
+          }
+        />
+        <StatCard
+          label="Collectors"
+          icon={Users}
+          value={collectors.toLocaleString()}
+          hint={
+            total > collectors
+              ? `${(total / Math.max(1, collectors)).toFixed(1)} each on average`
+              : undefined
+          }
+        />
+        <StatCard
+          label="Collections left"
+          icon={MapPin}
+          value={
+            r.claimLimit > 0
+              ? `${r.claimsLeft.toLocaleString()} / ${r.claimLimit.toLocaleString()}`
+              : "No limit"
+          }
+          hint={`${r.spots.length} spot${r.spots.length === 1 ? "" : "s"}`}
+        />
+        <StatCard
+          label="Redeemed"
+          icon={Ticket}
+          value={redeemed.toLocaleString()}
+          hint={total ? `${Math.round((redeemed / total) * 100)}% of collections` : undefined}
+        />
       </dl>
 
       <div className="grid gap-3 lg:grid-cols-2">
         <section className="bg-surface overflow-hidden rounded-[1.4rem] border-2">
           <div className="flex items-center justify-between px-4 pt-3 pb-2">
-            <h2 className="text-fg-muted text-[11px] font-semibold tracking-wider uppercase">Spots</h2>
+            <h2 className="text-fg-muted text-[11px] font-semibold tracking-wider uppercase">
+              Spots
+            </h2>
             {selectedSpot && (
-              <button type="button" className="text-primary-text text-xs hover:underline" onClick={() => setSelectedSpot(null)}>
+              <button
+                type="button"
+                className="text-primary-text text-xs hover:underline"
+                onClick={() => setSelectedSpot(null)}
+              >
                 Show all collectors
               </button>
             )}
           </div>
           {first && MAPBOX_TOKEN ? (
             <div className="h-60">
-              <BaseMap initialViewState={bounds ? { bounds, fitBoundsOptions: { padding: 48, maxZoom: 16 } } : { latitude: first.latitude, longitude: first.longitude, zoom: 14 }} controlsPosition="top-right">
+              <BaseMap
+                initialViewState={
+                  bounds
+                    ? { bounds, fitBoundsOptions: { padding: 48, maxZoom: 16 } }
+                    : { latitude: first.latitude, longitude: first.longitude, zoom: 14 }
+                }
+                controlsPosition="top-right"
+              >
                 {r.spots.map((spot, i) => (
-                  <Marker key={spot.id} latitude={spot.latitude} longitude={spot.longitude} anchor="center" onClick={(event) => (event.originalEvent.stopPropagation(), setSelectedSpot(selectedSpot === spot.id ? null : spot.id))}>
+                  <Marker
+                    key={spot.id}
+                    latitude={spot.latitude}
+                    longitude={spot.longitude}
+                    anchor="center"
+                    onClick={(event) => (
+                      event.originalEvent.stopPropagation(),
+                      setSelectedSpot(selectedSpot === spot.id ? null : spot.id)
+                    )}
+                  >
                     <button
                       type="button"
                       title={`Spot ${i + 1} · ${spot.collected} collected`}
-                      className={selectedSpot === spot.id ? "bg-fg text-bg num flex h-7 min-w-7 items-center justify-center rounded-full border-2 border-white px-1.5 text-[11px] font-semibold shadow-md" : "bg-primary text-primary-foreground num flex h-7 min-w-7 items-center justify-center rounded-full border-2 border-white px-1.5 text-[11px] font-semibold shadow-md"}
+                      className={
+                        selectedSpot === spot.id
+                          ? "bg-fg text-bg num flex h-7 min-w-7 items-center justify-center rounded-full border-2 border-white px-1.5 text-[11px] font-semibold shadow-md"
+                          : "bg-primary text-primary-foreground num flex h-7 min-w-7 items-center justify-center rounded-full border-2 border-white px-1.5 text-[11px] font-semibold shadow-md"
+                      }
                     >
                       {i + 1}
                     </button>
@@ -217,7 +340,9 @@ function Body({ report: r }: { report: Report }) {
               </BaseMap>
             </div>
           ) : (
-            <p className="text-fg-muted mx-4 mb-4 rounded-lg border border-dashed py-16 text-center text-sm">{first ? "Add a Mapbox token to see the spots on a map." : "No spots left."}</p>
+            <p className="text-fg-muted mx-4 mb-4 rounded-lg border border-dashed py-16 text-center text-sm">
+              {first ? "Add a Mapbox token to see the spots on a map." : "No spots left."}
+            </p>
           )}
           {r.spots.length > 1 && (
             <ul className="flex gap-1.5 overflow-x-auto border-t px-4 py-2.5">
@@ -226,16 +351,24 @@ function Body({ report: r }: { report: Report }) {
                   <button
                     type="button"
                     onClick={() => setSelectedSpot(selectedSpot === spot.id ? null : spot.id)}
-                    className={selectedSpot === spot.id ? "border-primary bg-primary/10 inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs whitespace-nowrap" : "text-fg-muted hover:text-fg inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs whitespace-nowrap"}
+                    className={
+                      selectedSpot === spot.id
+                        ? "border-primary bg-primary/10 inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs whitespace-nowrap"
+                        : "text-fg-muted hover:text-fg inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs whitespace-nowrap"
+                    }
                   >
-                    <span className="font-semibold">{i + 1}</span> {spot.collected.toLocaleString()} collected
+                    <span className="font-semibold">{i + 1}</span> {spot.collected.toLocaleString()}{" "}
+                    collected
                   </button>
                 </li>
               ))}
             </ul>
           )}
         </section>
-        <CollectionsChart daily={r.daily} from={new Date(r.startsAt).getTime() < now ? new Date(r.startsAt) : undefined} />
+        <CollectionsChart
+          daily={r.daily}
+          from={new Date(r.startsAt).getTime() < now ? new Date(r.startsAt) : undefined}
+        />
       </div>
 
       <section className="mt-4">
@@ -243,12 +376,17 @@ function Body({ report: r }: { report: Report }) {
           <div>
             <h2 className="display text-lg">Collectors</h2>
             <p className="text-fg-muted text-sm">
-              {selectedSpot ? `Who collected spot ${index.get(selectedSpot)}.` : "Everyone who collected this pin, newest first."}
+              {selectedSpot
+                ? `Who collected spot ${index.get(selectedSpot)}.`
+                : "Everyone who collected this pin, newest first."}
               {r.collectors.length >= 1000 && " Showing the latest 1,000."}
             </p>
           </div>
           <div className="sm:ml-auto">
-            <SearchInput onSearch={(value) => setQuery(value.trim().toLowerCase())} placeholder="Search name, email or wallet" />
+            <SearchInput
+              onSearch={(value) => setQuery(value.trim().toLowerCase())}
+              placeholder="Search name, email or wallet"
+            />
           </div>
         </div>
         <DataTable
@@ -257,7 +395,14 @@ function Body({ report: r }: { report: Report }) {
           columns={columns}
           rows={rows}
           rowKey={(c) => c.id}
-          empty={{ icon: Users, title: query || selectedSpot ? "No collectors match" : "Not collected yet", description: query || selectedSpot ? "Try another search or show all spots." : "Fans who collect this pin show up here." }}
+          empty={{
+            icon: Users,
+            title: query || selectedSpot ? "No collectors match" : "Not collected yet",
+            description:
+              query || selectedSpot
+                ? "Try another search or show all spots."
+                : "Fans who collect this pin show up here.",
+          }}
         />
       </section>
     </>

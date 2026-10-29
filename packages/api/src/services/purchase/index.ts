@@ -42,7 +42,11 @@ type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 
 const DEFAULT_FEE_BPS = 250;
 
-export async function quotePurchase(ctx: ServiceCtx, user: SessionUser | null, input: PurchaseInput) {
+export async function quotePurchase(
+  ctx: ServiceCtx,
+  user: SessionUser | null,
+  input: PurchaseInput,
+) {
   // Everything that doesn't depend on the listing loads alongside it.
   const [sale, buyerAccount, settings] = await Promise.all([
     loadSale(ctx.db, input.listingId),
@@ -57,7 +61,10 @@ async function priceSale(
   user: SessionUser | null,
   sale: Sale,
   input: PurchaseInput,
-  loaded: { buyerAccount: Horizon.AccountResponse | null; settings: { platformFeeBps: number; platformFeeRecipient: string | null } | null },
+  loaded: {
+    buyerAccount: Horizon.AccountResponse | null;
+    settings: { platformFeeBps: number; platformFeeRecipient: string | null } | null;
+  },
 ) {
   const { chain } = ctx;
   const { buyerAccount, settings } = loaded;
@@ -77,16 +84,24 @@ async function priceSale(
     });
   }
   const card = input.currency === "USD";
-  const payoutAsset = assetFor(input.currency === "USD" ? "BANDCOIN" : input.currency, chain.config.assets);
+  const payoutAsset = assetFor(
+    input.currency === "USD" ? "BANDCOIN" : input.currency,
+    chain.config.assets,
+  );
   if (!(sellerAccount && holdsLine(sellerAccount, payoutAsset))) {
     extraProblems.push({
       code: "UNAVAILABLE",
-      message: card ? "The seller can't receive card payments yet." : `The seller can't receive ${input.currency} yet.`,
+      message: card
+        ? "The seller can't receive card payments yet."
+        : `The seller can't receive ${input.currency} yet.`,
     });
   }
 
   const openTrustline = !(buyerAccount && holdsLine(buyerAccount, sale.asset));
-  const royaltyBps = sale.listing.kind === "RESALE" && sale.creator ? Number(sale.item.royaltyPercent ?? 0) * 100 : 0;
+  const royaltyBps =
+    sale.listing.kind === "RESALE" && sale.creator
+      ? Number(sale.item.royaltyPercent ?? 0) * 100
+      : 0;
   let delivery: ReturnType<typeof planDelivery> | null = null;
   try {
     delivery = planDelivery({
@@ -112,7 +127,10 @@ async function priceSale(
   const quote = buildQuote({
     currency: input.currency,
     quantity: input.quantity,
-    unitPrice: { bandcoin: sale.listing.priceBandcoin.toString(), usd: sale.listing.priceUsd.toString() },
+    unitPrice: {
+      bandcoin: sale.listing.priceBandcoin.toString(),
+      usd: sale.listing.priceUsd.toString(),
+    },
     rates: needsRate ? await chain.rates() : {},
     platformFeeBps: settings?.platformFeeBps ?? DEFAULT_FEE_BPS,
     royaltyBps: Math.round(royaltyBps),
@@ -165,7 +183,12 @@ export async function startPurchase(ctx: ServiceCtx, user: SessionUser, input: P
       royaltyAmount: quote.payout.royalty,
     },
   });
-  ctx.activity.set({ targetType: "Order", targetId: order.id, amount: mainTotal, currency: input.currency });
+  ctx.activity.set({
+    targetType: "Order",
+    targetId: order.id,
+    amount: mainTotal,
+    currency: input.currency,
+  });
 
   const built = buildClassicPurchase({
     buyer: new Account(buyerAccount.accountId(), buyerAccount.sequenceNumber()),
@@ -173,7 +196,12 @@ export async function startPurchase(ctx: ServiceCtx, user: SessionUser, input: P
     orderId: order.id,
     item: sale.asset,
     openTrustline: priced.openTrustline,
-    ...payoutsFor(quote, sale, { treasury: ctx.chain.config.treasury, feeRecipient: priced.feeRecipient }, ctx.chain.config.assets),
+    ...payoutsFor(
+      quote,
+      sale,
+      { treasury: ctx.chain.config.treasury, feeRecipient: priced.feeRecipient },
+      ctx.chain.config.assets,
+    ),
     delivery,
   });
 
@@ -208,13 +236,22 @@ export async function submitPurchase(
 ) {
   const { chain, db } = ctx;
   const order = await ownOrder(ctx, user, input.orderId);
-  ctx.activity.set({ targetType: "Order", targetId: order.id, amount: order.total.toString(), currency: order.currency });
+  ctx.activity.set({
+    targetType: "Order",
+    targetId: order.id,
+    amount: order.total.toString(),
+    currency: order.currency,
+  });
 
   if (order.status !== "AWAITING_SIGNATURE" || !order.txHash) {
-    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: `This order is already ${order.status.toLowerCase()}.` });
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+      message: `This order is already ${order.status.toLowerCase()}.`,
+    });
   }
   if (order.quoteExpiresAt && order.quoteExpiresAt < new Date()) {
-    await transitionOrder(db, order.id, "FAILED", { failureCode: ErrorCodes.STELLAR_QUOTE_EXPIRED });
+    await transitionOrder(db, order.id, "FAILED", {
+      failureCode: ErrorCodes.STELLAR_QUOTE_EXPIRED,
+    });
     throw new AppError(ErrorCodes.STELLAR_QUOTE_EXPIRED);
   }
 
@@ -222,14 +259,21 @@ export async function submitPurchase(
   const sale = await loadSale(db, order.listingId!);
   const card = order.method === "CARD";
   const platformKeys = [sale.stockAccount, sale.minter, card ? chain.config.treasury : null];
-  xdr = await chain.signWithServerKeys(xdr, serverSignersOf(xdr, chain.config.network.passphrase, user.walletAddress, platformKeys));
+  xdr = await chain.signWithServerKeys(
+    xdr,
+    serverSignersOf(xdr, chain.config.network.passphrase, user.walletAddress, platformKeys),
+  );
   if (card) {
-    xdr = await chain.signWithServerKeys(wrapInFeeBump(xdr, chain.config.treasury, chain.config.network), [chain.config.treasury]);
+    xdr = await chain.signWithServerKeys(
+      wrapInFeeBump(xdr, chain.config.treasury, chain.config.network),
+      [chain.config.treasury],
+    );
   }
 
   let cardPaymentId: string | null = null;
   if (card) {
-    if (!input.card) throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "Add a card to pay." });
+    if (!input.card)
+      throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "Add a card to pay." });
     ({ paymentId: cardPaymentId } = await chain.card.charge({
       orderId: order.id,
       sourceId: input.card.sourceId,
@@ -245,7 +289,12 @@ export async function submitPurchase(
   } catch (error) {
     // A lost response may still have landed: leave it SUBMITTED for the worker to re-check.
     if (isAppError(error) && error.code === ErrorCodes.STELLAR_TX_SUBMIT_FAILED) throw error;
-    await failOrder(ctx, order.id, error, cardPaymentId ? { paymentId: cardPaymentId, total: order.total.toString() } : null);
+    await failOrder(
+      ctx,
+      order.id,
+      error,
+      cardPaymentId ? { paymentId: cardPaymentId, total: order.total.toString() } : null,
+    );
     throw error;
   }
   return deliverOrder(ctx, order.id);
@@ -254,7 +303,8 @@ export async function submitPurchase(
 /** Worker reconciliation: settles a SUBMITTED order from what Horizon says happened. */
 export async function confirmPurchase(ctx: ServiceCtx, orderId: string) {
   const order = await ctx.db.order.findUnique({ where: { id: orderId }, include: { buyer: true } });
-  if (!order?.txHash || order.status !== "SUBMITTED" || !order.buyer?.walletAddress) return { status: order?.status ?? null };
+  if (!order?.txHash || order.status !== "SUBMITTED" || !order.buyer?.walletAddress)
+    return { status: order?.status ?? null };
 
   const found = await ctx.chain.findTransaction(order.txHash);
   if (!found) return { status: order.status };
@@ -268,7 +318,12 @@ export async function confirmPurchase(ctx: ServiceCtx, orderId: string) {
     payments: [],
   });
   if (!check.ok) {
-    await failOrder(ctx, order.id, new AppError(ErrorCodes.STELLAR_TX_REJECTED, { details: check }), null);
+    await failOrder(
+      ctx,
+      order.id,
+      new AppError(ErrorCodes.STELLAR_TX_REJECTED, { details: check }),
+      null,
+    );
     return { status: "FAILED" as const };
   }
   return deliverOrder(ctx, order.id);
@@ -282,7 +337,12 @@ export async function deliverOrder(ctx: ServiceCtx, orderId: string) {
     if (order.buyerId && order.itemId) {
       await tx.ownership.upsert({
         where: { userId_itemId: { userId: order.buyerId, itemId: order.itemId } },
-        create: { userId: order.buyerId, itemId: order.itemId, quantity: order.quantity, source: "PURCHASE" },
+        create: {
+          userId: order.buyerId,
+          itemId: order.itemId,
+          quantity: order.quantity,
+          source: "PURCHASE",
+        },
         update: { quantity: { increment: order.quantity } },
       });
     }
@@ -302,21 +362,35 @@ export async function deliverOrder(ctx: ServiceCtx, orderId: string) {
   return { orderId, status: "DELIVERED" as const };
 }
 
-export async function failOrder(ctx: ServiceCtx, orderId: string, error: unknown, card: { paymentId: string; total: string } | null) {
+export async function failOrder(
+  ctx: ServiceCtx,
+  orderId: string,
+  error: unknown,
+  card: { paymentId: string; total: string } | null,
+) {
   const failureCode = isAppError(error) ? error.code : ErrorCodes.INTERNAL;
   await transitionOrder(ctx.db, orderId, "FAILED", { failureCode });
   if (!card) return;
   try {
-    await ctx.chain.card.refund({ orderId, paymentId: card.paymentId, cents: toCents(toStroops(card.total)) });
+    await ctx.chain.card.refund({
+      orderId,
+      paymentId: card.paymentId,
+      cents: toCents(toStroops(card.total)),
+    });
     await transitionOrder(ctx.db, orderId, "REFUNDED");
   } catch (refundError) {
-    console.error("[purchase] card refund failed; refund by hand", { orderId, paymentId: card.paymentId, refundError });
+    console.error("[purchase] card refund failed; refund by hand", {
+      orderId,
+      paymentId: card.paymentId,
+      refundError,
+    });
   }
 }
 
 export async function ownOrder(ctx: ServiceCtx, user: SessionUser, orderId: string) {
   const order = await ctx.db.order.findUnique({ where: { id: orderId } });
-  if (!order || order.buyerId !== user.id) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Order not found" });
+  if (!order || order.buyerId !== user.id)
+    throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Order not found" });
   return order;
 }
 
@@ -324,8 +398,16 @@ export async function ownOrder(ctx: ServiceCtx, user: SessionUser, orderId: stri
  * The buyer's signature on the transaction from `start`: their wallet's, or,
  * for a custodial account, the server's (the countdown ran out without Cancel).
  */
-export async function userSignature(ctx: ServiceCtx, user: SessionUser, txHash: string, xdr: string | undefined) {
-  if (!xdr) throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "Missing the transaction to send." });
+export async function userSignature(
+  ctx: ServiceCtx,
+  user: SessionUser,
+  txHash: string,
+  xdr: string | undefined,
+) {
+  if (!xdr)
+    throw new AppError(ErrorCodes.VALIDATION_FAILED, {
+      message: "Missing the transaction to send.",
+    });
   assertSameTransaction(xdr, txHash, ctx.chain.config.network.passphrase);
   if (!isCustodial(user)) return xdr;
   if (!user.email) throw new AppError(ErrorCodes.WALLET_NOT_CONNECTED);
@@ -336,7 +418,9 @@ export async function userSignature(ctx: ServiceCtx, user: SessionUser, txHash: 
 export function assertSameTransaction(xdr: string, txHash: string, passphrase: string) {
   const hash = Buffer.from(TransactionBuilder.fromXDR(xdr, passphrase).hash()).toString("hex");
   if (hash !== txHash) {
-    throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "That transaction doesn't belong to this order." });
+    throw new AppError(ErrorCodes.VALIDATION_FAILED, {
+      message: "That transaction doesn't belong to this order.",
+    });
   }
 }
 
@@ -371,27 +455,42 @@ function payoutsFor(
       seller: { to: sale.seller, amount: settlement.seller },
       ...royaltyTo(settlement.royalty),
     },
-    ...(toStroops(settlement.reserveXlm) > 0n ? { topUp: { from: platform.treasury, amount: settlement.reserveXlm } } : {}),
+    ...(toStroops(settlement.reserveXlm) > 0n
+      ? { topUp: { from: platform.treasury, amount: settlement.reserveXlm } }
+      : {}),
   };
 }
 
 /** Platform keys this transaction needs: the operation sources that aren't the buyer. */
-function serverSignersOf(xdr: string, passphrase: string, buyer: string, platformKeys: (string | null)[]) {
+function serverSignersOf(
+  xdr: string,
+  passphrase: string,
+  buyer: string,
+  platformKeys: (string | null)[],
+) {
   const tx = TransactionBuilder.fromXDR(xdr, passphrase);
   const sources = "operations" in tx ? tx.operations.map((op) => op.source).filter(Boolean) : [];
   const allowed = new Set(platformKeys.filter(Boolean));
-  return [...new Set(sources as string[])].filter((source) => source !== buyer && allowed.has(source));
+  return [...new Set(sources as string[])].filter(
+    (source) => source !== buyer && allowed.has(source),
+  );
 }
 
 export const holdsLine = (account: Horizon.AccountResponse, asset: Asset) =>
   asset.isNative() ||
   account.balances.some(
-    (balance) => "asset_code" in balance && balance.asset_code === asset.getCode() && balance.asset_issuer === asset.getIssuer(),
+    (balance) =>
+      "asset_code" in balance &&
+      balance.asset_code === asset.getCode() &&
+      balance.asset_issuer === asset.getIssuer(),
   );
 
 export function balanceOf(account: Horizon.AccountResponse, asset: Asset) {
   const line = account.balances.find(
-    (balance) => "asset_code" in balance && balance.asset_code === asset.getCode() && balance.asset_issuer === asset.getIssuer(),
+    (balance) =>
+      "asset_code" in balance &&
+      balance.asset_code === asset.getCode() &&
+      balance.asset_issuer === asset.getIssuer(),
   );
   return line?.balance ?? "0";
 }

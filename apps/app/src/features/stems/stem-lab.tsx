@@ -11,7 +11,8 @@ import { defaultSetting, type Mix } from "~/lib/stems/mix";
 
 import { StemRows } from "./stem-rows";
 
-const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
+const clock = (seconds: number) =>
+  `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
 const COLORS = ["#e5484d", "#30a46c", "#0091ff", "#f76b15", "#ab4aba", "#12a594"];
 
 /**
@@ -107,9 +108,19 @@ export function StemLab() {
       <section className="bg-surface grid gap-3 rounded-2xl border p-5">
         <h2 className="text-lg font-semibold">How it works</h2>
         <ul className="text-fg-muted grid gap-1.5 text-sm">
-          <li>Each stem is its own audio file. All of them start at the same instant and stay in sync, so together they are the song.</li>
-          <li>The mixer changes each stem&apos;s volume and left/right position as it plays. <b className="text-fg">M</b> mutes one. <b className="text-fg">S</b> solos it: everything else goes quiet.</li>
-          <li>On a real song only people who own it get the stems; everyone else hears the normal 30 second preview.</li>
+          <li>
+            Each stem is its own audio file. All of them start at the same instant and stay in sync,
+            so together they are the song.
+          </li>
+          <li>
+            The mixer changes each stem&apos;s volume and left/right position as it plays.{" "}
+            <b className="text-fg">M</b> mutes one. <b className="text-fg">S</b> solos it:
+            everything else goes quiet.
+          </li>
+          <li>
+            On a real song only people who own it get the stems; everyone else hears the normal 30
+            second preview.
+          </li>
         </ul>
         <div className="flex flex-wrap gap-2 pt-1">
           <Button onClick={() => void loadDemo()} disabled={busy}>
@@ -118,17 +129,32 @@ export function StemLab() {
           <Button asChild variant="secondary" disabled={busy}>
             <label className="cursor-pointer">
               <Upload /> Add your own audio files
-              <input type="file" accept="audio/*" multiple hidden onChange={(event) => void loadFiles(event.target.files)} />
+              <input
+                type="file"
+                accept="audio/*"
+                multiple
+                hidden
+                onChange={(event) => void loadFiles(event.target.files)}
+              />
             </label>
           </Button>
         </div>
-        {error && <p role="alert" className="text-danger text-sm">{error}</p>}
+        {error && (
+          <p role="alert" className="text-danger text-sm">
+            {error}
+          </p>
+        )}
       </section>
 
       {stems.length > 0 && (
         <section aria-label="Stem player" className="bg-surface grid gap-5 rounded-2xl border p-5">
           <div className="flex items-center gap-4">
-            <Button size="icon" aria-label={playing ? "Pause" : "Play"} className="bg-fg text-bg hover:bg-fg/90 shrink-0" onClick={() => void togglePlay()}>
+            <Button
+              size="icon"
+              aria-label={playing ? "Pause" : "Play"}
+              className="bg-fg text-bg hover:bg-fg/90 shrink-0"
+              onClick={() => void togglePlay()}
+            >
               {playing ? <Pause className="fill-current" /> : <Play className="fill-current" />}
             </Button>
             <span className="num text-fg-muted w-10 text-right text-xs">{clock(position)}</span>
@@ -147,7 +173,13 @@ export function StemLab() {
               className="accent-fg h-1 min-w-0 flex-1 cursor-pointer"
             />
             <span className="num text-fg-faint w-10 text-xs">{clock(duration)}</span>
-            <Button variant="ghost" size="sm" onClick={() => setMix(Object.fromEntries(stems.map((stem) => [stem.id, defaultSetting()])))}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() =>
+                setMix(Object.fromEntries(stems.map((stem) => [stem.id, defaultSetting()])))
+              }
+            >
               <RotateCcw /> Reset mix
             </Button>
           </div>

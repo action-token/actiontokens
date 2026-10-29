@@ -5,7 +5,8 @@
  * becoming a place secrets leak from.
  */
 
-const SECRET_KEY = /secret|password|passphrase|token|xdr|signature|private|mnemonic|seed|sourceId|cardNonce|apiKey/i;
+const SECRET_KEY =
+  /secret|password|passphrase|token|xdr|signature|private|mnemonic|seed|sourceId|cardNonce|apiKey/i;
 const EMAIL_KEY = /email/i;
 const MAX_STRING = 300;
 const MAX_ITEMS = 50;
@@ -27,7 +28,8 @@ export function redact(value: unknown, depth = 0): unknown {
 
   const out: Record<string, unknown> = {};
   for (const [key, field] of Object.entries(value)) {
-    if (SECRET_KEY.test(key)) out[key] = field === undefined || field === null ? field ?? null : REDACTED;
+    if (SECRET_KEY.test(key))
+      out[key] = field === undefined || field === null ? (field ?? null) : REDACTED;
     else if (EMAIL_KEY.test(key) && typeof field === "string") out[key] = maskEmail(field);
     else out[key] = redact(field, depth + 1);
   }

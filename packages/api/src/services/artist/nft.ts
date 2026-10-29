@@ -17,7 +17,14 @@ import { slugFromName } from "@bandcoin/utils/slug";
 import { type Context, isCustodial, type SessionUser } from "../../context";
 import { transitionOrder } from "../order-state";
 import { failOrder, ownOrder, userSignature } from "../purchase";
-import { checkOwnUrls, checkPrices, type CreateItemInput, freeSlug, invalid, NEEDS_FILE } from "./items";
+import {
+  checkOwnUrls,
+  checkPrices,
+  type CreateItemInput,
+  freeSlug,
+  invalid,
+  NEEDS_FILE,
+} from "./items";
 
 /**
  * Contract NFTs. An NFT is saved as an unpublished draft first, then the artist
@@ -36,22 +43,32 @@ type ArtistRef = { id: string; slug: string };
 const NOT_SET_UP = "Contract NFTs aren't set up on this server yet.";
 const ALREADY = "This NFT is already registered.";
 
-export type CreateNftInput = Omit<CreateItemInput, "code" | "supply" | "visibility" | "royaltyPercent" | "type"> & {
+export type CreateNftInput = Omit<
+  CreateItemInput,
+  "code" | "supply" | "visibility" | "royaltyPercent" | "type"
+> & {
   type: Exclude<CreateItemInput["type"], "ROYALTY">;
   supply: number;
   /** What the artist earns each time a copy is resold, 0 to 90 */
   resaleRoyaltyPercent: string;
 };
 
-export async function createNftDraft(ctx: Pick<ServiceCtx, "db" | "chain" | "activity">, artist: ArtistRef, user: { id: string }, input: CreateNftInput) {
+export async function createNftDraft(
+  ctx: Pick<ServiceCtx, "db" | "chain" | "activity">,
+  artist: ArtistRef,
+  user: { id: string },
+  input: CreateNftInput,
+) {
   const contract = ctx.chain.config.nftContract;
   if (!contract) throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, { message: NOT_SET_UP });
-  if (!Number.isInteger(input.supply) || input.supply < 1 || input.supply > NFT_MAX_SUPPLY) throw invalid("Use a whole number from 1 to 100,000.");
+  if (!Number.isInteger(input.supply) || input.supply < 1 || input.supply > NFT_MAX_SUPPLY)
+    throw invalid("Use a whole number from 1 to 100,000.");
   const royalty = Number(input.resaleRoyaltyPercent);
   if (!(royalty >= 0 && royalty <= 90)) throw invalid("Resale royalty can be from 0 to 90%.");
   checkPrices(input);
   checkOwnUrls({ cover: input.coverUrl, file: input.media?.url });
-  if (NEEDS_FILE.includes(input.type) && !input.media) throw invalid("Add the file people will get.");
+  if (NEEDS_FILE.includes(input.type) && !input.media)
+    throw invalid("Add the file people will get.");
 
   const item = await ctx.db.item.create({
     data: {
@@ -65,9 +82,25 @@ export async function createNftDraft(ctx: Pick<ServiceCtx, "db" | "chain" | "act
       supply: input.supply,
       artistId: artist.id,
       createdById: user.id,
-      contractNft: { create: { contractAddress: contract, royaltyBps: Math.round(royalty * 100), status: "PENDING" } },
-      ...(input.media ? { media: { create: { mediaType: input.media.mediaType, sourceUrl: input.media.url } } } : {}),
-      listings: { create: { sellerId: user.id, kind: "PRIMARY", status: "PAUSED", priceBandcoin: input.priceBandcoin, priceUsd: input.priceUsd } },
+      contractNft: {
+        create: {
+          contractAddress: contract,
+          royaltyBps: Math.round(royalty * 100),
+          status: "PENDING",
+        },
+      },
+      ...(input.media
+        ? { media: { create: { mediaType: input.media.mediaType, sourceUrl: input.media.url } } }
+        : {}),
+      listings: {
+        create: {
+          sellerId: user.id,
+          kind: "PRIMARY",
+          status: "PAUSED",
+          priceBandcoin: input.priceBandcoin,
+          priceUsd: input.priceUsd,
+        },
+      },
     },
     select: { id: true, slug: true },
   });
@@ -89,21 +122,36 @@ async function ownNft(ctx: ServiceCtx, artist: Pick<ArtistRef, "id">, itemId: st
       listings: { where: { kind: "PRIMARY" }, take: 1, select: { priceBandcoin: true } },
     },
   });
-  if (!item?.contractNft) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Item not found" });
+  if (!item?.contractNft)
+    throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Item not found" });
   ctx.activity.set({ targetType: "Item", targetId: item.id });
   return { ...item, contractNft: item.contractNft };
 }
 
 /** Records the edition id on the item once the contract has it. */
 const markRegistered = (ctx: ServiceCtx, itemId: string, editionId: number) =>
-  ctx.db.contractNft.update({ where: { itemId }, data: { onChainEditionId: String(editionId), status: "MINTED" } });
+  ctx.db.contractNft.update({
+    where: { itemId },
+    data: { onChainEditionId: String(editionId), status: "MINTED" },
+  });
 
-async function prepareRegistration(ctx: ServiceCtx, user: SessionUser, artist: Pick<ArtistRef, "id">, itemId: string) {
+async function prepareRegistration(
+  ctx: ServiceCtx,
+  user: SessionUser,
+  artist: Pick<ArtistRef, "id">,
+  itemId: string,
+) {
   const { chain } = ctx;
   const item = await ownNft(ctx, artist, itemId);
   const contract = chain.config.nftContract;
 
-  const unavailable = (message: string) => ({ item, problems: [{ code: "UNAVAILABLE", message }] satisfies RechargeProblem[], prepared: null, fee: 0n, funds: null as string | null });
+  const unavailable = (message: string) => ({
+    item,
+    problems: [{ code: "UNAVAILABLE", message }] satisfies RechargeProblem[],
+    prepared: null,
+    fee: 0n,
+    funds: null as string | null,
+  });
   if (!contract) return unavailable(NOT_SET_UP);
   if (item.contractNft.status === "MINTED") return unavailable(ALREADY);
   // A payment that landed but wasn't recorded (the app closed, the read failed): finish it here.
@@ -117,7 +165,10 @@ async function prepareRegistration(ctx: ServiceCtx, user: SessionUser, artist: P
   const funds = fundsOf(account, chain.config.assets).XLM;
   if (!account) return unavailable("Your wallet needs its first XLM before it can pay.");
 
-  const bandcoin = new Asset(chain.config.assets.bandcoin.code, chain.config.assets.bandcoin.issuer);
+  const bandcoin = new Asset(
+    chain.config.assets.bandcoin.code,
+    chain.config.assets.bandcoin.issuer,
+  );
   const built = buildNftRegisterEdition({
     source: new Account(account.accountId(), account.sequenceNumber()),
     network: chain.config.network,
@@ -132,11 +183,18 @@ async function prepareRegistration(ctx: ServiceCtx, user: SessionUser, artist: P
     creator: user.walletAddress,
     royaltyBps: item.contractNft.royaltyBps,
     supply: item.supply ?? 1,
-    prices: [{ paymentToken: tokenAddressOf(bandcoin, chain.config.network.passphrase), price: toStroops(item.listings[0]?.priceBandcoin.toString() ?? "0") }],
+    prices: [
+      {
+        paymentToken: tokenAddressOf(bandcoin, chain.config.network.passphrase),
+        price: toStroops(item.listings[0]?.priceBandcoin.toString() ?? "0"),
+      },
+    ],
   });
   try {
     const prepared = await chain.prepareContractCall(built.xdr, built.serverSigners);
-    const fee = BigInt((TransactionBuilder.fromXDR(prepared, chain.config.network.passphrase) as Transaction).fee);
+    const fee = BigInt(
+      (TransactionBuilder.fromXDR(prepared, chain.config.network.passphrase) as Transaction).fee,
+    );
     return { item, problems: [] as RechargeProblem[], prepared, fee, funds };
   } catch {
     return unavailable("The contract rejected this edition. Check the details and try again.");
@@ -151,7 +209,12 @@ function priceRegistration(prepared: Awaited<ReturnType<typeof prepareRegistrati
       problems.push({
         code: "INSUFFICIENT_FUNDS",
         message: `You need ${toDisplay(prepared.fee - have)} more XLM to register this NFT.`,
-        shortfall: { currency: "XLM", need: toDisplay(prepared.fee), have: toDisplay(have), short: toDisplay(prepared.fee - have) },
+        shortfall: {
+          currency: "XLM",
+          need: toDisplay(prepared.fee),
+          have: toDisplay(have),
+          short: toDisplay(prepared.fee - have),
+        },
       });
     }
   }
@@ -167,16 +230,29 @@ function priceRegistration(prepared: Awaited<ReturnType<typeof prepareRegistrati
   };
 }
 
-export async function quoteNftRegistration(ctx: ServiceCtx, user: SessionUser, artist: Pick<ArtistRef, "id">, itemId: string) {
+export async function quoteNftRegistration(
+  ctx: ServiceCtx,
+  user: SessionUser,
+  artist: Pick<ArtistRef, "id">,
+  itemId: string,
+) {
   return priceRegistration(await prepareRegistration(ctx, user, artist, itemId));
 }
 
 /** Creates the order and the unsigned registration. Nothing is signed or sent yet. */
-export async function startNftRegistration(ctx: ServiceCtx, user: SessionUser, artist: Pick<ArtistRef, "id">, itemId: string) {
+export async function startNftRegistration(
+  ctx: ServiceCtx,
+  user: SessionUser,
+  artist: Pick<ArtistRef, "id">,
+  itemId: string,
+) {
   const prepared = await prepareRegistration(ctx, user, artist, itemId);
   const quote = priceRegistration(prepared);
   if (!quote.ok || !prepared.prepared) {
-    throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, { message: quote.problems[0]?.message ?? "This can't go through right now.", details: { problems: quote.problems } });
+    throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, {
+      message: quote.problems[0]?.message ?? "This can't go through right now.",
+      details: { problems: quote.problems },
+    });
   }
   const order = await ctx.db.order.create({
     data: {
@@ -191,12 +267,29 @@ export async function startNftRegistration(ctx: ServiceCtx, user: SessionUser, a
       breakdown: { ...quote, itemId: prepared.item.id },
     },
   });
-  ctx.activity.set({ targetType: "Order", targetId: order.id, amount: quote.total, currency: "XLM" });
+  ctx.activity.set({
+    targetType: "Order",
+    targetId: order.id,
+    amount: quote.total,
+    currency: "XLM",
+  });
 
-  const hash = Buffer.from((TransactionBuilder.fromXDR(prepared.prepared, ctx.chain.config.network.passphrase) as Transaction).hash()).toString("hex");
+  const hash = Buffer.from(
+    (
+      TransactionBuilder.fromXDR(
+        prepared.prepared,
+        ctx.chain.config.network.passphrase,
+      ) as Transaction
+    ).hash(),
+  ).toString("hex");
   // The hash doesn't change when the artist signs, so it pins the exact transaction.
   await transitionOrder(ctx.db, order.id, "AWAITING_SIGNATURE", { txHash: hash });
-  return { orderId: order.id, quote, xdr: prepared.prepared, signer: isCustodial(user) ? ("custodial" as const) : ("wallet" as const) };
+  return {
+    orderId: order.id,
+    quote,
+    xdr: prepared.prepared,
+    signer: isCustodial(user) ? ("custodial" as const) : ("wallet" as const),
+  };
 }
 
 const READ_BACK_ATTEMPTS = 6;
@@ -210,14 +303,24 @@ export async function submitNftRegistration(
 ) {
   const { chain, db } = ctx;
   const order = await ownOrder(ctx, user, input.orderId);
-  if (order.kind !== "NFT_REGISTER") throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Order not found" });
-  ctx.activity.set({ targetType: "Order", targetId: order.id, amount: order.total.toString(), currency: order.currency });
+  if (order.kind !== "NFT_REGISTER")
+    throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Order not found" });
+  ctx.activity.set({
+    targetType: "Order",
+    targetId: order.id,
+    amount: order.total.toString(),
+    currency: order.currency,
+  });
 
   if (order.status !== "AWAITING_SIGNATURE" || !order.txHash) {
-    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: `This order is already ${order.status.toLowerCase()}.` });
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+      message: `This order is already ${order.status.toLowerCase()}.`,
+    });
   }
   if (order.quoteExpiresAt && order.quoteExpiresAt < new Date()) {
-    await transitionOrder(db, order.id, "FAILED", { failureCode: ErrorCodes.STELLAR_QUOTE_EXPIRED });
+    await transitionOrder(db, order.id, "FAILED", {
+      failureCode: ErrorCodes.STELLAR_QUOTE_EXPIRED,
+    });
     throw new AppError(ErrorCodes.STELLAR_QUOTE_EXPIRED);
   }
 
@@ -246,5 +349,7 @@ export async function submitNftRegistration(
     }
     await sleep(options.retryDelayMs ?? 1000);
   }
-  throw new AppError(ErrorCodes.EXTERNAL_SERVICE_FAILED, { message: "Your NFT is registered, but we couldn't confirm it yet. Refresh in a moment." });
+  throw new AppError(ErrorCodes.EXTERNAL_SERVICE_FAILED, {
+    message: "Your NFT is registered, but we couldn't confirm it yet. Refresh in a moment.",
+  });
 }

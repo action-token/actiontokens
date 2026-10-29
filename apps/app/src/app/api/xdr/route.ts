@@ -12,6 +12,9 @@ export async function GET(request: Request) {
     return Response.json({ xdr: await buildLoginChallengeXdr({ publicKey: parsed.data }) });
   } catch (error) {
     console.error("[xdr] couldn't build the login challenge", error);
-    return Response.json({ error: "This wallet's account isn't on the network yet. Fund it with XLM first." }, { status: 422 });
+    return Response.json(
+      { error: "This wallet's account isn't on the network yet. Fund it with XLM first." },
+      { status: 422 },
+    );
   }
 }

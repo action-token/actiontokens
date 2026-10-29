@@ -37,7 +37,11 @@ async function runDryRun() {
       const rows = await count(legacy, `SELECT count(*) AS n FROM "${check.oldTable}"`);
       const issueCounts = [];
       for (const issue of check.issues ?? []) {
-        issueCounts.push({ label: issue.label, action: issue.action, n: await count(legacy, issue.sql) });
+        issueCounts.push({
+          label: issue.label,
+          action: issue.action,
+          n: await count(legacy, issue.sql),
+        });
       }
       const breakdownRows = check.breakdown
         ? (await legacy.query<{ k: string; n: string }>(check.breakdown.sql)).rows
@@ -46,7 +50,9 @@ async function runDryRun() {
       process.stdout.write(".");
     }
 
-    const unmapped = [...existing].filter((name) => !CHECKS.some((c) => c.oldTable === name) && !name.startsWith("_prisma"));
+    const unmapped = [...existing].filter(
+      (name) => !CHECKS.some((c) => c.oldTable === name) && !name.startsWith("_prisma"),
+    );
     const reportPath = resolve(import.meta.dirname, "../../../../docs/migration-report.md");
     writeFileSync(reportPath, renderReport(results, unmapped));
     console.log(`\nWrote ${reportPath}`);
@@ -59,15 +65,24 @@ function renderReport(results: CheckResult[], unmapped: string[]): string {
   const lines: string[] = [];
   const total = results.reduce((sum, r) => sum + (r.rows ?? 0), 0);
   lines.push("# Legacy migration: dry-run report", "");
-  lines.push(`Generated ${new Date().toISOString()} from the old dev database (read only). Nothing was written.`, "");
-  lines.push(`**${total.toLocaleString("en-US")} rows** in ${results.filter((r) => r.rows !== null).length} old tables.`, "");
+  lines.push(
+    `Generated ${new Date().toISOString()} from the old dev database (read only). Nothing was written.`,
+    "",
+  );
+  lines.push(
+    `**${total.toLocaleString("en-US")} rows** in ${results.filter((r) => r.rows !== null).length} old tables.`,
+    "",
+  );
 
-  const flagged = results.flatMap((r) => r.issueCounts.filter((i) => i.n > 0).map((i) => ({ table: r.oldTable, ...i })));
+  const flagged = results.flatMap((r) =>
+    r.issueCounts.filter((i) => i.n > 0).map((i) => ({ table: r.oldTable, ...i })),
+  );
   lines.push("## Rows that need attention", "");
   if (flagged.length === 0) lines.push("None.", "");
   else {
     lines.push("| Old table | What | Rows | What the migration does |", "|---|---|---:|---|");
-    for (const f of flagged) lines.push(`| ${f.table} | ${f.label} | ${f.n.toLocaleString("en-US")} | ${f.action} |`);
+    for (const f of flagged)
+      lines.push(`| ${f.table} | ${f.label} | ${f.n.toLocaleString("en-US")} | ${f.action} |`);
     lines.push("");
   }
 
@@ -76,12 +91,19 @@ function renderReport(results: CheckResult[], unmapped: string[]): string {
   for (const r of results) {
     if (r.domain !== domain) {
       domain = r.domain;
-      lines.push(`### ${domain}`, "", "| Old table | Rows | New table | Note |", "|---|---:|---|---|");
+      lines.push(
+        `### ${domain}`,
+        "",
+        "| Old table | Rows | New table | Note |",
+        "|---|---:|---|---|",
+      );
     }
     const rows = r.rows === null ? "(missing)" : r.rows.toLocaleString("en-US");
     lines.push(`| ${r.oldTable} | ${rows} | ${r.newTable} | ${r.note ?? ""} |`);
     if (r.breakdownRows.length > 0) {
-      const parts = r.breakdownRows.map((b) => `${b.k}: ${Number(b.n).toLocaleString("en-US")}`).join(", ");
+      const parts = r.breakdownRows
+        .map((b) => `${b.k}: ${Number(b.n).toLocaleString("en-US")}`)
+        .join(", ");
       lines.push(`| ↳ ${r.breakdown?.label} | | ${parts} | |`);
     }
     const next = results[results.indexOf(r) + 1];
@@ -89,7 +111,12 @@ function renderReport(results: CheckResult[], unmapped: string[]): string {
   }
 
   if (unmapped.length > 0) {
-    lines.push("## Old tables the plan doesn't cover", "", unmapped.map((u) => `- ${u}`).join("\n"), "");
+    lines.push(
+      "## Old tables the plan doesn't cover",
+      "",
+      unmapped.map((u) => `- ${u}`).join("\n"),
+      "",
+    );
   }
   return lines.join("\n");
 }

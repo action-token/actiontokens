@@ -25,14 +25,31 @@ export function RegisterNft({ itemId }: { itemId: string }) {
       <div>
         <h2 className="display text-lg">Register it on Stellar</h2>
         <p className="text-fg-muted mt-1 text-sm">
-          Your NFT is saved as a draft. Registering puts it on the contract so copies can be minted when fans buy. You pay the network fee below and nothing else.
+          Your NFT is saved as a draft. Registering puts it on the contract so copies can be minted
+          when fans buy. You pay the network fee below and nothing else.
         </p>
       </div>
 
-      <QuoteBreakdown quote={quote.data} balance={me.data?.balances.XLM} loading={quote.isPending} />
+      <QuoteBreakdown
+        quote={quote.data}
+        balance={me.data?.balances.XLM}
+        loading={quote.isPending}
+      />
 
-      <Button disabled={!quote.data?.ok || flow.busy} onClick={() => void flow.run(total ? <Money amount={total} currency="XLM" /> : null)} className="justify-self-start">
-        {flow.busy ? "Working…" : total ? <>Pay <Money amount={total} currency="XLM" /> and register</> : "Register"}
+      <Button
+        disabled={!quote.data?.ok || flow.busy}
+        onClick={() => void flow.run(total ? <Money amount={total} currency="XLM" /> : null)}
+        className="justify-self-start"
+      >
+        {flow.busy ? (
+          "Working…"
+        ) : total ? (
+          <>
+            Pay <Money amount={total} currency="XLM" /> and register
+          </>
+        ) : (
+          "Register"
+        )}
       </Button>
 
       {flow.step && (
@@ -43,7 +60,12 @@ export function RegisterNft({ itemId }: { itemId: string }) {
             onSend={flow.send}
             onCancel={flow.stop}
             actions={
-              <Button size="sm" variant="secondary" className="h-8 px-3 text-[13px]" onClick={flow.step.kind === "confirm" ? flow.stop : flow.close}>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="h-8 px-3 text-[13px]"
+                onClick={flow.step.kind === "confirm" ? flow.stop : flow.close}
+              >
                 {flow.step.kind === "confirm" ? "Cancel" : "Close"}
               </Button>
             }

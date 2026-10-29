@@ -1,7 +1,13 @@
 import { headers } from "next/headers";
 import { cache } from "react";
 
-import { type ChainGateway, createCallerFactory, createChainGateway, createContext, portalRouter } from "@bandcoin/api";
+import {
+  type ChainGateway,
+  createCallerFactory,
+  createChainGateway,
+  createContext,
+  portalRouter,
+} from "@bandcoin/api";
 import { sessionUserOf } from "@bandcoin/auth";
 import { db } from "@bandcoin/db/server";
 
@@ -13,7 +19,13 @@ const chain = () => (gateway ??= createChainGateway(db));
 
 /** The tRPC context for one request: the session, chain access and request facts for the activity log. */
 export async function createPortalContext(requestHeaders: Headers) {
-  return createContext({ db, chain: chain(), app: "artist", session: sessionUserOf(await getSession()), headers: requestHeaders });
+  return createContext({
+    db,
+    chain: chain(),
+    app: "artist",
+    session: sessionUserOf(await getSession()),
+    headers: requestHeaders,
+  });
 }
 
 /** Calls the API from server components, once per request. */

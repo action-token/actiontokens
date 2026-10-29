@@ -1,4 +1,24 @@
-import { BadgeCheck, BarChart3, CalendarDays, Code2, Crown, FileText, Frame, Gift, ListChecks, Map, MapPin, Megaphone, Music2, Package, Rocket, Ticket, Trophy, Users, type LucideIcon } from "lucide-react";
+import {
+  BadgeCheck,
+  BarChart3,
+  CalendarDays,
+  Code2,
+  Crown,
+  FileText,
+  Frame,
+  Gift,
+  ListChecks,
+  Map,
+  MapPin,
+  Megaphone,
+  Music2,
+  Package,
+  Rocket,
+  Ticket,
+  Trophy,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 
 import type { OnboardingStep } from "@bandcoin/api";
 
@@ -38,7 +58,13 @@ const READY_TOOLS: NavGroup[] = [
     title: "Drops",
     items: [
       { href: "/pins", icon: Map, label: "Map", exclude: ["/pins/manage"], tab: true },
-      { href: "/pins/manage", icon: MapPin, label: "Pin management", shortLabel: "Pins", tab: true },
+      {
+        href: "/pins/manage",
+        icon: MapPin,
+        label: "Pin management",
+        shortLabel: "Pins",
+        tab: true,
+      },
       { href: "/events", icon: CalendarDays, label: "Events", tab: true },
       { href: "/embeds", icon: Code2, label: "Website map" },
     ],
@@ -84,14 +110,18 @@ const ARTIST_TOOLS: Record<OnboardingStep, NavItem[]> = {
  */
 export function navFor({ signedIn, step, isAdmin }: PortalNavInput): NavGroup[] {
   if (!signedIn) return [];
-  const items: NavItem[] = step === null ? [{ href: "/", icon: BadgeCheck, label: "Become an artist", exact: true }] : ARTIST_TOOLS[step];
+  const items: NavItem[] =
+    step === null
+      ? [{ href: "/", icon: BadgeCheck, label: "Become an artist", exact: true }]
+      : ARTIST_TOOLS[step];
   const groups: NavGroup[] = step === "READY" ? [...READY_TOOLS] : [];
   if (items.length > 0) groups.push({ title: "Artist", items });
   if (isAdmin) groups.push(ADMIN);
   return groups;
 }
 
-const under = (prefix: string, pathname: string) => pathname === prefix || pathname.startsWith(`${prefix}/`);
+const under = (prefix: string, pathname: string) =>
+  pathname === prefix || pathname.startsWith(`${prefix}/`);
 
 export function isActive(entry: NavItem, pathname: string) {
   if (entry.exact) return pathname === entry.href;
@@ -101,7 +131,10 @@ export function isActive(entry: NavItem, pathname: string) {
 const PHONE_TABS = 4;
 
 /** A phone's tab bar shows the items marked `tab` (else the first few); "More" opens the rest and the account. */
-export function phoneTabs(groups: NavGroup[], signedIn: boolean): { tabs: NavItem[]; more: boolean } {
+export function phoneTabs(
+  groups: NavGroup[],
+  signedIn: boolean,
+): { tabs: NavItem[]; more: boolean } {
   const all = groups.flatMap((group) => group.items);
   const marked = all.filter((entry) => entry.tab);
   return { tabs: (marked.length > 0 ? marked : all).slice(0, PHONE_TABS), more: signedIn };

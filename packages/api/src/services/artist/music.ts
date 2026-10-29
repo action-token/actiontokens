@@ -26,12 +26,18 @@ function checkPreview(startSec: number, durationSec: number) {
 }
 
 async function ownAlbum(db: ServiceCtx["db"], artistId: string, albumId: string) {
-  const album = await db.album.findFirst({ where: { id: albumId, artistId }, select: { id: true } });
+  const album = await db.album.findFirst({
+    where: { id: albumId, artistId },
+    select: { id: true },
+  });
   if (!album) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Album not found" });
   return album;
 }
 
-export type CreateSongInput = Omit<CreateItemInput, "type" | "media" | "track" | "royaltyPercent"> & {
+export type CreateSongInput = Omit<
+  CreateItemInput,
+  "type" | "media" | "track" | "royaltyPercent"
+> & {
   audio: { url: string; durationSec: number };
   /** Where the 30-second preview starts, in seconds */
   previewStartSec: number;
@@ -41,9 +47,18 @@ export type CreateSongInput = Omit<CreateItemInput, "type" | "media" | "track" |
   artistName?: string;
 };
 
-export async function createSong(ctx: ServiceCtx, artist: ArtistRef, user: { id: string }, input: CreateSongInput) {
+export async function createSong(
+  ctx: ServiceCtx,
+  artist: ArtistRef,
+  user: { id: string },
+  input: CreateSongInput,
+) {
   const { audio, previewStartSec, albumId, trackNumber, artistName, ...rest } = input;
-  if (!Number.isInteger(audio.durationSec) || audio.durationSec < 1 || audio.durationSec > MAX_SONG_SECONDS) {
+  if (
+    !Number.isInteger(audio.durationSec) ||
+    audio.durationSec < 1 ||
+    audio.durationSec > MAX_SONG_SECONDS
+  ) {
     throw invalid("We couldn't read the song's length. Try the file again.");
   }
   checkOwnUrls({ file: audio.url });
@@ -73,9 +88,19 @@ export async function listSongs(ctx: Pick<ServiceCtx, "db">, artist: Pick<Artist
       playCount: true,
       createdAt: true,
       classicToken: { select: { code: true } },
-      track: { select: { artistName: true, trackNumber: true, album: { select: { id: true, title: true } } } },
+      track: {
+        select: {
+          artistName: true,
+          trackNumber: true,
+          album: { select: { id: true, title: true } },
+        },
+      },
       media: { select: { durationSec: true, status: true } },
-      listings: { where: { kind: "PRIMARY" }, take: 1, select: { priceBandcoin: true, priceUsd: true, status: true, quantitySold: true } },
+      listings: {
+        where: { kind: "PRIMARY" },
+        take: 1,
+        select: { priceBandcoin: true, priceUsd: true, status: true, quantitySold: true },
+      },
       _count: { select: { stems: true } },
     },
   });
@@ -106,7 +131,11 @@ export async function listSongs(ctx: Pick<ServiceCtx, "db">, artist: Pick<Artist
 }
 
 /** One song for the edit screen: what the collectible form needs plus the audio and music details. */
-export async function getSong(ctx: Pick<ServiceCtx, "db">, artist: Pick<ArtistRef, "id">, itemId: string) {
+export async function getSong(
+  ctx: Pick<ServiceCtx, "db">,
+  artist: Pick<ArtistRef, "id">,
+  itemId: string,
+) {
   const song = await ctx.db.item.findFirst({
     where: { id: itemId, artistId: artist.id, deletedAt: null, type: "TRACK" },
     select: {
@@ -119,7 +148,11 @@ export async function getSong(ctx: Pick<ServiceCtx, "db">, artist: Pick<ArtistRe
       classicToken: { select: { code: true } },
       media: { select: { sourceUrl: true, durationSec: true, previewStartSec: true } },
       track: { select: { artistName: true, trackNumber: true, albumId: true } },
-      listings: { where: { kind: "PRIMARY" }, take: 1, select: { priceBandcoin: true, priceUsd: true, quantitySold: true } },
+      listings: {
+        where: { kind: "PRIMARY" },
+        take: 1,
+        select: { priceBandcoin: true, priceUsd: true, quantitySold: true },
+      },
     },
   });
   if (!song) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Song not found" });
@@ -157,7 +190,11 @@ export type UpdateSongInput = {
 };
 
 /** The music-only parts of a song. Title, price, supply and visibility go through `updateItem`. */
-export async function updateSong(ctx: ServiceCtx, artist: Pick<ArtistRef, "id">, input: UpdateSongInput) {
+export async function updateSong(
+  ctx: ServiceCtx,
+  artist: Pick<ArtistRef, "id">,
+  input: UpdateSongInput,
+) {
   const song = await ctx.db.item.findFirst({
     where: { id: input.itemId, artistId: artist.id, deletedAt: null, type: "TRACK" },
     select: { id: true, type: true, media: { select: { durationSec: true } } },
@@ -166,7 +203,8 @@ export async function updateSong(ctx: ServiceCtx, artist: Pick<ArtistRef, "id">,
   ctx.activity.set({ targetType: "Item", targetId: song.id });
 
   if (input.albumId) await ownAlbum(ctx.db, artist.id, input.albumId);
-  if (input.previewStartSec !== undefined) checkPreview(input.previewStartSec, song.media?.durationSec ?? 0);
+  if (input.previewStartSec !== undefined)
+    checkPreview(input.previewStartSec, song.media?.durationSec ?? 0);
 
   const track = {
     ...(input.albumId !== undefined ? { albumId: input.albumId } : {}),
@@ -174,8 +212,13 @@ export async function updateSong(ctx: ServiceCtx, artist: Pick<ArtistRef, "id">,
     ...(input.artistName !== undefined ? { artistName: input.artistName.trim() } : {}),
   };
   await ctx.db.$transaction(async (tx) => {
-    if (Object.keys(track).length > 0) await tx.track.update({ where: { itemId: song.id }, data: track });
-    if (input.previewStartSec !== undefined) await tx.itemMedia.update({ where: { itemId: song.id }, data: { previewStartSec: input.previewStartSec } });
+    if (Object.keys(track).length > 0)
+      await tx.track.update({ where: { itemId: song.id }, data: track });
+    if (input.previewStartSec !== undefined)
+      await tx.itemMedia.update({
+        where: { itemId: song.id },
+        data: { previewStartSec: input.previewStartSec },
+      });
   });
   return { itemId: song.id };
 }
@@ -185,7 +228,15 @@ export async function listAlbums(ctx: Pick<ServiceCtx, "db">, artist: Pick<Artis
     where: { artistId: artist.id },
     orderBy: { createdAt: "desc" },
     take: 100,
-    select: { id: true, slug: true, title: true, description: true, coverUrl: true, createdAt: true, _count: { select: { tracks: true } } },
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      description: true,
+      coverUrl: true,
+      createdAt: true,
+      _count: { select: { tracks: true } },
+    },
   });
   return rows.map(({ _count, ...row }) => ({ ...row, songCount: _count.tracks }));
 }
@@ -200,7 +251,13 @@ export async function createAlbum(
   const taken = await ctx.db.album.findUnique({ where: { slug: base }, select: { id: true } });
   const slug = taken ? `${base}-${crypto.randomBytes(3).toString("hex").slice(0, 4)}` : base;
   const album = await ctx.db.album.create({
-    data: { artistId: artist.id, title: input.title.trim(), slug, description: input.description?.trim() || null, coverUrl: input.coverUrl },
+    data: {
+      artistId: artist.id,
+      title: input.title.trim(),
+      slug,
+      description: input.description?.trim() || null,
+      coverUrl: input.coverUrl,
+    },
     select: { id: true, slug: true },
   });
   ctx.activity.set({ targetType: "Album", targetId: album.id });
@@ -220,7 +277,8 @@ export async function updateAlbum(
     ...(input.description !== undefined ? { description: input.description.trim() || null } : {}),
     ...(input.coverUrl !== undefined ? { coverUrl: input.coverUrl } : {}),
   };
-  if (Object.keys(data).length > 0) await ctx.db.album.update({ where: { id: input.albumId }, data });
+  if (Object.keys(data).length > 0)
+    await ctx.db.album.update({ where: { id: input.albumId }, data });
   return { albumId: input.albumId };
 }
 

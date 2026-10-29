@@ -1,4 +1,12 @@
-import { Account, Asset, Keypair, Memo, Networks, Operation, TransactionBuilder } from "@stellar/stellar-sdk";
+import {
+  Account,
+  Asset,
+  Keypair,
+  Memo,
+  Networks,
+  Operation,
+  TransactionBuilder,
+} from "@stellar/stellar-sdk";
 import { describe, expect, it, vi } from "vitest";
 
 import type { Db } from "@bandcoin/db";
@@ -26,18 +34,33 @@ function horizonAccount(id: string, { xlm = "10", luna }: { xlm?: string; luna?:
     subentry_count: luna === undefined ? 0 : 1,
     balances: [
       { asset_type: "native", balance: xlm, selling_liabilities: "0" },
-      ...(luna === undefined ? [] : [{ asset_type: "credit_alphanum4", asset_code: token.code, asset_issuer: token.issuer, balance: luna }]),
+      ...(luna === undefined
+        ? []
+        : [
+            {
+              asset_type: "credit_alphanum4",
+              asset_code: token.code,
+              asset_issuer: token.issuer,
+              balance: luna,
+            },
+          ]),
     ],
   });
 }
 
-function claimRow(over: { tokenClaimedAt?: Date | null; rewardsFanToken?: boolean; external?: boolean } = {}) {
+function claimRow(
+  over: { tokenClaimedAt?: Date | null; rewardsFanToken?: boolean; external?: boolean } = {},
+) {
   const fanToken = {
     id: "fan-token",
     title: "LUNA",
     coverUrl: "https://cdn/luna.png",
     chainType: "CLASSIC_TOKEN",
-    classicToken: { ...token, isExternal: over.external ?? false, issuerAccount: { publicKey: issuer } },
+    classicToken: {
+      ...token,
+      isExternal: over.external ?? false,
+      issuerAccount: { publicKey: issuer },
+    },
   };
   return {
     id: CLAIM,
@@ -60,7 +83,14 @@ function claimRow(over: { tokenClaimedAt?: Date | null; rewardsFanToken?: boolea
   };
 }
 
-function setup(opts: { fan?: ReturnType<typeof horizonAccount> | null; stock?: string; row?: ReturnType<typeof claimRow>; user?: SessionUser } = {}) {
+function setup(
+  opts: {
+    fan?: ReturnType<typeof horizonAccount> | null;
+    stock?: string;
+    row?: ReturnType<typeof claimRow>;
+    user?: SessionUser;
+  } = {},
+) {
   const fan = opts.fan === undefined ? horizonAccount(fanKey) : opts.fan;
   const db = {
     pinClaim: {
@@ -74,21 +104,35 @@ function setup(opts: { fan?: ReturnType<typeof horizonAccount> | null; stock?: s
   const chain = {
     config: { network },
     loadAccount: vi.fn((id: string) =>
-      Promise.resolve(id === fanKey ? fan : id === storage ? horizonAccount(storage, { luna: opts.stock ?? "0" }) : null),
+      Promise.resolve(
+        id === fanKey
+          ? fan
+          : id === storage
+            ? horizonAccount(storage, { luna: opts.stock ?? "0" })
+            : null,
+      ),
     ),
     signForCustodialUser: vi.fn((xdr: string) => Promise.resolve(`${xdr}`)),
     signWithServerKeys: vi.fn((xdr: string) => Promise.resolve(xdr)),
     submit: vi.fn().mockResolvedValue({ hash: "abc123" }),
   };
   const caller = createCallerFactory(arRouter)(
-    createContext({ db: db as unknown as Db, chain: chain as unknown as ChainGateway, app: "ar", session: { user: opts.user ?? me } }),
+    createContext({
+      db: db as unknown as Db,
+      chain: chain as unknown as ChainGateway,
+      app: "ar",
+      session: { user: opts.user ?? me },
+    }),
   );
   return { db, chain, caller };
 }
 
 /** A hand-built transaction, for the forgery checks. */
 function forged(ops: (b: TransactionBuilder) => void, memo = CLAIM) {
-  const builder = new TransactionBuilder(new Account(fanKey, "100"), { fee: "100", networkPassphrase: network.passphrase });
+  const builder = new TransactionBuilder(new Account(fanKey, "100"), {
+    fee: "100",
+    networkPassphrase: network.passphrase,
+  });
   ops(builder);
   return builder.addMemo(Memo.text(memo)).setTimeout(60).build().toXDR();
 }
@@ -97,7 +141,13 @@ describe("claim.quote", () => {
   it("charges only the network fee and the trustline reserve, sent from stock", async () => {
     const { caller } = setup({ stock: "5" });
     const quote = await caller.claim.quote({ claimId: CLAIM });
-    expect(quote).toMatchObject({ ok: true, currency: "XLM", source: "stock", total: "0.5000200", problems: [] });
+    expect(quote).toMatchObject({
+      ok: true,
+      currency: "XLM",
+      source: "stock",
+      total: "0.5000200",
+      problems: [],
+    });
     expect(quote.lines.map((line) => line.key)).toEqual(["network", "reserve"]);
   });
 
@@ -109,14 +159,30 @@ describe("claim.quote", () => {
   });
 
   it("reports what stands in the way", async () => {
-    expect((await setup({ fan: null }).caller.claim.quote({ claimId: CLAIM })).problems.map((p) => p.code)).toEqual(["ACCOUNT_INACTIVE"]);
-    expect((await setup({ fan: horizonAccount(fanKey, { xlm: "1.2" }) }).caller.claim.quote({ claimId: CLAIM })).problems.map((p) => p.code)).toEqual([
-      "NOT_ENOUGH_XLM",
-    ]);
-    expect((await setup({ row: claimRow({ external: true }) }).caller.claim.quote({ claimId: CLAIM })).problems.map((p) => p.code)).toEqual(["NOT_STOCKED"]);
-    expect((await setup({ row: claimRow({ tokenClaimedAt: new Date() }) }).caller.claim.quote({ claimId: CLAIM })).problems.map((p) => p.code)).toContain(
-      "ALREADY_CLAIMED",
-    );
+    expect(
+      (await setup({ fan: null }).caller.claim.quote({ claimId: CLAIM })).problems.map(
+        (p) => p.code,
+      ),
+    ).toEqual(["ACCOUNT_INACTIVE"]);
+    expect(
+      (
+        await setup({ fan: horizonAccount(fanKey, { xlm: "1.2" }) }).caller.claim.quote({
+          claimId: CLAIM,
+        })
+      ).problems.map((p) => p.code),
+    ).toEqual(["NOT_ENOUGH_XLM"]);
+    expect(
+      (
+        await setup({ row: claimRow({ external: true }) }).caller.claim.quote({ claimId: CLAIM })
+      ).problems.map((p) => p.code),
+    ).toEqual(["NOT_STOCKED"]);
+    expect(
+      (
+        await setup({ row: claimRow({ tokenClaimedAt: new Date() }) }).caller.claim.quote({
+          claimId: CLAIM,
+        })
+      ).problems.map((p) => p.code),
+    ).toContain("ALREADY_CLAIMED");
   });
 });
 
@@ -131,7 +197,11 @@ describe("claim.prepare and submit", () => {
   });
 
   it("refuses to prepare when a problem stands in the way", async () => {
-    await expect(setup({ fan: horizonAccount(fanKey, { xlm: "1.2" }) }).caller.claim.prepare({ claimId: CLAIM })).rejects.toMatchObject({
+    await expect(
+      setup({ fan: horizonAccount(fanKey, { xlm: "1.2" }) }).caller.claim.prepare({
+        claimId: CLAIM,
+      }),
+    ).rejects.toMatchObject({
       message: "You need 0.5000200 XLM free in your wallet to claim this.",
     });
   });
@@ -139,12 +209,19 @@ describe("claim.prepare and submit", () => {
   it("co-signs with the storage key, submits, and records the ownership once", async () => {
     const { caller, chain, db } = setup({ stock: "5" });
     const { xdr } = await caller.claim.prepare({ claimId: CLAIM });
-    await expect(caller.claim.submit({ claimId: CLAIM, xdr })).resolves.toEqual({ txHash: "abc123" });
+    await expect(caller.claim.submit({ claimId: CLAIM, xdr })).resolves.toEqual({
+      txHash: "abc123",
+    });
     expect(chain.signWithServerKeys).toHaveBeenCalledWith(xdr, [storage]);
     expect(chain.signForCustodialUser).not.toHaveBeenCalled();
-    expect(db.pinClaim.updateMany).toHaveBeenCalledWith({ where: { id: CLAIM, tokenClaimedAt: null }, data: { tokenClaimedAt: expect.any(Date) as Date } });
+    expect(db.pinClaim.updateMany).toHaveBeenCalledWith({
+      where: { id: CLAIM, tokenClaimedAt: null },
+      data: { tokenClaimedAt: expect.any(Date) as Date },
+    });
     expect(db.ownership.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({ create: { userId: "me", itemId: "fan-token", quantity: "1", source: "PIN_CLAIM" } }),
+      expect.objectContaining({
+        create: { userId: "me", itemId: "fan-token", quantity: "1", source: "PIN_CLAIM" },
+      }),
     );
   });
 
@@ -160,19 +237,48 @@ describe("claim.prepare and submit", () => {
   it("rejects a transaction that sends more, sends elsewhere, or does anything else", async () => {
     const stranger = Keypair.random().publicKey();
     const cases = [
-      forged((b) => b.addOperation(Operation.payment({ source: issuer, destination: fanKey, asset, amount: "50" }))),
-      forged((b) => b.addOperation(Operation.payment({ source: issuer, destination: stranger, asset, amount: "1" }))),
-      forged((b) => b.addOperation(Operation.payment({ source: stranger, destination: fanKey, asset, amount: "1" }))),
+      forged((b) =>
+        b.addOperation(
+          Operation.payment({ source: issuer, destination: fanKey, asset, amount: "50" }),
+        ),
+      ),
+      forged((b) =>
+        b.addOperation(
+          Operation.payment({ source: issuer, destination: stranger, asset, amount: "1" }),
+        ),
+      ),
+      forged((b) =>
+        b.addOperation(
+          Operation.payment({ source: stranger, destination: fanKey, asset, amount: "1" }),
+        ),
+      ),
       forged((b) =>
         b
-          .addOperation(Operation.payment({ source: issuer, destination: fanKey, asset, amount: "1" }))
-          .addOperation(Operation.payment({ source: issuer, destination: stranger, asset: Asset.native(), amount: "100" })),
+          .addOperation(
+            Operation.payment({ source: issuer, destination: fanKey, asset, amount: "1" }),
+          )
+          .addOperation(
+            Operation.payment({
+              source: issuer,
+              destination: stranger,
+              asset: Asset.native(),
+              amount: "100",
+            }),
+          ),
       ),
-      forged((b) => b.addOperation(Operation.payment({ source: issuer, destination: fanKey, asset, amount: "1" })), "other-claim"),
+      forged(
+        (b) =>
+          b.addOperation(
+            Operation.payment({ source: issuer, destination: fanKey, asset, amount: "1" }),
+          ),
+        "other-claim",
+      ),
     ];
     for (const xdr of cases) {
       const { caller, chain } = setup();
-      await expect(caller.claim.submit({ claimId: CLAIM, xdr })).rejects.toMatchObject({ message: "That transaction isn't this reward claim." });
+      await expect(caller.claim.submit({ claimId: CLAIM, xdr })).rejects.toMatchObject({
+        message: "That transaction isn't this reward claim.",
+      });
       expect(chain.signWithServerKeys).not.toHaveBeenCalled();
     }
   });
@@ -181,13 +287,18 @@ describe("claim.prepare and submit", () => {
     const twice = setup();
     const { xdr } = await twice.caller.claim.prepare({ claimId: CLAIM });
     twice.db.pinClaim.updateMany.mockResolvedValue({ count: 0 });
-    await expect(twice.caller.claim.submit({ claimId: CLAIM, xdr })).rejects.toMatchObject({ message: "This reward is already in your wallet." });
+    await expect(twice.caller.claim.submit({ claimId: CLAIM, xdr })).rejects.toMatchObject({
+      message: "This reward is already in your wallet.",
+    });
     expect(twice.chain.submit).not.toHaveBeenCalled();
 
     const rejected = setup();
     rejected.chain.submit.mockRejectedValue(new Error("tx_bad_seq"));
     await expect(rejected.caller.claim.submit({ claimId: CLAIM, xdr })).rejects.toThrow();
-    expect(rejected.db.pinClaim.update).toHaveBeenCalledWith({ where: { id: CLAIM }, data: { tokenClaimedAt: null } });
+    expect(rejected.db.pinClaim.update).toHaveBeenCalledWith({
+      where: { id: CLAIM },
+      data: { tokenClaimedAt: null },
+    });
     expect(rejected.db.ownership.upsert).not.toHaveBeenCalled();
   });
 });

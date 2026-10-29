@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-import { createAnnouncement, listAnnouncements, removeAnnouncement, updateAnnouncement } from "../../services/artist/announcements";
+import {
+  createAnnouncement,
+  listAnnouncements,
+  removeAnnouncement,
+  updateAnnouncement,
+} from "../../services/artist/announcements";
 import { createEvent, listEvents, removeEvent, updateEvent } from "../../services/artist/events";
 import { artistProcedure, createRouter } from "../../trpc";
 
@@ -33,20 +38,36 @@ const announcementFields = {
 export const engageRouter = createRouter({
   events: artistProcedure.query(({ ctx }) => listEvents(ctx, ctx.artist)),
 
-  createEvent: artistProcedure.input(z.object(eventFields)).mutation(({ ctx, input }) => createEvent(ctx, ctx.artist, input)),
+  createEvent: artistProcedure
+    .input(z.object(eventFields))
+    .mutation(({ ctx, input }) => createEvent(ctx, ctx.artist, input)),
 
   updateEvent: artistProcedure
-    .input(z.object(eventFields).partial().extend({ eventId: z.string().min(1) }))
+    .input(
+      z
+        .object(eventFields)
+        .partial()
+        .extend({ eventId: z.string().min(1) }),
+    )
     .mutation(({ ctx, input }) => updateEvent(ctx, ctx.artist, input)),
 
-  removeEvent: artistProcedure.input(z.object({ eventId: z.string().min(1) })).mutation(({ ctx, input }) => removeEvent(ctx, ctx.artist, input.eventId)),
+  removeEvent: artistProcedure
+    .input(z.object({ eventId: z.string().min(1) }))
+    .mutation(({ ctx, input }) => removeEvent(ctx, ctx.artist, input.eventId)),
 
   announcements: artistProcedure.query(({ ctx }) => listAnnouncements(ctx, ctx.artist)),
 
-  createAnnouncement: artistProcedure.input(z.object(announcementFields)).mutation(({ ctx, input }) => createAnnouncement(ctx, ctx.artist, input)),
+  createAnnouncement: artistProcedure
+    .input(z.object(announcementFields))
+    .mutation(({ ctx, input }) => createAnnouncement(ctx, ctx.artist, input)),
 
   updateAnnouncement: artistProcedure
-    .input(z.object(announcementFields).partial().extend({ announcementId: z.string().min(1) }))
+    .input(
+      z
+        .object(announcementFields)
+        .partial()
+        .extend({ announcementId: z.string().min(1) }),
+    )
     .mutation(({ ctx, input }) => updateAnnouncement(ctx, ctx.artist, input)),
 
   removeAnnouncement: artistProcedure

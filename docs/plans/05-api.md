@@ -1,6 +1,7 @@
 # 05 · API (tRPC)
 
 `packages/api/src/`
+
 ```
 context.ts         session, db, ip, requestId
 procedures.ts      publicProcedure, authedProcedure, artistProcedure, adminProcedure

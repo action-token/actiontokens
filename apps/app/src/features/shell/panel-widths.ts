@@ -25,7 +25,12 @@ export const widthFromDrag = (side: Side, start: number, delta: number) =>
 export function nudge(side: Side, width: number, key: string) {
   if (key !== "ArrowLeft" && key !== "ArrowRight") return null;
   const handleMovesRight = key === "ArrowRight";
-  return clampWidth(side, side === "left" ? width + (handleMovesRight ? STEP : -STEP) : width + (handleMovesRight ? -STEP : STEP));
+  return clampWidth(
+    side,
+    side === "left"
+      ? width + (handleMovesRight ? STEP : -STEP)
+      : width + (handleMovesRight ? -STEP : STEP),
+  );
 }
 
 type State = {
@@ -54,8 +59,16 @@ export const usePanelWidths = create<State>((set, get) => ({
   reset: (side) => get().set(side, DEFAULT_WIDTHS[side]),
   load: () => {
     try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null") as Partial<Record<Side, number>> | null;
-      if (saved) set({ widths: { left: clampWidth("left", saved.left ?? NaN), right: clampWidth("right", saved.right ?? NaN) } });
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null") as Partial<
+        Record<Side, number>
+      > | null;
+      if (saved)
+        set({
+          widths: {
+            left: clampWidth("left", saved.left ?? NaN),
+            right: clampWidth("right", saved.right ?? NaN),
+          },
+        });
     } catch {
       // Unreadable saved value: keep the defaults.
     }

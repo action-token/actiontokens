@@ -81,7 +81,9 @@ export function AiFillCard<F extends FillForm>({
         </div>
       )}
       <div className="mt-3 flex items-center gap-2">
-        <p className="text-fg-muted hidden text-xs sm:block">Nothing is saved. You review every field first.</p>
+        <p className="text-fg-muted hidden text-xs sm:block">
+          Nothing is saved. You review every field first.
+        </p>
         <div className="ml-auto flex gap-2">
           {undo && !fill.isPending && (
             <Button

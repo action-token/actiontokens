@@ -39,7 +39,11 @@ export function PriceBreakdown({
       {lines.map((line) => (
         <Row key={line.label} label={line.label} detail={line.detail} value={line.value} />
       ))}
-      <Row label="You pay" value={total} className="border-border-strong mt-1.5 border-t border-dashed pt-2.5 font-semibold [&_dd]:text-[15px] [&_dd]:text-fg" />
+      <Row
+        label="You pay"
+        value={total}
+        className="border-border-strong [&_dd]:text-fg mt-1.5 border-t border-dashed pt-2.5 font-semibold [&_dd]:text-[15px]"
+      />
       {balance && (
         <Row
           label="Your balance"
@@ -84,13 +88,16 @@ function Row({
 /** Shown under the breakdown when the chosen currency can't cover the total. Never offers a swap. */
 export function ShortfallNotice({ currency, shortBy }: { currency: string; shortBy: ReactNode }) {
   return (
-    <div role="alert" className="bg-danger-soft grid grid-cols-[auto_minmax(0,1fr)] gap-3 rounded-md p-3 text-[13px]">
+    <div
+      role="alert"
+      className="bg-danger-soft grid grid-cols-[auto_minmax(0,1fr)] gap-3 rounded-md p-3 text-[13px]"
+    >
       <CircleAlert className="text-danger mt-px size-[18px]" />
       <p>
         <b>Not enough {currency}</b>
         <br />
-        You need {shortBy} more. Add funds, lower the quantity, or pick another currency. We never convert
-        your other tokens for you.
+        You need {shortBy} more. Add funds, lower the quantity, or pick another currency. We never
+        convert your other tokens for you.
       </p>
     </div>
   );

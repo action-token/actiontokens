@@ -24,7 +24,8 @@ export function ArtistActions({
       <PlayAllButton tracks={popular} shuffle />
       <FollowButton slug={slug} initial={following} onFollowers={setFollowers} />
       <span className="text-sm text-white/75">
-        <b className="text-white">{followers.toLocaleString()}</b> {followers === 1 ? "follower" : "followers"}
+        <b className="text-white">{followers.toLocaleString()}</b>{" "}
+        {followers === 1 ? "follower" : "followers"}
       </span>
     </div>
   );

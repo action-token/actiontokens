@@ -16,11 +16,11 @@ A music store you want to spend time in: dark first, album art provides the colo
 
 ## Fonts (self-hosted with `next/font`, no layout shift)
 
-| Use | Font | Why |
-|---|---|---|
-| Display (headings, hero) | **Unbounded** | Wide, bold and modern; fits music and web3 |
-| Text (UI, body) | **Onest** | Very readable at small sizes, a little warmer and less generic than Inter |
-| Numbers (prices, balances, durations) | **JetBrains Mono** | Digits line up in breakdowns and tables |
+| Use                                   | Font               | Why                                                                       |
+| ------------------------------------- | ------------------ | ------------------------------------------------------------------------- |
+| Display (headings, hero)              | **Unbounded**      | Wide, bold and modern; fits music and web3                                |
+| Text (UI, body)                       | **Onest**          | Very readable at small sizes, a little warmer and less generic than Inter |
+| Numbers (prices, balances, durations) | **JetBrains Mono** | Digits line up in breakdowns and tables                                   |
 
 You can swap these in the preview before we lock them in.
 

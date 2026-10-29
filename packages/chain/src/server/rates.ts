@@ -12,7 +12,10 @@ type Fetcher = (url: string) => Promise<unknown>;
 
 const defaultFetcher: Fetcher = async (url) => {
   const response = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
-  if (!response.ok) throw new AppError(ErrorCodes.EXTERNAL_SERVICE_FAILED, { details: { url, status: response.status } });
+  if (!response.ok)
+    throw new AppError(ErrorCodes.EXTERNAL_SERVICE_FAILED, {
+      details: { url, status: response.status },
+    });
   return response.json();
 };
 
@@ -23,10 +26,14 @@ export const clearRateCache = () => {
   bandcoinCache = null;
 };
 
-const usable = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value) && value > 0;
+const usable = (value: unknown): value is number =>
+  typeof value === "number" && Number.isFinite(value) && value > 0;
 
 /** Live rates: Stellar Expert first, Binance if it is down. USDC is taken at $1. */
-export async function liveRates(fetcher: Fetcher = defaultFetcher, now = Date.now()): Promise<Rates> {
+export async function liveRates(
+  fetcher: Fetcher = defaultFetcher,
+  now = Date.now(),
+): Promise<Rates> {
   if (cache && now - cache.at < CACHE_TTL_MS) return cache.rates;
 
   const xlmUsd = (await fromStellarExpert(fetcher)) ?? (await fromBinance(fetcher));
@@ -42,7 +49,9 @@ export async function liveRates(fetcher: Fetcher = defaultFetcher, now = Date.no
 
 async function fromStellarExpert(fetcher: Fetcher) {
   try {
-    const data = (await fetcher("https://api.stellar.expert/explorer/public/asset/XLM")) as { price?: unknown };
+    const data = (await fetcher("https://api.stellar.expert/explorer/public/asset/XLM")) as {
+      price?: unknown;
+    };
     return usable(data.price) ? data.price : null;
   } catch {
     return null;
@@ -51,7 +60,9 @@ async function fromStellarExpert(fetcher: Fetcher) {
 
 async function fromBinance(fetcher: Fetcher) {
   try {
-    const data = (await fetcher("https://api.binance.com/api/v3/avgPrice?symbol=XLMUSDT")) as { price?: unknown };
+    const data = (await fetcher("https://api.binance.com/api/v3/avgPrice?symbol=XLMUSDT")) as {
+      price?: unknown;
+    };
     const price = Number.parseFloat(String(data.price));
     return usable(price) ? price : null;
   } catch {
@@ -65,7 +76,11 @@ async function fromBinance(fetcher: Fetcher) {
  * and is never used on mainnet. Refuses rather than guessing.
  */
 export async function liveBandcoinUsd(
-  input: { name: "mainnet" | "testnet"; asset: { code: string; issuer: string }; devPrice?: string },
+  input: {
+    name: "mainnet" | "testnet";
+    asset: { code: string; issuer: string };
+    devPrice?: string;
+  },
   fetcher: Fetcher = defaultFetcher,
   now = Date.now(),
 ): Promise<string> {

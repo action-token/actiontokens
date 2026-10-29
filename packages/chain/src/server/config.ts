@@ -56,7 +56,8 @@ let cached: ChainConfig | null = null;
 export function chainConfig(env: Record<string, string | undefined> = process.env): ChainConfig {
   if (cached && env === process.env) return cached;
 
-  const name = env.NEXT_PUBLIC_STELLAR_NETWORK ?? (isEnvValidationSkipped() ? "testnet" : undefined);
+  const name =
+    env.NEXT_PUBLIC_STELLAR_NETWORK ?? (isEnvValidationSkipped() ? "testnet" : undefined);
   if (name !== "mainnet" && name !== "testnet") {
     throw new AppError(ErrorCodes.CONFIG_MISSING, {
       message: 'Set NEXT_PUBLIC_STELLAR_NETWORK to "testnet" or "mainnet".',

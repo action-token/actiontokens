@@ -51,7 +51,9 @@ export function PinsMap() {
   useEffect(() => {
     if (framed.current || !pins.data || !map.current) return;
     framed.current = true;
-    const points = pins.data.filter((pin) => pin.status !== "ENDED").flatMap((pin) => pin.spotPoints.map((spot) => [spot.longitude, spot.latitude] as const));
+    const points = pins.data
+      .filter((pin) => pin.status !== "ENDED")
+      .flatMap((pin) => pin.spotPoints.map((spot) => [spot.longitude, spot.latitude] as const));
     if (points.length > 0) {
       const lngs = points.map((point) => point[0]);
       const lats = points.map((point) => point[1]);
@@ -63,7 +65,13 @@ export function PinsMap() {
         { padding: 90, maxZoom: 15, duration: 0 },
       );
     } else {
-      navigator.geolocation?.getCurrentPosition((position) => map.current?.flyTo({ center: [position.coords.longitude, position.coords.latitude], zoom: 12, duration: 800 }));
+      navigator.geolocation?.getCurrentPosition((position) =>
+        map.current?.flyTo({
+          center: [position.coords.longitude, position.coords.latitude],
+          zoom: 12,
+          duration: 800,
+        }),
+      );
     }
   }, [pins.data]);
 
@@ -73,7 +81,10 @@ export function PinsMap() {
         <div className="grid max-w-sm justify-items-center gap-3 text-center">
           <MapPinOff className="text-fg-faint size-8" />
           <h1 className="display text-xl">The map isn&apos;t switched on</h1>
-          <p className="text-fg-muted text-sm">Add a Mapbox token (NEXT_PUBLIC_MAPBOX_API) to see your pins on the map. You can still manage them as a list.</p>
+          <p className="text-fg-muted text-sm">
+            Add a Mapbox token (NEXT_PUBLIC_MAPBOX_API) to see your pins on the map. You can still
+            manage them as a list.
+          </p>
           <Button asChild>
             <Link href="/pins/manage">Manage pins</Link>
           </Button>
@@ -92,7 +103,9 @@ export function PinsMap() {
         cursor="pointer"
         onClick={(event) => {
           setSelectedId(null);
-          router.push(`/pins/new?lat=${event.lngLat.lat.toFixed(6)}&lng=${event.lngLat.lng.toFixed(6)}`);
+          router.push(
+            `/pins/new?lat=${event.lngLat.lat.toFixed(6)}&lng=${event.lngLat.lng.toFixed(6)}`,
+          );
         }}
       >
         {shown.flatMap((pin) =>
@@ -115,7 +128,12 @@ export function PinsMap() {
       </BaseMap>
 
       <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-wrap items-start gap-2 lg:inset-x-4 lg:top-4">
-        <PlaceSearch className="pointer-events-auto w-full sm:w-80" onSelect={(place) => map.current?.flyTo({ center: [place.lng, place.lat], zoom: 14, duration: 700 })} />
+        <PlaceSearch
+          className="pointer-events-auto w-full sm:w-80"
+          onSelect={(place) =>
+            map.current?.flyTo({ center: [place.lng, place.lat], zoom: 14, duration: 700 })
+          }
+        />
         <div className="bg-surface pointer-events-auto flex h-10 items-center gap-2 rounded-lg border px-3 shadow-sm">
           <Switch id="show-ended" checked={showEnded} onCheckedChange={setShowEnded} />
           <Label htmlFor="show-ended" className="text-xs font-medium">
@@ -137,16 +155,35 @@ export function PinsMap() {
       </div>
 
       {pins.data?.length === 0 && (
-        <p className="bg-surface/95 pointer-events-none absolute bottom-24 left-1/2 z-10 -translate-x-1/2 rounded-full border px-4 py-1.5 text-xs font-medium shadow sm:bottom-8">Click anywhere on the map to drop your first pin</p>
+        <p className="bg-surface/95 pointer-events-none absolute bottom-24 left-1/2 z-10 -translate-x-1/2 rounded-full border px-4 py-1.5 text-xs font-medium shadow sm:bottom-8">
+          Click anywhere on the map to drop your first pin
+        </p>
       )}
 
       <PinLegend className="absolute bottom-8 left-14 z-10 hidden sm:block" />
-      {selected && <PinCard pin={selected} busy={hide.isPending} onHide={() => hide.mutate({ pinId: selected.id, hidden: selected.status !== "HIDDEN" })} onClose={() => setSelectedId(null)} />}
+      {selected && (
+        <PinCard
+          pin={selected}
+          busy={hide.isPending}
+          onHide={() => hide.mutate({ pinId: selected.id, hidden: selected.status !== "HIDDEN" })}
+          onClose={() => setSelectedId(null)}
+        />
+      )}
     </div>
   );
 }
 
-function PinCard({ pin, busy, onHide, onClose }: { pin: Pin; busy: boolean; onHide: () => void; onClose: () => void }) {
+function PinCard({
+  pin,
+  busy,
+  onHide,
+  onClose,
+}: {
+  pin: Pin;
+  busy: boolean;
+  onHide: () => void;
+  onClose: () => void;
+}) {
   const status = STATUS[pin.status];
   return (
     <section

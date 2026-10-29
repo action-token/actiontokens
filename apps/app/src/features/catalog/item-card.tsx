@@ -47,14 +47,28 @@ const TYPE_ICON: Record<string, LucideIcon> = {
  * artist and title sit on a dark fade at the bottom. On hover it lifts, tilts
  * and drops a hard shadow in the brand colour. Songs get a Play button.
  */
-export function ItemCard({ item, queue, className }: { item: ItemCardData; queue?: ItemCardData[]; className?: string }) {
+export function ItemCard({
+  item,
+  queue,
+  className,
+}: {
+  item: ItemCardData;
+  queue?: ItemCardData[];
+  className?: string;
+}) {
   const playQueue = usePlayer((state) => state.playQueue);
   const TypeIcon = TYPE_ICON[item.type] ?? Box;
   const label = TYPE_LABEL[item.type] ?? item.type;
 
   const play = () => {
     const playable = (queue ?? [item]).filter((entry) => entry.playable);
-    playQueue(playable, Math.max(0, playable.findIndex((entry) => entry.id === item.id)));
+    playQueue(
+      playable,
+      Math.max(
+        0,
+        playable.findIndex((entry) => entry.id === item.id),
+      ),
+    );
   };
 
   return (
@@ -72,17 +86,32 @@ export function ItemCard({ item, queue, className }: { item: ItemCardData; queue
           loading="lazy"
           className="absolute inset-0 size-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         />
-        <div aria-hidden className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-black/50 to-transparent" />
-        <div aria-hidden className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black/90 via-black/55 to-transparent" />
+        <div
+          aria-hidden
+          className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-black/50 to-transparent"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black/90 via-black/55 to-transparent"
+        />
 
         <div className="absolute inset-x-2.5 top-2.5 flex items-start justify-between gap-2">
-          <span title={label} className="grid size-7 place-items-center rounded-full bg-black/45 text-white backdrop-blur">
+          <span
+            title={label}
+            className="grid size-7 place-items-center rounded-full bg-black/45 text-white backdrop-blur"
+          >
             <TypeIcon className="size-3.5" />
             <span className="sr-only">{label}</span>
           </span>
           {item.price && (
             <span className="bg-primary text-primary-foreground shrink-0 rotate-3 rounded-lg px-2 py-0.5 text-right transition-transform duration-200 group-hover:scale-105 group-hover:rotate-0">
-              <Money amount={item.price.bandcoin} currency="BANDCOIN" short onBrand className="display text-[1.05rem] leading-none" />
+              <Money
+                amount={item.price.bandcoin}
+                currency="BANDCOIN"
+                short
+                onBrand
+                className="display text-[1.05rem] leading-none"
+              />
               <span className="block text-[9px] leading-tight font-bold whitespace-nowrap opacity-80">
                 ≈ <Money amount={item.price.usd} currency="USD" />
               </span>
@@ -101,7 +130,9 @@ export function ItemCard({ item, queue, className }: { item: ItemCardData; queue
           ) : (
             <p className="truncate text-xs font-semibold text-white/80">{item.artistName}</p>
           )}
-          <p className="display line-clamp-2 pr-10 text-[1.15rem] leading-[1.05] break-words">{item.title}</p>
+          <p className="display line-clamp-2 pr-10 text-[1.15rem] leading-[1.05] break-words">
+            {item.title}
+          </p>
         </div>
       </div>
 

@@ -1,7 +1,16 @@
 "use client";
 
 import { format, formatDistanceToNow } from "date-fns";
-import { AlertCircle, CheckCircle2, Loader2, RotateCcw, Search, ShieldCheck, Ticket, XCircle } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+  RotateCcw,
+  Search,
+  ShieldCheck,
+  Ticket,
+  XCircle,
+} from "lucide-react";
 import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import toast from "react-hot-toast";
 
@@ -32,7 +41,10 @@ export function CodeChecker() {
     void utils.redeem.history.invalidate();
     void utils.admin.activity.list.invalidate();
   };
-  const lookup = api.redeem.lookup.useMutation({ onSuccess: setResult, onError: (error) => toast.error(messageOf(error)) });
+  const lookup = api.redeem.lookup.useMutation({
+    onSuccess: setResult,
+    onError: (error) => toast.error(messageOf(error)),
+  });
   const redeem = api.redeem.redeem.useMutation({
     onSuccess: (outcome) => {
       refresh();
@@ -69,7 +81,9 @@ export function CodeChecker() {
         <h2 className="display flex items-center gap-2 text-lg">
           <Ticket className="text-primary-text size-5" /> Redeem a code
         </h2>
-        <p className="text-fg-muted mt-1 text-sm">Ask the fan for the {CODE_LENGTH}-character code from their collected pin.</p>
+        <p className="text-fg-muted mt-1 text-sm">
+          Ask the fan for the {CODE_LENGTH}-character code from their collected pin.
+        </p>
         <label htmlFor="redeem-code" className="sr-only">
           Redeem code
         </label>
@@ -83,35 +97,75 @@ export function CodeChecker() {
           maxLength={CODE_LENGTH}
           placeholder="ABC234"
           onChange={(event) => {
-            setCode(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, CODE_LENGTH));
+            setCode(
+              event.target.value
+                .toUpperCase()
+                .replace(/[^A-Z0-9]/g, "")
+                .slice(0, CODE_LENGTH),
+            );
             if (result) setResult(null);
           }}
           className="placeholder:text-fg-faint mt-4 h-14 text-center font-mono text-2xl font-semibold tracking-[0.35em] placeholder:tracking-[0.35em]"
         />
         <div className="mt-2 flex justify-center gap-1.5" aria-hidden>
           {Array.from({ length: CODE_LENGTH }, (_, i) => (
-            <span key={i} className={cn("h-1 w-5 rounded-full transition-colors", i < code.length ? "bg-primary" : "bg-surface-2")} />
+            <span
+              key={i}
+              className={cn(
+                "h-1 w-5 rounded-full transition-colors",
+                i < code.length ? "bg-primary" : "bg-surface-2",
+              )}
+            />
           ))}
         </div>
-        <Button type="submit" className="mt-4" disabled={code.length !== CODE_LENGTH || lookup.isPending}>
+        <Button
+          type="submit"
+          className="mt-4"
+          disabled={code.length !== CODE_LENGTH || lookup.isPending}
+        >
           {lookup.isPending ? <Loader2 className="animate-spin" /> : <Search />} Check code
         </Button>
       </form>
 
       <div className="bg-surface-2 min-h-44 rounded-lg border border-dashed p-4" aria-live="polite">
         {result?.status === "not_found" ? (
-          <ResultShell tone="error" icon={XCircle} title="Code not found" onReset={reset} resetLabel="Try again">
-            <p className="text-fg-muted text-sm">Check the code with the fan: it&apos;s {CODE_LENGTH} letters and numbers, shown after they collect the pin.</p>
+          <ResultShell
+            tone="error"
+            icon={XCircle}
+            title="Code not found"
+            onReset={reset}
+            resetLabel="Try again"
+          >
+            <p className="text-fg-muted text-sm">
+              Check the code with the fan: it&apos;s {CODE_LENGTH} letters and numbers, shown after
+              they collect the pin.
+            </p>
           </ResultShell>
         ) : redeemedNow && found ? (
-          <ResultShell tone="success" icon={CheckCircle2} title="Redeemed: hand over the reward" onReset={reset} resetLabel="Redeem another">
+          <ResultShell
+            tone="success"
+            icon={CheckCircle2}
+            title="Redeemed: hand over the reward"
+            onReset={reset}
+            resetLabel="Redeem another"
+          >
             <FanAndReward claim={found.claim} />
             <p className="text-fg-muted mt-3 text-xs">Redeemed {format(redeemedNow, "PPp")}</p>
           </ResultShell>
         ) : found?.status === "already_redeemed" ? (
-          <ResultShell tone="warning" icon={AlertCircle} title="Already redeemed" onReset={reset} resetLabel="Check another">
+          <ResultShell
+            tone="warning"
+            icon={AlertCircle}
+            title="Already redeemed"
+            onReset={reset}
+            resetLabel="Check another"
+          >
             <FanAndReward claim={found.claim} />
-            {found.claim.redeemedAt && <p className="text-fg-muted mt-3 text-xs">Redeemed {format(new Date(found.claim.redeemedAt), "PPp")}</p>}
+            {found.claim.redeemedAt && (
+              <p className="text-fg-muted mt-3 text-xs">
+                Redeemed {format(new Date(found.claim.redeemedAt), "PPp")}
+              </p>
+            )}
           </ResultShell>
         ) : found ? (
           <div>
@@ -141,8 +195,23 @@ export function CodeChecker() {
   );
 }
 
-function ResultShell({ tone, icon: Icon, title, children, onReset, resetLabel }: { tone: "success" | "warning" | "error"; icon: typeof CheckCircle2; title: string; children: ReactNode; onReset: () => void; resetLabel: string }) {
-  const color = tone === "success" ? "text-primary-text" : tone === "warning" ? "text-warning" : "text-danger";
+function ResultShell({
+  tone,
+  icon: Icon,
+  title,
+  children,
+  onReset,
+  resetLabel,
+}: {
+  tone: "success" | "warning" | "error";
+  icon: typeof CheckCircle2;
+  title: string;
+  children: ReactNode;
+  onReset: () => void;
+  resetLabel: string;
+}) {
+  const color =
+    tone === "success" ? "text-primary-text" : tone === "warning" ? "text-warning" : "text-danger";
   return (
     <div>
       <p className={cn("flex items-center gap-2 font-semibold", color)}>
@@ -164,13 +233,19 @@ function FanAndReward({ claim }: { claim: Found }) {
         <div className="min-w-0 text-sm">
           <p className="truncate font-medium">{claim.fan.name ?? "Fan"}</p>
           {claim.fan.email && <p className="text-fg-muted truncate text-xs">{claim.fan.email}</p>}
-          <p className="text-fg-muted text-xs">Collected {formatDistanceToNow(new Date(claim.collectedAt), { addSuffix: true })}</p>
+          <p className="text-fg-muted text-xs">
+            Collected {formatDistanceToNow(new Date(claim.collectedAt), { addSuffix: true })}
+          </p>
         </div>
       </div>
       <div className="bg-surface flex items-start gap-3 rounded-lg border p-3">
         {claim.pin.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={claim.pin.imageUrl} alt="" className="size-10 shrink-0 rounded-md object-cover" />
+          <img
+            src={claim.pin.imageUrl}
+            alt=""
+            className="size-10 shrink-0 rounded-md object-cover"
+          />
         ) : (
           <TypeIcon type={claim.pin.type} />
         )}

@@ -14,7 +14,17 @@ export function Section({ title, children }: { title: string; children: ReactNod
   );
 }
 
-export function Toggle({ title, hint, checked, onChange }: { title: string; hint: string; checked: boolean; onChange: (value: boolean) => void }) {
+export function Toggle({
+  title,
+  hint,
+  checked,
+  onChange,
+}: {
+  title: string;
+  hint: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+}) {
   return (
     <label className="flex cursor-pointer items-start gap-3 rounded-xl border p-3">
       <span className="flex-1">
@@ -26,7 +36,15 @@ export function Toggle({ title, hint, checked, onChange }: { title: string; hint
   );
 }
 
-export function Segmented<T extends string>({ value, onChange, options }: { value: T; onChange: (value: T) => void; options: { id: T; label: string }[] }) {
+export function Segmented<T extends string>({
+  value,
+  onChange,
+  options,
+}: {
+  value: T;
+  onChange: (value: T) => void;
+  options: { id: T; label: string }[];
+}) {
   return (
     <div className="bg-surface-2 flex gap-1 rounded-xl border p-1">
       {options.map((option) => (
@@ -34,7 +52,10 @@ export function Segmented<T extends string>({ value, onChange, options }: { valu
           key={option.id}
           type="button"
           onClick={() => onChange(option.id)}
-          className={cn("flex-1 rounded-lg px-2 py-1.5 text-xs", value === option.id ? "bg-surface font-medium shadow-sm" : "text-fg-muted")}
+          className={cn(
+            "flex-1 rounded-lg px-2 py-1.5 text-xs",
+            value === option.id ? "bg-surface font-medium shadow-sm" : "text-fg-muted",
+          )}
         >
           {option.label}
         </button>

@@ -22,7 +22,13 @@ export function TrackList({
   return (
     <ol className="grid gap-0.5">
       {tracks.map((track, index) => (
-        <TrackRow key={track.id} track={track} position={index} list={tracks} action={actionFor?.(track)} />
+        <TrackRow
+          key={track.id}
+          track={track}
+          position={index}
+          list={tracks}
+          action={actionFor?.(track)}
+        />
       ))}
     </ol>
   );
@@ -32,9 +38,19 @@ export function TrackList({
  * The big round Play for a list (album, artist): plays from the top, or
  * pauses/resumes when this list is already playing. Optional shuffle.
  */
-export function PlayAllButton({ tracks, shuffle, className }: { tracks: ItemCardData[]; shuffle?: boolean; className?: string }) {
+export function PlayAllButton({
+  tracks,
+  shuffle,
+  className,
+}: {
+  tracks: ItemCardData[];
+  shuffle?: boolean;
+  className?: string;
+}) {
   const { playQueue, toggle } = usePlayer();
-  const playingThis = usePlayer((state) => tracks.some((track) => track.id === currentTrack(state)?.id));
+  const playingThis = usePlayer((state) =>
+    tracks.some((track) => track.id === currentTrack(state)?.id),
+  );
   const playing = usePlayer((state) => state.playing) && playingThis;
   const playable = tracks.filter((track) => track.playable);
 
@@ -47,7 +63,11 @@ export function PlayAllButton({ tracks, shuffle, className }: { tracks: ItemCard
         onClick={() => (playingThis ? toggle() : playQueue(playable))}
         className="bg-primary text-primary-foreground grid size-14 place-items-center rounded-full shadow-lg transition-transform hover:scale-105 disabled:opacity-50"
       >
-        {playing ? <Pause className="size-6 fill-current" /> : <Play className="size-6 translate-x-px fill-current" />}
+        {playing ? (
+          <Pause className="size-6 fill-current" />
+        ) : (
+          <Play className="size-6 translate-x-px fill-current" />
+        )}
       </button>
       {shuffle && playable.length > 1 && (
         <Button

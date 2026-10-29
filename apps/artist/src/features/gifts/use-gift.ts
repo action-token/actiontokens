@@ -20,7 +20,12 @@ export function useGift(input: { recipient: string; amount: number }, onSent: ()
     success: { title: "Gift sent", body: "The tokens are in their wallet." },
     onDone: async () => {
       onSent();
-      await Promise.all([utils.gifts.sent.invalidate(), utils.gifts.quote.invalidate(), utils.account.me.invalidate(), utils.admin.activity.list.invalidate()]);
+      await Promise.all([
+        utils.gifts.sent.invalidate(),
+        utils.gifts.quote.invalidate(),
+        utils.account.me.invalidate(),
+        utils.admin.activity.list.invalidate(),
+      ]);
     },
   });
 }

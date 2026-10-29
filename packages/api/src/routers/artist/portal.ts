@@ -1,7 +1,8 @@
 import { createRouter, publicProcedure } from "../../trpc";
 
 /** Where an applicant is, in plain steps: pay to open the issuer, wait for an admin, ready, rejected (can apply again) or banned. */
-export type OnboardingStep = "OPEN_ISSUER" | "WAITING_FOR_APPROVAL" | "READY" | "BANNED" | "REJECTED";
+export type OnboardingStep =
+  "OPEN_ISSUER" | "WAITING_FOR_APPROVAL" | "READY" | "BANNED" | "REJECTED";
 
 function stepOf(artist: { status: string; issuerAccountId: string | null }): OnboardingStep {
   if (artist.status === "BANNED") return "BANNED";
@@ -20,7 +21,14 @@ export const portalStatusRouter = createRouter({
     if (!user) return { signedIn: false as const };
     const artist = await ctx.db.artist.findUnique({
       where: { userId: user.id },
-      select: { id: true, name: true, slug: true, status: true, issuerAccountId: true, rejectionReason: true },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        status: true,
+        issuerAccountId: true,
+        rejectionReason: true,
+      },
     });
     const step = artist ? stepOf(artist) : null;
     return {
@@ -28,7 +36,14 @@ export const portalStatusRouter = createRouter({
       isAdmin: user.role === "ADMIN",
       artist:
         artist && step
-          ? { id: artist.id, name: artist.name, slug: artist.slug, status: artist.status, step, rejectionReason: artist.rejectionReason }
+          ? {
+              id: artist.id,
+              name: artist.name,
+              slug: artist.slug,
+              status: artist.status,
+              step,
+              rejectionReason: artist.rejectionReason,
+            }
           : null,
     };
   }),

@@ -46,7 +46,11 @@ export function DashboardView() {
     case null:
       return (
         <PageBody className="grid gap-6">
-          <PageHeader eyebrow="Artists" title="Become an artist" description="Tell us who you are, open your own account on Stellar, and an admin reviews your page." />
+          <PageHeader
+            eyebrow="Artists"
+            title="Become an artist"
+            description="Tell us who you are, open your own account on Stellar, and an admin reviews your page."
+          />
           <OnboardingProgress step={null} />
           <ApplyForm />
         </PageBody>
@@ -54,20 +58,34 @@ export function DashboardView() {
     case "REJECTED":
       return (
         <PageBody className="grid gap-6">
-          <PageHeader eyebrow={portal.artist?.name} title="Your application wasn't approved" description="Your 1.5 XLM was returned to your wallet. Update your details and apply again." />
+          <PageHeader
+            eyebrow={portal.artist?.name}
+            title="Your application wasn't approved"
+            description="Your 1.5 XLM was returned to your wallet. Update your details and apply again."
+          />
           <OnboardingProgress step="REJECTED" />
           {portal.artist?.rejectionReason && (
             <div role="note" className="bg-danger-soft max-w-xl rounded-md p-3 text-[13px]">
               <b>Why:</b> {portal.artist.rejectionReason}
             </div>
           )}
-          <ApplyForm initial={{ name: portal.artist?.name ?? "", slug: portal.artist?.slug ?? "", bio: null }} />
+          <ApplyForm
+            initial={{
+              name: portal.artist?.name ?? "",
+              slug: portal.artist?.slug ?? "",
+              bio: null,
+            }}
+          />
         </PageBody>
       );
     case "OPEN_ISSUER":
       return (
         <PageBody className="grid gap-6">
-          <PageHeader eyebrow={portal.artist?.name} title="Open your artist account" description="One payment opens the Stellar account your music is issued from." />
+          <PageHeader
+            eyebrow={portal.artist?.name}
+            title="Open your artist account"
+            description="One payment opens the Stellar account your music is issued from."
+          />
           <OnboardingProgress step="OPEN_ISSUER" />
           <OpenIssuer />
         </PageBody>
@@ -75,17 +93,31 @@ export function DashboardView() {
     case "WAITING_FOR_APPROVAL":
       return (
         <PageBody>
-          <PageHeader eyebrow={portal.artist?.name} title="Waiting for approval" description="Your artist account is open. An admin is reviewing your page." />
-          <div className="mt-4"><OnboardingProgress step="WAITING_FOR_APPROVAL" /></div>
+          <PageHeader
+            eyebrow={portal.artist?.name}
+            title="Waiting for approval"
+            description="Your artist account is open. An admin is reviewing your page."
+          />
+          <div className="mt-4">
+            <OnboardingProgress step="WAITING_FOR_APPROVAL" />
+          </div>
           <div className="mt-8">
-            <EmptyState icon={Hourglass} title="You're in the queue" description="Nothing else to do. Your tools unlock here as soon as you're approved." />
+            <EmptyState
+              icon={Hourglass}
+              title="You're in the queue"
+              description="Nothing else to do. Your tools unlock here as soon as you're approved."
+            />
           </div>
         </PageBody>
       );
     case "BANNED":
       return (
         <PageBody>
-          <EmptyState icon={Ban} title="This artist page is suspended" description="Contact support if you think this is a mistake." />
+          <EmptyState
+            icon={Ban}
+            title="This artist page is suspended"
+            description="Contact support if you think this is a mistake."
+          />
         </PageBody>
       );
     case "READY":

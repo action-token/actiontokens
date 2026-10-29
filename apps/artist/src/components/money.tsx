@@ -16,7 +16,8 @@ export function Money({
   short?: boolean;
   className?: string;
 }) {
-  if (currency === "USD") return <span className={cn("num", className)}>{formatAmount(amount, "USD")}</span>;
+  if (currency === "USD")
+    return <span className={cn("num", className)}>{formatAmount(amount, "USD")}</span>;
   return (
     <span className={cn("num inline-flex items-center gap-[0.3em] whitespace-nowrap", className)}>
       <CurrencyIcon currency={currency} className="size-[1.1em]" />

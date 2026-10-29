@@ -2,7 +2,12 @@ import { audibleGain, clampPan, type Mix } from "./mix";
 
 export type LoadedStem = { id: string; name: string; color: string; buffer: AudioBuffer };
 
-type Voice = { stem: LoadedStem; gain: GainNode; pan: StereoPannerNode; source: AudioBufferSourceNode | null };
+type Voice = {
+  stem: LoadedStem;
+  gain: GainNode;
+  pan: StereoPannerNode;
+  source: AudioBufferSourceNode | null;
+};
 
 /**
  * Plays several stems as one song. Each stem is its own audio buffer; all of

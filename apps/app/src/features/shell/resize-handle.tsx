@@ -29,7 +29,8 @@ export function ResizeHandle({ side, label }: { side: Side; label: string }) {
         document.body.style.userSelect = "none";
       }}
       onPointerMove={(event) => {
-        if (drag.current) set(side, widthFromDrag(side, drag.current.width, event.clientX - drag.current.x));
+        if (drag.current)
+          set(side, widthFromDrag(side, drag.current.width, event.clientX - drag.current.x));
       }}
       onPointerUp={() => {
         drag.current = null;

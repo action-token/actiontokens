@@ -9,7 +9,9 @@ import { redact } from "./redact";
  * It sits on the base procedure, so no mutation can skip it. Logging never
  * breaks the request: a failed write is reported and the response goes out.
  */
-export async function logActivity<R extends { ok: boolean; error?: { cause?: unknown; code?: string } }>(opts: {
+export async function logActivity<
+  R extends { ok: boolean; error?: { cause?: unknown; code?: string } },
+>(opts: {
   ctx: Context;
   type: "query" | "mutation" | "subscription";
   path: string;
@@ -35,7 +37,11 @@ export async function logActivity<R extends { ok: boolean; error?: { cause?: unk
         targetId: facts.targetId ?? null,
         input: redact(await opts.getRawInput().catch(() => null)) as Prisma.InputJsonValue,
         status: result.ok ? "SUCCESS" : "FAILED",
-        errorCode: result.ok ? null : isAppError(cause) ? cause.code : (result.error?.code ?? "INTERNAL"),
+        errorCode: result.ok
+          ? null
+          : isAppError(cause)
+            ? cause.code
+            : (result.error?.code ?? "INTERNAL"),
         txHash: facts.txHash ?? null,
         amount: facts.amount ?? null,
         currency: facts.currency ?? null,

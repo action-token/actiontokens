@@ -16,7 +16,12 @@ export function PaymentToast({ flow }: { flow: ReturnType<typeof useWalletPaymen
         onSend={flow.send}
         onCancel={flow.stop}
         actions={
-          <Button size="sm" variant="secondary" className="h-8 px-3 text-[13px]" onClick={flow.step.kind === "confirm" ? flow.stop : flow.close}>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="h-8 px-3 text-[13px]"
+            onClick={flow.step.kind === "confirm" ? flow.stop : flow.close}
+          >
             {flow.step.kind === "confirm" ? "Cancel" : "Close"}
           </Button>
         }

@@ -16,7 +16,10 @@ const SORTS = {
 export const catalogRouter = createRouter({
   /** The home page in one request: hero picks, trending, new music, top artists, live bounties. */
   home: publicProcedure.query(async ({ ctx }) => {
-    const forSale = { ...listedItemWhere, listings: { some: { status: "ACTIVE" } } } satisfies Prisma.ItemWhereInput;
+    const forSale = {
+      ...listedItemWhere,
+      listings: { some: { status: "ACTIVE" } },
+    } satisfies Prisma.ItemWhereInput;
     const [featured, trending, newMusic, artists, bounties] = await Promise.all([
       ctx.db.item.findMany({
         where: { ...forSale, listings: { some: { status: "ACTIVE", isFeatured: true } } },
@@ -24,7 +27,12 @@ export const catalogRouter = createRouter({
         take: 5,
         select: { ...itemCardSelect, description: true },
       }),
-      ctx.db.item.findMany({ where: forSale, orderBy: SORTS.popular, take: 12, select: itemCardSelect }),
+      ctx.db.item.findMany({
+        where: forSale,
+        orderBy: SORTS.popular,
+        take: 12,
+        select: itemCardSelect,
+      }),
       ctx.db.item.findMany({
         where: { ...listedItemWhere, type: "TRACK" },
         orderBy: { createdAt: "desc" },
@@ -35,7 +43,12 @@ export const catalogRouter = createRouter({
         where: { status: "APPROVED" },
         orderBy: { followers: { _count: "desc" } },
         take: 10,
-        select: { name: true, slug: true, avatarUrl: true, _count: { select: { followers: true, items: true } } },
+        select: {
+          name: true,
+          slug: true,
+          avatarUrl: true,
+          _count: { select: { followers: true, items: true } },
+        },
       }),
       ctx.db.bounty.findMany({
         where: { status: "RUNNING", fundTxHash: { not: null } },
@@ -52,12 +65,15 @@ export const catalogRouter = createRouter({
         },
       }),
     ]);
-    const hero = featured.length > 0 ? featured : (await ctx.db.item.findMany({
-      where: forSale,
-      orderBy: SORTS.popular,
-      take: 3,
-      select: { ...itemCardSelect, description: true },
-    }));
+    const hero =
+      featured.length > 0
+        ? featured
+        : await ctx.db.item.findMany({
+            where: forSale,
+            orderBy: SORTS.popular,
+            take: 3,
+            select: { ...itemCardSelect, description: true },
+          });
     return {
       hero: hero.map((row) => ({ ...toItemCard(row), description: row.description })),
       trending: trending.map(toItemCard),
@@ -81,20 +97,22 @@ export const catalogRouter = createRouter({
   }),
 
   /** "More from this artist" beside an item page. */
-  moreFromArtist: publicProcedure.input(z.object({ itemSlug: z.string().min(1) })).query(async ({ ctx, input }) => {
-    const item = await ctx.db.item.findUnique({
-      where: { slug: input.itemSlug },
-      select: { id: true, artistId: true, artist: { select: { name: true, slug: true } } },
-    });
-    if (!item?.artistId) return null;
-    const rows = await ctx.db.item.findMany({
-      where: { ...listedItemWhere, artistId: item.artistId, id: { not: item.id } },
-      orderBy: SORTS.popular,
-      take: 5,
-      select: itemCardSelect,
-    });
-    return { artist: item.artist, items: rows.map(toItemCard) };
-  }),
+  moreFromArtist: publicProcedure
+    .input(z.object({ itemSlug: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      const item = await ctx.db.item.findUnique({
+        where: { slug: input.itemSlug },
+        select: { id: true, artistId: true, artist: { select: { name: true, slug: true } } },
+      });
+      if (!item?.artistId) return null;
+      const rows = await ctx.db.item.findMany({
+        where: { ...listedItemWhere, artistId: item.artistId, id: { not: item.id } },
+        orderBy: SORTS.popular,
+        take: 5,
+        select: itemCardSelect,
+      });
+      return { artist: item.artist, items: rows.map(toItemCard) };
+    }),
 
   /** The marketplace grid: everything for sale, by type, search and sort, a page at a time. */
   browse: publicProcedure

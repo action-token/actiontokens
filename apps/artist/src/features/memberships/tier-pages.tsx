@@ -16,7 +16,13 @@ import { TierForm } from "./tier-form";
 const BACK = { href: "/memberships", label: "Memberships" };
 
 /** Both tier pages need the fan token's code, and a tier can't exist without the token. */
-function WithToken({ title, children }: { title: string; children: (code: string) => React.ReactNode }) {
+function WithToken({
+  title,
+  children,
+}: {
+  title: string;
+  children: (code: string) => React.ReactNode;
+}) {
   const token = api.memberships.fanToken.useQuery();
   if (token.data) return <>{children(token.data.code)}</>;
   return (
@@ -42,7 +48,9 @@ function WithToken({ title, children }: { title: string; children: (code: string
   );
 }
 
-export const NewTierView = () => <WithToken title="New tier">{(code) => <TierForm tokenCode={code} />}</WithToken>;
+export const NewTierView = () => (
+  <WithToken title="New tier">{(code) => <TierForm tokenCode={code} />}</WithToken>
+);
 
 export function EditTierView({ tierId }: { tierId: string }) {
   const tiers = api.memberships.tiers.useQuery();
@@ -51,9 +59,19 @@ export function EditTierView({ tierId }: { tierId: string }) {
     return (
       <PageBody className="grid gap-6">
         <PageHeader back={BACK} eyebrow="Fans" title="Edit tier" />
-        {tiers.isPending ? <Skeleton className="h-96 w-full max-w-2xl rounded-xl" /> : tiers.isError ? <ErrorState message="Couldn't load this tier." onRetry={() => void tiers.refetch()} /> : <ErrorState message="This tier doesn't exist." />}
+        {tiers.isPending ? (
+          <Skeleton className="h-96 w-full max-w-2xl rounded-xl" />
+        ) : tiers.isError ? (
+          <ErrorState message="Couldn't load this tier." onRetry={() => void tiers.refetch()} />
+        ) : (
+          <ErrorState message="This tier doesn't exist." />
+        )}
       </PageBody>
     );
   }
-  return <WithToken title={tier.name}>{(code) => <TierForm existing={tier} tokenCode={code} />}</WithToken>;
+  return (
+    <WithToken title={tier.name}>
+      {(code) => <TierForm existing={tier} tokenCode={code} />}
+    </WithToken>
+  );
 }

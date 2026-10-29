@@ -15,9 +15,13 @@ export const claimRouter = createRouter({
     .input(z.object({ spotId: z.string().min(1) }))
     .query(({ ctx, input }) => claimOverview(ctx, ctx.session.user.id, input.spotId)),
 
-  quote: authedProcedure.input(claimId).query(({ ctx, input }) => quoteClaim(ctx, ctx.session.user, input.claimId)),
+  quote: authedProcedure
+    .input(claimId)
+    .query(({ ctx, input }) => quoteClaim(ctx, ctx.session.user, input.claimId)),
 
-  prepare: authedProcedure.input(claimId).mutation(({ ctx, input }) => prepareClaim(ctx, ctx.session.user, input.claimId)),
+  prepare: authedProcedure
+    .input(claimId)
+    .mutation(({ ctx, input }) => prepareClaim(ctx, ctx.session.user, input.claimId)),
 
   submit: authedProcedure
     .input(claimId.extend({ xdr: z.string().min(1).max(20_000) }))

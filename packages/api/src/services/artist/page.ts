@@ -41,25 +41,45 @@ export function readDesign(raw: unknown): Design {
 }
 
 /** The page visitors see, or null when the artist hasn't published one (the fan app then shows its standard page). */
-export async function publishedDesign(ctx: Pick<ServiceCtx, "db">, artistId: string): Promise<Design | null> {
-  const layout = await ctx.db.pageLayout.findFirst({ where: { artistId, isActive: true, status: "PUBLISHED" }, select: { publishedBlocks: true } });
+export async function publishedDesign(
+  ctx: Pick<ServiceCtx, "db">,
+  artistId: string,
+): Promise<Design | null> {
+  const layout = await ctx.db.pageLayout.findFirst({
+    where: { artistId, isActive: true, status: "PUBLISHED" },
+    select: { publishedBlocks: true },
+  });
   return layout?.publishedBlocks ? readDesign(layout.publishedBlocks) : null;
 }
 
 const sameDesign = (a: Design, b: Design) => JSON.stringify(a) === JSON.stringify(b);
 
 async function ensureLayout(ctx: ServiceCtx, artist: ArtistRef) {
-  const existing = await ctx.db.pageLayout.findFirst({ where: { artistId: artist.id }, orderBy: { createdAt: "asc" } });
+  const existing = await ctx.db.pageLayout.findFirst({
+    where: { artistId: artist.id },
+    orderBy: { createdAt: "asc" },
+  });
   if (existing) return existing;
   const template = templateByKey(DEFAULT_TEMPLATE_KEY) ?? TEMPLATES[0]!;
   return ctx.db.pageLayout.create({
-    data: { artistId: artist.id, name: "My page", templateKey: template.key, theme: template.theme, draftBlocks: json(blocksOf(template, newUid)), status: "DRAFT", isActive: false },
+    data: {
+      artistId: artist.id,
+      name: "My page",
+      templateKey: template.key,
+      theme: template.theme,
+      draftBlocks: json(blocksOf(template, newUid)),
+      status: "DRAFT",
+      isActive: false,
+    },
   });
 }
 
 export async function getEditor(ctx: ServiceCtx, artist: ArtistRef) {
   const layout = await ensureLayout(ctx, artist);
-  const draft: Design = { blocks: normalizeBlocks(layout.draftBlocks, newUid), theme: themeOf(layout.theme) };
+  const draft: Design = {
+    blocks: normalizeBlocks(layout.draftBlocks, newUid),
+    theme: themeOf(layout.theme),
+  };
   const published = layout.publishedBlocks ? readDesign(layout.publishedBlocks) : null;
   return {
     layoutId: layout.id,
@@ -80,18 +100,26 @@ function checkImages(blocks: Block[]) {
   for (const block of blocks) {
     if (block.type !== ("band-members" satisfies BlockType)) continue;
     const members = (block.settings.members ?? []) as { photoUrl?: string }[];
-    if (members.some((member) => member.photoUrl && !isOwnS3Url(member.photoUrl))) throw invalid("Upload the photos again.");
+    if (members.some((member) => member.photoUrl && !isOwnS3Url(member.photoUrl)))
+      throw invalid("Upload the photos again.");
   }
 }
 
-export async function saveDraft(ctx: ServiceCtx, artist: ArtistRef, input: { blocks: unknown; theme: unknown }) {
+export async function saveDraft(
+  ctx: ServiceCtx,
+  artist: ArtistRef,
+  input: { blocks: unknown; theme: unknown },
+) {
   const theme = themeSchema.safeParse(input.theme);
   if (!theme.success) throw invalid("Pick a valid accent colour and style.");
   const blocks = normalizeBlocks(input.blocks, newUid);
   checkImages(blocks);
   const layout = await ensureLayout(ctx, artist);
   ctx.activity.set({ targetType: "PageLayout", targetId: layout.id });
-  await ctx.db.pageLayout.update({ where: { id: layout.id }, data: { draftBlocks: json(blocks), theme: theme.data } });
+  await ctx.db.pageLayout.update({
+    where: { id: layout.id },
+    data: { draftBlocks: json(blocks), theme: theme.data },
+  });
   return { layoutId: layout.id, savedAt: new Date() };
 }
 
@@ -99,9 +127,15 @@ export async function saveDraft(ctx: ServiceCtx, artist: ArtistRef, input: { blo
 export async function publishPage(ctx: ServiceCtx, artist: ArtistRef) {
   const layout = await ensureLayout(ctx, artist);
   ctx.activity.set({ targetType: "PageLayout", targetId: layout.id });
-  const design: Design = { blocks: normalizeBlocks(layout.draftBlocks, newUid), theme: themeOf(layout.theme) };
+  const design: Design = {
+    blocks: normalizeBlocks(layout.draftBlocks, newUid),
+    theme: themeOf(layout.theme),
+  };
   const publishedAt = new Date();
-  await ctx.db.pageLayout.update({ where: { id: layout.id }, data: { publishedBlocks: json(design), status: "PUBLISHED", isActive: true, publishedAt } });
+  await ctx.db.pageLayout.update({
+    where: { id: layout.id },
+    data: { publishedBlocks: json(design), status: "PUBLISHED", isActive: true, publishedAt },
+  });
   return { layoutId: layout.id, publishedAt };
 }
 
@@ -110,18 +144,31 @@ export async function discardDraft(ctx: ServiceCtx, artist: ArtistRef) {
   const layout = await ensureLayout(ctx, artist);
   ctx.activity.set({ targetType: "PageLayout", targetId: layout.id });
   const template = templateByKey(layout.templateKey ?? DEFAULT_TEMPLATE_KEY) ?? TEMPLATES[0]!;
-  const design: Design = layout.publishedBlocks ? readDesign(layout.publishedBlocks) : { blocks: blocksOf(template, newUid), theme: template.theme };
-  await ctx.db.pageLayout.update({ where: { id: layout.id }, data: { draftBlocks: json(design.blocks), theme: design.theme } });
+  const design: Design = layout.publishedBlocks
+    ? readDesign(layout.publishedBlocks)
+    : { blocks: blocksOf(template, newUid), theme: template.theme };
+  await ctx.db.pageLayout.update({
+    where: { id: layout.id },
+    data: { draftBlocks: json(design.blocks), theme: design.theme },
+  });
   return { layoutId: layout.id };
 }
 
 /** Starts the draft over from a template. The published page is untouched until the artist publishes. */
 export async function applyTemplate(ctx: ServiceCtx, artist: ArtistRef, key: string) {
   const template = templateByKey(key);
-  if (!template) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Template not found" });
+  if (!template)
+    throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Template not found" });
   const layout = await ensureLayout(ctx, artist);
   ctx.activity.set({ targetType: "PageLayout", targetId: layout.id });
-  await ctx.db.pageLayout.update({ where: { id: layout.id }, data: { templateKey: template.key, draftBlocks: json(blocksOf(template, newUid)), theme: template.theme } });
+  await ctx.db.pageLayout.update({
+    where: { id: layout.id },
+    data: {
+      templateKey: template.key,
+      draftBlocks: json(blocksOf(template, newUid)),
+      theme: template.theme,
+    },
+  });
   return { layoutId: layout.id };
 }
 
@@ -129,12 +176,21 @@ export async function applyTemplate(ctx: ServiceCtx, artist: ArtistRef, key: str
 export async function unpublishPage(ctx: ServiceCtx, artist: ArtistRef) {
   const layout = await ensureLayout(ctx, artist);
   ctx.activity.set({ targetType: "PageLayout", targetId: layout.id });
-  await ctx.db.pageLayout.update({ where: { id: layout.id }, data: { status: "DRAFT", isActive: false } });
+  await ctx.db.pageLayout.update({
+    where: { id: layout.id },
+    data: { status: "DRAFT", isActive: false },
+  });
   return { layoutId: layout.id };
 }
 
 /** The draft, for the owner's live preview on the fan app. */
 export async function draftDesign(ctx: Pick<ServiceCtx, "db">, artistId: string): Promise<Design> {
-  const layout = await ctx.db.pageLayout.findFirst({ where: { artistId }, orderBy: { createdAt: "asc" }, select: { draftBlocks: true, theme: true } });
-  return layout ? { blocks: normalizeBlocks(layout.draftBlocks, newUid), theme: themeOf(layout.theme) } : { blocks: normalizeBlocks([], newUid), theme: DEFAULT_THEME };
+  const layout = await ctx.db.pageLayout.findFirst({
+    where: { artistId },
+    orderBy: { createdAt: "asc" },
+    select: { draftBlocks: true, theme: true },
+  });
+  return layout
+    ? { blocks: normalizeBlocks(layout.draftBlocks, newUid), theme: themeOf(layout.theme) }
+    : { blocks: normalizeBlocks([], newUid), theme: DEFAULT_THEME };
 }

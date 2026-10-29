@@ -40,9 +40,17 @@ export function AnnouncementsView() {
       {announcements.isPending ? (
         <Skeleton className="h-40 w-full max-w-3xl rounded-xl" />
       ) : announcements.isError ? (
-        <ErrorState message="Couldn't load your announcements." onRetry={() => void announcements.refetch()} />
+        <ErrorState
+          message="Couldn't load your announcements."
+          onRetry={() => void announcements.refetch()}
+        />
       ) : announcements.data.length === 0 ? (
-        <EmptyState icon={Megaphone} title="Nothing posted yet" description="Tell fans about a release, a tour date or a drop." action={add} />
+        <EmptyState
+          icon={Megaphone}
+          title="Nothing posted yet"
+          description="Tell fans about a release, a tour date or a drop."
+          action={add}
+        />
       ) : (
         <ul className="grid max-w-3xl gap-3">
           {announcements.data.map((item) => (
@@ -61,7 +69,8 @@ function AnnouncementCard({ announcement }: { announcement: Announcement }) {
     onSuccess: () => void utils.engage.announcements.invalidate(),
     onError: (error) => toast.error(error.message),
   });
-  const expired = announcement.expiresAt !== null && new Date(announcement.expiresAt).getTime() <= now;
+  const expired =
+    announcement.expiresAt !== null && new Date(announcement.expiresAt).getTime() <= now;
 
   return (
     <li className="bg-surface grid gap-3 rounded-xl border p-4 sm:p-5">
@@ -82,20 +91,35 @@ function AnnouncementCard({ announcement }: { announcement: Announcement }) {
           <div className="flex gap-2">
             {announcement.imageUrls.map((url) => (
               // eslint-disable-next-line @next/next/no-img-element
-              <img key={url} src={url} alt="" className="bg-surface-2 size-16 rounded-lg object-cover" />
+              <img
+                key={url}
+                src={url}
+                alt=""
+                className="bg-surface-2 size-16 rounded-lg object-cover"
+              />
             ))}
           </div>
         )}
         <p className="text-fg-faint text-xs">
-          Posted {formatWhen(announcement.createdAt)} · {announcement.comments} comment{announcement.comments === 1 ? "" : "s"}
-          {announcement.expiresAt && !expired ? ` · hides ${formatWhen(announcement.expiresAt)}` : ""}
+          Posted {formatWhen(announcement.createdAt)} · {announcement.comments} comment
+          {announcement.comments === 1 ? "" : "s"}
+          {announcement.expiresAt && !expired
+            ? ` · hides ${formatWhen(announcement.expiresAt)}`
+            : ""}
         </p>
       </Link>
       <div className="flex flex-wrap gap-2 border-t pt-3">
         <Button asChild size="sm" variant="secondary">
           <Link href={`/announcements/${announcement.id}`}>Edit</Link>
         </Button>
-        <Button size="sm" variant="ghost" disabled={pin.isPending} onClick={() => pin.mutate({ announcementId: announcement.id, isPinned: !announcement.isPinned })}>
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={pin.isPending}
+          onClick={() =>
+            pin.mutate({ announcementId: announcement.id, isPinned: !announcement.isPinned })
+          }
+        >
           {announcement.isPinned ? "Unpin" : "Pin"}
         </Button>
       </div>

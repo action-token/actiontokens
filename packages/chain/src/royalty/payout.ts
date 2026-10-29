@@ -1,7 +1,12 @@
 import { type Account, type Asset, Operation } from "@stellar/stellar-sdk";
 
 import { isZero } from "../classic/purchase";
-import { type BuiltTransaction, finish, type NetworkParams, startTransaction } from "../transaction";
+import {
+  type BuiltTransaction,
+  finish,
+  type NetworkParams,
+  startTransaction,
+} from "../transaction";
 
 /** Stellar's limit on operations in one transaction. */
 export const MAX_OPERATIONS_PER_TX = 100;
@@ -26,7 +31,9 @@ export function buildRoyaltyPayouts(input: {
     // build() bumps the account's sequence, so each batch follows the last.
     const builder = startTransaction(input.payer, input.network, { memo: input.payoutId });
     for (const line of lines.slice(start, start + MAX_OPERATIONS_PER_TX)) {
-      builder.addOperation(Operation.payment({ destination: line.to, asset: input.asset, amount: line.amount }));
+      builder.addOperation(
+        Operation.payment({ destination: line.to, asset: input.asset, amount: line.amount }),
+      );
     }
     batches.push(finish(builder));
   }

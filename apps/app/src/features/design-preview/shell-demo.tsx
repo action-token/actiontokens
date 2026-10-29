@@ -1,6 +1,21 @@
 "use client";
 
-import { Heart, Home, Layers, ListMusic, MapPin, Music, Pause, Play, Search, SkipBack, SkipForward, Store, Trophy, Volume2 } from "lucide-react";
+import {
+  Heart,
+  Home,
+  Layers,
+  ListMusic,
+  MapPin,
+  Music,
+  Pause,
+  Play,
+  Search,
+  SkipBack,
+  SkipForward,
+  Store,
+  Trophy,
+  Volume2,
+} from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
@@ -41,10 +56,15 @@ export function ShellDemo() {
 
   return (
     <div className="bg-bg shadow-raised grid min-h-[620px] grid-cols-1 grid-rows-[minmax(0,1fr)_auto] overflow-hidden rounded-xl border sm:grid-cols-[64px_minmax(0,1fr)] xl:grid-cols-[200px_minmax(0,1fr)_260px]">
-      <nav aria-label="Main" className="bg-surface hidden content-start gap-1 border-r px-3 py-4 sm:grid">
+      <nav
+        aria-label="Main"
+        className="bg-surface hidden content-start gap-1 border-r px-3 py-4 sm:grid"
+      >
         <div className="flex items-center justify-center gap-2 pb-4 xl:justify-start xl:px-2">
           <BrandMark className="size-[26px]" />
-          <span className="font-display hidden text-[15px] font-extrabold tracking-tight xl:inline">Bandcoin</span>
+          <span className="font-display hidden text-[15px] font-extrabold tracking-tight xl:inline">
+            Bandcoin
+          </span>
         </div>
         {NAV.map(({ icon: Icon, label, current, gap }) => (
           <div key={label} className="contents">
@@ -100,7 +120,10 @@ export function ShellDemo() {
           {TRENDING.map(([cover, title, artist, price]) => (
             <div key={title} className="group grid min-w-0 cursor-pointer gap-2">
               <div className="relative">
-                <SampleCover name={cover} className="transition-transform duration-250 group-hover:-translate-y-[3px]" />
+                <SampleCover
+                  name={cover}
+                  className="transition-transform duration-250 group-hover:-translate-y-[3px]"
+                />
                 <button
                   type="button"
                   aria-label={`Play ${title}`}
@@ -119,7 +142,10 @@ export function ShellDemo() {
         </MediaCarousel>
       </div>
 
-      <aside aria-label="Now playing" className="bg-surface hidden content-start gap-5 border-l p-4 xl:grid">
+      <aside
+        aria-label="Now playing"
+        className="bg-surface hidden content-start gap-5 border-l p-4 xl:grid"
+      >
         <div className="grid gap-3">
           <span className="eyebrow">Now playing</span>
           <SampleCover name="sunset" />
@@ -131,7 +157,10 @@ export function ShellDemo() {
         <div className="grid gap-3">
           <span className="eyebrow">More from Lumen Avenue</span>
           {MORE.map(([cover, title, kind, price]) => (
-            <div key={title} className="grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-3 text-[13px]">
+            <div
+              key={title}
+              className="grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-3 text-[13px]"
+            >
               <SampleCover name={cover} className="rounded-sm" />
               <div className="min-w-0">
                 <b className="block truncate font-semibold">{title}</b>
@@ -143,7 +172,10 @@ export function ShellDemo() {
         </div>
       </aside>
 
-      <div aria-label="Player" className="bg-surface col-span-full grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-t px-4 py-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)]">
+      <div
+        aria-label="Player"
+        className="bg-surface col-span-full grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-t px-4 py-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)]"
+      >
         <div className="flex min-w-0 items-center gap-3">
           <SampleCover name="sunset" className="w-11 shrink-0 rounded-sm" />
           <div className="min-w-0">
@@ -153,13 +185,28 @@ export function ShellDemo() {
         </div>
         <div className="grid justify-items-center gap-1.5">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon-sm" aria-label="Previous" className="hidden sm:inline-flex">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Previous"
+              className="hidden sm:inline-flex"
+            >
               <SkipBack className="fill-current" />
             </Button>
-            <Button size="icon" aria-label={playing ? "Pause" : "Play"} className="bg-fg text-bg hover:bg-fg/90" onClick={() => setPlaying((p) => !p)}>
+            <Button
+              size="icon"
+              aria-label={playing ? "Pause" : "Play"}
+              className="bg-fg text-bg hover:bg-fg/90"
+              onClick={() => setPlaying((p) => !p)}
+            >
               {playing ? <Pause className="fill-current" /> : <Play className="fill-current" />}
             </Button>
-            <Button variant="ghost" size="icon-sm" aria-label="Next" className="hidden sm:inline-flex">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Next"
+              className="hidden sm:inline-flex"
+            >
               <SkipForward className="fill-current" />
             </Button>
           </div>

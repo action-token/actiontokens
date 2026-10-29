@@ -30,7 +30,9 @@ export const createCallerFactory = t.createCallerFactory;
  * Every procedure starts here: AppErrors become the matching tRPC error, and
  * every mutation writes an activity log row (see activity/middleware.ts).
  */
-const baseProcedure = t.procedure.use(t.middleware(appErrorMiddleware)).use(t.middleware(logActivity));
+const baseProcedure = t.procedure
+  .use(t.middleware(appErrorMiddleware))
+  .use(t.middleware(logActivity));
 
 /** Anyone, signed in or not. Browsing and previews work without an account. */
 export const publicProcedure = baseProcedure;
@@ -47,7 +49,9 @@ export const artistProcedure = authedProcedure.use(async ({ ctx, next }) => {
   const artist = await ctx.db.artist.findUnique({ where: { userId: ctx.session.user.id } });
   if (!artist) throw new AppError(ErrorCodes.AUTH_NOT_A_CREATOR);
   if (artist.status !== "APPROVED") {
-    throw new AppError(ErrorCodes.AUTH_FORBIDDEN, { message: "Your artist profile is waiting for approval." });
+    throw new AppError(ErrorCodes.AUTH_FORBIDDEN, {
+      message: "Your artist profile is waiting for approval.",
+    });
   }
   return next({ ctx: { artist } });
 });

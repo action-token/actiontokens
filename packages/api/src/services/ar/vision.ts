@@ -112,7 +112,9 @@ async function annotate(
   }[],
 ) {
   const c = client()!;
-  const project = process.env.GOOGLE_VISION_CREDENTIALS ? undefined : process.env.GOOGLE_CLOUD_PROJECT;
+  const project = process.env.GOOGLE_VISION_CREDENTIALS
+    ? undefined
+    : process.env.GOOGLE_CLOUD_PROJECT;
   let res;
   try {
     res = await c.request<{ responses: AnnotateResponse[] }>({

@@ -46,7 +46,10 @@ export function MapPicker({
   const map = useRef<MapRef>(null);
   const editable = Boolean(onChange);
   const [locating, setLocating] = useState(false);
-  const [draft, setDraft] = useState({ lat: value?.lat.toString() ?? "", lng: value?.lng.toString() ?? "" });
+  const [draft, setDraft] = useState({
+    lat: value?.lat.toString() ?? "",
+    lng: value?.lng.toString() ?? "",
+  });
 
   // When the point moves (map click, search), show its coordinates in the inputs, adjusted during render.
   const pointKey = value ? `${value.lat},${value.lng}` : "";
@@ -56,13 +59,24 @@ export function MapPicker({
     setDraft({ lat: value?.lat.toFixed(6) ?? "", lng: value?.lng.toFixed(6) ?? "" });
   }
 
-  const fly = (point: LatLng, zoom = 15) => map.current?.flyTo({ center: [point.lng, point.lat], zoom: Math.max(zoom, map.current.getZoom()), duration: 700 });
+  const fly = (point: LatLng, zoom = 15) =>
+    map.current?.flyTo({
+      center: [point.lng, point.lat],
+      zoom: Math.max(zoom, map.current.getZoom()),
+      duration: 700,
+    });
   const set = (point: LatLng, flyTo = false) => {
     onChange?.({ lat: Number(point.lat.toFixed(6)), lng: Number(point.lng.toFixed(6)) });
     if (flyTo) fly(point);
   };
 
-  const area = useMemo(() => (value && radiusMetres && radiusMetres > 0 ? toMapboxFeature(circleAround(value, radiusMetres)) : null), [value, radiusMetres]);
+  const area = useMemo(
+    () =>
+      value && radiusMetres && radiusMetres > 0
+        ? toMapboxFeature(circleAround(value, radiusMetres))
+        : null,
+    [value, radiusMetres],
+  );
 
   const settled = useDebounced(value, 700);
   useEffect(() => {
@@ -79,7 +93,15 @@ export function MapPicker({
   function commitDraft() {
     const lat = Number(draft.lat);
     const lng = Number(draft.lng);
-    if (draft.lat !== "" && draft.lng !== "" && Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) set({ lat, lng }, true);
+    if (
+      draft.lat !== "" &&
+      draft.lng !== "" &&
+      Number.isFinite(lat) &&
+      Number.isFinite(lng) &&
+      Math.abs(lat) <= 90 &&
+      Math.abs(lng) <= 180
+    )
+      set({ lat, lng }, true);
   }
 
   function locate() {
@@ -104,24 +126,57 @@ export function MapPicker({
         <div className="bg-surface-2 relative h-72 overflow-hidden rounded-xl border">
           <BaseMap
             ref={map}
-            initialViewState={value ? { latitude: value.lat, longitude: value.lng, zoom: 15 } : WORLD_VIEW}
-            onClick={editable ? (event) => set({ lat: event.lngLat.lat, lng: event.lngLat.lng }) : undefined}
+            initialViewState={
+              value ? { latitude: value.lat, longitude: value.lng, zoom: 15 } : WORLD_VIEW
+            }
+            onClick={
+              editable
+                ? (event) => set({ lat: event.lngLat.lat, lng: event.lngLat.lng })
+                : undefined
+            }
             cursor={editable ? "crosshair" : undefined}
           >
             {area && (
               <Source id="picker-area" type="geojson" data={area}>
-                <Layer id="picker-area-fill" type="fill" paint={{ "fill-color": AREA, "fill-opacity": 0.18 }} />
-                <Layer id="picker-area-line" type="line" paint={{ "line-color": AREA, "line-width": 2, "line-dasharray": [2, 1] }} />
+                <Layer
+                  id="picker-area-fill"
+                  type="fill"
+                  paint={{ "fill-color": AREA, "fill-opacity": 0.18 }}
+                />
+                <Layer
+                  id="picker-area-line"
+                  type="line"
+                  paint={{ "line-color": AREA, "line-width": 2, "line-dasharray": [2, 1] }}
+                />
               </Source>
             )}
             {spots.map((spot) => (
-              <Marker key={spot.id} longitude={spot.longitude} latitude={spot.latitude} anchor="center">
-                <span className={cn("block size-3 rounded-full border-2 border-white shadow", spot.hidden ? "bg-fg-faint" : "bg-primary-strong")} />
+              <Marker
+                key={spot.id}
+                longitude={spot.longitude}
+                latitude={spot.latitude}
+                anchor="center"
+              >
+                <span
+                  className={cn(
+                    "block size-3 rounded-full border-2 border-white shadow",
+                    spot.hidden ? "bg-fg-faint" : "bg-primary-strong",
+                  )}
+                />
               </Marker>
             ))}
             {value && (
-              <Marker latitude={value.lat} longitude={value.lng} anchor="bottom" draggable={editable} onDragEnd={(event) => set({ lat: event.lngLat.lat, lng: event.lngLat.lng })}>
-                <MapPin className="fill-primary text-primary-ink size-9 drop-shadow-md" strokeWidth={1.5} />
+              <Marker
+                latitude={value.lat}
+                longitude={value.lng}
+                anchor="bottom"
+                draggable={editable}
+                onDragEnd={(event) => set({ lat: event.lngLat.lat, lng: event.lngLat.lng })}
+              >
+                <MapPin
+                  className="fill-primary text-primary-ink size-9 drop-shadow-md"
+                  strokeWidth={1.5}
+                />
               </Marker>
             )}
           </BaseMap>
@@ -142,13 +197,17 @@ export function MapPicker({
                 aria-label="Use my current location"
                 title="Use my current location"
               >
-                <LocateFixed className={cn("size-4", locating && "text-primary-text animate-pulse")} />
+                <LocateFixed
+                  className={cn("size-4", locating && "text-primary-text animate-pulse")}
+                />
               </button>
             </div>
           )}
           {editable && !value && (
             <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 flex justify-center">
-              <span className="bg-surface/95 rounded-full border px-3 py-1 text-xs font-medium shadow">Click the map to place it</span>
+              <span className="bg-surface/95 rounded-full border px-3 py-1 text-xs font-medium shadow">
+                Click the map to place it
+              </span>
             </div>
           )}
         </div>
@@ -170,9 +229,13 @@ export function MapPicker({
                 inputMode="decimal"
                 value={draft[key]}
                 disabled={!editable}
-                onChange={(event) => setDraft((current) => ({ ...current, [key]: event.target.value }))}
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, [key]: event.target.value }))
+                }
                 onBlur={commitDraft}
-                onKeyDown={(event) => event.key === "Enter" && (event.preventDefault(), commitDraft())}
+                onKeyDown={(event) =>
+                  event.key === "Enter" && (event.preventDefault(), commitDraft())
+                }
                 placeholder={key === "lat" ? "23.8103" : "90.4125"}
                 className="font-mono text-sm"
               />

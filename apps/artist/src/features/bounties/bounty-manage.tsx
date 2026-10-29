@@ -28,7 +28,8 @@ type Bounty = RouterOutputs["bounties"]["get"];
 type Currency = "BANDCOIN" | "XLM" | "USDC";
 type Person = Bounty["winners"][number]["user"];
 
-const nameOf = (user: Pick<Person, "displayName" | "username">) => user.displayName ?? user.username ?? "A fan";
+const nameOf = (user: Pick<Person, "displayName" | "username">) =>
+  user.displayName ?? user.username ?? "A fan";
 
 /** Everything about one bounty: its state, reports, participants and winners. */
 export function BountyManage({ bountyId }: { bountyId: string }) {
@@ -92,17 +93,32 @@ function Loaded({ bounty }: { bounty: Bounty }) {
               </Link>
             </Button>
             {bounty.funded && bounty.status === "RUNNING" && (
-              <Button variant="ghost" size="sm" disabled={setStatus.isPending} onClick={() => setStatus.mutate({ bountyId: bounty.id, status: "PAUSED" })}>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={setStatus.isPending}
+                onClick={() => setStatus.mutate({ bountyId: bounty.id, status: "PAUSED" })}
+              >
                 Pause
               </Button>
             )}
             {bounty.funded && bounty.status === "PAUSED" && (
-              <Button variant="ghost" size="sm" disabled={setStatus.isPending} onClick={() => setStatus.mutate({ bountyId: bounty.id, status: "RUNNING" })}>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={setStatus.isPending}
+                onClick={() => setStatus.mutate({ bountyId: bounty.id, status: "RUNNING" })}
+              >
                 Resume
               </Button>
             )}
             {bounty.funded && bounty.status !== "COMPLETED" && (
-              <Button variant="ghost" size="sm" disabled={setStatus.isPending} onClick={() => setStatus.mutate({ bountyId: bounty.id, status: "COMPLETED" })}>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={setStatus.isPending}
+                onClick={() => setStatus.mutate({ bountyId: bounty.id, status: "COMPLETED" })}
+              >
                 Mark completed
               </Button>
             )}
@@ -114,10 +130,19 @@ function Loaded({ bounty }: { bounty: Bounty }) {
         <section role="note" className="bg-surface grid max-w-3xl gap-3 rounded-xl border p-5">
           <h2 className="display text-lg">This bounty isn&apos;t funded yet</h2>
           <p className="text-fg-muted text-sm">
-            Fans can&apos;t see it until its prize of <Money amount={bounty.prizeAmount} currency={currency} /> is in escrow. You pay the prize and the network fee.
+            Fans can&apos;t see it until its prize of{" "}
+            <Money amount={bounty.prizeAmount} currency={currency} /> is in escrow. You pay the
+            prize and the network fee.
           </p>
           <div className="flex flex-wrap gap-2">
-            <Button disabled={funding.busy} onClick={() => void funding.fund(bounty.id, <Money amount={bounty.prizeAmount} currency={currency} />).then(() => utils.bounties.get.invalidate({ bountyId: bounty.id }))}>
+            <Button
+              disabled={funding.busy}
+              onClick={() =>
+                void funding
+                  .fund(bounty.id, <Money amount={bounty.prizeAmount} currency={currency} />)
+                  .then(() => utils.bounties.get.invalidate({ bountyId: bounty.id }))
+              }
+            >
               {funding.busy && <Loader2 className="animate-spin" />} Fund it now
             </Button>
             <Button variant="ghost" onClick={() => setDiscarding(true)}>
@@ -208,12 +233,25 @@ function PickWinner({ bounty, userId, name }: { bounty: Bounty; userId: string; 
     <div className="bg-surface-2 grid gap-2 rounded-lg p-3">
       <label className="grid gap-1 text-xs">
         <span className="text-fg-muted">
-          {name}&apos;s prize ({currency}), up to <Money amount={String(left)} currency={currency} />
+          {name}&apos;s prize ({currency}), up to{" "}
+          <Money amount={String(left)} currency={currency} />
         </span>
-        <Input inputMode="decimal" value={amount} aria-label={`Prize for ${name}`} onChange={(event) => setAmount(event.target.value.trim())} className="max-w-40" />
+        <Input
+          inputMode="decimal"
+          value={amount}
+          aria-label={`Prize for ${name}`}
+          onChange={(event) => setAmount(event.target.value.trim())}
+          className="max-w-40"
+        />
       </label>
       <div className="flex flex-wrap gap-2">
-        <Button size="sm" disabled={pick.busy || Number(amount) <= 0} onClick={() => void pick.pickWinner(userId, amount, <Money amount={amount} currency={currency} />)}>
+        <Button
+          size="sm"
+          disabled={pick.busy || Number(amount) <= 0}
+          onClick={() =>
+            void pick.pickWinner(userId, amount, <Money amount={amount} currency={currency} />)
+          }
+        >
           {pick.busy && <Loader2 className="animate-spin" />} Pick {name}
         </Button>
         <Button size="sm" variant="ghost" disabled={pick.busy} onClick={() => setOpen(false)}>
@@ -228,31 +266,52 @@ function PickWinner({ bounty, userId, name }: { bounty: Bounty; userId: string; 
 function Reports({ bounty, canPick }: { bounty: Bounty; canPick: boolean }) {
   const submissions = api.bounties.submissions.useQuery({ bountyId: bounty.id });
   if (submissions.isPending) return <Skeleton className="mt-3 h-32 w-full rounded-xl" />;
-  if (submissions.isError) return <ErrorState message="Couldn't load the reports." onRetry={() => void submissions.refetch()} />;
-  if (submissions.data.length === 0) return <p className="text-fg-muted py-6 text-sm">No reports yet.</p>;
+  if (submissions.isError)
+    return (
+      <ErrorState message="Couldn't load the reports." onRetry={() => void submissions.refetch()} />
+    );
+  if (submissions.data.length === 0)
+    return <p className="text-fg-muted py-6 text-sm">No reports yet.</p>;
   return (
     <ul className="mt-3 grid gap-3">
       {submissions.data.map((submission) => (
         <li key={submission.id} className="bg-surface grid gap-3 rounded-xl border p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-sm">
-              <b>{nameOf(submission.user)}</b> <span className="text-fg-muted">· {timeAgo(submission.createdAt)}</span>
+              <b>{nameOf(submission.user)}</b>{" "}
+              <span className="text-fg-muted">· {timeAgo(submission.createdAt)}</span>
             </p>
-            {canPick && <PickWinner bounty={bounty} userId={submission.user.id} name={nameOf(submission.user)} />}
+            {canPick && (
+              <PickWinner
+                bounty={bounty}
+                userId={submission.user.id}
+                name={nameOf(submission.user)}
+              />
+            )}
           </div>
           <Markdown content={submission.body} compact />
           {(submission.attachments.length > 0 || submission.captures.length > 0) && (
             <ul className="flex flex-wrap gap-2 text-sm">
               {submission.attachments.map((file) => (
                 <li key={file.id}>
-                  <a href={file.url} target="_blank" rel="noreferrer" className="text-primary-text inline-flex items-center gap-1 underline underline-offset-2">
+                  <a
+                    href={file.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary-text inline-flex items-center gap-1 underline underline-offset-2"
+                  >
                     <ExternalLink className="size-3.5" /> {file.fileName ?? file.type.toLowerCase()}
                   </a>
                 </li>
               ))}
               {submission.captures.map((capture) => (
                 <li key={capture.id}>
-                  <a href={capture.storageUrl} target="_blank" rel="noreferrer" className="text-primary-text inline-flex items-center gap-1 underline underline-offset-2">
+                  <a
+                    href={capture.storageUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary-text inline-flex items-center gap-1 underline underline-offset-2"
+                  >
                     <ExternalLink className="size-3.5" /> Action Cam {capture.type.toLowerCase()}
                   </a>
                 </li>
@@ -268,8 +327,12 @@ function Reports({ bounty, canPick }: { bounty: Bounty; canPick: boolean }) {
 function Participants({ bounty, canPick }: { bounty: Bounty; canPick: boolean }) {
   const people = api.bounties.participants.useQuery({ bountyId: bounty.id });
   if (people.isPending) return <Skeleton className="mt-3 h-32 w-full rounded-xl" />;
-  if (people.isError) return <ErrorState message="Couldn't load the participants." onRetry={() => void people.refetch()} />;
-  if (people.data.length === 0) return <p className="text-fg-muted py-6 text-sm">Nobody has joined yet.</p>;
+  if (people.isError)
+    return (
+      <ErrorState message="Couldn't load the participants." onRetry={() => void people.refetch()} />
+    );
+  if (people.data.length === 0)
+    return <p className="text-fg-muted py-6 text-sm">Nobody has joined yet.</p>;
   return (
     <ul className="mt-3 divide-y rounded-xl border">
       {people.data.map((person) => (
@@ -278,10 +341,14 @@ function Participants({ bounty, canPick }: { bounty: Bounty; canPick: boolean })
             <b className="block truncate text-sm">{nameOf(person.user)}</b>
             <span className="text-fg-muted text-xs">
               Joined {timeAgo(person.joinedAt)}
-              {person.totalTracks > 0 ? ` · ${person.satisfiedCount}/${person.totalTracks} tracks (${person.progressPct}%)` : ""}
+              {person.totalTracks > 0
+                ? ` · ${person.satisfiedCount}/${person.totalTracks} tracks (${person.progressPct}%)`
+                : ""}
             </span>
           </div>
-          {canPick && <PickWinner bounty={bounty} userId={person.user.id} name={nameOf(person.user)} />}
+          {canPick && (
+            <PickWinner bounty={bounty} userId={person.user.id} name={nameOf(person.user)} />
+          )}
         </li>
       ))}
     </ul>
@@ -290,15 +357,21 @@ function Participants({ bounty, canPick }: { bounty: Bounty; canPick: boolean })
 
 function Winners({ bounty }: { bounty: Bounty }) {
   const currency = bounty.prizeCurrency as Currency;
-  if (bounty.winners.length === 0) return <p className="text-fg-muted py-6 text-sm">No winners picked yet.</p>;
+  if (bounty.winners.length === 0)
+    return <p className="text-fg-muted py-6 text-sm">No winners picked yet.</p>;
   return (
     <ul className="mt-3 divide-y rounded-xl border">
       {bounty.winners.map((winner) => (
-        <li key={winner.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
+        <li
+          key={winner.id}
+          className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm"
+        >
           <b>{nameOf(winner.user)}</b>
           <span className="flex items-center gap-3">
             <Money amount={winner.prizeAmount} currency={currency} />
-            <StatusPill tone={winner.claimedAt ? "success" : "neutral"}>{winner.claimedAt ? "Claimed" : "Not claimed yet"}</StatusPill>
+            <StatusPill tone={winner.claimedAt ? "success" : "neutral"}>
+              {winner.claimedAt ? "Claimed" : "Not claimed yet"}
+            </StatusPill>
           </span>
         </li>
       ))}

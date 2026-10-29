@@ -20,16 +20,26 @@ const RULES = `Rules:
 - Never invent URLs, prices, addresses or facts the artist didn't give; use null when unknown.
 - Respect every detail the artist gave (dates, numbers, names).`;
 
-export const WRITE_MODES = ["write", "improve", "shorter", "longer", "fun", "professional"] as const;
+export const WRITE_MODES = [
+  "write",
+  "improve",
+  "shorter",
+  "longer",
+  "fun",
+  "professional",
+] as const;
 export type WriteMode = (typeof WRITE_MODES)[number];
 
-const artistLine = ({ name, bio }: Artist) => `The artist is "${name}"${bio ? `: ${bio.slice(0, 300)}` : ""}.`;
+const artistLine = ({ name, bio }: Artist) =>
+  `The artist is "${name}"${bio ? `: ${bio.slice(0, 300)}` : ""}.`;
 
 const contextBlock = (context: Record<string, string>) => {
   const lines = Object.entries(context)
     .filter(([, value]) => value.trim())
     .map(([key, value]) => `- ${key}: ${value.slice(0, 1500)}`);
-  return lines.length > 0 ? `What's already in the form:\n${lines.join("\n")}` : "The form is empty so far.";
+  return lines.length > 0
+    ? `What's already in the form:\n${lines.join("\n")}`
+    : "The form is empty so far.";
 };
 
 const who = ({ artist, unlimited }: Who) => ({ artistId: artist.id, unlimited });
@@ -39,7 +49,13 @@ export async function fillForm<F extends FillForm>(
   ctx: GenerateCtx,
   model: AiModel,
   actor: Who,
-  input: { form: F; prompt: string; now: string; timeZone: string; context: Record<string, string> },
+  input: {
+    form: F;
+    prompt: string;
+    now: string;
+    timeZone: string;
+    context: Record<string, string>;
+  },
 ): Promise<FillResult<F>> {
   const schema = FILL_SCHEMAS[input.form];
   return withAiQuota(ctx, who(actor), "text", async () => {
@@ -50,14 +66,18 @@ ${RULES}`,
       user: `${contextBlock(input.context)}\n\nWhat the artist wants:\n${input.prompt}`,
       schema,
     });
-    if (!filled) throw new AppError(ErrorCodes.AI_GENERATION_FAILED, { message: "The AI didn't return a form. Try rephrasing." });
+    if (!filled)
+      throw new AppError(ErrorCodes.AI_GENERATION_FAILED, {
+        message: "The AI didn't return a form. Try rephrasing.",
+      });
     return filled as FillResult<F>;
   });
 }
 
 const TASKS: Record<WriteMode, (field: string) => string> = {
   write: (field) => `Write the ${field}.`,
-  improve: (field) => `Improve this ${field}: clearer, tighter, better flow. Keep its meaning and facts.`,
+  improve: (field) =>
+    `Improve this ${field}: clearer, tighter, better flow. Keep its meaning and facts.`,
   shorter: (field) => `Make this ${field} noticeably shorter. Keep the key facts.`,
   longer: (field) => `Expand this ${field} with more useful, specific detail (no invented facts).`,
   fun: (field) => `Rewrite this ${field} to be more playful and exciting.`,
@@ -69,7 +89,14 @@ export async function writeField(
   ctx: GenerateCtx,
   model: AiModel,
   actor: Who,
-  input: { form: FillForm; field: string; mode: WriteMode; current: string; maxChars?: number; context: Record<string, string> },
+  input: {
+    form: FillForm;
+    field: string;
+    mode: WriteMode;
+    current: string;
+    maxChars?: number;
+    context: Record<string, string>;
+  },
 ) {
   return withAiQuota(ctx, who(actor), "text", async () => {
     const raw = await model.write({
@@ -78,14 +105,24 @@ ${RULES}
 Return plain text only, no quotes, no markdown.${input.maxChars ? ` Stay under ${input.maxChars} characters.` : ""} Return only the ${input.field} itself.`,
       user: `${contextBlock(input.context)}\n\n${TASKS[input.mode](input.field)}${input.current.trim() ? `\n\nCurrent ${input.field}:\n${input.current}` : ""}`,
     });
-    let text = raw.trim().replace(/^```\w*\s*|\s*```$/g, "").replace(/^["“](.*)["”]$/s, "$1");
+    let text = raw
+      .trim()
+      .replace(/^```\w*\s*|\s*```$/g, "")
+      .replace(/^["“](.*)["”]$/s, "$1");
     if (input.maxChars) text = text.slice(0, input.maxChars);
-    if (!text) throw new AppError(ErrorCodes.AI_GENERATION_FAILED, { message: "The AI came back empty. Try again." });
+    if (!text)
+      throw new AppError(ErrorCodes.AI_GENERATION_FAILED, {
+        message: "The AI came back empty. Try again.",
+      });
     return { text };
   });
 }
 
-const SIZES: Record<"square" | "wide" | "portrait", ImageSize> = { square: "1024x1024", wide: "1536x1024", portrait: "1024x1536" };
+const SIZES: Record<"square" | "wide" | "portrait", ImageSize> = {
+  square: "1024x1024",
+  wide: "1536x1024",
+  portrait: "1024x1536",
+};
 
 /** Generate an image and store it with the artist's other uploads. */
 export async function generateImage(
@@ -99,13 +136,22 @@ export async function generateImage(
       prompt: `${input.prompt}\n\nFor ${FORM_BRIEF[input.form]}. High quality, eye-catching, no words, letters, logos or watermarks.`,
       size: SIZES[input.aspect],
     });
-    if (!bytes) throw new AppError(ErrorCodes.AI_GENERATION_FAILED, { message: "No image came back. Try again." });
+    if (!bytes)
+      throw new AppError(ErrorCodes.AI_GENERATION_FAILED, {
+        message: "No image came back. Try again.",
+      });
     return { url: await uploadBufferToS3(bytes, "image/png") };
   });
 }
 
 const TAG_COUNT = 7;
-const tagSchema = z.object({ tags: z.array(z.string()).describe(`Exactly ${TAG_COUNT} search tags, most useful first: the artist or series, the kind of thing, the theme, then the place`) });
+const tagSchema = z.object({
+  tags: z
+    .array(z.string())
+    .describe(
+      `Exactly ${TAG_COUNT} search tags, most useful first: the artist or series, the kind of thing, the theme, then the place`,
+    ),
+});
 
 /**
  * Search tags for a pin. The same title and place give the same tags, so a
@@ -118,7 +164,10 @@ export async function suggestPinTags(
   input: { title: string; description: string; type: string; place: string },
 ) {
   const key = `${tagName(input.title)}|${tagName(input.place)}`;
-  const cached = await ctx.db.pinTagCache.findUnique({ where: { title: key }, select: { tags: true } });
+  const cached = await ctx.db.pinTagCache.findUnique({
+    where: { title: key },
+    select: { tags: true },
+  });
   if (cached) return { tags: cached.tags };
 
   return withAiQuota(ctx, who(actor), "text", async () => {
@@ -128,9 +177,22 @@ Tags are short lowercase phrases of 1-3 words that fans would search for. No has
       user: `Title: ${input.title}\nType: ${input.type}\nPlace: ${input.place.trim() || "unknown"}\nDescription: ${input.description.trim().slice(0, 600) || "none"}`,
       schema: tagSchema,
     });
-    const tags = [...new Set((filled?.tags ?? []).map((tag) => tag.trim().toLowerCase().replace(/^#/, "")).filter((tag) => tag.length > 0 && tag.length <= 40))].slice(0, TAG_COUNT);
-    if (tags.length === 0) throw new AppError(ErrorCodes.AI_GENERATION_FAILED, { message: "The AI didn't suggest any tags. Try again." });
-    await ctx.db.pinTagCache.upsert({ where: { title: key }, create: { title: key, tags }, update: { tags } });
+    const tags = [
+      ...new Set(
+        (filled?.tags ?? [])
+          .map((tag) => tag.trim().toLowerCase().replace(/^#/, ""))
+          .filter((tag) => tag.length > 0 && tag.length <= 40),
+      ),
+    ].slice(0, TAG_COUNT);
+    if (tags.length === 0)
+      throw new AppError(ErrorCodes.AI_GENERATION_FAILED, {
+        message: "The AI didn't suggest any tags. Try again.",
+      });
+    await ctx.db.pinTagCache.upsert({
+      where: { title: key },
+      create: { title: key, tags },
+      update: { tags },
+    });
     return { tags };
   });
 }

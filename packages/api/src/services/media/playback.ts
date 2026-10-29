@@ -22,14 +22,26 @@ export type Playback = {
  *   older uploads     → /api/media/preview/<id>, which streams only the
  *                       30 s window from the server (see previewByteRange)
  */
-export async function playbackFor(db: Db, viewerId: string | null, itemId: string): Promise<Playback> {
+export async function playbackFor(
+  db: Db,
+  viewerId: string | null,
+  itemId: string,
+): Promise<Playback> {
   const item = await db.item.findFirst({
     where: { id: itemId, deletedAt: null },
     select: {
       createdById: true,
       artist: { select: { userId: true } },
       media: {
-        select: { mediaType: true, sourceUrl: true, demoUrl: true, status: true, streamKey: true, previewKey: true, durationSec: true },
+        select: {
+          mediaType: true,
+          sourceUrl: true,
+          demoUrl: true,
+          status: true,
+          streamKey: true,
+          previewKey: true,
+          durationSec: true,
+        },
       },
     },
   });
@@ -39,11 +51,16 @@ export async function playbackFor(db: Db, viewerId: string | null, itemId: strin
   }
 
   if (viewerId && (await canPlayFull(db, viewerId, itemId, item))) {
-    const url = media.status === "READY" && media.streamKey ? await signedMediaUrl(media.streamKey) : media.sourceUrl;
+    const url =
+      media.status === "READY" && media.streamKey
+        ? await signedMediaUrl(media.streamKey)
+        : media.sourceUrl;
     return { url, full: true, durationSec: media.durationSec };
   }
 
-  const previewLength = media.durationSec ? Math.min(PREVIEW_SECONDS, media.durationSec) : PREVIEW_SECONDS;
+  const previewLength = media.durationSec
+    ? Math.min(PREVIEW_SECONDS, media.durationSec)
+    : PREVIEW_SECONDS;
   if (media.status === "READY" && media.previewKey) {
     return { url: await signedMediaUrl(media.previewKey), full: false, durationSec: previewLength };
   }
@@ -80,6 +97,9 @@ export function previewByteRange(input: {
   const startSec = Math.max(0, Math.min(input.startSec, input.durationSec - seconds));
   const bytesPerSecond = input.contentLength / input.durationSec;
   const start = Math.floor(startSec * bytesPerSecond);
-  const end = Math.min(input.contentLength - 1, Math.ceil((startSec + seconds) * bytesPerSecond) - 1);
+  const end = Math.min(
+    input.contentLength - 1,
+    Math.ceil((startSec + seconds) * bytesPerSecond) - 1,
+  );
   return { start, end };
 }

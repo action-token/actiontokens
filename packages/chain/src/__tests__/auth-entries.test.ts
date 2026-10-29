@@ -15,11 +15,15 @@ const credentials = () =>
 
 describe("credentialAddress", () => {
   it("reads the signer from classic address credentials", () => {
-    expect(credentialAddress(xdr.SorobanCredentials.sorobanCredentialsAddress(credentials()))).toBe(pub);
+    expect(credentialAddress(xdr.SorobanCredentials.sorobanCredentialsAddress(credentials()))).toBe(
+      pub,
+    );
   });
 
   it("reads it from the newer address_v2 credentials too, which current Stellar nodes produce", () => {
-    expect(credentialAddress(xdr.SorobanCredentials.sorobanCredentialsAddressV2(credentials()))).toBe(pub);
+    expect(
+      credentialAddress(xdr.SorobanCredentials.sorobanCredentialsAddressV2(credentials())),
+    ).toBe(pub);
   });
 
   it("is null for the transaction source's own auth, which the envelope signature covers", () => {

@@ -4,10 +4,20 @@ import Link from "next/link";
 export function AlbumCard({
   album,
 }: {
-  album: { slug: string; title: string; coverUrl: string; year: number; trackCount: number; artistName?: string };
+  album: {
+    slug: string;
+    title: string;
+    coverUrl: string;
+    year: number;
+    trackCount: number;
+    artistName?: string;
+  };
 }) {
   return (
-    <Link href={`/album/${album.slug}`} className="group hover:bg-surface-2 grid min-w-0 gap-2 rounded-xl p-2 transition-colors">
+    <Link
+      href={`/album/${album.slug}`}
+      className="group hover:bg-surface-2 grid min-w-0 gap-2 rounded-xl p-2 transition-colors"
+    >
       {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
       <img
         src={album.coverUrl}

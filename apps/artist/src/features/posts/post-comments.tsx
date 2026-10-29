@@ -38,15 +38,28 @@ export function PostComments({ postId }: { postId: string }) {
         <ul className="grid gap-3">
           {comments.data.map((comment) => (
             <li key={comment.id} className="flex items-start gap-2.5">
-              <Avatar src={comment.author.image} name={comment.author.name} className="size-7 text-xs" />
+              <Avatar
+                src={comment.author.image}
+                name={comment.author.name}
+                className="size-7 text-xs"
+              />
               <div className="min-w-0 flex-1 text-sm">
                 <p className="text-fg-muted text-xs">
-                  <b className="text-fg">{comment.author.name ?? "Fan"}</b> · {timeAgo(comment.createdAt)}
+                  <b className="text-fg">{comment.author.name ?? "Fan"}</b> ·{" "}
+                  {timeAgo(comment.createdAt)}
                   {comment.parentId ? " · reply" : ""}
                 </p>
                 <p className="break-words whitespace-pre-line">{comment.body}</p>
               </div>
-              <Button type="button" variant="ghost" size="icon-sm" className="text-danger" aria-label="Remove comment" disabled={remove.isPending} onClick={() => remove.mutate({ commentId: comment.id })}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="text-danger"
+                aria-label="Remove comment"
+                disabled={remove.isPending}
+                onClick={() => remove.mutate({ commentId: comment.id })}
+              >
                 <Trash2 />
               </Button>
             </li>

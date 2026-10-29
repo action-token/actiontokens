@@ -57,7 +57,13 @@ import { distanceMeters, formatDistance } from "@bandcoin/ar-core/ar/geo";
 import { formatDuration, formatNavDistance } from "~/lib/ar/navigation";
 import { RARITY_META } from "@bandcoin/ar-core/ar/rarity";
 import { MapModeButton } from "~/components/map/MapModeButton";
-import { lightStandardStyle, mapStyleFor, setMapMode, useMapMode, useResolvedTheme } from "~/lib/ar/theme";
+import {
+  lightStandardStyle,
+  mapStyleFor,
+  setMapMode,
+  useMapMode,
+  useResolvedTheme,
+} from "~/lib/ar/theme";
 import type { TravelMode } from "@bandcoin/ar-core/ar/types";
 import {
   firstText,
@@ -221,10 +227,7 @@ export default function DirectionsScreen() {
     () => (isMural ? null : (pins.find((p) => p.id === id) ?? null)),
     [pins, id, isMural],
   );
-  const muralQuery = api.mural.byId.useQuery(
-    { id: id ?? "" },
-    { enabled: isMural && Boolean(id) },
-  );
+  const muralQuery = api.mural.byId.useQuery({ id: id ?? "" }, { enabled: isMural && Boolean(id) });
   const mural = muralQuery.data?.mural;
   const target = useMemo(
     () =>

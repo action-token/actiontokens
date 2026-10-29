@@ -66,7 +66,16 @@ export function networkFeeXlm(operations: number, baseFee: string): string {
  * a buyer with no spare XLM can still be the transaction's source. Wraps the
  * signed transaction; the inner hash (the order's txHash) is unchanged.
  */
-export function wrapInFeeBump(signedXdr: string, feeSource: string, network: NetworkParams): string {
+export function wrapInFeeBump(
+  signedXdr: string,
+  feeSource: string,
+  network: NetworkParams,
+): string {
   const inner = TransactionBuilder.fromXDR(signedXdr, network.passphrase) as Transaction;
-  return TransactionBuilder.buildFeeBumpTransaction(feeSource, network.baseFee, inner, network.passphrase).toXDR();
+  return TransactionBuilder.buildFeeBumpTransaction(
+    feeSource,
+    network.baseFee,
+    inner,
+    network.passphrase,
+  ).toXDR();
 }

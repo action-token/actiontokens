@@ -34,14 +34,21 @@ async function sequenceOf(publicKey: string) {
   return new Account(publicKey, body.sequence);
 }
 
-const artist = await db.artist.findUniqueOrThrow({ where: { slug }, select: { id: true, name: true, userId: true, issuerAccountId: true } });
+const artist = await db.artist.findUniqueOrThrow({
+  where: { slug },
+  select: { id: true, name: true, userId: true, issuerAccountId: true },
+});
 
 const wallet = Keypair.random();
 const issuer = Keypair.random();
 await friendbot(wallet.publicKey());
 
 // The artist opens their issuer (the production builder), then trusts BANDCOIN and USDC. The artist pays both.
-const setup = buildIssuerSetup({ artist: await sequenceOf(wallet.publicKey()), network: config.network, issuer: issuer.publicKey() });
+const setup = buildIssuerSetup({
+  artist: await sequenceOf(wallet.publicKey()),
+  network: config.network,
+  issuer: issuer.publicKey(),
+});
 const { hash } = await submit(addSignatures(setup.xdr, [wallet.secret()]));
 const trust = startTransaction(await sequenceOf(wallet.publicKey()), config.network);
 for (const asset of [config.assets.bandcoin, config.assets.usdc]) {
@@ -50,7 +57,10 @@ for (const asset of [config.assets.bandcoin, config.assets.usdc]) {
 await submit(addSignatures(finish(trust).xdr, [wallet.secret()]));
 
 await db.$transaction(async (tx) => {
-  await tx.user.update({ where: { id: artist.userId }, data: { walletAddress: wallet.publicKey() } });
+  await tx.user.update({
+    where: { id: artist.userId },
+    data: { walletAddress: wallet.publicKey() },
+  });
   const data = {
     publicKey: issuer.publicKey(),
     secretEncrypted: encryptSecret(issuer.secret()),
@@ -60,7 +70,10 @@ await db.$transaction(async (tx) => {
     ? await tx.chainAccount.update({ where: { id: artist.issuerAccountId }, data })
     : await tx.chainAccount.create({ data: { ...data, kind: "ISSUER", ownerId: artist.userId } });
   await tx.artist.update({ where: { id: artist.id }, data: { issuerAccountId: account.id } });
-  await tx.classicToken.updateMany({ where: { item: { artistId: artist.id } }, data: { issuer: issuer.publicKey(), issuerAccountId: null } });
+  await tx.classicToken.updateMany({
+    where: { item: { artistId: artist.id } },
+    data: { issuer: issuer.publicKey(), issuerAccountId: null },
+  });
 });
 
 console.log(`${artist.name} is live on testnet`);

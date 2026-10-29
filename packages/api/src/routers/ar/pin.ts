@@ -48,7 +48,10 @@ export const pinRouter = createRouter({
         input?.lat != null && input.lng != null && input.radiusKm != null
           ? { lat: input.lat, lng: input.lng, radiusKm: input.radiusKm }
           : null;
-      const spotWhere = { isHidden: false, ...(area ? boundingBox(area) : {}) } satisfies Prisma.PinSpotWhereInput;
+      const spotWhere = {
+        isHidden: false,
+        ...(area ? boundingBox(area) : {}),
+      } satisfies Prisma.PinSpotWhereInput;
       const include = pinInclude(viewerId);
 
       const pins = await ctx.db.pin.findMany({
@@ -62,7 +65,9 @@ export const pinRouter = createRouter({
       });
       const viewer = await loadViewer(ctx, pins);
       const spots = pins.flatMap((pin) => spotsOf(pin, viewer));
-      return area ? spots.filter((spot) => distanceMeters(area, spot) <= area.radiusKm * 1000) : spots;
+      return area
+        ? spots.filter((spot) => distanceMeters(area, spot) <= area.radiusKm * 1000)
+        : spots;
     }),
 
   /**
@@ -108,19 +113,29 @@ export const pinRouter = createRouter({
       const ranked = pins
         .map((pin) => ({
           pin,
-          score: searchScore({ ...pin, artistName: pin.artist.name }, pin.tags.map((link) => link.tag.label), terms, phrase),
+          score: searchScore(
+            { ...pin, artistName: pin.artist.name },
+            pin.tags.map((link) => link.tag.label),
+            terms,
+            phrase,
+          ),
         }))
         .sort((a, b) => b.score - a.score || a.pin.title.localeCompare(b.pin.title))
         .slice(0, input.limit);
       if (ranked.length === 0) return [];
 
-      const viewer = await loadViewer(ctx, ranked.map(({ pin }) => pin));
-      const from = input.lat != null && input.lng != null ? { lat: input.lat, lng: input.lng } : null;
+      const viewer = await loadViewer(
+        ctx,
+        ranked.map(({ pin }) => pin),
+      );
+      const from =
+        input.lat != null && input.lng != null ? { lat: input.lat, lng: input.lng } : null;
       return ranked.flatMap(({ pin }) => {
         const spots = spotsOf(pin, viewer);
         if (!from) return spots.slice(0, 1);
         const nearest = spots.reduce<ArPin | null>(
-          (best, spot) => (!best || distanceMeters(from, spot) < distanceMeters(from, best) ? spot : best),
+          (best, spot) =>
+            !best || distanceMeters(from, spot) < distanceMeters(from, best) ? spot : best,
           null,
         );
         return nearest ? [nearest] : [];
@@ -131,23 +146,33 @@ export const pinRouter = createRouter({
    * One spot, for a card page or a shared link. Ended and fully collected
    * pins still resolve, because a card you own must keep opening.
    */
-  byId: publicProcedure.input(z.object({ id: z.string().min(1) })).query(async ({ ctx, input }): Promise<ArPin> => {
-    const viewerId = ctx.session?.user.id ?? null;
-    const spot = await ctx.db.pinSpot.findUnique({ where: { id: input.id }, select: { pinId: true } });
-    const pin = spot
-      ? await ctx.db.pin.findFirst({
-          where: {
-            id: spot.pinId,
-            approval: "APPROVED",
-            OR: [{ restrictedToUserId: null }, ...(viewerId ? [{ restrictedToUserId: viewerId }] : [])],
-          },
-          include: pinInclude(viewerId),
-        })
-      : null;
-    const found = pin && spotsOf(pin, await loadViewer(ctx, [pin])).find((one) => one.id === input.id);
-    if (!found) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "This pin doesn't exist." });
-    return found;
-  }),
+  byId: publicProcedure
+    .input(z.object({ id: z.string().min(1) }))
+    .query(async ({ ctx, input }): Promise<ArPin> => {
+      const viewerId = ctx.session?.user.id ?? null;
+      const spot = await ctx.db.pinSpot.findUnique({
+        where: { id: input.id },
+        select: { pinId: true },
+      });
+      const pin = spot
+        ? await ctx.db.pin.findFirst({
+            where: {
+              id: spot.pinId,
+              approval: "APPROVED",
+              OR: [
+                { restrictedToUserId: null },
+                ...(viewerId ? [{ restrictedToUserId: viewerId }] : []),
+              ],
+            },
+            include: pinInclude(viewerId),
+          })
+        : null;
+      const found =
+        pin && spotsOf(pin, await loadViewer(ctx, [pin])).find((one) => one.id === input.id);
+      if (!found)
+        throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "This pin doesn't exist." });
+      return found;
+    }),
 
   /**
    * One artist's pins a page at a time: live ones you can still collect, or
@@ -166,14 +191,18 @@ export const pinRouter = createRouter({
     .query(async ({ ctx, input }) => {
       const viewerId = ctx.session?.user.id ?? null;
       const offset = input.cursor ?? 0;
-      if (input.tab === "yours" && !viewerId) return { pins: [] as ArPin[], total: 0, nextCursor: null };
+      if (input.tab === "yours" && !viewerId)
+        return { pins: [] as ArPin[], total: 0, nextCursor: null };
 
       const pins = await ctx.db.pin.findMany({
         where: {
           ...livePinWhere(viewerId),
           artistId: input.artistId,
           spots: {
-            some: input.tab === "yours" ? { isHidden: false, claims: { some: { userId: viewerId! } } } : { isHidden: false },
+            some:
+              input.tab === "yours"
+                ? { isHidden: false, claims: { some: { userId: viewerId! } } }
+                : { isHidden: false },
           },
         },
         include: pinInclude(viewerId),
@@ -183,10 +212,16 @@ export const pinRouter = createRouter({
       const viewer = await loadViewer(ctx, pins);
       const matching = pins
         .flatMap((pin) => spotsOf(pin, viewer))
-        .filter((pin) => (input.tab === "yours" ? pin.collected : pinStatus(pin) === "collectible"));
+        .filter((pin) =>
+          input.tab === "yours" ? pin.collected : pinStatus(pin) === "collectible",
+        );
       const page = matching.slice(offset, offset + input.limit);
       const next = offset + page.length;
-      return { pins: page, total: matching.length, nextCursor: next < matching.length ? next : null };
+      return {
+        pins: page,
+        total: matching.length,
+        nextCursor: next < matching.length ? next : null,
+      };
     }),
 
   /**
@@ -214,13 +249,17 @@ export const pinRouter = createRouter({
 
       const all = claims.map((claim) => toArPin(claim.spot.pin, claim.spot, claim, null));
       // Facets cover the whole collection, so a chip can say "you own none of these".
-      const counts = Object.fromEntries(RARITY_ORDER.map((rarity) => [rarity, 0])) as Record<Rarity, number>;
+      const counts = Object.fromEntries(RARITY_ORDER.map((rarity) => [rarity, 0])) as Record<
+        Rarity,
+        number
+      >;
       for (const pin of all) counts[pin.rarity] += 1;
       const facets = {
         total: all.length,
         artists: new Set(all.map((pin) => pin.artistId)).size,
         best: all.reduce<Rarity>(
-          (best, pin) => (RARITY_ORDER.indexOf(pin.rarity) > RARITY_ORDER.indexOf(best) ? pin.rarity : best),
+          (best, pin) =>
+            RARITY_ORDER.indexOf(pin.rarity) > RARITY_ORDER.indexOf(best) ? pin.rarity : best,
           "common",
         ),
         counts,
@@ -229,15 +268,27 @@ export const pinRouter = createRouter({
       const q = input.query.trim().toLowerCase();
       const matching = all
         .filter((pin) => input.rarity === "all" || pin.rarity === input.rarity)
-        .filter((pin) => !q || [pin.title, pin.artistName, pin.description].some((text) => text.toLowerCase().includes(q)))
+        .filter(
+          (pin) =>
+            !q ||
+            [pin.title, pin.artistName, pin.description].some((text) =>
+              text.toLowerCase().includes(q),
+            ),
+        )
         .sort((a, b) => {
-          if (input.sort === "rarest") return RARITY_ORDER.indexOf(b.rarity) - RARITY_ORDER.indexOf(a.rarity);
+          if (input.sort === "rarest")
+            return RARITY_ORDER.indexOf(b.rarity) - RARITY_ORDER.indexOf(a.rarity);
           if (input.sort === "artist") return a.artistName.localeCompare(b.artistName);
           return Date.parse(b.collectedAt ?? "0") - Date.parse(a.collectedAt ?? "0");
         });
       const pins = matching.slice(offset, offset + input.limit);
       const next = offset + pins.length;
-      return { pins, total: matching.length, nextCursor: next < matching.length ? next : null, facets };
+      return {
+        pins,
+        total: matching.length,
+        nextCursor: next < matching.length ? next : null,
+        facets,
+      };
     }),
 
   /**
@@ -264,10 +315,12 @@ export const pinRouter = createRouter({
    * for GPS (indoors, basements). Anyone with the code can use it; a pin that
    * must resist that needs per-scan tokens, not a static QR.
    */
-  collectByQr: authedProcedure.input(z.object({ spotId: z.string().min(1) })).mutation(async ({ ctx, input }) => {
-    const userId = ctx.session.user.id;
-    const { spot, pin } = await assertCollectable(ctx, userId, input.spotId);
-    ctx.activity.set({ targetType: "Pin", targetId: pin.id });
-    return writeCollect(ctx.db, userId, spot, pin);
-  }),
+  collectByQr: authedProcedure
+    .input(z.object({ spotId: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const { spot, pin } = await assertCollectable(ctx, userId, input.spotId);
+      ctx.activity.set({ targetType: "Pin", targetId: pin.id });
+      return writeCollect(ctx.db, userId, spot, pin);
+    }),
 });

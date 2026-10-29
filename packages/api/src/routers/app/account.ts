@@ -6,7 +6,11 @@ import { AppError, ErrorCodes } from "@bandcoin/errors";
 import { isOwnS3Url, signImageUpload } from "@bandcoin/storage";
 
 import { isCustodial } from "../../context";
-import { normalizeUsername, usernameChangeOpensAt, validateUsername } from "../../services/account/username";
+import {
+  normalizeUsername,
+  usernameChangeOpensAt,
+  validateUsername,
+} from "../../services/account/username";
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 
 const declaredImage = z.object({
@@ -76,7 +80,9 @@ export const accountRouter = createRouter({
       walletType: ctx.session.user.walletType,
       custodial: isCustodial(ctx.session.user),
       usernameChangeOpensAt: usernameChangeOpensAt(usernameChangedAt),
-      lastFm: lastFmAccount?.isConnected ? { username: lastFmAccount.username, profileUrl: lastFmAccount.profileUrl } : null,
+      lastFm: lastFmAccount?.isConnected
+        ? { username: lastFmAccount.username, profileUrl: lastFmAccount.profileUrl }
+        : null,
     };
   }),
 
@@ -99,50 +105,68 @@ export const accountRouter = createRouter({
     }),
 
   /** The username is the public profile address, so it changes at most once every 30 days. */
-  setUsername: authedProcedure.input(z.object({ username: z.string().max(60) })).mutation(async ({ ctx, input }) => {
-    const username = normalizeUsername(input.username);
-    const problem = validateUsername(username);
-    if (problem) throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: problem });
+  setUsername: authedProcedure
+    .input(z.object({ username: z.string().max(60) }))
+    .mutation(async ({ ctx, input }) => {
+      const username = normalizeUsername(input.username);
+      const problem = validateUsername(username);
+      if (problem) throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: problem });
 
-    const current = await ctx.db.user.findUnique({
-      where: { id: ctx.session.user.id },
-      select: { username: true, usernameChangedAt: true },
-    });
-    if (current?.username === username) return { username };
-    const opensAt = current?.username ? usernameChangeOpensAt(current.usernameChangedAt) : null;
-    if (opensAt && opensAt > new Date()) {
-      throw new AppError(ErrorCodes.RATE_LIMITED, { message: "You can change your username once every 30 days." });
-    }
-    try {
-      await ctx.db.user.update({ where: { id: ctx.session.user.id }, data: { username, usernameChangedAt: new Date() } });
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-        throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "That name is taken." });
+      const current = await ctx.db.user.findUnique({
+        where: { id: ctx.session.user.id },
+        select: { username: true, usernameChangedAt: true },
+      });
+      if (current?.username === username) return { username };
+      const opensAt = current?.username ? usernameChangeOpensAt(current.usernameChangedAt) : null;
+      if (opensAt && opensAt > new Date()) {
+        throw new AppError(ErrorCodes.RATE_LIMITED, {
+          message: "You can change your username once every 30 days.",
+        });
       }
-      throw error;
-    }
-    ctx.activity.set({ targetType: "User", targetId: ctx.session.user.id });
-    return { username };
-  }),
+      try {
+        await ctx.db.user.update({
+          where: { id: ctx.session.user.id },
+          data: { username, usernameChangedAt: new Date() },
+        });
+      } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+          throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "That name is taken." });
+        }
+        throw error;
+      }
+      ctx.activity.set({ targetType: "User", targetId: ctx.session.user.id });
+      return { username };
+    }),
 
   /** A signed upload for a profile picture or cover image. */
   imageUpload: authedProcedure.input(declaredImage).mutation(({ input }) => signImageUpload(input)),
 
   /** The banner behind the profile; null removes it. Only a picture this app stored. */
-  setCover: authedProcedure.input(z.object({ url: z.string().url().nullable() })).mutation(async ({ ctx, input }) => {
-    if (input.url !== null && !isOwnS3Url(input.url)) {
-      throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "Upload the picture again." });
-    }
-    await ctx.db.user.update({ where: { id: ctx.session.user.id }, data: { coverUrl: input.url } });
-    ctx.activity.set({ targetType: "User", targetId: ctx.session.user.id });
-    return { coverUrl: input.url };
-  }),
+  setCover: authedProcedure
+    .input(z.object({ url: z.string().url().nullable() }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.url !== null && !isOwnS3Url(input.url)) {
+        throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "Upload the picture again." });
+      }
+      await ctx.db.user.update({
+        where: { id: ctx.session.user.id },
+        data: { coverUrl: input.url },
+      });
+      ctx.activity.set({ targetType: "User", targetId: ctx.session.user.id });
+      return { coverUrl: input.url };
+    }),
 
   /** Only a picture this app stored: never a link to somewhere else. */
-  setAvatar: authedProcedure.input(z.object({ url: z.string().url() })).mutation(async ({ ctx, input }) => {
-    if (!isOwnS3Url(input.url)) throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "Upload the picture again." });
-    await ctx.db.user.update({ where: { id: ctx.session.user.id }, data: { avatarUrl: input.url } });
-    ctx.activity.set({ targetType: "User", targetId: ctx.session.user.id });
-    return { avatarUrl: input.url };
-  }),
+  setAvatar: authedProcedure
+    .input(z.object({ url: z.string().url() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!isOwnS3Url(input.url))
+        throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "Upload the picture again." });
+      await ctx.db.user.update({
+        where: { id: ctx.session.user.id },
+        data: { avatarUrl: input.url },
+      });
+      ctx.activity.set({ targetType: "User", targetId: ctx.session.user.id });
+      return { avatarUrl: input.url };
+    }),
 });

@@ -16,11 +16,20 @@ import { api } from "~/trpc/react";
  * Step one: who you are as an artist. The page address follows the name until
  * you type your own. A rejected artist sees this again with their last answers.
  */
-export function ApplyForm({ initial }: { initial?: { name: string; slug: string; bio: string | null } }) {
+export function ApplyForm({
+  initial,
+}: {
+  initial?: { name: string; slug: string; bio: string | null };
+}) {
   const utils = api.useUtils();
   const apply = api.onboarding.submitApplication.useMutation({
     onSuccess: () => utils.portal.status.invalidate(),
-    onError: (error) => toast.error(isAppError(error) || error instanceof Error ? error.message : "Couldn't send your application."),
+    onError: (error) =>
+      toast.error(
+        isAppError(error) || error instanceof Error
+          ? error.message
+          : "Couldn't send your application.",
+      ),
   });
   const [name, setName] = useState(initial?.name ?? "");
   const [slug, setSlug] = useState(initial?.slug ?? "");
@@ -40,7 +49,13 @@ export function ApplyForm({ initial }: { initial?: { name: string; slug: string;
     <form onSubmit={submit} className="bg-surface grid max-w-xl gap-5 rounded-xl border p-5 sm:p-6">
       <div className="grid gap-1.5">
         <Label htmlFor="artist-name">Artist or band name</Label>
-        <Input id="artist-name" value={name} maxLength={60} autoComplete="off" onChange={(event) => setName(event.target.value)} />
+        <Input
+          id="artist-name"
+          value={name}
+          maxLength={60}
+          autoComplete="off"
+          onChange={(event) => setName(event.target.value)}
+        />
       </div>
 
       <div className="grid gap-1.5">
@@ -59,12 +74,22 @@ export function ApplyForm({ initial }: { initial?: { name: string; slug: string;
             }}
           />
         </div>
-        {problem && <p role="alert" className="text-danger text-xs">{problem}</p>}
+        {problem && (
+          <p role="alert" className="text-danger text-xs">
+            {problem}
+          </p>
+        )}
       </div>
 
       <div className="grid gap-1.5">
         <Label htmlFor="artist-bio">A line about you (optional)</Label>
-        <Textarea id="artist-bio" value={bio} maxLength={500} rows={3} onChange={(event) => setBio(event.target.value)} />
+        <Textarea
+          id="artist-bio"
+          value={bio}
+          maxLength={500}
+          rows={3}
+          onChange={(event) => setBio(event.target.value)}
+        />
       </div>
 
       <Button type="submit" disabled={!ready || apply.isPending} className="justify-self-start">

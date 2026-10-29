@@ -1,6 +1,18 @@
 "use client";
 
-import { Code2, Copy, CopyPlus, Eye, Globe, MoreVertical, MousePointerClick, Pencil, Plus, Power, Trash2 } from "lucide-react";
+import {
+  Code2,
+  Copy,
+  CopyPlus,
+  Eye,
+  Globe,
+  MoreVertical,
+  MousePointerClick,
+  Pencil,
+  Plus,
+  Power,
+  Trash2,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -9,7 +21,13 @@ import toast from "react-hot-toast";
 import { scriptSnippet } from "@bandcoin/ar-core/embed/snippets";
 import { Badge } from "@bandcoin/ui/components/badge";
 import { Button } from "@bandcoin/ui/components/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@bandcoin/ui/components/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@bandcoin/ui/components/dropdown-menu";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { cn } from "@bandcoin/ui/lib/cn";
 import { ConfirmDialog } from "@bandcoin/ui/patterns/confirm-dialog";
@@ -21,7 +39,8 @@ import { api, type RouterOutputs } from "~/trpc/react";
 
 type Embed = RouterOutputs["embeds"]["embeds"][number];
 
-const messageOf = (error: unknown) => (error instanceof Error ? error.message : "Something went wrong.");
+const messageOf = (error: unknown) =>
+  error instanceof Error ? error.message : "Something went wrong.";
 
 /**
  * Website map: the Bandcoin pin map, set up here and pasted onto your own site
@@ -44,7 +63,9 @@ export function EmbedsView() {
   });
   const setEnabled = api.embeds.setEmbedEnabled.useMutation({
     onSuccess: (result) => {
-      toast.success(result.isEnabled ? "Map turned on" : "Map turned off. Websites show 'Map unavailable'.");
+      toast.success(
+        result.isEnabled ? "Map turned on" : "Map turned off. Websites show 'Map unavailable'.",
+      );
       refresh();
     },
     onError: (error) => toast.error(messageOf(error)),
@@ -58,7 +79,10 @@ export function EmbedsView() {
     onError: (error) => toast.error(messageOf(error)),
   });
 
-  const copy = (id: string) => void navigator.clipboard.writeText(scriptSnippet(id)).then(() => toast.success("Snippet copied"));
+  const copy = (id: string) =>
+    void navigator.clipboard
+      .writeText(scriptSnippet(id))
+      .then(() => toast.success("Snippet copied"));
   const add = (
     <Button asChild>
       <Link href="/embeds/new">
@@ -69,7 +93,12 @@ export function EmbedsView() {
 
   return (
     <PageBody className="grid gap-6">
-      <PageHeader eyebrow="Fans" title="Website map" description="Put your pins on your own website: a homepage hero, a tour page, anywhere. Paste one snippet; settings you change here update the live map." actions={embeds.data && embeds.data.length > 0 ? add : undefined} />
+      <PageHeader
+        eyebrow="Fans"
+        title="Website map"
+        description="Put your pins on your own website: a homepage hero, a tour page, anywhere. Paste one snippet; settings you change here update the live map."
+        actions={embeds.data && embeds.data.length > 0 ? add : undefined}
+      />
       {embeds.isPending ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 3 }, (_, i) => (
@@ -79,22 +108,45 @@ export function EmbedsView() {
       ) : embeds.isError ? (
         <ErrorState message="Couldn't load your maps." onRetry={() => void embeds.refetch()} />
       ) : embeds.data.length === 0 ? (
-        <EmptyState icon={Code2} title="No website maps yet" description="Create one, set where it opens and how it looks, then paste the snippet into your site. Visitors see your pins nearby and open them in Bandcoin." action={add} />
+        <EmptyState
+          icon={Code2}
+          title="No website maps yet"
+          description="Create one, set where it opens and how it looks, then paste the snippet into your site. Visitors see your pins nearby and open them in Bandcoin."
+          action={add}
+        />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {embeds.data.map((embed) => (
-            <article key={embed.id} className={cn("bg-surface flex flex-col rounded-[1.4rem] border-2 p-4", !embed.isEnabled && "opacity-75")}>
+            <article
+              key={embed.id}
+              className={cn(
+                "bg-surface flex flex-col rounded-[1.4rem] border-2 p-4",
+                !embed.isEnabled && "opacity-75",
+              )}
+            >
               <div className="flex items-start gap-3">
-                <span className="mt-0.5 size-9 shrink-0 rounded-xl border" style={{ background: embed.accentColor }} aria-hidden />
+                <span
+                  className="mt-0.5 size-9 shrink-0 rounded-xl border"
+                  style={{ background: embed.accentColor }}
+                  aria-hidden
+                />
                 <div className="min-w-0 flex-1">
-                  <Link href={`/embeds/${embed.id}`} className="block truncate font-semibold hover:underline">
+                  <Link
+                    href={`/embeds/${embed.id}`}
+                    className="block truncate font-semibold hover:underline"
+                  >
                     {embed.name}
                   </Link>
                   <div className="mt-1 flex flex-wrap gap-1.5">
                     {embed.isEnabled ? <Badge>Live</Badge> : <Badge variant="secondary">Off</Badge>}
                     <Badge variant="outline" className="gap-1">
                       <Globe className="size-3" />
-                      {embed.allowedDomains.length ? embed.allowedDomains.slice(0, 2).join(", ") + (embed.allowedDomains.length > 2 ? ` +${embed.allowedDomains.length - 2}` : "") : "Any website"}
+                      {embed.allowedDomains.length
+                        ? embed.allowedDomains.slice(0, 2).join(", ") +
+                          (embed.allowedDomains.length > 2
+                            ? ` +${embed.allowedDomains.length - 2}`
+                            : "")
+                        : "Any website"}
                     </Badge>
                   </div>
                 </div>
@@ -114,7 +166,11 @@ export function EmbedsView() {
                     <DropdownMenuItem onClick={() => duplicate.mutate({ embedId: embed.id })}>
                       <CopyPlus /> Duplicate
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setEnabled.mutate({ embedId: embed.id, isEnabled: !embed.isEnabled })}>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        setEnabled.mutate({ embedId: embed.id, isEnabled: !embed.isEnabled })
+                      }
+                    >
                       <Power /> {embed.isEnabled ? "Turn off" : "Turn on"}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -126,11 +182,28 @@ export function EmbedsView() {
               </div>
 
               <div className="bg-surface-2 mt-4 grid grid-cols-3 gap-2 rounded-xl p-3 text-center">
-                <Stat icon={Eye} label="Views" week={embed.last7.views} month={embed.last30.views} />
-                <Stat icon={MousePointerClick} label="Pin taps" week={embed.last7.pinTaps} month={embed.last30.pinTaps} />
-                <Stat icon={Globe} label="Opened" week={embed.last7.openClicks} month={embed.last30.openClicks} />
+                <Stat
+                  icon={Eye}
+                  label="Views"
+                  week={embed.last7.views}
+                  month={embed.last30.views}
+                />
+                <Stat
+                  icon={MousePointerClick}
+                  label="Pin taps"
+                  week={embed.last7.pinTaps}
+                  month={embed.last30.pinTaps}
+                />
+                <Stat
+                  icon={Globe}
+                  label="Opened"
+                  week={embed.last7.openClicks}
+                  month={embed.last30.openClicks}
+                />
               </div>
-              <p className="text-fg-muted mt-1.5 text-center text-[11px]">last 7 days · 30 days in grey</p>
+              <p className="text-fg-muted mt-1.5 text-center text-[11px]">
+                last 7 days · 30 days in grey
+              </p>
 
               <div className="mt-auto flex gap-2 pt-4">
                 <Button variant="outline" className="flex-1" onClick={() => copy(embed.id)}>
@@ -159,7 +232,17 @@ export function EmbedsView() {
   );
 }
 
-function Stat({ icon: Icon, label, week, month }: { icon: typeof Eye; label: string; week: number; month: number }) {
+function Stat({
+  icon: Icon,
+  label,
+  week,
+  month,
+}: {
+  icon: typeof Eye;
+  label: string;
+  week: number;
+  month: number;
+}) {
   return (
     <div>
       <p className="text-fg-muted flex items-center justify-center gap-1 text-[11px]">

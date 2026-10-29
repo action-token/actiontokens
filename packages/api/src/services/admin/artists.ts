@@ -50,7 +50,11 @@ export async function listApplications(ctx: Pick<Context, "db">, input: { status
       /** The issuer account is open: they paid the 1.5 XLM */
       paid: row.issuerAccount !== null,
       issuer: row.issuerAccount?.publicKey ?? null,
-      owner: { name: row.user.displayName ?? row.user.username, username: row.user.username, walletAddress: row.user.walletAddress },
+      owner: {
+        name: row.user.displayName ?? row.user.username,
+        username: row.user.username,
+        walletAddress: row.user.walletAddress,
+      },
     }));
 }
 
@@ -71,7 +75,10 @@ async function loadArtist(ctx: Pick<ServiceCtx, "db">, artistId: string) {
 }
 
 function mustBeWaiting(status: ArtistStatus) {
-  if (status !== "PENDING") throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "This application isn't waiting for review." });
+  if (status !== "PENDING")
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+      message: "This application isn't waiting for review.",
+    });
 }
 
 export async function approveArtist(ctx: ServiceCtx, artistId: string) {
@@ -79,12 +86,18 @@ export async function approveArtist(ctx: ServiceCtx, artistId: string) {
   ctx.activity.set({ targetType: "Artist", targetId: artist.id });
   mustBeWaiting(artist.status);
   if (!artist.issuerAccountId) {
-    throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, { message: "They haven't opened their artist account yet." });
+    throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, {
+      message: "They haven't opened their artist account yet.",
+    });
   }
   await ctx.db.$transaction(async (tx) => {
-    await tx.artist.update({ where: { id: artist.id }, data: { status: "APPROVED", rejectionReason: null } });
+    await tx.artist.update({
+      where: { id: artist.id },
+      data: { status: "APPROVED", rejectionReason: null },
+    });
     // An admin keeps admin; everyone else becomes an artist.
-    if (artist.user.role !== "ADMIN") await tx.user.update({ where: { id: artist.userId }, data: { role: "ARTIST" } });
+    if (artist.user.role !== "ADMIN")
+      await tx.user.update({ where: { id: artist.userId }, data: { role: "ARTIST" } });
   });
   return { artistId: artist.id, status: "APPROVED" as const };
 }
@@ -100,7 +113,10 @@ export async function rejectArtist(ctx: ServiceCtx, input: { artistId: string; r
     const onChain = await ctx.chain.loadAccount(artist.issuerAccount.publicKey);
     if (onChain) {
       const wallet = artist.user.walletAddress;
-      if (!wallet) throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, { message: "This artist has no wallet to send the XLM back to." });
+      if (!wallet)
+        throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, {
+          message: "This artist has no wallet to send the XLM back to.",
+        });
       const refund = buildIssuerRefund({
         issuer: new Account(onChain.accountId(), onChain.sequenceNumber()),
         network: ctx.chain.config.network,
@@ -114,7 +130,10 @@ export async function rejectArtist(ctx: ServiceCtx, input: { artistId: string; r
 
   const issuerId = artist.issuerAccount?.id;
   await ctx.db.$transaction(async (tx) => {
-    await tx.artist.update({ where: { id: artist.id }, data: { status: "REJECTED", rejectionReason: input.reason, issuerAccountId: null } });
+    await tx.artist.update({
+      where: { id: artist.id },
+      data: { status: "REJECTED", rejectionReason: input.reason, issuerAccountId: null },
+    });
     // The account no longer exists on the network, so its key is no use to anyone.
     if (issuerId) await tx.chainAccount.delete({ where: { id: issuerId } });
   });
@@ -124,7 +143,8 @@ export async function rejectArtist(ctx: ServiceCtx, input: { artistId: string; r
 export async function banArtist(ctx: ServiceCtx, artistId: string) {
   const artist = await loadArtist(ctx, artistId);
   ctx.activity.set({ targetType: "Artist", targetId: artist.id });
-  if (artist.status === "BANNED") throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "They are already banned." });
+  if (artist.status === "BANNED")
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "They are already banned." });
   await ctx.db.artist.update({ where: { id: artist.id }, data: { status: "BANNED" } });
   return { artistId: artist.id, status: "BANNED" as const };
 }

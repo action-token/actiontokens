@@ -24,7 +24,6 @@ import { api, type RouterOutputs } from "~/trpc/react";
 
 type Me = NonNullable<RouterOutputs["account"]["me"]>;
 
-
 /** The header's sign-in button, or, when signed in, the account menu with balances. */
 export function AccountButton() {
   const { status } = useSession();
@@ -53,7 +52,12 @@ function AccountMenu({ me }: { me: Me }) {
             {me.avatarUrl && <AvatarImage src={me.avatarUrl} alt="" />}
             <AvatarFallback className="text-xs">{name.slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
-          <Money amount={me.balances.BANDCOIN} currency="BANDCOIN" short className="hidden sm:inline-flex" />
+          <Money
+            amount={me.balances.BANDCOIN}
+            currency="BANDCOIN"
+            short
+            className="hidden sm:inline-flex"
+          />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-72">
@@ -72,7 +76,9 @@ function AccountMenu({ me }: { me: Me }) {
           ))}
         </dl>
         {!me.activated && (
-          <p className="text-warning px-2 pb-2 text-xs">Your wallet isn&apos;t active yet. Add XLM to start.</p>
+          <p className="text-warning px-2 pb-2 text-xs">
+            Your wallet isn&apos;t active yet. Add XLM to start.
+          </p>
         )}
         <DropdownMenuSeparator />
         {me.username && (

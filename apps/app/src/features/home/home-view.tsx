@@ -21,7 +21,12 @@ const seeAll = (href: string) => (
 export function HomeView({ home }: { home: Home }) {
   return (
     <div className="grid gap-9">
-      <MediaCarousel title="Trending this week" note="what fans are playing and buying" action={seeAll("/marketplace?sort=popular")} itemWidth={POSTER_WIDTH}>
+      <MediaCarousel
+        title="Trending this week"
+        note="what fans are playing and buying"
+        action={seeAll("/marketplace?sort=popular")}
+        itemWidth={POSTER_WIDTH}
+      >
         {home.trending.map((item) => (
           <ItemCard key={item.id} item={item} queue={home.trending} />
         ))}

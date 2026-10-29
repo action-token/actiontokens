@@ -48,7 +48,10 @@ async function priceRecharge(ctx: ServiceCtx, user: SessionUser | null, input: R
   ]);
   const funds = user ? fundsOf(account, chain.config.assets) : null;
   const asset = assetFor("BANDCOIN", chain.config.assets);
-  const rate = bandcoinUsd && rates ? { bandcoinUsd: toStroops(bandcoinUsd), xlmUsd: toStroops(rates.xlmUsd) } : { bandcoinUsd: 0n, xlmUsd: 0n };
+  const rate =
+    bandcoinUsd && rates
+      ? { bandcoinUsd: toStroops(bandcoinUsd), xlmUsd: toStroops(rates.xlmUsd) }
+      : { bandcoinUsd: 0n, xlmUsd: 0n };
   const { baseFee } = chain.config.network;
 
   const openTrustline = !(account && holdsLine(account, asset));
@@ -67,17 +70,30 @@ async function priceRecharge(ctx: ServiceCtx, user: SessionUser | null, input: R
         }
       : {
           kind: "XLM_SWAP" as const,
-          ...quoteXlmSwap({ ...rate, bandcoinBalance: funds?.BANDCOIN ?? null, networkFeeXlm: networkFeeXlm(2, baseFee) }),
+          ...quoteXlmSwap({
+            ...rate,
+            bandcoinBalance: funds?.BANDCOIN ?? null,
+            networkFeeXlm: networkFeeXlm(2, baseFee),
+          }),
         };
 
   const extra: RechargeProblem[] = [];
-  if (!chain.config.mother) extra.push({ code: "UNAVAILABLE", message: "Recharge isn't available right now." });
+  if (!chain.config.mother)
+    extra.push({ code: "UNAVAILABLE", message: "Recharge isn't available right now." });
   else if (user && !account) {
-    extra.push({ code: "UNAVAILABLE", message: "Your wallet needs its first XLM before it can be recharged." });
+    extra.push({
+      code: "UNAVAILABLE",
+      message: "Your wallet needs its first XLM before it can be recharged.",
+    });
   }
   const problems = [...extra, ...quote.problems];
   return {
-    quote: { ...quote, problems, ok: problems.length === 0, expiresAt: new Date(Date.now() + QUOTE_TTL_SECONDS * 1000).toISOString() },
+    quote: {
+      ...quote,
+      problems,
+      ok: problems.length === 0,
+      expiresAt: new Date(Date.now() + QUOTE_TTL_SECONDS * 1000).toISOString(),
+    },
     account,
     openTrustline,
     bandcoinUsd,
@@ -89,7 +105,11 @@ function rateFailure(): null {
   return null;
 }
 
-export async function quoteRecharge(ctx: ServiceCtx, user: SessionUser | null, input: RechargeInput) {
+export async function quoteRecharge(
+  ctx: ServiceCtx,
+  user: SessionUser | null,
+  input: RechargeInput,
+) {
   return (await priceRecharge(ctx, user, input)).quote;
 }
 
@@ -121,15 +141,36 @@ export async function startRecharge(ctx: ServiceCtx, user: SessionUser, input: R
       rateUsd: priced.bandcoinUsd,
     },
   });
-  ctx.activity.set({ targetType: "Order", targetId: order.id, amount: String(total), currency: card ? "USD" : "BANDCOIN" });
+  ctx.activity.set({
+    targetType: "Order",
+    targetId: order.id,
+    amount: String(total),
+    currency: card ? "USD" : "BANDCOIN",
+  });
 
   const { network, assets } = ctx.chain.config;
   const buyer = new Account(account.accountId(), account.sequenceNumber());
   const asset = assetFor("BANDCOIN", assets);
   const built =
     quote.kind === "TOP_UP"
-      ? buildTopUp({ buyer, network, orderId: order.id, asset, from: mother, amount: quote.receive, openTrustline: priced.openTrustline })
-      : buildXlmSwap({ buyer, network, orderId: order.id, asset, platform: mother, pay: quote.total, xlm: XLM_SWAP_AMOUNT });
+      ? buildTopUp({
+          buyer,
+          network,
+          orderId: order.id,
+          asset,
+          from: mother,
+          amount: quote.receive,
+          openTrustline: priced.openTrustline,
+        })
+      : buildXlmSwap({
+          buyer,
+          network,
+          orderId: order.id,
+          asset,
+          platform: mother,
+          pay: quote.total,
+          xlm: XLM_SWAP_AMOUNT,
+        });
 
   // The hash doesn't change when signatures are added, so it pins the exact transaction.
   await transitionOrder(ctx.db, order.id, "AWAITING_SIGNATURE", { txHash: built.hash });
@@ -159,22 +200,38 @@ export async function submitRecharge(
     throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Order not found" });
   }
   const mother = chain.config.mother;
-  if (!mother) throw new AppError(ErrorCodes.CONFIG_MISSING, { message: "Recharge isn't available right now." });
-  ctx.activity.set({ targetType: "Order", targetId: order.id, amount: order.total.toString(), currency: order.currency });
+  if (!mother)
+    throw new AppError(ErrorCodes.CONFIG_MISSING, {
+      message: "Recharge isn't available right now.",
+    });
+  ctx.activity.set({
+    targetType: "Order",
+    targetId: order.id,
+    amount: order.total.toString(),
+    currency: order.currency,
+  });
 
   if (order.status !== "AWAITING_SIGNATURE" || !order.txHash) {
-    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: `This order is already ${order.status.toLowerCase()}.` });
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+      message: `This order is already ${order.status.toLowerCase()}.`,
+    });
   }
   if (order.quoteExpiresAt && order.quoteExpiresAt < new Date()) {
-    await transitionOrder(db, order.id, "FAILED", { failureCode: ErrorCodes.STELLAR_QUOTE_EXPIRED });
+    await transitionOrder(db, order.id, "FAILED", {
+      failureCode: ErrorCodes.STELLAR_QUOTE_EXPIRED,
+    });
     throw new AppError(ErrorCodes.STELLAR_QUOTE_EXPIRED);
   }
   const card = order.method === "CARD";
-  if (card && !input.card) throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "Add a card to pay." });
+  if (card && !input.card)
+    throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "Add a card to pay." });
 
   let xdr = await userSignature(ctx, user, order.txHash, input.xdr);
   xdr = await chain.signWithServerKeys(xdr, [mother]);
-  if (card) xdr = await chain.signWithServerKeys(wrapInFeeBump(xdr, mother, chain.config.network), [mother]);
+  if (card)
+    xdr = await chain.signWithServerKeys(wrapInFeeBump(xdr, mother, chain.config.network), [
+      mother,
+    ]);
 
   let cardPaymentId: string | null = null;
   if (card && input.card) {
@@ -193,9 +250,13 @@ export async function submitRecharge(
   } catch (error) {
     // A lost response may still have landed: leave it SUBMITTED for the worker to re-check.
     if (isAppError(error) && error.code === ErrorCodes.STELLAR_TX_SUBMIT_FAILED) throw error;
-    await failOrder(ctx, order.id, error, cardPaymentId ? { paymentId: cardPaymentId, total: order.total.toString() } : null);
+    await failOrder(
+      ctx,
+      order.id,
+      error,
+      cardPaymentId ? { paymentId: cardPaymentId, total: order.total.toString() } : null,
+    );
     throw error;
   }
   return deliverOrder(ctx, order.id);
 }
-

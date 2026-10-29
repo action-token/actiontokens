@@ -94,7 +94,11 @@ export function buildNftList(input: Common & { tokenIds: number[]; prices: Price
   const [first, ...rest] = input.tokenIds;
   if (first === undefined) throw new RangeError("Pick at least one token");
   return rest.length === 0
-    ? buildContractCall({ ...input, method: "list", args: [seller, arg.u32(first), priceEntries(input.prices)] })
+    ? buildContractCall({
+        ...input,
+        method: "list",
+        args: [seller, arg.u32(first), priceEntries(input.prices)],
+      })
     : buildContractCall({
         ...input,
         method: "list_batch",
@@ -183,13 +187,19 @@ export function buildNftRegisterEdition(
   };
   if (input.title.length === 0) fail("Give it a title");
   if (input.title.length > NFT_MAX_TITLE) fail(`Title can be at most ${NFT_MAX_TITLE} characters`);
-  if (input.description.length > NFT_MAX_DESCRIPTION) fail(`Description can be at most ${NFT_MAX_DESCRIPTION} characters`);
-  if (input.thumbnailUrl.length === 0 || input.thumbnailUrl.length > NFT_MAX_URI) fail("The cover address is missing or too long");
-  if (input.mediaUrl.length === 0 || input.mediaUrl.length > NFT_MAX_URI) fail("The file address is missing or too long");
-  if (!Number.isInteger(input.supply) || input.supply < 1 || input.supply > NFT_MAX_SUPPLY) fail(`Supply must be from 1 to ${NFT_MAX_SUPPLY}`);
-  if (input.royaltyBps < 0 || input.royaltyBps > NFT_MAX_ROYALTY_BPS) fail("Royalty can be at most 90%");
+  if (input.description.length > NFT_MAX_DESCRIPTION)
+    fail(`Description can be at most ${NFT_MAX_DESCRIPTION} characters`);
+  if (input.thumbnailUrl.length === 0 || input.thumbnailUrl.length > NFT_MAX_URI)
+    fail("The cover address is missing or too long");
+  if (input.mediaUrl.length === 0 || input.mediaUrl.length > NFT_MAX_URI)
+    fail("The file address is missing or too long");
+  if (!Number.isInteger(input.supply) || input.supply < 1 || input.supply > NFT_MAX_SUPPLY)
+    fail(`Supply must be from 1 to ${NFT_MAX_SUPPLY}`);
+  if (input.royaltyBps < 0 || input.royaltyBps > NFT_MAX_ROYALTY_BPS)
+    fail("Royalty can be at most 90%");
   if (input.prices.length === 0) fail("Add at least one price");
-  if (input.prices.length > NFT_MAX_PRICE_ENTRIES) fail(`Use at most ${NFT_MAX_PRICE_ENTRIES} prices`);
+  if (input.prices.length > NFT_MAX_PRICE_ENTRIES)
+    fail(`Use at most ${NFT_MAX_PRICE_ENTRIES} prices`);
   if (input.prices.some((entry) => entry.price <= 0n)) fail("Prices must be above zero");
 
   return buildContractCall({

@@ -15,12 +15,26 @@ const here = { lat: 40.7128, lng: -74.006 };
 
 function caller(db: object, user: SessionUser | null = me, chain: Partial<ChainGateway> = {}) {
   const full = { ...db, activityLog: { create: vi.fn().mockResolvedValue({}) } } as unknown as Db;
-  const gateway = { loadAccount: vi.fn().mockResolvedValue(null), ...chain } as unknown as ChainGateway;
-  return createCallerFactory(arRouter)(createContext({ db: full, chain: gateway, app: "ar", session: user ? { user } : null }));
+  const gateway = {
+    loadAccount: vi.fn().mockResolvedValue(null),
+    ...chain,
+  } as unknown as ChainGateway;
+  return createCallerFactory(arRouter)(
+    createContext({ db: full, chain: gateway, app: "ar", session: user ? { user } : null }),
+  );
 }
 
 const holding = (balance: string) =>
-  ({ balances: [{ asset_type: "credit_alphanum4", asset_code: FAN_TOKEN.code, asset_issuer: FAN_TOKEN.issuer, balance }] }) as never;
+  ({
+    balances: [
+      {
+        asset_type: "credit_alphanum4",
+        asset_code: FAN_TOKEN.code,
+        asset_issuer: FAN_TOKEN.issuer,
+        balance,
+      },
+    ],
+  }) as never;
 
 function pinRow(over: Partial<PinRow> = {}): PinRow {
   return {
@@ -56,8 +70,24 @@ function pinRow(over: Partial<PinRow> = {}): PinRow {
     },
     tags: [{ tag: { label: "vinyl" } }, { tag: { label: "launch" } }, { tag: { label: "vinyl" } }],
     spots: [
-      { id: "s1", pinId: "pin1", latitude: here.lat, longitude: here.lng, isHidden: false, autoCollect: false, claims: [] },
-      { id: "s2", pinId: "pin1", latitude: here.lat, longitude: here.lng + 0.001, isHidden: false, autoCollect: true, claims: [] },
+      {
+        id: "s1",
+        pinId: "pin1",
+        latitude: here.lat,
+        longitude: here.lng,
+        isHidden: false,
+        autoCollect: false,
+        claims: [],
+      },
+      {
+        id: "s2",
+        pinId: "pin1",
+        latitude: here.lat,
+        longitude: here.lng + 0.001,
+        isHidden: false,
+        autoCollect: true,
+        claims: [],
+      },
     ],
     ...over,
   } as PinRow;
@@ -91,7 +121,10 @@ describe("pin locks", () => {
   });
 
   it("says a gated pin isn't available when the artist has no fan token", () => {
-    const pin = pinRow({ visibility: "MEMBERS", artist: { ...pinRow().artist, fanTokenItem: null } });
+    const pin = pinRow({
+      visibility: "MEMBERS",
+      artist: { ...pinRow().artist, fanTokenItem: null },
+    });
     expect(lockReasonFor(pin, viewer({ balance: "999" }))).toBe("Not available");
   });
 });
@@ -113,15 +146,27 @@ describe("spotsOf", () => {
   });
 
   it("marks every spot collected when one is, unless the pin is multi-spot", () => {
-    const claim = { userId: "me", redeemCode: "ABC234", isRedeemed: false, claimedAt: new Date("2026-10-01"), createdAt: new Date("2026-10-01") };
+    const claim = {
+      userId: "me",
+      redeemCode: "ABC234",
+      isRedeemed: false,
+      claimedAt: new Date("2026-10-01"),
+      createdAt: new Date("2026-10-01"),
+    };
     const row = pinRow();
     row.spots[0]!.claims = [claim];
     expect(spotsOf(row, viewer()).map((pin) => pin.collected)).toEqual([true, true]);
-    expect(spotsOf({ ...row, isMultiSpot: true }, viewer()).map((pin) => pin.collected)).toEqual([true, false]);
+    expect(spotsOf({ ...row, isMultiSpot: true }, viewer()).map((pin) => pin.collected)).toEqual([
+      true,
+      false,
+    ]);
   });
 
   it("shows claims left only on capped pins", () => {
-    expect(spotsOf(pinRow({ claimLimit: 100, claimsLeft: 7 }), null)[0]).toMatchObject({ remaining: 7, supply: 100 });
+    expect(spotsOf(pinRow({ claimLimit: 100, claimsLeft: 7 }), null)[0]).toMatchObject({
+      remaining: 7,
+      supply: 100,
+    });
   });
 });
 
@@ -132,7 +177,11 @@ describe("pin.collect", () => {
         updateMany: vi.fn().mockResolvedValue({ count: 1 }),
         findUniqueOrThrow: vi.fn().mockResolvedValue({ claimsLeft: 4 }),
       },
-      pinClaim: { create: vi.fn().mockResolvedValue({ id: "c1", redeemCode: "ABC234", claimedAt: new Date("2026-10-29") }) },
+      pinClaim: {
+        create: vi
+          .fn()
+          .mockResolvedValue({ id: "c1", redeemCode: "ABC234", claimedAt: new Date("2026-10-29") }),
+      },
     };
     return {
       tx,
@@ -150,8 +199,13 @@ describe("pin.collect", () => {
     const at = offsetBy(here, 60, 45);
     const result = await caller(db).pin.collect({ spotId: "s1", ...at });
     expect(result).toMatchObject({ id: "c1", redeemCode: "ABC234", remaining: 4 });
-    expect(tx.pin.updateMany).toHaveBeenCalledWith({ where: { id: "pin1", claimsLeft: { gt: 0 } }, data: { claimsLeft: { decrement: 1 } } });
-    expect(tx.pinClaim.create.mock.calls[0]?.[0]).toMatchObject({ data: { userId: "me", spotId: "s1" } });
+    expect(tx.pin.updateMany).toHaveBeenCalledWith({
+      where: { id: "pin1", claimsLeft: { gt: 0 } },
+      data: { claimsLeft: { decrement: 1 } },
+    });
+    expect(tx.pinClaim.create.mock.calls[0]?.[0]).toMatchObject({
+      data: { userId: "me", spotId: "s1" },
+    });
   });
 
   it("leaves uncapped pins' count alone", async () => {
@@ -163,46 +217,72 @@ describe("pin.collect", () => {
 
   it("refuses a fan who is too far away", async () => {
     const { db } = collectDb(pinRow());
-    await expect(caller(db).pin.collect({ spotId: "s1", ...offsetBy(here, 400, 0) })).rejects.toMatchObject({
+    await expect(
+      caller(db).pin.collect({ spotId: "s1", ...offsetBy(here, 400, 0) }),
+    ).rejects.toMatchObject({
       message: "You're 400 m away. Get within 75 m to collect this.",
     });
   });
 
   it("refuses a second collect of the same pin", async () => {
     const { db } = collectDb(pinRow(), { id: "old" });
-    await expect(caller(db).pin.collectByQr({ spotId: "s1" })).rejects.toMatchObject({ message: "You've already collected this one." });
-    expect(db.pinClaim.findFirst).toHaveBeenCalledWith({ where: { userId: "me", spot: { pinId: "pin1" } }, select: { id: true } });
+    await expect(caller(db).pin.collectByQr({ spotId: "s1" })).rejects.toMatchObject({
+      message: "You've already collected this one.",
+    });
+    expect(db.pinClaim.findFirst).toHaveBeenCalledWith({
+      where: { userId: "me", spot: { pinId: "pin1" } },
+      select: { id: true },
+    });
   });
 
   it("refuses the last claim when someone else just took it", async () => {
     const { db, tx } = collectDb(pinRow({ claimLimit: 1, claimsLeft: 1 }));
     tx.pin.updateMany.mockResolvedValue({ count: 0 });
-    await expect(caller(db).pin.collectByQr({ spotId: "s1" })).rejects.toMatchObject({ message: "Every one of these has been collected." });
+    await expect(caller(db).pin.collectByQr({ spotId: "s1" })).rejects.toMatchObject({
+      message: "Every one of these has been collected.",
+    });
   });
 
   it("checks the gate at collect time, using the fan's live balance", async () => {
     const row = pinRow({ visibility: "TIER", tier: { requiredTokens: 50 } as never });
     const { db } = collectDb(row);
-    await expect(caller(db, me, { loadAccount: vi.fn().mockResolvedValue(holding("5")) }).pin.collectByQr({ spotId: "s1" })).rejects.toMatchObject({
+    await expect(
+      caller(db, me, { loadAccount: vi.fn().mockResolvedValue(holding("5")) }).pin.collectByQr({
+        spotId: "s1",
+      }),
+    ).rejects.toMatchObject({
       message: "Hold 50 LUNA to unlock",
     });
   });
 
   it("won't collect pins that ended, haven't started, or need sign-in", async () => {
-    await expect(caller(collectDb(pinRow({ endsAt: new Date("2020-01-01") })).db).pin.collectByQr({ spotId: "s1" })).rejects.toMatchObject({
+    await expect(
+      caller(collectDb(pinRow({ endsAt: new Date("2020-01-01") })).db).pin.collectByQr({
+        spotId: "s1",
+      }),
+    ).rejects.toMatchObject({
       message: "This pin has ended.",
     });
-    await expect(caller(collectDb(pinRow({ startsAt: new Date("2099-01-01") })).db).pin.collectByQr({ spotId: "s1" })).rejects.toMatchObject({
+    await expect(
+      caller(collectDb(pinRow({ startsAt: new Date("2099-01-01") })).db).pin.collectByQr({
+        spotId: "s1",
+      }),
+    ).rejects.toMatchObject({
       message: "This pin hasn't started yet.",
     });
-    await expect(caller(collectDb(pinRow()).db, null).pin.collectByQr({ spotId: "s1" })).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+    await expect(
+      caller(collectDb(pinRow()).db, null).pin.collectByQr({ spotId: "s1" }),
+    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });
 
 describe("pin.list and search", () => {
   it("only reads the balance when a gated pin is in view", async () => {
     const loadAccount = vi.fn().mockResolvedValue(null);
-    const db = { pin: { findMany: vi.fn().mockResolvedValue([pinRow()]) }, follow: { findMany: vi.fn().mockResolvedValue([]) } };
+    const db = {
+      pin: { findMany: vi.fn().mockResolvedValue([pinRow()]) },
+      follow: { findMany: vi.fn().mockResolvedValue([]) },
+    };
     await caller(db, me, { loadAccount }).pin.list();
     expect(loadAccount).not.toHaveBeenCalled();
 
@@ -221,8 +301,18 @@ describe("pin.list and search", () => {
 
   it("ranks title hits above description hits", () => {
     const terms = ["vinyl"];
-    const inTitle = searchScore({ title: "Vinyl hunt", description: null, artistName: "X" }, [], terms, "vinyl");
-    const inDescription = searchScore({ title: "Drop", description: "find the vinyl", artistName: "X" }, [], terms, "vinyl");
+    const inTitle = searchScore(
+      { title: "Vinyl hunt", description: null, artistName: "X" },
+      [],
+      terms,
+      "vinyl",
+    );
+    const inDescription = searchScore(
+      { title: "Drop", description: "find the vinyl", artistName: "X" },
+      [],
+      terms,
+      "vinyl",
+    );
     expect(inTitle).toBeGreaterThan(inDescription);
   });
 });

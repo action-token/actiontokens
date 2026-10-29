@@ -28,7 +28,6 @@ import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
 import { timeAgo } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";
 
-
 type Bounty = RouterOutputs["bounty"]["byId"];
 type Music = NonNullable<Bounty["music"]>;
 type Media = { url: string; type: string };

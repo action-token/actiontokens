@@ -59,8 +59,8 @@ export default function DesignPreviewPage() {
             Music you can own, on a stage that stays out of the way.
           </h1>
           <p className="text-fg-muted mt-4 max-w-[58ch] text-[17px]">
-            Every Bandcoin app uses these tokens and components. Album art provides the color; the interface stays calm
-            and readable.
+            Every Bandcoin app uses these tokens and components. Album art provides the color; the
+            interface stays calm and readable.
           </p>
         </div>
         <dl className="grid gap-3 text-sm">
@@ -78,7 +78,10 @@ export default function DesignPreviewPage() {
         </dl>
       </section>
 
-      <Block title="Boot screen" note="First visit only, under 600 ms, over the already-rendered page.">
+      <Block
+        title="Boot screen"
+        note="First visit only, under 600 ms, over the already-rendered page."
+      >
         <BootDemo />
       </Block>
 
@@ -100,11 +103,15 @@ export default function DesignPreviewPage() {
         <div className="grid gap-4 md:grid-cols-3">
           <div className={panel}>
             <span className="eyebrow">Display · Unbounded</span>
-            <div className="font-display text-[40px] leading-none font-extrabold tracking-tight">Night Drive</div>
+            <div className="font-display text-[40px] leading-none font-extrabold tracking-tight">
+              Night Drive
+            </div>
           </div>
           <div className={panel}>
             <span className="eyebrow">Text · Onest</span>
-            <div className="text-xl font-medium">Hold 10 $NOVA to unlock the studio session and stems.</div>
+            <div className="text-xl font-medium">
+              Hold 10 $NOVA to unlock the studio session and stems.
+            </div>
           </div>
           <div className={panel}>
             <span className="eyebrow">Numbers · JetBrains Mono</span>
@@ -154,7 +161,10 @@ export default function DesignPreviewPage() {
         </div>
       </Block>
 
-      <Block title="App shell" note="Narrow the window: the sidebar turns into icons, then hides, and the right panel folds away.">
+      <Block
+        title="App shell"
+        note="Narrow the window: the sidebar turns into icons, then hides, and the right panel folds away."
+      >
         <ShellDemo />
       </Block>
 
@@ -181,7 +191,9 @@ export default function DesignPreviewPage() {
             </div>
             <div className="bg-surface-2 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 rounded-md border p-4">
               <div className="grid size-14 place-items-center rounded-full bg-[conic-gradient(var(--color-warning)_0_30%,var(--color-surface-3)_30%_100%)]">
-                <span className="bg-surface-2 num grid size-11 place-items-center rounded-full text-xs font-semibold">3/10</span>
+                <span className="bg-surface-2 num grid size-11 place-items-center rounded-full text-xs font-semibold">
+                  3/10
+                </span>
               </div>
               <div className="grid gap-1">
                 <h3 className="text-[15px] font-bold">
@@ -220,7 +232,9 @@ export default function DesignPreviewPage() {
               <span className="bg-primary size-[18px] rounded-full" />
             </div>
             <h3 className="text-[15px] font-bold">Your collection is empty</h3>
-            <p className="text-fg-muted text-sm">Songs and items you buy, receive or claim at AR pins show up here.</p>
+            <p className="text-fg-muted text-sm">
+              Songs and items you buy, receive or claim at AR pins show up here.
+            </p>
             <div>
               <Button size="sm">Browse the marketplace</Button>
             </div>
@@ -230,7 +244,9 @@ export default function DesignPreviewPage() {
               <CircleAlert className="size-5" />
             </div>
             <h3 className="text-[15px] font-bold">Couldn&apos;t load your playlists</h3>
-            <p className="text-fg-muted text-sm">The connection dropped. Your playlists are safe.</p>
+            <p className="text-fg-muted text-sm">
+              The connection dropped. Your playlists are safe.
+            </p>
             <div>
               <Button size="sm" variant="secondary">
                 Try again

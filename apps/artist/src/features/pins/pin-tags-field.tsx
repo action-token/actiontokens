@@ -13,13 +13,24 @@ import { api } from "~/trpc/react";
 import { AiQuota } from "../ai/shared";
 
 export const MAX_TAGS = 10;
-const sameTag = (a: string, b: string) => a.trim().toLowerCase().replace(/\s+/g, "-") === b.trim().toLowerCase().replace(/\s+/g, "-");
+const sameTag = (a: string, b: string) =>
+  a.trim().toLowerCase().replace(/\s+/g, "-") === b.trim().toLowerCase().replace(/\s+/g, "-");
 
 /** What the AI needs to suggest tags for this pin. */
 export type TagBrief = { title: string; description: string; type: string; place: string };
 
 /** Search tags on a pin: type your own, pick ones you used before, or ask the AI. */
-export function PinTagsField({ tags, onChange, known, brief }: { tags: string[]; onChange: (tags: string[]) => void; known: string[]; brief: TagBrief }) {
+export function PinTagsField({
+  tags,
+  onChange,
+  known,
+  brief,
+}: {
+  tags: string[];
+  onChange: (tags: string[]) => void;
+  known: string[];
+  brief: TagBrief;
+}) {
   const [text, setText] = useState("");
   const [suggested, setSuggested] = useState<string[]>([]);
   const suggest = api.ai.suggestPinTags.useMutation({
@@ -72,9 +83,17 @@ export function PinTagsField({ tags, onChange, known, brief }: { tags: string[];
       {tags.length > 0 && (
         <ul className="flex flex-wrap gap-2" aria-label="Tags on this pin">
           {tags.map((tag) => (
-            <li key={tag} className="bg-primary-soft text-primary-text flex items-center gap-1 rounded-full border border-current/30 py-1 pr-1 pl-3 text-xs font-medium">
+            <li
+              key={tag}
+              className="bg-primary-soft text-primary-text flex items-center gap-1 rounded-full border border-current/30 py-1 pr-1 pl-3 text-xs font-medium"
+            >
               {tag}
-              <button type="button" aria-label={`Remove ${tag}`} className="hover:bg-primary/20 rounded-full p-1" onClick={() => remove(tag)}>
+              <button
+                type="button"
+                aria-label={`Remove ${tag}`}
+                className="hover:bg-primary/20 rounded-full p-1"
+                onClick={() => remove(tag)}
+              >
                 <X className="size-3" />
               </button>
             </li>
@@ -83,8 +102,18 @@ export function PinTagsField({ tags, onChange, known, brief }: { tags: string[];
       )}
 
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="button" variant="outline" size="sm" disabled={!canSuggest || suggest.isPending} onClick={() => suggest.mutate(brief)}>
-          {suggest.isPending ? <Loader2 className="animate-spin" /> : <Sparkles className="text-primary-text" />}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={!canSuggest || suggest.isPending}
+          onClick={() => suggest.mutate(brief)}
+        >
+          {suggest.isPending ? (
+            <Loader2 className="animate-spin" />
+          ) : (
+            <Sparkles className="text-primary-text" />
+          )}
           Suggest tags
         </Button>
         <AiQuota kind="text" />
@@ -97,7 +126,17 @@ export function PinTagsField({ tags, onChange, known, brief }: { tags: string[];
   );
 }
 
-function TagChoices({ label, tags, dashed, onPick }: { label: string; tags: string[]; dashed?: boolean; onPick: (tag: string) => void }) {
+function TagChoices({
+  label,
+  tags,
+  dashed,
+  onPick,
+}: {
+  label: string;
+  tags: string[];
+  dashed?: boolean;
+  onPick: (tag: string) => void;
+}) {
   if (tags.length === 0) return null;
   return (
     <div className="grid gap-2">
@@ -108,7 +147,10 @@ function TagChoices({ label, tags, dashed, onPick }: { label: string; tags: stri
             key={tag}
             type="button"
             onClick={() => onPick(tag)}
-            className={cn("hover:bg-surface-2 flex items-center gap-1 rounded-full border px-3 py-1 text-xs", dashed && "border-primary/50 border-dashed")}
+            className={cn(
+              "hover:bg-surface-2 flex items-center gap-1 rounded-full border px-3 py-1 text-xs",
+              dashed && "border-primary/50 border-dashed",
+            )}
           >
             <Plus className="size-3" /> {tag}
           </button>

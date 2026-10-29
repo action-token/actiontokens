@@ -15,10 +15,16 @@ export const VIEW_STATUS: Record<Exclude<View, "settings">, Status> = {
   rejected: "REJECTED",
 };
 
-export const REJECT_LABEL: Record<RejectReason, string> = { NOT_A_MURAL: "Not a mural", FRAUD: "Fraud / spam" };
+export const REJECT_LABEL: Record<RejectReason, string> = {
+  NOT_A_MURAL: "Not a mural",
+  FRAUD: "Fraud / spam",
+};
 
-export const plural = (n: number, one: string, many = `${one}s`) => `${n.toLocaleString()} ${n === 1 ? one : many}`;
+export const plural = (n: number, one: string, many = `${one}s`) =>
+  `${n.toLocaleString()} ${n === 1 ? one : many}`;
 
-export const mapsLink = (lat: number, lng: number) => `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+export const mapsLink = (lat: number, lng: number) =>
+  `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
 
-export const messageOf = (error: unknown) => (error instanceof Error ? error.message : "Something went wrong.");
+export const messageOf = (error: unknown) =>
+  error instanceof Error ? error.message : "Something went wrong.";

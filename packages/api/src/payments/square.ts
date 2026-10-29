@@ -25,8 +25,12 @@ async function call<T>(path: string, body: unknown): Promise<T> {
   });
   const data = (await response.json()) as T & { errors?: { code?: string; detail?: string }[] };
   if (!response.ok) {
-    const detail = data.errors?.map((error) => error.detail ?? error.code).join("; ") ?? response.statusText;
-    throw new AppError(ErrorCodes.PAYMENT_FAILED, { message: `Card payment failed: ${detail}`, details: { path } });
+    const detail =
+      data.errors?.map((error) => error.detail ?? error.code).join("; ") ?? response.statusText;
+    throw new AppError(ErrorCodes.PAYMENT_FAILED, {
+      message: `Card payment failed: ${detail}`,
+      details: { path },
+    });
   }
   return data;
 }

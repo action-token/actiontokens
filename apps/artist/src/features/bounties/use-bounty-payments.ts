@@ -7,7 +7,8 @@ import { api } from "~/trpc/react";
 import { useWalletPayment } from "../payments/use-wallet-payment";
 
 /** The platform signing for the storage account looks the same to the artist as a custodial wallet: a countdown with Cancel, then it goes. */
-const signerFor = (signer: "server" | "custodial" | "wallet") => (signer === "wallet" ? ("wallet" as const) : ("custodial" as const));
+const signerFor = (signer: "server" | "custodial" | "wallet") =>
+  signer === "wallet" ? ("wallet" as const) : ("custodial" as const);
 
 /**
  * Funding a bounty's prize into escrow (see useWalletPayment for how the payment
@@ -29,17 +30,23 @@ export function useBountyFunding(onFunded: (bountyId: string) => void) {
     cancel: () => Promise.resolve(),
     preparing: "Preparing your bounty…",
     sending: "Moving the prize into escrow. This takes a few seconds.",
-    success: { title: "Your bounty is live", body: "The prize is held in escrow until you pick winners." },
+    success: {
+      title: "Your bounty is live",
+      body: "The prize is held in escrow until you pick winners.",
+    },
     onDone: async () => {
       await Promise.all([utils.bounties.list.invalidate(), utils.bounties.get.invalidate()]);
       onFunded(target.current);
     },
   });
 
-  return { ...flow, fund: (bountyId: string, summary: React.ReactNode) => {
-    target.current = bountyId;
-    return flow.run(summary);
-  } };
+  return {
+    ...flow,
+    fund: (bountyId: string, summary: React.ReactNode) => {
+      target.current = bountyId;
+      return flow.run(summary);
+    },
+  };
 }
 
 /** Committing part of the escrow to a winner (`select_winner`), then recording them. */
@@ -59,11 +66,18 @@ export function useWinnerPick(bountyId: string) {
     preparing: "Preparing the prize…",
     sending: "Committing the prize to the winner. This takes a few seconds.",
     success: { title: "Winner picked", body: "They can claim their prize now." },
-    onDone: () => Promise.all([utils.bounties.get.invalidate({ bountyId }), utils.bounties.participants.invalidate({ bountyId })]),
+    onDone: () =>
+      Promise.all([
+        utils.bounties.get.invalidate({ bountyId }),
+        utils.bounties.participants.invalidate({ bountyId }),
+      ]),
   });
 
-  return { ...flow, pickWinner: (winnerUserId: string, amount: string, summary: React.ReactNode) => {
-    pick.current = { winnerUserId, amount };
-    return flow.run(summary);
-  } };
+  return {
+    ...flow,
+    pickWinner: (winnerUserId: string, amount: string, summary: React.ReactNode) => {
+      pick.current = { winnerUserId, amount };
+      return flow.run(summary);
+    },
+  };
 }

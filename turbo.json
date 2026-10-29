@@ -2,11 +2,7 @@
   "$schema": "https://turborepo.com/schema.json",
   "ui": "stream",
   "globalDependencies": ["pnpm-workspace.yaml", "tsconfig.json"],
-  "globalPassThroughEnv": [
-    "STELLAR_NETWORK",
-    "NEXT_PUBLIC_STELLAR_NETWORK",
-    "SKIP_ENV_VALIDATION"
-  ],
+  "globalPassThroughEnv": ["STELLAR_NETWORK", "NEXT_PUBLIC_STELLAR_NETWORK", "SKIP_ENV_VALIDATION"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

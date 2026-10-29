@@ -27,7 +27,10 @@ const ROLE_REFRESH_MS = 5 * 60_000;
  * in production, one cookie across *.bandcoin.io), and every sign-in attempt
  * is written to the activity log with the app's name.
  */
-export function createAuthOptions(input: { app: "app" | "artist" | "ar" | "studio"; db: Db }): NextAuthOptions {
+export function createAuthOptions(input: {
+  app: "app" | "artist" | "ar" | "studio";
+  db: Db;
+}): NextAuthOptions {
   const { app, db } = input;
   return {
     session: { strategy: "jwt" },
@@ -67,7 +70,10 @@ export function createAuthOptions(input: { app: "app" | "artist" | "ar" | "studi
           };
         }
         if (token.sub && Date.now() - (token.roleCheckedAt ?? 0) > ROLE_REFRESH_MS) {
-          const row = await db.user.findUnique({ where: { id: token.sub }, select: { role: true } });
+          const row = await db.user.findUnique({
+            where: { id: token.sub },
+            select: { role: true },
+          });
           if (!row) return { ...token, sub: undefined };
           return { ...token, role: row.role, roleCheckedAt: Date.now() };
         }

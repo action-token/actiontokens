@@ -12,7 +12,8 @@ export const PIN_TYPES = [
 ] as const;
 export type PinTypeName = (typeof PIN_TYPES)[number]["value"];
 
-const when = (date: Date | null) => (date && !Number.isNaN(date.getTime()) ? formatWhen(date) : "—");
+const when = (date: Date | null) =>
+  date && !Number.isNaN(date.getTime()) ? formatWhen(date) : "—";
 
 /** The pin at a glance, updating as the form is filled in. */
 export function PinSummary({

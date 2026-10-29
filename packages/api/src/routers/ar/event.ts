@@ -1,6 +1,12 @@
 import { z } from "zod";
 
-import type { ArAnnouncement, ArComment, ArEventArtist, ArEventCard, ArEventDetail } from "@bandcoin/ar-core/ar/types";
+import type {
+  ArAnnouncement,
+  ArComment,
+  ArEventArtist,
+  ArEventCard,
+  ArEventDetail,
+} from "@bandcoin/ar-core/ar/types";
 import { site } from "@bandcoin/ar-core/site";
 import { type Db, Prisma } from "@bandcoin/db";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
@@ -31,7 +37,8 @@ const artistOf = (a: { id: string; name: string; avatarUrl: string | null }): Ar
 });
 
 /** Artist-entered links, passed on only when they're plain web links. */
-export const webUrl = (url: string | null) => (url && /^https?:\/\//i.test(url.trim()) ? url.trim() : null);
+export const webUrl = (url: string | null) =>
+  url && /^https?:\/\//i.test(url.trim()) ? url.trim() : null;
 
 const PAGE = {
   limit: z.number().int().min(1).max(50).default(20),
@@ -41,12 +48,15 @@ const PAGE = {
 const TARGET = z.object({ kind: z.enum(["event", "announcement"]), id: z.string().min(1) });
 
 async function followedIds(db: Db, userId: string | undefined) {
-  if (!userId) throw new AppError(ErrorCodes.AUTH_REQUIRED, { message: "Sign in to see artists you follow." });
+  if (!userId)
+    throw new AppError(ErrorCodes.AUTH_REQUIRED, { message: "Sign in to see artists you follow." });
   const rows = await db.follow.findMany({ where: { userId }, select: { artistId: true } });
   return rows.map((r) => r.artistId);
 }
 
-const liveAnnouncement = (now: Date): Prisma.AnnouncementWhereInput => ({ OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] });
+const liveAnnouncement = (now: Date): Prisma.AnnouncementWhereInput => ({
+  OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+});
 
 function cardInclude(userId: string | undefined) {
   return {
@@ -77,9 +87,14 @@ function toCard(row: CardRow): ArEventCard {
   };
 }
 
-const announcementInclude = { artist: { select: artistSelect }, _count: { select: { comments: true } } } as const;
+const announcementInclude = {
+  artist: { select: artistSelect },
+  _count: { select: { comments: true } },
+} as const;
 
-function toAnnouncement(row: Prisma.AnnouncementGetPayload<{ include: typeof announcementInclude }>): ArAnnouncement {
+function toAnnouncement(
+  row: Prisma.AnnouncementGetPayload<{ include: typeof announcementInclude }>,
+): ArAnnouncement {
   return {
     id: row.id,
     title: row.title,
@@ -102,7 +117,9 @@ async function assertTarget(db: Db, target: z.infer<typeof TARGET>) {
       ? await db.event.count({ where: { id: target.id } })
       : await db.announcement.count({ where: { id: target.id, ...liveAnnouncement(new Date()) } });
   if (!found) {
-    throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: target.kind === "event" ? "Event not found." : "Announcement not found." });
+    throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, {
+      message: target.kind === "event" ? "Event not found." : "Announcement not found.",
+    });
   }
 }
 
@@ -139,93 +156,131 @@ export const eventRouter = createRouter({
       return { items: page.map(toCard), nextCursor: hasMore ? page[page.length - 1]!.id : null };
     }),
 
-  byId: publicProcedure.input(z.object({ id: z.string().min(1) })).query(async ({ ctx, input }): Promise<ArEventDetail> => {
-    const userId = ctx.session?.user.id;
-    const row = await ctx.db.event.findUnique({
-      where: { id: input.id },
-      include: {
-        ...cardInclude(userId),
-        _count: { select: { rsvps: true, comments: true } },
-        // Linked pins go through the map's own "live" filter, so an event
-        // can't surface a pin that's pending review, hidden or over.
-        pins: {
-          where: livePinWhere(userId ?? null),
-          select: {
-            title: true,
-            imageUrl: true,
-            artist: { select: { avatarUrl: true } },
-            spots: { where: { isHidden: false }, select: { id: true }, take: 1 },
+  byId: publicProcedure
+    .input(z.object({ id: z.string().min(1) }))
+    .query(async ({ ctx, input }): Promise<ArEventDetail> => {
+      const userId = ctx.session?.user.id;
+      const row = await ctx.db.event.findUnique({
+        where: { id: input.id },
+        include: {
+          ...cardInclude(userId),
+          _count: { select: { rsvps: true, comments: true } },
+          // Linked pins go through the map's own "live" filter, so an event
+          // can't surface a pin that's pending review, hidden or over.
+          pins: {
+            where: livePinWhere(userId ?? null),
+            select: {
+              title: true,
+              imageUrl: true,
+              artist: { select: { avatarUrl: true } },
+              spots: { where: { isHidden: false }, select: { id: true }, take: 1 },
+            },
           },
+          // Only funded bounties are shown anywhere.
+          bounties: { where: { fundTxHash: { not: null } }, select: { id: true, title: true } },
         },
-        // Only funded bounties are shown anywhere.
-        bounties: { where: { fundTxHash: { not: null } }, select: { id: true, title: true } },
-      },
-    });
-    if (!row) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Event not found." });
+      });
+      if (!row) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Event not found." });
 
-    const card = toCard(row);
-    return {
-      ...card,
-      description: row.description,
-      latitude: row.latitude,
-      longitude: row.longitude,
-      link: webUrl(row.link),
-      linkLabel: row.linkLabel,
-      pins: row.pins.flatMap((p) => {
-        const spot = p.spots[0];
-        return spot ? [{ id: spot.id, title: p.title, imageUrl: p.imageUrl ?? p.artist.avatarUrl ?? site.assets.mark }] : [];
-      }),
-      bounties: row.bounties.map((b) => ({ id: b.id, title: b.title, imageUrl: card.artist.imageUrl })),
-      commentCount: row._count.comments,
-      isFull: row.capacity != null && card.goingCount >= row.capacity,
-      isPast: row.endsAt < new Date(),
-    };
-  }),
+      const card = toCard(row);
+      return {
+        ...card,
+        description: row.description,
+        latitude: row.latitude,
+        longitude: row.longitude,
+        link: webUrl(row.link),
+        linkLabel: row.linkLabel,
+        pins: row.pins.flatMap((p) => {
+          const spot = p.spots[0];
+          return spot
+            ? [
+                {
+                  id: spot.id,
+                  title: p.title,
+                  imageUrl: p.imageUrl ?? p.artist.avatarUrl ?? site.assets.mark,
+                },
+              ]
+            : [];
+        }),
+        bounties: row.bounties.map((b) => ({
+          id: b.id,
+          title: b.title,
+          imageUrl: card.artist.imageUrl,
+        })),
+        commentCount: row._count.comments,
+        isFull: row.capacity != null && card.goingCount >= row.capacity,
+        isPast: row.endsAt < new Date(),
+      };
+    }),
 
   /** RSVP is free and only says "I'm coming"; capacity is checked so two fans can't take the last spot. */
-  rsvp: authedProcedure.input(z.object({ id: z.string().min(1), going: z.boolean() })).mutation(async ({ ctx, input }) => {
-    const userId = ctx.session.user.id;
-    const event = await ctx.db.event.findUnique({ where: { id: input.id }, select: { id: true, endsAt: true, capacity: true } });
-    if (!event) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Event not found." });
-    ctx.activity.set({ targetType: "Event", targetId: event.id });
+  rsvp: authedProcedure
+    .input(z.object({ id: z.string().min(1), going: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const event = await ctx.db.event.findUnique({
+        where: { id: input.id },
+        select: { id: true, endsAt: true, capacity: true },
+      });
+      if (!event)
+        throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Event not found." });
+      ctx.activity.set({ targetType: "Event", targetId: event.id });
 
-    if (!input.going) {
-      await ctx.db.eventRsvp.deleteMany({ where: { eventId: event.id, userId } });
-    } else {
-      if (event.endsAt < new Date()) throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "This event has already ended." });
-      try {
-        // Serializable, so the count and the insert commit together or not at all.
-        await ctx.db.$transaction(
-          async (tx) => {
-            const mine = await tx.eventRsvp.findUnique({ where: { eventId_userId: { eventId: event.id, userId } }, select: { id: true } });
-            if (mine) return;
-            if (event.capacity != null && (await tx.eventRsvp.count({ where: { eventId: event.id } })) >= event.capacity) {
-              throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "This event is full." });
-            }
-            await tx.eventRsvp.create({ data: { eventId: event.id, userId } });
-          },
-          { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
-        );
-      } catch (error) {
-        if (!(error instanceof Prisma.PrismaClientKnownRequestError)) throw error;
-        // P2034: lost a serialization race, safe to try again. P2002: a double tap already inserted it.
-        if (error.code === "P2034") throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "Lots of people are RSVPing. Try again." });
-        if (error.code !== "P2002") throw error;
+      if (!input.going) {
+        await ctx.db.eventRsvp.deleteMany({ where: { eventId: event.id, userId } });
+      } else {
+        if (event.endsAt < new Date())
+          throw new AppError(ErrorCodes.VALIDATION_FAILED, {
+            message: "This event has already ended.",
+          });
+        try {
+          // Serializable, so the count and the insert commit together or not at all.
+          await ctx.db.$transaction(
+            async (tx) => {
+              const mine = await tx.eventRsvp.findUnique({
+                where: { eventId_userId: { eventId: event.id, userId } },
+                select: { id: true },
+              });
+              if (mine) return;
+              if (
+                event.capacity != null &&
+                (await tx.eventRsvp.count({ where: { eventId: event.id } })) >= event.capacity
+              ) {
+                throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+                  message: "This event is full.",
+                });
+              }
+              await tx.eventRsvp.create({ data: { eventId: event.id, userId } });
+            },
+            { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+          );
+        } catch (error) {
+          if (!(error instanceof Prisma.PrismaClientKnownRequestError)) throw error;
+          // P2034: lost a serialization race, safe to try again. P2002: a double tap already inserted it.
+          if (error.code === "P2034")
+            throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+              message: "Lots of people are RSVPing. Try again.",
+            });
+          if (error.code !== "P2002") throw error;
+        }
       }
-    }
 
-    const goingCount = await ctx.db.eventRsvp.count({ where: { eventId: event.id } });
-    return { going: input.going, goingCount };
-  }),
+      const goingCount = await ctx.db.eventRsvp.count({ where: { eventId: event.id } });
+      return { going: input.going, goingCount };
+    }),
 
   announcements: publicProcedure
-    .input(z.object({ following: z.boolean().default(false), artistId: z.string().optional(), ...PAGE }))
+    .input(
+      z.object({ following: z.boolean().default(false), artistId: z.string().optional(), ...PAGE }),
+    )
     .query(async ({ ctx, input }) => {
       const where: Prisma.AnnouncementWhereInput = {
         AND: [
           liveAnnouncement(new Date()),
           ...(input.artistId ? [{ artistId: input.artistId }] : []),
-          ...(input.following ? [{ artistId: { in: await followedIds(ctx.db, ctx.session?.user.id) } }] : []),
+          ...(input.following
+            ? [{ artistId: { in: await followedIds(ctx.db, ctx.session?.user.id) } }]
+            : []),
         ],
       };
       // "Pin to top" puts a post first on the artist's own list. In the
@@ -242,29 +297,49 @@ export const eventRouter = createRouter({
       });
       const hasMore = rows.length > input.limit;
       const page = hasMore ? rows.slice(0, input.limit) : rows;
-      return { items: page.map(toAnnouncement), nextCursor: hasMore ? page[page.length - 1]!.id : null };
+      return {
+        items: page.map(toAnnouncement),
+        nextCursor: hasMore ? page[page.length - 1]!.id : null,
+      };
     }),
 
-  announcement: publicProcedure.input(z.object({ id: z.string().min(1) })).query(async ({ ctx, input }): Promise<ArAnnouncement> => {
-    const row = await ctx.db.announcement.findFirst({ where: { id: input.id, ...liveAnnouncement(new Date()) }, include: announcementInclude });
-    if (!row) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Announcement not found." });
-    return toAnnouncement(row);
-  }),
+  announcement: publicProcedure
+    .input(z.object({ id: z.string().min(1) }))
+    .query(async ({ ctx, input }): Promise<ArAnnouncement> => {
+      const row = await ctx.db.announcement.findFirst({
+        where: { id: input.id, ...liveAnnouncement(new Date()) },
+        include: announcementInclude,
+      });
+      if (!row)
+        throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Announcement not found." });
+      return toAnnouncement(row);
+    }),
 
   // ── Comments (shared by both kinds) ──────────────────────────────────────
 
   comments: publicProcedure.input(TARGET).query(async ({ ctx, input }): Promise<ArComment[]> => {
     const userId = ctx.session?.user.id;
-    const query = { orderBy: { createdAt: "desc" as const }, take: 100, include: { author: { select: authorSelect } } };
+    const query = {
+      orderBy: { createdAt: "desc" as const },
+      take: 100,
+      include: { author: { select: authorSelect } },
+    };
     const rows =
       input.kind === "event"
         ? await ctx.db.eventComment.findMany({ where: { eventId: input.id }, ...query })
-        : await ctx.db.announcementComment.findMany({ where: { announcementId: input.id }, ...query });
+        : await ctx.db.announcementComment.findMany({
+            where: { announcementId: input.id },
+            ...query,
+          });
     return rows.map((c) => ({
       id: c.id,
       content: c.body,
       createdAt: c.createdAt.toISOString(),
-      author: { id: c.author.id, name: c.author.displayName ?? c.author.username, image: c.author.avatarUrl },
+      author: {
+        id: c.author.id,
+        name: c.author.displayName ?? c.author.username,
+        image: c.author.avatarUrl,
+      },
       mine: c.authorId === userId,
     }));
   }),
@@ -277,8 +352,13 @@ export const eventRouter = createRouter({
       const row =
         input.target.kind === "event"
           ? await ctx.db.eventComment.create({ data: { ...data, eventId: input.target.id } })
-          : await ctx.db.announcementComment.create({ data: { ...data, announcementId: input.target.id } });
-      ctx.activity.set({ targetType: input.target.kind === "event" ? "EventComment" : "AnnouncementComment", targetId: row.id });
+          : await ctx.db.announcementComment.create({
+              data: { ...data, announcementId: input.target.id },
+            });
+      ctx.activity.set({
+        targetType: input.target.kind === "event" ? "EventComment" : "AnnouncementComment",
+        targetId: row.id,
+      });
       return { id: row.id };
     }),
 
@@ -290,15 +370,28 @@ export const eventRouter = createRouter({
       const owner = { select: { artist: { select: { userId: true } } } };
       const row =
         input.kind === "event"
-          ? await ctx.db.eventComment.findUnique({ where: { id: input.commentId }, select: { authorId: true, event: owner } })
-          : await ctx.db.announcementComment.findUnique({ where: { id: input.commentId }, select: { authorId: true, announcement: owner } });
-      if (!row) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Comment not found." });
+          ? await ctx.db.eventComment.findUnique({
+              where: { id: input.commentId },
+              select: { authorId: true, event: owner },
+            })
+          : await ctx.db.announcementComment.findUnique({
+              where: { id: input.commentId },
+              select: { authorId: true, announcement: owner },
+            });
+      if (!row)
+        throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Comment not found." });
       const ownerId = "event" in row ? row.event.artist.userId : row.announcement.artist.userId;
       if (row.authorId !== userId && ownerId !== userId) {
-        throw new AppError(ErrorCodes.AUTH_FORBIDDEN, { message: "You can't delete this comment." });
+        throw new AppError(ErrorCodes.AUTH_FORBIDDEN, {
+          message: "You can't delete this comment.",
+        });
       }
-      ctx.activity.set({ targetType: input.kind === "event" ? "EventComment" : "AnnouncementComment", targetId: input.commentId });
-      if (input.kind === "event") await ctx.db.eventComment.delete({ where: { id: input.commentId } });
+      ctx.activity.set({
+        targetType: input.kind === "event" ? "EventComment" : "AnnouncementComment",
+        targetId: input.commentId,
+      });
+      if (input.kind === "event")
+        await ctx.db.eventComment.delete({ where: { id: input.commentId } });
       else await ctx.db.announcementComment.delete({ where: { id: input.commentId } });
       return { deleted: true };
     }),

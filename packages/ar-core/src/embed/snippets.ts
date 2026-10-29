@@ -61,19 +61,25 @@ export const DEFAULT_DRAFT: EmbedDraft = {
 /** The editor's unsaved settings as the `c` param the AR app's preview reads. `artistId` is whose pins "Only my pins" shows. */
 export function previewUrl(draft: EmbedDraft, artistId: string | null) {
   const json = JSON.stringify({ ...draft, artistId });
-  const b64 = btoa(unescape(encodeURIComponent(json))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  const b64 = btoa(unescape(encodeURIComponent(json)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
   return `${arOrigin()}/embed/preview?c=${b64}`;
 }
 
 export const embedPageUrl = (id: string) => `${arOrigin()}/embed/${id}`;
 
-export const scriptSnippet = (id: string, height = 520) => `<div data-bandcoin-embed="${id}" style="height:${height}px"></div>\n<script async src="${arOrigin()}/embed.js"></script>`;
+export const scriptSnippet = (id: string, height = 520) =>
+  `<div data-bandcoin-embed="${id}" style="height:${height}px"></div>\n<script async src="${arOrigin()}/embed.js"></script>`;
 
 export const iframeSnippet = (id: string, height = 520) =>
   `<iframe src="${embedPageUrl(id)}" title="${site.name} map" width="100%" height="${height}" style="border:0;display:block" loading="lazy" allow="geolocation"></iframe>`;
 
 /** A hero section with the map behind the page's own heading and buttons. */
-export const heroSnippet = (id: string) => `<section style="position:relative;height:560px;overflow:hidden">
+export const heroSnippet = (
+  id: string,
+) => `<section style="position:relative;height:560px;overflow:hidden">
   <div data-bandcoin-embed="${id}" style="position:absolute;inset:0"></div>
   <div style="position:relative;z-index:1;pointer-events:none;padding:48px">
     <h1 style="pointer-events:auto">Find us on tour</h1>

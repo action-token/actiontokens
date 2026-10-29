@@ -160,16 +160,28 @@
   --animate-reveal: bc-reveal 520ms 120ms var(--ease-out-soft) forwards;
 
   @keyframes bc-shimmer {
-    from { background-position: 100% 0; }
-    to { background-position: -100% 0; }
+    from {
+      background-position: 100% 0;
+    }
+    to {
+      background-position: -100% 0;
+    }
   }
   @keyframes bc-eq {
-    from { height: 18%; }
-    to { height: 100%; }
+    from {
+      height: 18%;
+    }
+    to {
+      height: 100%;
+    }
   }
   @keyframes bc-reveal {
-    from { clip-path: inset(0 100% 0 0); }
-    to { clip-path: inset(0 0 0 0); }
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
   }
 }
 
@@ -256,7 +268,12 @@
 /* Loading placeholder with a moving sheen. */
 @utility skeleton {
   border-radius: var(--radius-sm);
-  background: linear-gradient(90deg, var(--bc-surface-2) 0%, var(--bc-surface-3) 40%, var(--bc-surface-2) 80%);
+  background: linear-gradient(
+    90deg,
+    var(--bc-surface-2) 0%,
+    var(--bc-surface-3) 40%,
+    var(--bc-surface-2) 80%
+  );
   background-size: 300% 100%;
   animation: var(--animate-shimmer);
 }

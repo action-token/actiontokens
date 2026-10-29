@@ -24,7 +24,8 @@ import { EventPreview } from "./event-preview";
 
 type Existing = RouterOutputs["engage"]["events"][number];
 
-const messageOf = (error: unknown) => (error instanceof Error ? error.message : "Something went wrong.");
+const messageOf = (error: unknown) =>
+  error instanceof Error ? error.message : "Something went wrong.";
 const toNumber = (value: string) => (value.trim() === "" ? null : Number(value));
 const asCover = (url: string): PickedFile => ({ url, name: "cover", mime: "image" });
 
@@ -34,7 +35,9 @@ export function EventForm({ existing }: { existing?: Existing }) {
   const utils = api.useUtils();
   const [title, setTitle] = useState(existing?.title ?? "");
   const [description, setDescription] = useState(existing?.description ?? "");
-  const [cover, setCover] = useState<PickedFile | null>(existing?.coverUrl ? asCover(existing.coverUrl) : null);
+  const [cover, setCover] = useState<PickedFile | null>(
+    existing?.coverUrl ? asCover(existing.coverUrl) : null,
+  );
   const [imageBrief, setImageBrief] = useState("");
   const [startsAt, setStartsAt] = useState(existing ? toLocalInput(existing.startsAt) : "");
   const [endsAt, setEndsAt] = useState(existing ? toLocalInput(existing.endsAt) : "");
@@ -51,15 +54,29 @@ export function EventForm({ existing }: { existing?: Existing }) {
     void utils.engage.events.invalidate();
     router.push("/events");
   };
-  const create = api.engage.createEvent.useMutation({ onSuccess: () => done("Event created"), onError: (error) => toast.error(messageOf(error)) });
-  const update = api.engage.updateEvent.useMutation({ onSuccess: () => done("Saved"), onError: (error) => toast.error(messageOf(error)) });
-  const remove = api.engage.removeEvent.useMutation({ onSuccess: () => done("Event deleted"), onError: (error) => toast.error(messageOf(error)) });
+  const create = api.engage.createEvent.useMutation({
+    onSuccess: () => done("Event created"),
+    onError: (error) => toast.error(messageOf(error)),
+  });
+  const update = api.engage.updateEvent.useMutation({
+    onSuccess: () => done("Saved"),
+    onError: (error) => toast.error(messageOf(error)),
+  });
+  const remove = api.engage.removeEvent.useMutation({
+    onSuccess: () => done("Event deleted"),
+    onError: (error) => toast.error(messageOf(error)),
+  });
   const saving = create.isPending || update.isPending;
 
   const start = fromLocalInput(startsAt);
   const end = fromLocalInput(endsAt);
   const timeProblem = start && end && end <= start ? "The event has to end after it starts." : null;
-  const ready = title.trim().length > 0 && description.trim().length > 0 && Boolean(start) && Boolean(end) && !timeProblem;
+  const ready =
+    title.trim().length > 0 &&
+    description.trim().length > 0 &&
+    Boolean(start) &&
+    Boolean(end) &&
+    !timeProblem;
 
   const aiContext = { title, description, starts: startsAt, ends: endsAt, venue, address };
   const imagePrompt = imageBrief || [title, description.slice(0, 400)].filter(Boolean).join(". ");
@@ -107,7 +124,13 @@ export function EventForm({ existing }: { existing?: Existing }) {
       actions={actions}
       aside={
         <>
-          <EventPreview title={title} coverUrl={cover?.url} startsAt={start} venue={venue} address={address} />
+          <EventPreview
+            title={title}
+            coverUrl={cover?.url}
+            startsAt={start}
+            venue={venue}
+            address={address}
+          />
           {existing && (
             <DeleteCard
               title="Delete this event"
@@ -124,9 +147,24 @@ export function EventForm({ existing }: { existing?: Existing }) {
         <AiFillCard
           form="event"
           context={aiContext}
-          examples={["Album launch party this Friday at 8pm, free entry", "Online listening session for my new EP next Sunday", "Signing at the record shop on Saturday, 100 spots"]}
+          examples={[
+            "Album launch party this Friday at 8pm, free entry",
+            "Online listening session for my new EP next Sunday",
+            "Signing at the record shop on Saturday, 100 spots",
+          ]}
           apply={(result) => {
-            const before = { title, description, startsAt, endsAt, venue, address, link, linkLabel, capacity, imageBrief };
+            const before = {
+              title,
+              description,
+              startsAt,
+              endsAt,
+              venue,
+              address,
+              link,
+              linkLabel,
+              capacity,
+              imageBrief,
+            };
             setTitle(result.title);
             setDescription(result.description);
             if (result.startsAt) setStartsAt(result.startsAt);
@@ -154,43 +192,128 @@ export function EventForm({ existing }: { existing?: Existing }) {
       )}
 
       <FormSection title="The event" icon={Type}>
-        <Field label="Title" htmlFor="event-title" required action={<AiTextButton form="event" field="title" maxChars={100} value={title} context={aiContext} onChange={setTitle} />}>
-          <Input id="event-title" value={title} maxLength={100} placeholder="Album launch party" onChange={(e) => setTitle(e.target.value)} />
+        <Field
+          label="Title"
+          htmlFor="event-title"
+          required
+          action={
+            <AiTextButton
+              form="event"
+              field="title"
+              maxChars={100}
+              value={title}
+              context={aiContext}
+              onChange={setTitle}
+            />
+          }
+        >
+          <Input
+            id="event-title"
+            value={title}
+            maxLength={100}
+            placeholder="Album launch party"
+            onChange={(e) => setTitle(e.target.value)}
+          />
         </Field>
-        <Field label="What's happening" htmlFor="event-description" required action={<AiTextButton form="event" field="description" maxChars={4000} value={description} context={aiContext} onChange={setDescription} />}>
-          <Textarea id="event-description" value={description} rows={6} maxLength={4000} placeholder="Who it's for, what to expect, what to bring…" onChange={(e) => setDescription(e.target.value)} />
+        <Field
+          label="What's happening"
+          htmlFor="event-description"
+          required
+          action={
+            <AiTextButton
+              form="event"
+              field="description"
+              maxChars={4000}
+              value={description}
+              context={aiContext}
+              onChange={setDescription}
+            />
+          }
+        >
+          <Textarea
+            id="event-description"
+            value={description}
+            rows={6}
+            maxLength={4000}
+            placeholder="Who it's for, what to expect, what to bring…"
+            onChange={(e) => setDescription(e.target.value)}
+          />
         </Field>
       </FormSection>
 
-      <FormSection title="Cover image" icon={ImageIcon} description="Optional. Shown on the event and in the AR app.">
+      <FormSection
+        title="Cover image"
+        icon={ImageIcon}
+        description="Optional. Shown on the event and in the AR app."
+      >
         <FileField id="event-cover" accept="image/*" preview value={cover} onChange={setCover} />
-        <AiImagePanel form="event" aspect="wide" suggestedPrompt={imagePrompt} onImage={(url) => setCover(asCover(url))} />
+        <AiImagePanel
+          form="event"
+          aspect="wide"
+          suggestedPrompt={imagePrompt}
+          onImage={(url) => setCover(asCover(url))}
+        />
       </FormSection>
 
       <FormSection title="When" icon={CalendarClock}>
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Starts" htmlFor="event-starts" required>
-            <Input id="event-starts" type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
+            <Input
+              id="event-starts"
+              type="datetime-local"
+              value={startsAt}
+              onChange={(e) => setStartsAt(e.target.value)}
+            />
           </Field>
           <Field label="Ends" htmlFor="event-ends" required error={timeProblem}>
-            <Input id="event-ends" type="datetime-local" value={endsAt} aria-invalid={Boolean(timeProblem)} onChange={(e) => setEndsAt(e.target.value)} />
+            <Input
+              id="event-ends"
+              type="datetime-local"
+              value={endsAt}
+              aria-invalid={Boolean(timeProblem)}
+              onChange={(e) => setEndsAt(e.target.value)}
+            />
           </Field>
         </div>
       </FormSection>
 
-      <FormSection title="Where" icon={MapPin} description="Leave it empty for an online event. Give both coordinates to show it on the map.">
+      <FormSection
+        title="Where"
+        icon={MapPin}
+        description="Leave it empty for an online event. Give both coordinates to show it on the map."
+      >
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Venue" htmlFor="event-venue">
-            <Input id="event-venue" value={venue} maxLength={100} onChange={(e) => setVenue(e.target.value)} />
+            <Input
+              id="event-venue"
+              value={venue}
+              maxLength={100}
+              onChange={(e) => setVenue(e.target.value)}
+            />
           </Field>
           <Field label="Address" htmlFor="event-address">
-            <Input id="event-address" value={address} maxLength={200} onChange={(e) => setAddress(e.target.value)} />
+            <Input
+              id="event-address"
+              value={address}
+              maxLength={200}
+              onChange={(e) => setAddress(e.target.value)}
+            />
           </Field>
           <Field label="Latitude" htmlFor="event-lat">
-            <Input id="event-lat" inputMode="decimal" value={latitude} onChange={(e) => setLatitude(e.target.value.trim())} />
+            <Input
+              id="event-lat"
+              inputMode="decimal"
+              value={latitude}
+              onChange={(e) => setLatitude(e.target.value.trim())}
+            />
           </Field>
           <Field label="Longitude" htmlFor="event-lng">
-            <Input id="event-lng" inputMode="decimal" value={longitude} onChange={(e) => setLongitude(e.target.value.trim())} />
+            <Input
+              id="event-lng"
+              inputMode="decimal"
+              value={longitude}
+              onChange={(e) => setLongitude(e.target.value.trim())}
+            />
           </Field>
         </div>
       </FormSection>
@@ -198,14 +321,32 @@ export function EventForm({ existing }: { existing?: Existing }) {
       <FormSection title="Link and RSVPs" icon={Link2}>
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Link" htmlFor="event-link">
-            <Input id="event-link" type="url" placeholder="https://" value={link} onChange={(e) => setLink(e.target.value.trim())} />
+            <Input
+              id="event-link"
+              type="url"
+              placeholder="https://"
+              value={link}
+              onChange={(e) => setLink(e.target.value.trim())}
+            />
           </Field>
           <Field label="Link label" htmlFor="event-link-label">
-            <Input id="event-link-label" value={linkLabel} maxLength={30} placeholder="Get tickets" onChange={(e) => setLinkLabel(e.target.value)} />
+            <Input
+              id="event-link-label"
+              value={linkLabel}
+              maxLength={30}
+              placeholder="Get tickets"
+              onChange={(e) => setLinkLabel(e.target.value)}
+            />
           </Field>
         </div>
         <Field label="RSVP limit" htmlFor="event-capacity">
-          <Input id="event-capacity" inputMode="numeric" value={capacity} className="max-w-40" onChange={(e) => setCapacity(e.target.value.trim())} />
+          <Input
+            id="event-capacity"
+            inputMode="numeric"
+            value={capacity}
+            className="max-w-40"
+            onChange={(e) => setCapacity(e.target.value.trim())}
+          />
           <Note>Leave empty for no limit.</Note>
         </Field>
       </FormSection>

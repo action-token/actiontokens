@@ -2,7 +2,17 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { Db } from "@bandcoin/db";
 
-import { checkEmbed, createEmbed, duplicateEmbed, embedStats, listEmbeds, removeEmbed, setEmbedEnabled, updateEmbed, type EmbedInput } from "../services/artist/embeds";
+import {
+  checkEmbed,
+  createEmbed,
+  duplicateEmbed,
+  embedStats,
+  listEmbeds,
+  removeEmbed,
+  setEmbedEnabled,
+  updateEmbed,
+  type EmbedInput,
+} from "../services/artist/embeds";
 
 type Row = Record<string, unknown>;
 
@@ -36,7 +46,18 @@ function setup(over: { embed?: Row | null; stats?: Row[] } = {}) {
   const updated: Row[] = [];
   const db = {
     mapEmbed: {
-      findFirst: vi.fn().mockResolvedValue(over.embed === undefined ? { id: "e1", artistId: "a1", createdAt: new Date(), updatedAt: new Date(), ...base, name: "Tour map" } : over.embed),
+      findFirst: vi.fn().mockResolvedValue(
+        over.embed === undefined
+          ? {
+              id: "e1",
+              artistId: "a1",
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              ...base,
+              name: "Tour map",
+            }
+          : over.embed,
+      ),
       findMany: vi.fn().mockResolvedValue([]),
       create: vi.fn((args: { data: Row }) => {
         created.push(args.data);
@@ -68,22 +89,32 @@ describe("checkEmbed", () => {
   });
 
   it("cleans the allowed websites: hostnames, no duplicates, no blanks", () => {
-    const out = checkEmbed({ ...base, allowedDomains: ["https://www.Example.com/path", "example.com", "  ", "band.example.org"] });
+    const out = checkEmbed({
+      ...base,
+      allowedDomains: ["https://www.Example.com/path", "example.com", "  ", "band.example.org"],
+    });
     expect(out.allowedDomains).toEqual(["example.com", "band.example.org"]);
   });
 
   it("refuses something that is not a website", () => {
-    expect(() => checkEmbed({ ...base, allowedDomains: ["not a site"] })).toThrow(/isn't a website address/);
+    expect(() => checkEmbed({ ...base, allowedDomains: ["not a site"] })).toThrow(
+      /isn't a website address/,
+    );
   });
 
   it("only lets the buttons point at web addresses", () => {
     expect(() => checkEmbed({ ...base, eventsUrl: "javascript:alert(1)" })).toThrow(/web address/);
-    expect(checkEmbed({ ...base, bountiesUrl: " https://band.example/bounties " }).bountiesUrl).toBe("https://band.example/bounties");
+    expect(
+      checkEmbed({ ...base, bountiesUrl: " https://band.example/bounties " }).bountiesUrl,
+    ).toBe("https://band.example/bounties");
     expect(checkEmbed({ ...base, eventsUrl: "   " }).eventsUrl).toBeNull();
   });
 
   it("drops repeated pin types", () => {
-    expect(checkEmbed({ ...base, pinTypes: ["EVENT", "EVENT", "BOUNTY"] }).pinTypes).toEqual(["EVENT", "BOUNTY"]);
+    expect(checkEmbed({ ...base, pinTypes: ["EVENT", "EVENT", "BOUNTY"] }).pinTypes).toEqual([
+      "EVENT",
+      "BOUNTY",
+    ]);
   });
 });
 
@@ -106,7 +137,10 @@ describe("embeds", () => {
 
   it("turns a map off and on", async () => {
     const { ctx, updated } = setup();
-    await expect(setEmbedEnabled(ctx, artist, "e1", false)).resolves.toEqual({ embedId: "e1", isEnabled: false });
+    await expect(setEmbedEnabled(ctx, artist, "e1", false)).resolves.toEqual({
+      embedId: "e1",
+      isEnabled: false,
+    });
     expect(updated[0]).toEqual({ isEnabled: false });
   });
 
@@ -121,7 +155,8 @@ describe("embeds", () => {
   it("adds up the last 7 and 30 days per map", async () => {
     const { ctx, db } = setup();
     const today = new Date();
-    const day = (ago: number) => new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - ago));
+    const day = (ago: number) =>
+      new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - ago));
     db.mapEmbed.findMany.mockResolvedValue([
       {
         id: "e1",
@@ -133,12 +168,28 @@ describe("embeds", () => {
     ]);
     const [row] = await listEmbeds(ctx, artist);
     expect(row?.last7.views).toBe(10);
-    expect(row?.last30).toMatchObject({ views: 15, pinTaps: 5, eventsClicks: 1, bountiesClicks: 2 });
+    expect(row?.last30).toMatchObject({
+      views: 15,
+      pinTaps: 5,
+      eventsClicks: 1,
+      bountiesClicks: 2,
+    });
   });
 
   it("fills quiet days with zeros, oldest first", async () => {
     const now = new Date("2026-11-10T08:00:00Z");
-    const { ctx } = setup({ stats: [{ day: new Date("2026-11-09T00:00:00Z"), views: 7, pinTaps: 2, openClicks: 1, eventsClicks: 0, bountiesClicks: 0 }] });
+    const { ctx } = setup({
+      stats: [
+        {
+          day: new Date("2026-11-09T00:00:00Z"),
+          views: 7,
+          pinTaps: 2,
+          openClicks: 1,
+          eventsClicks: 0,
+          bountiesClicks: 0,
+        },
+      ],
+    });
     const rows = await embedStats(ctx, artist, "e1", 7, now);
     expect(rows).toHaveLength(7);
     expect(rows[0]?.day).toBe("2026-11-04");

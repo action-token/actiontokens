@@ -1,9 +1,22 @@
 import { z } from "zod";
 
-import { createPin, getPin, listPins, pinOptions, removePin, removeSpot, setPinHidden, updatePin } from "../../services/artist/pins";
+import {
+  createPin,
+  getPin,
+  listPins,
+  pinOptions,
+  removePin,
+  removeSpot,
+  setPinHidden,
+  updatePin,
+} from "../../services/artist/pins";
 import { artistProcedure, createRouter } from "../../trpc";
 
-const reward = z.discriminatedUnion("kind", [z.object({ kind: z.literal("NONE") }), z.object({ kind: z.literal("FAN_TOKEN") }), z.object({ kind: z.literal("ITEM"), itemId: z.string().min(1) })]);
+const reward = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("NONE") }),
+  z.object({ kind: z.literal("FAN_TOKEN") }),
+  z.object({ kind: z.literal("ITEM"), itemId: z.string().min(1) }),
+]);
 
 const pinFields = {
   title: z.string().trim().max(120),
@@ -35,16 +48,35 @@ export const pinsRouter = createRouter({
   pinOptions: artistProcedure.query(({ ctx }) => pinOptions(ctx, ctx.artist)),
 
   createPin: artistProcedure
-    .input(z.object({ ...pinFields, latitude: z.number(), longitude: z.number(), radiusMeters: z.number(), spotCount: z.number().int() }))
+    .input(
+      z.object({
+        ...pinFields,
+        latitude: z.number(),
+        longitude: z.number(),
+        radiusMeters: z.number(),
+        spotCount: z.number().int(),
+      }),
+    )
     .mutation(({ ctx, input }) => createPin(ctx, ctx.artist, input)),
 
   updatePin: artistProcedure
-    .input(z.object(pinFields).partial().extend({ pinId: z.string().min(1) }))
+    .input(
+      z
+        .object(pinFields)
+        .partial()
+        .extend({ pinId: z.string().min(1) }),
+    )
     .mutation(({ ctx, input }) => updatePin(ctx, ctx.artist, input)),
 
-  setPinHidden: artistProcedure.input(pinId.extend({ hidden: z.boolean() })).mutation(({ ctx, input }) => setPinHidden(ctx, ctx.artist, input.pinId, input.hidden)),
+  setPinHidden: artistProcedure
+    .input(pinId.extend({ hidden: z.boolean() }))
+    .mutation(({ ctx, input }) => setPinHidden(ctx, ctx.artist, input.pinId, input.hidden)),
 
-  removePin: artistProcedure.input(pinId).mutation(({ ctx, input }) => removePin(ctx, ctx.artist, input.pinId)),
+  removePin: artistProcedure
+    .input(pinId)
+    .mutation(({ ctx, input }) => removePin(ctx, ctx.artist, input.pinId)),
 
-  removeSpot: artistProcedure.input(z.object({ spotId: z.string().min(1) })).mutation(({ ctx, input }) => removeSpot(ctx, ctx.artist, input.spotId)),
+  removeSpot: artistProcedure
+    .input(z.object({ spotId: z.string().min(1) }))
+    .mutation(({ ctx, input }) => removeSpot(ctx, ctx.artist, input.spotId)),
 });

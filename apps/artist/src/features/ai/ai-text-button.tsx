@@ -1,12 +1,29 @@
 "use client";
 
-import { Briefcase, ChevronDown, Loader2, Maximize2, Minimize2, PartyPopper, PenLine, Sparkles, Undo2 } from "lucide-react";
+import {
+  Briefcase,
+  ChevronDown,
+  Loader2,
+  Maximize2,
+  Minimize2,
+  PartyPopper,
+  PenLine,
+  Sparkles,
+  Undo2,
+} from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
 import type { FillForm } from "@bandcoin/api";
 import { Button } from "@bandcoin/ui/components/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@bandcoin/ui/components/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@bandcoin/ui/components/dropdown-menu";
 
 import { api } from "~/trpc/react";
 
@@ -73,15 +90,36 @@ export function AiTextButton({
         </Button>
       )}
       {value.trim().length === 0 ? (
-        <Button type="button" variant="outline" size="sm" className={trigger} disabled={write.isPending} onClick={() => run("write")}>
-          {write.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <PenLine className="text-primary-text size-3.5" />}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className={trigger}
+          disabled={write.isPending}
+          onClick={() => run("write")}
+        >
+          {write.isPending ? (
+            <Loader2 className="size-3.5 animate-spin" />
+          ) : (
+            <PenLine className="text-primary-text size-3.5" />
+          )}
           Write with AI
         </Button>
       ) : (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button type="button" variant="outline" size="sm" className={trigger} disabled={write.isPending}>
-              {write.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="text-primary-text size-3.5" />}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className={trigger}
+              disabled={write.isPending}
+            >
+              {write.isPending ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Sparkles className="text-primary-text size-3.5" />
+              )}
               AI
               <ChevronDown className="size-3 opacity-60" />
             </Button>

@@ -16,7 +16,13 @@ type Common = { source: Account; network: NetworkParams; contract: string };
 
 /** The artist deposits the prize. Only the artist signs. */
 export function buildBountyFund(
-  input: Common & { bountyId: string; creator: string; token: string; amount: bigint; maxWinners: number },
+  input: Common & {
+    bountyId: string;
+    creator: string;
+    token: string;
+    amount: bigint;
+    maxWinners: number;
+  },
 ) {
   return buildContractCall({
     ...input,
@@ -38,7 +44,12 @@ export function buildBountySelectWinner(
   return buildContractCall({
     ...input,
     method: "select_winner",
-    args: [arg.address(input.caller), arg.string(input.bountyId), arg.address(input.winner), arg.i128(input.amount)],
+    args: [
+      arg.address(input.caller),
+      arg.string(input.bountyId),
+      arg.address(input.winner),
+      arg.i128(input.amount),
+    ],
   });
 }
 

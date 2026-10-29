@@ -1,6 +1,15 @@
 "use client";
 
-import { CalendarClock, ImageIcon, Link2, Loader2, Megaphone, Pin, Settings, X } from "lucide-react";
+import {
+  CalendarClock,
+  ImageIcon,
+  Link2,
+  Loader2,
+  Megaphone,
+  Pin,
+  Settings,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
@@ -9,7 +18,13 @@ import toast from "react-hot-toast";
 import { Button } from "@bandcoin/ui/components/button";
 import { Input } from "@bandcoin/ui/components/input";
 import { Textarea } from "@bandcoin/ui/components/textarea";
-import { Field, FormPage, FormSection, OptionList, SwitchRow } from "@bandcoin/ui/patterns/form-page";
+import {
+  Field,
+  FormPage,
+  FormSection,
+  OptionList,
+  SwitchRow,
+} from "@bandcoin/ui/patterns/form-page";
 
 import { DeleteCard } from "~/components/delete-card";
 import { fromLocalInput, toLocalInput } from "~/lib/datetime";
@@ -23,7 +38,8 @@ import { FileField } from "../catalog/file-field";
 type Existing = RouterOutputs["engage"]["announcements"][number];
 
 const MAX_IMAGES = 4;
-const messageOf = (error: unknown) => (error instanceof Error ? error.message : "Something went wrong.");
+const messageOf = (error: unknown) =>
+  error instanceof Error ? error.message : "Something went wrong.";
 
 function weekFromNow() {
   const date = new Date();
@@ -46,22 +62,38 @@ export function AnnouncementForm({ existing }: { existing?: Existing }) {
   const [ctaLabel, setCtaLabel] = useState(existing?.ctaLabel ?? "");
   const [ctaUrl, setCtaUrl] = useState(existing?.ctaUrl ?? "");
   const [expires, setExpires] = useState(Boolean(existing?.expiresAt));
-  const [expiresAt, setExpiresAt] = useState(existing?.expiresAt ? toLocalInput(existing.expiresAt) : weekFromNow());
+  const [expiresAt, setExpiresAt] = useState(
+    existing?.expiresAt ? toLocalInput(existing.expiresAt) : weekFromNow(),
+  );
 
   const done = (message: string) => {
     toast.success(message);
     void utils.engage.announcements.invalidate();
     router.push("/announcements");
   };
-  const create = api.engage.createAnnouncement.useMutation({ onSuccess: () => done("Announcement posted"), onError: (error) => toast.error(messageOf(error)) });
-  const update = api.engage.updateAnnouncement.useMutation({ onSuccess: () => done("Saved"), onError: (error) => toast.error(messageOf(error)) });
-  const remove = api.engage.removeAnnouncement.useMutation({ onSuccess: () => done("Announcement deleted"), onError: (error) => toast.error(messageOf(error)) });
+  const create = api.engage.createAnnouncement.useMutation({
+    onSuccess: () => done("Announcement posted"),
+    onError: (error) => toast.error(messageOf(error)),
+  });
+  const update = api.engage.updateAnnouncement.useMutation({
+    onSuccess: () => done("Saved"),
+    onError: (error) => toast.error(messageOf(error)),
+  });
+  const remove = api.engage.removeAnnouncement.useMutation({
+    onSuccess: () => done("Announcement deleted"),
+    onError: (error) => toast.error(messageOf(error)),
+  });
   const saving = create.isPending || update.isPending;
 
-  const buttonProblem = withButton && Boolean(ctaLabel.trim()) !== Boolean(ctaUrl.trim()) ? "A button needs both a label and a link." : null;
+  const buttonProblem =
+    withButton && Boolean(ctaLabel.trim()) !== Boolean(ctaUrl.trim())
+      ? "A button needs both a label and a link."
+      : null;
   const expiry = expires ? fromLocalInput(expiresAt) : null;
-  const expiryProblem = expires && (!expiry || expiry <= new Date()) ? "Pick an end date in the future." : null;
-  const ready = title.trim().length > 0 && body.trim().length > 0 && !buttonProblem && !expiryProblem;
+  const expiryProblem =
+    expires && (!expiry || expiry <= new Date()) ? "Pick an end date in the future." : null;
+  const ready =
+    title.trim().length > 0 && body.trim().length > 0 && !buttonProblem && !expiryProblem;
 
   const aiContext = { title, message: body, button: withButton ? ctaLabel : "" };
   const imagePrompt = imageBrief || [title, body.slice(0, 400)].filter(Boolean).join(". ");
@@ -115,13 +147,17 @@ export function AnnouncementForm({ existing }: { existing?: Existing }) {
                 Preview {pinned && <Pin className="size-3" />}
               </p>
               <p className="display text-xl leading-snug">{title || "Untitled announcement"}</p>
-              <p className="text-fg-muted line-clamp-6 text-sm whitespace-pre-line">{body || "Your message shows here."}</p>
+              <p className="text-fg-muted line-clamp-6 text-sm whitespace-pre-line">
+                {body || "Your message shows here."}
+              </p>
               {withButton && ctaUrl.trim() && (
                 <Button type="button" size="sm" className="mt-2 w-full" tabIndex={-1}>
                   {ctaLabel || "Learn more"}
                 </Button>
               )}
-              {expires && expiry && <p className="text-fg-faint pt-1 text-xs">Hidden after {expiry.toLocaleString()}</p>}
+              {expires && expiry && (
+                <p className="text-fg-faint pt-1 text-xs">Hidden after {expiry.toLocaleString()}</p>
+              )}
             </div>
           </section>
           {existing && (
@@ -140,7 +176,11 @@ export function AnnouncementForm({ existing }: { existing?: Existing }) {
         <AiFillCard
           form="announcement"
           context={aiContext}
-          examples={["New single out Friday, pre-save now", "Signed vinyl restock this weekend, first 50 get a poster", "I'm playing three shows in December"]}
+          examples={[
+            "New single out Friday, pre-save now",
+            "Signed vinyl restock this weekend, first 50 get a poster",
+            "I'm playing three shows in December",
+          ]}
           apply={(result) => {
             const before = { title, body, withButton, ctaLabel, ctaUrl, imageBrief };
             setTitle(result.title);
@@ -162,15 +202,60 @@ export function AnnouncementForm({ existing }: { existing?: Existing }) {
       )}
 
       <FormSection title="Message" icon={Megaphone}>
-        <Field label="Title" htmlFor="news-title" required action={<AiTextButton form="announcement" field="title" maxChars={100} value={title} context={aiContext} onChange={setTitle} />}>
-          <Input id="news-title" value={title} maxLength={100} placeholder="New single out Friday" onChange={(e) => setTitle(e.target.value)} />
+        <Field
+          label="Title"
+          htmlFor="news-title"
+          required
+          action={
+            <AiTextButton
+              form="announcement"
+              field="title"
+              maxChars={100}
+              value={title}
+              context={aiContext}
+              onChange={setTitle}
+            />
+          }
+        >
+          <Input
+            id="news-title"
+            value={title}
+            maxLength={100}
+            placeholder="New single out Friday"
+            onChange={(e) => setTitle(e.target.value)}
+          />
         </Field>
-        <Field label="Message" htmlFor="news-body" required action={<AiTextButton form="announcement" field="message" maxChars={2000} value={body} context={aiContext} onChange={setBody} />}>
-          <Textarea id="news-body" value={body} rows={7} maxLength={2000} placeholder="Tell your fans what's new…" onChange={(e) => setBody(e.target.value)} />
+        <Field
+          label="Message"
+          htmlFor="news-body"
+          required
+          action={
+            <AiTextButton
+              form="announcement"
+              field="message"
+              maxChars={2000}
+              value={body}
+              context={aiContext}
+              onChange={setBody}
+            />
+          }
+        >
+          <Textarea
+            id="news-body"
+            value={body}
+            rows={7}
+            maxLength={2000}
+            placeholder="Tell your fans what's new…"
+            onChange={(e) => setBody(e.target.value)}
+          />
         </Field>
       </FormSection>
 
-      <FormSection title="Images" icon={ImageIcon} description={`Optional, up to ${MAX_IMAGES}. The first is the cover.`}>
+      <FormSection
+        title="Images"
+        icon={ImageIcon}
+        description={`Optional, up to ${MAX_IMAGES}. The first is the cover.`}
+      >
         {images.length < MAX_IMAGES && (
           <>
             <FileField
@@ -185,7 +270,12 @@ export function AnnouncementForm({ existing }: { existing?: Existing }) {
                 setUploadKey((n) => n + 1);
               }}
             />
-            <AiImagePanel form="announcement" aspect="wide" suggestedPrompt={imagePrompt} onImage={addImage} />
+            <AiImagePanel
+              form="announcement"
+              aspect="wide"
+              suggestedPrompt={imagePrompt}
+              onImage={addImage}
+            />
           </>
         )}
         {images.length > 0 && (
@@ -193,12 +283,22 @@ export function AnnouncementForm({ existing }: { existing?: Existing }) {
             {images.map((src, index) => (
               <li key={src} className="group relative">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={src} alt="" className="aspect-square w-full rounded-lg border object-cover" />
-                {index === 0 && <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white uppercase">Cover</span>}
+                <img
+                  src={src}
+                  alt=""
+                  className="aspect-square w-full rounded-lg border object-cover"
+                />
+                {index === 0 && (
+                  <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white uppercase">
+                    Cover
+                  </span>
+                )}
                 <button
                   type="button"
                   aria-label="Remove image"
-                  onClick={() => setImages((current) => current.filter((existingUrl) => existingUrl !== src))}
+                  onClick={() =>
+                    setImages((current) => current.filter((existingUrl) => existingUrl !== src))
+                  }
                   className="absolute top-1 right-1 flex size-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 sm:opacity-0 sm:group-hover:opacity-100"
                 >
                   <X className="size-3.5" />
@@ -211,11 +311,35 @@ export function AnnouncementForm({ existing }: { existing?: Existing }) {
 
       <FormSection title="Options" icon={Settings}>
         <OptionList>
-          <SwitchRow icon={Pin} title="Pin to top" hint="Stays first in your news." checked={pinned} onChange={setPinned} />
-          <SwitchRow icon={Link2} title="Button" hint="A call-to-action that opens a link." checked={withButton} onChange={setWithButton}>
+          <SwitchRow
+            icon={Pin}
+            title="Pin to top"
+            hint="Stays first in your news."
+            checked={pinned}
+            onChange={setPinned}
+          />
+          <SwitchRow
+            icon={Link2}
+            title="Button"
+            hint="A call-to-action that opens a link."
+            checked={withButton}
+            onChange={setWithButton}
+          >
             <div className="grid gap-3 sm:grid-cols-[180px_1fr]">
-              <Input aria-label="Button text" placeholder="Listen now" maxLength={30} value={ctaLabel} onChange={(e) => setCtaLabel(e.target.value)} />
-              <Input aria-label="Button link" type="url" placeholder="https://" value={ctaUrl} onChange={(e) => setCtaUrl(e.target.value.trim())} />
+              <Input
+                aria-label="Button text"
+                placeholder="Listen now"
+                maxLength={30}
+                value={ctaLabel}
+                onChange={(e) => setCtaLabel(e.target.value)}
+              />
+              <Input
+                aria-label="Button link"
+                type="url"
+                placeholder="https://"
+                value={ctaUrl}
+                onChange={(e) => setCtaUrl(e.target.value.trim())}
+              />
             </div>
             {buttonProblem && (
               <p role="alert" className="text-danger mt-2 text-xs">
@@ -223,8 +347,21 @@ export function AnnouncementForm({ existing }: { existing?: Existing }) {
               </p>
             )}
           </SwitchRow>
-          <SwitchRow icon={CalendarClock} title="Expires" hint="Hidden from fans automatically after this." checked={expires} onChange={setExpires}>
-            <Input aria-label="Expires at" type="datetime-local" value={expiresAt} min={toLocalInput(new Date())} onChange={(e) => setExpiresAt(e.target.value)} className="max-w-60" />
+          <SwitchRow
+            icon={CalendarClock}
+            title="Expires"
+            hint="Hidden from fans automatically after this."
+            checked={expires}
+            onChange={setExpires}
+          >
+            <Input
+              aria-label="Expires at"
+              type="datetime-local"
+              value={expiresAt}
+              min={toLocalInput(new Date())}
+              onChange={(e) => setExpiresAt(e.target.value)}
+              className="max-w-60"
+            />
             {expiryProblem && (
               <p role="alert" className="text-danger mt-2 text-xs">
                 {expiryProblem}

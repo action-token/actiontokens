@@ -90,7 +90,11 @@ export default function BountyDetailScreen() {
         : null,
   );
   const [section, setSection] = useState<Section>(() =>
-    lastFmNote ? "mine" : sectionParam && (SECTIONS as string[]).includes(sectionParam) ? (sectionParam as Section) : "brief",
+    lastFmNote
+      ? "mine"
+      : sectionParam && (SECTIONS as string[]).includes(sectionParam)
+        ? (sectionParam as Section)
+        : "brief",
   );
   const [reporting, setReporting] = useState(false);
 
@@ -99,7 +103,10 @@ export default function BountyDetailScreen() {
     if (lastFm || lastFmError) void router.replace(`/bounty/${id}`, undefined, { scroll: false });
   }, [lastFm, lastFmError, id, router]);
 
-  const detail = api.bounty.byId.useQuery({ bountyId: id }, { enabled: Boolean(id), retry: (n, e) => e.data?.code !== "NOT_FOUND" && n < 2 });
+  const detail = api.bounty.byId.useQuery(
+    { bountyId: id },
+    { enabled: Boolean(id), retry: (n, e) => e.data?.code !== "NOT_FOUND" && n < 2 },
+  );
   const bounty = detail.data;
 
   if (!id || detail.isLoading) return <DetailSkeleton />;
@@ -109,7 +116,9 @@ export default function BountyDetailScreen() {
       <AppShell tabs={false}>
         <div className="flex h-full flex-col items-center justify-center gap-4 px-8 text-center">
           <p className="font-hud text-ar-dim text-[15px] font-bold tracking-[0.12em] uppercase">
-            {detail.error?.data?.code === "NOT_FOUND" ? "Bounty not found" : "Couldn't load this bounty"}
+            {detail.error?.data?.code === "NOT_FOUND"
+              ? "Bounty not found"
+              : "Couldn't load this bounty"}
           </p>
           <ArLinkButton href="/bounty" variant="primary">
             All bounties
@@ -122,7 +131,8 @@ export default function BountyDetailScreen() {
   const won = Boolean(bounty.me?.winner);
   const badge = viewerBadge({ ...bounty, won });
   const isMusicOnly = bounty.music?.mode === "MUSIC_ONLY";
-  const canSubmit = bounty.joined && bounty.status === "RUNNING" && !bounty.isCreator && !isMusicOnly;
+  const canSubmit =
+    bounty.joined && bounty.status === "RUNNING" && !bounty.isCreator && !isMusicOnly;
   const locked = section === "mine" && !bounty.joined && !bounty.isCreator;
 
   return (
@@ -134,12 +144,22 @@ export default function BountyDetailScreen() {
           {/* ── Identity ─────────────────────────────────────────── */}
           <div className="relative -mt-8 px-5">
             <Link href={`/artists/${bounty.artist.id}`} className="flex w-fit items-end gap-2.5">
-              <ArtistAvatar src={bounty.artist.avatarUrl} loading="eager" className="ring-ar-bg h-[56px] w-[56px] rounded-[16px] ring-[3px]" />
-              <span className="font-hud text-ar-dim mb-1 text-[11px] font-semibold tracking-[0.14em] uppercase">{bounty.artist.name}</span>
+              <ArtistAvatar
+                src={bounty.artist.avatarUrl}
+                loading="eager"
+                className="ring-ar-bg h-[56px] w-[56px] rounded-[16px] ring-[3px]"
+              />
+              <span className="font-hud text-ar-dim mb-1 text-[11px] font-semibold tracking-[0.14em] uppercase">
+                {bounty.artist.name}
+              </span>
             </Link>
 
-            <h1 className="text-ar-text mt-3 text-[21px] leading-tight font-semibold">{bounty.title}</h1>
-            {bounty.summary && <p className="text-ar-dim mt-1.5 text-[13px] leading-relaxed">{bounty.summary}</p>}
+            <h1 className="text-ar-text mt-3 text-[21px] leading-tight font-semibold">
+              {bounty.title}
+            </h1>
+            {bounty.summary && (
+              <p className="text-ar-dim mt-1.5 text-[13px] leading-relaxed">{bounty.summary}</p>
+            )}
 
             <div className="mt-2.5 flex flex-wrap items-center gap-2">
               <span
@@ -155,7 +175,9 @@ export default function BountyDetailScreen() {
                   <Camera size={10} strokeWidth={2.6} /> Action Cam required
                 </span>
               )}
-              <span className="font-hud text-ar-faint text-[10px] font-semibold tracking-[0.1em] uppercase">Posted {timeAgo(bounty.createdAt)}</span>
+              <span className="font-hud text-ar-faint text-[10px] font-semibold tracking-[0.1em] uppercase">
+                Posted {timeAgo(bounty.createdAt)}
+              </span>
             </div>
           </div>
 
@@ -163,7 +185,9 @@ export default function BountyDetailScreen() {
           <div className="rounded-ar-lg border-ar-accent/30 from-ar-accent/15 via-ar-surface to-ar-surface mx-5 mt-4 overflow-hidden border bg-linear-to-br">
             <div className="flex items-end justify-between gap-3 px-4 pt-3.5 pb-3">
               <div className="min-w-0">
-                <p className="font-hud text-ar-faint text-[9.5px] font-semibold tracking-[0.22em] uppercase">Prize pool</p>
+                <p className="font-hud text-ar-faint text-[9.5px] font-semibold tracking-[0.22em] uppercase">
+                  Prize pool
+                </p>
                 <p className="font-hud text-glow-soft text-ar-accent-hot mt-1 flex items-center gap-2 text-[30px] leading-none font-bold tabular-nums">
                   <CurrencyIcon currency={bounty.prize.currency} className="size-[0.8em]" />
                   {formatAmount(bounty.prize.amount)}
@@ -180,7 +204,9 @@ export default function BountyDetailScreen() {
                   {bounty.prize.currency} <ExternalLink size={10} strokeWidth={2.4} />
                 </a>
                 {bounty.maxWinners > 1 && (
-                  <p className="font-hud text-ar-faint mt-0.5 text-[10px] font-semibold tabular-nums">{formatAmount(perWinner(bounty))} per winner</p>
+                  <p className="font-hud text-ar-faint mt-0.5 text-[10px] font-semibold tabular-nums">
+                    {formatAmount(perWinner(bounty))} per winner
+                  </p>
                 )}
               </div>
             </div>
@@ -189,11 +215,21 @@ export default function BountyDetailScreen() {
               <span className="bg-ar-line h-7 w-px" />
               <StatBlock label="Reports" value={bounty.submissions} />
               <span className="bg-ar-line h-7 w-px" />
-              <StatBlock label="Winners" value={`${bounty.winners}/${bounty.maxWinners}`} accent={bounty.status === "RUNNING"} />
+              <StatBlock
+                label="Winners"
+                value={`${bounty.winners}/${bounty.maxWinners}`}
+                accent={bounty.status === "RUNNING"}
+              />
             </div>
           </div>
 
-          {bounty.me?.winner && <WinnerBanner bounty={bounty} prize={bounty.me.winner.prize} claimed={bounty.me.winner.claimed} />}
+          {bounty.me?.winner && (
+            <WinnerBanner
+              bounty={bounty}
+              prize={bounty.me.winner.prize}
+              claimed={bounty.me.winner.claimed}
+            />
+          )}
 
           {/* ── Sections ─────────────────────────────────────────── */}
           <SegmentedTabs
@@ -207,7 +243,10 @@ export default function BountyDetailScreen() {
               {
                 id: "mine",
                 label: bounty.isCreator ? "Reports" : "Mine",
-                count: bounty.joined && bounty.me?.submissions.length ? bounty.me.submissions.length : undefined,
+                count:
+                  bounty.joined && bounty.me?.submissions.length
+                    ? bounty.me.submissions.length
+                    : undefined,
                 icon: bounty.joined || bounty.isCreator ? undefined : Lock,
               },
             ]}
@@ -229,7 +268,10 @@ export default function BountyDetailScreen() {
         </div>
 
         {/* ── Pinned bottom bar ────────────────────────────────────── */}
-        <div className="ar-tabbar-surface rounded-t-ar-xl relative z-30 px-4 pt-3" style={{ paddingBottom: "max(12px, var(--ar-safe-bottom))" }}>
+        <div
+          className="ar-tabbar-surface rounded-t-ar-xl relative z-30 px-4 pt-3"
+          style={{ paddingBottom: "max(12px, var(--ar-safe-bottom))" }}
+        >
           <PrimaryAction
             bounty={bounty}
             canSubmit={canSubmit}
@@ -252,7 +294,9 @@ export default function BountyDetailScreen() {
 /** Album art for a listening challenge, else the artist's picture, else the grid. */
 function Hero({ bounty }: { bounty: BountyDetail }) {
   const router = useRouter();
-  const art = (bounty.music?.tracks ?? []).map((t) => t.albumArtUrl).filter((url): url is string => Boolean(url));
+  const art = (bounty.music?.tracks ?? [])
+    .map((t) => t.albumArtUrl)
+    .filter((url): url is string => Boolean(url));
 
   return (
     <div className="relative h-[220px] overflow-hidden">
@@ -265,13 +309,20 @@ function Hero({ bounty }: { bounty: BountyDetail }) {
         </div>
       ) : bounty.artist.avatarUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={bounty.artist.avatarUrl} alt="" className="h-full w-full scale-110 object-cover opacity-70 blur-xl" />
+        <img
+          src={bounty.artist.avatarUrl}
+          alt=""
+          className="h-full w-full scale-110 object-cover opacity-70 blur-xl"
+        />
       ) : (
         <div className="ar-grid from-ar-accent/25 via-ar-surface to-ar-bg h-full w-full bg-linear-to-br" />
       )}
       <div className="from-ar-void/70 to-ar-bg pointer-events-none absolute inset-0 bg-linear-to-b via-transparent" />
 
-      <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4" style={{ paddingTop: "calc(var(--ar-top-inset) + 14px)" }}>
+      <div
+        className="absolute inset-x-0 top-0 flex items-center justify-between px-4"
+        style={{ paddingTop: "calc(var(--ar-top-inset) + 14px)" }}
+      >
         <button
           onClick={() => {
             if (window.history.length > 1) router.back();
@@ -285,7 +336,9 @@ function Hero({ bounty }: { bounty: BountyDetail }) {
         <button
           aria-label="Share this bounty"
           onClick={() => {
-            void navigator.share?.({ title: bounty.title, url: window.location.href }).catch(() => undefined);
+            void navigator
+              .share?.({ title: bounty.title, url: window.location.href })
+              .catch(() => undefined);
           }}
           className="ar-glass text-ar-text flex h-9 w-9 items-center justify-center rounded-full"
         >
@@ -297,7 +350,11 @@ function Hero({ bounty }: { bounty: BountyDetail }) {
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
-  return <h2 className="font-hud text-ar-faint mb-2.5 text-[9.5px] font-semibold tracking-[0.24em] uppercase">{children}</h2>;
+  return (
+    <h2 className="font-hud text-ar-faint mb-2.5 text-[9.5px] font-semibold tracking-[0.24em] uppercase">
+      {children}
+    </h2>
+  );
 }
 
 /** What to do (songs or steps), the description, and how the reward is delivered. */
@@ -314,22 +371,37 @@ function Brief({ bounty }: { bounty: BountyDetail }) {
         <SectionLabel>{isMusicOnly ? "Listening challenge" : "Requirements"}</SectionLabel>
         <div className="ar-bevel rounded-ar space-y-3 p-3.5">
           {tracks.length > 0 && bounty.music && (
-            <div className={cn("space-y-2", !isMusicOnly && bounty.instructions.length > 0 && "border-ar-line border-b pb-3")}>
+            <div
+              className={cn(
+                "space-y-2",
+                !isMusicOnly && bounty.instructions.length > 0 && "border-ar-line border-b pb-3",
+              )}
+            >
               {tracks.map((track) => (
                 <div key={track.id} className="flex items-center gap-2.5">
                   {track.albumArtUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={track.albumArtUrl} alt="" className="h-9 w-9 shrink-0 rounded-[9px] object-cover" />
+                    <img
+                      src={track.albumArtUrl}
+                      alt=""
+                      className="h-9 w-9 shrink-0 rounded-[9px] object-cover"
+                    />
                   ) : (
                     <span className="bg-ar-surface-3 flex h-9 w-9 shrink-0 items-center justify-center rounded-[9px]">
                       <Music size={14} className="text-ar-faint" />
                     </span>
                   )}
                   <span className="min-w-0 flex-1">
-                    <span className="text-ar-text block truncate text-[12.5px] font-semibold">{track.title}</span>
-                    <span className="text-ar-faint block truncate text-[11px]">{track.artistName}</span>
+                    <span className="text-ar-text block truncate text-[12.5px] font-semibold">
+                      {track.title}
+                    </span>
+                    <span className="text-ar-faint block truncate text-[11px]">
+                      {track.artistName}
+                    </span>
                   </span>
-                  <span className="font-hud text-ar-dim text-[11px] font-bold tabular-nums">{track.targetPlays}×</span>
+                  <span className="font-hud text-ar-dim text-[11px] font-bold tabular-nums">
+                    {track.targetPlays}×
+                  </span>
                 </div>
               ))}
               <p className="font-hud text-ar-faint border-ar-line border-t pt-2 text-[10px] font-semibold tracking-[0.08em] uppercase">
@@ -341,12 +413,23 @@ function Brief({ bounty }: { bounty: BountyDetail }) {
           {!isMusicOnly && bounty.instructions.length > 0 && (
             <div className="space-y-2">
               {steps.map((step, index) => (
-                <p key={index} className="text-ar-dim flex items-start gap-2 text-[12.5px] leading-snug">
-                  <CheckCircle2 size={14} strokeWidth={2.3} className="text-ar-accent-hot mt-0.5 shrink-0" /> {step}
+                <p
+                  key={index}
+                  className="text-ar-dim flex items-start gap-2 text-[12.5px] leading-snug"
+                >
+                  <CheckCircle2
+                    size={14}
+                    strokeWidth={2.3}
+                    className="text-ar-accent-hot mt-0.5 shrink-0"
+                  />{" "}
+                  {step}
                 </p>
               ))}
               {extra > 0 && (
-                <button onClick={() => setShowAll(!showAll)} className="font-hud text-ar-text flex items-center gap-1 text-[11px] font-semibold tracking-[0.08em] uppercase">
+                <button
+                  onClick={() => setShowAll(!showAll)}
+                  className="font-hud text-ar-text flex items-center gap-1 text-[11px] font-semibold tracking-[0.08em] uppercase"
+                >
                   {showAll ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                   {showAll ? "Show less" : `+${extra} more`}
                 </button>
@@ -362,13 +445,19 @@ function Brief({ bounty }: { bounty: BountyDetail }) {
 
       <section>
         <SectionLabel>Description</SectionLabel>
-        {bounty.description ? <Markdown content={bounty.description} /> : <p className="text-ar-faint text-[12.5px] italic">No description provided.</p>}
+        {bounty.description ? (
+          <Markdown content={bounty.description} />
+        ) : (
+          <p className="text-ar-faint text-[12.5px] italic">No description provided.</p>
+        )}
       </section>
 
       {bounty.rewardNote && (
         <section className="rounded-ar border-ar-line border bg-white/[0.03] px-3.5 py-3">
           <SectionLabel>Reward delivery</SectionLabel>
-          <p className="text-ar-dim text-[12.5px] leading-relaxed whitespace-pre-wrap">{bounty.rewardNote}</p>
+          <p className="text-ar-dim text-[12.5px] leading-relaxed whitespace-pre-wrap">
+            {bounty.rewardNote}
+          </p>
         </section>
       )}
     </div>
@@ -389,7 +478,9 @@ function People({ bounty }: { bounty: BountyDetail }) {
           <ul className="ar-bevel divide-ar-line rounded-ar divide-y">
             {bounty.winnerList.map((winner, index) => (
               <li key={index} className="flex items-center gap-2.5 px-3.5 py-2.5">
-                <span className="font-hud text-rarity-legendary w-6 shrink-0 text-[13px] font-bold">#{index + 1}</span>
+                <span className="font-hud text-rarity-legendary w-6 shrink-0 text-[13px] font-bold">
+                  #{index + 1}
+                </span>
                 <PersonAvatar person={winner.user} />
                 <span className="min-w-0 flex-1">
                   <PersonName person={winner.user} />
@@ -398,7 +489,13 @@ function People({ bounty }: { bounty: BountyDetail }) {
                     {formatAmount(winner.prize)}
                   </span>
                 </span>
-                {winner.claimed && <CheckCircle2 size={15} aria-label="Claimed" className="text-ar-accent-hot shrink-0" />}
+                {winner.claimed && (
+                  <CheckCircle2
+                    size={15}
+                    aria-label="Claimed"
+                    className="text-ar-accent-hot shrink-0"
+                  />
+                )}
               </li>
             ))}
           </ul>
@@ -410,18 +507,28 @@ function People({ bounty }: { bounty: BountyDetail }) {
         {bounty.participantList.length === 0 ? (
           <div className="py-10 text-center">
             <Users size={20} strokeWidth={2.2} className="text-ar-faint mx-auto" />
-            <p className="font-hud text-ar-dim mt-2 text-[12px] font-bold tracking-[0.14em] uppercase">No participants yet</p>
+            <p className="font-hud text-ar-dim mt-2 text-[12px] font-bold tracking-[0.14em] uppercase">
+              No participants yet
+            </p>
             <p className="text-ar-faint mt-1 text-[12px]">Be the first to join!</p>
           </div>
         ) : (
           <ul className="ar-bevel divide-ar-line rounded-ar divide-y">
             {bounty.participantList.map((row, index) => (
-              <li key={index} className={cn("flex items-center gap-2.5 px-3.5 py-2.5", row.prize && "bg-rarity-legendary/[0.06]")}>
+              <li
+                key={index}
+                className={cn(
+                  "flex items-center gap-2.5 px-3.5 py-2.5",
+                  row.prize && "bg-rarity-legendary/[0.06]",
+                )}
+              >
                 <span className="w-5 shrink-0 text-center">
                   {row.prize ? (
                     <Crown size={14} className="text-rarity-legendary mx-auto" />
                   ) : (
-                    <span className="font-hud text-ar-faint text-[10.5px] font-semibold">{index + 1}</span>
+                    <span className="font-hud text-ar-faint text-[10.5px] font-semibold">
+                      {index + 1}
+                    </span>
                   )}
                 </span>
                 <PersonAvatar person={row.user} />
@@ -429,12 +536,22 @@ function People({ bounty }: { bounty: BountyDetail }) {
                   <span className="flex items-center gap-1.5">
                     <PersonName person={row.user} />
                     {row.isMe && (
-                      <span className="font-hud bg-ar-accent/15 text-ar-accent-hot rounded-full px-1.5 py-px text-[9px] font-bold tracking-[0.08em] uppercase">You</span>
+                      <span className="font-hud bg-ar-accent/15 text-ar-accent-hot rounded-full px-1.5 py-px text-[9px] font-bold tracking-[0.08em] uppercase">
+                        You
+                      </span>
                     )}
                   </span>
-                  <span className="text-ar-faint block text-[10.5px]">Joined {timeAgo(row.joinedAt)}</span>
+                  <span className="text-ar-faint block text-[10.5px]">
+                    Joined {timeAgo(row.joinedAt)}
+                  </span>
                 </span>
-                {row.isMe && submitted && <FileText size={14} aria-label="Report sent" className="text-ar-accent-hot shrink-0" />}
+                {row.isMe && submitted && (
+                  <FileText
+                    size={14}
+                    aria-label="Report sent"
+                    className="text-ar-accent-hot shrink-0"
+                  />
+                )}
                 {row.prize && (
                   <span className="font-hud text-ar-text flex shrink-0 items-center gap-1 text-[11px] font-bold tabular-nums">
                     <CurrencyIcon currency={bounty.prize.currency} className="size-3" />
@@ -463,9 +580,16 @@ function PersonAvatar({ person }: { person: BountyPerson }) {
 
 /** Fan profiles live in the fan app. */
 function PersonName({ person }: { person: BountyPerson }) {
-  const name = <span className="text-ar-text truncate text-[12.5px] font-semibold">{nameOf(person)}</span>;
+  const name = (
+    <span className="text-ar-text truncate text-[12.5px] font-semibold">{nameOf(person)}</span>
+  );
   return person.username ? (
-    <a href={`${site.urls.fanApp}/u/${person.username}`} target="_blank" rel="noopener noreferrer" className="block min-w-0 truncate hover:underline">
+    <a
+      href={`${site.urls.fanApp}/u/${person.username}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block min-w-0 truncate hover:underline"
+    >
       {name}
     </a>
   ) : (
@@ -479,7 +603,9 @@ function LockedNote() {
       <span className="border-ar-line-bright text-ar-faint mx-auto flex h-11 w-11 items-center justify-center rounded-full border bg-white/[0.04]">
         <Lock size={17} strokeWidth={2.3} />
       </span>
-      <p className="font-hud text-ar-dim mt-3 text-[13px] font-bold tracking-[0.14em] uppercase">Join to unlock</p>
+      <p className="font-hud text-ar-dim mt-3 text-[13px] font-bold tracking-[0.14em] uppercase">
+        Join to unlock
+      </p>
       <p className="text-ar-faint mx-auto mt-1.5 max-w-[17rem] text-[12.5px] leading-relaxed">
         Once you&rsquo;ve joined, your reports and listening progress show up here.
       </p>
@@ -491,7 +617,9 @@ function ManageInPortal({ bountyId }: { bountyId: string }) {
   return (
     <div className="py-10 text-center">
       <FileText size={20} strokeWidth={2.2} className="text-ar-faint mx-auto" />
-      <p className="font-hud text-ar-dim mt-3 text-[13px] font-bold tracking-[0.14em] uppercase">Review reports in the artist portal</p>
+      <p className="font-hud text-ar-dim mt-3 text-[13px] font-bold tracking-[0.14em] uppercase">
+        Review reports in the artist portal
+      </p>
       <p className="text-ar-faint mx-auto mt-1.5 max-w-[17rem] text-[12.5px] leading-relaxed">
         Read entries, pick winners and change the bounty&rsquo;s status from your artist portal.
       </p>
@@ -505,7 +633,15 @@ function ManageInPortal({ bountyId }: { bountyId: string }) {
   );
 }
 
-function WinnerBanner({ bounty, prize, claimed }: { bounty: BountyDetail; prize: string; claimed: boolean }) {
+function WinnerBanner({
+  bounty,
+  prize,
+  claimed,
+}: {
+  bounty: BountyDetail;
+  prize: string;
+  claimed: boolean;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -546,11 +682,17 @@ function PrimaryAction({
   const utils = api.useUtils();
   const claim = useBountyClaim(bounty.id);
   const join = api.bounty.join.useMutation({
-    onSuccess: () => Promise.all([utils.bounty.byId.invalidate({ bountyId: bounty.id }), utils.bounty.list.invalidate()]),
+    onSuccess: () =>
+      Promise.all([
+        utils.bounty.byId.invalidate({ bountyId: bounty.id }),
+        utils.bounty.list.invalidate(),
+      ]),
   });
 
   const note = (text: string) => (
-    <p className="font-hud text-ar-faint mb-2 text-center text-[10px] font-semibold tracking-[0.12em] uppercase">{text}</p>
+    <p className="font-hud text-ar-faint mb-2 text-center text-[10px] font-semibold tracking-[0.12em] uppercase">
+      {text}
+    </p>
   );
   const winner = bounty.me?.winner;
 
@@ -623,7 +765,13 @@ function PrimaryAction({
 
   if (!user) {
     return bounty.status === "RUNNING" ? (
-      <ArButton block size="lg" variant="primary" icon={Wallet} onClick={() => requireAuth("bounty")}>
+      <ArButton
+        block
+        size="lg"
+        variant="primary"
+        icon={Wallet}
+        onClick={() => requireAuth("bounty")}
+      >
         Sign in to join
       </ArButton>
     ) : (
@@ -658,8 +806,17 @@ function PrimaryAction({
   if (!bounty.joined) {
     return (
       <>
-        {join.error && <p className="text-ar-danger mb-2 text-center text-[12px]">{join.error.message}</p>}
-        <ArButton block size="lg" variant="primary" icon={Users} busy={join.isPending} onClick={() => join.mutate({ bountyId: bounty.id })}>
+        {join.error && (
+          <p className="text-ar-danger mb-2 text-center text-[12px]">{join.error.message}</p>
+        )}
+        <ArButton
+          block
+          size="lg"
+          variant="primary"
+          icon={Users}
+          busy={join.isPending}
+          onClick={() => join.mutate({ bountyId: bounty.id })}
+        >
           {join.isPending ? "Joining" : "Join bounty"}
         </ArButton>
       </>

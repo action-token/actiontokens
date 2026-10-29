@@ -14,14 +14,14 @@ Map token: Bandcoin's own `NEXT_PUBLIC_MAPBOX_API`.
 
 ## Stages (each one: tests, typecheck/lint, Safari check, one commit)
 
-| # | Stage | Contents |
-|---|---|---|
-| 1 | Scaffold | `apps/ar` (Next 16, port 3002, shared sign-in), `packages/ar-core` (geo, rarity, types), `root-ar.ts`, shell (device frame, status bar, bottom tabs, boot sequence), arcade theme in Bandcoin colours |
-| 2 | Map | Mapbox canvas, pin markers and clusters, search and filters, pin sheet, nearby strip, directions page. API: `pin.list/search/byId/byArtist` |
-| 3 | AR + collect | Camera permission gate, AR scene (2D + WebGL), photo frame, `pin.collect` (geofence) and `pin.collectByQr`, QR scanner, celebration |
-| 4 | Collection + claim | `/collection` and its detail view, redeem codes, `claim.forPin/quote/prepare/submit` (custodial countdown or wallet signing), chain builder in `@bandcoin/chain` |
-| 5 | Artists + profile | Artist list and page, follow (the same as the fan app), profile |
-| 6 | Bounties | `/bounty` list and detail inside AR, reusing `bounty` router procedures |
-| 7 | Extras | Events + RSVP + comments, announcements, murals + coins (scan, ledger), embeddable map with daily stats |
+| #   | Stage              | Contents                                                                                                                                                                                              |
+| --- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Scaffold           | `apps/ar` (Next 16, port 3002, shared sign-in), `packages/ar-core` (geo, rarity, types), `root-ar.ts`, shell (device frame, status bar, bottom tabs, boot sequence), arcade theme in Bandcoin colours |
+| 2   | Map                | Mapbox canvas, pin markers and clusters, search and filters, pin sheet, nearby strip, directions page. API: `pin.list/search/byId/byArtist`                                                           |
+| 3   | AR + collect       | Camera permission gate, AR scene (2D + WebGL), photo frame, `pin.collect` (geofence) and `pin.collectByQr`, QR scanner, celebration                                                                   |
+| 4   | Collection + claim | `/collection` and its detail view, redeem codes, `claim.forPin/quote/prepare/submit` (custodial countdown or wallet signing), chain builder in `@bandcoin/chain`                                      |
+| 5   | Artists + profile  | Artist list and page, follow (the same as the fan app), profile                                                                                                                                       |
+| 6   | Bounties           | `/bounty` list and detail inside AR, reusing `bounty` router procedures                                                                                                                               |
+| 7   | Extras             | Events + RSVP + comments, announcements, murals + coins (scan, ledger), embeddable map with daily stats                                                                                               |
 
 Pins are created in the artist portal (phase 5). Until then, AR runs on seeded demo pins.

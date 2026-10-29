@@ -148,7 +148,12 @@ export function SwitchRow({
 }) {
   return (
     <div>
-      <label className={cn("flex cursor-pointer items-center gap-3 p-4", disabled && "cursor-not-allowed opacity-60")}>
+      <label
+        className={cn(
+          "flex cursor-pointer items-center gap-3 p-4",
+          disabled && "cursor-not-allowed opacity-60",
+        )}
+      >
         <Icon className="text-primary-text size-4 shrink-0" />
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-medium">{title}</span>

@@ -118,7 +118,9 @@ export default function AnnouncementScreen() {
           <Link href={`/artists/${a.artist.id}`} className="mt-2 flex w-fit items-center gap-2.5">
             <ArtistAvatar src={a.artist.imageUrl} className="h-10 w-10 rounded-[12px]" />
             <span>
-              <span className="text-ar-text block text-[13.5px] font-semibold">{a.artist.name}</span>
+              <span className="text-ar-text block text-[13.5px] font-semibold">
+                {a.artist.name}
+              </span>
               <span className="font-hud text-ar-faint block text-[10.5px]">
                 {format(new Date(a.createdAt), "d MMM yyyy · h:mm a")}
               </span>

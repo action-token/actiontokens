@@ -79,12 +79,23 @@ export function PlaceSearch({
   }, [q]);
 
   useEffect(() => {
-    const onDown = (event: MouseEvent) => !box.current?.contains(event.target as Node) && setOpen(false);
+    const onDown = (event: MouseEvent) =>
+      !box.current?.contains(event.target as Node) && setOpen(false);
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
   }, []);
 
-  const options: Place[] = coords ? [{ ...coords, name: `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`, address: "Coordinates" }] : q.trim().length < 3 ? [] : results;
+  const options: Place[] = coords
+    ? [
+        {
+          ...coords,
+          name: `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`,
+          address: "Coordinates",
+        },
+      ]
+    : q.trim().length < 3
+      ? []
+      : results;
   const choose = (place: Place) => {
     onSelect(place);
     setQ(place.name);
@@ -140,14 +151,36 @@ export function PlaceSearch({
         )}
       </div>
       {open && options.length > 0 && (
-        <ul id={listId} role="listbox" className="bg-surface absolute inset-x-0 top-full z-30 mt-1 overflow-hidden rounded-lg border shadow-lg">
+        <ul
+          id={listId}
+          role="listbox"
+          className="bg-surface absolute inset-x-0 top-full z-30 mt-1 overflow-hidden rounded-lg border shadow-lg"
+        >
           {options.map((place, index) => (
-            <li key={`${place.lat},${place.lng},${index}`} role="option" aria-selected={index === active}>
-              <button type="button" onMouseEnter={() => setActive(index)} onClick={() => choose(place)} className={cn("flex w-full items-start gap-2.5 px-3 py-2 text-left", index === active && "bg-surface-2")}>
-                {coords ? <Crosshair className="text-primary-text mt-0.5 size-4 shrink-0" /> : <MapPin className="text-fg-muted mt-0.5 size-4 shrink-0" />}
+            <li
+              key={`${place.lat},${place.lng},${index}`}
+              role="option"
+              aria-selected={index === active}
+            >
+              <button
+                type="button"
+                onMouseEnter={() => setActive(index)}
+                onClick={() => choose(place)}
+                className={cn(
+                  "flex w-full items-start gap-2.5 px-3 py-2 text-left",
+                  index === active && "bg-surface-2",
+                )}
+              >
+                {coords ? (
+                  <Crosshair className="text-primary-text mt-0.5 size-4 shrink-0" />
+                ) : (
+                  <MapPin className="text-fg-muted mt-0.5 size-4 shrink-0" />
+                )}
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-medium">{place.name}</span>
-                  {place.address && <span className="text-fg-muted block truncate text-xs">{place.address}</span>}
+                  {place.address && (
+                    <span className="text-fg-muted block truncate text-xs">{place.address}</span>
+                  )}
                 </span>
               </button>
             </li>

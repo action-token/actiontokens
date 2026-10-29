@@ -88,7 +88,11 @@ describe("buildQuote", () => {
 
   it("card: one USD total that includes the XLM costs, and the seller is paid in BANDCOIN", () => {
     // no XLM at all: a card buyer doesn't need any
-    const card = buildQuote({ ...base, currency: "USD", funds: { BANDCOIN: "0", XLM: "0", USDC: "0" } });
+    const card = buildQuote({
+      ...base,
+      currency: "USD",
+      funds: { BANDCOIN: "0", XLM: "0", USDC: "0" },
+    });
     expect(card.lines.map((line) => [line.key, line.amount, line.currency, line.detail])).toEqual([
       ["price", "5.0000000", "USD", "2 × 2.5 USD"],
       ["platformFee", "0.1250000", "USD", "2.5 %"],
@@ -103,10 +107,12 @@ describe("buildQuote", () => {
       reserveXlm: "0.5000000",
       networkFeeXlm: "0.0000100",
     });
-    expect(buildQuote({ ...base, currency: "USD", royaltyBps: 1000 }).cardSettlement).toMatchObject({
-      seller: "18.0000000",
-      royalty: "2.0000000",
-    });
+    expect(buildQuote({ ...base, currency: "USD", royaltyBps: 1000 }).cardSettlement).toMatchObject(
+      {
+        seller: "18.0000000",
+        royalty: "2.0000000",
+      },
+    );
   });
 
   it("never converts: a short buyer gets exactly how much is missing", () => {
@@ -116,21 +122,32 @@ describe("buildQuote", () => {
       {
         code: "INSUFFICIENT_FUNDS",
         message: "You're 8.5 BANDCOIN short.",
-        shortfall: { currency: "BANDCOIN", need: "20.5000000", have: "12.0000000", short: "8.5000000" },
+        shortfall: {
+          currency: "BANDCOIN",
+          need: "20.5000000",
+          have: "12.0000000",
+          short: "8.5000000",
+        },
       },
     ]);
   });
 
   it("flags XLM separately when only the reserve and fee are short", () => {
     const quote = buildQuote({ ...base, funds: { BANDCOIN: "100", XLM: "0.1", USDC: "0" } });
-    expect(quote.problems.map((problem) => problem.code === "INSUFFICIENT_FUNDS" && problem.shortfall.currency)).toEqual([
-      "XLM",
-    ]);
+    expect(
+      quote.problems.map(
+        (problem) => problem.code === "INSUFFICIENT_FUNDS" && problem.shortfall.currency,
+      ),
+    ).toEqual(["XLM"]);
   });
 
   it("takes a resale royalty out of the seller's share, not on top", () => {
     const quote = buildQuote({ ...base, royaltyBps: 1000, newTrustlines: 0 });
-    expect(quote.payout).toEqual({ seller: "18.0000000", royalty: "2.0000000", platform: "0.5000000" });
+    expect(quote.payout).toEqual({
+      seller: "18.0000000",
+      royalty: "2.0000000",
+      platform: "0.5000000",
+    });
     expect(quote.lines.some((line) => line.key === "reserve")).toBe(false);
   });
 

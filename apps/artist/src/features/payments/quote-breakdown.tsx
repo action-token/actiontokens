@@ -10,13 +10,24 @@ import type { RouterOutputs } from "~/trpc/react";
 
 import { FAN_APP_URL } from "../shell/links";
 
-type Quote = RouterOutputs["onboarding"]["issuerQuote"] | RouterOutputs["catalog"]["nftQuote"] | RouterOutputs["gifts"]["quote"];
+type Quote =
+  | RouterOutputs["onboarding"]["issuerQuote"]
+  | RouterOutputs["catalog"]["nftQuote"]
+  | RouterOutputs["gifts"]["quote"];
 
 /**
  * The server's price for a payment in XLM (opening the artist account, registering an NFT, sending a gift):
  * each cost, what you pay, your XLM, and why it can't go through yet. It does no money math.
  */
-export function QuoteBreakdown({ quote, balance, loading }: { quote: Quote | undefined; balance: string | undefined; loading: boolean }) {
+export function QuoteBreakdown({
+  quote,
+  balance,
+  loading,
+}: {
+  quote: Quote | undefined;
+  balance: string | undefined;
+  loading: boolean;
+}) {
   if (loading || !quote) {
     return (
       <div className="grid gap-2 border-t pt-3">
@@ -27,7 +38,9 @@ export function QuoteBreakdown({ quote, balance, loading }: { quote: Quote | und
     );
   }
 
-  const shortfalls = quote.problems.flatMap((problem) => (problem.code === "INSUFFICIENT_FUNDS" ? [problem.shortfall] : []));
+  const shortfalls = quote.problems.flatMap((problem) =>
+    problem.code === "INSUFFICIENT_FUNDS" ? [problem.shortfall] : [],
+  );
   const notices = quote.problems.filter((problem) => problem.code === "UNAVAILABLE");
   const short = shortfalls.find((shortfall) => shortfall.currency === "XLM");
 
@@ -36,7 +49,10 @@ export function QuoteBreakdown({ quote, balance, loading }: { quote: Quote | und
       <PriceBreakdown
         lines={quote.lines
           .filter((line) => line.key !== "total")
-          .map((line) => ({ label: line.label, value: <Money amount={line.amount} currency="XLM" /> }))}
+          .map((line) => ({
+            label: line.label,
+            value: <Money amount={line.amount} currency="XLM" />,
+          }))}
         total={<Money amount={quote.total} currency="XLM" />}
         balance={
           balance
@@ -48,7 +64,11 @@ export function QuoteBreakdown({ quote, balance, loading }: { quote: Quote | und
         }
       />
       {shortfalls.map((shortfall) => (
-        <div key={shortfall.currency} role="alert" className="bg-danger-soft grid grid-cols-[auto_minmax(0,1fr)] gap-3 rounded-md p-3 text-[13px]">
+        <div
+          key={shortfall.currency}
+          role="alert"
+          className="bg-danger-soft grid grid-cols-[auto_minmax(0,1fr)] gap-3 rounded-md p-3 text-[13px]"
+        >
           <CircleAlert className="text-danger mt-px size-[18px]" />
           <p>
             <b>Not enough XLM</b>
@@ -62,7 +82,11 @@ export function QuoteBreakdown({ quote, balance, loading }: { quote: Quote | und
         </div>
       ))}
       {notices.map((problem) => (
-        <div key={problem.message} role="alert" className="bg-surface-2 text-fg-muted flex gap-2.5 rounded-md p-3 text-[13px]">
+        <div
+          key={problem.message}
+          role="alert"
+          className="bg-surface-2 text-fg-muted flex gap-2.5 rounded-md p-3 text-[13px]"
+        >
           <CircleAlert className="text-warning mt-px size-4 shrink-0" />
           {problem.message}
         </div>

@@ -11,4 +11,10 @@ export const fromLocalInput = (value: string) => (value ? new Date(value) : null
 
 /** "Sat 1 Dec, 8:00 pm" in the viewer's zone. */
 export const formatWhen = (date: Date | string) =>
-  new Date(date).toLocaleString("en-US", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+  new Date(date).toLocaleString("en-US", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  });

@@ -56,7 +56,24 @@ export type PinInput = {
 
 /** What an edit may change; where it is, how many spots and what it gives are fixed once created. */
 export type UpdatePinInput = Partial<
-  Pick<PinInput, "title" | "description" | "imageUrl" | "link" | "type" | "visibility" | "tierId" | "claimLimit" | "startsAt" | "endsAt" | "autoCollect" | "isMultiSpot" | "eventId" | "tags" | "reward">
+  Pick<
+    PinInput,
+    | "title"
+    | "description"
+    | "imageUrl"
+    | "link"
+    | "type"
+    | "visibility"
+    | "tierId"
+    | "claimLimit"
+    | "startsAt"
+    | "endsAt"
+    | "autoCollect"
+    | "isMultiSpot"
+    | "eventId"
+    | "tags"
+    | "reward"
+  >
 > & { pinId: string };
 
 export type PinStatus = "HIDDEN" | "SCHEDULED" | "LIVE" | "ENDED" | "ALL_COLLECTED";
@@ -78,29 +95,46 @@ function cleanTags(labels: string[] | undefined) {
 
 function checkText(input: Partial<PinInput>) {
   const { title, description } = input;
-  if (title !== undefined && (title.trim().length < 3 || title.trim().length > 100)) throw invalid("Give the pin a title of 3 to 100 characters.");
-  if (description !== undefined && description.length > 2000) throw invalid("Keep the description under 2000 characters.");
+  if (title !== undefined && (title.trim().length < 3 || title.trim().length > 100))
+    throw invalid("Give the pin a title of 3 to 100 characters.");
+  if (description !== undefined && description.length > 2000)
+    throw invalid("Keep the description under 2000 characters.");
   if (input.imageUrl && !isOwnS3Url(input.imageUrl)) throw invalid("Upload the cover again.");
 }
 
-function checkPlace(input: Pick<PinInput, "latitude" | "longitude" | "radiusMeters" | "spotCount">) {
-  if (!(input.latitude >= -90 && input.latitude <= 90)) throw invalid("Latitude must be between -90 and 90.");
-  if (!(input.longitude >= -180 && input.longitude <= 180)) throw invalid("Longitude must be between -180 and 180.");
-  if (!(input.radiusMeters >= 0 && input.radiusMeters <= MAX_RADIUS_METERS)) throw invalid(`The radius can be up to ${MAX_RADIUS_METERS.toLocaleString("en-US")} metres.`);
-  if (!Number.isInteger(input.spotCount) || input.spotCount < 1 || input.spotCount > MAX_SPOTS) throw invalid(`Place between 1 and ${MAX_SPOTS} spots.`);
+function checkPlace(
+  input: Pick<PinInput, "latitude" | "longitude" | "radiusMeters" | "spotCount">,
+) {
+  if (!(input.latitude >= -90 && input.latitude <= 90))
+    throw invalid("Latitude must be between -90 and 90.");
+  if (!(input.longitude >= -180 && input.longitude <= 180))
+    throw invalid("Longitude must be between -180 and 180.");
+  if (!(input.radiusMeters >= 0 && input.radiusMeters <= MAX_RADIUS_METERS))
+    throw invalid(`The radius can be up to ${MAX_RADIUS_METERS.toLocaleString("en-US")} metres.`);
+  if (!Number.isInteger(input.spotCount) || input.spotCount < 1 || input.spotCount > MAX_SPOTS)
+    throw invalid(`Place between 1 and ${MAX_SPOTS} spots.`);
 }
 
 function checkTimes(startsAt: Date, endsAt: Date, now: Date, creating: boolean) {
-  if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) throw invalid("Pick a start and end time.");
+  if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime()))
+    throw invalid("Pick a start and end time.");
   if (endsAt <= startsAt) throw invalid("The pin has to end after it starts.");
   if (creating && endsAt <= now) throw invalid("The end time is already in the past.");
 }
 
 /** TIER needs a tier of this artist; every other kind ignores it. */
-async function resolveTier(ctx: ServiceCtx, artist: ArtistRef, visibility: PinVisibility, tierId: string | null | undefined) {
+async function resolveTier(
+  ctx: ServiceCtx,
+  artist: ArtistRef,
+  visibility: PinVisibility,
+  tierId: string | null | undefined,
+) {
   if (visibility !== "TIER") return null;
   if (!tierId) throw invalid("Pick the tier that can collect this pin.");
-  const tier = await ctx.db.membershipTier.findFirst({ where: { id: tierId, artistId: artist.id, isActive: true }, select: { id: true } });
+  const tier = await ctx.db.membershipTier.findFirst({
+    where: { id: tierId, artistId: artist.id, isActive: true },
+    select: { id: true },
+  });
   if (!tier) throw invalid("That tier isn't available. Pick another.");
   return tier.id;
 }
@@ -110,34 +144,63 @@ async function resolveTier(ctx: ServiceCtx, artist: ArtistRef, visibility: PinVi
  * minted on demand up to the claim limit, so a reward always needs a limit and
  * a capped item can't promise more than exists.
  */
-async function resolveReward(ctx: ServiceCtx, artist: ArtistRef, reward: PinReward, claimLimit: number) {
-  if (!Number.isInteger(claimLimit) || claimLimit < 0 || claimLimit > MAX_CLAIMS) throw invalid("The collect limit must be a whole number.");
+async function resolveReward(
+  ctx: ServiceCtx,
+  artist: ArtistRef,
+  reward: PinReward,
+  claimLimit: number,
+) {
+  if (!Number.isInteger(claimLimit) || claimLimit < 0 || claimLimit > MAX_CLAIMS)
+    throw invalid("The collect limit must be a whole number.");
   if (reward.kind === "NONE") return { rewardItemId: null, rewardsFanToken: false };
-  if (claimLimit < 1) throw invalid("Set how many fans can collect it, since each one gets a reward.");
+  if (claimLimit < 1)
+    throw invalid("Set how many fans can collect it, since each one gets a reward.");
 
   if (reward.kind === "FAN_TOKEN") {
-    const owner = await ctx.db.artist.findUnique({ where: { id: artist.id }, select: { fanTokenItemId: true } });
+    const owner = await ctx.db.artist.findUnique({
+      where: { id: artist.id },
+      select: { fanTokenItemId: true },
+    });
     if (!owner?.fanTokenItemId) throw invalid("Create your fan token first.");
     return { rewardItemId: null, rewardsFanToken: true };
   }
 
   const item = await ctx.db.item.findFirst({
-    where: { id: reward.itemId, artistId: artist.id, deletedAt: null, chainType: "CLASSIC_TOKEN", type: { notIn: ["FAN_TOKEN", "ROYALTY"] } },
+    where: {
+      id: reward.itemId,
+      artistId: artist.id,
+      deletedAt: null,
+      chainType: "CLASSIC_TOKEN",
+      type: { notIn: ["FAN_TOKEN", "ROYALTY"] },
+    },
     select: { id: true, title: true, supply: true },
   });
   if (!item) throw invalid("That reward isn't available. Pick another item.");
-  if (item.supply !== null && claimLimit > item.supply) throw invalid(`${item.title} only has ${item.supply.toLocaleString("en-US")} copies, so up to that many fans can collect it.`);
+  if (item.supply !== null && claimLimit > item.supply)
+    throw invalid(
+      `${item.title} only has ${item.supply.toLocaleString("en-US")} copies, so up to that many fans can collect it.`,
+    );
   return { rewardItemId: item.id, rewardsFanToken: false };
 }
 
-async function resolveEvent(ctx: ServiceCtx, artist: ArtistRef, eventId: string | null | undefined) {
+async function resolveEvent(
+  ctx: ServiceCtx,
+  artist: ArtistRef,
+  eventId: string | null | undefined,
+) {
   if (!eventId) return null;
-  const event = await ctx.db.event.findFirst({ where: { id: eventId, artistId: artist.id }, select: { id: true } });
+  const event = await ctx.db.event.findFirst({
+    where: { id: eventId, artistId: artist.id },
+    select: { id: true },
+  });
   if (!event) throw invalid("That event isn't available. Pick another.");
   return event.id;
 }
 
-export const statusOf = (pin: { isHidden: boolean; startsAt: Date; endsAt: Date; claimLimit: number; claimsLeft: number }, now: Date): PinStatus => {
+export const statusOf = (
+  pin: { isHidden: boolean; startsAt: Date; endsAt: Date; claimLimit: number; claimsLeft: number },
+  now: Date,
+): PinStatus => {
   if (pin.isHidden) return "HIDDEN";
   if (pin.endsAt < now) return "ENDED";
   if (pin.startsAt > now) return "SCHEDULED";
@@ -147,34 +210,77 @@ export const statusOf = (pin: { isHidden: boolean; startsAt: Date; endsAt: Date;
 async function ownPin(ctx: ServiceCtx, artist: ArtistRef, pinId: string) {
   const pin = await ctx.db.pin.findFirst({
     where: { id: pinId, artistId: artist.id },
-    select: { id: true, startsAt: true, endsAt: true, claimLimit: true, claimsLeft: true, rewardItemId: true, rewardsFanToken: true, visibility: true, tierId: true },
+    select: {
+      id: true,
+      startsAt: true,
+      endsAt: true,
+      claimLimit: true,
+      claimsLeft: true,
+      rewardItemId: true,
+      rewardsFanToken: true,
+      visibility: true,
+      tierId: true,
+    },
   });
   if (!pin) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Pin not found" });
   ctx.activity.set({ targetType: "Pin", targetId: pin.id });
   return pin;
 }
 
-const claimsOn = (db: ServiceCtx["db"], where: Prisma.PinClaimWhereInput) => db.pinClaim.count({ where });
+const claimsOn = (db: ServiceCtx["db"], where: Prisma.PinClaimWhereInput) =>
+  db.pinClaim.count({ where });
 
 /** The things the form offers to pick from, plus what the artist has tagged before. */
 export async function pinOptions(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef) {
   const [items, tiers, events, tags, owner] = await Promise.all([
     ctx.db.item.findMany({
-      where: { artistId: artist.id, deletedAt: null, chainType: "CLASSIC_TOKEN", type: { notIn: ["FAN_TOKEN", "ROYALTY"] } },
+      where: {
+        artistId: artist.id,
+        deletedAt: null,
+        chainType: "CLASSIC_TOKEN",
+        type: { notIn: ["FAN_TOKEN", "ROYALTY"] },
+      },
       orderBy: { createdAt: "desc" },
       select: { id: true, title: true, coverUrl: true, supply: true },
     }),
-    ctx.db.membershipTier.findMany({ where: { artistId: artist.id, isActive: true }, orderBy: { requiredTokens: "asc" }, select: { id: true, name: true, requiredTokens: true } }),
-    ctx.db.event.findMany({ where: { artistId: artist.id, endsAt: { gte: new Date() } }, orderBy: { startsAt: "asc" }, select: { id: true, title: true, startsAt: true } }),
-    ctx.db.pinTag.findMany({ where: { OR: [{ artistId: artist.id }, { pins: { some: { pin: { artistId: artist.id } } } }] }, orderBy: { label: "asc" }, select: { label: true } }),
-    ctx.db.artist.findUnique({ where: { id: artist.id }, select: { fanTokenItem: { select: { title: true, coverUrl: true, classicToken: { select: { code: true } } } } } }),
+    ctx.db.membershipTier.findMany({
+      where: { artistId: artist.id, isActive: true },
+      orderBy: { requiredTokens: "asc" },
+      select: { id: true, name: true, requiredTokens: true },
+    }),
+    ctx.db.event.findMany({
+      where: { artistId: artist.id, endsAt: { gte: new Date() } },
+      orderBy: { startsAt: "asc" },
+      select: { id: true, title: true, startsAt: true },
+    }),
+    ctx.db.pinTag.findMany({
+      where: {
+        OR: [{ artistId: artist.id }, { pins: { some: { pin: { artistId: artist.id } } } }],
+      },
+      orderBy: { label: "asc" },
+      select: { label: true },
+    }),
+    ctx.db.artist.findUnique({
+      where: { id: artist.id },
+      select: {
+        fanTokenItem: {
+          select: { title: true, coverUrl: true, classicToken: { select: { code: true } } },
+        },
+      },
+    }),
   ]);
   return {
     items,
     tiers: tiers.map((tier) => ({ ...tier, requiredTokens: tier.requiredTokens.toString() })),
     events,
     tags: tags.map((tag) => tag.label),
-    fanToken: owner?.fanTokenItem ? { title: owner.fanTokenItem.title, coverUrl: owner.fanTokenItem.coverUrl, code: owner.fanTokenItem.classicToken?.code ?? null } : null,
+    fanToken: owner?.fanTokenItem
+      ? {
+          title: owner.fanTokenItem.title,
+          coverUrl: owner.fanTokenItem.coverUrl,
+          code: owner.fanTokenItem.classicToken?.code ?? null,
+        }
+      : null,
   };
 }
 
@@ -186,7 +292,16 @@ export async function listPins(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef, n
       rewardItem: { select: { title: true, coverUrl: true } },
       event: { select: { title: true } },
       tags: { select: { tag: { select: { label: true } } } },
-      spots: { where: { isHidden: false }, select: { id: true, latitude: true, longitude: true, autoCollect: true, _count: { select: { claims: true } } } },
+      spots: {
+        where: { isHidden: false },
+        select: {
+          id: true,
+          latitude: true,
+          longitude: true,
+          autoCollect: true,
+          _count: { select: { claims: true } },
+        },
+      },
     },
   });
   return rows.map((pin) => ({
@@ -204,7 +319,13 @@ export async function listPins(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef, n
     status: statusOf(pin, now),
     spots: pin.spots.length,
     /** Where each spot is, for the map */
-    spotPoints: pin.spots.map((spot) => ({ id: spot.id, latitude: spot.latitude, longitude: spot.longitude, autoCollect: spot.autoCollect, collected: spot._count.claims })),
+    spotPoints: pin.spots.map((spot) => ({
+      id: spot.id,
+      latitude: spot.latitude,
+      longitude: spot.longitude,
+      autoCollect: spot.autoCollect,
+      collected: spot._count.claims,
+    })),
     autoCollect: pin.spots.some((spot) => spot.autoCollect),
     collected: pin.spots.reduce((sum, spot) => sum + spot._count.claims, 0),
     reward: pin.rewardItem?.title ?? (pin.rewardsFanToken ? "Fan token" : null),
@@ -213,13 +334,28 @@ export async function listPins(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef, n
   }));
 }
 
-export async function getPin(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef, pinId: string, now = new Date()) {
+export async function getPin(
+  ctx: Pick<ServiceCtx, "db">,
+  artist: ArtistRef,
+  pinId: string,
+  now = new Date(),
+) {
   const pin = await ctx.db.pin.findFirst({
     where: { id: pinId, artistId: artist.id },
     include: {
       rewardItem: { select: { title: true } },
       tags: { select: { tag: { select: { label: true } } } },
-      spots: { orderBy: { id: "asc" }, select: { id: true, latitude: true, longitude: true, isHidden: true, autoCollect: true, _count: { select: { claims: true } } } },
+      spots: {
+        orderBy: { id: "asc" },
+        select: {
+          id: true,
+          latitude: true,
+          longitude: true,
+          isHidden: true,
+          autoCollect: true,
+          _count: { select: { claims: true } },
+        },
+      },
     },
   });
   if (!pin) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Pin not found" });
@@ -234,10 +370,12 @@ export async function getPin(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef, pin
     type: pin.type,
     visibility: pin.visibility as PinVisibility,
     tierId: pin.tierId,
-    reward: (pin.rewardItemId ? { kind: "ITEM", itemId: pin.rewardItemId, title: pin.rewardItem?.title ?? "" } : pin.rewardsFanToken ? { kind: "FAN_TOKEN" } : { kind: "NONE" }) as
-      | { kind: "NONE" }
-      | { kind: "FAN_TOKEN" }
-      | { kind: "ITEM"; itemId: string; title: string },
+    reward: (pin.rewardItemId
+      ? { kind: "ITEM", itemId: pin.rewardItemId, title: pin.rewardItem?.title ?? "" }
+      : pin.rewardsFanToken
+        ? { kind: "FAN_TOKEN" }
+        : { kind: "NONE" }) as
+      { kind: "NONE" } | { kind: "FAN_TOKEN" } | { kind: "ITEM"; itemId: string; title: string },
     claimLimit: pin.claimLimit,
     claimsLeft: pin.claimsLeft,
     startsAt: pin.startsAt,
@@ -256,7 +394,12 @@ export async function getPin(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef, pin
   };
 }
 
-export async function createPin(ctx: ServiceCtx, artist: ArtistRef, input: PinInput, now = new Date()) {
+export async function createPin(
+  ctx: ServiceCtx,
+  artist: ArtistRef,
+  input: PinInput,
+  now = new Date(),
+) {
   checkText(input);
   checkPlace(input);
   checkTimes(input.startsAt, input.endsAt, now, true);
@@ -293,7 +436,11 @@ export async function createPin(ctx: ServiceCtx, artist: ArtistRef, input: PinIn
           createMany: {
             data: Array.from({ length: input.spotCount }, () => {
               const spot = randomLocation(input.latitude, input.longitude, input.radiusMeters);
-              return { latitude: spot.latitude, longitude: spot.longitude, autoCollect: input.autoCollect };
+              return {
+                latitude: spot.latitude,
+                longitude: spot.longitude,
+                autoCollect: input.autoCollect,
+              };
             }),
           },
         },
@@ -307,12 +454,29 @@ export async function createPin(ctx: ServiceCtx, artist: ArtistRef, input: PinIn
   return { pinId: pin.id };
 }
 
-async function linkTags(tx: Pick<ServiceCtx["db"], "pinTag" | "pinTagLink">, artist: ArtistRef, pinId: string, tags: { name: string; label: string }[]) {
+async function linkTags(
+  tx: Pick<ServiceCtx["db"], "pinTag" | "pinTagLink">,
+  artist: ArtistRef,
+  pinId: string,
+  tags: { name: string; label: string }[],
+) {
   await tx.pinTagLink.deleteMany({ where: { pinId } });
   if (tags.length === 0) return;
   // A tag name is shared by everyone, so an existing one is reused whoever made it.
-  const stored = await Promise.all(tags.map((tag) => tx.pinTag.upsert({ where: { name: tag.name }, create: { ...tag, artistId: artist.id }, update: {}, select: { id: true } })));
-  await tx.pinTagLink.createMany({ data: stored.map((tag) => ({ pinId, tagId: tag.id })), skipDuplicates: true });
+  const stored = await Promise.all(
+    tags.map((tag) =>
+      tx.pinTag.upsert({
+        where: { name: tag.name },
+        create: { ...tag, artistId: artist.id },
+        update: {},
+        select: { id: true },
+      }),
+    ),
+  );
+  await tx.pinTagLink.createMany({
+    data: stored.map((tag) => ({ pinId, tagId: tag.id })),
+    skipDuplicates: true,
+  });
 }
 
 export async function updatePin(ctx: ServiceCtx, artist: ArtistRef, input: UpdatePinInput) {
@@ -322,13 +486,17 @@ export async function updatePin(ctx: ServiceCtx, artist: ArtistRef, input: Updat
 
   const claimed = await claimsOn(ctx.db, { spot: { pinId: pin.id } });
   const claimLimit = input.claimLimit ?? pin.claimLimit;
-  if (claimLimit > 0 && claimLimit < claimed) throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: `${claimed} fans have already collected it. The limit can't go below that.` });
+  if (claimLimit > 0 && claimLimit < claimed)
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+      message: `${claimed} fans have already collected it. The limit can't go below that.`,
+    });
 
   const data: Prisma.PinUpdateInput = {};
   if (input.title !== undefined) data.title = input.title.trim();
   if (input.description !== undefined) data.description = input.description.trim() || null;
   if (input.imageUrl !== undefined) data.imageUrl = input.imageUrl || null;
-  if (input.link !== undefined) data.link = input.link?.trim() ? webLink(input.link.trim(), "The link") : null;
+  if (input.link !== undefined)
+    data.link = input.link?.trim() ? webLink(input.link.trim(), "The link") : null;
   if (input.type !== undefined) data.type = input.type;
   if (input.startsAt !== undefined) data.startsAt = input.startsAt;
   if (input.endsAt !== undefined) data.endsAt = input.endsAt;
@@ -347,12 +515,21 @@ export async function updatePin(ctx: ServiceCtx, artist: ArtistRef, input: Updat
   }
 
   if (input.reward !== undefined || input.claimLimit !== undefined) {
-    const current: PinReward = pin.rewardItemId ? { kind: "ITEM", itemId: pin.rewardItemId } : pin.rewardsFanToken ? { kind: "FAN_TOKEN" } : { kind: "NONE" };
+    const current: PinReward = pin.rewardItemId
+      ? { kind: "ITEM", itemId: pin.rewardItemId }
+      : pin.rewardsFanToken
+        ? { kind: "FAN_TOKEN" }
+        : { kind: "NONE" };
     const next = input.reward ?? current;
     const changed = JSON.stringify(next) !== JSON.stringify(current);
-    if (changed && claimed > 0) throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "Fans have already collected this pin, so its reward can't change." });
+    if (changed && claimed > 0)
+      throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+        message: "Fans have already collected this pin, so its reward can't change.",
+      });
     const reward = await resolveReward(ctx, artist, next, claimLimit);
-    data.rewardItem = reward.rewardItemId ? { connect: { id: reward.rewardItemId } } : { disconnect: true };
+    data.rewardItem = reward.rewardItemId
+      ? { connect: { id: reward.rewardItemId } }
+      : { disconnect: true };
     data.rewardsFanToken = reward.rewardsFanToken;
     data.claimLimit = claimLimit;
     data.claimsLeft = claimLimit > 0 ? claimLimit - claimed : 0;
@@ -361,14 +538,23 @@ export async function updatePin(ctx: ServiceCtx, artist: ArtistRef, input: Updat
   const tags = input.tags === undefined ? null : cleanTags(input.tags);
   await ctx.db.$transaction(async (tx) => {
     if (Object.keys(data).length > 0) await tx.pin.update({ where: { id: pin.id }, data });
-    if (input.autoCollect !== undefined) await tx.pinSpot.updateMany({ where: { pinId: pin.id }, data: { autoCollect: input.autoCollect } });
+    if (input.autoCollect !== undefined)
+      await tx.pinSpot.updateMany({
+        where: { pinId: pin.id },
+        data: { autoCollect: input.autoCollect },
+      });
     if (tags) await linkTags(tx, artist, pin.id, tags);
   });
   return { pinId: pin.id };
 }
 
 /** Hide a pin from the map without losing it or what fans collected. */
-export async function setPinHidden(ctx: ServiceCtx, artist: ArtistRef, pinId: string, hidden: boolean) {
+export async function setPinHidden(
+  ctx: ServiceCtx,
+  artist: ArtistRef,
+  pinId: string,
+  hidden: boolean,
+) {
   const pin = await ownPin(ctx, artist, pinId);
   await ctx.db.pin.update({ where: { id: pin.id }, data: { isHidden: hidden } });
   return { pinId: pin.id, hidden };
@@ -378,19 +564,29 @@ export async function setPinHidden(ctx: ServiceCtx, artist: ArtistRef, pinId: st
 export async function removePin(ctx: ServiceCtx, artist: ArtistRef, pinId: string) {
   const pin = await ownPin(ctx, artist, pinId);
   const claimed = await claimsOn(ctx.db, { spot: { pinId: pin.id } });
-  if (claimed > 0) throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: `${claimed} fans have collected this pin. Hide it instead.` });
+  if (claimed > 0)
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+      message: `${claimed} fans have collected this pin. Hide it instead.`,
+    });
   await ctx.db.pin.delete({ where: { id: pin.id } });
   return { pinId: pin.id };
 }
 
 /** Takes one spot off the map; a spot fans already collected is hidden rather than erased. */
 export async function removeSpot(ctx: ServiceCtx, artist: ArtistRef, spotId: string) {
-  const spot = await ctx.db.pinSpot.findFirst({ where: { id: spotId, pin: { artistId: artist.id } }, select: { id: true, pinId: true, isHidden: true, _count: { select: { claims: true } } } });
+  const spot = await ctx.db.pinSpot.findFirst({
+    where: { id: spotId, pin: { artistId: artist.id } },
+    select: { id: true, pinId: true, isHidden: true, _count: { select: { claims: true } } },
+  });
   if (!spot) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Spot not found" });
   ctx.activity.set({ targetType: "Pin", targetId: spot.pinId });
   const visible = await ctx.db.pinSpot.count({ where: { pinId: spot.pinId, isHidden: false } });
-  if (!spot.isHidden && visible <= 1) throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "A pin needs at least one spot. Hide or delete the pin instead." });
-  if (spot._count.claims > 0) await ctx.db.pinSpot.update({ where: { id: spot.id }, data: { isHidden: true } });
+  if (!spot.isHidden && visible <= 1)
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+      message: "A pin needs at least one spot. Hide or delete the pin instead.",
+    });
+  if (spot._count.claims > 0)
+    await ctx.db.pinSpot.update({ where: { id: spot.id }, data: { isHidden: true } });
   else await ctx.db.pinSpot.delete({ where: { id: spot.id } });
   return { pinId: spot.pinId };
 }

@@ -166,7 +166,7 @@ export function DataTable<T>({
                     key={c.id}
                     scope="col"
                     className={cn(
-                      "text-muted-foreground text-[11px] tracking-wider uppercase h-10 px-4 font-semibold whitespace-nowrap",
+                      "text-muted-foreground h-10 px-4 text-[11px] font-semibold tracking-wider whitespace-nowrap uppercase",
                       ALIGN[c.align ?? "left"],
                       c.className,
                     )}
@@ -266,10 +266,7 @@ export function DataTable<T>({
       <ul className="space-y-2 md:hidden" aria-label={label} aria-busy={loading ? true : undefined}>
         {loading
           ? Array.from({ length: Math.min(skeletonRows, 5) }).map((_, r) => (
-              <li
-                key={r}
-                className="bg-card border-fg/10 space-y-3 rounded-[1.4rem] border-2 p-4"
-              >
+              <li key={r} className="bg-card border-fg/10 space-y-3 rounded-[1.4rem] border-2 p-4">
                 <CellSkeleton shape={primary?.skeleton ?? "person"} seed={r} />
                 <div className="grid grid-cols-2 gap-3">
                   {rest.slice(0, 4).map((c, i) => (
@@ -317,7 +314,9 @@ export function DataTable<T>({
                       .filter((c) => !c.hideOnMobile)
                       .map((c) => (
                         <div key={c.id} className="min-w-0">
-                          <dt className="text-muted-foreground text-[11px] tracking-wider uppercase text-[10px]">{c.mobileLabel ?? c.header}</dt>
+                          <dt className="text-muted-foreground text-[10px] text-[11px] tracking-wider uppercase">
+                            {c.mobileLabel ?? c.header}
+                          </dt>
                           <dd className="mt-1 min-w-0 truncate text-sm">{c.cell(row)}</dd>
                         </div>
                       ))}

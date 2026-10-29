@@ -17,7 +17,15 @@ export function useNftRegistration(itemId: string) {
     cancel: (input) => cancel.mutateAsync(input),
     preparing: "Preparing the registration…",
     sending: "Registering your NFT. This takes a few seconds.",
-    success: { title: "Your NFT is registered", body: "It lives on the contract now. Selling it opens soon." },
-    onDone: () => Promise.all([utils.catalog.get.invalidate({ itemId }), utils.catalog.nftQuote.invalidate({ itemId }), utils.catalog.list.invalidate()]),
+    success: {
+      title: "Your NFT is registered",
+      body: "It lives on the contract now. Selling it opens soon.",
+    },
+    onDone: () =>
+      Promise.all([
+        utils.catalog.get.invalidate({ itemId }),
+        utils.catalog.nftQuote.invalidate({ itemId }),
+        utils.catalog.list.invalidate(),
+      ]),
   });
 }

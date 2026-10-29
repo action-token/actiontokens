@@ -1,4 +1,5 @@
-type HistoryStatus = "SUBMITTED" | "CONFIRMED" | "DELIVERED" | "FAILED" | "REFUNDED" | (string & {});
+type HistoryStatus =
+  "SUBMITTED" | "CONFIRMED" | "DELIVERED" | "FAILED" | "REFUNDED" | (string & {});
 
 export function statusLabel(status: HistoryStatus) {
   switch (status) {

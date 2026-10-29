@@ -4,12 +4,26 @@ import { acceptFor, fileRequired, ITEM_TYPES, mediaTypeFor } from "./item-types"
 
 describe("item types", () => {
   it("offers the seven collectible kinds, in a sensible order", () => {
-    expect(ITEM_TYPES.map((entry) => entry.value)).toEqual(["IMAGE", "VIDEO", "MODEL_3D", "DOCUMENT", "TICKET", "MERCH", "ROYALTY"]);
+    expect(ITEM_TYPES.map((entry) => entry.value)).toEqual([
+      "IMAGE",
+      "VIDEO",
+      "MODEL_3D",
+      "DOCUMENT",
+      "TICKET",
+      "MERCH",
+      "ROYALTY",
+    ]);
   });
 
   it("requires the file for art, video, 3D and documents only", () => {
-    expect(["IMAGE", "VIDEO", "MODEL_3D", "DOCUMENT"].map((type) => fileRequired(type as never))).toEqual([true, true, true, true]);
-    expect(["TICKET", "MERCH", "ROYALTY"].map((type) => fileRequired(type as never))).toEqual([false, false, false]);
+    expect(
+      ["IMAGE", "VIDEO", "MODEL_3D", "DOCUMENT"].map((type) => fileRequired(type as never)),
+    ).toEqual([true, true, true, true]);
+    expect(["TICKET", "MERCH", "ROYALTY"].map((type) => fileRequired(type as never))).toEqual([
+      false,
+      false,
+      false,
+    ]);
   });
 
   it("limits what the file picker shows to what fits the type", () => {

@@ -10,7 +10,12 @@ export const themeSchema = z.object({
 
 export type PageTheme = z.infer<typeof themeSchema>;
 
-export const DEFAULT_THEME: PageTheme = { accent: "#dbdc2c", fontPair: "grotesk", radius: "md", density: "normal" };
+export const DEFAULT_THEME: PageTheme = {
+  accent: "#dbdc2c",
+  fontPair: "grotesk",
+  radius: "md",
+  density: "normal",
+};
 
 export const FONT_PAIRS: { value: PageTheme["fontPair"]; label: string }[] = [
   { value: "grotesk", label: "Bandcoin" },

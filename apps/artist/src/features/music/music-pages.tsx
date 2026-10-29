@@ -9,7 +9,9 @@ import { api } from "~/trpc/react";
 import { AlbumForm } from "./album-form";
 import { SongForm } from "./song-form";
 
-export const NewSongView = ({ albumId }: { albumId?: string }) => <SongForm defaultAlbumId={albumId} />;
+export const NewSongView = ({ albumId }: { albumId?: string }) => (
+  <SongForm defaultAlbumId={albumId} />
+);
 
 export function EditSongView({ itemId }: { itemId: string }) {
   const song = api.music.song.useQuery({ itemId });
@@ -17,7 +19,14 @@ export function EditSongView({ itemId }: { itemId: string }) {
   return (
     <PageBody className="grid gap-6">
       <PageHeader back={{ href: "/music", label: "Music" }} eyebrow="Catalog" title="Edit song" />
-      {song.isPending ? <Skeleton className="h-96 w-full max-w-2xl rounded-xl" /> : <ErrorState message={song.error?.message ?? "Couldn't load this song."} onRetry={() => void song.refetch()} />}
+      {song.isPending ? (
+        <Skeleton className="h-96 w-full max-w-2xl rounded-xl" />
+      ) : (
+        <ErrorState
+          message={song.error?.message ?? "Couldn't load this song."}
+          onRetry={() => void song.refetch()}
+        />
+      )}
     </PageBody>
   );
 }
@@ -30,8 +39,16 @@ export function EditAlbumView({ albumId }: { albumId: string }) {
   if (album) return <AlbumForm existing={album} />;
   return (
     <PageBody className="grid gap-6">
-      <PageHeader back={{ href: "/music?tab=albums", label: "Albums" }} eyebrow="Catalog" title="Edit album" />
-      {albums.isPending ? <Skeleton className="h-72 w-full max-w-2xl rounded-xl" /> : <ErrorState message="Album not found." />}
+      <PageHeader
+        back={{ href: "/music?tab=albums", label: "Albums" }}
+        eyebrow="Catalog"
+        title="Edit album"
+      />
+      {albums.isPending ? (
+        <Skeleton className="h-72 w-full max-w-2xl rounded-xl" />
+      ) : (
+        <ErrorState message="Album not found." />
+      )}
     </PageBody>
   );
 }

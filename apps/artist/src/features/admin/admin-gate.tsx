@@ -23,7 +23,11 @@ export function AdminGate({ children }: { children: ReactNode }) {
   if (!portal.isAdmin) {
     return (
       <PageBody>
-        <EmptyState icon={ShieldAlert} title="Admins only" description="This area is for the Bandcoin team. Sign in with an admin account to use it." />
+        <EmptyState
+          icon={ShieldAlert}
+          title="Admins only"
+          description="This area is for the Bandcoin team. Sign in with an admin account to use it."
+        />
       </PageBody>
     );
   }

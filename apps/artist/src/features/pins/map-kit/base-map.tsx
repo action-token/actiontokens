@@ -12,11 +12,19 @@ import { MAPBOX_TOKEN } from "../mapbox";
 
 export const WORLD_VIEW = { latitude: 22.55, longitude: 0, zoom: 2.4 };
 
-const STYLE = { light: "mapbox://styles/mapbox/streets-v12", dark: "mapbox://styles/mapbox/dark-v11" } as const;
+const STYLE = {
+  light: "mapbox://styles/mapbox/streets-v12",
+  dark: "mapbox://styles/mapbox/dark-v11",
+} as const;
 
 const noSubscribe = () => () => undefined;
 /** False while rendering on the server, true in the browser. */
-const useIsClient = () => useSyncExternalStore(noSubscribe, () => true, () => false);
+const useIsClient = () =>
+  useSyncExternalStore(
+    noSubscribe,
+    () => true,
+    () => false,
+  );
 
 /**
  * Mapbox only resizes its canvas with the window. Keep it filling its box when
@@ -47,7 +55,10 @@ export const BaseMap = forwardRef<
     controls?: boolean;
     controlsPosition?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
   }
->(function BaseMap({ children, className, controls = true, controlsPosition = "bottom-right", ...props }, ref) {
+>(function BaseMap(
+  { children, className, controls = true, controlsPosition = "bottom-right", ...props },
+  ref,
+) {
   const { resolvedTheme } = useTheme();
   const mounted = useIsClient();
   // Wait for the browser so the map is created with the real theme; swapping the style while it loads flashes.

@@ -47,10 +47,19 @@ export function PlaylistsView() {
           <span className="display text-base">New playlist</span>
         </button>
         {mine.isPending
-          ? Array.from({ length: 4 }, (_, index) => <Skeleton key={index} className="aspect-square rounded-xl" />)
+          ? Array.from({ length: 4 }, (_, index) => (
+              <Skeleton key={index} className="aspect-square rounded-xl" />
+            ))
           : mine.data?.map((playlist) => (
-              <Link key={playlist.id} href={`/playlist/${playlist.id}`} className="group hover:bg-surface-2 grid content-start gap-2 rounded-xl p-2 transition-colors">
-                <PlaylistCover covers={playlist.covers} className="shadow-md transition-transform duration-250 group-hover:-translate-y-0.5" />
+              <Link
+                key={playlist.id}
+                href={`/playlist/${playlist.id}`}
+                className="group hover:bg-surface-2 grid content-start gap-2 rounded-xl p-2 transition-colors"
+              >
+                <PlaylistCover
+                  covers={playlist.covers}
+                  className="shadow-md transition-transform duration-250 group-hover:-translate-y-0.5"
+                />
                 <span className="display flex items-center gap-1.5 truncate text-sm">
                   {!playlist.isPublic && <Lock className="size-3.5 shrink-0" />}
                   {playlist.name}

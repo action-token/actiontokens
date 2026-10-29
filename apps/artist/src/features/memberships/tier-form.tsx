@@ -9,7 +9,13 @@ import toast from "react-hot-toast";
 import { Button } from "@bandcoin/ui/components/button";
 import { Input } from "@bandcoin/ui/components/input";
 import { Textarea } from "@bandcoin/ui/components/textarea";
-import { Field, FormPage, FormSection, OptionList, SwitchRow } from "@bandcoin/ui/patterns/form-page";
+import {
+  Field,
+  FormPage,
+  FormSection,
+  OptionList,
+  SwitchRow,
+} from "@bandcoin/ui/patterns/form-page";
 import { validatePrice } from "@bandcoin/utils/asset-code";
 
 import { DeleteCard } from "~/components/delete-card";
@@ -21,7 +27,8 @@ import { Note } from "../catalog/form-parts";
 
 type Existing = RouterOutputs["memberships"]["tiers"][number];
 
-const messageOf = (error: unknown) => (error instanceof Error ? error.message : "Something went wrong.");
+const messageOf = (error: unknown) =>
+  error instanceof Error ? error.message : "Something went wrong.";
 
 /** One form for a new tier and for editing one: its name, how many fan tokens it needs, and the perks it gives. */
 export function TierForm({ existing, tokenCode }: { existing?: Existing; tokenCode: string }) {
@@ -38,9 +45,18 @@ export function TierForm({ existing, tokenCode }: { existing?: Existing; tokenCo
     void utils.memberships.tiers.invalidate();
     router.push("/memberships");
   };
-  const create = api.memberships.createTier.useMutation({ onSuccess: () => done("Tier created"), onError: (error) => toast.error(messageOf(error)) });
-  const update = api.memberships.updateTier.useMutation({ onSuccess: () => done("Saved"), onError: (error) => toast.error(messageOf(error)) });
-  const remove = api.memberships.removeTier.useMutation({ onSuccess: () => done("Tier deleted"), onError: (error) => toast.error(messageOf(error)) });
+  const create = api.memberships.createTier.useMutation({
+    onSuccess: () => done("Tier created"),
+    onError: (error) => toast.error(messageOf(error)),
+  });
+  const update = api.memberships.updateTier.useMutation({
+    onSuccess: () => done("Saved"),
+    onError: (error) => toast.error(messageOf(error)),
+  });
+  const remove = api.memberships.removeTier.useMutation({
+    onSuccess: () => done("Tier deleted"),
+    onError: (error) => toast.error(messageOf(error)),
+  });
   const saving = create.isPending || update.isPending;
 
   const problem = required ? validatePrice(required) : null;
@@ -50,7 +66,13 @@ export function TierForm({ existing, tokenCode }: { existing?: Existing; tokenCo
   function submit(event: FormEvent) {
     event.preventDefault();
     if (!ready) return;
-    const fields = { name, description, requiredTokens: required, features: perks.split("\n"), isPopular: popular };
+    const fields = {
+      name,
+      description,
+      requiredTokens: required,
+      features: perks.split("\n"),
+      isPopular: popular,
+    };
     if (existing) update.mutate({ tierId: existing.id, ...fields });
     else create.mutate(fields);
   }
@@ -78,7 +100,9 @@ export function TierForm({ existing, tokenCode }: { existing?: Existing; tokenCo
       aside={
         <>
           <section className="bg-surface border-fg/10 grid gap-2 rounded-[1.4rem] border-2 p-5">
-            <p className="text-primary-text text-xs font-semibold tracking-wide uppercase">Preview</p>
+            <p className="text-primary-text text-xs font-semibold tracking-wide uppercase">
+              Preview
+            </p>
             <p className="display text-xl">{name || "Tier name"}</p>
             <p className="text-fg-muted text-sm">
               Hold <span className="num font-semibold">{required || "…"}</span> {tokenCode}
@@ -98,7 +122,11 @@ export function TierForm({ existing, tokenCode }: { existing?: Existing; tokenCo
             <DeleteCard
               title="Delete this tier"
               confirmTitle={`Delete ${existing.name}?`}
-              description={existing.inUse > 0 ? `${existing.inUse} items, posts or pins use this tier, so it can't be deleted. Hide it instead.` : "This can't be undone."}
+              description={
+                existing.inUse > 0
+                  ? `${existing.inUse} items, posts or pins use this tier, so it can't be deleted. Hide it instead.`
+                  : "This can't be undone."
+              }
               busy={remove.isPending}
               onDelete={() => remove.mutate({ tierId: existing.id })}
             />
@@ -110,7 +138,10 @@ export function TierForm({ existing, tokenCode }: { existing?: Existing; tokenCo
         <AiFillCard
           form="tier"
           context={aiContext}
-          examples={["A supporter tier for the first 10 tokens with early access", "A VIP tier with signed merch and backstage passes"]}
+          examples={[
+            "A supporter tier for the first 10 tokens with early access",
+            "A VIP tier with signed merch and backstage passes",
+          ]}
           apply={(result) => {
             const before = { name, description, perks, popular };
             setName(result.name);
@@ -128,24 +159,85 @@ export function TierForm({ existing, tokenCode }: { existing?: Existing; tokenCo
       )}
 
       <FormSection title="The tier" icon={Type}>
-        <Field label="Name" htmlFor="tier-name" required action={<AiTextButton form="tier" field="name" maxChars={40} value={name} context={aiContext} onChange={setName} />}>
-          <Input id="tier-name" value={name} maxLength={40} onChange={(event) => setName(event.target.value)} />
+        <Field
+          label="Name"
+          htmlFor="tier-name"
+          required
+          action={
+            <AiTextButton
+              form="tier"
+              field="name"
+              maxChars={40}
+              value={name}
+              context={aiContext}
+              onChange={setName}
+            />
+          }
+        >
+          <Input
+            id="tier-name"
+            value={name}
+            maxLength={40}
+            onChange={(event) => setName(event.target.value)}
+          />
         </Field>
-        <Field label="Short description" htmlFor="tier-description" action={<AiTextButton form="tier" field="description" maxChars={300} value={description} context={aiContext} onChange={setDescription} />}>
-          <Input id="tier-description" value={description} maxLength={300} onChange={(event) => setDescription(event.target.value)} />
+        <Field
+          label="Short description"
+          htmlFor="tier-description"
+          action={
+            <AiTextButton
+              form="tier"
+              field="description"
+              maxChars={300}
+              value={description}
+              context={aiContext}
+              onChange={setDescription}
+            />
+          }
+        >
+          <Input
+            id="tier-description"
+            value={description}
+            maxLength={300}
+            onChange={(event) => setDescription(event.target.value)}
+          />
         </Field>
         <Field label="Perks, one per line" htmlFor="tier-perks" hint="Up to 10.">
-          <Textarea id="tier-perks" value={perks} rows={5} placeholder={"Early access to drops\nMembers-only posts"} onChange={(event) => setPerks(event.target.value)} />
+          <Textarea
+            id="tier-perks"
+            value={perks}
+            rows={5}
+            placeholder={"Early access to drops\nMembers-only posts"}
+            onChange={(event) => setPerks(event.target.value)}
+          />
         </Field>
       </FormSection>
 
       <FormSection title="Who gets it" icon={Crown}>
-        <Field label={`${tokenCode} a fan must hold`} htmlFor="tier-required" required error={problem}>
-          <Input id="tier-required" inputMode="decimal" value={required} aria-invalid={Boolean(problem)} onChange={(event) => setRequired(event.target.value.trim())} className="max-w-40" />
+        <Field
+          label={`${tokenCode} a fan must hold`}
+          htmlFor="tier-required"
+          required
+          error={problem}
+        >
+          <Input
+            id="tier-required"
+            inputMode="decimal"
+            value={required}
+            aria-invalid={Boolean(problem)}
+            onChange={(event) => setRequired(event.target.value.trim())}
+            className="max-w-40"
+          />
           <Note>Fans are in this tier while they hold at least this many {tokenCode}.</Note>
         </Field>
         <OptionList>
-          <SwitchRow icon={Crown} title="Popular tier" hint="Marks this tier as the one to pick." checked={popular} onChange={setPopular} />
+          <SwitchRow
+            icon={Crown}
+            title="Popular tier"
+            hint="Marks this tier as the one to pick."
+            checked={popular}
+            onChange={setPopular}
+          />
         </OptionList>
       </FormSection>
     </FormPage>

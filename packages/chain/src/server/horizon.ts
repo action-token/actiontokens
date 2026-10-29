@@ -1,4 +1,10 @@
-import { type Asset, Horizon, Keypair, NotFoundError, TransactionBuilder } from "@stellar/stellar-sdk";
+import {
+  type Asset,
+  Horizon,
+  Keypair,
+  NotFoundError,
+  TransactionBuilder,
+} from "@stellar/stellar-sdk";
 
 import type { OnChainCurrency, PaymentAssets } from "../currency";
 import { toStellarError } from "../errors";
@@ -29,15 +35,21 @@ export async function assetExists(code: string, issuer: string): Promise<boolean
 const line = (account: Horizon.AccountResponse, asset: Asset) =>
   account.balances.find(
     (balance) =>
-      "asset_code" in balance && balance.asset_code === asset.getCode() && balance.asset_issuer === asset.getIssuer(),
+      "asset_code" in balance &&
+      balance.asset_code === asset.getCode() &&
+      balance.asset_issuer === asset.getIssuer(),
   );
 
-export const trusts = (account: Horizon.AccountResponse, asset: Asset) => asset.isNative() || Boolean(line(account, asset));
+export const trusts = (account: Horizon.AccountResponse, asset: Asset) =>
+  asset.isNative() || Boolean(line(account, asset));
 
 /** XLM the account can spend: balance − reserves − XLM locked in offers. */
 export function spendableXlm(account: Horizon.AccountResponse): string {
   const native = account.balances.find((balance) => balance.asset_type === "native");
-  const { num_sponsoring = 0, num_sponsored = 0 } = account as unknown as { num_sponsoring?: number; num_sponsored?: number };
+  const { num_sponsoring = 0, num_sponsored = 0 } = account as unknown as {
+    num_sponsoring?: number;
+    num_sponsored?: number;
+  };
   const entries = BigInt(2 + account.subentry_count + num_sponsoring - num_sponsored);
   const locked = entries * BASE_RESERVE_STROOPS + toStroops(native?.selling_liabilities ?? "0");
   const spendable = toStroops(native?.balance ?? "0") - locked;
@@ -45,17 +57,29 @@ export function spendableXlm(account: Horizon.AccountResponse): string {
 }
 
 /** What a buyer can pay with, per currency (0 for an asset without a trustline). */
-export function fundsOf(account: Horizon.AccountResponse | null, assets: PaymentAssets): Record<OnChainCurrency, string> {
+export function fundsOf(
+  account: Horizon.AccountResponse | null,
+  assets: PaymentAssets,
+): Record<OnChainCurrency, string> {
   if (!account) return { BANDCOIN: "0", XLM: "0", USDC: "0" };
   const balanceOf = (ref: { code: string; issuer: string }) => {
     const found = account.balances.find(
-      (balance) => "asset_code" in balance && balance.asset_code === ref.code && balance.asset_issuer === ref.issuer,
+      (balance) =>
+        "asset_code" in balance &&
+        balance.asset_code === ref.code &&
+        balance.asset_issuer === ref.issuer,
     );
     if (!found) return "0";
-    const available = toStroops(found.balance) - toStroops("selling_liabilities" in found ? found.selling_liabilities : "0");
+    const available =
+      toStroops(found.balance) -
+      toStroops("selling_liabilities" in found ? found.selling_liabilities : "0");
     return toAmount(available > 0n ? available : 0n);
   };
-  return { BANDCOIN: balanceOf(assets.bandcoin), XLM: spendableXlm(account), USDC: balanceOf(assets.usdc) };
+  return {
+    BANDCOIN: balanceOf(assets.bandcoin),
+    XLM: spendableXlm(account),
+    USDC: balanceOf(assets.usdc),
+  };
 }
 
 /** Adds the server's signatures to a transaction the user already signed. */

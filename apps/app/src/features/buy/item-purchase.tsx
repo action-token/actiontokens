@@ -20,7 +20,9 @@ export function ItemPurchase({ itemTitle, listings }: { itemTitle: string; listi
   if (!selected) {
     return (
       <aside className="text-fg-muted text-sm">
-        {listings.length > 0 ? "You're the only seller of this item." : "This item isn't for sale right now."}
+        {listings.length > 0
+          ? "You're the only seller of this item."
+          : "This item isn't for sale right now."}
       </aside>
     );
   }
@@ -43,12 +45,18 @@ export function ItemPurchase({ itemTitle, listings }: { itemTitle: string; listi
               )}
             >
               <span className="min-w-0 truncate">
-                {listing.kind === "PRIMARY" ? "From the artist" : (listing.seller.displayName ?? listing.seller.username ?? "A fan")}
+                {listing.kind === "PRIMARY"
+                  ? "From the artist"
+                  : (listing.seller.displayName ?? listing.seller.username ?? "A fan")}
                 <span className="text-fg-faint block text-xs">
                   {listing.remaining === null ? "Unlimited" : `${listing.remaining} left`}
                 </span>
               </span>
-              <Money amount={listing.priceBandcoin} currency="BANDCOIN" className="shrink-0 text-[13px] font-semibold" />
+              <Money
+                amount={listing.priceBandcoin}
+                currency="BANDCOIN"
+                className="shrink-0 text-[13px] font-semibold"
+              />
             </button>
           ))}
         </section>

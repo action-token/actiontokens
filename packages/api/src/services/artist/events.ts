@@ -40,26 +40,40 @@ export function webLink(value: string, what: string) {
 
 function checkEvent(input: Partial<EventInput>) {
   const { title, description } = input;
-  if (title !== undefined && (title.trim().length === 0 || title.trim().length > 100)) throw invalid("Give the event a title of up to 100 characters.");
-  if (description !== undefined && (description.trim().length === 0 || description.length > 4000)) throw invalid("Describe the event in up to 4000 characters.");
+  if (title !== undefined && (title.trim().length === 0 || title.trim().length > 100))
+    throw invalid("Give the event a title of up to 100 characters.");
+  if (description !== undefined && (description.trim().length === 0 || description.length > 4000))
+    throw invalid("Describe the event in up to 4000 characters.");
   if (input.coverUrl && !isOwnS3Url(input.coverUrl)) throw invalid("Upload the cover again.");
-  if (input.venueName && input.venueName.length > 100) throw invalid("Keep the venue name under 100 characters.");
-  if (input.address && input.address.length > 200) throw invalid("Keep the address under 200 characters.");
-  if (input.capacity != null && (!Number.isInteger(input.capacity) || input.capacity < 1 || input.capacity > 1_000_000)) throw invalid("Capacity must be a whole number, or empty for no limit.");
-  if (input.linkLabel && input.linkLabel.length > 30) throw invalid("Keep the link label under 30 characters.");
-  if ((input.latitude == null) !== (input.longitude == null)) throw invalid("Set both latitude and longitude, or neither.");
-  if (input.latitude != null && (input.latitude < -90 || input.latitude > 90)) throw invalid("Latitude must be between -90 and 90.");
-  if (input.longitude != null && (input.longitude < -180 || input.longitude > 180)) throw invalid("Longitude must be between -180 and 180.");
+  if (input.venueName && input.venueName.length > 100)
+    throw invalid("Keep the venue name under 100 characters.");
+  if (input.address && input.address.length > 200)
+    throw invalid("Keep the address under 200 characters.");
+  if (
+    input.capacity != null &&
+    (!Number.isInteger(input.capacity) || input.capacity < 1 || input.capacity > 1_000_000)
+  )
+    throw invalid("Capacity must be a whole number, or empty for no limit.");
+  if (input.linkLabel && input.linkLabel.length > 30)
+    throw invalid("Keep the link label under 30 characters.");
+  if ((input.latitude == null) !== (input.longitude == null))
+    throw invalid("Set both latitude and longitude, or neither.");
+  if (input.latitude != null && (input.latitude < -90 || input.latitude > 90))
+    throw invalid("Latitude must be between -90 and 90.");
+  if (input.longitude != null && (input.longitude < -180 || input.longitude > 180))
+    throw invalid("Longitude must be between -180 and 180.");
 }
 
 function checkTimes(startsAt: Date, endsAt: Date) {
-  if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) throw invalid("Pick a start and end time.");
+  if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime()))
+    throw invalid("Pick a start and end time.");
   if (endsAt <= startsAt) throw invalid("The event has to end after it starts.");
 }
 
 /** The columns we write; an empty string means "clear it". */
 function eventData(input: Partial<EventInput>) {
-  const text = (value: string | null | undefined) => (value === undefined ? undefined : value?.trim() || null);
+  const text = (value: string | null | undefined) =>
+    value === undefined ? undefined : value?.trim() || null;
   return {
     ...(input.title !== undefined ? { title: input.title.trim() } : {}),
     ...(input.description !== undefined ? { description: input.description.trim() } : {}),
@@ -70,7 +84,9 @@ function eventData(input: Partial<EventInput>) {
     ...(input.address !== undefined ? { address: text(input.address) } : {}),
     ...(input.latitude !== undefined ? { latitude: input.latitude } : {}),
     ...(input.longitude !== undefined ? { longitude: input.longitude } : {}),
-    ...(input.link !== undefined ? { link: input.link ? webLink(input.link.trim(), "The link") : null } : {}),
+    ...(input.link !== undefined
+      ? { link: input.link ? webLink(input.link.trim(), "The link") : null }
+      : {}),
     ...(input.linkLabel !== undefined ? { linkLabel: text(input.linkLabel) } : {}),
     ...(input.capacity !== undefined ? { capacity: input.capacity } : {}),
   };
@@ -79,7 +95,13 @@ function eventData(input: Partial<EventInput>) {
 async function ownEvent(ctx: ServiceCtx, artist: ArtistRef, eventId: string) {
   const event = await ctx.db.event.findFirst({
     where: { id: eventId, artistId: artist.id },
-    select: { id: true, startsAt: true, endsAt: true, capacity: true, _count: { select: { rsvps: true } } },
+    select: {
+      id: true,
+      startsAt: true,
+      endsAt: true,
+      capacity: true,
+      _count: { select: { rsvps: true } },
+    },
   });
   if (!event) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Event not found" });
   ctx.activity.set({ targetType: "Event", targetId: event.id });
@@ -92,7 +114,12 @@ export async function listEvents(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef)
     orderBy: { startsAt: "desc" },
     include: { _count: { select: { rsvps: true, pins: true, bounties: true } } },
   });
-  return rows.map(({ _count, ...row }) => ({ ...row, rsvps: _count.rsvps, pins: _count.pins, bounties: _count.bounties }));
+  return rows.map(({ _count, ...row }) => ({
+    ...row,
+    rsvps: _count.rsvps,
+    pins: _count.pins,
+    bounties: _count.bounties,
+  }));
 }
 
 export async function createEvent(ctx: ServiceCtx, artist: ArtistRef, input: EventInput) {
@@ -113,12 +140,18 @@ export async function createEvent(ctx: ServiceCtx, artist: ArtistRef, input: Eve
   return { eventId: event.id };
 }
 
-export async function updateEvent(ctx: ServiceCtx, artist: ArtistRef, input: Partial<EventInput> & { eventId: string }) {
+export async function updateEvent(
+  ctx: ServiceCtx,
+  artist: ArtistRef,
+  input: Partial<EventInput> & { eventId: string },
+) {
   const event = await ownEvent(ctx, artist, input.eventId);
   checkEvent(input);
   checkTimes(input.startsAt ?? event.startsAt, input.endsAt ?? event.endsAt);
   if (input.capacity != null && input.capacity < event._count.rsvps)
-    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: `${event._count.rsvps} fans have already RSVP'd. Capacity can't go below that.` });
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+      message: `${event._count.rsvps} fans have already RSVP'd. Capacity can't go below that.`,
+    });
   const data = eventData(input);
   if (Object.keys(data).length > 0) await ctx.db.event.update({ where: { id: event.id }, data });
   return { eventId: event.id };

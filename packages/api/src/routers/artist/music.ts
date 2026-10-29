@@ -1,7 +1,21 @@
 import { z } from "zod";
 
-import { addStem, listStems, removeStem, updateStem as updateStemDetails } from "../../services/artist/stems";
-import { createAlbum, createSong, deleteAlbum, getSong, listAlbums, listSongs, updateAlbum, updateSong } from "../../services/artist/music";
+import {
+  addStem,
+  listStems,
+  removeStem,
+  updateStem as updateStemDetails,
+} from "../../services/artist/stems";
+import {
+  createAlbum,
+  createSong,
+  deleteAlbum,
+  getSong,
+  listAlbums,
+  listSongs,
+  updateAlbum,
+  updateSong,
+} from "../../services/artist/music";
 import { artistProcedure, createRouter } from "../../trpc";
 
 const price = z.string().trim().max(20);
@@ -10,7 +24,9 @@ const price = z.string().trim().max(20);
 export const musicRouter = createRouter({
   songs: artistProcedure.query(({ ctx }) => listSongs(ctx, ctx.artist)),
 
-  song: artistProcedure.input(z.object({ itemId: z.string().min(1) })).query(({ ctx, input }) => getSong(ctx, ctx.artist, input.itemId)),
+  song: artistProcedure
+    .input(z.object({ itemId: z.string().min(1) }))
+    .query(({ ctx, input }) => getSong(ctx, ctx.artist, input.itemId)),
 
   createSong: artistProcedure
     .input(
@@ -48,24 +64,55 @@ export const musicRouter = createRouter({
   albums: artistProcedure.query(({ ctx }) => listAlbums(ctx, ctx.artist)),
 
   createAlbum: artistProcedure
-    .input(z.object({ title: z.string().trim().min(1, "Give it a title").max(120), description: z.string().trim().max(2000).optional(), coverUrl: z.string().url() }))
+    .input(
+      z.object({
+        title: z.string().trim().min(1, "Give it a title").max(120),
+        description: z.string().trim().max(2000).optional(),
+        coverUrl: z.string().url(),
+      }),
+    )
     .mutation(({ ctx, input }) => createAlbum(ctx, ctx.artist, input)),
 
   updateAlbum: artistProcedure
-    .input(z.object({ albumId: z.string().min(1), title: z.string().trim().min(1).max(120).optional(), description: z.string().trim().max(2000).optional(), coverUrl: z.string().url().optional() }))
+    .input(
+      z.object({
+        albumId: z.string().min(1),
+        title: z.string().trim().min(1).max(120).optional(),
+        description: z.string().trim().max(2000).optional(),
+        coverUrl: z.string().url().optional(),
+      }),
+    )
     .mutation(({ ctx, input }) => updateAlbum(ctx, ctx.artist, input)),
 
-  removeAlbum: artistProcedure.input(z.object({ albumId: z.string().min(1) })).mutation(({ ctx, input }) => deleteAlbum(ctx, ctx.artist, input.albumId)),
+  removeAlbum: artistProcedure
+    .input(z.object({ albumId: z.string().min(1) }))
+    .mutation(({ ctx, input }) => deleteAlbum(ctx, ctx.artist, input.albumId)),
 
-  stems: artistProcedure.input(z.object({ itemId: z.string().min(1) })).query(({ ctx, input }) => listStems(ctx, ctx.artist, input.itemId)),
+  stems: artistProcedure
+    .input(z.object({ itemId: z.string().min(1) }))
+    .query(({ ctx, input }) => listStems(ctx, ctx.artist, input.itemId)),
 
   addStem: artistProcedure
-    .input(z.object({ itemId: z.string().min(1), name: z.string().trim().max(30), audio: z.object({ url: z.string().url(), durationSec: z.number().int() }) }))
+    .input(
+      z.object({
+        itemId: z.string().min(1),
+        name: z.string().trim().max(30),
+        audio: z.object({ url: z.string().url(), durationSec: z.number().int() }),
+      }),
+    )
     .mutation(({ ctx, input }) => addStem(ctx, ctx.artist, input)),
 
   updateStem: artistProcedure
-    .input(z.object({ stemId: z.string().min(1), name: z.string().trim().max(30).optional(), color: z.string().max(9).optional() }))
+    .input(
+      z.object({
+        stemId: z.string().min(1),
+        name: z.string().trim().max(30).optional(),
+        color: z.string().max(9).optional(),
+      }),
+    )
     .mutation(({ ctx, input }) => updateStemDetails(ctx, ctx.artist, input)),
 
-  removeStem: artistProcedure.input(z.object({ stemId: z.string().min(1) })).mutation(({ ctx, input }) => removeStem(ctx, ctx.artist, input.stemId)),
+  removeStem: artistProcedure
+    .input(z.object({ stemId: z.string().min(1) }))
+    .mutation(({ ctx, input }) => removeStem(ctx, ctx.artist, input.stemId)),
 });

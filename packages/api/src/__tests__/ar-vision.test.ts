@@ -28,7 +28,10 @@ describe("checkWithVision sign-in", () => {
     vi.stubEnv("GOOGLE_VISION_CREDENTIALS", "");
     vi.stubEnv("GOOGLE_CLOUD_PROJECT", "");
     const { checkWithVision } = await fresh();
-    await expect(checkWithVision(frames, 0.9)).resolves.toEqual({ ok: true, report: { skipped: true, units: 0 } });
+    await expect(checkWithVision(frames, 0.9)).resolves.toEqual({
+      ok: true,
+      report: { skipped: true, units: 0 },
+    });
   });
 
   it("uses the machine's credentials billed to the project when there's no key", async () => {
@@ -36,15 +39,22 @@ describe("checkWithVision sign-in", () => {
     vi.stubEnv("GOOGLE_CLOUD_PROJECT", "proj-1");
     google.request.mockResolvedValue({ data: { responses: [{ labelAnnotations: [] }] } });
     const { checkWithVision } = await fresh();
-    await expect(checkWithVision(frames, 0.9)).resolves.toMatchObject({ ok: false, code: "NOT_ART" });
+    await expect(checkWithVision(frames, 0.9)).resolves.toMatchObject({
+      ok: false,
+      code: "NOT_ART",
+    });
     expect(google.options[0]).toMatchObject({ projectId: "proj-1" });
-    expect(google.request.mock.calls[0]?.[0]).toMatchObject({ headers: { "x-goog-user-project": "proj-1" } });
+    expect(google.request.mock.calls[0]?.[0]).toMatchObject({
+      headers: { "x-goog-user-project": "proj-1" },
+    });
   });
 
   it("says plainly when Google can't be reached", async () => {
     vi.stubEnv("GOOGLE_CLOUD_PROJECT", "proj-1");
     google.request.mockRejectedValue(new Error("Could not load the default credentials"));
     const { checkWithVision } = await fresh();
-    await expect(checkWithVision(frames, 0.9)).rejects.toMatchObject({ message: "Couldn't check the scan with Google Vision. Try again in a moment." });
+    await expect(checkWithVision(frames, 0.9)).rejects.toMatchObject({
+      message: "Couldn't check the scan with Google Vision. Try again in a moment.",
+    });
   });
 });

@@ -211,7 +211,8 @@ export function ConnectWalletDialog() {
     if (session.status !== "authenticated" || !session.data) return null;
     const user = session.data.user;
     const profile = dialogModalState.profile;
-    const name = profile?.name ?? (user as { name?: string }).name ?? abbreviateAddress(user.walletAddress, 8);
+    const name =
+      profile?.name ?? (user as { name?: string }).name ?? abbreviateAddress(user.walletAddress, 8);
     const image = profile?.image ?? (user as { image?: string | null }).image;
     const cover = profile?.coverImage;
     const initials = name.slice(0, 2).toUpperCase();
@@ -635,7 +636,9 @@ export function ConnectWalletDialog() {
           >
             <div className="p-6 pb-3">
               <p className="marker text-primary-text text-xl">*scan to connect*</p>
-              <h3 className="display text-foreground mt-2 text-[22px] whitespace-nowrap">Connect Wallet</h3>
+              <h3 className="display text-foreground mt-2 text-[22px] whitespace-nowrap">
+                Connect Wallet
+              </h3>
             </div>
 
             <div className="flex flex-1 items-center justify-center px-6">

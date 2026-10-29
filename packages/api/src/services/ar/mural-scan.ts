@@ -24,7 +24,15 @@ import {
 import { getObjectBytes, publicS3Url, signMuralFrames } from "@bandcoin/storage";
 
 import { dot, embedImage, muralScore } from "./clip";
-import { autoTitleFor, boxAround, creditCoins, getMuralSettings, localDay, timeZoneAt, toMuralCard } from "./murals";
+import {
+  autoTitleFor,
+  boxAround,
+  creditCoins,
+  getMuralSettings,
+  localDay,
+  timeZoneAt,
+  toMuralCard,
+} from "./murals";
 import { checkWithVision } from "./vision";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 

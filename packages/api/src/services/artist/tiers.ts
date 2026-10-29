@@ -26,13 +26,16 @@ export type TierInput = {
 };
 
 function checkTier(input: Partial<TierInput>) {
-  if (input.name !== undefined && (input.name.trim().length === 0 || input.name.trim().length > 40)) throw invalid("Name the tier.");
-  if (input.description !== undefined && input.description.length > 300) throw invalid("Keep the description under 300 characters.");
+  if (input.name !== undefined && (input.name.trim().length === 0 || input.name.trim().length > 40))
+    throw invalid("Name the tier.");
+  if (input.description !== undefined && input.description.length > 300)
+    throw invalid("Keep the description under 300 characters.");
   if (input.requiredTokens !== undefined) {
     const problem = validatePrice(input.requiredTokens);
     if (problem) throw invalid(problem);
   }
-  if (input.color !== undefined && input.color !== "" && !/^#[0-9a-fA-F]{6}$/.test(input.color)) throw invalid("Pick a colour.");
+  if (input.color !== undefined && input.color !== "" && !/^#[0-9a-fA-F]{6}$/.test(input.color))
+    throw invalid("Pick a colour.");
 }
 
 const perks = (features: string[]) => {
@@ -43,7 +46,10 @@ const perks = (features: string[]) => {
 };
 
 async function ownTier(ctx: ServiceCtx, artist: Pick<ArtistRef, "id">, tierId: string) {
-  const tier = await ctx.db.membershipTier.findFirst({ where: { id: tierId, artistId: artist.id }, select: { id: true } });
+  const tier = await ctx.db.membershipTier.findFirst({
+    where: { id: tierId, artistId: artist.id },
+    select: { id: true },
+  });
   if (!tier) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Tier not found" });
   ctx.activity.set({ targetType: "MembershipTier", targetId: tier.id });
   return tier;
@@ -67,11 +73,18 @@ export async function listTiers(ctx: Pick<ServiceCtx, "db">, artist: Pick<Artist
       _count: { select: { items: true, posts: true, pins: true } },
     },
   });
-  return rows.map(({ _count, requiredTokens, ...row }) => ({ ...row, requiredTokens: requiredTokens.toString(), inUse: _count.items + _count.posts + _count.pins }));
+  return rows.map(({ _count, requiredTokens, ...row }) => ({
+    ...row,
+    requiredTokens: requiredTokens.toString(),
+    inUse: _count.items + _count.posts + _count.pins,
+  }));
 }
 
 export async function createTier(ctx: ServiceCtx, artist: ArtistRef, input: TierInput) {
-  if (!artist.fanTokenItemId) throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, { message: "Create your fan token first." });
+  if (!artist.fanTokenItemId)
+    throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, {
+      message: "Create your fan token first.",
+    });
   checkTier(input);
   try {
     const tier = await ctx.db.membershipTier.create({
@@ -89,12 +102,19 @@ export async function createTier(ctx: ServiceCtx, artist: ArtistRef, input: Tier
     ctx.activity.set({ targetType: "MembershipTier", targetId: tier.id });
     return { tierId: tier.id };
   } catch (error) {
-    if (duplicate(error)) throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "You already have a tier with that name." });
+    if (duplicate(error))
+      throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+        message: "You already have a tier with that name.",
+      });
     throw error;
   }
 }
 
-export async function updateTier(ctx: ServiceCtx, artist: Pick<ArtistRef, "id">, input: Partial<TierInput> & { tierId: string; isActive?: boolean }) {
+export async function updateTier(
+  ctx: ServiceCtx,
+  artist: Pick<ArtistRef, "id">,
+  input: Partial<TierInput> & { tierId: string; isActive?: boolean },
+) {
   const tier = await ownTier(ctx, artist, input.tierId);
   checkTier(input);
   const data = {
@@ -107,9 +127,13 @@ export async function updateTier(ctx: ServiceCtx, artist: Pick<ArtistRef, "id">,
     ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
   };
   try {
-    if (Object.keys(data).length > 0) await ctx.db.membershipTier.update({ where: { id: tier.id }, data });
+    if (Object.keys(data).length > 0)
+      await ctx.db.membershipTier.update({ where: { id: tier.id }, data });
   } catch (error) {
-    if (duplicate(error)) throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "You already have a tier with that name." });
+    if (duplicate(error))
+      throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+        message: "You already have a tier with that name.",
+      });
     throw error;
   }
   return { tierId: tier.id };
@@ -117,8 +141,17 @@ export async function updateTier(ctx: ServiceCtx, artist: Pick<ArtistRef, "id">,
 
 export async function removeTier(ctx: ServiceCtx, artist: Pick<ArtistRef, "id">, tierId: string) {
   const tier = await ownTier(ctx, artist, tierId);
-  const uses = (await Promise.all([ctx.db.item.count({ where: { tierId } }), ctx.db.post.count({ where: { tierId } }), ctx.db.pin.count({ where: { tierId } })])).reduce((sum, n) => sum + n, 0);
-  if (uses > 0) throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: `${uses} items, posts or pins use this tier. Hide it instead.` });
+  const uses = (
+    await Promise.all([
+      ctx.db.item.count({ where: { tierId } }),
+      ctx.db.post.count({ where: { tierId } }),
+      ctx.db.pin.count({ where: { tierId } }),
+    ])
+  ).reduce((sum, n) => sum + n, 0);
+  if (uses > 0)
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+      message: `${uses} items, posts or pins use this tier. Hide it instead.`,
+    });
   await ctx.db.membershipTier.delete({ where: { id: tier.id } });
   return { tierId: tier.id };
 }

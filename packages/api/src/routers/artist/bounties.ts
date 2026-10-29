@@ -1,7 +1,23 @@
 import { z } from "zod";
 
-import { createBounty, discardUnfunded, getBounty, listBounties, listParticipants, listSubmissions, PRIZE_CURRENCIES, setBountyStatus, updateBounty } from "../../services/artist/bounties";
-import { fundingSources, prepareFunding, prepareWinner, submitFunding, submitWinner } from "../../services/artist/bounty-escrow";
+import {
+  createBounty,
+  discardUnfunded,
+  getBounty,
+  listBounties,
+  listParticipants,
+  listSubmissions,
+  PRIZE_CURRENCIES,
+  setBountyStatus,
+  updateBounty,
+} from "../../services/artist/bounties";
+import {
+  fundingSources,
+  prepareFunding,
+  prepareWinner,
+  submitFunding,
+  submitWinner,
+} from "../../services/artist/bounty-escrow";
 import { searchTracks, topTracks } from "../../services/lastfm-search";
 import { artistProcedure, createRouter } from "../../trpc";
 
@@ -41,12 +57,20 @@ const bountyId = z.object({ bountyId: z.string().min(1) });
 /** The artist's bounties (see services/artist/bounties and bounty-escrow). Contract calls are unchanged from the old Bandcoin. */
 export const bountiesRouter = createRouter({
   list: artistProcedure.query(({ ctx }) => listBounties(ctx, ctx.artist)),
-  get: artistProcedure.input(bountyId).query(({ ctx, input }) => getBounty(ctx, ctx.artist, input.bountyId)),
-  participants: artistProcedure.input(bountyId).query(({ ctx, input }) => listParticipants(ctx, ctx.artist, input.bountyId)),
-  submissions: artistProcedure.input(bountyId).query(({ ctx, input }) => listSubmissions(ctx, ctx.artist, input.bountyId)),
+  get: artistProcedure
+    .input(bountyId)
+    .query(({ ctx, input }) => getBounty(ctx, ctx.artist, input.bountyId)),
+  participants: artistProcedure
+    .input(bountyId)
+    .query(({ ctx, input }) => listParticipants(ctx, ctx.artist, input.bountyId)),
+  submissions: artistProcedure
+    .input(bountyId)
+    .query(({ ctx, input }) => listSubmissions(ctx, ctx.artist, input.bountyId)),
 
   /** What the wallet and the storage account hold, so the form can show it next to the prize. */
-  fundingSources: artistProcedure.query(({ ctx }) => fundingSources(ctx, ctx.artist, ctx.session.user)),
+  fundingSources: artistProcedure.query(({ ctx }) =>
+    fundingSources(ctx, ctx.artist, ctx.session.user),
+  ),
 
   create: artistProcedure
     .input(
@@ -61,7 +85,12 @@ export const bountiesRouter = createRouter({
     .mutation(({ ctx, input }) => createBounty(ctx, ctx.artist, input)),
 
   update: artistProcedure
-    .input(z.object(text).partial().extend({ bountyId: z.string().min(1) }))
+    .input(
+      z
+        .object(text)
+        .partial()
+        .extend({ bountyId: z.string().min(1) }),
+    )
     .mutation(({ ctx, input }) => updateBounty(ctx, ctx.artist, input)),
 
   setStatus: artistProcedure
@@ -69,30 +98,56 @@ export const bountiesRouter = createRouter({
     .mutation(({ ctx, input }) => setBountyStatus(ctx, ctx.artist, input)),
 
   /** Throw away a draft whose funding failed or was cancelled. Funded bounties can't be deleted. */
-  discard: artistProcedure.input(bountyId).mutation(({ ctx, input }) => discardUnfunded(ctx, ctx.artist, input.bountyId)),
+  discard: artistProcedure
+    .input(bountyId)
+    .mutation(({ ctx, input }) => discardUnfunded(ctx, ctx.artist, input.bountyId)),
 
-  prepareFunding: artistProcedure.input(bountyId).mutation(({ ctx, input }) => prepareFunding(ctx, ctx.artist, ctx.session.user, input.bountyId)),
-  submitFunding: artistProcedure.input(bountyId.extend({ xdr: z.string().min(1) })).mutation(({ ctx, input }) => submitFunding(ctx, ctx.artist, ctx.session.user, input.bountyId, input.xdr)),
+  prepareFunding: artistProcedure
+    .input(bountyId)
+    .mutation(({ ctx, input }) =>
+      prepareFunding(ctx, ctx.artist, ctx.session.user, input.bountyId),
+    ),
+  submitFunding: artistProcedure
+    .input(bountyId.extend({ xdr: z.string().min(1) }))
+    .mutation(({ ctx, input }) =>
+      submitFunding(ctx, ctx.artist, ctx.session.user, input.bountyId, input.xdr),
+    ),
 
   prepareWinner: artistProcedure
     .input(bountyId.extend({ winnerUserId: z.string().min(1), amount: z.string().trim().max(30) }))
     .mutation(({ ctx, input }) => prepareWinner(ctx, ctx.artist, ctx.session.user, input)),
   submitWinner: artistProcedure
-    .input(bountyId.extend({ winnerUserId: z.string().min(1), amount: z.string().trim().max(30), xdr: z.string().min(1) }))
+    .input(
+      bountyId.extend({
+        winnerUserId: z.string().min(1),
+        amount: z.string().trim().max(30),
+        xdr: z.string().min(1),
+      }),
+    )
     .mutation(({ ctx, input }) => submitWinner(ctx, ctx.artist, ctx.session.user, input)),
 
   /** The Last.fm account connected for music bounties, if any. */
   lastFm: artistProcedure.query(async ({ ctx }) => {
-    const account = await ctx.db.lastFmAccount.findFirst({ where: { userId: ctx.session.user.id, isConnected: true }, select: { username: true } });
+    const account = await ctx.db.lastFmAccount.findFirst({
+      where: { userId: ctx.session.user.id, isConnected: true },
+      select: { username: true },
+    });
     return account ? { username: account.username } : null;
   }),
 
   disconnectLastFm: artistProcedure.mutation(async ({ ctx }) => {
-    await ctx.db.lastFmAccount.updateMany({ where: { userId: ctx.session.user.id }, data: { isConnected: false, sessionKey: null } });
+    await ctx.db.lastFmAccount.updateMany({
+      where: { userId: ctx.session.user.id },
+      data: { isConnected: false, sessionKey: null },
+    });
     ctx.activity.set({ targetType: "LastFmAccount", targetId: ctx.session.user.id });
     return { disconnected: true };
   }),
 
-  searchTracks: artistProcedure.input(z.object({ query: z.string().trim().max(120) })).query(({ input }) => searchTracks(input.query)),
-  topTracks: artistProcedure.input(z.object({ artist: z.string().trim().max(120) })).query(({ input }) => topTracks(input.artist)),
+  searchTracks: artistProcedure
+    .input(z.object({ query: z.string().trim().max(120) }))
+    .query(({ input }) => searchTracks(input.query)),
+  topTracks: artistProcedure
+    .input(z.object({ artist: z.string().trim().max(120) }))
+    .query(({ input }) => topTracks(input.artist)),
 });

@@ -29,7 +29,12 @@ export function PostsView() {
 
   return (
     <PageBody className="grid max-w-3xl gap-6">
-      <PageHeader eyebrow="Content" title="Posts" description="News, media and perks for your followers, public or for a membership tier." actions={posts.data && posts.data.length > 0 ? add : undefined} />
+      <PageHeader
+        eyebrow="Content"
+        title="Posts"
+        description="News, media and perks for your followers, public or for a membership tier."
+        actions={posts.data && posts.data.length > 0 ? add : undefined}
+      />
       {posts.isPending ? (
         <div className="grid gap-4">
           {Array.from({ length: 3 }, (_, i) => (
@@ -39,7 +44,12 @@ export function PostsView() {
       ) : posts.isError ? (
         <ErrorState message="Couldn't load your posts." onRetry={() => void posts.refetch()} />
       ) : posts.data.length === 0 ? (
-        <EmptyState icon={FileText} title="No posts yet" description="Your first post shows up in followers' feeds right away." action={add} />
+        <EmptyState
+          icon={FileText}
+          title="No posts yet"
+          description="Your first post shows up in followers' feeds right away."
+          action={add}
+        />
       ) : (
         <ul className="grid gap-4">
           {posts.data.map((post) => (
@@ -69,12 +79,19 @@ function PostCard({ post }: { post: Post }) {
             </StatusPill>
           )}
         </div>
-        {post.body.trim() && <Markdown content={post.body} compact className="text-fg-muted line-clamp-4" />}
+        {post.body.trim() && (
+          <Markdown content={post.body} compact className="text-fg-muted line-clamp-4" />
+        )}
         {images.length > 0 && (
           <div className="grid grid-cols-4 gap-2">
             {images.slice(0, 4).map((file) => (
               // eslint-disable-next-line @next/next/no-img-element
-              <img key={file.id} src={file.url} alt="" className="bg-surface-2 aspect-square w-full rounded-lg object-cover" />
+              <img
+                key={file.id}
+                src={file.url}
+                alt=""
+                className="bg-surface-2 aspect-square w-full rounded-lg object-cover"
+              />
             ))}
           </div>
         )}
@@ -82,7 +99,12 @@ function PostCard({ post }: { post: Post }) {
           <p className="text-fg-muted flex items-center gap-3 text-xs">
             {others.map((file) => (
               <span key={file.id} className="inline-flex items-center gap-1">
-                {file.type === "VIDEO" ? <Video className="size-3.5" /> : <Music className="size-3.5" />} {file.type === "VIDEO" ? "Video" : "Music"}
+                {file.type === "VIDEO" ? (
+                  <Video className="size-3.5" />
+                ) : (
+                  <Music className="size-3.5" />
+                )}{" "}
+                {file.type === "VIDEO" ? "Video" : "Music"}
               </span>
             ))}
           </p>

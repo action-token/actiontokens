@@ -60,7 +60,11 @@ export function BuyPanelDemo() {
         [currency]: b[currency] - payInCurrency,
         ...(currency !== "XLM" ? { XLM: b.XLM - xlmExtra } : {}),
       }));
-      setStep({ kind: "success", title: `Done. You own ${qty} × Night Drive`, body: "It's in your collection and plays in full now." });
+      setStep({
+        kind: "success",
+        title: `Done. You own ${qty} × Night Drive`,
+        body: "It's in your collection and plays in full now.",
+      });
     }, 1600);
   };
 
@@ -77,7 +81,10 @@ export function BuyPanelDemo() {
   const smallBtn = "h-8 px-3 text-[13px]";
 
   return (
-    <aside aria-label="Buy" className="bg-surface shadow-raised grid gap-5 rounded-xl border p-5 lg:sticky lg:top-4">
+    <aside
+      aria-label="Buy"
+      className="bg-surface shadow-raised grid gap-5 rounded-xl border p-5 lg:sticky lg:top-4"
+    >
       <div className="flex items-baseline justify-between gap-3">
         <div className="num text-[30px] leading-none font-semibold tracking-tight">
           {fmt(unit, dp)}
@@ -102,7 +109,9 @@ export function BuyPanelDemo() {
               )}
             >
               <b className="text-[13px]">{c}</b>
-              <span className="num text-fg-muted truncate text-[11px]">bal {fmt(balances[c], PRICES[c].dp)}</span>
+              <span className="num text-fg-muted truncate text-[11px]">
+                bal {fmt(balances[c], PRICES[c].dp)}
+              </span>
             </button>
           ))}
         </div>
@@ -118,7 +127,11 @@ export function BuyPanelDemo() {
 
       <PriceBreakdown
         lines={[
-          { label: "Item price", detail: `${qty} × ${fmt(unit, dp)} ${currency}`, value: `${fmt(subtotal, dp)} ${currency}` },
+          {
+            label: "Item price",
+            detail: `${qty} × ${fmt(unit, dp)} ${currency}`,
+            value: `${fmt(subtotal, dp)} ${currency}`,
+          },
           { label: "Platform fee", detail: "2.5 %", value: `${fmt(fee, dp)} ${currency}` },
           { label: "Trustline", detail: "first time only, refundable reserve", value: "0.50 XLM" },
           { label: "Network fee", value: "0.00001 XLM" },
@@ -133,17 +146,30 @@ export function BuyPanelDemo() {
             </>
           )
         }
-        balance={{ value: `${fmt(balances[currency], dp)} ${currency}`, shortBy: shortBy > 0 ? `${fmt(shortBy, dp)} ${currency}` : undefined }}
+        balance={{
+          value: `${fmt(balances[currency], dp)} ${currency}`,
+          shortBy: shortBy > 0 ? `${fmt(shortBy, dp)} ${currency}` : undefined,
+        }}
       />
-      {shortBy > 0 && <ShortfallNotice currency={currency} shortBy={`${fmt(shortBy, dp)} ${currency}`} />}
+      {shortBy > 0 && (
+        <ShortfallNotice currency={currency} shortBy={`${fmt(shortBy, dp)} ${currency}`} />
+      )}
 
       <Button size="lg" variant={isShort ? "secondary" : "default"} disabled={busy} onClick={pay}>
-        {busy ? "Waiting for you" : isShort ? "Add funds" : `Pay ${fmt(payInCurrency, dp)} ${currency}`}
+        {busy
+          ? "Waiting for you"
+          : isShort
+            ? "Add funds"
+            : `Pay ${fmt(payInCurrency, dp)} ${currency}`}
       </Button>
 
       <div className="text-fg-muted flex flex-wrap items-center justify-between gap-2 text-[13px]">
         <span>Signed with</span>
-        <div role="group" aria-label="Wallet type" className="bg-surface inline-flex gap-0.5 rounded-full border p-[3px]">
+        <div
+          role="group"
+          aria-label="Wallet type"
+          className="bg-surface inline-flex gap-0.5 rounded-full border p-[3px]"
+        >
           {(
             [
               ["custodial", "Email account"],
@@ -156,7 +182,10 @@ export function BuyPanelDemo() {
               disabled={busy}
               aria-pressed={wallet === value}
               onClick={() => setWallet(value)}
-              className={cn("rounded-full px-3 py-1.5 font-semibold", wallet === value && "bg-surface-3 text-fg")}
+              className={cn(
+                "rounded-full px-3 py-1.5 font-semibold",
+                wallet === value && "bg-surface-3 text-fg",
+              )}
             >
               {label}
             </button>
@@ -177,7 +206,12 @@ export function BuyPanelDemo() {
                   <Button size="sm" variant="secondary" className={smallBtn} onClick={submit}>
                     Simulate approve
                   </Button>
-                  <Button size="sm" variant="ghost" className={smallBtn} onClick={() => setStep({ kind: "canceled" })}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className={smallBtn}
+                    onClick={() => setStep({ kind: "canceled" })}
+                  >
                     Simulate reject
                   </Button>
                 </>

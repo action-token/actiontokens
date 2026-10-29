@@ -30,7 +30,12 @@ export function ActivityView() {
         title="Activity"
         description="Every change on Bandcoin, from every app."
         actions={
-          <Button variant={failedOnly ? "default" : "secondary"} size="sm" onClick={() => setFailedOnly((value) => !value)} aria-pressed={failedOnly}>
+          <Button
+            variant={failedOnly ? "default" : "secondary"}
+            size="sm"
+            onClick={() => setFailedOnly((value) => !value)}
+            aria-pressed={failedOnly}
+          >
             Failed only
           </Button>
         }
@@ -45,25 +50,45 @@ export function ActivityView() {
       ) : log.isError ? (
         <ErrorState message="Couldn't load the activity log." onRetry={() => void log.refetch()} />
       ) : items.length === 0 ? (
-        <EmptyState icon={ListChecks} title="Nothing yet" description={failedOnly ? "No failed actions." : "Changes will show up here as they happen."} />
+        <EmptyState
+          icon={ListChecks}
+          title="Nothing yet"
+          description={
+            failedOnly ? "No failed actions." : "Changes will show up here as they happen."
+          }
+        />
       ) : (
         <>
           <ul className="bg-surface divide-y rounded-xl border">
             {items.map((item) => (
-              <li key={item.id} className="grid gap-1 px-4 py-3 text-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-4">
+              <li
+                key={item.id}
+                className="grid gap-1 px-4 py-3 text-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-4"
+              >
                 <div className="min-w-0">
                   <p className="truncate">
-                    <b>{item.actor}</b> <span className="text-fg-muted">·</span> <code className="text-[13px]">{item.action}</code>
+                    <b>{item.actor}</b> <span className="text-fg-muted">·</span>{" "}
+                    <code className="text-[13px]">{item.action}</code>
                   </p>
                   <p className="text-fg-faint truncate text-xs">
-                    {[item.target, item.amount && `${item.amount} ${item.currency ?? ""}`.trim(), item.txHash && `tx ${abbreviateAddress(item.txHash, 6)}`, item.app]
+                    {[
+                      item.target,
+                      item.amount && `${item.amount} ${item.currency ?? ""}`.trim(),
+                      item.txHash && `tx ${abbreviateAddress(item.txHash, 6)}`,
+                      item.app,
+                    ]
                       .filter(Boolean)
                       .join(" · ")}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <StatusPill tone={item.status === "SUCCESS" ? "success" : "danger"}>{item.status === "SUCCESS" ? "Done" : (item.errorCode ?? "Failed")}</StatusPill>
-                  <time className="text-fg-faint text-xs whitespace-nowrap" dateTime={new Date(item.createdAt).toISOString()}>
+                  <StatusPill tone={item.status === "SUCCESS" ? "success" : "danger"}>
+                    {item.status === "SUCCESS" ? "Done" : (item.errorCode ?? "Failed")}
+                  </StatusPill>
+                  <time
+                    className="text-fg-faint text-xs whitespace-nowrap"
+                    dateTime={new Date(item.createdAt).toISOString()}
+                  >
                     {timeAgo(item.createdAt)}
                   </time>
                 </div>
@@ -71,7 +96,12 @@ export function ActivityView() {
             ))}
           </ul>
           {log.hasNextPage && (
-            <Button variant="secondary" className="justify-self-center" disabled={log.isFetchingNextPage} onClick={() => void log.fetchNextPage()}>
+            <Button
+              variant="secondary"
+              className="justify-self-center"
+              disabled={log.isFetchingNextPage}
+              onClick={() => void log.fetchNextPage()}
+            >
               {log.isFetchingNextPage ? "Loading…" : "Show older"}
             </Button>
           )}

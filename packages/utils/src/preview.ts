@@ -2,7 +2,8 @@
 export const PREVIEW_SECONDS = 30;
 
 /** The latest second the preview can start at, so it still has its full length. */
-export const latestPreviewStart = (durationSec: number) => Math.max(0, Math.floor(durationSec) - PREVIEW_SECONDS);
+export const latestPreviewStart = (durationSec: number) =>
+  Math.max(0, Math.floor(durationSec) - PREVIEW_SECONDS);
 
 /** "3:05", or "1:02:09" for long recordings. */
 export function formatDuration(totalSeconds: number) {

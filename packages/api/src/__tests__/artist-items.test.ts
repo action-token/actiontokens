@@ -29,15 +29,28 @@ const input = {
   visibility: "PUBLIC" as const,
 };
 
-function setup(opts: { issuer?: Row | null; takenCode?: boolean; takenSlug?: string; item?: Row | null } = {}) {
+function setup(
+  opts: { issuer?: Row | null; takenCode?: boolean; takenSlug?: string; item?: Row | null } = {},
+) {
   const created: Row[] = [];
   const db = {
     chainAccount: {
-      findUnique: vi.fn().mockResolvedValue(opts.issuer === undefined ? { id: "chain1", publicKey: "GISSUER", activatedAt: new Date() } : opts.issuer),
+      findUnique: vi
+        .fn()
+        .mockResolvedValue(
+          opts.issuer === undefined
+            ? { id: "chain1", publicKey: "GISSUER", activatedAt: new Date() }
+            : opts.issuer,
+        ),
     },
-    classicToken: { findUnique: vi.fn().mockResolvedValue(opts.takenCode ? { itemId: "other" } : null), update: vi.fn().mockResolvedValue({}) },
+    classicToken: {
+      findUnique: vi.fn().mockResolvedValue(opts.takenCode ? { itemId: "other" } : null),
+      update: vi.fn().mockResolvedValue({}),
+    },
     item: {
-      findUnique: vi.fn(({ where }: { where: { slug: string } }) => Promise.resolve(where.slug === opts.takenSlug ? { id: "x" } : null)),
+      findUnique: vi.fn(({ where }: { where: { slug: string } }) =>
+        Promise.resolve(where.slug === opts.takenSlug ? { id: "x" } : null),
+      ),
       findFirst: vi.fn().mockResolvedValue(opts.item === undefined ? null : opts.item),
       findMany: vi.fn().mockResolvedValue([]),
       create: vi.fn(({ data }: { data: Row }) => {
@@ -56,7 +69,10 @@ function setup(opts: { issuer?: Row | null; takenCode?: boolean; takenSlug?: str
 describe("createItem", () => {
   it("creates a classic collectible issued by the artist's own account, with its first listing", async () => {
     const { ctx, created, activity } = setup();
-    await expect(createItem(ctx, artist, user, input)).resolves.toEqual({ itemId: "i1", slug: "luna-vale-night-drive" });
+    await expect(createItem(ctx, artist, user, input)).resolves.toEqual({
+      itemId: "i1",
+      slug: "luna-vale-night-drive",
+    });
     expect(created[0]).toMatchObject({
       type: "IMAGE",
       chainType: "CLASSIC_TOKEN",
@@ -68,7 +84,15 @@ describe("createItem", () => {
       visibility: "PUBLIC",
       classicToken: { create: { code: "NIGHTDRV", issuer: "GISSUER", issuerAccountId: "chain1" } },
       media: { create: { mediaType: "IMAGE", sourceUrl: "https://cdn.example/art.png" } },
-      listings: { create: { sellerId: "u1", kind: "PRIMARY", status: "ACTIVE", priceBandcoin: "25", priceUsd: "0.5" } },
+      listings: {
+        create: {
+          sellerId: "u1",
+          kind: "PRIMARY",
+          status: "ACTIVE",
+          priceBandcoin: "25",
+          priceUsd: "0.5",
+        },
+      },
     });
     expect(activity.set).toHaveBeenCalledWith({ targetType: "Item", targetId: "i1" });
   });
@@ -76,7 +100,10 @@ describe("createItem", () => {
   it("keeps a draft off the market: its listing is paused", async () => {
     const { ctx, created } = setup();
     await createItem(ctx, artist, user, { ...input, visibility: "DRAFT" });
-    expect(created[0]).toMatchObject({ visibility: "DRAFT", listings: { create: { status: "PAUSED" } } });
+    expect(created[0]).toMatchObject({
+      visibility: "DRAFT",
+      listings: { create: { status: "PAUSED" } },
+    });
   });
 
   it("makes the page address unique when the title was used before", async () => {
@@ -86,28 +113,52 @@ describe("createItem", () => {
   });
 
   it("needs an open artist account first", async () => {
-    await expect(createItem(setup({ issuer: null }).ctx, artist, user, input)).rejects.toMatchObject({ message: "Open your artist account first." });
-    await expect(createItem(setup({ issuer: { id: "chain1", publicKey: "G", activatedAt: null } }).ctx, artist, user, input)).rejects.toMatchObject({
+    await expect(
+      createItem(setup({ issuer: null }).ctx, artist, user, input),
+    ).rejects.toMatchObject({ message: "Open your artist account first." });
+    await expect(
+      createItem(
+        setup({ issuer: { id: "chain1", publicKey: "G", activatedAt: null } }).ctx,
+        artist,
+        user,
+        input,
+      ),
+    ).rejects.toMatchObject({
       message: "Open your artist account first.",
     });
-    await expect(createItem(setup().ctx, { ...artist, issuerAccountId: null }, user, input)).rejects.toMatchObject({ message: "Open your artist account first." });
+    await expect(
+      createItem(setup().ctx, { ...artist, issuerAccountId: null }, user, input),
+    ).rejects.toMatchObject({ message: "Open your artist account first." });
   });
 
   it("refuses a code the artist already used, a reserved one, and a bad price", async () => {
-    await expect(createItem(setup({ takenCode: true }).ctx, artist, user, input)).rejects.toMatchObject({ message: "You already use that code for another item." });
-    await expect(createItem(setup().ctx, artist, user, { ...input, code: "bandcoin" })).rejects.toMatchObject({ message: "That code is reserved" });
-    await expect(createItem(setup().ctx, artist, user, { ...input, priceUsd: "0" })).rejects.toMatchObject({ message: "Enter a price above zero" });
+    await expect(
+      createItem(setup({ takenCode: true }).ctx, artist, user, input),
+    ).rejects.toMatchObject({ message: "You already use that code for another item." });
+    await expect(
+      createItem(setup().ctx, artist, user, { ...input, code: "bandcoin" }),
+    ).rejects.toMatchObject({ message: "That code is reserved" });
+    await expect(
+      createItem(setup().ctx, artist, user, { ...input, priceUsd: "0" }),
+    ).rejects.toMatchObject({ message: "Enter a price above zero" });
   });
 
   it("takes pictures and files only from our own storage", async () => {
-    await expect(createItem(setup().ctx, artist, user, { ...input, coverUrl: "https://evil.example/c.jpg" })).rejects.toMatchObject({ message: "Upload the cover again." });
     await expect(
-      createItem(setup().ctx, artist, user, { ...input, media: { url: "https://evil.example/a.png", mediaType: "IMAGE" } }),
+      createItem(setup().ctx, artist, user, { ...input, coverUrl: "https://evil.example/c.jpg" }),
+    ).rejects.toMatchObject({ message: "Upload the cover again." });
+    await expect(
+      createItem(setup().ctx, artist, user, {
+        ...input,
+        media: { url: "https://evil.example/a.png", mediaType: "IMAGE" },
+      }),
     ).rejects.toMatchObject({ message: "Upload the file again." });
   });
 
   it("needs the file for art, video, 3D and documents, but not for tickets, merch or royalty items", async () => {
-    await expect(createItem(setup().ctx, artist, user, { ...input, media: undefined })).rejects.toMatchObject({ message: "Add the file people will get." });
+    await expect(
+      createItem(setup().ctx, artist, user, { ...input, media: undefined }),
+    ).rejects.toMatchObject({ message: "Add the file people will get." });
     const { ctx, created } = setup();
     await createItem(ctx, artist, user, { ...input, type: "MERCH", media: undefined });
     expect(created[0]).toMatchObject({ type: "MERCH" });
@@ -115,11 +166,18 @@ describe("createItem", () => {
   });
 
   it("needs a royalty share for royalty items, between 0 and 100", async () => {
-    await expect(createItem(setup().ctx, artist, user, { ...input, type: "ROYALTY", media: undefined })).rejects.toMatchObject({
+    await expect(
+      createItem(setup().ctx, artist, user, { ...input, type: "ROYALTY", media: undefined }),
+    ).rejects.toMatchObject({
       message: "Enter the share holders split, above 0 and up to 100%.",
     });
     const { ctx, created } = setup();
-    await createItem(ctx, artist, user, { ...input, type: "ROYALTY", media: undefined, royaltyPercent: "10" });
+    await createItem(ctx, artist, user, {
+      ...input,
+      type: "ROYALTY",
+      media: undefined,
+      royaltyPercent: "10",
+    });
     expect(created[0]).toMatchObject({ royaltyPercent: "10" });
   });
 });
@@ -136,26 +194,45 @@ const owned = (extra: Row = {}) => ({
 
 describe("updateItem", () => {
   it("changes text, cover and both prices at any time", async () => {
-    const { ctx, db } = setup({ item: owned({ listings: [{ id: "l1", kind: "PRIMARY", status: "ACTIVE", quantitySold: 5 }] }) });
-    await updateItem(ctx, artist, { itemId: "i1", title: "Night Drive II", description: "New", coverUrl: "https://cdn.example/c2.jpg", priceBandcoin: "30", priceUsd: "0.6" });
+    const { ctx, db } = setup({
+      item: owned({ listings: [{ id: "l1", kind: "PRIMARY", status: "ACTIVE", quantitySold: 5 }] }),
+    });
+    await updateItem(ctx, artist, {
+      itemId: "i1",
+      title: "Night Drive II",
+      description: "New",
+      coverUrl: "https://cdn.example/c2.jpg",
+      priceBandcoin: "30",
+      priceUsd: "0.6",
+    });
     expect(db.item.update).toHaveBeenCalledWith({
       where: { id: "i1" },
       data: { title: "Night Drive II", description: "New", coverUrl: "https://cdn.example/c2.jpg" },
     });
-    expect(db.listing.update).toHaveBeenCalledWith({ where: { id: "l1" }, data: { priceBandcoin: "30", priceUsd: "0.6" } });
+    expect(db.listing.update).toHaveBeenCalledWith({
+      where: { id: "l1" },
+      data: { priceBandcoin: "30", priceUsd: "0.6" },
+    });
   });
 
   it("changes supply and code only before the first sale", async () => {
     const free = setup({ item: owned() });
     await updateItem(free.ctx, artist, { itemId: "i1", supply: 50, code: "NIGHT2" });
     expect(free.db.item.update).toHaveBeenCalledWith({ where: { id: "i1" }, data: { supply: 50 } });
-    expect(free.db.classicToken.update).toHaveBeenCalledWith({ where: { itemId: "i1" }, data: { code: "NIGHT2" } });
+    expect(free.db.classicToken.update).toHaveBeenCalledWith({
+      where: { itemId: "i1" },
+      data: { code: "NIGHT2" },
+    });
 
-    const sold = setup({ item: owned({ listings: [{ id: "l1", kind: "PRIMARY", status: "ACTIVE", quantitySold: 1 }] }) });
+    const sold = setup({
+      item: owned({ listings: [{ id: "l1", kind: "PRIMARY", status: "ACTIVE", quantitySold: 1 }] }),
+    });
     await expect(updateItem(sold.ctx, artist, { itemId: "i1", supply: 50 })).rejects.toMatchObject({
       message: "Supply and code can't change after the first sale.",
     });
-    await expect(updateItem(sold.ctx, artist, { itemId: "i1", code: "NIGHT2" })).rejects.toMatchObject({
+    await expect(
+      updateItem(sold.ctx, artist, { itemId: "i1", code: "NIGHT2" }),
+    ).rejects.toMatchObject({
       message: "Supply and code can't change after the first sale.",
     });
   });
@@ -163,40 +240,81 @@ describe("updateItem", () => {
   it("publishing opens the listing and hiding pauses it", async () => {
     const hide = setup({ item: owned() });
     await updateItem(hide.ctx, artist, { itemId: "i1", visibility: "DRAFT" });
-    expect(hide.db.item.update).toHaveBeenCalledWith({ where: { id: "i1" }, data: { visibility: "DRAFT" } });
-    expect(hide.db.listing.update).toHaveBeenCalledWith({ where: { id: "l1" }, data: { status: "PAUSED" } });
+    expect(hide.db.item.update).toHaveBeenCalledWith({
+      where: { id: "i1" },
+      data: { visibility: "DRAFT" },
+    });
+    expect(hide.db.listing.update).toHaveBeenCalledWith({
+      where: { id: "l1" },
+      data: { status: "PAUSED" },
+    });
 
-    const show = setup({ item: owned({ visibility: "DRAFT", listings: [{ id: "l1", kind: "PRIMARY", status: "PAUSED", quantitySold: 0 }] }) });
+    const show = setup({
+      item: owned({
+        visibility: "DRAFT",
+        listings: [{ id: "l1", kind: "PRIMARY", status: "PAUSED", quantitySold: 0 }],
+      }),
+    });
     await updateItem(show.ctx, artist, { itemId: "i1", visibility: "PUBLIC" });
-    expect(show.db.listing.update).toHaveBeenCalledWith({ where: { id: "l1" }, data: { status: "ACTIVE" } });
+    expect(show.db.listing.update).toHaveBeenCalledWith({
+      where: { id: "l1" },
+      data: { status: "ACTIVE" },
+    });
   });
 
   it("never reopens a sold-out listing by publishing", async () => {
-    const { ctx, db } = setup({ item: owned({ visibility: "DRAFT", listings: [{ id: "l1", kind: "PRIMARY", status: "SOLD_OUT", quantitySold: 100 }] }) });
+    const { ctx, db } = setup({
+      item: owned({
+        visibility: "DRAFT",
+        listings: [{ id: "l1", kind: "PRIMARY", status: "SOLD_OUT", quantitySold: 100 }],
+      }),
+    });
     await updateItem(ctx, artist, { itemId: "i1", visibility: "PUBLIC" });
     expect(db.listing.update).not.toHaveBeenCalled();
   });
 
   it("only touches the artist's own items", async () => {
-    await expect(updateItem(setup({ item: null }).ctx, artist, { itemId: "i1", title: "x" })).rejects.toMatchObject({ message: "Item not found" });
+    await expect(
+      updateItem(setup({ item: null }).ctx, artist, { itemId: "i1", title: "x" }),
+    ).rejects.toMatchObject({ message: "Item not found" });
   });
 });
 
 const nft = (status: "PENDING" | "MINTED", extra: Row = {}) =>
-  owned({ chainType: "CONTRACT_NFT", classicToken: null, contractNft: { status }, visibility: "DRAFT", listings: [{ id: "l1", kind: "PRIMARY", status: "PAUSED", quantitySold: 0 }], ...extra });
+  owned({
+    chainType: "CONTRACT_NFT",
+    classicToken: null,
+    contractNft: { status },
+    visibility: "DRAFT",
+    listings: [{ id: "l1", kind: "PRIMARY", status: "PAUSED", quantitySold: 0 }],
+    ...extra,
+  });
 
 describe("contract NFT items", () => {
   it("can be edited freely until they are registered on the contract", async () => {
     const { ctx, db } = setup({ item: nft("PENDING") });
-    await updateItem(ctx, artist, { itemId: "i1", title: "New title", supply: 20, priceBandcoin: "30" });
-    expect(db.item.update).toHaveBeenCalledWith({ where: { id: "i1" }, data: { title: "New title", supply: 20 } });
-    expect(db.listing.update).toHaveBeenCalledWith({ where: { id: "l1" }, data: { priceBandcoin: "30" } });
+    await updateItem(ctx, artist, {
+      itemId: "i1",
+      title: "New title",
+      supply: 20,
+      priceBandcoin: "30",
+    });
+    expect(db.item.update).toHaveBeenCalledWith({
+      where: { id: "i1" },
+      data: { title: "New title", supply: 20 },
+    });
+    expect(db.listing.update).toHaveBeenCalledWith({
+      where: { id: "l1" },
+      data: { priceBandcoin: "30" },
+    });
     expect(db.classicToken.update).not.toHaveBeenCalled();
   });
 
   it("are fixed once registered: changing them would need an on-chain update, which isn't built yet", async () => {
     const { ctx, db } = setup({ item: nft("MINTED") });
-    await expect(updateItem(ctx, artist, { itemId: "i1", title: "New title" })).rejects.toMatchObject({
+    await expect(
+      updateItem(ctx, artist, { itemId: "i1", title: "New title" }),
+    ).rejects.toMatchObject({
       message: "A registered NFT can't be edited yet.",
     });
     expect(db.item.update).not.toHaveBeenCalled();
@@ -204,14 +322,18 @@ describe("contract NFT items", () => {
 
   it("can't be published while fan checkout for NFTs is closed", async () => {
     const { ctx, db } = setup({ item: nft("MINTED") });
-    await expect(updateItem(ctx, artist, { itemId: "i1", visibility: "PUBLIC" })).rejects.toMatchObject({
+    await expect(
+      updateItem(ctx, artist, { itemId: "i1", visibility: "PUBLIC" }),
+    ).rejects.toMatchObject({
       message: "Selling contract NFTs opens soon. Yours stays a draft until then.",
     });
     expect(db.item.update).not.toHaveBeenCalled();
   });
 
   it("can't take a classic code", async () => {
-    await expect(updateItem(setup({ item: nft("PENDING") }).ctx, artist, { itemId: "i1", code: "ABC" })).rejects.toMatchObject({
+    await expect(
+      updateItem(setup({ item: nft("PENDING") }).ctx, artist, { itemId: "i1", code: "ABC" }),
+    ).rejects.toMatchObject({
       message: "Contract NFTs don't have a code.",
     });
   });
@@ -220,7 +342,9 @@ describe("contract NFT items", () => {
     const free = setup({ item: nft("PENDING") });
     await removeItem(free.ctx, artist, "i1");
     expect(free.db.item.update).toHaveBeenCalled();
-    await expect(removeItem(setup({ item: nft("MINTED") }).ctx, artist, "i1")).rejects.toMatchObject({
+    await expect(
+      removeItem(setup({ item: nft("MINTED") }).ctx, artist, "i1"),
+    ).rejects.toMatchObject({
       message: "A registered NFT can't be deleted.",
     });
   });
@@ -230,13 +354,23 @@ describe("removeItem", () => {
   it("deletes an item nobody bought, and closes its listing", async () => {
     const { ctx, db } = setup({ item: owned() });
     await removeItem(ctx, artist, "i1");
-    expect(db.item.update).toHaveBeenCalledWith({ where: { id: "i1" }, data: { deletedAt: expect.any(Date) as Date } });
-    expect(db.listing.update).toHaveBeenCalledWith({ where: { id: "l1" }, data: { status: "CLOSED" } });
+    expect(db.item.update).toHaveBeenCalledWith({
+      where: { id: "i1" },
+      data: { deletedAt: expect.any(Date) as Date },
+    });
+    expect(db.listing.update).toHaveBeenCalledWith({
+      where: { id: "l1" },
+      data: { status: "CLOSED" },
+    });
   });
 
   it("keeps an item that has sales: hide it instead", async () => {
-    const { ctx, db } = setup({ item: owned({ listings: [{ id: "l1", kind: "PRIMARY", status: "ACTIVE", quantitySold: 3 }] }) });
-    await expect(removeItem(ctx, artist, "i1")).rejects.toMatchObject({ message: "This item has sales, so it can't be deleted. Hide it instead." });
+    const { ctx, db } = setup({
+      item: owned({ listings: [{ id: "l1", kind: "PRIMARY", status: "ACTIVE", quantitySold: 3 }] }),
+    });
+    await expect(removeItem(ctx, artist, "i1")).rejects.toMatchObject({
+      message: "This item has sales, so it can't be deleted. Hide it instead.",
+    });
     expect(db.item.update).not.toHaveBeenCalled();
   });
 });
@@ -244,21 +378,47 @@ describe("removeItem", () => {
 describe("getItem", () => {
   it("returns everything the edit form needs, and whether supply and code are still open", async () => {
     const row = {
-      id: "i1", title: "Night Drive", description: "A print", coverUrl: "c", type: "IMAGE", supply: 100, visibility: "PUBLIC", royaltyPercent: null,
+      id: "i1",
+      title: "Night Drive",
+      description: "A print",
+      coverUrl: "c",
+      type: "IMAGE",
+      supply: 100,
+      visibility: "PUBLIC",
+      royaltyPercent: null,
       classicToken: { code: "NIGHTDRV" },
       media: { mediaType: "IMAGE", sourceUrl: "https://cdn.example/art.png" },
-      listings: [{ id: "l1", priceBandcoin: { toString: () => "25" }, priceUsd: { toString: () => "0.5" }, status: "ACTIVE", quantitySold: 0 }],
+      listings: [
+        {
+          id: "l1",
+          priceBandcoin: { toString: () => "25" },
+          priceUsd: { toString: () => "0.5" },
+          status: "ACTIVE",
+          quantitySold: 0,
+        },
+      ],
     };
     const free = setup({ item: row });
     await expect(getItem(free.ctx, artist, "i1")).resolves.toMatchObject({
-      id: "i1", title: "Night Drive", description: "A print", code: "NIGHTDRV", supply: 100, sold: 0, locked: false, priceBandcoin: "25", priceUsd: "0.5", fileUrl: "https://cdn.example/art.png",
+      id: "i1",
+      title: "Night Drive",
+      description: "A print",
+      code: "NIGHTDRV",
+      supply: 100,
+      sold: 0,
+      locked: false,
+      priceBandcoin: "25",
+      priceUsd: "0.5",
+      fileUrl: "https://cdn.example/art.png",
     });
     const sold = setup({ item: { ...row, listings: [{ ...row.listings[0]!, quantitySold: 2 }] } });
     await expect(getItem(sold.ctx, artist, "i1")).resolves.toMatchObject({ sold: 2, locked: true });
   });
 
   it("only shows the artist's own item", async () => {
-    await expect(getItem(setup({ item: null }).ctx, artist, "i1")).rejects.toMatchObject({ message: "Item not found" });
+    await expect(getItem(setup({ item: null }).ctx, artist, "i1")).rejects.toMatchObject({
+      message: "Item not found",
+    });
   });
 });
 
@@ -267,17 +427,48 @@ describe("listMyItems", () => {
     const { ctx, db } = setup();
     db.item.findMany.mockResolvedValue([
       {
-        id: "i1", slug: "s", title: "Night Drive", type: "IMAGE", coverUrl: "c", supply: 100, visibility: "PUBLIC", createdAt: new Date("2026-10-01"),
+        id: "i1",
+        slug: "s",
+        title: "Night Drive",
+        type: "IMAGE",
+        coverUrl: "c",
+        supply: 100,
+        visibility: "PUBLIC",
+        createdAt: new Date("2026-10-01"),
         chainType: "CLASSIC_TOKEN",
         classicToken: { code: "NIGHTDRV" },
         contractNft: null,
-        listings: [{ id: "l1", priceBandcoin: { toString: () => "25" }, priceUsd: { toString: () => "0.5" }, status: "ACTIVE", quantitySold: 4 }],
+        listings: [
+          {
+            id: "l1",
+            priceBandcoin: { toString: () => "25" },
+            priceUsd: { toString: () => "0.5" },
+            status: "ACTIVE",
+            quantitySold: 4,
+          },
+        ],
       },
     ]);
     await expect(listMyItems(ctx, artist)).resolves.toEqual([
-      expect.objectContaining({ id: "i1", title: "Night Drive", code: "NIGHTDRV", chain: "CLASSIC_TOKEN", registered: null, sold: 4, supply: 100, priceBandcoin: "25", priceUsd: "0.5", listingStatus: "ACTIVE" }),
+      expect.objectContaining({
+        id: "i1",
+        title: "Night Drive",
+        code: "NIGHTDRV",
+        chain: "CLASSIC_TOKEN",
+        registered: null,
+        sold: 4,
+        supply: 100,
+        priceBandcoin: "25",
+        priceUsd: "0.5",
+        listingStatus: "ACTIVE",
+      }),
     ]);
-    expect(db.item.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { artistId: "a1", deletedAt: null, type: { notIn: ["TRACK", "FAN_TOKEN"] } }, orderBy: { createdAt: "desc" } }));
+    expect(db.item.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { artistId: "a1", deletedAt: null, type: { notIn: ["TRACK", "FAN_TOKEN"] } },
+        orderBy: { createdAt: "desc" },
+      }),
+    );
   });
 });
 
@@ -286,7 +477,10 @@ describe("catalog router", () => {
   const caller = (user: SessionUser | null, artistRow: Row | null) =>
     createCallerFactory(portalRouter)(
       createContext({
-        db: { activityLog: { create: vi.fn() }, artist: { findUnique: vi.fn().mockResolvedValue(artistRow) } } as unknown as Db,
+        db: {
+          activityLog: { create: vi.fn() },
+          artist: { findUnique: vi.fn().mockResolvedValue(artistRow) },
+        } as unknown as Db,
         chain: {} as ChainGateway,
         app: "artist",
         session: user ? { user } : null,
@@ -296,12 +490,16 @@ describe("catalog router", () => {
   it("is for signed-in, approved artists only", async () => {
     await expect(caller(null, null).catalog.list()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
     await expect(caller(fan, null).catalog.list()).rejects.toMatchObject({ code: "FORBIDDEN" });
-    await expect(caller(fan, { id: "a1", status: "PENDING" }).catalog.list()).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller(fan, { id: "a1", status: "PENDING" }).catalog.list()).rejects.toMatchObject(
+      { code: "FORBIDDEN" },
+    );
   });
 
   it("rejects an empty title before touching anything", async () => {
     await expect(
-      caller(fan, { id: "a1", status: "APPROVED", slug: "s", issuerAccountId: "c" }).catalog.create({ ...input, title: " " }),
+      caller(fan, { id: "a1", status: "APPROVED", slug: "s", issuerAccountId: "c" }).catalog.create(
+        { ...input, title: " " },
+      ),
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 });

@@ -28,11 +28,18 @@ if (chain.config.name !== "testnet") throw new Error("Testnet only");
 
 const buyerKeys = Keypair.random();
 await fetch(`https://friendbot.stellar.org/?addr=${buyerKeys.publicKey()}`);
-const buyer = await db.user.create({ data: { walletAddress: buyerKeys.publicKey(), signUpMethod: "frieghter" } });
+const buyer = await db.user.create({
+  data: { walletAddress: buyerKeys.publicKey(), signUpMethod: "frieghter" },
+});
 
 const item = await db.item.findUniqueOrThrow({
   where: { slug },
-  select: { id: true, title: true, classicToken: true, listings: { where: { status: "ACTIVE" }, take: 1 } },
+  select: {
+    id: true,
+    title: true,
+    classicToken: true,
+    listings: { where: { status: "ACTIVE" }, take: 1 },
+  },
 });
 const listing = item.listings[0];
 if (!listing || !item.classicToken) throw new Error(`${slug} has no active classic listing`);
@@ -42,13 +49,24 @@ const caller = createCallerFactory(appRouter)(
     db,
     chain,
     app: "app",
-    session: { user: { id: buyer.id, role: "FAN", walletAddress: buyerKeys.publicKey(), walletType: "frieghter" } },
+    session: {
+      user: {
+        id: buyer.id,
+        role: "FAN",
+        walletAddress: buyerKeys.publicKey(),
+        walletType: "frieghter",
+      },
+    },
   }),
 );
 
 try {
   const quote = await caller.order.quote({ listingId: listing.id, quantity: 1, currency });
-  console.log("quote", quote.totals.map((total) => `${total.amount} ${total.currency}`).join(" + "), quote.ok ? "ok" : quote.problems);
+  console.log(
+    "quote",
+    quote.totals.map((total) => `${total.amount} ${total.currency}`).join(" + "),
+    quote.ok ? "ok" : quote.problems,
+  );
   const started = await caller.order.start({ listingId: listing.id, quantity: 1, currency });
   const tx = TransactionBuilder.fromXDR(started.xdr, chain.config.network.passphrase);
   tx.sign(buyerKeys);
@@ -59,13 +77,25 @@ try {
   const account = await chain.loadAccount(buyerKeys.publicKey());
   const asset = new Asset(item.classicToken.code, item.classicToken.issuer);
   const line = account?.balances.find(
-    (balance) => "asset_code" in balance && balance.asset_code === asset.getCode() && balance.asset_issuer === asset.getIssuer(),
+    (balance) =>
+      "asset_code" in balance &&
+      balance.asset_code === asset.getCode() &&
+      balance.asset_issuer === asset.getIssuer(),
   );
   console.log(`on chain: buyer holds ${line?.balance ?? 0} ${asset.getCode()}`);
 } finally {
-  const orders = await db.order.findMany({ where: { buyerId: buyer.id }, select: { quantity: true, status: true } });
-  const sold = orders.filter((order) => order.status === "DELIVERED").reduce((sum, order) => sum + order.quantity, 0);
-  if (sold > 0) await db.listing.update({ where: { id: listing.id }, data: { quantitySold: { decrement: sold }, status: "ACTIVE" } });
+  const orders = await db.order.findMany({
+    where: { buyerId: buyer.id },
+    select: { quantity: true, status: true },
+  });
+  const sold = orders
+    .filter((order) => order.status === "DELIVERED")
+    .reduce((sum, order) => sum + order.quantity, 0);
+  if (sold > 0)
+    await db.listing.update({
+      where: { id: listing.id },
+      data: { quantitySold: { decrement: sold }, status: "ACTIVE" },
+    });
   await db.activityLog.deleteMany({ where: { actorId: buyer.id } });
   await db.order.deleteMany({ where: { buyerId: buyer.id } });
   await db.user.delete({ where: { id: buyer.id } });

@@ -35,7 +35,8 @@ describe("validateAssetCode", () => {
   });
 
   it("keeps the platform's own currencies for the platform", () => {
-    for (const code of ["BANDCOIN", "XLM", "USDC", "USD"]) expect(validateAssetCode(code)).toBe("That code is reserved");
+    for (const code of ["BANDCOIN", "XLM", "USDC", "USD"])
+      expect(validateAssetCode(code)).toBe("That code is reserved");
   });
 });
 

@@ -1,12 +1,31 @@
 "use client";
 
-import { BarChart3, ChevronDown, Eye, EyeOff, MapPin, MoreHorizontal, Pencil, Plus, Printer, Search, Trash2, Download } from "lucide-react";
+import {
+  BarChart3,
+  ChevronDown,
+  Eye,
+  EyeOff,
+  MapPin,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Printer,
+  Search,
+  Trash2,
+  Download,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
 import { Button } from "@bandcoin/ui/components/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@bandcoin/ui/components/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@bandcoin/ui/components/dropdown-menu";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { cn } from "@bandcoin/ui/lib/cn";
 import { ConfirmDialog } from "@bandcoin/ui/patterns/confirm-dialog";
@@ -48,12 +67,25 @@ const NOT_COLLECTABLE: Partial<Record<Status, string>> = {
   ALL_COLLECTED: "Every copy has been collected.",
 };
 
-const plural = (n: number, one: string, many = `${one}s`) => `${n.toLocaleString()} ${n === 1 ? one : many}`;
+const plural = (n: number, one: string, many = `${one}s`) =>
+  `${n.toLocaleString()} ${n === 1 ? one : many}`;
 const coords = (lat: number, lng: number) => `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-const messageOf = (error: unknown) => (error instanceof Error ? error.message : "Something went wrong.");
-const matches = (pin: Pin, filter: Filter) => (filter === "ALL" ? true : filter === "ENDED" ? pin.status === "ENDED" || pin.status === "ALL_COLLECTED" : pin.status === filter);
+const messageOf = (error: unknown) =>
+  error instanceof Error ? error.message : "Something went wrong.";
+const matches = (pin: Pin, filter: Filter) =>
+  filter === "ALL"
+    ? true
+    : filter === "ENDED"
+      ? pin.status === "ENDED" || pin.status === "ALL_COLLECTED"
+      : pin.status === filter;
 
-type Confirm = { title: string; description: string; confirmLabel?: string; destructive?: boolean; run: () => Promise<unknown> };
+type Confirm = {
+  title: string;
+  description: string;
+  confirmLabel?: string;
+  destructive?: boolean;
+  run: () => Promise<unknown>;
+};
 
 /**
  * Pin management: every pin you've dropped as a list, with status, collection
@@ -82,7 +114,9 @@ export function PinsView() {
 
   const all = pins.data ?? [];
   const query = search.trim().toLowerCase();
-  const shown = all.filter((pin) => matches(pin, filter) && (!query || pin.title.toLowerCase().includes(query)));
+  const shown = all.filter(
+    (pin) => matches(pin, filter) && (!query || pin.title.toLowerCase().includes(query)),
+  );
   const count = (value: Filter) => all.filter((pin) => matches(pin, value)).length;
 
   return (
@@ -113,10 +147,21 @@ export function PinsView() {
             role="tab"
             aria-selected={filter === card.value}
             onClick={() => setFilter(card.value)}
-            className={cn("bg-surface focus-visible:outline-primary rounded-[1.4rem] border-2 p-3 text-left transition-colors focus-visible:outline-2", filter === card.value ? "border-primary ring-primary ring-1" : "hover:border-primary/40")}
+            className={cn(
+              "bg-surface focus-visible:outline-primary rounded-[1.4rem] border-2 p-3 text-left transition-colors focus-visible:outline-2",
+              filter === card.value
+                ? "border-primary ring-primary ring-1"
+                : "hover:border-primary/40",
+            )}
           >
             <span className="text-fg-muted text-xs">{card.label}</span>
-            <span className="display num mt-1 block text-2xl">{pins.data ? count(card.value).toLocaleString() : <Skeleton className="inline-block h-7 w-10 align-middle" />}</span>
+            <span className="display num mt-1 block text-2xl">
+              {pins.data ? (
+                count(card.value).toLocaleString()
+              ) : (
+                <Skeleton className="inline-block h-7 w-10 align-middle" />
+              )}
+            </span>
             <span className="text-fg-faint text-[11px]">{card.hint}</span>
           </button>
         ))}
@@ -146,7 +191,11 @@ export function PinsView() {
           }
         />
       ) : shown.length === 0 ? (
-        <EmptyState icon={Search} title="No matches" description={query ? `Nothing called “${search}”.` : "No pins in this view."} />
+        <EmptyState
+          icon={Search}
+          title="No matches"
+          description={query ? `Nothing called “${search}”.` : "No pins in this view."}
+        />
       ) : (
         <PinList pins={shown} ask={setConfirm} />
       )}
@@ -201,7 +250,9 @@ function PinList({ pins, ask }: { pins: Pin[]; ask: (confirm: Confirm) => void }
     }
     setSelected(new Set());
     refresh();
-    toast.success(`${plural(deleted, "pin")} deleted${kept ? `, ${kept} kept because fans already collected them (hide those instead)` : ""}`);
+    toast.success(
+      `${plural(deleted, "pin")} deleted${kept ? `, ${kept} kept because fans already collected them (hide those instead)` : ""}`,
+    );
   };
   const hideMany = async (list: string[], hidden: boolean) => {
     for (const pinId of list) await hide.mutateAsync({ pinId, hidden });
@@ -214,15 +265,45 @@ function PinList({ pins, ask }: { pins: Pin[]; ask: (confirm: Confirm) => void }
     <>
       <div className="flex min-h-9 items-center justify-between gap-2 px-3 text-sm">
         <label className="text-fg-muted flex items-center gap-2">
-          <input type="checkbox" className="accent-primary size-4" checked={allSelected} onChange={(event) => setSelected(event.target.checked ? new Set(ids) : new Set())} />
+          <input
+            type="checkbox"
+            className="accent-primary size-4"
+            checked={allSelected}
+            onChange={(event) => setSelected(event.target.checked ? new Set(ids) : new Set())}
+          />
           {picked.length > 0 ? `${picked.length} selected` : "Select all pins"}
         </label>
         {picked.length > 0 && (
           <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => ask({ title: `Hide ${plural(picked.length, "pin")}?`, description: "Fans can no longer see or collect them. You can show them again any time.", confirmLabel: "Hide", destructive: false, run: () => hideMany(picked, true) })}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() =>
+                ask({
+                  title: `Hide ${plural(picked.length, "pin")}?`,
+                  description:
+                    "Fans can no longer see or collect them. You can show them again any time.",
+                  confirmLabel: "Hide",
+                  destructive: false,
+                  run: () => hideMany(picked, true),
+                })
+              }
+            >
               <EyeOff /> Hide {picked.length}
             </Button>
-            <Button size="sm" variant="outline" className="text-danger hover:text-danger" onClick={() => ask({ title: `Delete ${plural(picked.length, "pin")}?`, description: "Their spots are removed. Pins fans already collected are kept (hide those instead). This can't be undone.", run: () => deleteMany(picked) })}>
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-danger hover:text-danger"
+              onClick={() =>
+                ask({
+                  title: `Delete ${plural(picked.length, "pin")}?`,
+                  description:
+                    "Their spots are removed. Pins fans already collected are kept (hide those instead). This can't be undone.",
+                  run: () => deleteMany(picked),
+                })
+              }
+            >
               <Trash2 /> Delete {picked.length}
             </Button>
           </div>
@@ -230,14 +311,39 @@ function PinList({ pins, ask }: { pins: Pin[]; ask: (confirm: Confirm) => void }
       </div>
       <ul className="grid gap-2">
         {pins.map((pin) => (
-          <PinRow key={pin.id} pin={pin} selected={selected.has(pin.id)} onSelect={(on) => toggle(pin.id, on)} ask={ask} onHide={(hidden) => hideMany([pin.id], hidden)} onDelete={() => deleteMany([pin.id])} onChanged={refresh} />
+          <PinRow
+            key={pin.id}
+            pin={pin}
+            selected={selected.has(pin.id)}
+            onSelect={(on) => toggle(pin.id, on)}
+            ask={ask}
+            onHide={(hidden) => hideMany([pin.id], hidden)}
+            onDelete={() => deleteMany([pin.id])}
+            onChanged={refresh}
+          />
         ))}
       </ul>
     </>
   );
 }
 
-function PinRow({ pin, selected, onSelect, ask, onHide, onDelete, onChanged }: { pin: Pin; selected: boolean; onSelect: (on: boolean) => void; ask: (confirm: Confirm) => void; onHide: (hidden: boolean) => Promise<void>; onDelete: () => Promise<void>; onChanged: () => void }) {
+function PinRow({
+  pin,
+  selected,
+  onSelect,
+  ask,
+  onHide,
+  onDelete,
+  onChanged,
+}: {
+  pin: Pin;
+  selected: boolean;
+  onSelect: (on: boolean) => void;
+  ask: (confirm: Confirm) => void;
+  onHide: (hidden: boolean) => Promise<void>;
+  onDelete: () => Promise<void>;
+  onChanged: () => void;
+}) {
   const portal = usePortal();
   const artistName = portal.artist?.name ?? "Bandcoin artist";
   const [open, setOpen] = useState(false);
@@ -254,9 +360,20 @@ function PinRow({ pin, selected, onSelect, ask, onHide, onDelete, onChanged }: {
   });
 
   return (
-    <li className={cn("bg-surface overflow-hidden rounded-[1.4rem] border-2", selected && "border-primary/60")}>
+    <li
+      className={cn(
+        "bg-surface overflow-hidden rounded-[1.4rem] border-2",
+        selected && "border-primary/60",
+      )}
+    >
       <div className="flex items-center gap-3 p-3">
-        <input type="checkbox" checked={selected} onChange={(event) => onSelect(event.target.checked)} aria-label={`Select ${pin.title}`} className="accent-primary size-4 shrink-0" />
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={(event) => onSelect(event.target.checked)}
+          aria-label={`Select ${pin.title}`}
+          className="accent-primary size-4 shrink-0"
+        />
         {pin.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={pin.imageUrl} alt="" className="size-11 shrink-0 rounded-lg object-cover" />
@@ -265,13 +382,19 @@ function PinRow({ pin, selected, onSelect, ask, onHide, onDelete, onChanged }: {
             <MapPin className="size-5" />
           </span>
         )}
-        <button type="button" onClick={() => setOpen((value) => !value)} className="min-w-0 flex-1 text-left" aria-expanded={open}>
+        <button
+          type="button"
+          onClick={() => setOpen((value) => !value)}
+          className="min-w-0 flex-1 text-left"
+          aria-expanded={open}
+        >
           <span className="flex flex-wrap items-center gap-1.5">
             <span className="truncate font-medium">{pin.title}</span>
             <StatusPill tone={status.tone}>{status.label}</StatusPill>
           </span>
           <span className="text-fg-muted mt-0.5 block truncate text-xs">
-            {formatWhen(pin.startsAt)} → {formatWhen(pin.endsAt)} · {plural(pin.spots, "spot")} · {pin.collected.toLocaleString()} collected
+            {formatWhen(pin.startsAt)} → {formatWhen(pin.endsAt)} · {plural(pin.spots, "spot")} ·{" "}
+            {pin.collected.toLocaleString()} collected
             {pin.claimLimit > 0 ? ` · ${pin.claimsLeft} of ${pin.claimLimit} left` : ""}
           </span>
         </button>
@@ -299,7 +422,10 @@ function PinRow({ pin, selected, onSelect, ask, onHide, onDelete, onChanged }: {
             </DropdownMenuItem>
             {!hidden && pin.spots > 0 && (
               <>
-                <DropdownMenuItem disabled={bulk.isPending} onSelect={() => void bulk.downloadAll()}>
+                <DropdownMenuItem
+                  disabled={bulk.isPending}
+                  onSelect={() => void bulk.downloadAll()}
+                >
                   <Download /> Download all QRs
                 </DropdownMenuItem>
                 {pin.spots > 1 && (
@@ -309,17 +435,38 @@ function PinRow({ pin, selected, onSelect, ask, onHide, onDelete, onChanged }: {
                 )}
               </>
             )}
-            <DropdownMenuItem onSelect={() => void onHide(!hidden).catch((error: unknown) => toast.error(messageOf(error)))}>
+            <DropdownMenuItem
+              onSelect={() =>
+                void onHide(!hidden).catch((error: unknown) => toast.error(messageOf(error)))
+              }
+            >
               {hidden ? <Eye /> : <EyeOff />} {hidden ? "Show again" : "Hide"}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onSelect={() => ask({ title: `Delete “${pin.title}”?`, description: pin.collected > 0 ? "Fans already collected this pin, so it can't be deleted. Hide it instead." : `Its ${plural(pin.spots, "spot")} are removed. This can't be undone.`, run: onDelete })}>
+            <DropdownMenuItem
+              variant="destructive"
+              onSelect={() =>
+                ask({
+                  title: `Delete “${pin.title}”?`,
+                  description:
+                    pin.collected > 0
+                      ? "Fans already collected this pin, so it can't be deleted. Hide it instead."
+                      : `Its ${plural(pin.spots, "spot")} are removed. This can't be undone.`,
+                  run: onDelete,
+                })
+              }
+            >
               <Trash2 /> Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         {!hidden && pin.spots > 0 && <QrDownloadAllButton pin={qrPin} artistName={artistName} />}
-        <Button variant="ghost" size="icon-sm" onClick={() => setOpen((value) => !value)} aria-label={open ? "Hide spots" : "Show spots"}>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={() => setOpen((value) => !value)}
+          aria-label={open ? "Hide spots" : "Show spots"}
+        >
           <ChevronDown className={cn("transition-transform", open && "rotate-180")} />
         </Button>
       </div>
@@ -329,19 +476,49 @@ function PinRow({ pin, selected, onSelect, ask, onHide, onDelete, onChanged }: {
           <p className="text-fg-muted mb-2 text-xs">{plural(pin.spots, "spot")}</p>
           <ul className="grid gap-1">
             {pin.spotPoints.map((spot, index) => (
-              <li key={spot.id} className="bg-surface flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-sm">
-                <span className={cn("size-2 shrink-0 rounded-full", spot.autoCollect ? "bg-primary" : "bg-fg-faint/60")} title={spot.autoCollect ? "Auto-collect" : "Collected by tapping"} />
-                <span className="num min-w-0 flex-1 truncate font-mono text-xs">{coords(spot.latitude, spot.longitude)}</span>
-                <span className="text-fg-muted num shrink-0 text-xs">{spot.collected.toLocaleString()} collected</span>
+              <li
+                key={spot.id}
+                className="bg-surface flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-sm"
+              >
+                <span
+                  className={cn(
+                    "size-2 shrink-0 rounded-full",
+                    spot.autoCollect ? "bg-primary" : "bg-fg-faint/60",
+                  )}
+                  title={spot.autoCollect ? "Auto-collect" : "Collected by tapping"}
+                />
+                <span className="num min-w-0 flex-1 truncate font-mono text-xs">
+                  {coords(spot.latitude, spot.longitude)}
+                </span>
+                <span className="text-fg-muted num shrink-0 text-xs">
+                  {spot.collected.toLocaleString()} collected
+                </span>
                 {/* A hidden pin's code leads nowhere, so there is no QR to offer. */}
-                {!hidden && <QrButton target={{ pin: qrPin, spotId: spot.id, spotNumber: pin.spots > 1 ? index + 1 : null, artistName, notCollectable: NOT_COLLECTABLE[pin.status] ?? null }} />}
+                {!hidden && (
+                  <QrButton
+                    target={{
+                      pin: qrPin,
+                      spotId: spot.id,
+                      spotNumber: pin.spots > 1 ? index + 1 : null,
+                      artistName,
+                      notCollectable: NOT_COLLECTABLE[pin.status] ?? null,
+                    }}
+                  />
+                )}
                 <Button
                   variant="ghost"
                   size="icon-sm"
                   className="text-danger hover:text-danger"
                   aria-label="Remove spot"
                   disabled={removeSpot.isPending}
-                  onClick={() => ask({ title: "Remove this spot?", description: `The spot at ${coords(spot.latitude, spot.longitude)} is removed${spot.collected > 0 ? " from the map (fans who collected it keep what they got)" : ""}. A pin keeps at least one spot.`, confirmLabel: "Remove", run: () => removeSpot.mutateAsync({ spotId: spot.id }) })}
+                  onClick={() =>
+                    ask({
+                      title: "Remove this spot?",
+                      description: `The spot at ${coords(spot.latitude, spot.longitude)} is removed${spot.collected > 0 ? " from the map (fans who collected it keep what they got)" : ""}. A pin keeps at least one spot.`,
+                      confirmLabel: "Remove",
+                      run: () => removeSpot.mutateAsync({ spotId: spot.id }),
+                    })
+                  }
                 >
                   <Trash2 />
                 </Button>

@@ -4,7 +4,13 @@ import type { OrderKind, OrderStatus } from "@bandcoin/db";
 import { authedProcedure, createRouter } from "../../trpc";
 
 /** Orders that reached the chain or failed; quotes, unsigned carts and cancellations aren't history. */
-const HISTORY_STATUSES: OrderStatus[] = ["SUBMITTED", "CONFIRMED", "DELIVERED", "FAILED", "REFUNDED"];
+const HISTORY_STATUSES: OrderStatus[] = [
+  "SUBMITTED",
+  "CONFIRMED",
+  "DELIVERED",
+  "FAILED",
+  "REFUNDED",
+];
 const PAGE = 50;
 
 function orderTitle(kind: OrderKind, quantity: number, itemTitle: string | null) {
@@ -31,7 +37,8 @@ export const walletRouter = createRouter({
   history: authedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
     const network = ctx.chain.config.name === "mainnet" ? "public" : "testnet";
-    const explorer = (hash: string | null) => (hash ? `https://stellar.expert/explorer/${network}/tx/${hash}` : null);
+    const explorer = (hash: string | null) =>
+      hash ? `https://stellar.expert/explorer/${network}/tx/${hash}` : null;
 
     const [orders, prizes] = await Promise.all([
       ctx.db.order.findMany({
@@ -54,7 +61,13 @@ export const walletRouter = createRouter({
         where: { userId, claimedAt: { not: null } },
         orderBy: { claimedAt: "desc" },
         take: PAGE,
-        select: { id: true, prizeAmount: true, txHash: true, claimedAt: true, bounty: { select: { title: true, prizeCurrency: true } } },
+        select: {
+          id: true,
+          prizeAmount: true,
+          txHash: true,
+          claimedAt: true,
+          bounty: { select: { title: true, prizeCurrency: true } },
+        },
       }),
     ]);
 

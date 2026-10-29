@@ -13,7 +13,15 @@ import { Markdown } from "./Markdown";
  * Write a report for a bounty you've joined. Reports are markdown, as on the
  * old Bandcoin, so the sheet can flip to a preview before sending.
  */
-export function ReportSheet({ bountyId, open, onClose }: { bountyId: string; open: boolean; onClose: () => void }) {
+export function ReportSheet({
+  bountyId,
+  open,
+  onClose,
+}: {
+  bountyId: string;
+  open: boolean;
+  onClose: () => void;
+}) {
   const [text, setText] = useState("");
   const [preview, setPreview] = useState(false);
   const utils = api.useUtils();
@@ -39,13 +47,22 @@ export function ReportSheet({ bountyId, open, onClose }: { bountyId: string; ope
         <h2 id="report-sheet-title" className="font-hud text-ar-text text-[17px] font-bold">
           Submit your report
         </h2>
-        <button onClick={onClose} disabled={busy} aria-label="Close" className="text-ar-faint hover:text-ar-text disabled:opacity-40">
+        <button
+          onClick={onClose}
+          disabled={busy}
+          aria-label="Close"
+          className="text-ar-faint hover:text-ar-text disabled:opacity-40"
+        >
           <X size={18} strokeWidth={2.4} />
         </button>
       </div>
 
       <div className="ar-scroll min-h-0 flex-1 px-5">
-        <div role="tablist" aria-label="Report" className="ar-key mb-2 grid w-fit grid-cols-2 gap-1 rounded-[11px] p-1">
+        <div
+          role="tablist"
+          aria-label="Report"
+          className="ar-key mb-2 grid w-fit grid-cols-2 gap-1 rounded-[11px] p-1"
+        >
           {(["Write", "Preview"] as const).map((label) => {
             const active = (label === "Preview") === preview;
             return (
@@ -67,7 +84,11 @@ export function ReportSheet({ bountyId, open, onClose }: { bountyId: string; ope
 
         {preview ? (
           <div className="ar-bevel rounded-ar min-h-[168px] p-3.5">
-            {text.trim() ? <Markdown content={text} /> : <p className="text-ar-faint text-[13px] italic">Nothing to preview yet.</p>}
+            {text.trim() ? (
+              <Markdown content={text} />
+            ) : (
+              <p className="text-ar-faint text-[13px] italic">Nothing to preview yet.</p>
+            )}
           </div>
         ) : (
           <>

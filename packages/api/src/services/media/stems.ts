@@ -21,7 +21,10 @@ export async function stemsFor(db: Db, viewerId: string | null, itemId: string):
     select: {
       createdById: true,
       artist: { select: { userId: true } },
-      stems: { orderBy: [{ trackIndex: "asc" }, { createdAt: "asc" }], select: { id: true, name: true, color: true } },
+      stems: {
+        orderBy: [{ trackIndex: "asc" }, { createdAt: "asc" }],
+        select: { id: true, name: true, color: true },
+      },
     },
   });
   if (!item || item.stems.length === 0) return { full: false, previewSeconds: null, stems: [] };
@@ -30,6 +33,11 @@ export async function stemsFor(db: Db, viewerId: string | null, itemId: string):
   return {
     full,
     previewSeconds: full ? null : PREVIEW_SECONDS,
-    stems: item.stems.map((stem) => ({ id: stem.id, name: stem.name, color: stem.color, url: `/api/media/stem/${stem.id}` })),
+    stems: item.stems.map((stem) => ({
+      id: stem.id,
+      name: stem.name,
+      color: stem.color,
+      url: `/api/media/stem/${stem.id}`,
+    })),
   };
 }

@@ -22,7 +22,9 @@ export const TONE_CLASS: Record<Tone, string> = {
 };
 
 /** The one badge a card shows: where *you* stand on it, else whether it's open. */
-export function viewerBadge(b: Pick<BountyCard, "status" | "joined" | "isCreator"> & { won?: boolean }): {
+export function viewerBadge(
+  b: Pick<BountyCard, "status" | "joined" | "isCreator"> & { won?: boolean },
+): {
   label: string;
   tone: Tone;
 } {
@@ -39,9 +41,11 @@ export const formatAmount = (amount: string | number) =>
   Number(amount).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
 /** The prize split evenly, as the old page showed "per winner". */
-export const perWinner = (b: Pick<BountyCard, "prize" | "maxWinners">) => Number(b.prize.amount) / Math.max(1, b.maxWinners);
+export const perWinner = (b: Pick<BountyCard, "prize" | "maxWinners">) =>
+  Number(b.prize.amount) / Math.max(1, b.maxWinners);
 
-export const nameOf = (person: BountyPerson) => person.displayName ?? (person.username ? `@${person.username}` : "Anonymous");
+export const nameOf = (person: BountyPerson) =>
+  person.displayName ?? (person.username ? `@${person.username}` : "Anonymous");
 
 /** "3m ago", "5h ago", "2d ago", then the date. */
 export function timeAgo(at: Date | string) {
@@ -57,6 +61,7 @@ export function timeAgo(at: Date | string) {
 export function musicRuleLabel(music: NonNullable<BountyDetail["music"]>) {
   const total = music.tracks.length;
   if (music.ruleType === "ALL") return `All ${total} tracks required`;
-  if (music.ruleType === "ANY_N") return `${Math.min(music.requiredTracks ?? 1, total)} of ${total} tracks`;
+  if (music.ruleType === "ANY_N")
+    return `${Math.min(music.requiredTracks ?? 1, total)} of ${total} tracks`;
   return "Total plays across all tracks";
 }

@@ -31,12 +31,25 @@ export async function renderDemoStems(sampleRate = 44100) {
     DEMO_STEMS.map(async (stem) => {
       const ctx = new OfflineAudioContext(2, Math.ceil(DEMO_SECONDS * sampleRate), sampleRate);
       stem.draw(ctx);
-      return { id: stem.id, name: stem.name, color: stem.color, buffer: await ctx.startRendering() };
+      return {
+        id: stem.id,
+        name: stem.name,
+        color: stem.color,
+        buffer: await ctx.startRendering(),
+      };
     }),
   );
 }
 
-function note(ctx: Ctx, type: OscillatorType, freq: number, at: number, length: number, peak: number, filter?: number) {
+function note(
+  ctx: Ctx,
+  type: OscillatorType,
+  freq: number,
+  at: number,
+  length: number,
+  peak: number,
+  filter?: number,
+) {
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
   osc.type = type;
@@ -98,14 +111,23 @@ function drawBass(ctx: Ctx) {
     const root = ROOTS[Math.floor(bar / 2)]!;
     for (let eighth = 0; eighth < 8; eighth += 1) {
       if (eighth % 4 === 3) continue;
-      note(ctx, "sawtooth", eighth === 4 ? root * 2 : root, (bar * 4 + eighth / 2) * BEAT, BEAT * 0.45, 0.32, 380);
+      note(
+        ctx,
+        "sawtooth",
+        eighth === 4 ? root * 2 : root,
+        (bar * 4 + eighth / 2) * BEAT,
+        BEAT * 0.45,
+        0.32,
+        380,
+      );
     }
   }
 }
 
 function drawChords(ctx: Ctx) {
   for (let bar = 0; bar < BARS; bar += 1) {
-    for (const freq of CHORDS[Math.floor(bar / 2)]!) note(ctx, "triangle", freq, bar * 4 * BEAT, BEAT * 3.6, 0.13);
+    for (const freq of CHORDS[Math.floor(bar / 2)]!)
+      note(ctx, "triangle", freq, bar * 4 * BEAT, BEAT * 3.6, 0.13);
   }
 }
 

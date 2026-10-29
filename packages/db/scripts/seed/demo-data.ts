@@ -4,10 +4,18 @@
  * royalty-free SoundHelix set, so players and cards have something real to load.
  */
 
-export const cover = (seed: string, size = 800) => `https://picsum.photos/seed/bandcoin-${seed}/${size}/${size}`;
-export const audio = (n: number) => `https://www.soundhelix.com/examples/mp3/SoundHelix-Song-${n}.mp3`;
+export const cover = (seed: string, size = 800) =>
+  `https://picsum.photos/seed/bandcoin-${seed}/${size}/${size}`;
+export const audio = (n: number) =>
+  `https://www.soundhelix.com/examples/mp3/SoundHelix-Song-${n}.mp3`;
 
-export type DemoTrack = { title: string; durationSec: number; priceBandcoin: number; priceUsd: number; supply: number };
+export type DemoTrack = {
+  title: string;
+  durationSec: number;
+  priceBandcoin: number;
+  priceUsd: number;
+  supply: number;
+};
 export type DemoArtist = {
   slug: string;
   name: string;
@@ -29,8 +37,20 @@ export const ARTISTS: DemoArtist[] = [
     album: {
       title: "Night Drive",
       tracks: [
-        { title: "Night Drive", durationSec: 211, priceBandcoin: 25000, priceUsd: 2.5, supply: 100 },
-        { title: "Sunday Tape", durationSec: 178, priceBandcoin: 8000, priceUsd: 0.99, supply: 250 },
+        {
+          title: "Night Drive",
+          durationSec: 211,
+          priceBandcoin: 25000,
+          priceUsd: 2.5,
+          supply: 100,
+        },
+        {
+          title: "Sunday Tape",
+          durationSec: 178,
+          priceBandcoin: 8000,
+          priceUsd: 0.99,
+          supply: 250,
+        },
         { title: "Glass Harbour", durationSec: 252, priceBandcoin: 30000, priceUsd: 3, supply: 50 },
       ],
     },
@@ -45,8 +65,20 @@ export const ARTISTS: DemoArtist[] = [
     album: {
       title: "Velvet Static",
       tracks: [
-        { title: "Velvet Static", durationSec: 236, priceBandcoin: 18000, priceUsd: 1.99, supply: 100 },
-        { title: "Slow Bloom", durationSec: 199, priceBandcoin: 12000, priceUsd: 1.49, supply: 150 },
+        {
+          title: "Velvet Static",
+          durationSec: 236,
+          priceBandcoin: 18000,
+          priceUsd: 1.99,
+          supply: 100,
+        },
+        {
+          title: "Slow Bloom",
+          durationSec: 199,
+          priceBandcoin: 12000,
+          priceUsd: 1.49,
+          supply: 150,
+        },
         { title: "Gold Hour", durationSec: 224, priceBandcoin: 15000, priceUsd: 1.79, supply: 120 },
       ],
     },
@@ -61,7 +93,13 @@ export const ARTISTS: DemoArtist[] = [
     album: {
       title: "Circle Line",
       tracks: [
-        { title: "Circle Line", durationSec: 305, priceBandcoin: 12000, priceUsd: 1.29, supply: 200 },
+        {
+          title: "Circle Line",
+          durationSec: 305,
+          priceBandcoin: 12000,
+          priceUsd: 1.29,
+          supply: 200,
+        },
         { title: "Green Room", durationSec: 274, priceBandcoin: 9500, priceUsd: 0.99, supply: 300 },
       ],
     },
@@ -75,12 +113,31 @@ export const FANS = [
   { username: "ama", displayName: "Ama Boateng", email: "ama@demo.bandcoin.io" },
 ];
 
-export const ADMIN = { username: "admin", displayName: "Bandcoin Admin", email: "admin@demo.bandcoin.io" };
+export const ADMIN = {
+  username: "admin",
+  displayName: "Bandcoin Admin",
+  email: "admin@demo.bandcoin.io",
+};
 
 export const STUDIO_PACKAGES = [
   { name: "Starter", coins: 100, bonusCoins: 0, priceBandcoin: 20000, priceUsd: 2, sortOrder: 0 },
-  { name: "Creator", coins: 500, bonusCoins: 50, priceBandcoin: 90000, priceUsd: 9, sortOrder: 1, isPopular: true },
-  { name: "Studio", coins: 2000, bonusCoins: 400, priceBandcoin: 320000, priceUsd: 32, sortOrder: 2 },
+  {
+    name: "Creator",
+    coins: 500,
+    bonusCoins: 50,
+    priceBandcoin: 90000,
+    priceUsd: 9,
+    sortOrder: 1,
+    isPopular: true,
+  },
+  {
+    name: "Studio",
+    coins: 2000,
+    bonusCoins: 400,
+    priceBandcoin: 320000,
+    priceUsd: 32,
+    sortOrder: 2,
+  },
 ];
 
 /** Cost per generation type, in studio coins. */
@@ -108,17 +165,27 @@ export const REAL_ARTISTS = [
 
 /** A listening bounty: play every song on the album twice to qualify. */
 export const musicBounty = (artistId: string, demo: DemoArtist) => ({
-  artistId, title: `Stream ${demo.album.title}`, summary: `Play ${demo.album.title} and win BANDCOIN.`,
+  artistId,
+  title: `Stream ${demo.album.title}`,
+  summary: `Play ${demo.album.title} and win BANDCOIN.`,
   description: `Listen to every song on ${demo.album.title} twice. Three listeners who finish share the prize.`,
   instructions: ["Connect Last.fm", "Play each song twice", "Your progress updates as you listen"],
-  prizeCurrency: "BANDCOIN" as const, prizeAmount: 30000, maxWinners: 3,
-  escrowContractId: `demo-escrow-${demo.slug}-music`, fundTxHash: `demo-fund-${demo.slug}-music`,
+  prizeCurrency: "BANDCOIN" as const,
+  prizeAmount: 30000,
+  maxWinners: 3,
+  escrowContractId: `demo-escrow-${demo.slug}-music`,
+  fundTxHash: `demo-fund-${demo.slug}-music`,
   musicRule: {
     create: {
-      mode: "MUSIC_ONLY" as const, ruleType: "ALL" as const,
+      mode: "MUSIC_ONLY" as const,
+      ruleType: "ALL" as const,
       tracks: {
         create: demo.album.tracks.map((track) => ({
-          title: track.title, artistName: demo.name, albumName: demo.album.title, durationSec: track.durationSec, targetPlays: 2,
+          title: track.title,
+          artistName: demo.name,
+          albumName: demo.album.title,
+          durationSec: track.durationSec,
+          targetPlays: 2,
           lastFmUrl: `https://www.last.fm/music/${encodeURIComponent(demo.name)}/_/${encodeURIComponent(track.title)}`,
         })),
       },

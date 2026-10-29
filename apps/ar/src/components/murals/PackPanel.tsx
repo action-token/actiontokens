@@ -274,8 +274,8 @@ export function PackPanel({ compact = false }: { compact?: boolean }) {
 
       {done ? (
         <p className="rounded-ar border-ar-accent/40 bg-ar-accent/10 text-ar-text mt-4 flex items-center gap-2 border px-3.5 py-2.5 text-[12px]">
-          <ShieldCheck size={15} className="text-ar-accent-hot" /> Verified and installed. The Murals
-          camera is ready.
+          <ShieldCheck size={15} className="text-ar-accent-hot" /> Verified and installed. The
+          Murals camera is ready.
         </p>
       ) : (
         !failed && (
@@ -298,8 +298,7 @@ export function PackPanel({ compact = false }: { compact?: boolean }) {
 
       {!done && (
         <p className="text-ar-faint mt-3 flex items-center justify-center gap-1.5 text-center text-[10.5px]">
-          <Download size={11} /> Keep using {site.name} — this finishes in the
-          background.
+          <Download size={11} /> Keep using {site.name} — this finishes in the background.
         </p>
       )}
     </div>

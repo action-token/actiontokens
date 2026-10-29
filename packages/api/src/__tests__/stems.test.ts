@@ -15,10 +15,18 @@ const stemRows = [
   { id: "s2", name: "Bass", color: "#4aa3df", trackIndex: 1 },
 ];
 
-function setup({ owns = false, creator = false, stems = stemRows }: { owns?: boolean; creator?: boolean; stems?: typeof stemRows } = {}) {
+function setup({
+  owns = false,
+  creator = false,
+  stems = stemRows,
+}: { owns?: boolean; creator?: boolean; stems?: typeof stemRows } = {}) {
   return {
     item: {
-      findFirst: vi.fn().mockResolvedValue({ createdById: creator ? "me" : "other", artist: { userId: "artist-user" }, stems }),
+      findFirst: vi.fn().mockResolvedValue({
+        createdById: creator ? "me" : "other",
+        artist: { userId: "artist-user" },
+        stems,
+      }),
     },
     ownership: { findUnique: vi.fn().mockResolvedValue(owns ? { quantity: "1" } : null) },
     activityLog: { create: vi.fn() },
@@ -51,12 +59,18 @@ describe("stemsFor", () => {
   });
 
   it("has nothing for a song without stems", async () => {
-    await expect(stemsFor(asDb(setup({ stems: [] })), "me", "i1")).resolves.toEqual({ full: false, previewSeconds: null, stems: [] });
+    await expect(stemsFor(asDb(setup({ stems: [] })), "me", "i1")).resolves.toEqual({
+      full: false,
+      previewSeconds: null,
+      stems: [],
+    });
   });
 
   it("is open to signed-out visitors through the router", async () => {
     const db = setup();
-    const caller = createCallerFactory(appRouter)(createContext({ db: asDb(db), chain: {} as ChainGateway, app: "app", session: null }));
+    const caller = createCallerFactory(appRouter)(
+      createContext({ db: asDb(db), chain: {} as ChainGateway, app: "app", session: null }),
+    );
     await expect(caller.media.stems({ itemId: "i1" })).resolves.toMatchObject({ full: false });
   });
 });
@@ -65,7 +79,8 @@ describe("stemsFor", () => {
 function header(seconds: number, rate = 22050, channels = 1) {
   const bytes = new DataView(new ArrayBuffer(44));
   const dataLength = seconds * rate * channels * 2;
-  const text = (at: number, value: string) => [...value].forEach((char, i) => bytes.setUint8(at + i, char.charCodeAt(0)));
+  const text = (at: number, value: string) =>
+    [...value].forEach((char, i) => bytes.setUint8(at + i, char.charCodeAt(0)));
   text(0, "RIFF");
   bytes.setUint32(4, 36 + dataLength, true);
   text(8, "WAVE");

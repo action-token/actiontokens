@@ -19,17 +19,49 @@ import { usePortal } from "../portal/use-portal";
 type Mode = "GENERATE" | "CUSTOM" | "EXISTING";
 
 const WAYS: { mode: Mode; icon: typeof Sparkles; title: string; text: string }[] = [
-  { mode: "GENERATE", icon: Sparkles, title: "Make one for me", text: "We pick a code from your name. You see it before it's created." },
-  { mode: "CUSTOM", icon: SquarePen, title: "Choose my own code", text: "Pick the short name your fans will see, like LUNA." },
-  { mode: "EXISTING", icon: Link2, title: "Use a token I already have", text: "Already issued a token on Stellar? Point us at it." },
+  {
+    mode: "GENERATE",
+    icon: Sparkles,
+    title: "Make one for me",
+    text: "We pick a code from your name. You see it before it's created.",
+  },
+  {
+    mode: "CUSTOM",
+    icon: SquarePen,
+    title: "Choose my own code",
+    text: "Pick the short name your fans will see, like LUNA.",
+  },
+  {
+    mode: "EXISTING",
+    icon: Link2,
+    title: "Use a token I already have",
+    text: "Already issued a token on Stellar? Point us at it.",
+  },
 ];
 
 type CheckData = RouterOutputs["memberships"]["checkToken"];
 
 /** The result of checking an existing token, under the issuer field. */
-function TokenCheckLine({ active, settled, pending, status, failed }: { active: boolean; settled: boolean; pending: boolean; status: CheckData | undefined; failed: boolean }) {
+function TokenCheckLine({
+  active,
+  settled,
+  pending,
+  status,
+  failed,
+}: {
+  active: boolean;
+  settled: boolean;
+  pending: boolean;
+  status: CheckData | undefined;
+  failed: boolean;
+}) {
   if (!active) return null;
-  if (failed) return <p className="text-danger flex items-center gap-1.5 text-xs">Couldn&apos;t check it right now. Try again.</p>;
+  if (failed)
+    return (
+      <p className="text-danger flex items-center gap-1.5 text-xs">
+        Couldn&apos;t check it right now. Try again.
+      </p>
+    );
   if (pending || !settled || !status)
     return (
       <p className="text-fg-muted flex items-center gap-1.5 text-xs">
@@ -49,7 +81,8 @@ function TokenCheckLine({ active, settled, pending, status, failed }: { active: 
   );
 }
 
-const messageOf = (error: unknown) => (error instanceof Error ? error.message : "Something went wrong.");
+const messageOf = (error: unknown) =>
+  error instanceof Error ? error.message : "Something went wrong.";
 
 /**
  * Step one of Memberships: the fan token tiers are counted in. Three ways to get
@@ -70,7 +103,8 @@ export function FanTokenSetup() {
 
   // A token that already exists: check it as the artist types (valid, on Stellar, not already used).
   const wanted = useDebounced({ code, issuer }, 600);
-  const checking = mode === "EXISTING" && !validateAssetCode(wanted.code) && wanted.issuer.length >= 56;
+  const checking =
+    mode === "EXISTING" && !validateAssetCode(wanted.code) && wanted.issuer.length >= 56;
   const check = api.memberships.checkToken.useQuery(wanted, { enabled: checking, retry: false });
   const settled = checking && wanted.code === code && wanted.issuer === issuer;
   const tokenOk = mode !== "EXISTING" || (settled && check.data?.status === "OK");
@@ -96,11 +130,16 @@ export function FanTokenSetup() {
       <div>
         <h2 className="display text-lg">Create your fan token</h2>
         <p className="text-fg-muted mt-1 text-sm">
-          Your tiers count how many of this token a fan holds, so you make it first. Fans get it from your pins, and the amount they hold decides their tier.
+          Your tiers count how many of this token a fan holds, so you make it first. Fans get it
+          from your pins, and the amount they hold decides their tier.
         </p>
       </div>
 
-      <div role="radiogroup" aria-label="How to get a fan token" className="grid gap-2 sm:grid-cols-3">
+      <div
+        role="radiogroup"
+        aria-label="How to get a fan token"
+        className="grid gap-2 sm:grid-cols-3"
+      >
         {WAYS.map((way) => (
           <button
             key={way.mode}
@@ -108,7 +147,10 @@ export function FanTokenSetup() {
             role="radio"
             aria-checked={mode === way.mode}
             onClick={() => setMode(way.mode)}
-            className={cn("grid content-start gap-1 rounded-lg border p-3 text-left transition-colors", mode === way.mode ? "border-fg bg-primary/10" : "hover:bg-surface-2")}
+            className={cn(
+              "grid content-start gap-1 rounded-lg border p-3 text-left transition-colors",
+              mode === way.mode ? "border-fg bg-primary/10" : "hover:bg-surface-2",
+            )}
           >
             <way.icon className="size-4" />
             <b className="text-sm">{way.title}</b>
@@ -128,13 +170,31 @@ export function FanTokenSetup() {
           onChange={(event) => setCode(normalizeAssetCode(event.target.value))}
           className="max-w-56 font-mono"
         />
-        <Note>{mode === "GENERATE" ? "Made from your name. If it's taken we add a number." : "Up to 12 letters and numbers. It can't be changed later."}</Note>
+        <Note>
+          {mode === "GENERATE"
+            ? "Made from your name. If it's taken we add a number."
+            : "Up to 12 letters and numbers. It can't be changed later."}
+        </Note>
       </Field>
 
       {mode === "EXISTING" && (
         <Field label="Issuer (public key)" htmlFor="ft-issuer">
-          <Input id="ft-issuer" value={issuer} maxLength={60} autoComplete="off" placeholder="G…" onChange={(event) => setIssuer(event.target.value.trim())} className="font-mono" />
-          <TokenCheckLine active={checking} settled={settled} pending={check.isFetching} status={check.data} failed={check.isError} />
+          <Input
+            id="ft-issuer"
+            value={issuer}
+            maxLength={60}
+            autoComplete="off"
+            placeholder="G…"
+            onChange={(event) => setIssuer(event.target.value.trim())}
+            className="font-mono"
+          />
+          <TokenCheckLine
+            active={checking}
+            settled={settled}
+            pending={check.isFetching}
+            status={check.data}
+            failed={check.isError}
+          />
           <Note>We can only read this token, so you hand it out yourself.</Note>
         </Field>
       )}
@@ -146,11 +206,20 @@ export function FanTokenSetup() {
           value={cover}
           onChange={setCover}
           preview
-          hint={mode === "EXISTING" ? "Upload an image for your token. It exists on Stellar already, so this picture is only for Bandcoin." : "Shown wherever fans see the token."}
+          hint={
+            mode === "EXISTING"
+              ? "Upload an image for your token. It exists on Stellar already, so this picture is only for Bandcoin."
+              : "Shown wherever fans see the token."
+          }
         />
       </Field>
 
-      <Button type="button" className="justify-self-start" disabled={!ready || create.isPending} onClick={submit}>
+      <Button
+        type="button"
+        className="justify-self-start"
+        disabled={!ready || create.isPending}
+        onClick={submit}
+      >
         {create.isPending && <Loader2 className="animate-spin" />}
         Create {shownCode || "fan token"}
       </Button>

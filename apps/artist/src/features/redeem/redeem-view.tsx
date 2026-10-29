@@ -25,12 +25,17 @@ export function RedeemView() {
   const pathname = usePathname();
   const search = useSearchParams();
   const tab: Tab = search.get("tab") === "history" ? "history" : "rewards";
-  const setTab = (next: string) => router.replace(next === "rewards" ? pathname : `${pathname}?tab=${next}`, { scroll: false });
+  const setTab = (next: string) =>
+    router.replace(next === "rewards" ? pathname : `${pathname}?tab=${next}`, { scroll: false });
   const summary = api.redeem.summary.useQuery();
 
   return (
     <PageBody className="grid gap-6">
-      <PageHeader eyebrow="Insights" title="Redeem" description="Check a fan's code and redeem the reward they collected." />
+      <PageHeader
+        eyebrow="Insights"
+        title="Redeem"
+        description="Check a fan's code and redeem the reward they collected."
+      />
       <div className="grid gap-4 sm:grid-cols-3">
         <SummaryCard icon={Ticket} label="Total rewards" value={summary.data?.rewards} />
         <SummaryCard icon={Users} label="Waiting to redeem" value={summary.data?.waiting} warn />
@@ -57,15 +62,32 @@ export function RedeemView() {
   );
 }
 
-function SummaryCard({ icon: Icon, label, value, warn }: { icon: LucideIcon; label: string; value: number | undefined; warn?: boolean }) {
+function SummaryCard({
+  icon: Icon,
+  label,
+  value,
+  warn,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: number | undefined;
+  warn?: boolean;
+}) {
   return (
     <div className="bg-surface rounded-[1.4rem] border-2 p-4 sm:p-5">
       <div className="flex items-center gap-3">
-        <div className={cn("flex size-10 shrink-0 items-center justify-center rounded-lg", warn ? "bg-warning/10" : "bg-primary/10")}>
+        <div
+          className={cn(
+            "flex size-10 shrink-0 items-center justify-center rounded-lg",
+            warn ? "bg-warning/10" : "bg-primary/10",
+          )}
+        >
           <Icon className={cn("size-5", warn ? "text-warning" : "text-primary-text")} />
         </div>
         <div>
-          <div className={cn("display num text-2xl", warn && "text-warning")}>{value === undefined ? <Skeleton className="h-7 w-10" /> : value.toLocaleString()}</div>
+          <div className={cn("display num text-2xl", warn && "text-warning")}>
+            {value === undefined ? <Skeleton className="h-7 w-10" /> : value.toLocaleString()}
+          </div>
           <p className="text-fg-muted text-xs font-medium">{label}</p>
         </div>
       </div>

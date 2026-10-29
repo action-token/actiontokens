@@ -39,24 +39,42 @@ export type EmbedInput = {
   allowedDomains: string[];
 };
 
-export type EmbedTotals = { views: number; pinTaps: number; openClicks: number; eventsClicks: number; bountiesClicks: number };
-const ZERO: EmbedTotals = { views: 0, pinTaps: 0, openClicks: 0, eventsClicks: 0, bountiesClicks: 0 };
+export type EmbedTotals = {
+  views: number;
+  pinTaps: number;
+  openClicks: number;
+  eventsClicks: number;
+  bountiesClicks: number;
+};
+const ZERO: EmbedTotals = {
+  views: 0,
+  pinTaps: 0,
+  openClicks: 0,
+  eventsClicks: 0,
+  bountiesClicks: 0,
+};
 
-const utcDay = (daysAgo: number, from = new Date()) => new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate() - daysAgo));
+const utcDay = (daysAgo: number, from = new Date()) =>
+  new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate() - daysAgo));
 
 /** Checks the settings and returns them in the shape we store (links and domains cleaned). */
 export function checkEmbed(input: EmbedInput): EmbedInput {
   const name = input.name.trim();
   if (name.length === 0 || name.length > 80) throw invalid("Name the map in up to 80 characters.");
-  if (!(input.centerLat >= -85 && input.centerLat <= 85)) throw invalid("Latitude must be between -85 and 85.");
-  if (!(input.centerLng >= -180 && input.centerLng <= 180)) throw invalid("Longitude must be between -180 and 180.");
+  if (!(input.centerLat >= -85 && input.centerLat <= 85))
+    throw invalid("Latitude must be between -85 and 85.");
+  if (!(input.centerLng >= -180 && input.centerLng <= 180))
+    throw invalid("Longitude must be between -180 and 180.");
   if (!(input.zoom >= 2 && input.zoom <= 18)) throw invalid("Zoom must be between 2 and 18.");
   if (!/^#[0-9a-f]{6}$/i.test(input.accentColor)) throw invalid("Pick an accent colour.");
   const eventsLabel = input.eventsLabel.trim();
   const bountiesLabel = input.bountiesLabel.trim();
-  if (eventsLabel.length === 0 || eventsLabel.length > 40) throw invalid("Give the events button text of up to 40 characters.");
-  if (bountiesLabel.length === 0 || bountiesLabel.length > 40) throw invalid("Give the bounties button text of up to 40 characters.");
-  if (input.allowedDomains.length > MAX_DOMAINS) throw invalid(`Allow up to ${MAX_DOMAINS} websites.`);
+  if (eventsLabel.length === 0 || eventsLabel.length > 40)
+    throw invalid("Give the events button text of up to 40 characters.");
+  if (bountiesLabel.length === 0 || bountiesLabel.length > 40)
+    throw invalid("Give the bounties button text of up to 40 characters.");
+  if (input.allowedDomains.length > MAX_DOMAINS)
+    throw invalid(`Allow up to ${MAX_DOMAINS} websites.`);
 
   const allowedDomains: string[] = [];
   for (const raw of input.allowedDomains) {
@@ -72,7 +90,9 @@ export function checkEmbed(input: EmbedInput): EmbedInput {
     eventsLabel,
     bountiesLabel,
     eventsUrl: input.eventsUrl?.trim() ? webLink(input.eventsUrl.trim(), "The events link") : null,
-    bountiesUrl: input.bountiesUrl?.trim() ? webLink(input.bountiesUrl.trim(), "The bounties link") : null,
+    bountiesUrl: input.bountiesUrl?.trim()
+      ? webLink(input.bountiesUrl.trim(), "The bounties link")
+      : null,
     pinTypes: [...new Set(input.pinTypes)],
     allowedDomains,
   };
@@ -104,7 +124,11 @@ export async function listEmbeds(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef)
         }),
         ZERO,
       );
-    return { ...row, last7: sum(stats.filter((day) => day.day.getTime() >= since7)), last30: sum(stats) };
+    return {
+      ...row,
+      last7: sum(stats.filter((day) => day.day.getTime() >= since7)),
+      last30: sum(stats),
+    };
   });
 }
 
@@ -115,38 +139,80 @@ export async function getEmbed(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef, e
 }
 
 /** Daily counters for the last `days` UTC days, oldest first, gaps filled with zeros. */
-export async function embedStats(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef, embedId: string, days: number, now = new Date()) {
+export async function embedStats(
+  ctx: Pick<ServiceCtx, "db">,
+  artist: ArtistRef,
+  embedId: string,
+  days: number,
+  now = new Date(),
+) {
   await getEmbed(ctx, artist, embedId);
-  const rows = await ctx.db.mapEmbedDailyStat.findMany({ where: { embedId, day: { gte: utcDay(days - 1, now) } } });
+  const rows = await ctx.db.mapEmbedDailyStat.findMany({
+    where: { embedId, day: { gte: utcDay(days - 1, now) } },
+  });
   const byDay = new Map(rows.map((row) => [row.day.toISOString().slice(0, 10), row]));
   return Array.from({ length: days }, (_, i) => {
-    const day = utcDay(days - 1 - i, now).toISOString().slice(0, 10);
+    const day = utcDay(days - 1 - i, now)
+      .toISOString()
+      .slice(0, 10);
     const row = byDay.get(day);
-    return { day, ...(row ? { views: row.views, pinTaps: row.pinTaps, openClicks: row.openClicks, eventsClicks: row.eventsClicks, bountiesClicks: row.bountiesClicks } : ZERO) };
+    return {
+      day,
+      ...(row
+        ? {
+            views: row.views,
+            pinTaps: row.pinTaps,
+            openClicks: row.openClicks,
+            eventsClicks: row.eventsClicks,
+            bountiesClicks: row.bountiesClicks,
+          }
+        : ZERO),
+    };
   });
 }
 
 export async function createEmbed(ctx: ServiceCtx, artist: ArtistRef, input: EmbedInput) {
-  const row = await ctx.db.mapEmbed.create({ data: { ...checkEmbed(input), artistId: artist.id }, select: { id: true } });
+  const row = await ctx.db.mapEmbed.create({
+    data: { ...checkEmbed(input), artistId: artist.id },
+    select: { id: true },
+  });
   ctx.activity.set({ targetType: "MapEmbed", targetId: row.id });
   return { embedId: row.id };
 }
 
-export async function updateEmbed(ctx: ServiceCtx, artist: ArtistRef, embedId: string, input: EmbedInput) {
+export async function updateEmbed(
+  ctx: ServiceCtx,
+  artist: ArtistRef,
+  embedId: string,
+  input: EmbedInput,
+) {
   const embed = await ownEmbed(ctx, artist, embedId);
   await ctx.db.mapEmbed.update({ where: { id: embed.id }, data: checkEmbed(input) });
   return { embedId: embed.id };
 }
 
-export async function setEmbedEnabled(ctx: ServiceCtx, artist: ArtistRef, embedId: string, isEnabled: boolean) {
+export async function setEmbedEnabled(
+  ctx: ServiceCtx,
+  artist: ArtistRef,
+  embedId: string,
+  isEnabled: boolean,
+) {
   const embed = await ownEmbed(ctx, artist, embedId);
   await ctx.db.mapEmbed.update({ where: { id: embed.id }, data: { isEnabled } });
   return { embedId: embed.id, isEnabled };
 }
 
 export async function duplicateEmbed(ctx: ServiceCtx, artist: ArtistRef, embedId: string) {
-  const { id: _id, createdAt: _created, updatedAt: _updated, ...rest } = await ownEmbed(ctx, artist, embedId);
-  const copy = await ctx.db.mapEmbed.create({ data: { ...rest, name: `${rest.name} (copy)`.slice(0, 80) }, select: { id: true } });
+  const {
+    id: _id,
+    createdAt: _created,
+    updatedAt: _updated,
+    ...rest
+  } = await ownEmbed(ctx, artist, embedId);
+  const copy = await ctx.db.mapEmbed.create({
+    data: { ...rest, name: `${rest.name} (copy)`.slice(0, 80) },
+    select: { id: true },
+  });
   ctx.activity.set({ targetType: "MapEmbed", targetId: copy.id });
   return { embedId: copy.id };
 }

@@ -44,7 +44,8 @@ export function ReactionButtons({
   const state = states.data?.[itemId] ?? EMPTY;
 
   const refresh = () => utils.reaction.states.invalidate();
-  const failed = (error: { message: string }) => toast.error(error.message || "Couldn't save that. Try again.");
+  const failed = (error: { message: string }) =>
+    toast.error(error.message || "Couldn't save that. Try again.");
   // The button stays in its spinner until the new numbers are back, so the click never looks ignored.
   const like = api.reaction.setLike.useMutation({ onSuccess: refresh, onError: failed });
   const dislike = api.reaction.setDislike.useMutation({ onSuccess: refresh, onError: failed });
@@ -64,12 +65,17 @@ export function ReactionButtons({
 
   const button = cn(
     "inline-flex h-7 items-center gap-1 rounded-full px-1.5 text-xs font-semibold transition-colors disabled:opacity-60",
-    tone === "onDark" ? "text-white/80 hover:bg-white/15 hover:text-white" : "text-fg-muted hover:bg-surface-3 hover:text-fg",
+    tone === "onDark"
+      ? "text-white/80 hover:bg-white/15 hover:text-white"
+      : "text-fg-muted hover:bg-surface-3 hover:text-fg",
   );
   const on = tone === "onDark" ? "text-white" : "text-primary-text";
 
   return (
-    <span className={cn("inline-flex items-center gap-0.5", className)} onKeyDown={(event) => event.stopPropagation()}>
+    <span
+      className={cn("inline-flex items-center gap-0.5", className)}
+      onKeyDown={(event) => event.stopPropagation()}
+    >
       <button
         type="button"
         aria-label={state.liked ? "Remove like" : "Like"}
@@ -78,7 +84,11 @@ export function ReactionButtons({
         onClick={act(() => like.mutate({ itemId, on: !state.liked }))}
         className={cn(button, state.liked && on)}
       >
-        {like.isPending ? <Spinner /> : <ThumbsUp className={cn("size-4", state.liked && "fill-current")} />}
+        {like.isPending ? (
+          <Spinner />
+        ) : (
+          <ThumbsUp className={cn("size-4", state.liked && "fill-current")} />
+        )}
         {showCounts && <span className="num">{state.likes.toLocaleString()}</span>}
       </button>
       <button
@@ -89,7 +99,11 @@ export function ReactionButtons({
         onClick={act(() => dislike.mutate({ itemId, on: !state.disliked }))}
         className={cn(button, state.disliked && on)}
       >
-        {dislike.isPending ? <Spinner /> : <ThumbsDown className={cn("size-4", state.disliked && "fill-current")} />}
+        {dislike.isPending ? (
+          <Spinner />
+        ) : (
+          <ThumbsDown className={cn("size-4", state.disliked && "fill-current")} />
+        )}
         {showCounts && <span className="num">{state.dislikes.toLocaleString()}</span>}
       </button>
       <button
@@ -100,7 +114,11 @@ export function ReactionButtons({
         onClick={act(() => favorite.mutate({ itemId, on: !state.favorite }))}
         className={cn(button, state.favorite && on)}
       >
-        {favorite.isPending ? <Spinner /> : <Star className={cn("size-4", state.favorite && "fill-current")} />}
+        {favorite.isPending ? (
+          <Spinner />
+        ) : (
+          <Star className={cn("size-4", state.favorite && "fill-current")} />
+        )}
       </button>
     </span>
   );

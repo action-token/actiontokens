@@ -5,4 +5,5 @@ import { site } from "../site";
  * with the spot's id. The scan screen collects from it (`pins.collectByQr`),
  * so scanning with a phone's own camera works too, with no app or location.
  */
-export const pinScanUrl = (spotId: string) => `${site.urls.arWeb.replace(/\/$/, "")}/scan?pin=${encodeURIComponent(spotId)}`;
+export const pinScanUrl = (spotId: string) =>
+  `${site.urls.arWeb.replace(/\/$/, "")}/scan?pin=${encodeURIComponent(spotId)}`;

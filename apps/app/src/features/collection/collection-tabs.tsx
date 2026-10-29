@@ -17,7 +17,9 @@ export function CollectionTabs() {
   return (
     <Tabs
       value={tab}
-      onValueChange={(value) => router.replace(value === "all" ? pathname : `${pathname}?tab=${value}`, { scroll: false })}
+      onValueChange={(value) =>
+        router.replace(value === "all" ? pathname : `${pathname}?tab=${value}`, { scroll: false })
+      }
       className="gap-6"
     >
       <TabsList className="w-fit">

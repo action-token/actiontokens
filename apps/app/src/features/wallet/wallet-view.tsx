@@ -1,13 +1,29 @@
 "use client";
 
-import { ArrowDownToLine, Check, Copy, ExternalLink, Layers, Plus, ReceiptText, Wallet } from "lucide-react";
+import {
+  ArrowDownToLine,
+  Check,
+  Copy,
+  ExternalLink,
+  Layers,
+  Plus,
+  ReceiptText,
+  Wallet,
+} from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import QRCode from "react-qr-code";
 
 import { Button } from "@bandcoin/ui/components/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@bandcoin/ui/components/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@bandcoin/ui/components/dialog";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
 import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
@@ -43,12 +59,15 @@ export function WalletView() {
       />
     );
   }
-  if (status === "loading" || me.isPending || !me.data) return <Skeleton className="h-48 rounded-2xl" />;
+  if (status === "loading" || me.isPending || !me.data)
+    return <Skeleton className="h-48 rounded-2xl" />;
 
   return (
     <div className="grid gap-8">
       <Balances me={me.data} />
-      {!me.data.activated && me.data.walletAddress && <ActivateWallet address={me.data.walletAddress} />}
+      {!me.data.activated && me.data.walletAddress && (
+        <ActivateWallet address={me.data.walletAddress} />
+      )}
       <Tabs defaultValue="history">
         <TabsList className="grid w-full max-w-sm grid-cols-2">
           <TabsTrigger value="history">History</TabsTrigger>
@@ -72,7 +91,12 @@ function Balances({ me }: { me: Me }) {
         {CURRENCIES.map((currency) => (
           <div key={currency} className="grid gap-1">
             <span className="eyebrow">{currency}</span>
-            <Money amount={me.balances[currency]} currency={currency} short className="display text-[26px] leading-tight font-semibold" />
+            <Money
+              amount={me.balances[currency]}
+              currency={currency}
+              short
+              className="display text-[26px] leading-tight font-semibold"
+            />
           </div>
         ))}
       </div>
@@ -100,13 +124,17 @@ function ReceiveDialog({ address }: { address: string }) {
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>Receive</DialogTitle>
-          <DialogDescription>Send BANDCOIN, XLM or USDC on the Stellar network to this address.</DialogDescription>
+          <DialogDescription>
+            Send BANDCOIN, XLM or USDC on the Stellar network to this address.
+          </DialogDescription>
         </DialogHeader>
         <div className="grid justify-items-center gap-4">
           <div className="rounded-xl bg-white p-3">
             <QRCode value={address} size={176} />
           </div>
-          <code className="bg-surface-2 w-full rounded-md p-3 font-mono text-xs break-all">{address}</code>
+          <code className="bg-surface-2 w-full rounded-md p-3 font-mono text-xs break-all">
+            {address}
+          </code>
           <Button
             variant="secondary"
             onClick={() =>
@@ -135,7 +163,10 @@ function History() {
       </div>
     );
   }
-  if (history.isError) return <p className="text-danger text-sm">Couldn&apos;t load your history. Try again in a moment.</p>;
+  if (history.isError)
+    return (
+      <p className="text-danger text-sm">Couldn&apos;t load your history. Try again in a moment.</p>
+    );
   if (history.data.length === 0) {
     return (
       <EmptyState
@@ -164,7 +195,13 @@ function History() {
             <Money amount={entry.amount} currency={entry.currency} />
           </span>
           {entry.explorerUrl ? (
-            <a href={entry.explorerUrl} target="_blank" rel="noreferrer" className="text-fg-muted hover:text-fg shrink-0" aria-label="View on Stellar Expert">
+            <a
+              href={entry.explorerUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-fg-muted hover:text-fg shrink-0"
+              aria-label="View on Stellar Expert"
+            >
               <ExternalLink className="size-4" />
             </a>
           ) : (
@@ -210,7 +247,9 @@ function Assets() {
         ))}
       </div>
       <Button asChild variant="secondary" className="w-fit">
-        <Link href="/collection">See all {collection.data?.total.toLocaleString()} in your collection</Link>
+        <Link href="/collection">
+          See all {collection.data?.total.toLocaleString()} in your collection
+        </Link>
       </Button>
     </div>
   );

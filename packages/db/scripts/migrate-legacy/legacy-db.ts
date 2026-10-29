@@ -9,12 +9,15 @@ const ALLOWED_LEGACY = { hostPrefix: "ep-icy-wildflower-", database: "old-bandco
  */
 export async function connectLegacyReadOnly(): Promise<pg.Client> {
   const url = process.env.LEGACY_DATABASE_URL;
-  if (!url) throw new Error("Set LEGACY_DATABASE_URL in packages/db/.env (the old bandfan dev database).");
+  if (!url)
+    throw new Error("Set LEGACY_DATABASE_URL in packages/db/.env (the old bandfan dev database).");
 
   const { hostname, pathname } = new URL(url);
   const database = pathname.replace(/^\//, "");
   if (!hostname.startsWith(ALLOWED_LEGACY.hostPrefix) || database !== ALLOWED_LEGACY.database) {
-    throw new Error(`Refusing to open ${hostname}/${database}: only the old dev database is allowed.`);
+    throw new Error(
+      `Refusing to open ${hostname}/${database}: only the old dev database is allowed.`,
+    );
   }
   if (process.env.DATABASE_URL && new URL(process.env.DATABASE_URL).hostname === hostname) {
     throw new Error("DATABASE_URL (new) and LEGACY_DATABASE_URL point at the same host.");

@@ -18,7 +18,8 @@ export const ORDER_TRANSITIONS: Readonly<Record<OrderStatus, readonly OrderStatu
   REFUNDED: [],
 };
 
-export const canTransition = (from: OrderStatus, to: OrderStatus) => ORDER_TRANSITIONS[from].includes(to);
+export const canTransition = (from: OrderStatus, to: OrderStatus) =>
+  ORDER_TRANSITIONS[from].includes(to);
 
 /** States `to` can be reached from. */
 export const sourcesOf = (to: OrderStatus) =>

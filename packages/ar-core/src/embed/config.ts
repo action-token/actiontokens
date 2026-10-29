@@ -114,9 +114,7 @@ export function decodePreview(c: string | undefined): Record<string, unknown> | 
 
 /** Origins of the artist portal, which may always frame embeds (editor preview). */
 export function artistPortalOrigins(): string[] {
-  return (
-    process.env.ARTIST_APP_ORIGINS ?? `${site.urls.artistPortal} http://localhost:3001`
-  )
+  return (process.env.ARTIST_APP_ORIGINS ?? `${site.urls.artistPortal} http://localhost:3001`)
     .split(/[\s,]+/)
     .filter(Boolean);
 }

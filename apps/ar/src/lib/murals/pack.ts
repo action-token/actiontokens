@@ -22,7 +22,8 @@ import { site } from "@bandcoin/ar-core/site";
  * would fetch); `MANIFEST` pins its size and SHA-256.
  */
 
-const MODEL_URL = "https://huggingface.co/Xenova/mobileclip_s0/resolve/main/onnx/vision_model_fp16.onnx";
+const MODEL_URL =
+  "https://huggingface.co/Xenova/mobileclip_s0/resolve/main/onnx/vision_model_fp16.onnx";
 const MANIFEST: Manifest = {
   name: "Mural pack",
   version: 1,

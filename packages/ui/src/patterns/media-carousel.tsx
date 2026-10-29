@@ -39,10 +39,20 @@ export function MediaCarousel({
         <SectionTitle title={title} note={note} />
         <div className="flex items-center gap-2">
           {action}
-          <button type="button" className={arrow} aria-label="Scroll left" onClick={() => scroll(-1)}>
+          <button
+            type="button"
+            className={arrow}
+            aria-label="Scroll left"
+            onClick={() => scroll(-1)}
+          >
             <ChevronLeft className="size-4" />
           </button>
-          <button type="button" className={arrow} aria-label="Scroll right" onClick={() => scroll(1)}>
+          <button
+            type="button"
+            className={arrow}
+            aria-label="Scroll right"
+            onClick={() => scroll(1)}
+          >
             <ChevronRight className="size-4" />
           </button>
         </div>
@@ -60,7 +70,15 @@ export function MediaCarousel({
 }
 
 /** A section heading: the title in the display face and an optional hand-written note under it. */
-export function SectionTitle({ title, note, className }: { title: ReactNode; note?: ReactNode; className?: string }) {
+export function SectionTitle({
+  title,
+  note,
+  className,
+}: {
+  title: ReactNode;
+  note?: ReactNode;
+  className?: string;
+}) {
   return (
     <div className={cn("grid min-w-0", className)}>
       <h3 className="display text-xl sm:text-2xl">{title}</h3>

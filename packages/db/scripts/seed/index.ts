@@ -30,13 +30,18 @@ import {
 const DEV_HOST_PREFIX = "ep-shy-leaf-";
 const DAY = 86_400_000;
 
-const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+const slugify = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 const fakeAddress = () => Keypair.random().publicKey();
 const daysFromNow = (d: number) => new Date(Date.now() + d * DAY);
 
 function assertDevDatabase() {
   const host = new URL(process.env.DATABASE_URL ?? "postgresql://x@missing/x").hostname;
-  if (!host.startsWith(DEV_HOST_PREFIX)) throw new Error(`Refusing to seed ${host}: only the Bandcoin dev database.`);
+  if (!host.startsWith(DEV_HOST_PREFIX))
+    throw new Error(`Refusing to seed ${host}: only the Bandcoin dev database.`);
 }
 
 async function resetAllTables() {
@@ -92,21 +97,40 @@ async function copyPageTemplates() {
 
 async function seedPeople() {
   const admin = await db.user.create({
-    data: { ...ADMIN, role: "ADMIN", walletAddress: fakeAddress(), signUpMethod: "email", avatarUrl: cover("admin", 200) },
+    data: {
+      ...ADMIN,
+      role: "ADMIN",
+      walletAddress: fakeAddress(),
+      signUpMethod: "email",
+      avatarUrl: cover("admin", 200),
+    },
   });
   const fans = [];
   for (const fan of FANS) {
     fans.push(
       await db.user.create({
-        data: { ...fan, walletAddress: fakeAddress(), signUpMethod: "email", avatarUrl: cover(fan.username, 200) },
+        data: {
+          ...fan,
+          walletAddress: fakeAddress(),
+          signUpMethod: "email",
+          avatarUrl: cover(fan.username, 200),
+        },
       }),
     );
   }
   for (const real of REAL_ARTISTS) {
     const user = await db.user.create({
-      data: { walletAddress: real.walletAddress, displayName: real.name, username: real.slug, role: "ARTIST", signUpMethod: "wallet" },
+      data: {
+        walletAddress: real.walletAddress,
+        displayName: real.name,
+        username: real.slug,
+        role: "ARTIST",
+        signUpMethod: "wallet",
+      },
     });
-    await db.artist.create({ data: { userId: user.id, name: real.name, slug: real.slug, status: "APPROVED" } });
+    await db.artist.create({
+      data: { userId: user.id, name: real.name, slug: real.slug, status: "APPROVED" },
+    });
   }
   return { admin, fans };
 }
@@ -130,7 +154,12 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
   // keys are never stored, so these can't sign; real issuers are opened by the artist).
   const issuer = fakeAddress();
   const issuerAccount = await db.chainAccount.create({
-    data: { kind: "ISSUER", publicKey: issuer, secretEncrypted: "demo:no-secret", ownerId: user.id },
+    data: {
+      kind: "ISSUER",
+      publicKey: issuer,
+      secretEncrypted: "demo:no-secret",
+      ownerId: user.id,
+    },
   });
   const artist = await db.artist.create({
     data: {
@@ -161,13 +190,38 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
   });
   await db.artist.update({ where: { id: artist.id }, data: { fanTokenItemId: fanToken.id } });
   const [, insider] = await Promise.all([
-    db.membershipTier.create({ data: { artistId: artist.id, name: "Supporter", description: "Early listens and posts.", features: ["Early listens", "Member posts"], requiredTokens: 10, sortOrder: 0 } }),
-    db.membershipTier.create({ data: { artistId: artist.id, name: "Insider", description: "Stems, studio sessions, backstage pins.", features: ["Stems", "Studio sessions", "Backstage pins"], requiredTokens: 50, isPopular: true, sortOrder: 1 } }),
+    db.membershipTier.create({
+      data: {
+        artistId: artist.id,
+        name: "Supporter",
+        description: "Early listens and posts.",
+        features: ["Early listens", "Member posts"],
+        requiredTokens: 10,
+        sortOrder: 0,
+      },
+    }),
+    db.membershipTier.create({
+      data: {
+        artistId: artist.id,
+        name: "Insider",
+        description: "Stems, studio sessions, backstage pins.",
+        features: ["Stems", "Studio sessions", "Backstage pins"],
+        requiredTokens: 50,
+        isPopular: true,
+        sortOrder: 1,
+      },
+    }),
   ]);
 
   // Album and tracks; the last track is for the Insider tier
   const album = await db.album.create({
-    data: { artistId: artist.id, title: demo.album.title, slug: slugify(`${demo.slug}-${demo.album.title}`), coverUrl: cover(`${demo.slug}-album`), description: `${demo.name}'s latest release.` },
+    data: {
+      artistId: artist.id,
+      title: demo.album.title,
+      slug: slugify(`${demo.slug}-${demo.album.title}`),
+      coverUrl: cover(`${demo.slug}-album`),
+      description: `${demo.name}'s latest release.`,
+    },
   });
   const tracks = [];
   for (const [i, track] of demo.album.tracks.entries()) {
@@ -188,9 +242,22 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
           artistId: artist.id,
           createdById: user.id,
           classicToken: { create: { code: `${demo.fanToken.slice(0, 6)}T${i + 1}`, issuer } },
-          media: { create: { mediaType: "AUDIO", sourceUrl: audio(index * 3 + i + 1), durationSec: track.durationSec, previewStartSec: 30 } },
+          media: {
+            create: {
+              mediaType: "AUDIO",
+              sourceUrl: audio(index * 3 + i + 1),
+              durationSec: track.durationSec,
+              previewStartSec: 30,
+            },
+          },
           track: { create: { albumId: album.id, artistName: demo.name, trackNumber: i + 1 } },
-          listings: { create: { sellerId: user.id, priceBandcoin: track.priceBandcoin, priceUsd: track.priceUsd } },
+          listings: {
+            create: {
+              sellerId: user.id,
+              priceBandcoin: track.priceBandcoin,
+              priceUsd: track.priceUsd,
+            },
+          },
         },
       }),
     );
@@ -213,7 +280,9 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
     },
   });
   for (const [i, fan] of fans.slice(0, 2).entries()) {
-    await db.nftEdition.create({ data: { itemId: nft.id, tokenId: `${demo.slug}-vip-${i + 1}`, ownerId: fan.id } });
+    await db.nftEdition.create({
+      data: { itemId: nft.id, tokenId: `${demo.slug}-vip-${i + 1}`, ownerId: fan.id },
+    });
   }
 
   // Fans: follow, own the first track (with a delivered order), favorite it
@@ -222,13 +291,22 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
   for (const fan of fans) {
     await db.follow.create({ data: { userId: fan.id, artistId: artist.id } });
   }
-  for (const fan of fans.slice(index % 2, index % 2 + 2)) {
-    await db.ownership.create({ data: { userId: fan.id, itemId: first.id, quantity: 1, source: "PURCHASE" } });
+  for (const fan of fans.slice(index % 2, (index % 2) + 2)) {
+    await db.ownership.create({
+      data: { userId: fan.id, itemId: first.id, quantity: 1, source: "PURCHASE" },
+    });
     await db.order.create({
       data: {
-        buyerId: fan.id, listingId: firstListing.id, itemId: first.id, quantity: 1, currency: "BANDCOIN",
-        unitPrice: firstListing.priceBandcoin, platformFee: Number(firstListing.priceBandcoin) * 0.025,
-        total: Number(firstListing.priceBandcoin) * 1.025, method: "WALLET", status: "DELIVERED",
+        buyerId: fan.id,
+        listingId: firstListing.id,
+        itemId: first.id,
+        quantity: 1,
+        currency: "BANDCOIN",
+        unitPrice: firstListing.priceBandcoin,
+        platformFee: Number(firstListing.priceBandcoin) * 0.025,
+        total: Number(firstListing.priceBandcoin) * 1.025,
+        method: "WALLET",
+        status: "DELIVERED",
       },
     });
     await db.trackFavorite.create({ data: { userId: fan.id, itemId: first.id } });
@@ -243,55 +321,135 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
       media: { create: { type: "IMAGE", url: cover(`${demo.slug}-post`) } },
     },
   });
-  await db.post.create({ data: { artistId: artist.id, title: "Members only: studio notes", body: "How we recorded the last track.", tierId: insider.id } });
-  for (const fan of fans.slice(0, 3)) await db.postLike.create({ data: { userId: fan.id, postId: post.id } });
-  await db.postComment.create({ data: { postId: post.id, authorId: fans[0]!.id, body: "On repeat all week." } });
+  await db.post.create({
+    data: {
+      artistId: artist.id,
+      title: "Members only: studio notes",
+      body: "How we recorded the last track.",
+      tierId: insider.id,
+    },
+  });
+  for (const fan of fans.slice(0, 3))
+    await db.postLike.create({ data: { userId: fan.id, postId: post.id } });
+  await db.postComment.create({
+    data: { postId: post.id, authorId: fans[0]!.id, body: "On repeat all week." },
+  });
 
   // Event, pins around the city, announcement, bounty
   const { lat, lng } = demo.city;
   const event = await db.event.create({
     data: {
-      artistId: artist.id, title: `${demo.name} live in ${demo.city.name}`, description: "A small show with a listening party after.",
-      coverUrl: cover(`${demo.slug}-event`), startsAt: daysFromNow(14), endsAt: daysFromNow(14.2),
-      venueName: `${demo.city.name} Sound Room`, ...nudge(lat, lng, 300, 200), capacity: 150,
+      artistId: artist.id,
+      title: `${demo.name} live in ${demo.city.name}`,
+      description: "A small show with a listening party after.",
+      coverUrl: cover(`${demo.slug}-event`),
+      startsAt: daysFromNow(14),
+      endsAt: daysFromNow(14.2),
+      venueName: `${demo.city.name} Sound Room`,
+      ...nudge(lat, lng, 300, 200),
+      capacity: 150,
       rsvps: { create: fans.slice(0, 3).map((f) => ({ userId: f.id })) },
     },
   });
   const pinSpecs = [
-    { title: "Listening party drop", type: "EVENT" as const, north: 300, east: 200, rewardsFanToken: true, eventId: event.id },
-    { title: `${demo.album.title} launch`, type: "LAUNCH" as const, north: -400, east: 350, rewardItemId: first.id },
-    { title: "Backstage secret", type: "EXPERIENCE" as const, north: 150, east: -500, rewardsFanToken: true, tierId: insider.id },
+    {
+      title: "Listening party drop",
+      type: "EVENT" as const,
+      north: 300,
+      east: 200,
+      rewardsFanToken: true,
+      eventId: event.id,
+    },
+    {
+      title: `${demo.album.title} launch`,
+      type: "LAUNCH" as const,
+      north: -400,
+      east: 350,
+      rewardItemId: first.id,
+    },
+    {
+      title: "Backstage secret",
+      type: "EXPERIENCE" as const,
+      north: 150,
+      east: -500,
+      rewardsFanToken: true,
+      tierId: insider.id,
+    },
   ];
   for (const spec of pinSpecs) {
     const at = nudge(lat, lng, spec.north, spec.east);
     await db.pin.create({
       data: {
-        artistId: artist.id, title: spec.title, type: spec.type, description: `Walk here to collect from ${demo.name}.`,
-        imageUrl: cover(`${demo.slug}-${slugify(spec.title)}`), ...at, radiusMeters: 50, claimLimit: 100, claimsLeft: 100,
-        startsAt: daysFromNow(-1), endsAt: daysFromNow(30), approval: "APPROVED",
-        rewardsFanToken: spec.rewardsFanToken ?? false, rewardItemId: spec.rewardItemId, eventId: spec.eventId,
-        visibility: spec.tierId ? "TIER" : "PUBLIC", tierId: spec.tierId,
+        artistId: artist.id,
+        title: spec.title,
+        type: spec.type,
+        description: `Walk here to collect from ${demo.name}.`,
+        imageUrl: cover(`${demo.slug}-${slugify(spec.title)}`),
+        ...at,
+        radiusMeters: 50,
+        claimLimit: 100,
+        claimsLeft: 100,
+        startsAt: daysFromNow(-1),
+        endsAt: daysFromNow(30),
+        approval: "APPROVED",
+        rewardsFanToken: spec.rewardsFanToken ?? false,
+        rewardItemId: spec.rewardItemId,
+        eventId: spec.eventId,
+        visibility: spec.tierId ? "TIER" : "PUBLIC",
+        tierId: spec.tierId,
         spots: { create: [{ ...at }] },
       },
     });
   }
   await db.announcement.create({
-    data: { artistId: artist.id, title: "New pins on the map", body: `Three drops around ${demo.city.name} this month.`, isPinned: true, ctaLabel: "Open the map", ctaUrl: "/map" },
+    data: {
+      artistId: artist.id,
+      title: "New pins on the map",
+      body: `Three drops around ${demo.city.name} this month.`,
+      isPinned: true,
+      ctaLabel: "Open the map",
+      ctaUrl: "/map",
+    },
   });
   await db.bounty.create({
     data: {
-      artistId: artist.id, title: `Cover ${demo.album.tracks[0]!.title}`, summary: "Record your own version.",
-      description: "Post a 60-second cover. The artist picks the winner.", instructions: ["Record up to 60 s", "Tag the artist"],
-      prizeCurrency: "XLM", prizeAmount: 50, maxWinners: 1, escrowContractId: `demo-escrow-${demo.slug}`, fundTxHash: `demo-fund-${demo.slug}`, eventId: event.id,
+      artistId: artist.id,
+      title: `Cover ${demo.album.tracks[0]!.title}`,
+      summary: "Record your own version.",
+      description: "Post a 60-second cover. The artist picks the winner.",
+      instructions: ["Record up to 60 s", "Tag the artist"],
+      prizeCurrency: "XLM",
+      prizeAmount: 50,
+      maxWinners: 1,
+      escrowContractId: `demo-escrow-${demo.slug}`,
+      fundTxHash: `demo-fund-${demo.slug}`,
+      eventId: event.id,
     },
   });
   await db.bounty.create({ data: musicBounty(artist.id, demo) });
   if (index === 0) {
-    await db.mapEmbed.create({ data: { artistId: artist.id, name: "Website map", centerLat: lat, centerLng: lng, zoom: 13, pinSource: "ARTIST" } });
+    await db.mapEmbed.create({
+      data: {
+        artistId: artist.id,
+        name: "Website map",
+        centerLat: lat,
+        centerLng: lng,
+        zoom: 13,
+        pinSource: "ARTIST",
+      },
+    });
   }
 
   // Studio: a starting coin balance with its ledger entry
-  await db.studioLedgerEntry.create({ data: { userId: user.id, kind: "BONUS", status: "CONFIRMED", amount: 100, note: "Welcome bonus" } });
+  await db.studioLedgerEntry.create({
+    data: {
+      userId: user.id,
+      kind: "BONUS",
+      status: "CONFIRMED",
+      amount: 100,
+      note: "Welcome bonus",
+    },
+  });
   await db.studioBalance.create({ data: { userId: user.id, balance: 100 } });
 
   return { artist, tracks };
@@ -301,21 +459,36 @@ async function seedFanExtras(fans: Fan[], allTracks: { id: string }[]) {
   for (const [i, fan] of fans.entries()) {
     await db.playlist.create({
       data: {
-        ownerId: fan.id, name: i === 0 ? "Late night" : "Favourites", coverUrl: cover(`playlist-${fan.username}`),
-        tracks: { create: allTracks.slice(i, i + 4).map((t, sortOrder) => ({ itemId: t.id, sortOrder })) },
+        ownerId: fan.id,
+        name: i === 0 ? "Late night" : "Favourites",
+        coverUrl: cover(`playlist-${fan.username}`),
+        tracks: {
+          create: allTracks.slice(i, i + 4).map((t, sortOrder) => ({ itemId: t.id, sortOrder })),
+        },
       },
     });
   }
   // Two approved murals in New York, found by the first fan
   const finder = fans[0]!;
-  for (const [i, m] of [{ title: "Bedford Ave birds", north: 900, east: 300 }, { title: "Canal St waves", north: -700, east: -200 }].entries()) {
+  for (const [i, m] of [
+    { title: "Bedford Ave birds", north: 900, east: 300 },
+    { title: "Canal St waves", north: -700, east: -200 },
+  ].entries()) {
     const mural = await db.mural.create({
       data: {
-        autoTitle: `Mural near ${m.title.split(" ").slice(0, 2).join(" ")}`, title: m.title, coverUrl: cover(`mural-${i}`),
-        ...nudge(40.7128, -74.006, m.north, m.east), status: "APPROVED", discovererId: finder.id, distinctScanners: 3, scanCount: 5,
+        autoTitle: `Mural near ${m.title.split(" ").slice(0, 2).join(" ")}`,
+        title: m.title,
+        coverUrl: cover(`mural-${i}`),
+        ...nudge(40.7128, -74.006, m.north, m.east),
+        status: "APPROVED",
+        discovererId: finder.id,
+        distinctScanners: 3,
+        scanCount: 5,
       },
     });
-    await db.coinLedgerEntry.create({ data: { userId: finder.id, amount: 60, reason: "MURAL_DISCOVERY", muralId: mural.id } });
+    await db.coinLedgerEntry.create({
+      data: { userId: finder.id, amount: 60, reason: "MURAL_DISCOVERY", muralId: mural.id },
+    });
   }
   await db.coinBalance.create({ data: { userId: finder.id, balance: 120 } });
 }
@@ -323,7 +496,8 @@ async function seedFanExtras(fans: Fan[], allTracks: { id: string }[]) {
 async function main() {
   assertDevDatabase();
   if (process.argv.includes("--reset")) await resetAllTables();
-  else if ((await db.user.count()) > 0) throw new Error("The database already has users. Use seed:reset to start over.");
+  else if ((await db.user.count()) > 0)
+    throw new Error("The database already has users. Use seed:reset to start over.");
 
   await seedSettings();
   await copyPageTemplates();
@@ -336,8 +510,17 @@ async function main() {
   }
   await seedFanExtras(fans, allTracks);
 
-  const counts = await Promise.all([db.user.count(), db.artist.count(), db.item.count(), db.listing.count(), db.pin.count(), db.bounty.count()]);
-  console.log(`Done: ${counts[0]} users, ${counts[1]} artists, ${counts[2]} items, ${counts[3]} listings, ${counts[4]} pins, ${counts[5]} bounties`);
+  const counts = await Promise.all([
+    db.user.count(),
+    db.artist.count(),
+    db.item.count(),
+    db.listing.count(),
+    db.pin.count(),
+    db.bounty.count(),
+  ]);
+  console.log(
+    `Done: ${counts[0]} users, ${counts[1]} artists, ${counts[2]} items, ${counts[3]} listings, ${counts[4]} pins, ${counts[5]} bounties`,
+  );
 }
 
 await main().finally(() => db.$disconnect());

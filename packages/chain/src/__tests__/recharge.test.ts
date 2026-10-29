@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import { toAmount, toStroops } from "../money";
-import { ACTIVATION_PRICE_USD, quoteActivation, quoteTopUp, quoteXlmSwap, RECHARGE_PACKAGES_USD } from "../recharge";
+import {
+  ACTIVATION_PRICE_USD,
+  quoteActivation,
+  quoteTopUp,
+  quoteXlmSwap,
+  RECHARGE_PACKAGES_USD,
+} from "../recharge";
 
 const rates = { bandcoinUsd: toStroops("0.002"), xlmUsd: toStroops("0.1") };
 
@@ -17,16 +23,38 @@ describe("quoteTopUp", () => {
   });
 
   it("rounds what the buyer receives down, never up", () => {
-    const quote = quoteTopUp({ packageUsd: "1.99", bandcoinUsd: toStroops("0.0030001"), xlmUsd: rates.xlmUsd, networkFeeXlm: "0" });
-    expect(toStroops(quote.receive) * toStroops("0.0030001")).toBeLessThanOrEqual(toStroops("1.99") * 10_000_000n);
+    const quote = quoteTopUp({
+      packageUsd: "1.99",
+      bandcoinUsd: toStroops("0.0030001"),
+      xlmUsd: rates.xlmUsd,
+      networkFeeXlm: "0",
+    });
+    expect(toStroops(quote.receive) * toStroops("0.0030001")).toBeLessThanOrEqual(
+      toStroops("1.99") * 10_000_000n,
+    );
   });
 
   it("shows the refundable 0.5 XLM wallet reserve when BANDCOIN isn't in the wallet yet, and what's missing", () => {
-    const ok = quoteTopUp({ packageUsd: "9.99", ...rates, networkFeeXlm: "0", openTrustline: true, xlmFunds: "2" });
+    const ok = quoteTopUp({
+      packageUsd: "9.99",
+      ...rates,
+      networkFeeXlm: "0",
+      openTrustline: true,
+      xlmFunds: "2",
+    });
     expect(ok.ok).toBe(true);
-    expect(ok.lines.find((line) => line.key === "reserve")).toMatchObject({ currency: "XLM", amount: "0.5" });
+    expect(ok.lines.find((line) => line.key === "reserve")).toMatchObject({
+      currency: "XLM",
+      amount: "0.5",
+    });
 
-    const short = quoteTopUp({ packageUsd: "9.99", ...rates, networkFeeXlm: "0", openTrustline: true, xlmFunds: "0.2" });
+    const short = quoteTopUp({
+      packageUsd: "9.99",
+      ...rates,
+      networkFeeXlm: "0",
+      openTrustline: true,
+      xlmFunds: "0.2",
+    });
     expect(short.problems).toEqual([
       {
         code: "INSUFFICIENT_FUNDS",
@@ -45,7 +73,9 @@ describe("quoteTopUp", () => {
   });
 
   it("refuses without a usable price", () => {
-    expect(quoteTopUp({ packageUsd: "9.99", bandcoinUsd: 0n, xlmUsd: rates.xlmUsd, networkFeeXlm: "0" })).toMatchObject({
+    expect(
+      quoteTopUp({ packageUsd: "9.99", bandcoinUsd: 0n, xlmUsd: rates.xlmUsd, networkFeeXlm: "0" }),
+    ).toMatchObject({
       ok: false,
       problems: [{ code: "RATE_UNAVAILABLE" }],
     });
@@ -55,7 +85,11 @@ describe("quoteTopUp", () => {
 describe("quoteXlmSwap", () => {
   it("prices 1 XLM in BANDCOIN with the 2% margin as its own line", () => {
     // 1 XLM = $0.10 = 50 BANDCOIN at $0.002; 2% margin = 1 BANDCOIN
-    const quote = quoteXlmSwap({ ...rates, bandcoinBalance: toAmount(toStroops("500")), networkFeeXlm: "0.00001" });
+    const quote = quoteXlmSwap({
+      ...rates,
+      bandcoinBalance: toAmount(toStroops("500")),
+      networkFeeXlm: "0.00001",
+    });
     expect(quote.ok).toBe(true);
     expect(quote.lines.map((line) => [line.key, line.amount])).toEqual([
       ["market", "50"],
@@ -100,14 +134,21 @@ describe("quoteActivation", () => {
   });
 
   it("rounds down, and refuses if the XLM it buys wouldn't cover the 1 XLM account reserve", () => {
-    expect(quoteActivation({ xlmUsd: toStroops("0.3333333"), networkFeeXlm: "0" }).startingBalance).toBe("5.9700005");
+    expect(
+      quoteActivation({ xlmUsd: toStroops("0.3333333"), networkFeeXlm: "0" }).startingBalance,
+    ).toBe("5.9700005");
     expect(quoteActivation({ xlmUsd: toStroops("2"), networkFeeXlm: "0" })).toMatchObject({
       ok: false,
-      problems: [{ code: "UNAVAILABLE", message: "Activation isn't available at today's XLM price." }],
+      problems: [
+        { code: "UNAVAILABLE", message: "Activation isn't available at today's XLM price." },
+      ],
     });
   });
 
   it("refuses without a price", () => {
-    expect(quoteActivation({ xlmUsd: 0n, networkFeeXlm: "0" })).toMatchObject({ ok: false, problems: [{ code: "RATE_UNAVAILABLE" }] });
+    expect(quoteActivation({ xlmUsd: 0n, networkFeeXlm: "0" })).toMatchObject({
+      ok: false,
+      problems: [{ code: "RATE_UNAVAILABLE" }],
+    });
   });
 });

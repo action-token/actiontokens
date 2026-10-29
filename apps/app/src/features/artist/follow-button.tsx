@@ -34,7 +34,11 @@ export function FollowButton({
       variant={following ? "outline" : "secondary"}
       className="h-10 rounded-full px-5"
       disabled={mutation.isPending}
-      onClick={() => (status === "authenticated" ? mutation.mutate({ slug, following: !following }) : openSignIn(true))}
+      onClick={() =>
+        status === "authenticated"
+          ? mutation.mutate({ slug, following: !following })
+          : openSignIn(true)
+      }
     >
       {mutation.isPending && <Loader2 className="animate-spin" />}
       {following ? "Following" : "Follow"}

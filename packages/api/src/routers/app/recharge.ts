@@ -19,16 +19,22 @@ export const rechargeRouter = createRouter({
   })),
 
   /** The price breakdown. Works signed out (shows "Sign in to pay"). */
-  quote: publicProcedure.input(rechargeInput).query(({ ctx, input }) => quoteRecharge(ctx, ctx.session?.user ?? null, input)),
+  quote: publicProcedure
+    .input(rechargeInput)
+    .query(({ ctx, input }) => quoteRecharge(ctx, ctx.session?.user ?? null, input)),
 
-  start: authedProcedure.input(rechargeInput).mutation(({ ctx, input }) => startRecharge(ctx, ctx.session.user, input)),
+  start: authedProcedure
+    .input(rechargeInput)
+    .mutation(({ ctx, input }) => startRecharge(ctx, ctx.session.user, input)),
 
   submit: authedProcedure
     .input(
       z.object({
         orderId: z.string().min(1),
         xdr: z.string().min(1),
-        card: z.object({ sourceId: z.string().min(1), verificationToken: z.string().optional() }).optional(),
+        card: z
+          .object({ sourceId: z.string().min(1), verificationToken: z.string().optional() })
+          .optional(),
       }),
     )
     .mutation(({ ctx, input }) => submitRecharge(ctx, ctx.session.user, input)),

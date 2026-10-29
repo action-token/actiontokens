@@ -28,9 +28,14 @@ export function Sidebar() {
       aria-label="Main"
       className="bg-surface relative sticky top-0 hidden h-dvh min-w-0 grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-2 border-r px-3 py-3 sm:grid"
     >
-      <Link href="/" className="flex items-center justify-center gap-2 pb-3 xl:justify-start xl:px-2">
+      <Link
+        href="/"
+        className="flex items-center justify-center gap-2 pb-3 xl:justify-start xl:px-2"
+      >
         <BrandMark className="size-[28px]" />
-        <span className="font-display hidden text-[15px] font-extrabold tracking-tight xl:inline">Bandcoin</span>
+        <span className="font-display hidden text-[15px] font-extrabold tracking-tight xl:inline">
+          Bandcoin
+        </span>
       </Link>
 
       <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-0.5 overflow-y-auto">
@@ -60,7 +65,9 @@ function Links({ tab }: { tab: string | null }) {
       {GROUPS.map((group, index) => (
         <Fragment key={group.title}>
           {index > 0 && <div className="bg-border mx-2 my-2 h-px xl:hidden" />}
-          <span className="text-fg-faint hidden px-3 pt-2.5 pb-0.5 text-[11px] font-semibold tracking-wider uppercase xl:block">{group.title}</span>
+          <span className="text-fg-faint hidden px-3 pt-2.5 pb-0.5 text-[11px] font-semibold tracking-wider uppercase xl:block">
+            {group.title}
+          </span>
           {group.items.map((entry) => (
             <NavLink key={entry.label} entry={entry} active={isActive(entry, pathname, tab)} />
           ))}
@@ -74,7 +81,8 @@ function NavLink({ entry, active }: { entry: NavItem; active: boolean }) {
   const { icon: Icon, href, label } = entry;
   const className = cn(
     "text-fg-muted hover:bg-surface-2 hover:text-fg flex h-9 w-full items-center justify-center gap-3 rounded-lg border-2 border-transparent text-sm font-medium transition-colors xl:justify-start xl:px-3",
-    active && "bg-primary text-primary-foreground border-fg hover:bg-primary hover:text-primary-foreground font-semibold shadow-[2px_3px_0_0_var(--color-fg)]",
+    active &&
+      "bg-primary text-primary-foreground border-fg hover:bg-primary hover:text-primary-foreground font-semibold shadow-[2px_3px_0_0_var(--color-fg)]",
   );
   const content = (
     <>
@@ -87,7 +95,12 @@ function NavLink({ entry, active }: { entry: NavItem; active: boolean }) {
       {content}
     </a>
   ) : (
-    <Link href={href} aria-current={active ? "page" : undefined} className={className} title={label}>
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={className}
+      title={label}
+    >
       {content}
     </Link>
   );
@@ -168,15 +181,27 @@ function AccountCard() {
   const { status } = useSession();
   const me = api.account.me.useQuery(undefined, { enabled: status === "authenticated" });
   if (!me.data) return null;
-  const name = me.data.displayName ?? me.data.username ?? abbreviateAddress(me.data.walletAddress ?? undefined);
+  const name =
+    me.data.displayName ??
+    me.data.username ??
+    abbreviateAddress(me.data.walletAddress ?? undefined);
 
   return (
     <div className="border-fg bg-bg flex min-w-0 items-center justify-center gap-2 rounded-xl border-[3px] p-2 shadow-[3px_4px_0_0_var(--color-primary)] xl:justify-between">
       <Link href="/settings" className="flex min-w-0 items-center gap-2.5" title={name}>
-        <Avatar name={name} url={me.data.avatarUrl} className="bg-surface-3 grid size-9 shrink-0 place-items-center rounded-full object-cover text-xs font-bold" />
+        <Avatar
+          name={name}
+          url={me.data.avatarUrl}
+          className="bg-surface-3 grid size-9 shrink-0 place-items-center rounded-full object-cover text-xs font-bold"
+        />
         <span className="hidden min-w-0 xl:grid">
           <b className="truncate text-sm leading-tight">{name}</b>
-          <Money amount={me.data.balances.BANDCOIN} currency="BANDCOIN" short className="text-fg-muted text-xs" />
+          <Money
+            amount={me.data.balances.BANDCOIN}
+            currency="BANDCOIN"
+            short
+            className="text-fg-muted text-xs"
+          />
         </span>
       </Link>
       <Link

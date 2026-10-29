@@ -41,7 +41,12 @@ export function EventsView() {
       ) : events.isError ? (
         <ErrorState message="Couldn't load your events." onRetry={() => void events.refetch()} />
       ) : events.data.length === 0 ? (
-        <EmptyState icon={CalendarDays} title="No events yet" description="Add a gig, a signing or an online listening party." action={add} />
+        <EmptyState
+          icon={CalendarDays}
+          title="No events yet"
+          description="Add a gig, a signing or an online listening party."
+          action={add}
+        />
       ) : (
         <ul className="grid max-w-3xl gap-3">
           {events.data.map((event) => (
@@ -55,15 +60,27 @@ export function EventsView() {
 
 function EventCard({ event }: { event: Event }) {
   const [now] = useState(() => Date.now());
-  const status = new Date(event.endsAt).getTime() < now ? "Past" : new Date(event.startsAt).getTime() <= now ? "On now" : "Upcoming";
+  const status =
+    new Date(event.endsAt).getTime() < now
+      ? "Past"
+      : new Date(event.startsAt).getTime() <= now
+        ? "On now"
+        : "Upcoming";
   const linked = event.pins + event.bounties;
 
   return (
     <li>
-      <Link href={`/events/${event.id}`} className="bg-surface hover:bg-surface-2 grid gap-3 rounded-xl border p-4 transition-colors sm:grid-cols-[auto_minmax(0,1fr)] sm:p-5">
+      <Link
+        href={`/events/${event.id}`}
+        className="bg-surface hover:bg-surface-2 grid gap-3 rounded-xl border p-4 transition-colors sm:grid-cols-[auto_minmax(0,1fr)] sm:p-5"
+      >
         {event.coverUrl && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={event.coverUrl} alt="" className="bg-surface-2 h-24 w-full rounded-lg object-cover sm:w-36" />
+          <img
+            src={event.coverUrl}
+            alt=""
+            className="bg-surface-2 h-24 w-full rounded-lg object-cover sm:w-36"
+          />
         )}
         <div className="grid min-w-0 content-start gap-2 sm:col-start-2">
           <div className="flex flex-wrap items-start justify-between gap-2">
@@ -74,13 +91,17 @@ function EventCard({ event }: { event: Event }) {
           {(event.venueName ?? event.address) && (
             <p className="text-fg-muted flex items-center gap-1.5 text-sm">
               <MapPin className="size-4 shrink-0" />
-              <span className="truncate">{[event.venueName, event.address].filter(Boolean).join(", ")}</span>
+              <span className="truncate">
+                {[event.venueName, event.address].filter(Boolean).join(", ")}
+              </span>
             </p>
           )}
           <p className="text-fg-faint text-xs">
             {event.rsvps} RSVP{event.rsvps === 1 ? "" : "s"}
             {event.capacity ? ` of ${event.capacity}` : ""}
-            {linked > 0 ? ` · ${event.pins} pin${event.pins === 1 ? "" : "s"}, ${event.bounties} bount${event.bounties === 1 ? "y" : "ies"} linked` : ""}
+            {linked > 0
+              ? ` · ${event.pins} pin${event.pins === 1 ? "" : "s"}, ${event.bounties} bount${event.bounties === 1 ? "y" : "ies"} linked`
+              : ""}
           </p>
         </div>
       </Link>

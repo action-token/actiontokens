@@ -13,7 +13,11 @@ import { api } from "~/trpc/react";
 
 import { AiQuota } from "./shared";
 
-const ASPECT_CLASS = { square: "aspect-square max-w-64", wide: "aspect-[3/2]", portrait: "aspect-[2/3] max-w-56" } as const;
+const ASPECT_CLASS = {
+  square: "aspect-square max-w-64",
+  wide: "aspect-[3/2]",
+  portrait: "aspect-[2/3] max-w-56",
+} as const;
 
 /**
  * "Generate with AI" for an image field. It opens in place (no popup): a brief
@@ -69,11 +73,23 @@ export function AiImagePanel({
         <p className="flex items-center gap-2 text-sm font-semibold">
           <ImagePlus className="text-primary-text size-4" /> Generate an image
         </p>
-        <Button type="button" variant="ghost" size="icon" aria-label="Close" disabled={generate.isPending} onClick={() => setOpen(false)}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="Close"
+          disabled={generate.isPending}
+          onClick={() => setOpen(false)}
+        >
           <X />
         </Button>
       </div>
-      <div className={cn("bg-surface relative w-full overflow-hidden rounded-lg border", ASPECT_CLASS[aspect])}>
+      <div
+        className={cn(
+          "bg-surface relative w-full overflow-hidden rounded-lg border",
+          ASPECT_CLASS[aspect],
+        )}
+      >
         {url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={url} alt="Generated" className="size-full object-cover" />
@@ -93,12 +109,30 @@ export function AiImagePanel({
           </div>
         )}
       </div>
-      <Textarea value={prompt} onChange={(event) => setPrompt(event.target.value)} rows={3} maxLength={1500} className="bg-surface resize-none" aria-label="Image description" />
+      <Textarea
+        value={prompt}
+        onChange={(event) => setPrompt(event.target.value)}
+        rows={3}
+        maxLength={1500}
+        className="bg-surface resize-none"
+        aria-label="Image description"
+      />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <AiQuota kind="image" />
         <div className="flex gap-2">
-          <Button type="button" variant={url ? "outline" : "default"} disabled={generate.isPending || prompt.trim().length < 3} onClick={() => generate.mutate({ form, prompt, aspect })}>
-            {generate.isPending ? <Loader2 className="animate-spin" /> : url ? <RefreshCw /> : <Sparkles />}
+          <Button
+            type="button"
+            variant={url ? "outline" : "default"}
+            disabled={generate.isPending || prompt.trim().length < 3}
+            onClick={() => generate.mutate({ form, prompt, aspect })}
+          >
+            {generate.isPending ? (
+              <Loader2 className="animate-spin" />
+            ) : url ? (
+              <RefreshCw />
+            ) : (
+              <Sparkles />
+            )}
             {generate.isPending ? "Generating…" : url ? "Try again" : "Generate"}
           </Button>
           {url && (

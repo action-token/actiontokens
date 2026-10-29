@@ -92,22 +92,42 @@ export function PlaylistView({ playlistId }: { playlistId: string }) {
       <section className="relative isolate overflow-hidden border-b">
         {data.covers[0] && (
           // eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts
-          <img src={data.covers[0]} alt="" aria-hidden className="absolute inset-0 -z-10 size-full scale-125 object-cover opacity-30 blur-3xl" />
+          <img
+            src={data.covers[0]}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 -z-10 size-full scale-125 object-cover opacity-30 blur-3xl"
+          />
         )}
-        <div aria-hidden className="to-bg absolute inset-0 -z-10 bg-gradient-to-b from-transparent" />
+        <div
+          aria-hidden
+          className="to-bg absolute inset-0 -z-10 bg-gradient-to-b from-transparent"
+        />
         <div className="mx-auto flex max-w-[80rem] flex-col gap-6 px-4 pt-8 pb-6 sm:flex-row sm:items-end sm:px-8">
-          <PlaylistCover covers={data.covers} className="w-48 shrink-0 rounded-xl shadow-[8px_10px_0_0_var(--color-primary)] sm:w-56" />
+          <PlaylistCover
+            covers={data.covers}
+            className="w-48 shrink-0 rounded-xl shadow-[8px_10px_0_0_var(--color-primary)] sm:w-56"
+          />
           <div className="grid min-w-0 gap-2">
             <span className="text-fg-muted flex items-center gap-1.5 text-xs font-bold tracking-wider uppercase">
               {!data.isPublic && <Lock className="size-3.5" />}
               {data.isPublic ? "Playlist" : "Private playlist"}
             </span>
             <h1 className="display text-4xl break-words sm:text-6xl">{data.name}</h1>
-            {data.description && <p className="marker text-fg-muted -rotate-1 text-lg">{data.description}</p>}
+            {data.description && (
+              <p className="marker text-fg-muted -rotate-1 text-lg">{data.description}</p>
+            )}
             <p className="text-fg-muted flex flex-wrap items-center gap-x-2 text-sm">
               {data.owner.username ? (
-                <Link href={`/u/${data.owner.username}`} className="text-fg flex items-center gap-2 font-semibold hover:underline">
-                  <Avatar name={ownerName} url={data.owner.avatarUrl} className="bg-surface-3 grid size-6 place-items-center rounded-full object-cover text-[9px] font-bold" />
+                <Link
+                  href={`/u/${data.owner.username}`}
+                  className="text-fg flex items-center gap-2 font-semibold hover:underline"
+                >
+                  <Avatar
+                    name={ownerName}
+                    url={data.owner.avatarUrl}
+                    className="bg-surface-3 grid size-6 place-items-center rounded-full object-cover text-[9px] font-bold"
+                  />
                   {ownerName}
                 </Link>
               ) : (
@@ -148,7 +168,11 @@ export function PlaylistView({ playlistId }: { playlistId: string }) {
           <EmptyState
             icon={ListMusic}
             title="No songs yet"
-            description={data.isOwner ? "Use “Add to playlist” on any song to put it here." : "Nothing here yet."}
+            description={
+              data.isOwner
+                ? "Use “Add to playlist” on any song to put it here."
+                : "Nothing here yet."
+            }
             action={
               data.isOwner ? (
                 <Button asChild variant="secondary">
@@ -183,7 +207,12 @@ export function PlaylistView({ playlistId }: { playlistId: string }) {
         <PlaylistFormDialog
           open={editing}
           onOpenChange={setEditing}
-          playlist={{ id: data.id, name: data.name, description: data.description, isPublic: data.isPublic }}
+          playlist={{
+            id: data.id,
+            name: data.name,
+            description: data.description,
+            isPublic: data.isPublic,
+          }}
         />
       )}
       <ConfirmDialog

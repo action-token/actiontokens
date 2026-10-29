@@ -76,7 +76,12 @@ export type Quote = {
    * Card only: what the platform pays out on-chain for the card charge — the
    * seller and royalty in BANDCOIN, and the XLM it sends the buyer's account.
    */
-  cardSettlement: { seller: string; royalty: string; reserveXlm: string; networkFeeXlm: string } | null;
+  cardSettlement: {
+    seller: string;
+    royalty: string;
+    reserveXlm: string;
+    networkFeeXlm: string;
+  } | null;
   ok: boolean;
   problems: QuoteProblem[];
   expiresAt: string;
@@ -102,7 +107,9 @@ export function buildQuote(input: QuoteInput): Quote {
   const card = currency === "USD";
   // Card: the XLM costs are charged in dollars, at the live XLM price.
   const xlmCost = (xlm: bigint) =>
-    card ? { amount: toUsd(xlm, toStroops(required(input.rates.xlmUsd, "XLM"))), currency } : { amount: xlm, currency: "XLM" as const };
+    card
+      ? { amount: toUsd(xlm, toStroops(required(input.rates.xlmUsd, "XLM"))), currency }
+      : { amount: xlm, currency: "XLM" as const };
 
   const lines: QuoteLine[] = [
     {
@@ -149,7 +156,10 @@ export function buildQuote(input: QuoteInput): Quote {
     unitPrice: toAmount(unit),
     rateUsd: rateUsd === null || currency === "USD" ? null : toAmount(rateUsd),
     lines,
-    totals: [...totals].map(([lineCurrency, amount]) => ({ currency: lineCurrency, amount: toAmount(amount) })),
+    totals: [...totals].map(([lineCurrency, amount]) => ({
+      currency: lineCurrency,
+      amount: toAmount(amount),
+    })),
     payout: {
       seller: toAmount(price - royalty),
       royalty: toAmount(royalty),
@@ -181,11 +191,16 @@ function rateFor(currency: Currency, rates: QuoteInput["rates"]): bigint | null 
 }
 
 function required(rate: string | undefined, currency: string) {
-  if (rate === undefined) throw new RangeError(`A ${currency} quote needs the USD per ${currency} rate`);
+  if (rate === undefined)
+    throw new RangeError(`A ${currency} quote needs the USD per ${currency} rate`);
   return rate;
 }
 
-function unitPriceIn(currency: Currency, unitPrice: QuoteInput["unitPrice"], rateUsd: bigint | null) {
+function unitPriceIn(
+  currency: Currency,
+  unitPrice: QuoteInput["unitPrice"],
+  rateUsd: bigint | null,
+) {
   if (currency === "BANDCOIN") return toStroops(unitPrice.bandcoin);
   if (currency === "USD") return toStroops(unitPrice.usd);
   return usdTo(toStroops(unitPrice.usd), rateUsd!);

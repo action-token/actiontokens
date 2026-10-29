@@ -45,8 +45,17 @@ export function GiftsView() {
   const validAmount = Number.isInteger(amount) && amount >= 1;
 
   const typed = useDebounced(recipient.trim());
-  const followers = api.gifts.followers.useQuery({ search: picked ? undefined : typed || undefined });
-  const quote = api.gifts.quote.useQuery({ recipient: typed, amount: validAmount ? amount : 1 }, { enabled: typed.length > 0 && validAmount, refetchInterval: 30_000, placeholderData: (previous) => previous });
+  const followers = api.gifts.followers.useQuery({
+    search: picked ? undefined : typed || undefined,
+  });
+  const quote = api.gifts.quote.useQuery(
+    { recipient: typed, amount: validAmount ? amount : 1 },
+    {
+      enabled: typed.length > 0 && validAmount,
+      refetchInterval: 30_000,
+      placeholderData: (previous) => previous,
+    },
+  );
   const me = api.account.me.useQuery();
   const sent = api.gifts.sent.useQuery();
 
@@ -60,7 +69,11 @@ export function GiftsView() {
 
   return (
     <PageBody wide className="grid gap-6">
-      <PageHeader eyebrow="Sell" title="Gifts" description="Give a fan some of your fan token, for example to lift them into a membership tier. They must already have added your token to their wallet." />
+      <PageHeader
+        eyebrow="Sell"
+        title="Gifts"
+        description="Give a fan some of your fan token, for example to lift them into a membership tier. They must already have added your token to their wallet."
+      />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
         <section className="bg-surface grid content-start gap-5 rounded-[1.4rem] border-2 p-5 sm:p-6">
@@ -84,7 +97,12 @@ export function GiftsView() {
               <p className="text-fg-muted flex items-center gap-2 text-sm">
                 <Avatar src={picked.image} name={picked.name} className="size-6 text-[11px]" />
                 Sending to <b className="text-fg">{picked.name ?? "this fan"}</b>
-                <button type="button" aria-label="Choose someone else" className="hover:text-fg ml-auto" onClick={() => (setRecipient(""), setPicked(null))}>
+                <button
+                  type="button"
+                  aria-label="Choose someone else"
+                  className="hover:text-fg ml-auto"
+                  onClick={() => (setRecipient(""), setPicked(null))}
+                >
                   <X className="size-4" />
                 </button>
               </p>
@@ -99,7 +117,11 @@ export function GiftsView() {
                 ) : followers.isError ? (
                   <p className="text-fg-muted p-3 text-sm">Couldn&apos;t load your followers.</p>
                 ) : followers.data.length === 0 ? (
-                  <p className="text-fg-muted p-3 text-sm">{typed ? "No follower matches. You can still paste a username, email or wallet." : "Nobody follows you yet."}</p>
+                  <p className="text-fg-muted p-3 text-sm">
+                    {typed
+                      ? "No follower matches. You can still paste a username, email or wallet."
+                      : "Nobody follows you yet."}
+                  </p>
                 ) : (
                   <ul className="max-h-56 divide-y overflow-y-auto">
                     {followers.data.map((follower) => (
@@ -112,10 +134,20 @@ export function GiftsView() {
                             setPicked({ name: follower.name, image: follower.image });
                           }}
                         >
-                          <Avatar src={follower.image} name={follower.name} className="size-8 text-xs" />
+                          <Avatar
+                            src={follower.image}
+                            name={follower.name}
+                            className="size-8 text-xs"
+                          />
                           <span className="min-w-0 text-sm">
-                            <span className="block truncate font-medium">{follower.name ?? "Fan"}</span>
-                            {follower.username && <span className="text-fg-muted block truncate text-xs">@{follower.username}</span>}
+                            <span className="block truncate font-medium">
+                              {follower.name ?? "Fan"}
+                            </span>
+                            {follower.username && (
+                              <span className="text-fg-muted block truncate text-xs">
+                                @{follower.username}
+                              </span>
+                            )}
                           </span>
                         </button>
                       </li>
@@ -128,7 +160,16 @@ export function GiftsView() {
 
           <div className="grid gap-2">
             <Label htmlFor="gift-amount">How many {quote.data?.gift.code ?? "tokens"}</Label>
-            <Input id="gift-amount" type="number" inputMode="numeric" min={1} step={1} value={amountText} className="num max-w-40" onChange={(event) => setAmountText(event.target.value)} />
+            <Input
+              id="gift-amount"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              step={1}
+              value={amountText}
+              className="num max-w-40"
+              onChange={(event) => setAmountText(event.target.value)}
+            />
             {!validAmount && <p className="text-danger text-xs">Use a whole number from 1.</p>}
           </div>
         </section>
@@ -139,18 +180,41 @@ export function GiftsView() {
           </h2>
           {quote.data?.gift.recipient && (
             <p className="text-sm">
-              <b className="num">{validAmount ? amount.toLocaleString() : "?"}</b> {quote.data.gift.code} to <b>{quote.data.gift.recipient.name ?? "this fan"}</b>
+              <b className="num">{validAmount ? amount.toLocaleString() : "?"}</b>{" "}
+              {quote.data.gift.code} to <b>{quote.data.gift.recipient.name ?? "this fan"}</b>
             </p>
           )}
           {typed.length === 0 ? (
-            <p className="text-fg-muted text-sm">Choose who gets it and the price shows here, before anything is signed.</p>
+            <p className="text-fg-muted text-sm">
+              Choose who gets it and the price shows here, before anything is signed.
+            </p>
           ) : (
-            <QuoteBreakdown quote={quote.data} balance={me.data?.balances.XLM} loading={quote.isPending} />
+            <QuoteBreakdown
+              quote={quote.data}
+              balance={me.data?.balances.XLM}
+              loading={quote.isPending}
+            />
           )}
-          <Button disabled={!ready} onClick={() => void flow.run(total ? <Money amount={total} currency="XLM" /> : null)} className="justify-self-start">
-            <Send /> {flow.busy ? "Working…" : total ? <>Send gift · <Money amount={total} currency="XLM" /></> : "Send gift"}
+          <Button
+            disabled={!ready}
+            onClick={() => void flow.run(total ? <Money amount={total} currency="XLM" /> : null)}
+            className="justify-self-start"
+          >
+            <Send />{" "}
+            {flow.busy ? (
+              "Working…"
+            ) : total ? (
+              <>
+                Send gift · <Money amount={total} currency="XLM" />
+              </>
+            ) : (
+              "Send gift"
+            )}
           </Button>
-          <p className="text-fg-faint text-xs">You pay only the network fee. Bandcoin never covers it, and nothing is signed until you press the button.</p>
+          <p className="text-fg-faint text-xs">
+            You pay only the network fee. Bandcoin never covers it, and nothing is signed until you
+            press the button.
+          </p>
         </section>
       </div>
 
@@ -163,7 +227,11 @@ export function GiftsView() {
         ) : sent.data.length === 0 ? (
           <EmptyState icon={Gift} title="No gifts yet" description="Gifts you send show up here." />
         ) : (
-          <ul className={cn("bg-surface max-w-3xl divide-y overflow-hidden rounded-[1.4rem] border-2")}>
+          <ul
+            className={cn(
+              "bg-surface max-w-3xl divide-y overflow-hidden rounded-[1.4rem] border-2",
+            )}
+          >
             {sent.data.map((gift) => (
               <li key={gift.id} className="flex items-center gap-3 px-4 py-3">
                 <Avatar src={gift.recipient.image} name={gift.recipient.name} className="size-9" />
@@ -188,7 +256,12 @@ export function GiftsView() {
             onSend={flow.send}
             onCancel={flow.stop}
             actions={
-              <Button size="sm" variant="secondary" className="h-8 px-3 text-[13px]" onClick={flow.step.kind === "confirm" ? flow.stop : flow.close}>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="h-8 px-3 text-[13px]"
+                onClick={flow.step.kind === "confirm" ? flow.stop : flow.close}
+              >
                 {flow.step.kind === "confirm" ? "Cancel" : "Close"}
               </Button>
             }

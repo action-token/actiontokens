@@ -12,7 +12,12 @@ import { TRPCReactProvider } from "~/trpc/react";
 /** Client providers shared by every page. */
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <ThemeProvider
+      attribute="data-theme"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
       <SessionProvider>
         <TRPCReactProvider>
           {children}

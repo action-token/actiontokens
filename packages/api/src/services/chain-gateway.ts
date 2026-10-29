@@ -45,7 +45,12 @@ export type ChainGateway = {
   submit(xdr: string): Promise<{ hash: string }>;
   findTransaction(hash: string): Promise<{ successful: boolean; envelopeXdr: string } | null>;
   card: {
-    charge(input: { orderId: string; sourceId: string; cents: number; verificationToken?: string }): Promise<{
+    charge(input: {
+      orderId: string;
+      sourceId: string;
+      cents: number;
+      verificationToken?: string;
+    }): Promise<{
       paymentId: string;
     }>;
     refund(input: { orderId: string; paymentId: string; cents: number }): Promise<void>;
@@ -63,13 +68,24 @@ async function serverSecrets(db: Db, publicKeys: string[]): Promise<string[]> {
   const fromEnv = [
     { publicKey: mother, secret: process.env.MOTHER_SECRET },
     { publicKey: treasury, secret: process.env.TREASURY_SECRET },
-  ].filter((entry) => entry.secret && entry.publicKey && Keypair.fromSecret(entry.secret).publicKey() === entry.publicKey);
+  ].filter(
+    (entry) =>
+      entry.secret &&
+      entry.publicKey &&
+      Keypair.fromSecret(entry.secret).publicKey() === entry.publicKey,
+  );
   const stored = publicKeys.filter((key) => !fromEnv.some((entry) => entry.publicKey === key));
-  const secrets = fromEnv.filter((entry) => publicKeys.includes(entry.publicKey!)).map((entry) => entry.secret!);
+  const secrets = fromEnv
+    .filter((entry) => publicKeys.includes(entry.publicKey!))
+    .map((entry) => entry.secret!);
   if (stored.length > 0) {
-    const accounts = await db.chainAccount.findMany({ where: { publicKey: { in: stored } }, select: { publicKey: true, secretEncrypted: true } });
+    const accounts = await db.chainAccount.findMany({
+      where: { publicKey: { in: stored } },
+      select: { publicKey: true, secretEncrypted: true },
+    });
     const missing = stored.filter((key) => !accounts.some((account) => account.publicKey === key));
-    if (missing.length > 0) throw new AppError(ErrorCodes.STORAGE_ACCOUNT_UNAVAILABLE, { details: { missing } });
+    if (missing.length > 0)
+      throw new AppError(ErrorCodes.STORAGE_ACCOUNT_UNAVAILABLE, { details: { missing } });
     secrets.push(...accounts.map((account) => decryptSecret(account.secretEncrypted)));
   }
   return secrets;
@@ -83,7 +99,11 @@ export function createChainGateway(db: Db): ChainGateway {
     rates: () => liveRates(),
     bandcoinUsd() {
       const config = chainConfig();
-      return liveBandcoinUsd({ name: config.name, asset: config.assets.bandcoin, devPrice: process.env.BANDCOIN_USD_PRICE });
+      return liveBandcoinUsd({
+        name: config.name,
+        asset: config.assets.bandcoin,
+        devPrice: process.env.BANDCOIN_USD_PRICE,
+      });
     },
     signWithServerKeys: async (xdr, publicKeys) => {
       const secrets = await serverSecrets(db, publicKeys);
@@ -92,10 +112,12 @@ export function createChainGateway(db: Db): ChainGateway {
     async signForCustodialUser(xdr, email) {
       return addSignatures(xdr, [await fetchCustodialAccountSecret(email)]);
     },
-    prepareContractCall: async (xdr, signers = []) => prepareContractCall(xdr, await serverSecrets(db, signers)),
+    prepareContractCall: async (xdr, signers = []) =>
+      prepareContractCall(xdr, await serverSecrets(db, signers)),
     submit,
     assetExists,
-    editionIdByRef: (editionRef) => readEditionId(chainConfig().nftContract, chainConfig().treasury, editionRef),
+    editionIdByRef: (editionRef) =>
+      readEditionId(chainConfig().nftContract, chainConfig().treasury, editionRef),
     findTransaction,
     card: { charge: chargeCard, refund: refundCard },
   };

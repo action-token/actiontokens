@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { isActive, navFor, phoneTabs, type PortalNavInput } from "./nav";
 
-const labels = (input: PortalNavInput) => navFor(input).flatMap((group) => group.items.map((entry) => entry.label));
+const labels = (input: PortalNavInput) =>
+  navFor(input).flatMap((group) => group.items.map((entry) => entry.label));
 
 describe("portal navigation", () => {
   it("shows only the way in to someone who is not an artist yet", () => {
@@ -14,8 +15,12 @@ describe("portal navigation", () => {
   });
 
   it("keeps an applicant on onboarding until an admin approves", () => {
-    expect(labels({ signedIn: true, step: "OPEN_ISSUER", isAdmin: false })).toEqual(["Get started"]);
-    expect(labels({ signedIn: true, step: "WAITING_FOR_APPROVAL", isAdmin: false })).toEqual(["Get started"]);
+    expect(labels({ signedIn: true, step: "OPEN_ISSUER", isAdmin: false })).toEqual([
+      "Get started",
+    ]);
+    expect(labels({ signedIn: true, step: "WAITING_FOR_APPROVAL", isAdmin: false })).toEqual([
+      "Get started",
+    ]);
   });
 
   it("sends a rejected applicant back to the form", () => {
@@ -23,7 +28,21 @@ describe("portal navigation", () => {
   });
 
   it("opens the artist tools once approved", () => {
-    expect(labels({ signedIn: true, step: "READY", isAdmin: false })).toEqual(["Map", "Pin management", "Events", "Website map", "Posts", "Announcements", "Bounties", "Music", "Items", "Memberships", "Gifts", "Reports", "Redeem"]);
+    expect(labels({ signedIn: true, step: "READY", isAdmin: false })).toEqual([
+      "Map",
+      "Pin management",
+      "Events",
+      "Website map",
+      "Posts",
+      "Announcements",
+      "Bounties",
+      "Music",
+      "Items",
+      "Memberships",
+      "Gifts",
+      "Reports",
+      "Redeem",
+    ]);
   });
 
   it("shows nothing to a banned artist", () => {
@@ -31,16 +50,39 @@ describe("portal navigation", () => {
   });
 
   it("adds the admin group for admins, even before they are artists", () => {
-    expect(navFor({ signedIn: true, step: null, isAdmin: true }).map((group) => group.title)).toEqual(["Artist", "Admin"]);
-    expect(labels({ signedIn: true, step: "READY", isAdmin: true })).toEqual(["Map", "Pin management", "Events", "Website map", "Posts", "Announcements", "Bounties", "Music", "Items", "Memberships", "Gifts", "Reports", "Redeem", "Artists", "Mural review", "Activity"]);
+    expect(
+      navFor({ signedIn: true, step: null, isAdmin: true }).map((group) => group.title),
+    ).toEqual(["Artist", "Admin"]);
+    expect(labels({ signedIn: true, step: "READY", isAdmin: true })).toEqual([
+      "Map",
+      "Pin management",
+      "Events",
+      "Website map",
+      "Posts",
+      "Announcements",
+      "Bounties",
+      "Music",
+      "Items",
+      "Memberships",
+      "Gifts",
+      "Reports",
+      "Redeem",
+      "Artists",
+      "Mural review",
+      "Activity",
+    ]);
   });
 
   it("lists the drops first, as Wadzzo's brand portal does", () => {
-    expect(navFor({ signedIn: true, step: "READY", isAdmin: false }).map((group) => group.title)).toEqual(["Drops", "Content", "Sell", "Insights"]);
+    expect(
+      navFor({ signedIn: true, step: "READY", isAdmin: false }).map((group) => group.title),
+    ).toEqual(["Drops", "Content", "Sell", "Insights"]);
   });
 
   it("keeps Items lit on its nested pages", () => {
-    const items = navFor({ signedIn: true, step: "READY", isAdmin: false })[2]!.items.find((entry) => entry.label === "Items");
+    const items = navFor({ signedIn: true, step: "READY", isAdmin: false })[2]!.items.find(
+      (entry) => entry.label === "Items",
+    );
     expect(isActive(items!, "/items")).toBe(true);
     expect(isActive(items!, "/items/new")).toBe(true);
     expect(isActive(items!, "/")).toBe(false);
@@ -64,9 +106,17 @@ describe("portal navigation", () => {
 
   it("keeps four tabs on a phone and puts the rest and the account behind More", () => {
     const apply = phoneTabs(navFor({ signedIn: true, step: "OPEN_ISSUER", isAdmin: false }), true);
-    expect(apply).toEqual({ tabs: [expect.objectContaining({ label: "Get started" })], more: true });
+    expect(apply).toEqual({
+      tabs: [expect.objectContaining({ label: "Get started" })],
+      more: true,
+    });
     const ready = phoneTabs(navFor({ signedIn: true, step: "READY", isAdmin: true }), true);
-    expect(ready.tabs.map((entry) => entry.shortLabel ?? entry.label)).toEqual(["Map", "Pins", "Events", "Bounties"]);
+    expect(ready.tabs.map((entry) => entry.shortLabel ?? entry.label)).toEqual([
+      "Map",
+      "Pins",
+      "Events",
+      "Bounties",
+    ]);
     expect(ready.more).toBe(true);
     expect(phoneTabs([], false)).toEqual({ tabs: [], more: false });
   });

@@ -1,7 +1,10 @@
 import type { EmbedEvent } from "@bandcoin/ar-core/embed/config";
 import type { Db } from "@bandcoin/db";
 
-const COLUMN: Record<EmbedEvent, "views" | "pinTaps" | "openClicks" | "eventsClicks" | "bountiesClicks"> = {
+const COLUMN: Record<
+  EmbedEvent,
+  "views" | "pinTaps" | "openClicks" | "eventsClicks" | "bountiesClicks"
+> = {
   view: "views",
   pinTap: "pinTaps",
   open: "openClicks",
@@ -30,7 +33,12 @@ export function underLimit(key: string, now = Date.now()) {
  * malformed, unknown or over the limit is ignored, never an error: a counter
  * must not surface on someone's site.
  */
-export async function recordEmbedEvent(db: Pick<Db, "mapEmbed" | "mapEmbedDailyStat">, raw: string, ip: string, now = new Date()) {
+export async function recordEmbedEvent(
+  db: Pick<Db, "mapEmbed" | "mapEmbedDailyStat">,
+  raw: string,
+  ip: string,
+  now = new Date(),
+) {
   let body: unknown;
   try {
     body = raw ? JSON.parse(raw) : undefined;
@@ -38,7 +46,8 @@ export async function recordEmbedEvent(db: Pick<Db, "mapEmbed" | "mapEmbedDailyS
     return false;
   }
   const { id, e } = (body ?? {}) as { id?: unknown; e?: unknown };
-  if (typeof id !== "string" || id === "preview" || typeof e !== "string" || !(e in COLUMN)) return false;
+  if (typeof id !== "string" || id === "preview" || typeof e !== "string" || !(e in COLUMN))
+    return false;
   if (!underLimit(`${ip}:${id}`, now.getTime())) return false;
   if (!(await db.mapEmbed.count({ where: { id } }))) return false;
 

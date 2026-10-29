@@ -4,15 +4,15 @@
 
 0. **Four ways to pay, wherever possible.** Each payment offers BANDCOIN, XLM, USDC and card when it can technically be done. Where it can't, it offers as many as possible. Card goes through Square and delivers to the buyer's (custodial) wallet.
 
-   | Payment | BANDCOIN | XLM | USDC | Card | Why not all four |
-   |---|---|---|---|---|---|
-   | Buy item (classic token or NFT), primary or resale | ✓ | ✓ | ✓ | ✓ | |
-   | Artist fan token (tiers) | ✓ | ✓ | ✓ | ✓ | |
-   | Vanity URL renewal / name change | ✓ | ✓ | ✓ | ✓ | |
-   | Studio coins | ✓ | ✓ | ✓ | ✓ | |
-   | Gift an item to someone | ✓ | ✓ | ✓ | ✓ | |
-   | Fund a bounty prize | the asset the prize is in | | | | The escrow contract holds one asset per bounty. The artist picks BANDCOIN, XLM or USDC as the prize asset when creating it. |
-   | Royalty payout to holders | the payout currency the artist picks | | | | Outgoing payment from the artist, not a purchase. |
+   | Payment                                            | BANDCOIN                             | XLM | USDC | Card | Why not all four                                                                                                            |
+   | -------------------------------------------------- | ------------------------------------ | --- | ---- | ---- | --------------------------------------------------------------------------------------------------------------------------- |
+   | Buy item (classic token or NFT), primary or resale | ✓                                    | ✓   | ✓    | ✓    |                                                                                                                             |
+   | Artist fan token (tiers)                           | ✓                                    | ✓   | ✓    | ✓    |                                                                                                                             |
+   | Vanity URL renewal / name change                   | ✓                                    | ✓   | ✓    | ✓    |                                                                                                                             |
+   | Studio coins                                       | ✓                                    | ✓   | ✓    | ✓    |                                                                                                                             |
+   | Gift an item to someone                            | ✓                                    | ✓   | ✓    | ✓    |                                                                                                                             |
+   | Fund a bounty prize                                | the asset the prize is in            |     |      |      | The escrow contract holds one asset per bounty. The artist picks BANDCOIN, XLM or USDC as the prize asset when creating it. |
+   | Royalty payout to holders                          | the payout currency the artist picks |     |      |      | Outgoing payment from the artist, not a purchase.                                                                           |
 
 1. **No automatic conversion.** Today `buy-quote.ts` and `account-validation.ts` swap XLM into Bandcoin, or Bandcoin into XLM, when one is short. That goes. The buyer picks a currency and pays in it. If the balance is short, the buy panel says exactly how much is missing, with an "Add funds" link. It never swaps.
 2. **Simple and visible.** Every payment shows a price breakdown before signing.
@@ -82,13 +82,13 @@ QUOTED → AWAITING_SIGNATURE → SUBMITTED → CONFIRMED → DELIVERED
 
 ## The sign flow, in the UI (`useTransaction` hook + toast)
 
-| Step | Wallet user | Custodial user |
-|---|---|---|
-| 1 | Buy panel shows the breakdown, then the user presses **Pay** | same |
-| 2 | Toast: "Confirm in Freighter…" | Toast: "Sending 20.50 BANDCOIN in 5… **Cancel**" with a progress bar |
-| 3 | Wallet popup (Cancel there = order `CANCELED`) | Cancel within 5 s = order `CANCELED`, nothing signed |
-| 4 | Toast: "Submitting…" | same |
-| 5 | Toast: "Done: you own 2 × Song name" with **View** and an explorer link | same |
-| ✗ | Toast in plain words + **Try again** | same |
+| Step | Wallet user                                                             | Custodial user                                                       |
+| ---- | ----------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| 1    | Buy panel shows the breakdown, then the user presses **Pay**            | same                                                                 |
+| 2    | Toast: "Confirm in Freighter…"                                          | Toast: "Sending 20.50 BANDCOIN in 5… **Cancel**" with a progress bar |
+| 3    | Wallet popup (Cancel there = order `CANCELED`)                          | Cancel within 5 s = order `CANCELED`, nothing signed                 |
+| 4    | Toast: "Submitting…"                                                    | same                                                                 |
+| 5    | Toast: "Done: you own 2 × Song name" with **View** and an explorer link | same                                                                 |
+| ✗    | Toast in plain words + **Try again**                                    | same                                                                 |
 
 One toast stays and updates through all steps (no stacks of toasts). The same hook covers every money action: buy, list, gift, bounty fund, vanity renewal, studio top-up and royalty payout.

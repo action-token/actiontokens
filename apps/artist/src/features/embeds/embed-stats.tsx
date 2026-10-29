@@ -24,7 +24,8 @@ export function EmbedStats({ id }: { id: string }) {
   const stats = api.embeds.embedStats.useQuery({ embedId: id, days });
 
   if (stats.isPending) return <Skeleton className="m-8 h-64 w-full max-w-4xl rounded-xl" />;
-  if (stats.isError) return <ErrorState message="Couldn't load the stats." onRetry={() => void stats.refetch()} />;
+  if (stats.isError)
+    return <ErrorState message="Couldn't load the stats." onRetry={() => void stats.refetch()} />;
 
   const rows = stats.data;
   const total = (key: Metric) => rows.reduce((sum, row) => sum + row[key], 0);
@@ -38,7 +39,15 @@ export function EmbedStats({ id }: { id: string }) {
         <h2 className="display text-xl">How the map is doing</h2>
         <div className="bg-surface-2 flex gap-1 rounded-xl border p-1">
           {([7, 30, 90] as const).map((option) => (
-            <button key={option} type="button" onClick={() => setDays(option)} className={cn("rounded-lg px-3 py-1 text-sm", days === option ? "bg-surface font-medium shadow-sm" : "text-fg-muted")}>
+            <button
+              key={option}
+              type="button"
+              onClick={() => setDays(option)}
+              className={cn(
+                "rounded-lg px-3 py-1 text-sm",
+                days === option ? "bg-surface font-medium shadow-sm" : "text-fg-muted",
+              )}
+            >
               {option} days
             </button>
           ))}
@@ -56,7 +65,8 @@ export function EmbedStats({ id }: { id: string }) {
 
       {views > 0 && (
         <p className="text-fg-muted text-sm">
-          {Math.round((taps / views) * 100)}% of views led to a pin tap, and {taps ? Math.round((opens / taps) * 100) : 0}% of pin taps went on to Bandcoin.
+          {Math.round((taps / views) * 100)}% of views led to a pin tap, and{" "}
+          {taps ? Math.round((opens / taps) * 100) : 0}% of pin taps went on to Bandcoin.
         </p>
       )}
 

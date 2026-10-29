@@ -21,7 +21,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ stem
     select: {
       sourceUrl: true,
       streamKey: true,
-      item: { select: { id: true, createdById: true, artist: { select: { userId: true } }, media: { select: { durationSec: true } } } },
+      item: {
+        select: {
+          id: true,
+          createdById: true,
+          artist: { select: { userId: true } },
+          media: { select: { durationSec: true } },
+        },
+      },
     },
   });
   if (!stem?.item) return new Response("No such stem", { status: 404 });
@@ -40,7 +47,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ stem
       const whole = await fetch(source);
       if (!whole.ok || !whole.body) return new Response("Stem unavailable", { status: 502 });
       return new Response(whole.body, {
-        headers: { "Content-Type": whole.headers.get("content-type") ?? "audio/mpeg", "Cache-Control": "private, max-age=3600" },
+        headers: {
+          "Content-Type": whole.headers.get("content-type") ?? "audio/mpeg",
+          "Cache-Control": "private, max-age=3600",
+        },
       });
     }
     return await preview(source, stem.item.media?.durationSec ?? null);
@@ -57,12 +67,16 @@ async function preview(source: URL, durationSec: number | null) {
 
   const wav = wavPreview(start, PREVIEW_SECONDS);
   if (wav) {
-    const data = await fetch(source, { headers: { Range: `bytes=${wav.range.start}-${wav.range.end}` } });
+    const data = await fetch(source, {
+      headers: { Range: `bytes=${wav.range.start}-${wav.range.end}` },
+    });
     const body = new Uint8Array(await data.arrayBuffer());
     const out = new Uint8Array(wav.header.length + body.length);
     out.set(wav.header);
     out.set(body, wav.header.length);
-    return new Response(out, { headers: { "Content-Type": "audio/wav", "Cache-Control": "public, max-age=86400, immutable" } });
+    return new Response(out, {
+      headers: { "Content-Type": "audio/wav", "Cache-Control": "public, max-age=86400, immutable" },
+    });
   }
 
   if (!durationSec) return new Response("No preview for this stem", { status: 404 });
@@ -70,8 +84,12 @@ async function preview(source: URL, durationSec: number | null) {
   if (!size) return new Response("Preview unavailable", { status: 502 });
   const { start: from, end } = previewByteRange({ contentLength: size, durationSec, startSec: 0 });
   const slice = await fetch(source, { headers: { Range: `bytes=${from}-${end}` } });
-  if (slice.status !== 206 || !slice.body) return new Response("Preview unavailable", { status: 502 });
+  if (slice.status !== 206 || !slice.body)
+    return new Response("Preview unavailable", { status: 502 });
   return new Response(slice.body, {
-    headers: { "Content-Type": slice.headers.get("content-type") ?? "audio/mpeg", "Cache-Control": "public, max-age=86400, immutable" },
+    headers: {
+      "Content-Type": slice.headers.get("content-type") ?? "audio/mpeg",
+      "Cache-Control": "public, max-age=86400, immutable",
+    },
   });
 }

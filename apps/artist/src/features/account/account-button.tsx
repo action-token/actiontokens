@@ -40,14 +40,20 @@ export function AccountButton({ rail = false }: { rail?: boolean }) {
     );
   }
 
-  const name = me.data.displayName ?? me.data.username ?? abbreviateAddress(me.data.walletAddress ?? undefined);
+  const name =
+    me.data.displayName ??
+    me.data.username ??
+    abbreviateAddress(me.data.walletAddress ?? undefined);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
           aria-label="Account menu"
-          className={cn("bg-surface hover:bg-surface-2 flex h-10 w-full items-center gap-2 rounded-full border pl-1 text-[13px] font-semibold transition-colors", rail ? "justify-center pr-1 xl:justify-start xl:pr-3" : "pr-3")}
+          className={cn(
+            "bg-surface hover:bg-surface-2 flex h-10 w-full items-center gap-2 rounded-full border pl-1 text-[13px] font-semibold transition-colors",
+            rail ? "justify-center pr-1 xl:justify-start xl:pr-3" : "pr-3",
+          )}
         >
           <Avatar className="size-8">
             {me.data.avatarUrl && <AvatarImage src={me.data.avatarUrl} alt="" />}
@@ -59,7 +65,9 @@ export function AccountButton({ rail = false }: { rail?: boolean }) {
       <DropdownMenuContent side={rail ? "right" : "top"} align="end" className="w-60">
         <DropdownMenuLabel className="grid gap-0.5 font-normal">
           <span className="text-fg truncate text-sm font-semibold">{name}</span>
-          {me.data.artist && <span className="text-fg-muted truncate text-xs">Artist: {me.data.artist.name}</span>}
+          {me.data.artist && (
+            <span className="text-fg-muted truncate text-xs">Artist: {me.data.artist.name}</span>
+          )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>

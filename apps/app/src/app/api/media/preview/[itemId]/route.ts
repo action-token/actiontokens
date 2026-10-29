@@ -29,9 +29,14 @@ export async function GET(_request: Request, { params }: { params: Promise<{ ite
       if (!head.ok || !size) return new Response("Preview unavailable", { status: 502 });
       sizes.set(source.href, size);
     }
-    const { start, end } = previewByteRange({ contentLength: size, durationSec: media.durationSec, startSec: media.previewStartSec });
+    const { start, end } = previewByteRange({
+      contentLength: size,
+      durationSec: media.durationSec,
+      startSec: media.previewStartSec,
+    });
     const slice = await fetch(source, { headers: { Range: `bytes=${start}-${end}` } });
-    if (slice.status !== 206 || !slice.body) return new Response("Preview unavailable", { status: 502 });
+    if (slice.status !== 206 || !slice.body)
+      return new Response("Preview unavailable", { status: 502 });
 
     return new Response(slice.body, {
       headers: {

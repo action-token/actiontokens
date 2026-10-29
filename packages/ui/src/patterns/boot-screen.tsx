@@ -46,7 +46,13 @@ export function Equalizer({ className }: { className?: string }) {
  * nothing waits on it; it fades after BOOT_MS. Repeat visits never see it.
  * Pass `always` to show it on every mount (design preview).
  */
-export function BootScreen({ always = false, replayKey }: { always?: boolean; replayKey?: number }) {
+export function BootScreen({
+  always = false,
+  replayKey,
+}: {
+  always?: boolean;
+  replayKey?: number;
+}) {
   const [visible, setVisible] = useState(always);
 
   useEffect(() => {
@@ -74,7 +80,10 @@ export function BootScreen({ always = false, replayKey }: { always?: boolean; re
       <div className="grid justify-items-center gap-4">
         <BrandMark className="h-14" />
         <Equalizer className="h-6 [&>span]:w-1" />
-        <div key={replayKey} className="font-display animate-reveal text-[22px] leading-none font-extrabold tracking-tight [clip-path:inset(0_100%_0_0)]">
+        <div
+          key={replayKey}
+          className="font-display animate-reveal text-[22px] leading-none font-extrabold tracking-tight [clip-path:inset(0_100%_0_0)]"
+        >
           Bandcoin
         </div>
       </div>

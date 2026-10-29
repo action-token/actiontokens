@@ -4,17 +4,18 @@ import { cn } from "../lib/cn";
 import { Slot } from "radix-ui";
 
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 rounded-full border border-transparent font-semibold whitespace-nowrap transition-[background-color,border-color,color,transform] duration-150 ease-out-soft outline-none active:scale-[0.97] focus-visible:ring-[3px] focus-visible:ring-primary-text/40 disabled:pointer-events-none disabled:opacity-45 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "ease-out-soft focus-visible:ring-primary-text/40 aria-invalid:border-destructive inline-flex shrink-0 items-center justify-center gap-2 rounded-full border border-transparent font-semibold whitespace-nowrap transition-[background-color,border-color,color,transform] duration-150 outline-none focus-visible:ring-[3px] active:scale-[0.97] disabled:pointer-events-none disabled:opacity-45 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         /** The one main action of a view: Pay, Publish, Claim. */
         default: "bg-primary text-primary-foreground hover:bg-primary-strong",
         secondary: "bg-surface-3 text-fg hover:bg-border-strong",
-        outline: "border-border bg-transparent text-fg hover:border-border-strong hover:bg-surface-2",
+        outline:
+          "border-border text-fg hover:border-border-strong hover:bg-surface-2 bg-transparent",
         ghost: "text-fg-muted hover:bg-surface-2 hover:text-fg",
         destructive: "bg-danger-soft text-danger hover:bg-danger hover:text-white",
-        link: "h-auto rounded-none px-0 text-primary-text underline-offset-4 hover:underline",
+        link: "text-primary-text h-auto rounded-none px-0 underline-offset-4 hover:underline",
       },
       size: {
         default: "h-10 px-4 text-sm has-[>svg]:px-3.5",

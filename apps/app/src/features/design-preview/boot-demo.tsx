@@ -21,7 +21,12 @@ export function BootDemo() {
         </div>
       </div>
       <BootScreen always replayKey={run} />
-      <Button size="sm" variant="secondary" className="absolute right-3 bottom-3 z-[60]" onClick={() => setRun((n) => n + 1)}>
+      <Button
+        size="sm"
+        variant="secondary"
+        className="absolute right-3 bottom-3 z-[60]"
+        onClick={() => setRun((n) => n + 1)}
+      >
         Replay
       </Button>
     </div>

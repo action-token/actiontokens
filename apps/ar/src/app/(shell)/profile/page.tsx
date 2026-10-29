@@ -108,7 +108,13 @@ export default function ProfileScreen() {
   const recentRailRef = useDragScroll<HTMLDivElement>();
 
   // The latest six cards, plus facets that count the whole collection.
-  const latest = useCollectedPinsQuery({ enabled: Boolean(user), rarity: "all", query: "", sort: "newest", pageSize: 6 });
+  const latest = useCollectedPinsQuery({
+    enabled: Boolean(user),
+    rarity: "all",
+    query: "",
+    sort: "newest",
+    pageSize: 6,
+  });
   const pinsLoading = latest.isLoading;
   const collected = latest.pins;
   const total = latest.facets?.total ?? 0;

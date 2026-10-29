@@ -20,7 +20,10 @@ const loadArtist = cache(async (slug: string) => {
   try {
     return await (await serverApi()).artist.bySlug({ slug });
   } catch (error) {
-    if ((isAppError(error) && error.code === "RESOURCE_NOT_FOUND") || (error instanceof Error && error.message === "This artist doesn't exist.")) {
+    if (
+      (isAppError(error) && error.code === "RESOURCE_NOT_FOUND") ||
+      (error instanceof Error && error.message === "This artist doesn't exist.")
+    ) {
       notFound();
     }
     throw error;
@@ -52,11 +55,19 @@ export default async function ArtistPage({ params }: Props) {
       <section className="relative isolate flex min-h-[300px] items-end overflow-hidden text-white sm:min-h-[340px]">
         {banner ? (
           // eslint-disable-next-line @next/next/no-img-element -- images come from many hosts
-          <img src={banner} alt="" aria-hidden className="absolute inset-0 -z-20 size-full object-cover" />
+          <img
+            src={banner}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 -z-20 size-full object-cover"
+          />
         ) : (
           <div aria-hidden className="bg-primary absolute inset-0 -z-20" />
         )}
-        <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-black/90 via-black/45 to-black/10" />
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10 bg-gradient-to-t from-black/90 via-black/45 to-black/10"
+        />
         <div className="mx-auto grid w-full max-w-[80rem] gap-5 px-4 pt-16 pb-7 sm:px-8">
           <div className="flex items-end gap-5">
             <Avatar
@@ -66,13 +77,20 @@ export default async function ArtistPage({ params }: Props) {
             />
             <div className="grid min-w-0 gap-1">
               <span className="marker -rotate-1 text-lg text-white/80">*artist*</span>
-              <h1 className="display text-5xl break-words sm:text-6xl xl:text-7xl">{artist.name}</h1>
+              <h1 className="display text-5xl break-words sm:text-6xl xl:text-7xl">
+                {artist.name}
+              </h1>
               <span className="text-sm text-white/75">
                 {artist.itemCount.toLocaleString()} {artist.itemCount === 1 ? "drop" : "drops"}
               </span>
             </div>
           </div>
-          <ArtistActions slug={artist.slug} following={artist.following} followers={artist.followers} popular={artist.popular} />
+          <ArtistActions
+            slug={artist.slug}
+            following={artist.following}
+            followers={artist.followers}
+            popular={artist.popular}
+          />
         </div>
       </section>
 
@@ -106,14 +124,21 @@ export default async function ArtistPage({ params }: Props) {
             <ul className="grid gap-3 sm:grid-cols-2">
               {artist.bounties.map((bounty) => (
                 <li key={bounty.id}>
-                  <Link href={`/bounty/${bounty.id}`} className="bg-surface hover:border-border-strong grid h-full gap-2 rounded-lg border p-4 transition-colors">
+                  <Link
+                    href={`/bounty/${bounty.id}`}
+                    className="bg-surface hover:border-border-strong grid h-full gap-2 rounded-lg border p-4 transition-colors"
+                  >
                     <b className="display flex items-center gap-2 text-base">
                       <Trophy className="text-primary-text size-4 shrink-0" />
                       {bounty.title}
                     </b>
                     <p className="text-fg-muted line-clamp-2 text-[13px]">{bounty.summary}</p>
                     <span className="flex items-center justify-between pt-1 text-[13px]">
-                      <Money amount={bounty.prize.amount} currency={bounty.prize.currency} className="font-semibold" />
+                      <Money
+                        amount={bounty.prize.amount}
+                        currency={bounty.prize.currency}
+                        className="font-semibold"
+                      />
                       <span className="text-fg-muted">{bounty.participants} joined</span>
                     </span>
                   </Link>
@@ -130,8 +155,15 @@ export default async function ArtistPage({ params }: Props) {
             </p>
             <div className="flex flex-wrap content-start gap-2 text-sm">
               {artist.website && <SocialLink href={artist.website} label="Website" />}
-              {artist.instagram && <SocialLink href={`https://instagram.com/${artist.instagram.replace(/^@/, "")}`} label="Instagram" />}
-              {artist.twitter && <SocialLink href={`https://x.com/${artist.twitter.replace(/^@/, "")}`} label="X" />}
+              {artist.instagram && (
+                <SocialLink
+                  href={`https://instagram.com/${artist.instagram.replace(/^@/, "")}`}
+                  label="Instagram"
+                />
+              )}
+              {artist.twitter && (
+                <SocialLink href={`https://x.com/${artist.twitter.replace(/^@/, "")}`} label="X" />
+              )}
             </div>
           </div>
         </Section>
@@ -151,7 +183,12 @@ function Section({ title, note, children }: { title: string; note?: string; chil
 
 function SocialLink({ href, label }: { href: string; label: string }) {
   return (
-    <a href={href} target="_blank" rel="noreferrer" className="bg-surface-2 hover:bg-surface-3 flex h-9 items-center gap-1.5 rounded-full px-3.5 font-semibold">
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="bg-surface-2 hover:bg-surface-3 flex h-9 items-center gap-1.5 rounded-full px-3.5 font-semibold"
+    >
       <Globe className="size-4" /> {label}
     </a>
   );

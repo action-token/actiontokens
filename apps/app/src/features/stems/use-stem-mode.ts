@@ -16,8 +16,16 @@ async function loadStems(sources: StemSource[]): Promise<LoadedStem[]> {
     return await Promise.all(
       sources.map(async (source) => {
         const response = await fetch(source.url);
-        if (!response.ok) throw new AppError(ErrorCodes.EXTERNAL_SERVICE_FAILED, { message: `${source.name} didn't load` });
-        return { id: source.id, name: source.name, color: source.color, buffer: await context.decodeAudioData(await response.arrayBuffer()) };
+        if (!response.ok)
+          throw new AppError(ErrorCodes.EXTERNAL_SERVICE_FAILED, {
+            message: `${source.name} didn't load`,
+          });
+        return {
+          id: source.id,
+          name: source.name,
+          color: source.color,
+          buffer: await context.decodeAudioData(await response.arrayBuffer()),
+        };
       }),
     );
   } finally {

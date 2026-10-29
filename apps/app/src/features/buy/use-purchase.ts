@@ -4,7 +4,10 @@ import { useSession } from "next-auth/react";
 import { type ReactNode, useRef, useState } from "react";
 
 import { isAppError } from "@bandcoin/errors";
-import { CUSTODIAL_COUNTDOWN_SECONDS, type TransactionStep } from "@bandcoin/ui/patterns/transaction-toast";
+import {
+  CUSTODIAL_COUNTDOWN_SECONDS,
+  type TransactionStep,
+} from "@bandcoin/ui/patterns/transaction-toast";
 import { getWalletProvider, signTransaction } from "@bandcoin/wallet";
 
 import { api, type RouterInputs } from "~/trpc/react";
@@ -14,7 +17,9 @@ type Card = { sourceId: string; verificationToken?: string };
 type Pending = { orderId: string; xdr: string; card?: Card };
 
 const reasonOf = (error: unknown) =>
-  isAppError(error) || error instanceof Error ? error.message : "Something went wrong. Nothing was charged.";
+  isAppError(error) || error instanceof Error
+    ? error.message
+    : "Something went wrong. Nothing was charged.";
 
 /**
  * One purchase, from the Pay button to "You own it". Moves a single toast
@@ -35,13 +40,19 @@ export function usePurchase({ itemTitle }: { itemTitle: string }) {
   const [step, setStep] = useState<TransactionStep | null>(null);
   const pending = useRef<Pending | null>(null);
 
-  const busy = step !== null && (step.kind === "countdown" || step.kind === "confirm" || step.kind === "submitting");
+  const busy =
+    step !== null &&
+    (step.kind === "countdown" || step.kind === "confirm" || step.kind === "submitting");
 
   async function buy(input: PurchaseInput & { summary: ReactNode; card?: Card }) {
     const { summary, card, ...purchase } = input;
     let started;
     try {
-      setStep({ kind: "submitting", title: "Preparing your order…", summary: "Locking in this price for 60 seconds." });
+      setStep({
+        kind: "submitting",
+        title: "Preparing your order…",
+        summary: "Locking in this price for 60 seconds.",
+      });
       started = await start.mutateAsync(purchase);
     } catch (error) {
       setStep({ kind: "failed", reason: reasonOf(error) });
@@ -59,7 +70,11 @@ export function usePurchase({ itemTitle }: { itemTitle: string }) {
     setStep({ kind: "confirm", summary, walletName });
     let signed: string;
     try {
-      signed = await signTransaction({ xdr: started.xdr, publicKey: user?.walletAddress ?? "", walletType: user?.walletType ?? "" });
+      signed = await signTransaction({
+        xdr: started.xdr,
+        publicKey: user?.walletAddress ?? "",
+        walletType: user?.walletType ?? "",
+      });
     } catch {
       if (pending.current?.orderId === started.orderId) await stop();
       return;
@@ -76,8 +91,16 @@ export function usePurchase({ itemTitle }: { itemTitle: string }) {
     setStep({ kind: "submitting", summary: "Delivering your copy. This takes a few seconds." });
     try {
       await submit.mutateAsync({ orderId: order.orderId, xdr, card: order.card });
-      setStep({ kind: "success", title: `Done. It's yours: ${itemTitle}`, body: "It's in your collection now." });
-      await Promise.all([utils.item.bySlug.invalidate(), utils.account.me.invalidate(), utils.order.quote.invalidate()]);
+      setStep({
+        kind: "success",
+        title: `Done. It's yours: ${itemTitle}`,
+        body: "It's in your collection now.",
+      });
+      await Promise.all([
+        utils.item.bySlug.invalidate(),
+        utils.account.me.invalidate(),
+        utils.order.quote.invalidate(),
+      ]);
     } catch (error) {
       setStep({ kind: "failed", reason: reasonOf(error) });
     } finally {
@@ -93,5 +116,12 @@ export function usePurchase({ itemTitle }: { itemTitle: string }) {
     if (order) await cancel.mutateAsync({ orderId: order.orderId }).catch(() => undefined);
   }
 
-  return { step, busy, buy, send: () => void send(), stop: () => void stop(), close: () => setStep(null) };
+  return {
+    step,
+    busy,
+    buy,
+    send: () => void send(),
+    stop: () => void stop(),
+    close: () => setStep(null),
+  };
 }

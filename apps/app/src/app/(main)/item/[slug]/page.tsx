@@ -256,7 +256,11 @@ export default async function ItemPage({ params }: Props) {
                     className="w-fit bg-white/15 text-white hover:bg-white/25"
                   />
                 )}
-                <ReactionButtons itemId={item.id} tone="onDark" className="rounded-full bg-white/10 p-0.5" />
+                <ReactionButtons
+                  itemId={item.id}
+                  tone="onDark"
+                  className="rounded-full bg-white/10 p-0.5"
+                />
                 {item.media?.mediaType === "AUDIO" && (
                   <span className="num text-sm text-white/70">{playsLabel(item.playCount)}</span>
                 )}
@@ -299,7 +303,10 @@ export default async function ItemPage({ params }: Props) {
       </section>
 
       <PageBody wide className="grid gap-8">
-        <section id="buy" className="border-fg bg-surface scroll-mt-24 rounded-[1.6rem] border-[3px] p-5 shadow-[8px_9px_0_0_var(--color-primary)] sm:p-7">
+        <section
+          id="buy"
+          className="border-fg bg-surface scroll-mt-24 rounded-[1.6rem] border-[3px] p-5 shadow-[8px_9px_0_0_var(--color-primary)] sm:p-7"
+        >
           <ItemPurchase itemTitle={item.title} listings={item.listings} />
         </section>
 

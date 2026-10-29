@@ -13,14 +13,24 @@ describe("deriveRarity", () => {
 
   it("ranks a tier within the artist's own ladder", () => {
     const ladder = [10, 50, 200];
-    expect(deriveRarity({ visibility: "TIER", tierTokens: 10, artistTierTokens: ladder })).toBe("epic");
-    expect(deriveRarity({ visibility: "TIER", tierTokens: 50, artistTierTokens: ladder })).toBe("legendary");
-    expect(deriveRarity({ visibility: "TIER", tierTokens: 200, artistTierTokens: ladder })).toBe("mythic");
+    expect(deriveRarity({ visibility: "TIER", tierTokens: 10, artistTierTokens: ladder })).toBe(
+      "epic",
+    );
+    expect(deriveRarity({ visibility: "TIER", tierTokens: 50, artistTierTokens: ladder })).toBe(
+      "legendary",
+    );
+    expect(deriveRarity({ visibility: "TIER", tierTokens: 200, artistTierTokens: ladder })).toBe(
+      "mythic",
+    );
   });
 
   it("calls a tier epic when there is no ladder to rank it on", () => {
-    expect(deriveRarity({ visibility: "TIER", tierTokens: 50, artistTierTokens: [50, 50] })).toBe("epic");
-    expect(deriveRarity({ visibility: "TIER", tierTokens: null, artistTierTokens: [1, 9] })).toBe("epic");
+    expect(deriveRarity({ visibility: "TIER", tierTokens: 50, artistTierTokens: [50, 50] })).toBe(
+      "epic",
+    );
+    expect(deriveRarity({ visibility: "TIER", tierTokens: null, artistTierTokens: [1, 9] })).toBe(
+      "epic",
+    );
   });
 });
 
@@ -56,7 +66,9 @@ describe("pinStatus", () => {
   const now = Date.parse("2026-10-29T12:00:00Z");
 
   it("puts collected before every other state", () => {
-    expect(pinStatus(pin({ collected: true, remaining: 0, endsAt: "2020-01-01T00:00:00Z" }), now)).toBe("collected");
+    expect(
+      pinStatus(pin({ collected: true, remaining: 0, endsAt: "2020-01-01T00:00:00Z" }), now),
+    ).toBe("collected");
   });
 
   it("reports locked, expired and all-claimed pins", () => {
@@ -70,7 +82,10 @@ describe("pinStatus", () => {
   it("says how long is left", () => {
     expect(timeRemaining(null, now)).toBeNull();
     expect(timeRemaining("2026-10-29T15:00:00Z", now)).toEqual({ label: "3h left", urgent: true });
-    expect(timeRemaining("2026-11-08T12:00:00Z", now)).toEqual({ label: "10 days left", urgent: false });
+    expect(timeRemaining("2026-11-08T12:00:00Z", now)).toEqual({
+      label: "10 days left",
+      urgent: false,
+    });
   });
 });
 
@@ -79,7 +94,9 @@ describe("geo", () => {
     const from = { lat: 40.7128, lng: -74.006 };
     const moved = offsetBy(from, 100, 90);
     expect(distanceMeters(from, moved)).toBeCloseTo(100, 0);
-    expect(distanceMeters(from, offsetBy(from, AR_CAPTURE_RADIUS, 0))).toBeLessThanOrEqual(AR_CAPTURE_RADIUS + 0.01);
+    expect(distanceMeters(from, offsetBy(from, AR_CAPTURE_RADIUS, 0))).toBeLessThanOrEqual(
+      AR_CAPTURE_RADIUS + 0.01,
+    );
   });
 
   it("formats metres and kilometres", () => {

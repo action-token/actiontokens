@@ -25,20 +25,44 @@ export const membershipsRouter = createRouter({
   createFanToken: artistProcedure
     .input(
       z.discriminatedUnion("mode", [
-        z.object({ mode: z.literal("GENERATE"), coverUrl: z.string().url(), description: z.string().max(500).optional() }),
-        z.object({ mode: z.literal("CUSTOM"), code: z.string().trim().max(12), coverUrl: z.string().url(), description: z.string().max(500).optional() }),
-        z.object({ mode: z.literal("EXISTING"), code: z.string().trim().max(12), issuer: z.string().trim().max(60), coverUrl: z.string().url(), description: z.string().max(500).optional() }),
+        z.object({
+          mode: z.literal("GENERATE"),
+          coverUrl: z.string().url(),
+          description: z.string().max(500).optional(),
+        }),
+        z.object({
+          mode: z.literal("CUSTOM"),
+          code: z.string().trim().max(12),
+          coverUrl: z.string().url(),
+          description: z.string().max(500).optional(),
+        }),
+        z.object({
+          mode: z.literal("EXISTING"),
+          code: z.string().trim().max(12),
+          issuer: z.string().trim().max(60),
+          coverUrl: z.string().url(),
+          description: z.string().max(500).optional(),
+        }),
       ]),
     )
     .mutation(({ ctx, input }) => createFanToken(ctx, ctx.artist, ctx.session.user, input)),
 
   tiers: artistProcedure.query(({ ctx }) => listTiers(ctx, ctx.artist)),
 
-  createTier: artistProcedure.input(z.object(tierFields)).mutation(({ ctx, input }) => createTier(ctx, ctx.artist, input)),
+  createTier: artistProcedure
+    .input(z.object(tierFields))
+    .mutation(({ ctx, input }) => createTier(ctx, ctx.artist, input)),
 
   updateTier: artistProcedure
-    .input(z.object(tierFields).partial().extend({ tierId: z.string().min(1), isActive: z.boolean().optional() }))
+    .input(
+      z
+        .object(tierFields)
+        .partial()
+        .extend({ tierId: z.string().min(1), isActive: z.boolean().optional() }),
+    )
     .mutation(({ ctx, input }) => updateTier(ctx, ctx.artist, input)),
 
-  removeTier: artistProcedure.input(z.object({ tierId: z.string().min(1) })).mutation(({ ctx, input }) => removeTier(ctx, ctx.artist, input.tierId)),
+  removeTier: artistProcedure
+    .input(z.object({ tierId: z.string().min(1) }))
+    .mutation(({ ctx, input }) => removeTier(ctx, ctx.artist, input.tierId)),
 });

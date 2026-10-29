@@ -8,7 +8,11 @@ import QRCode from "react-qr-code";
 import { isAppError } from "@bandcoin/errors";
 import { Button } from "@bandcoin/ui/components/button";
 import { cn } from "@bandcoin/ui/lib/cn";
-import { type TransactionStep, ToastViewport, TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
+import {
+  type TransactionStep,
+  ToastViewport,
+  TransactionToast,
+} from "@bandcoin/ui/patterns/transaction-toast";
 
 import { Money } from "~/components/money";
 import { api } from "~/trpc/react";
@@ -27,7 +31,10 @@ const SEND_AT_LEAST_XLM = "2";
  */
 export function ActivateWallet({ address }: { address: string }) {
   const utils = api.useUtils();
-  const quote = api.activation.quote.useQuery(undefined, { refetchInterval: 30_000, placeholderData: (previous) => previous });
+  const quote = api.activation.quote.useQuery(undefined, {
+    refetchInterval: 30_000,
+    placeholderData: (previous) => previous,
+  });
   const start = api.activation.start.useMutation();
   const submit = api.activation.submit.useMutation();
   const { container: cardField, ...card } = useSquareCard(true);
@@ -44,13 +51,27 @@ export function ActivateWallet({ address }: { address: string }) {
     const cardToken = await card.tokenize();
     if (!cardToken) return;
     try {
-      setStep({ kind: "submitting", title: "Activating your wallet…", summary: "Charging your card and creating your wallet. This takes a few seconds." });
+      setStep({
+        kind: "submitting",
+        title: "Activating your wallet…",
+        summary: "Charging your card and creating your wallet. This takes a few seconds.",
+      });
       const started = await start.mutateAsync();
       await submit.mutateAsync({ orderId: started.orderId, card: cardToken });
-      setStep({ kind: "success", title: "Your wallet is active.", body: "It starts with the XLM shown in the price. You can recharge now." });
+      setStep({
+        kind: "success",
+        title: "Your wallet is active.",
+        body: "It starts with the XLM shown in the price. You can recharge now.",
+      });
       await Promise.all([utils.account.me.invalidate(), utils.activation.quote.invalidate()]);
     } catch (error) {
-      setStep({ kind: "failed", reason: isAppError(error) || error instanceof Error ? error.message : "Something went wrong. Your card wasn't charged." });
+      setStep({
+        kind: "failed",
+        reason:
+          isAppError(error) || error instanceof Error
+            ? error.message
+            : "Something went wrong. Your card wasn't charged.",
+      });
     }
   }
 
@@ -61,7 +82,8 @@ export function ActivateWallet({ address }: { address: string }) {
       <div>
         <h2 className="text-lg font-semibold">Activate your wallet</h2>
         <p className="text-fg-muted text-sm">
-          Your wallet needs its first XLM before it can pay, recharge or hold anything. Pick whichever is easier.
+          Your wallet needs its first XLM before it can pay, recharge or hold anything. Pick
+          whichever is easier.
         </p>
       </div>
 
@@ -70,7 +92,9 @@ export function ActivateWallet({ address }: { address: string }) {
           <h3 className="flex items-center gap-2 font-semibold">
             <CreditCard className="size-4" /> Pay by card
           </h3>
-          <p className="text-fg-muted text-sm">We create your wallet and fund it with the XLM this price buys. Nothing else is bought.</p>
+          <p className="text-fg-muted text-sm">
+            We create your wallet and fund it with the XLM this price buys. Nothing else is bought.
+          </p>
           <QuoteBreakdown
             lines={(data?.lines ?? []).filter((line) => line.key !== "charge")}
             pay={charge ? { currency: "USD", amount: charge.amount } : null}
@@ -80,7 +104,13 @@ export function ActivateWallet({ address }: { address: string }) {
           />
           {data?.ok && charge && (
             <>
-              <div ref={cardField} className={cn("min-h-[90px]", card.loading && "bg-surface-2 animate-pulse rounded-md")} />
+              <div
+                ref={cardField}
+                className={cn(
+                  "min-h-[90px]",
+                  card.loading && "bg-surface-2 animate-pulse rounded-md",
+                )}
+              />
               {card.error && <p className="text-danger text-xs">{card.error}</p>}
               <Button size="lg" disabled={busy || !card.ready} onClick={() => void pay()}>
                 Pay <Money amount={charge.amount} currency="USD" /> and activate
@@ -105,7 +135,12 @@ export function ActivateWallet({ address }: { address: string }) {
                   <Link href="/recharge">Recharge</Link>
                 </Button>
               ) : (
-                <Button size="sm" variant="secondary" className="h-8 px-3 text-[13px]" onClick={() => setStep(null)}>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="h-8 px-3 text-[13px]"
+                  onClick={() => setStep(null)}
+                >
                   Close
                 </Button>
               )
@@ -125,7 +160,8 @@ function SendXlm({ address }: { address: string }) {
         <ArrowDownToLine className="size-4" /> Send XLM yourself
       </h3>
       <p className="text-fg-muted text-sm">
-        Send at least {SEND_AT_LEAST_XLM} XLM to this address from a wallet or an exchange. This page activates by itself when it arrives.
+        Send at least {SEND_AT_LEAST_XLM} XLM to this address from a wallet or an exchange. This
+        page activates by itself when it arrives.
       </p>
       <div className="justify-self-center rounded-xl bg-white p-3">
         <QRCode value={address} size={150} />

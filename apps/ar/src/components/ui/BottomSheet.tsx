@@ -92,6 +92,7 @@ export function BottomSheet({
     </AnimatePresence>
   );
   // Closed sheets render nothing, so the server render never needs the frame.
-  const frame = typeof document === "undefined" ? null : document.querySelector("[data-ar-app-frame]");
+  const frame =
+    typeof document === "undefined" ? null : document.querySelector("[data-ar-app-frame]");
   return frame ? createPortal(sheet, frame) : sheet;
 }

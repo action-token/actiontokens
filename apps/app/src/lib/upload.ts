@@ -8,7 +8,12 @@ export async function sha256Base64(file: Blob) {
 
 /** The details the server signs an upload for. */
 export async function declare(file: File) {
-  return { fileName: file.name, fileType: file.type, fileSize: file.size, checksum: await sha256Base64(file) };
+  return {
+    fileName: file.name,
+    fileType: file.type,
+    fileSize: file.size,
+    checksum: await sha256Base64(file),
+  };
 }
 
 /** PUT a file to its presigned URL, straight to storage. */
@@ -18,5 +23,8 @@ export async function putToStorage(file: File, signed: { uploadUrl: string }, ch
     headers: { "Content-Type": file.type, "x-amz-checksum-sha256": checksum },
     body: file,
   });
-  if (!response.ok) throw new AppError(ErrorCodes.EXTERNAL_SERVICE_FAILED, { message: "The upload didn't go through. Try again." });
+  if (!response.ok)
+    throw new AppError(ErrorCodes.EXTERNAL_SERVICE_FAILED, {
+      message: "The upload didn't go through. Try again.",
+    });
 }

@@ -34,10 +34,17 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div
-      style={{ "--panel-left": `${widths.left}px`, "--panel-right": `${widths.right}px` } as CSSProperties}
+      style={
+        {
+          "--panel-left": `${widths.left}px`,
+          "--panel-right": `${widths.right}px`,
+        } as CSSProperties
+      }
       className={cn(
         "grid min-h-dvh grid-cols-1 sm:grid-cols-[72px_minmax(0,1fr)]",
-        panel ? "xl:grid-cols-[var(--panel-left)_minmax(0,1fr)_var(--panel-right)]" : "xl:grid-cols-[var(--panel-left)_minmax(0,1fr)]",
+        panel
+          ? "xl:grid-cols-[var(--panel-left)_minmax(0,1fr)_var(--panel-right)]"
+          : "xl:grid-cols-[var(--panel-left)_minmax(0,1fr)]",
       )}
     >
       <Sidebar />

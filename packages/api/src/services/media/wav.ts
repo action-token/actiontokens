@@ -8,7 +8,14 @@ export function wavPreview(header: Uint8Array, seconds: number) {
   if (header.length < 44) return null;
   const view = new DataView(header.buffer, header.byteOffset, header.byteLength);
   const tag = (at: number) => String.fromCharCode(...header.slice(at, at + 4));
-  if (tag(0) !== "RIFF" || tag(8) !== "WAVE" || tag(12) !== "fmt " || tag(36) !== "data" || view.getUint16(20, true) !== 1) return null;
+  if (
+    tag(0) !== "RIFF" ||
+    tag(8) !== "WAVE" ||
+    tag(12) !== "fmt " ||
+    tag(36) !== "data" ||
+    view.getUint16(20, true) !== 1
+  )
+    return null;
 
   const byteRate = view.getUint32(28, true);
   const blockAlign = view.getUint16(32, true);

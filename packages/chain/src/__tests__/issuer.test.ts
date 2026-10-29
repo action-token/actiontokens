@@ -1,4 +1,10 @@
-import { Account, Keypair, Networks, type Transaction, TransactionBuilder } from "@stellar/stellar-sdk";
+import {
+  Account,
+  Keypair,
+  Networks,
+  type Transaction,
+  TransactionBuilder,
+} from "@stellar/stellar-sdk";
 import { describe, expect, it } from "vitest";
 
 import { buildIssuerRefund, quoteIssuerSetup } from "../classic/issuer";
@@ -31,7 +37,9 @@ describe("quoteIssuerSetup", () => {
   });
 
   it("asks to sign in when there is no wallet to read", () => {
-    expect(quoteIssuerSetup({ xlmFunds: null, networkFeeXlm: "0.00001" }).problems).toEqual([{ code: "SIGN_IN", message: "Sign in to pay." }]);
+    expect(quoteIssuerSetup({ xlmFunds: null, networkFeeXlm: "0.00001" }).problems).toEqual([
+      { code: "SIGN_IN", message: "Sign in to pay." },
+    ]);
   });
 
   it("accepts exactly enough", () => {

@@ -1,15 +1,45 @@
 import { describe, expect, it } from "vitest";
 
-import { accentVars, artistFilter, decodePreview, frameAncestors, normalizeConfig, normalizeDomain } from "../embed/config";
-import { DEFAULT_DRAFT, embedPageUrl, heroSnippet, iframeSnippet, previewUrl, scriptSnippet } from "../embed/snippets";
+import {
+  accentVars,
+  artistFilter,
+  decodePreview,
+  frameAncestors,
+  normalizeConfig,
+  normalizeDomain,
+} from "../embed/config";
+import {
+  DEFAULT_DRAFT,
+  embedPageUrl,
+  heroSnippet,
+  iframeSnippet,
+  previewUrl,
+  scriptSnippet,
+} from "../embed/snippets";
 
 describe("embed config", () => {
   it("reads a saved row, falling back to safe defaults", () => {
     const config = normalizeConfig(
-      { name: "My map", showUserLocation: true, pinSource: "ARTIST", artistId: "a1", accentColor: "red", eventsUrl: "javascript:alert(1)", zoom: 99 },
+      {
+        name: "My map",
+        showUserLocation: true,
+        pinSource: "ARTIST",
+        artistId: "a1",
+        accentColor: "red",
+        eventsUrl: "javascript:alert(1)",
+        zoom: 99,
+      },
       "m1",
     );
-    expect(config).toMatchObject({ id: "m1", userLocation: true, pinSource: "ARTIST", artistId: "a1", accentColor: "#dbdc2c", eventsUrl: null, zoom: 18 });
+    expect(config).toMatchObject({
+      id: "m1",
+      userLocation: true,
+      pinSource: "ARTIST",
+      artistId: "a1",
+      accentColor: "#dbdc2c",
+      eventsUrl: null,
+      zoom: 18,
+    });
     expect(artistFilter(config)).toBe("a1");
     expect(artistFilter({ ...config, pinSource: "ALL" })).toBeUndefined();
   });
@@ -24,17 +54,30 @@ describe("embed config", () => {
   });
 
   it("derives the accent tokens from the colour", () => {
-    expect(accentVars("#dbdc2c")).toMatchObject({ "--ar-accent": "60 72% 52%", "--ar-accent-ink": "63 70% 6%" });
+    expect(accentVars("#dbdc2c")).toMatchObject({
+      "--ar-accent": "60 72% 52%",
+      "--ar-accent-ink": "63 70% 6%",
+    });
     expect(accentVars("#1d4ed8")["--ar-accent-ink"]).toBe("0 0% 100%");
   });
 });
 
 describe("embed snippets", () => {
   it("sends an unsaved draft to the preview and reads it back the same", () => {
-    const url = new URL(previewUrl({ ...DEFAULT_DRAFT, name: "Tour — Zürich", showUserLocation: true }, "a1"));
+    const url = new URL(
+      previewUrl({ ...DEFAULT_DRAFT, name: "Tour — Zürich", showUserLocation: true }, "a1"),
+    );
     expect(url.pathname).toBe("/embed/preview");
-    const config = normalizeConfig(decodePreview(url.searchParams.get("c") ?? undefined) ?? {}, "preview");
-    expect(config).toMatchObject({ name: "Tour — Zürich", userLocation: true, artistId: "a1", pinSource: "ARTIST" });
+    const config = normalizeConfig(
+      decodePreview(url.searchParams.get("c") ?? undefined) ?? {},
+      "preview",
+    );
+    expect(config).toMatchObject({
+      name: "Tour — Zürich",
+      userLocation: true,
+      artistId: "a1",
+      pinSource: "ARTIST",
+    });
   });
 
   it("points every snippet at the map's id and the AR app", () => {

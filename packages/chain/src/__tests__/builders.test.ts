@@ -1,4 +1,12 @@
-import { Account, Asset, FeeBumpTransaction, Keypair, Networks, type Transaction, TransactionBuilder } from "@stellar/stellar-sdk";
+import {
+  Account,
+  Asset,
+  FeeBumpTransaction,
+  Keypair,
+  Networks,
+  type Transaction,
+  TransactionBuilder,
+} from "@stellar/stellar-sdk";
 import { describe, expect, it } from "vitest";
 
 import { buildClassicPurchase, classicPurchaseOperations } from "../classic/purchase";
@@ -62,7 +70,13 @@ describe("buildClassicPurchase", () => {
     expect(built.serverSigners).toEqual([storage, issuer]);
     expect(built.hash).toMatch(/^[0-9a-f]{64}$/);
     expect(
-      classicPurchaseOperations({ card: false, openTrustline: true, royalty: true, fromStock: true, mint: true }),
+      classicPurchaseOperations({
+        card: false,
+        openTrustline: true,
+        royalty: true,
+        fromStock: true,
+        mint: true,
+      }),
     ).toBe(tx.operations.length);
   });
 
@@ -88,13 +102,23 @@ describe("buildClassicPurchase", () => {
     expect(tx.operations[0]).toMatchObject({ destination: buyerKey, amount: "0.5000000" });
     expect(built.serverSigners).toEqual([treasury, issuer]);
 
-    const bumped = TransactionBuilder.fromXDR(wrapInFeeBump(built.xdr, treasury, network), Networks.TESTNET);
+    const bumped = TransactionBuilder.fromXDR(
+      wrapInFeeBump(built.xdr, treasury, network),
+      Networks.TESTNET,
+    );
     expect(bumped).toBeInstanceOf(FeeBumpTransaction);
     const fee = bumped as FeeBumpTransaction;
     expect(fee.feeSource).toBe(treasury);
     expect(Buffer.from(fee.innerTransaction.hash()).toString("hex")).toBe(built.hash);
     expect(Number(fee.fee)).toBe(
-      100 * classicPurchaseOperations({ card: true, openTrustline: true, royalty: false, fromStock: false, mint: true }),
+      100 *
+        classicPurchaseOperations({
+          card: true,
+          openTrustline: true,
+          royalty: false,
+          fromStock: false,
+          mint: true,
+        }),
     );
   });
 
@@ -105,12 +129,24 @@ describe("buildClassicPurchase", () => {
       orderId,
       item,
       openTrustline: false,
-      payment: { asset: bandcoin, seller: { to: seller, amount: "5" }, platformFee: { to: treasury, amount: "0" } },
+      payment: {
+        asset: bandcoin,
+        seller: { to: seller, amount: "5" },
+        platformFee: { to: treasury, amount: "0" },
+      },
       delivery: { mint: { issuer, amount: "1" } },
     });
     expect(parse(built.xdr).operations).toHaveLength(2);
     expect(() =>
-      buildClassicPurchase({ buyer: account(), network, orderId, item, openTrustline: false, payment: null, delivery: {} }),
+      buildClassicPurchase({
+        buyer: account(),
+        network,
+        orderId,
+        item,
+        openTrustline: false,
+        payment: null,
+        delivery: {},
+      }),
     ).toThrow();
   });
 });
@@ -119,39 +155,113 @@ describe("recharge builders", () => {
   const mother = key();
 
   it("top-up: the buyer is the source, the platform sends the BANDCOIN, trustline opened first if needed", () => {
-    const built = buildTopUp({ buyer: account(), network, orderId, asset: bandcoin, from: mother, amount: "4994.999", openTrustline: true });
+    const built = buildTopUp({
+      buyer: account(),
+      network,
+      orderId,
+      asset: bandcoin,
+      from: mother,
+      amount: "4994.999",
+      openTrustline: true,
+    });
     const tx = parse(built.xdr);
     expect(tx.source).toBe(buyerKey);
     expect(tx.operations.map((op) => op.type)).toEqual(["changeTrust", "payment"]);
-    expect(tx.operations[1]).toMatchObject({ source: mother, destination: buyerKey, amount: "4994.9990000" });
+    expect(tx.operations[1]).toMatchObject({
+      source: mother,
+      destination: buyerKey,
+      amount: "4994.9990000",
+    });
     expect(memoText(tx)).toBe(orderId);
     expect(built.serverSigners).toEqual([mother]);
-    expect(parse(buildTopUp({ buyer: account(), network, orderId, asset: bandcoin, from: mother, amount: "1", openTrustline: false }).xdr).operations).toHaveLength(1);
+    expect(
+      parse(
+        buildTopUp({
+          buyer: account(),
+          network,
+          orderId,
+          asset: bandcoin,
+          from: mother,
+          amount: "1",
+          openTrustline: false,
+        }).xdr,
+      ).operations,
+    ).toHaveLength(1);
   });
 
   it("swap: the buyer pays BANDCOIN to the platform and gets exactly the XLM, in one transaction", () => {
-    const built = buildXlmSwap({ buyer: account(), network, orderId, asset: bandcoin, platform: mother, pay: "51", xlm: "1" });
+    const built = buildXlmSwap({
+      buyer: account(),
+      network,
+      orderId,
+      asset: bandcoin,
+      platform: mother,
+      pay: "51",
+      xlm: "1",
+    });
     const tx = parse(built.xdr);
     expect(tx.operations.map((op) => op.type)).toEqual(["payment", "payment"]);
     expect(tx.operations[0]).toMatchObject({ destination: mother, amount: "51.0000000" });
-    expect(tx.operations[1]).toMatchObject({ source: mother, destination: buyerKey, amount: "1.0000000" });
+    expect(tx.operations[1]).toMatchObject({
+      source: mother,
+      destination: buyerKey,
+      amount: "1.0000000",
+    });
     expect(built.serverSigners).toEqual([mother]);
   });
 
   it("activation: the platform creates the account in one transaction the fan never signs", () => {
-    const built = buildActivation({ platform: new Account(mother, "7"), network, orderId, destination: buyerKey, startingBalance: "19.89998" });
+    const built = buildActivation({
+      platform: new Account(mother, "7"),
+      network,
+      orderId,
+      destination: buyerKey,
+      startingBalance: "19.89998",
+    });
     const tx = parse(built.xdr);
     expect(tx.source).toBe(mother);
     expect(tx.operations).toHaveLength(1);
-    expect(tx.operations[0]).toMatchObject({ type: "createAccount", destination: buyerKey, startingBalance: "19.8999800" });
+    expect(tx.operations[0]).toMatchObject({
+      type: "createAccount",
+      destination: buyerKey,
+      startingBalance: "19.8999800",
+    });
     expect(memoText(tx)).toBe(orderId);
     expect(built.serverSigners).toEqual([mother]);
-    expect(() => buildActivation({ platform: new Account(mother, "7"), network, orderId, destination: buyerKey, startingBalance: "0" })).toThrow(RangeError);
+    expect(() =>
+      buildActivation({
+        platform: new Account(mother, "7"),
+        network,
+        orderId,
+        destination: buyerKey,
+        startingBalance: "0",
+      }),
+    ).toThrow(RangeError);
   });
 
   it("refuses to send nothing", () => {
-    expect(() => buildTopUp({ buyer: account(), network, orderId, asset: bandcoin, from: mother, amount: "0", openTrustline: false })).toThrow(RangeError);
-    expect(() => buildXlmSwap({ buyer: account(), network, orderId, asset: bandcoin, platform: mother, pay: "0", xlm: "1" })).toThrow(RangeError);
+    expect(() =>
+      buildTopUp({
+        buyer: account(),
+        network,
+        orderId,
+        asset: bandcoin,
+        from: mother,
+        amount: "0",
+        openTrustline: false,
+      }),
+    ).toThrow(RangeError);
+    expect(() =>
+      buildXlmSwap({
+        buyer: account(),
+        network,
+        orderId,
+        asset: bandcoin,
+        platform: mother,
+        pay: "0",
+        xlm: "1",
+      }),
+    ).toThrow(RangeError);
   });
 });
 
@@ -167,7 +277,10 @@ describe("verifyTransaction", () => {
   };
 
   it("accepts the transaction the order was built with", () => {
-    expect(verifyTransaction(purchase().xdr, Networks.TESTNET, expectation)).toEqual({ ok: true, mismatches: [] });
+    expect(verifyTransaction(purchase().xdr, Networks.TESTNET, expectation)).toEqual({
+      ok: true,
+      mismatches: [],
+    });
   });
 
   it("rejects a transaction for another order, buyer or amount", () => {
@@ -188,38 +301,80 @@ describe("verifyTransaction", () => {
 describe("other builders", () => {
   it("opens the artist's one issuer, paid by the artist", () => {
     const artist = key();
-    const built = buildIssuerSetup({ artist: account(artist), network, issuer, homeDomain: "bandcoin.io" });
+    const built = buildIssuerSetup({
+      artist: account(artist),
+      network,
+      issuer,
+      homeDomain: "bandcoin.io",
+    });
     const tx = parse(built.xdr);
     expect(tx.source).toBe(artist);
-    expect(tx.operations[0]).toMatchObject({ type: "createAccount", destination: issuer, startingBalance: "1.5000000" });
+    expect(tx.operations[0]).toMatchObject({
+      type: "createAccount",
+      destination: issuer,
+      startingBalance: "1.5000000",
+    });
     expect(ISSUER_STARTING_XLM).toBe("1.5");
     expect(built.serverSigners).toEqual([issuer]);
   });
 
   it("gifts as a claimable balance when the receiver can't hold the asset yet", () => {
     const direct = parse(
-      buildTransfer({ sender: account(), network, to: seller, asset: item, amount: "1", receiverTrusts: true }).xdr,
+      buildTransfer({
+        sender: account(),
+        network,
+        to: seller,
+        asset: item,
+        amount: "1",
+        receiverTrusts: true,
+      }).xdr,
     );
     const claimable = parse(
-      buildTransfer({ sender: account(), network, to: seller, asset: item, amount: "1", receiverTrusts: false }).xdr,
+      buildTransfer({
+        sender: account(),
+        network,
+        to: seller,
+        asset: item,
+        amount: "1",
+        receiverTrusts: false,
+      }).xdr,
     );
     expect(direct.operations[0]?.type).toBe("payment");
     expect(claimable.operations[0]?.type).toBe("createClaimableBalance");
   });
 
   it("issues tokens from the issuer to the fan while the artist's wallet is the source and pays the fee", () => {
-    const built = buildIssueTokens({ sender: account(creator), network, issuer, to: seller, asset: item, amount: "25", memo: orderId });
+    const built = buildIssueTokens({
+      sender: account(creator),
+      network,
+      issuer,
+      to: seller,
+      asset: item,
+      amount: "25",
+      memo: orderId,
+    });
     const tx = parse(built.xdr);
     expect(tx.source).toBe(creator);
     expect(tx.operations).toHaveLength(1);
-    expect(tx.operations[0]).toMatchObject({ type: "payment", source: issuer, destination: seller, amount: "25.0000000" });
+    expect(tx.operations[0]).toMatchObject({
+      type: "payment",
+      source: issuer,
+      destination: seller,
+      amount: "25.0000000",
+    });
     expect(built.serverSigners).toEqual([issuer]);
     expect(memoText(tx)).toBe(orderId);
   });
 
   it("splits royalty payouts into batches of 100 with consecutive sequence numbers", () => {
     const lines = Array.from({ length: 250 }, () => ({ to: key(), amount: "1" }));
-    const batches = buildRoyaltyPayouts({ payer: account(creator), network, asset: bandcoin, lines, payoutId: "payout-1" });
+    const batches = buildRoyaltyPayouts({
+      payer: account(creator),
+      network,
+      asset: bandcoin,
+      lines,
+      payoutId: "payout-1",
+    });
     const txs = batches.map((batch) => parse(batch.xdr));
     expect(txs.map((tx) => tx.operations.length)).toEqual([100, 100, 50]);
     expect(txs.map((tx) => tx.sequence)).toEqual(["101", "102", "103"]);
@@ -288,7 +443,9 @@ describe("toStellarError", () => {
   });
 
   it("turns Stellar result codes into plain messages", () => {
-    expect(toStellarError(horizonFailure(["op_success", "op_underfunded"])).code).toBe("STELLAR_INSUFFICIENT_BALANCE");
+    expect(toStellarError(horizonFailure(["op_success", "op_underfunded"])).code).toBe(
+      "STELLAR_INSUFFICIENT_BALANCE",
+    );
     expect(toStellarError(horizonFailure(["op_no_trust"])).code).toBe("STELLAR_TRUSTLINE_MISSING");
     expect(toStellarError(horizonFailure([], "tx_too_late")).code).toBe("STELLAR_QUOTE_EXPIRED");
     expect(toStellarError(horizonFailure(["op_weird"])).code).toBe("STELLAR_TX_REJECTED");

@@ -70,37 +70,57 @@ export function TrackRow({
           )}
         </span>
         {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
-        <img src={track.coverUrl} alt="" loading="lazy" className="size-11 rounded-sm object-cover" />
+        <img
+          src={track.coverUrl}
+          alt=""
+          loading="lazy"
+          className="size-11 rounded-sm object-cover"
+        />
         <div className="min-w-0">
           <Link
             href={`/item/${track.slug}`}
             onClick={(event) => event.stopPropagation()}
-            className={cn("inline-block max-w-full truncate align-top text-sm font-semibold hover:underline", isCurrent && "text-primary-text")}
+            className={cn(
+              "inline-block max-w-full truncate align-top text-sm font-semibold hover:underline",
+              isCurrent && "text-primary-text",
+            )}
           >
             {track.title}
           </Link>
           <span className="text-fg-muted block truncate text-xs">
             {track.artistSlug ? (
-              <Link href={`/artist/${track.artistSlug}`} onClick={(event) => event.stopPropagation()} className="hover:text-fg hover:underline">
+              <Link
+                href={`/artist/${track.artistSlug}`}
+                onClick={(event) => event.stopPropagation()}
+                className="hover:text-fg hover:underline"
+              >
                 {track.artistName}
               </Link>
             ) : (
               track.artistName
             )}
-            {badge && <span className="bg-surface-3 text-fg ml-2 rounded-full px-1.5 py-px text-[10px] font-semibold">{badge}</span>}
+            {badge && (
+              <span className="bg-surface-3 text-fg ml-2 rounded-full px-1.5 py-px text-[10px] font-semibold">
+                {badge}
+              </span>
+            )}
           </span>
         </div>
         {/* One cell, two layers: the numbers by default, only the buttons on hover or focus */}
         <div className="grid items-center justify-items-end">
-          <div className="[grid-area:1/1] flex items-center gap-4 transition-opacity group-focus-within:invisible group-hover:invisible [@media(pointer:coarse)]:hidden">
-            <span className="num text-fg-faint hidden text-xs whitespace-nowrap sm:block">{playsLabel(track.playCount)}</span>
+          <div className="flex items-center gap-4 transition-opacity [grid-area:1/1] group-focus-within:invisible group-hover:invisible [@media(pointer:coarse)]:hidden">
+            <span className="num text-fg-faint hidden text-xs whitespace-nowrap sm:block">
+              {playsLabel(track.playCount)}
+            </span>
             <span className="num text-fg-muted text-xs">
               {track.price && <Money amount={track.price.bandcoin} currency="BANDCOIN" />}
             </span>
-            <span className="num text-fg-faint hidden w-10 text-right text-xs sm:block">{clock(track.durationSec)}</span>
+            <span className="num text-fg-faint hidden w-10 text-right text-xs sm:block">
+              {clock(track.durationSec)}
+            </span>
           </div>
           <div
-            className="[grid-area:1/1] flex items-center invisible group-focus-within:visible group-hover:visible [@media(pointer:coarse)]:visible"
+            className="invisible flex items-center [grid-area:1/1] group-focus-within:visible group-hover:visible [@media(pointer:coarse)]:visible"
             onClick={(event) => event.stopPropagation()}
             onKeyDown={(event) => event.stopPropagation()}
           >

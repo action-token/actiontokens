@@ -22,7 +22,11 @@ export function PlayButton({ track, className }: { track: QueueTrack; className?
         className,
       )}
     >
-      {playing ? <Pause className="size-6 fill-current" /> : <Play className="size-6 translate-x-px fill-current" />}
+      {playing ? (
+        <Pause className="size-6 fill-current" />
+      ) : (
+        <Play className="size-6 translate-x-px fill-current" />
+      )}
     </button>
   );
 }

@@ -208,8 +208,10 @@ export function CollectionsChart({
   return (
     <div className={cn("bg-surface border-fg/10 rounded-[1.4rem] border-2 p-4", className)}>
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-fg-muted text-[11px] font-semibold tracking-wider uppercase">Collections per {buckets.weekly ? "week" : "day"}</h2>
-        <p className="text-fg-muted text-xs num">
+        <h2 className="text-fg-muted text-[11px] font-semibold tracking-wider uppercase">
+          Collections per {buckets.weekly ? "week" : "day"}
+        </h2>
+        <p className="text-fg-muted num text-xs">
           {shown ? (
             <>
               <span className="text-foreground font-medium">{shown.n.toLocaleString()}</span> ·{" "}

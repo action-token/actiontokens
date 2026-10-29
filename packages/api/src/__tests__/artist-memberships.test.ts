@@ -9,20 +9,45 @@ import type { ChainGateway } from "../services/chain-gateway";
 import { checkExistingToken, createFanToken, getFanToken } from "../services/artist/fan-token";
 import { createTier, listTiers, removeTier, updateTier } from "../services/artist/tiers";
 
-vi.mock("@bandcoin/storage", () => ({ isOwnS3Url: (url: string) => url.startsWith("https://cdn.example/") }));
+vi.mock("@bandcoin/storage", () => ({
+  isOwnS3Url: (url: string) => url.startsWith("https://cdn.example/"),
+}));
 
 type Row = Record<string, unknown>;
 
-const artist = { id: "a1", slug: "luna-vale", name: "Luna Vale", userId: "u1", issuerAccountId: "chain1", fanTokenItemId: null as string | null };
+const artist = {
+  id: "a1",
+  slug: "luna-vale",
+  name: "Luna Vale",
+  userId: "u1",
+  issuerAccountId: "chain1",
+  fanTokenItemId: null as string | null,
+};
 const user = { id: "u1" };
 const cover = "https://cdn.example/fan.png";
 
-function setup(opts: { takenCodes?: string[]; assetExists?: boolean; tiers?: Row[]; tier?: Row | null; usage?: [number, number, number] } = {}) {
+function setup(
+  opts: {
+    takenCodes?: string[];
+    assetExists?: boolean;
+    tiers?: Row[];
+    tier?: Row | null;
+    usage?: [number, number, number];
+  } = {},
+) {
   const taken = new Set(opts.takenCodes ?? []);
   const created: Row[] = [];
   const db = {
-    chainAccount: { findUnique: vi.fn().mockResolvedValue({ id: "chain1", publicKey: "GISSUER", activatedAt: new Date() }) },
-    classicToken: { findUnique: vi.fn(({ where }: { where: { code_issuer: { code: string } } }) => Promise.resolve(taken.has(where.code_issuer.code) ? { itemId: "x" } : null)) },
+    chainAccount: {
+      findUnique: vi
+        .fn()
+        .mockResolvedValue({ id: "chain1", publicKey: "GISSUER", activatedAt: new Date() }),
+    },
+    classicToken: {
+      findUnique: vi.fn(({ where }: { where: { code_issuer: { code: string } } }) =>
+        Promise.resolve(taken.has(where.code_issuer.code) ? { itemId: "x" } : null),
+      ),
+    },
     item: {
       findUnique: vi.fn().mockResolvedValue(null),
       findFirst: vi.fn().mockResolvedValue(null),
@@ -35,7 +60,9 @@ function setup(opts: { takenCodes?: string[]; assetExists?: boolean; tiers?: Row
     artist: { update: vi.fn().mockResolvedValue({}) },
     membershipTier: {
       findMany: vi.fn().mockResolvedValue(opts.tiers ?? []),
-      findFirst: vi.fn().mockResolvedValue(opts.tier === undefined ? { id: "t1", artistId: "a1" } : opts.tier),
+      findFirst: vi
+        .fn()
+        .mockResolvedValue(opts.tier === undefined ? { id: "t1", artistId: "a1" } : opts.tier),
       create: vi.fn(({ data }: { data: Row }) => Promise.resolve({ id: "t1", ...data })),
       update: vi.fn().mockResolvedValue({}),
       delete: vi.fn().mockResolvedValue({}),
@@ -46,36 +73,77 @@ function setup(opts: { takenCodes?: string[]; assetExists?: boolean; tiers?: Row
   };
   const chain = { assetExists: vi.fn().mockResolvedValue(opts.assetExists ?? true) };
   const activity = { set: vi.fn(), facts: () => ({}) };
-  return { ctx: { db: db as unknown as Db, chain: chain as unknown as ChainGateway, activity }, db, chain, created };
+  return {
+    ctx: { db: db as unknown as Db, chain: chain as unknown as ChainGateway, activity },
+    db,
+    chain,
+    created,
+  };
 }
 
 describe("createFanToken", () => {
   it("generates a code from the artist's name and issues it under their own account", async () => {
     const { ctx, db, created } = setup();
-    await expect(createFanToken(ctx, artist, user, { mode: "GENERATE", coverUrl: cover })).resolves.toEqual({ itemId: "ft1", code: "LUNAVALE" });
+    await expect(
+      createFanToken(ctx, artist, user, { mode: "GENERATE", coverUrl: cover }),
+    ).resolves.toEqual({ itemId: "ft1", code: "LUNAVALE" });
     expect(created[0]).toMatchObject({
       type: "FAN_TOKEN",
       chainType: "CLASSIC_TOKEN",
       title: "Luna Vale fan token",
       visibility: "PUBLIC",
       artistId: "a1",
-      classicToken: { create: { code: "LUNAVALE", issuer: "GISSUER", issuerAccountId: "chain1", isExternal: false } },
+      classicToken: {
+        create: {
+          code: "LUNAVALE",
+          issuer: "GISSUER",
+          issuerAccountId: "chain1",
+          isExternal: false,
+        },
+      },
     });
-    expect(db.artist.update).toHaveBeenCalledWith({ where: { id: "a1" }, data: { fanTokenItemId: "ft1" } });
+    expect(db.artist.update).toHaveBeenCalledWith({
+      where: { id: "a1" },
+      data: { fanTokenItemId: "ft1" },
+    });
   });
 
   it("adds a number when the generated code is taken", async () => {
     const { ctx, created } = setup({ takenCodes: ["LUNAVALE", "LUNAVALE2"] });
-    await expect(createFanToken(ctx, artist, user, { mode: "GENERATE", coverUrl: cover })).resolves.toMatchObject({ code: "LUNAVALE3" });
-    expect((created[0]!.classicToken as { create: { code: string } }).create.code).toBe("LUNAVALE3");
+    await expect(
+      createFanToken(ctx, artist, user, { mode: "GENERATE", coverUrl: cover }),
+    ).resolves.toMatchObject({ code: "LUNAVALE3" });
+    expect((created[0]!.classicToken as { create: { code: string } }).create.code).toBe(
+      "LUNAVALE3",
+    );
   });
 
   it("uses the artist's own code, refusing reserved, malformed or used ones", async () => {
     const { ctx } = setup();
-    await expect(createFanToken(ctx, artist, user, { mode: "CUSTOM", code: "luna", coverUrl: cover })).resolves.toMatchObject({ code: "LUNA" });
-    await expect(createFanToken(setup().ctx, artist, user, { mode: "CUSTOM", code: "BANDCOIN", coverUrl: cover })).rejects.toMatchObject({ message: "That code is reserved" });
-    await expect(createFanToken(setup().ctx, artist, user, { mode: "CUSTOM", code: "no way", coverUrl: cover })).rejects.toMatchObject({ message: "Use only letters and numbers" });
-    await expect(createFanToken(setup({ takenCodes: ["LUNA"] }).ctx, artist, user, { mode: "CUSTOM", code: "LUNA", coverUrl: cover })).rejects.toMatchObject({
+    await expect(
+      createFanToken(ctx, artist, user, { mode: "CUSTOM", code: "luna", coverUrl: cover }),
+    ).resolves.toMatchObject({ code: "LUNA" });
+    await expect(
+      createFanToken(setup().ctx, artist, user, {
+        mode: "CUSTOM",
+        code: "BANDCOIN",
+        coverUrl: cover,
+      }),
+    ).rejects.toMatchObject({ message: "That code is reserved" });
+    await expect(
+      createFanToken(setup().ctx, artist, user, {
+        mode: "CUSTOM",
+        code: "no way",
+        coverUrl: cover,
+      }),
+    ).rejects.toMatchObject({ message: "Use only letters and numbers" });
+    await expect(
+      createFanToken(setup({ takenCodes: ["LUNA"] }).ctx, artist, user, {
+        mode: "CUSTOM",
+        code: "LUNA",
+        coverUrl: cover,
+      }),
+    ).rejects.toMatchObject({
       message: "You already use that code for another item.",
     });
   });
@@ -83,44 +151,106 @@ describe("createFanToken", () => {
   it("can point at a Stellar asset the artist already issued, after checking it exists", async () => {
     const issuer = "GCIRB3GJI5PKOW7BUFERNGVB5DMMQT3RCD2I4Z7W4R4F4ED7QTL2K7HU";
     const { ctx, chain, created } = setup();
-    await createFanToken(ctx, artist, user, { mode: "EXISTING", code: "LUNA", issuer, coverUrl: cover });
+    await createFanToken(ctx, artist, user, {
+      mode: "EXISTING",
+      code: "LUNA",
+      issuer,
+      coverUrl: cover,
+    });
     expect(chain.assetExists).toHaveBeenCalledWith("LUNA", issuer);
-    expect(created[0]).toMatchObject({ classicToken: { create: { code: "LUNA", issuer, isExternal: true } } });
+    expect(created[0]).toMatchObject({
+      classicToken: { create: { code: "LUNA", issuer, isExternal: true } },
+    });
     expect((created[0]!.classicToken as { create: Row }).create.issuerAccountId).toBeUndefined();
 
-    await expect(createFanToken(setup({ assetExists: false }).ctx, artist, user, { mode: "EXISTING", code: "LUNA", issuer, coverUrl: cover })).rejects.toMatchObject({
+    await expect(
+      createFanToken(setup({ assetExists: false }).ctx, artist, user, {
+        mode: "EXISTING",
+        code: "LUNA",
+        issuer,
+        coverUrl: cover,
+      }),
+    ).rejects.toMatchObject({
       message: "We couldn't find that asset on Stellar. Check the code and the issuer.",
     });
-    await expect(createFanToken(setup().ctx, artist, user, { mode: "EXISTING", code: "LUNA", issuer: "not-a-key", coverUrl: cover })).rejects.toMatchObject({
+    await expect(
+      createFanToken(setup().ctx, artist, user, {
+        mode: "EXISTING",
+        code: "LUNA",
+        issuer: "not-a-key",
+        coverUrl: cover,
+      }),
+    ).rejects.toMatchObject({
       message: "Enter the issuer's public key (it starts with G).",
     });
   });
 
   it("tells the artist whether an existing token is usable, and who already uses it", async () => {
     const issuer = "GCIRB3GJI5PKOW7BUFERNGVB5DMMQT3RCD2I4Z7W4R4F4ED7QTL2K7HU";
-    await expect(checkExistingToken(setup().ctx, artist, { code: "luna", issuer })).resolves.toEqual({ status: "OK", code: "LUNA" });
-    await expect(checkExistingToken(setup().ctx, artist, { code: "LU NA", issuer })).resolves.toMatchObject({ status: "INVALID" });
-    await expect(checkExistingToken(setup().ctx, artist, { code: "LUNA", issuer: "G123" })).resolves.toMatchObject({ status: "INVALID" });
-    await expect(checkExistingToken(setup({ assetExists: false }).ctx, artist, { code: "LUNA", issuer })).resolves.toMatchObject({ status: "NOT_FOUND" });
+    await expect(
+      checkExistingToken(setup().ctx, artist, { code: "luna", issuer }),
+    ).resolves.toEqual({ status: "OK", code: "LUNA" });
+    await expect(
+      checkExistingToken(setup().ctx, artist, { code: "LU NA", issuer }),
+    ).resolves.toMatchObject({ status: "INVALID" });
+    await expect(
+      checkExistingToken(setup().ctx, artist, { code: "LUNA", issuer: "G123" }),
+    ).resolves.toMatchObject({ status: "INVALID" });
+    await expect(
+      checkExistingToken(setup({ assetExists: false }).ctx, artist, { code: "LUNA", issuer }),
+    ).resolves.toMatchObject({ status: "NOT_FOUND" });
 
     const mine = setup();
-    (mine.db.classicToken.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ item: { title: "Old merch", artistId: "a1" } });
-    await expect(checkExistingToken(mine.ctx, artist, { code: "LUNA", issuer })).resolves.toEqual({ status: "USED", byYou: true, message: 'You already use this token for "Old merch".' });
+    (mine.db.classicToken.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      item: { title: "Old merch", artistId: "a1" },
+    });
+    await expect(checkExistingToken(mine.ctx, artist, { code: "LUNA", issuer })).resolves.toEqual({
+      status: "USED",
+      byYou: true,
+      message: 'You already use this token for "Old merch".',
+    });
     const theirs = setup();
-    (theirs.db.classicToken.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ item: { title: "Their item", artistId: "a2" } });
-    await expect(checkExistingToken(theirs.ctx, artist, { code: "LUNA", issuer })).resolves.toEqual({ status: "USED", byYou: false, message: "That asset is already used for another item." });
-    await expect(createFanToken(theirs.ctx, artist, user, { mode: "EXISTING", code: "LUNA", issuer, coverUrl: cover })).rejects.toMatchObject({ message: "That asset is already used for another item." });
+    (theirs.db.classicToken.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      item: { title: "Their item", artistId: "a2" },
+    });
+    await expect(checkExistingToken(theirs.ctx, artist, { code: "LUNA", issuer })).resolves.toEqual(
+      { status: "USED", byYou: false, message: "That asset is already used for another item." },
+    );
+    await expect(
+      createFanToken(theirs.ctx, artist, user, {
+        mode: "EXISTING",
+        code: "LUNA",
+        issuer,
+        coverUrl: cover,
+      }),
+    ).rejects.toMatchObject({ message: "That asset is already used for another item." });
   });
 
   it("is one per artist, and needs an image from our storage", async () => {
-    await expect(createFanToken(setup().ctx, { ...artist, fanTokenItemId: "ft0" }, user, { mode: "GENERATE", coverUrl: cover })).rejects.toMatchObject({ message: "You already have a fan token." });
-    await expect(createFanToken(setup().ctx, artist, user, { mode: "GENERATE", coverUrl: "https://evil.example/f.png" })).rejects.toMatchObject({ message: "Upload the cover again." });
+    await expect(
+      createFanToken(setup().ctx, { ...artist, fanTokenItemId: "ft0" }, user, {
+        mode: "GENERATE",
+        coverUrl: cover,
+      }),
+    ).rejects.toMatchObject({ message: "You already have a fan token." });
+    await expect(
+      createFanToken(setup().ctx, artist, user, {
+        mode: "GENERATE",
+        coverUrl: "https://evil.example/f.png",
+      }),
+    ).rejects.toMatchObject({ message: "Upload the cover again." });
   });
 
   it("needs the artist account open first (unless the token already exists elsewhere)", async () => {
     const { ctx, db } = setup();
-    db.chainAccount.findUnique.mockResolvedValue({ id: "chain1", publicKey: "G", activatedAt: null });
-    await expect(createFanToken(ctx, artist, user, { mode: "GENERATE", coverUrl: cover })).rejects.toMatchObject({ message: "Open your artist account first." });
+    db.chainAccount.findUnique.mockResolvedValue({
+      id: "chain1",
+      publicKey: "G",
+      activatedAt: null,
+    });
+    await expect(
+      createFanToken(ctx, artist, user, { mode: "GENERATE", coverUrl: cover }),
+    ).rejects.toMatchObject({ message: "Open your artist account first." });
   });
 });
 
@@ -129,34 +259,85 @@ describe("getFanToken", () => {
     const none = setup();
     await expect(getFanToken(none.ctx, artist)).resolves.toBeNull();
     const { ctx, db } = setup();
-    db.item.findFirst.mockResolvedValue({ id: "ft1", coverUrl: cover, classicToken: { code: "LUNA", issuer: "GISSUER", isExternal: false } });
-    await expect(getFanToken(ctx, { ...artist, fanTokenItemId: "ft1" })).resolves.toEqual({ itemId: "ft1", code: "LUNA", issuer: "GISSUER", external: false, coverUrl: cover });
+    db.item.findFirst.mockResolvedValue({
+      id: "ft1",
+      coverUrl: cover,
+      classicToken: { code: "LUNA", issuer: "GISSUER", isExternal: false },
+    });
+    await expect(getFanToken(ctx, { ...artist, fanTokenItemId: "ft1" })).resolves.toEqual({
+      itemId: "ft1",
+      code: "LUNA",
+      issuer: "GISSUER",
+      external: false,
+      coverUrl: cover,
+    });
   });
 });
 
 describe("tiers", () => {
-  const input = { name: "Gold", description: "Early access", features: ["Early drops", "Chat"], requiredTokens: "100", color: "#dbdc2c", isPopular: false };
+  const input = {
+    name: "Gold",
+    description: "Early access",
+    features: ["Early drops", "Chat"],
+    requiredTokens: "100",
+    color: "#dbdc2c",
+    isPopular: false,
+  };
 
   it("creates a tier that needs N of the fan token", async () => {
     const { ctx, db } = setup();
-    await expect(createTier(ctx, { ...artist, fanTokenItemId: "ft1" }, input)).resolves.toEqual({ tierId: "t1" });
+    await expect(createTier(ctx, { ...artist, fanTokenItemId: "ft1" }, input)).resolves.toEqual({
+      tierId: "t1",
+    });
     expect(db.membershipTier.create).toHaveBeenCalledWith({
-      data: { artistId: "a1", name: "Gold", description: "Early access", features: ["Early drops", "Chat"], requiredTokens: "100", color: "#dbdc2c", isPopular: false },
+      data: {
+        artistId: "a1",
+        name: "Gold",
+        description: "Early access",
+        features: ["Early drops", "Chat"],
+        requiredTokens: "100",
+        color: "#dbdc2c",
+        isPopular: false,
+      },
       select: { id: true },
     });
   });
 
   it("needs a fan token first, a positive amount and a name", async () => {
-    await expect(createTier(setup().ctx, artist, input)).rejects.toMatchObject({ message: "Create your fan token first." });
-    await expect(createTier(setup().ctx, { ...artist, fanTokenItemId: "ft1" }, { ...input, requiredTokens: "0" })).rejects.toMatchObject({ message: "Enter a price above zero" });
-    await expect(createTier(setup().ctx, { ...artist, fanTokenItemId: "ft1" }, { ...input, name: " " })).rejects.toMatchObject({ message: "Name the tier." });
+    await expect(createTier(setup().ctx, artist, input)).rejects.toMatchObject({
+      message: "Create your fan token first.",
+    });
+    await expect(
+      createTier(
+        setup().ctx,
+        { ...artist, fanTokenItemId: "ft1" },
+        { ...input, requiredTokens: "0" },
+      ),
+    ).rejects.toMatchObject({ message: "Enter a price above zero" });
+    await expect(
+      createTier(setup().ctx, { ...artist, fanTokenItemId: "ft1" }, { ...input, name: " " }),
+    ).rejects.toMatchObject({ message: "Name the tier." });
   });
 
   it("drops empty feature lines and caps them at 10", async () => {
     const { ctx, db } = setup();
-    await createTier(ctx, { ...artist, fanTokenItemId: "ft1" }, { ...input, features: [" Early drops ", "", "  "] });
-    expect(db.membershipTier.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ features: ["Early drops"] }) as unknown }));
-    await expect(createTier(setup().ctx, { ...artist, fanTokenItemId: "ft1" }, { ...input, features: Array.from({ length: 11 }, (_, i) => `f${i}`) })).rejects.toMatchObject({
+    await createTier(
+      ctx,
+      { ...artist, fanTokenItemId: "ft1" },
+      { ...input, features: [" Early drops ", "", "  "] },
+    );
+    expect(db.membershipTier.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ features: ["Early drops"] }) as unknown,
+      }),
+    );
+    await expect(
+      createTier(
+        setup().ctx,
+        { ...artist, fanTokenItemId: "ft1" },
+        { ...input, features: Array.from({ length: 11 }, (_, i) => `f${i}`) },
+      ),
+    ).rejects.toMatchObject({
       message: "Use at most 10 perks.",
     });
   });
@@ -164,17 +345,47 @@ describe("tiers", () => {
   it("lists tiers from the smallest hold to the biggest", async () => {
     const { ctx, db } = setup();
     db.membershipTier.findMany.mockResolvedValue([
-      { id: "t1", name: "Silver", description: "d", features: [], color: null, isPopular: false, isActive: true, requiredTokens: { toString: () => "10" }, _count: { items: 2, posts: 1, pins: 0 } },
+      {
+        id: "t1",
+        name: "Silver",
+        description: "d",
+        features: [],
+        color: null,
+        isPopular: false,
+        isActive: true,
+        requiredTokens: { toString: () => "10" },
+        _count: { items: 2, posts: 1, pins: 0 },
+      },
     ]);
-    await expect(listTiers(ctx, artist)).resolves.toEqual([expect.objectContaining({ id: "t1", name: "Silver", requiredTokens: "10", inUse: 3, isActive: true })]);
-    expect(db.membershipTier.findMany).toHaveBeenCalledWith(expect.objectContaining({ orderBy: [{ requiredTokens: "asc" }, { createdAt: "asc" }] }));
+    await expect(listTiers(ctx, artist)).resolves.toEqual([
+      expect.objectContaining({
+        id: "t1",
+        name: "Silver",
+        requiredTokens: "10",
+        inUse: 3,
+        isActive: true,
+      }),
+    ]);
+    expect(db.membershipTier.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ orderBy: [{ requiredTokens: "asc" }, { createdAt: "asc" }] }),
+    );
   });
 
   it("updates, hides (deactivates) and renames only the artist's own tier", async () => {
     const { ctx, db } = setup();
-    await updateTier(ctx, artist, { tierId: "t1", name: "Gold+", isActive: false, requiredTokens: "150" });
-    expect(db.membershipTier.update).toHaveBeenCalledWith({ where: { id: "t1" }, data: { name: "Gold+", isActive: false, requiredTokens: "150" } });
-    await expect(updateTier(setup({ tier: null }).ctx, artist, { tierId: "t1", name: "x" })).rejects.toMatchObject({ message: "Tier not found" });
+    await updateTier(ctx, artist, {
+      tierId: "t1",
+      name: "Gold+",
+      isActive: false,
+      requiredTokens: "150",
+    });
+    expect(db.membershipTier.update).toHaveBeenCalledWith({
+      where: { id: "t1" },
+      data: { name: "Gold+", isActive: false, requiredTokens: "150" },
+    });
+    await expect(
+      updateTier(setup({ tier: null }).ctx, artist, { tierId: "t1", name: "x" }),
+    ).rejects.toMatchObject({ message: "Tier not found" });
   });
 
   it("deletes a tier nothing uses, and keeps one that gates items, posts or pins", async () => {
@@ -182,7 +393,9 @@ describe("tiers", () => {
     await removeTier(free.ctx, artist, "t1");
     expect(free.db.membershipTier.delete).toHaveBeenCalledWith({ where: { id: "t1" } });
     const used = setup({ usage: [1, 2, 0] });
-    await expect(removeTier(used.ctx, artist, "t1")).rejects.toMatchObject({ message: "3 items, posts or pins use this tier. Hide it instead." });
+    await expect(removeTier(used.ctx, artist, "t1")).rejects.toMatchObject({
+      message: "3 items, posts or pins use this tier. Hide it instead.",
+    });
     expect(used.db.membershipTier.delete).not.toHaveBeenCalled();
   });
 });
@@ -191,20 +404,34 @@ describe("memberships router", () => {
   const caller = (artistRow: Row | null, signedIn = true) =>
     createCallerFactory(portalRouter)(
       createContext({
-        db: { activityLog: { create: vi.fn() }, artist: { findUnique: vi.fn().mockResolvedValue(artistRow) } } as unknown as Db,
+        db: {
+          activityLog: { create: vi.fn() },
+          artist: { findUnique: vi.fn().mockResolvedValue(artistRow) },
+        } as unknown as Db,
         chain: {} as ChainGateway,
         app: "artist",
-        session: signedIn ? { user: { id: "u9", role: "FAN", walletAddress: "GW", walletType: "freighter" } } : null,
+        session: signedIn
+          ? { user: { id: "u9", role: "FAN", walletAddress: "GW", walletType: "freighter" } }
+          : null,
       }),
     );
 
   it("is for signed-in, approved artists only", async () => {
-    await expect(caller(null, false).memberships.tiers()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+    await expect(caller(null, false).memberships.tiers()).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
+    });
     await expect(caller(null).memberships.fanToken()).rejects.toMatchObject({ code: "FORBIDDEN" });
-    await expect(caller({ id: "a1", status: "PENDING" }).memberships.tiers()).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller({ id: "a1", status: "PENDING" }).memberships.tiers()).rejects.toMatchObject(
+      { code: "FORBIDDEN" },
+    );
   });
 
   it("refuses an unknown way to make a fan token", async () => {
-    await expect(caller({ id: "a1", status: "APPROVED" }).memberships.createFanToken({ mode: "MAGIC", coverUrl: "https://cdn.example/f.png" } as never)).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(
+      caller({ id: "a1", status: "APPROVED" }).memberships.createFanToken({
+        mode: "MAGIC",
+        coverUrl: "https://cdn.example/f.png",
+      } as never),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 });

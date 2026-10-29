@@ -33,18 +33,27 @@ type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 
 async function price(ctx: ServiceCtx, user: SessionUser | null) {
   const { chain } = ctx;
-  const [rates, account] = await Promise.all([chain.rates().catch(() => null), user ? chain.loadAccount(user.walletAddress) : null]);
+  const [rates, account] = await Promise.all([
+    chain.rates().catch(() => null),
+    user ? chain.loadAccount(user.walletAddress) : null,
+  ]);
   const quote = priceActivation({
     xlmUsd: rates ? toStroops(rates.xlmUsd) : 0n,
     // one operation, paid by the platform account
     networkFeeXlm: networkFeeXlm(1, chain.config.network.baseFee),
   });
   const extra: RechargeProblem[] = [];
-  if (!chain.config.mother) extra.push({ code: "UNAVAILABLE", message: "Activation isn't available right now." });
+  if (!chain.config.mother)
+    extra.push({ code: "UNAVAILABLE", message: "Activation isn't available right now." });
   else if (account) extra.push({ code: "UNAVAILABLE", message: "Your wallet is already active." });
   const problems = [...extra, ...quote.problems];
   return {
-    quote: { ...quote, problems, ok: problems.length === 0, expiresAt: new Date(Date.now() + QUOTE_TTL_SECONDS * 1000).toISOString() },
+    quote: {
+      ...quote,
+      problems,
+      ok: problems.length === 0,
+      expiresAt: new Date(Date.now() + QUOTE_TTL_SECONDS * 1000).toISOString(),
+    },
     rate: rates?.xlmUsd ?? null,
   };
 }
@@ -88,22 +97,39 @@ export async function submitActivation(
 ) {
   const { chain, db } = ctx;
   const order = await ownOrder(ctx, user, input.orderId);
-  if (order.kind !== "ACTIVATION") throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Order not found" });
+  if (order.kind !== "ACTIVATION")
+    throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Order not found" });
   const mother = chain.config.mother;
-  if (!mother) throw new AppError(ErrorCodes.CONFIG_MISSING, { message: "Activation isn't available right now." });
-  ctx.activity.set({ targetType: "Order", targetId: order.id, amount: order.total.toString(), currency: order.currency });
+  if (!mother)
+    throw new AppError(ErrorCodes.CONFIG_MISSING, {
+      message: "Activation isn't available right now.",
+    });
+  ctx.activity.set({
+    targetType: "Order",
+    targetId: order.id,
+    amount: order.total.toString(),
+    currency: order.currency,
+  });
 
   if (order.status !== "AWAITING_SIGNATURE") {
-    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: `This order is already ${order.status.toLowerCase()}.` });
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+      message: `This order is already ${order.status.toLowerCase()}.`,
+    });
   }
   if (order.quoteExpiresAt && order.quoteExpiresAt < new Date()) {
-    await transitionOrder(db, order.id, "FAILED", { failureCode: ErrorCodes.STELLAR_QUOTE_EXPIRED });
+    await transitionOrder(db, order.id, "FAILED", {
+      failureCode: ErrorCodes.STELLAR_QUOTE_EXPIRED,
+    });
     throw new AppError(ErrorCodes.STELLAR_QUOTE_EXPIRED);
   }
-  if (!input.card) throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "Add a card to pay." });
+  if (!input.card)
+    throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "Add a card to pay." });
 
   // The quote is locked, but the wallet may have been funded since: never charge for nothing.
-  const [existing, platform] = await Promise.all([chain.loadAccount(user.walletAddress), chain.loadAccount(mother)]);
+  const [existing, platform] = await Promise.all([
+    chain.loadAccount(user.walletAddress),
+    chain.loadAccount(mother),
+  ]);
   if (existing) {
     await transitionOrder(db, order.id, "CANCELED");
     throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "Your wallet is already active." });
@@ -126,7 +152,10 @@ export async function submitActivation(
     verificationToken: input.card.verificationToken,
     cents: toCents(toStroops(order.total.toString())),
   });
-  await transitionOrder(db, order.id, "SUBMITTED", { cardPaymentId: paymentId, txHash: built.hash });
+  await transitionOrder(db, order.id, "SUBMITTED", {
+    cardPaymentId: paymentId,
+    txHash: built.hash,
+  });
   try {
     const { hash } = await chain.submit(xdr);
     ctx.activity.set({ txHash: hash });

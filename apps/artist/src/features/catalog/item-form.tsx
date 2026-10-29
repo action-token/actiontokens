@@ -8,9 +8,21 @@ import toast from "react-hot-toast";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Input } from "@bandcoin/ui/components/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@bandcoin/ui/components/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@bandcoin/ui/components/select";
 import { Textarea } from "@bandcoin/ui/components/textarea";
-import { Field, FormPage, FormSection, OptionList, SwitchRow } from "@bandcoin/ui/patterns/form-page";
+import {
+  Field,
+  FormPage,
+  FormSection,
+  OptionList,
+  SwitchRow,
+} from "@bandcoin/ui/patterns/form-page";
 import { assetCodeFrom, normalizeAssetCode, validateAssetCode } from "@bandcoin/utils/asset-code";
 
 import { DeleteCard } from "~/components/delete-card";
@@ -28,7 +40,8 @@ import { acceptFor, fileRequired, ITEM_TYPES, type ItemKind, mediaTypeFor } from
 type Existing = RouterOutputs["catalog"]["get"];
 
 const IMAGE_TYPES = "image/jpeg,image/png,image/webp,image/gif";
-const messageOf = (error: unknown) => (error instanceof Error ? error.message : "Something went wrong.");
+const messageOf = (error: unknown) =>
+  error instanceof Error ? error.message : "Something went wrong.";
 
 /**
  * One form for a new item and for editing one. Editing can't change the kind,
@@ -52,8 +65,12 @@ export function ItemForm({ existing }: { existing?: Existing }) {
   const [type, setType] = useState<ItemKind>((existing?.type as ItemKind | undefined) ?? "IMAGE");
   const [title, setTitle] = useState(existing?.title ?? "");
   const [description, setDescription] = useState(existing?.description ?? "");
-  const [cover, setCover] = useState<PickedFile | null>(existing ? { url: existing.coverUrl, name: "cover", mime: "image/jpeg" } : null);
-  const [file, setFile] = useState<PickedFile | null>(existing?.fileUrl ? { url: existing.fileUrl, name: "File", mime: "" } : null);
+  const [cover, setCover] = useState<PickedFile | null>(
+    existing ? { url: existing.coverUrl, name: "cover", mime: "image/jpeg" } : null,
+  );
+  const [file, setFile] = useState<PickedFile | null>(
+    existing?.fileUrl ? { url: existing.fileUrl, name: "File", mime: "" } : null,
+  );
   const [code, setCode] = useState(existing?.code ?? "");
   const [customCode, setCustomCode] = useState(editing);
   const [limited, setLimited] = useState(existing ? existing.supply !== null : true);
@@ -72,7 +89,11 @@ export function ItemForm({ existing }: { existing?: Existing }) {
     ...priceProblems(priceBandcoin, priceUsd),
   };
   const supplyNumber = Number(supply);
-  const supplyOk = (!limited && !nft) || (Number.isInteger(supplyNumber) && supplyNumber >= 1 && supplyNumber <= (nft ? 100_000 : Infinity));
+  const supplyOk =
+    (!limited && !nft) ||
+    (Number.isInteger(supplyNumber) &&
+      supplyNumber >= 1 &&
+      supplyNumber <= (nft ? 100_000 : Infinity));
   const royaltyOk = type !== "ROYALTY" || (Number(royalty) > 0 && Number(royalty) <= 100);
   const resaleOk = !nft || (resale !== "" && Number(resale) >= 0 && Number(resale) <= 90);
   const ready =
@@ -80,8 +101,10 @@ export function ItemForm({ existing }: { existing?: Existing }) {
     cover !== null &&
     (!fileRequired(type) || file !== null) &&
     (nft || (shownCode.length > 0 && !problems.code)) &&
-    priceBandcoin !== "" && !problems.bandcoin &&
-    priceUsd !== "" && !problems.usd &&
+    priceBandcoin !== "" &&
+    !problems.bandcoin &&
+    priceUsd !== "" &&
+    !problems.usd &&
     supplyOk &&
     royaltyOk &&
     resaleOk;
@@ -91,7 +114,10 @@ export function ItemForm({ existing }: { existing?: Existing }) {
     void utils.catalog.list.invalidate();
     router.push(to);
   };
-  const create = api.catalog.create.useMutation({ onSuccess: () => done("Item created"), onError: (error) => toast.error(messageOf(error)) });
+  const create = api.catalog.create.useMutation({
+    onSuccess: () => done("Item created"),
+    onError: (error) => toast.error(messageOf(error)),
+  });
   const createNft = api.catalog.createNft.useMutation({
     onSuccess: ({ itemId }) => done("Draft saved. One more step: register it.", `/items/${itemId}`),
     onError: (error) => toast.error(messageOf(error)),
@@ -103,7 +129,10 @@ export function ItemForm({ existing }: { existing?: Existing }) {
     },
     onError: (error) => toast.error(messageOf(error)),
   });
-  const remove = api.catalog.remove.useMutation({ onSuccess: () => done("Item deleted"), onError: (error) => toast.error(messageOf(error)) });
+  const remove = api.catalog.remove.useMutation({
+    onSuccess: () => done("Item deleted"),
+    onError: (error) => toast.error(messageOf(error)),
+  });
   const saving = create.isPending || createNft.isPending || update.isPending;
   const kindLabel = ITEM_TYPES.find((entry) => entry.value === type)?.label ?? type;
   const aiContext = { kind: kindLabel, title, description, code: nft ? "" : shownCode };
@@ -123,7 +152,9 @@ export function ItemForm({ existing }: { existing?: Existing }) {
         priceBandcoin,
         priceUsd,
         ...(nft ? {} : { visibility }),
-        ...(locked ? {} : { supply: limited || nft ? supplyNumber : null, ...(nft ? {} : { code: shownCode }) }),
+        ...(locked
+          ? {}
+          : { supply: limited || nft ? supplyNumber : null, ...(nft ? {} : { code: shownCode }) }),
       });
     } else if (nft) {
       createNft.mutate({
@@ -182,7 +213,11 @@ export function ItemForm({ existing }: { existing?: Existing }) {
     <FormPage
       title={existing ? existing.title : "New item"}
       eyebrow="Catalog"
-      description={existing ? undefined : "Set what it is, what it costs and how many copies exist. You can edit most of it later."}
+      description={
+        existing
+          ? undefined
+          : "Set what it is, what it costs and how many copies exist. You can edit most of it later."
+      }
       back={{ href: "/items", label: "Items" }}
       onSubmit={submit}
       actions={actions}
@@ -194,7 +229,9 @@ export function ItemForm({ existing }: { existing?: Existing }) {
               <img src={cover.url} alt="" className="aspect-square w-full object-cover" />
             )}
             <div className="grid gap-2 p-5">
-              <p className="text-primary-text text-xs font-semibold tracking-wide uppercase">Preview</p>
+              <p className="text-primary-text text-xs font-semibold tracking-wide uppercase">
+                Preview
+              </p>
               <p className="display text-xl leading-snug">{title || "Untitled item"}</p>
               <p className="text-fg-muted text-sm">
                 {kindLabel} · {nft ? "Contract NFT" : shownCode || "Classic token"}
@@ -204,15 +241,29 @@ export function ItemForm({ existing }: { existing?: Existing }) {
               </p>
             </div>
           </section>
-          {existing && <DeleteCard title="Delete this item" confirmTitle={`Delete ${existing.title}?`} description={deleteDescription} busy={remove.isPending} onDelete={() => remove.mutate({ itemId: existing.id })} />}
+          {existing && (
+            <DeleteCard
+              title="Delete this item"
+              confirmTitle={`Delete ${existing.title}?`}
+              description={deleteDescription}
+              busy={remove.isPending}
+              onDelete={() => remove.mutate({ itemId: existing.id })}
+            />
+          )}
         </>
       }
     >
-      {existing?.chain === "CONTRACT_NFT" && existing.registered === "PENDING" && <RegisterNft itemId={existing.id} />}
+      {existing?.chain === "CONTRACT_NFT" && existing.registered === "PENDING" && (
+        <RegisterNft itemId={existing.id} />
+      )}
 
       {frozen && (
-        <p role="note" className="bg-surface border-fg/10 text-fg-muted rounded-[1.4rem] border-2 p-4 text-sm">
-          This NFT is registered on the contract, so its details are fixed for now. Editing registered NFTs is coming.
+        <p
+          role="note"
+          className="bg-surface border-fg/10 text-fg-muted rounded-[1.4rem] border-2 p-4 text-sm"
+        >
+          This NFT is registered on the contract, so its details are fixed for now. Editing
+          registered NFTs is coming.
         </p>
       )}
 
@@ -221,9 +272,23 @@ export function ItemForm({ existing }: { existing?: Existing }) {
           <AiFillCard
             form="item"
             context={aiContext}
-            examples={["A limited run of 50 signed posters from the tour, $20", "A digital copy of my new album art, unlimited copies", "Behind-the-scenes video from the studio"]}
+            examples={[
+              "A limited run of 50 signed posters from the tour, $20",
+              "A digital copy of my new album art, unlimited copies",
+              "Behind-the-scenes video from the studio",
+            ]}
             apply={(result) => {
-              const before = { title, description, code, customCode, limited, supply, priceBandcoin, priceUsd, imageBrief };
+              const before = {
+                title,
+                description,
+                code,
+                customCode,
+                limited,
+                supply,
+                priceBandcoin,
+                priceUsd,
+                imageBrief,
+              };
               setTitle(result.title);
               setDescription(result.description);
               if (!nft) {
@@ -278,8 +343,17 @@ export function ItemForm({ existing }: { existing?: Existing }) {
             </Field>
           )}
 
-          <Field label="What are you selling?" htmlFor="item-type" required hint={editing ? "The kind can't change after an item is created." : undefined}>
-            <Select value={type} disabled={editing} onValueChange={(value) => setType(value as ItemKind)}>
+          <Field
+            label="What are you selling?"
+            htmlFor="item-type"
+            required
+            hint={editing ? "The kind can't change after an item is created." : undefined}
+          >
+            <Select
+              value={type}
+              disabled={editing}
+              onValueChange={(value) => setType(value as ItemKind)}
+            >
               <SelectTrigger id="item-type" className="w-full">
                 <SelectValue />
               </SelectTrigger>
@@ -293,27 +367,87 @@ export function ItemForm({ existing }: { existing?: Existing }) {
             </Select>
           </Field>
 
-          <Field label="Title" htmlFor="item-title" required action={<AiTextButton form="item" field="title" maxChars={nft ? 128 : 120} value={title} context={aiContext} onChange={setTitle} />}>
-            <Input id="item-title" value={title} maxLength={nft ? 128 : 120} onChange={(event) => setTitle(event.target.value)} />
+          <Field
+            label="Title"
+            htmlFor="item-title"
+            required
+            action={
+              <AiTextButton
+                form="item"
+                field="title"
+                maxChars={nft ? 128 : 120}
+                value={title}
+                context={aiContext}
+                onChange={setTitle}
+              />
+            }
+          >
+            <Input
+              id="item-title"
+              value={title}
+              maxLength={nft ? 128 : 120}
+              onChange={(event) => setTitle(event.target.value)}
+            />
           </Field>
 
-          <Field label="Description" htmlFor="item-description" action={<AiTextButton form="item" field="description" maxChars={2000} value={description} context={aiContext} onChange={setDescription} />}>
-            <Textarea id="item-description" value={description} maxLength={2000} rows={5} onChange={(event) => setDescription(event.target.value)} />
+          <Field
+            label="Description"
+            htmlFor="item-description"
+            action={
+              <AiTextButton
+                form="item"
+                field="description"
+                maxChars={2000}
+                value={description}
+                context={aiContext}
+                onChange={setDescription}
+              />
+            }
+          >
+            <Textarea
+              id="item-description"
+              value={description}
+              maxLength={2000}
+              rows={5}
+              onChange={(event) => setDescription(event.target.value)}
+            />
           </Field>
         </FormSection>
 
         <FormSection title="Pictures and files" icon={ImageIcon}>
           <Field label="Cover picture" htmlFor="item-cover" required>
-            <FileField id="item-cover" accept={IMAGE_TYPES} value={cover} onChange={setCover} preview hint="Shown on cards and the item page. JPG, PNG, WebP or GIF." />
-            {!frozen && <AiImagePanel form="item" aspect="square" suggestedPrompt={imagePrompt} onImage={(url) => setCover({ url, name: "cover", mime: "image/png" })} />}
+            <FileField
+              id="item-cover"
+              accept={IMAGE_TYPES}
+              value={cover}
+              onChange={setCover}
+              preview
+              hint="Shown on cards and the item page. JPG, PNG, WebP or GIF."
+            />
+            {!frozen && (
+              <AiImagePanel
+                form="item"
+                aspect="square"
+                suggestedPrompt={imagePrompt}
+                onImage={(url) => setCover({ url, name: "cover", mime: "image/png" })}
+              />
+            )}
           </Field>
-          <Field label={fileRequired(type) ? "The file people get" : "A file to include (optional)"} htmlFor="item-file" required={fileRequired(type)}>
+          <Field
+            label={fileRequired(type) ? "The file people get" : "A file to include (optional)"}
+            htmlFor="item-file"
+            required={fileRequired(type)}
+          >
             <FileField
               id="item-file"
               accept={acceptFor(type)}
               value={file}
               onChange={setFile}
-              hint={editing ? "The file can't be swapped after the item is created." : "Only owners can open it."}
+              hint={
+                editing
+                  ? "The file can't be swapped after the item is created."
+                  : "Only owners can open it."
+              }
               key={type}
             />
           </Field>
@@ -322,14 +456,37 @@ export function ItemForm({ existing }: { existing?: Existing }) {
         <FormSection title="Price and copies" icon={Coins}>
           {type === "ROYALTY" && (
             <Field label="Share of your revenue holders split (%)" htmlFor="item-royalty" required>
-              <Input id="item-royalty" inputMode="decimal" value={royalty} disabled={editing} onChange={(event) => setRoyalty(event.target.value)} className="max-w-32" />
+              <Input
+                id="item-royalty"
+                inputMode="decimal"
+                value={royalty}
+                disabled={editing}
+                onChange={(event) => setRoyalty(event.target.value)}
+                className="max-w-32"
+              />
             </Field>
           )}
 
-          <PriceFields bandcoin={priceBandcoin} usd={priceUsd} onBandcoin={setPriceBandcoin} onUsd={setPriceUsd} idPrefix="item-price" />
+          <PriceFields
+            bandcoin={priceBandcoin}
+            usd={priceUsd}
+            onBandcoin={setPriceBandcoin}
+            onUsd={setPriceUsd}
+            idPrefix="item-price"
+          />
 
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Copies" htmlFor="item-supply" hint={locked ? `${existing?.sold} sold, so the number of copies is fixed.` : nft ? "An NFT edition has a fixed number of copies, up to 100,000." : undefined}>
+            <Field
+              label="Copies"
+              htmlFor="item-supply"
+              hint={
+                locked
+                  ? `${existing?.sold} sold, so the number of copies is fixed.`
+                  : nft
+                    ? "An NFT edition has a fixed number of copies, up to 100,000."
+                    : undefined
+              }
+            >
               <div className="flex items-center gap-2">
                 <Toggle pressed={limited || nft} disabled={locked} onClick={() => setLimited(true)}>
                   {nft ? "Fixed" : "Limited"}
@@ -340,17 +497,46 @@ export function ItemForm({ existing }: { existing?: Existing }) {
                   </Toggle>
                 )}
                 {(limited || nft) && (
-                  <Input id="item-supply" inputMode="numeric" value={supply} disabled={locked} aria-label="Number of copies" onChange={(event) => setSupply(event.target.value.replace(/\D/g, ""))} className="w-24" />
+                  <Input
+                    id="item-supply"
+                    inputMode="numeric"
+                    value={supply}
+                    disabled={locked}
+                    aria-label="Number of copies"
+                    onChange={(event) => setSupply(event.target.value.replace(/\D/g, ""))}
+                    className="w-24"
+                  />
                 )}
               </div>
             </Field>
 
             {nft ? (
-              <Field label="Royalty on resales (%)" htmlFor="item-resale" hint="What you earn each time a fan resells a copy, from 0 to 90. Fixed once registered.">
-                <Input id="item-resale" inputMode="decimal" value={resale} aria-invalid={!resaleOk} onChange={(event) => setResale(event.target.value.trim())} className="max-w-32" />
+              <Field
+                label="Royalty on resales (%)"
+                htmlFor="item-resale"
+                hint="What you earn each time a fan resells a copy, from 0 to 90. Fixed once registered."
+              >
+                <Input
+                  id="item-resale"
+                  inputMode="decimal"
+                  value={resale}
+                  aria-invalid={!resaleOk}
+                  onChange={(event) => setResale(event.target.value.trim())}
+                  className="max-w-32"
+                />
               </Field>
             ) : (
-              <Field label="Asset code" htmlFor="item-code" required error={problems.code} hint={locked ? "Fixed after the first sale." : "The short name of the token on Stellar, up to 12 letters and numbers."}>
+              <Field
+                label="Asset code"
+                htmlFor="item-code"
+                required
+                error={problems.code}
+                hint={
+                  locked
+                    ? "Fixed after the first sale."
+                    : "The short name of the token on Stellar, up to 12 letters and numbers."
+                }
+              >
                 <Input
                   id="item-code"
                   value={shownCode}
@@ -371,11 +557,18 @@ export function ItemForm({ existing }: { existing?: Existing }) {
         <FormSection title="Visibility" icon={Eye}>
           {nft ? (
             <p role="note" className="bg-surface-2 text-fg-muted rounded-md p-3 text-[13px]">
-              <b>Draft for now.</b> After you register it, selling contract NFTs to fans opens soon, and then you can publish.
+              <b>Draft for now.</b> After you register it, selling contract NFTs to fans opens soon,
+              and then you can publish.
             </p>
           ) : (
             <OptionList>
-              <SwitchRow icon={Eye} title={publish ? "Published" : "Draft"} hint={publish ? "Fans can buy it." : "Only you can see it."} checked={publish} onChange={setPublish} />
+              <SwitchRow
+                icon={Eye}
+                title={publish ? "Published" : "Draft"}
+                hint={publish ? "Fans can buy it." : "Only you can see it."}
+                checked={publish}
+                onChange={setPublish}
+              />
             </OptionList>
           )}
         </FormSection>

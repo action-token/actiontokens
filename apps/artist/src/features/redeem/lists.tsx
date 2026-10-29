@@ -19,7 +19,8 @@ import { FanAvatar, Info, LoadMore, PlaceLabel, TypeIcon, plural } from "./parts
 type Reward = RouterOutputs["redeem"]["rewards"]["items"][number];
 type Redeemed = RouterOutputs["redeem"]["history"]["items"][number];
 
-const range = (start: Date | string, end: Date | string) => `${format(new Date(start), "MMM d")} – ${format(new Date(end), "MMM d, yyyy")}`;
+const range = (start: Date | string, end: Date | string) =>
+  `${format(new Date(start), "MMM d")} – ${format(new Date(end), "MMM d, yyyy")}`;
 
 function ListSkeleton() {
   return (
@@ -34,22 +35,39 @@ function ListSkeleton() {
 /** Each pin, how many fans collected and redeemed it, and who is still waiting. */
 export function RewardsTab() {
   const [search, setSearch] = useState("");
-  const list = api.redeem.rewards.useInfiniteQuery({ search: search || undefined, limit: 10 }, { getNextPageParam: (last) => last.nextCursor, placeholderData: keepPreviousData });
+  const list = api.redeem.rewards.useInfiniteQuery(
+    { search: search || undefined, limit: 10 },
+    { getNextPageParam: (last) => last.nextCursor, placeholderData: keepPreviousData },
+  );
   const rewards = list.data?.pages.flatMap((page) => page.items) ?? [];
   const total = list.data?.pages[0]?.total;
 
   return (
     <div className="grid gap-4">
       <div className="flex items-center gap-3">
-        <SearchInput onSearch={setSearch} placeholder="Search rewards by title" className="sm:w-full" />
-        {total !== undefined && <span className="text-fg-muted text-xs whitespace-nowrap">{plural(total, "result")}</span>}
+        <SearchInput
+          onSearch={setSearch}
+          placeholder="Search rewards by title"
+          className="sm:w-full"
+        />
+        {total !== undefined && (
+          <span className="text-fg-muted text-xs whitespace-nowrap">{plural(total, "result")}</span>
+        )}
       </div>
       {list.isPending ? (
         <ListSkeleton />
       ) : list.isError ? (
         <ErrorState message="Couldn't load your rewards." onRetry={() => void list.refetch()} />
       ) : rewards.length === 0 ? (
-        <EmptyState icon={Ticket} title={search ? "No matches" : "No rewards yet"} description={search ? `Nothing called “${search}”.` : "Pins give fans a code to redeem with you. Drop one to get started."} />
+        <EmptyState
+          icon={Ticket}
+          title={search ? "No matches" : "No rewards yet"}
+          description={
+            search
+              ? `Nothing called “${search}”.`
+              : "Pins give fans a code to redeem with you. Drop one to get started."
+          }
+        />
       ) : (
         <>
           <ul className="grid gap-2">
@@ -71,7 +89,12 @@ function RewardRow({ reward }: { reward: Reward }) {
 
   return (
     <li className="bg-surface overflow-hidden rounded-[1.4rem] border-2">
-      <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} className="flex w-full items-center gap-3 p-3 text-left sm:p-4">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        className="flex w-full items-center gap-3 p-3 text-left sm:p-4"
+      >
         {reward.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={reward.imageUrl} alt="" className="size-12 shrink-0 rounded-lg object-cover" />
@@ -81,7 +104,10 @@ function RewardRow({ reward }: { reward: Reward }) {
         <div className="min-w-0 flex-1">
           <p className="truncate font-medium">{reward.title}</p>
           <div className="mt-1.5 flex items-center gap-3">
-            <div className="bg-surface-2 h-1.5 max-w-48 flex-1 overflow-hidden rounded-full" aria-hidden>
+            <div
+              className="bg-surface-2 h-1.5 max-w-48 flex-1 overflow-hidden rounded-full"
+              aria-hidden
+            >
               <div className="bg-primary h-full rounded-full" style={{ width: `${percent}%` }} />
             </div>
             <span className="text-fg-muted num text-xs">
@@ -94,13 +120,16 @@ function RewardRow({ reward }: { reward: Reward }) {
           <Stat label="Waiting" value={waiting} highlight={waiting > 0} />
           <Stat label="Limit" value={reward.claimLimit} />
         </div>
-        <ChevronDown className={cn("text-fg-muted size-4 shrink-0 transition-transform", open && "rotate-180")} />
+        <ChevronDown
+          className={cn("text-fg-muted size-4 shrink-0 transition-transform", open && "rotate-180")}
+        />
       </button>
 
       {open && (
         <div className="bg-surface-2 border-t p-3 sm:p-4">
           <p className="text-fg-muted mb-2 text-xs">
-            {range(reward.startsAt, reward.endsAt)} · {plural(reward.spots, "spot")} · {plural(reward.collected, "fan")} collected
+            {range(reward.startsAt, reward.endsAt)} · {plural(reward.spots, "spot")} ·{" "}
+            {plural(reward.collected, "fan")} collected
           </p>
           {reward.fans.length === 0 ? (
             <p className="text-fg-muted py-4 text-center text-sm">Nobody has collected this yet.</p>
@@ -110,8 +139,13 @@ function RewardRow({ reward }: { reward: Reward }) {
                 <li key={entry.id} className="flex items-center gap-3 px-3 py-2 text-sm">
                   <FanAvatar fan={entry.fan} className="size-8" />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate font-medium">{entry.fan.name ?? entry.fan.email ?? "Fan"}</span>
-                    <span className="text-fg-muted text-xs">Collected {formatDistanceToNow(new Date(entry.collectedAt), { addSuffix: true })}</span>
+                    <span className="block truncate font-medium">
+                      {entry.fan.name ?? entry.fan.email ?? "Fan"}
+                    </span>
+                    <span className="text-fg-muted text-xs">
+                      Collected{" "}
+                      {formatDistanceToNow(new Date(entry.collectedAt), { addSuffix: true })}
+                    </span>
                   </span>
                   {entry.isRedeemed ? (
                     <StatusPill tone="success" icon={CheckCircle2}>
@@ -124,7 +158,11 @@ function RewardRow({ reward }: { reward: Reward }) {
               ))}
             </ul>
           )}
-          {reward.collected > reward.fans.length && <p className="text-fg-muted mt-2 text-center text-xs">Showing the latest {reward.fans.length}. Use the code checker for anyone else.</p>}
+          {reward.collected > reward.fans.length && (
+            <p className="text-fg-muted mt-2 text-center text-xs">
+              Showing the latest {reward.fans.length}. Use the code checker for anyone else.
+            </p>
+          )}
         </div>
       )}
     </li>
@@ -134,7 +172,9 @@ function RewardRow({ reward }: { reward: Reward }) {
 function Stat({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
   return (
     <div>
-      <p className={cn("display num text-lg", highlight && "text-warning")}>{value.toLocaleString()}</p>
+      <p className={cn("display num text-lg", highlight && "text-warning")}>
+        {value.toLocaleString()}
+      </p>
       <p className="text-fg-muted text-[11px]">{label}</p>
     </div>
   );
@@ -143,22 +183,35 @@ function Stat({ label, value, highlight }: { label: string; value: number; highl
 /** Everything you've redeemed, newest first. */
 export function HistoryTab() {
   const [search, setSearch] = useState("");
-  const list = api.redeem.history.useInfiniteQuery({ search: search || undefined, limit: 20 }, { getNextPageParam: (last) => last.nextCursor, placeholderData: keepPreviousData });
+  const list = api.redeem.history.useInfiniteQuery(
+    { search: search || undefined, limit: 20 },
+    { getNextPageParam: (last) => last.nextCursor, placeholderData: keepPreviousData },
+  );
   const items = list.data?.pages.flatMap((page) => page.items) ?? [];
   const total = list.data?.pages[0]?.total;
 
   return (
     <div className="grid gap-4">
       <div className="flex items-center gap-3">
-        <SearchInput onSearch={setSearch} placeholder="Search by fan, email, code or reward" className="sm:w-full" />
-        {total !== undefined && <span className="text-fg-muted text-xs whitespace-nowrap">{plural(total, "result")}</span>}
+        <SearchInput
+          onSearch={setSearch}
+          placeholder="Search by fan, email, code or reward"
+          className="sm:w-full"
+        />
+        {total !== undefined && (
+          <span className="text-fg-muted text-xs whitespace-nowrap">{plural(total, "result")}</span>
+        )}
       </div>
       {list.isPending ? (
         <ListSkeleton />
       ) : list.isError ? (
         <ErrorState message="Couldn't load the history." onRetry={() => void list.refetch()} />
       ) : items.length === 0 ? (
-        <EmptyState icon={Users} title={search ? "No matches" : "No redemptions yet"} description={search ? "Try another search." : "Codes you redeem show up here."} />
+        <EmptyState
+          icon={Users}
+          title={search ? "No matches" : "No redemptions yet"}
+          description={search ? "Try another search." : "Codes you redeem show up here."}
+        />
       ) : (
         <>
           <ul className="bg-surface divide-y overflow-hidden rounded-[1.4rem] border-2">
@@ -177,15 +230,28 @@ function HistoryRow({ item }: { item: Redeemed }) {
   const [open, setOpen] = useState(false);
   return (
     <li>
-      <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} className="hover:bg-surface-2 flex w-full items-center gap-3 px-3 py-2.5 text-left sm:px-4">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        className="hover:bg-surface-2 flex w-full items-center gap-3 px-3 py-2.5 text-left sm:px-4"
+      >
         <FanAvatar fan={item.fan} />
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-medium">{item.fan.name ?? item.fan.email ?? "Fan"}</span>
+          <span className="block truncate text-sm font-medium">
+            {item.fan.name ?? item.fan.email ?? "Fan"}
+          </span>
           <span className="text-fg-muted block truncate text-xs">{item.pin.title}</span>
         </span>
-        <span className="text-fg-muted hidden font-mono text-xs tracking-widest sm:block">{item.code}</span>
-        <span className="text-fg-muted shrink-0 text-right text-xs">{item.redeemedAt ? format(new Date(item.redeemedAt), "MMM d, HH:mm") : "–"}</span>
-        <ChevronDown className={cn("text-fg-muted size-4 shrink-0 transition-transform", open && "rotate-180")} />
+        <span className="text-fg-muted hidden font-mono text-xs tracking-widest sm:block">
+          {item.code}
+        </span>
+        <span className="text-fg-muted shrink-0 text-right text-xs">
+          {item.redeemedAt ? format(new Date(item.redeemedAt), "MMM d, HH:mm") : "–"}
+        </span>
+        <ChevronDown
+          className={cn("text-fg-muted size-4 shrink-0 transition-transform", open && "rotate-180")}
+        />
       </button>
       {open && (
         <dl className="bg-surface-2 grid gap-3 border-t px-4 py-3 text-sm sm:grid-cols-4">
@@ -194,7 +260,9 @@ function HistoryRow({ item }: { item: Redeemed }) {
           </Info>
           <Info label="Email">{item.fan.email ?? "–"}</Info>
           <Info label="Collected">{format(new Date(item.collectedAt), "PPp")}</Info>
-          <Info label="Redeemed">{item.redeemedAt ? format(new Date(item.redeemedAt), "PPp") : "–"}</Info>
+          <Info label="Redeemed">
+            {item.redeemedAt ? format(new Date(item.redeemedAt), "PPp") : "–"}
+          </Info>
           <div className="sm:col-span-4">
             <dt className="text-fg-muted text-xs">Spot</dt>
             <dd className="text-fg-muted">

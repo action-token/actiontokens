@@ -39,7 +39,11 @@ export const musicRouter = createRouter({
     ]);
     return {
       newest: newest.map(toItemCard),
-      albums: albums.map(({ _count, createdAt, ...album }) => ({ ...album, year: createdAt.getFullYear(), trackCount: _count.tracks })),
+      albums: albums.map(({ _count, createdAt, ...album }) => ({
+        ...album,
+        year: createdAt.getFullYear(),
+        trackCount: _count.tracks,
+      })),
     };
   }),
 

@@ -54,16 +54,16 @@ A `page.tsx` only loads data and composes feature components. No business logic 
 
 ## Naming conventions
 
-| Thing | Rule | Example |
-|---|---|---|
-| Files | kebab-case, describes what's inside | `buy-panel.tsx`, `use-play-queue.ts` |
-| Components | PascalCase noun | `ItemCard`, `PriceBreakdown` |
-| Hooks | `use` + noun/verb | `useOwnership`, `useCancelableSign` |
-| Functions | verb first | `buildItemPurchaseXdr`, `getArtistBySlug`, `claimPin` |
-| Booleans | `is/has/can` | `isOwner`, `canStreamFull` |
-| tRPC routers | domain noun; procedures verb + noun | `item.getBySlug`, `order.create`, `pin.claim` |
-| DB models | singular PascalCase; tables mapped to snake_case plural | `model PinClaim` → `pin_claims` |
-| Env vars | `SCREAMING_SNAKE`, public ones `NEXT_PUBLIC_` | `STUDIO_COIN_ISSUER` |
+| Thing        | Rule                                                    | Example                                               |
+| ------------ | ------------------------------------------------------- | ----------------------------------------------------- |
+| Files        | kebab-case, describes what's inside                     | `buy-panel.tsx`, `use-play-queue.ts`                  |
+| Components   | PascalCase noun                                         | `ItemCard`, `PriceBreakdown`                          |
+| Hooks        | `use` + noun/verb                                       | `useOwnership`, `useCancelableSign`                   |
+| Functions    | verb first                                              | `buildItemPurchaseXdr`, `getArtistBySlug`, `claimPin` |
+| Booleans     | `is/has/can`                                            | `isOwner`, `canStreamFull`                            |
+| tRPC routers | domain noun; procedures verb + noun                     | `item.getBySlug`, `order.create`, `pin.claim`         |
+| DB models    | singular PascalCase; tables mapped to snake_case plural | `model PinClaim` → `pin_claims`                       |
+| Env vars     | `SCREAMING_SNAKE`, public ones `NEXT_PUBLIC_`           | `STUDIO_COIN_ISSUER`                                  |
 
 The old misspellings (`wallate`, `steller`, `aprovalSend`, `steamUrl`, `genreation`, `trcp`) disappear.
 

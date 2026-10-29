@@ -36,7 +36,14 @@ export function PinSpotsCard({ pin }: { pin: RouterOutputs["pins"]["pin"] }) {
               {index + 1}. {spot.latitude.toFixed(5)}, {spot.longitude.toFixed(5)}
             </span>
             {spot.collected > 0 && <StatusPill tone="success">{spot.collected}</StatusPill>}
-            <Button type="button" variant="ghost" size="icon" aria-label={`Remove spot ${index + 1}`} disabled={visible.length <= 1 || remove.isPending} onClick={() => remove.mutate({ spotId: spot.id })}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={`Remove spot ${index + 1}`}
+              disabled={visible.length <= 1 || remove.isPending}
+              onClick={() => remove.mutate({ spotId: spot.id })}
+            >
               <Trash2 />
             </Button>
           </li>

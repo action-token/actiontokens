@@ -63,7 +63,12 @@ export function MarketplaceView() {
   return (
     <div className="grid gap-6">
       <Toolbar>
-        <SearchInput key={search} value={search} onSearch={onSearch} placeholder="Search items or artists" />
+        <SearchInput
+          key={search}
+          value={search}
+          onSearch={onSearch}
+          placeholder="Search items or artists"
+        />
         <label className="text-fg-muted flex items-center gap-2 text-sm sm:ml-auto">
           Sort
           <select
@@ -79,7 +84,12 @@ export function MarketplaceView() {
           </select>
         </label>
       </Toolbar>
-      <FilterChips label="Type" value={type} onChange={(value) => setParam("type", value, "ALL")} options={TYPES} />
+      <FilterChips
+        label="Type"
+        value={type}
+        onChange={(value) => setParam("type", value, "ALL")}
+        options={TYPES}
+      />
 
       {browse.isPending ? (
         <Grid>
@@ -105,7 +115,12 @@ export function MarketplaceView() {
             ))}
           </Grid>
           {browse.hasNextPage && (
-            <Button variant="secondary" className="justify-self-center" disabled={browse.isFetchingNextPage} onClick={() => void browse.fetchNextPage()}>
+            <Button
+              variant="secondary"
+              className="justify-self-center"
+              disabled={browse.isFetchingNextPage}
+              onClick={() => void browse.fetchNextPage()}
+            >
               {browse.isFetchingNextPage ? "Loading…" : "Load more"}
             </Button>
           )}
@@ -116,5 +131,9 @@ export function MarketplaceView() {
 }
 
 function Grid({ children }: { children: React.ReactNode }) {
-  return <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">{children}</div>;
+  return (
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+      {children}
+    </div>
+  );
 }

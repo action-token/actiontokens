@@ -8,7 +8,12 @@ import { maskEmail, REDACTED, redact } from "../activity/redact";
 import { type Context, createContext, type SessionUser } from "../context";
 import { appRouter } from "../root-app";
 import type { ChainGateway } from "../services/chain-gateway";
-import { canTransition, ORDER_TRANSITIONS, sourcesOf, transitionOrder } from "../services/order-state";
+import {
+  canTransition,
+  ORDER_TRANSITIONS,
+  sourcesOf,
+  transitionOrder,
+} from "../services/order-state";
 import { planDelivery, remainingCopies } from "../services/purchase/sale";
 import { createCallerFactory, createRouter, publicProcedure } from "../trpc";
 
@@ -55,7 +60,12 @@ describe("order state machine", () => {
 
   it("refuses a move from a state that can't make it (a lost race)", async () => {
     const updateMany = vi
-      .fn<(args: { where: { id: string; status: { in: string[] } }; data: object }) => Promise<{ count: number }>>()
+      .fn<
+        (args: {
+          where: { id: string; status: { in: string[] } };
+          data: object;
+        }) => Promise<{ count: number }>
+      >()
       .mockResolvedValue({ count: 0 });
     const db = {
       order: {
@@ -63,7 +73,9 @@ describe("order state machine", () => {
         findUnique: vi.fn().mockResolvedValue({ status: "DELIVERED" }),
       },
     } as unknown as Db;
-    await expect(transitionOrder(db, "o1", "CANCELED")).rejects.toMatchObject({ code: "RESOURCE_CONFLICT" });
+    await expect(transitionOrder(db, "o1", "CANCELED")).rejects.toMatchObject({
+      code: "RESOURCE_CONFLICT",
+    });
     const call = updateMany.mock.calls[0]?.[0];
     expect(call?.where.id).toBe("o1");
     expect(call?.where.status.in.sort()).toEqual(["AWAITING_SIGNATURE", "QUOTED"]);
@@ -71,10 +83,18 @@ describe("order state machine", () => {
   });
 });
 
-const fan: SessionUser = { id: "u1", role: "FAN", walletAddress: "GABC", walletType: "emailPass", email: "nadia@demo.bandcoin.io" };
+const fan: SessionUser = {
+  id: "u1",
+  role: "FAN",
+  walletAddress: "GABC",
+  walletType: "emailPass",
+  email: "nadia@demo.bandcoin.io",
+};
 
 function harness(session: Context["session"] = { user: fan }) {
-  const create = vi.fn<(args: { data: Record<string, unknown> }) => Promise<unknown>>().mockResolvedValue({});
+  const create = vi
+    .fn<(args: { data: Record<string, unknown> }) => Promise<unknown>>()
+    .mockResolvedValue({});
   const db = { activityLog: { create } } as unknown as Db;
   const ctx = createContext({
     db,
@@ -139,7 +159,10 @@ describe("activity log", () => {
   });
 
   it("covers every mutation in the app router", () => {
-    const procedures = Object.entries(appRouter._def.procedures) as unknown as [string, { _def: { type: string; middlewares: unknown[] } }][];
+    const procedures = Object.entries(appRouter._def.procedures) as unknown as [
+      string,
+      { _def: { type: string; middlewares: unknown[] } },
+    ][];
     const mutations = procedures.filter(([, procedure]) => procedure._def.type === "mutation");
     expect(mutations.length).toBeGreaterThan(0);
     for (const [, procedure] of mutations) {
@@ -151,18 +174,49 @@ describe("activity log", () => {
 describe("delivery plan", () => {
   it("uses minted stock first and mints the rest with the artist's issuer", () => {
     expect(
-      planDelivery({ kind: "PRIMARY", quantity: 3, stockAccount: "GSTOCK", stockBalance: "1", minter: "GISSUER" }),
-    ).toEqual({ fromStock: { account: "GSTOCK", amount: "1.0000000" }, mint: { issuer: "GISSUER", amount: "2.0000000" } });
-    expect(planDelivery({ kind: "PRIMARY", quantity: 2, stockAccount: null, stockBalance: "0", minter: "GISSUER" })).toEqual({
+      planDelivery({
+        kind: "PRIMARY",
+        quantity: 3,
+        stockAccount: "GSTOCK",
+        stockBalance: "1",
+        minter: "GISSUER",
+      }),
+    ).toEqual({
+      fromStock: { account: "GSTOCK", amount: "1.0000000" },
+      mint: { issuer: "GISSUER", amount: "2.0000000" },
+    });
+    expect(
+      planDelivery({
+        kind: "PRIMARY",
+        quantity: 2,
+        stockAccount: null,
+        stockBalance: "0",
+        minter: "GISSUER",
+      }),
+    ).toEqual({
       mint: { issuer: "GISSUER", amount: "2.0000000" },
     });
   });
 
   it("never mints for a resale, or without an active issuer", () => {
     expect(() =>
-      planDelivery({ kind: "RESALE", quantity: 2, stockAccount: "GSELLER", stockBalance: "1", minter: "GISSUER" }),
+      planDelivery({
+        kind: "RESALE",
+        quantity: 2,
+        stockAccount: "GSELLER",
+        stockBalance: "1",
+        minter: "GISSUER",
+      }),
     ).toThrow(/Not enough copies/);
-    expect(() => planDelivery({ kind: "PRIMARY", quantity: 1, stockAccount: null, stockBalance: "0", minter: null })).toThrow();
+    expect(() =>
+      planDelivery({
+        kind: "PRIMARY",
+        quantity: 1,
+        stockAccount: null,
+        stockBalance: "0",
+        minter: null,
+      }),
+    ).toThrow();
   });
 
   it("counts what's left on a listing", () => {

@@ -1,6 +1,15 @@
 import { z } from "zod";
 
-import { createEmbed, duplicateEmbed, embedStats, getEmbed, listEmbeds, removeEmbed, setEmbedEnabled, updateEmbed } from "../../services/artist/embeds";
+import {
+  createEmbed,
+  duplicateEmbed,
+  embedStats,
+  getEmbed,
+  listEmbeds,
+  removeEmbed,
+  setEmbedEnabled,
+  updateEmbed,
+} from "../../services/artist/embeds";
 import { artistProcedure, createRouter } from "../../trpc";
 
 const embedFields = z.object({
@@ -14,7 +23,9 @@ const embedFields = z.object({
   theme: z.enum(["AUTO", "LIGHT", "DARK"]),
   accentColor: z.string().max(7),
   pinSource: z.enum(["ALL", "ARTIST"]),
-  pinTypes: z.array(z.enum(["EVENT", "LANDMARK", "EXPERIENCE", "LAUNCH", "BOUNTY", "OTHER"])).max(6),
+  pinTypes: z
+    .array(z.enum(["EVENT", "LANDMARK", "EXPERIENCE", "LAUNCH", "BOUNTY", "OTHER"]))
+    .max(6),
   showFilterChips: z.boolean(),
   showSearch: z.boolean(),
   showNearby: z.boolean(),
@@ -32,19 +43,31 @@ const embedId = z.object({ embedId: z.string().min(1) });
 export const embedsRouter = createRouter({
   embeds: artistProcedure.query(({ ctx }) => listEmbeds(ctx, ctx.artist)),
 
-  embed: artistProcedure.input(embedId).query(({ ctx, input }) => getEmbed(ctx, ctx.artist, input.embedId)),
+  embed: artistProcedure
+    .input(embedId)
+    .query(({ ctx, input }) => getEmbed(ctx, ctx.artist, input.embedId)),
 
   embedStats: artistProcedure
     .input(embedId.extend({ days: z.number().int().min(7).max(90).default(30) }))
     .query(({ ctx, input }) => embedStats(ctx, ctx.artist, input.embedId, input.days)),
 
-  createEmbed: artistProcedure.input(embedFields).mutation(({ ctx, input }) => createEmbed(ctx, ctx.artist, input)),
+  createEmbed: artistProcedure
+    .input(embedFields)
+    .mutation(({ ctx, input }) => createEmbed(ctx, ctx.artist, input)),
 
-  updateEmbed: artistProcedure.input(embedId.extend({ data: embedFields })).mutation(({ ctx, input }) => updateEmbed(ctx, ctx.artist, input.embedId, input.data)),
+  updateEmbed: artistProcedure
+    .input(embedId.extend({ data: embedFields }))
+    .mutation(({ ctx, input }) => updateEmbed(ctx, ctx.artist, input.embedId, input.data)),
 
-  setEmbedEnabled: artistProcedure.input(embedId.extend({ isEnabled: z.boolean() })).mutation(({ ctx, input }) => setEmbedEnabled(ctx, ctx.artist, input.embedId, input.isEnabled)),
+  setEmbedEnabled: artistProcedure
+    .input(embedId.extend({ isEnabled: z.boolean() }))
+    .mutation(({ ctx, input }) => setEmbedEnabled(ctx, ctx.artist, input.embedId, input.isEnabled)),
 
-  duplicateEmbed: artistProcedure.input(embedId).mutation(({ ctx, input }) => duplicateEmbed(ctx, ctx.artist, input.embedId)),
+  duplicateEmbed: artistProcedure
+    .input(embedId)
+    .mutation(({ ctx, input }) => duplicateEmbed(ctx, ctx.artist, input.embedId)),
 
-  removeEmbed: artistProcedure.input(embedId).mutation(({ ctx, input }) => removeEmbed(ctx, ctx.artist, input.embedId)),
+  removeEmbed: artistProcedure
+    .input(embedId)
+    .mutation(({ ctx, input }) => removeEmbed(ctx, ctx.artist, input.embedId)),
 });

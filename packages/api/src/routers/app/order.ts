@@ -2,7 +2,12 @@ import { z } from "zod";
 
 import { CURRENCIES } from "@bandcoin/chain";
 
-import { cancelPurchase, quotePurchase, startPurchase, submitPurchase } from "../../services/purchase";
+import {
+  cancelPurchase,
+  quotePurchase,
+  startPurchase,
+  submitPurchase,
+} from "../../services/purchase";
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 
 /** Most copies one purchase can include. */
@@ -21,14 +26,18 @@ export const orderRouter = createRouter({
     return quote;
   }),
 
-  start: authedProcedure.input(purchaseInput).mutation(({ ctx, input }) => startPurchase(ctx, ctx.session.user, input)),
+  start: authedProcedure
+    .input(purchaseInput)
+    .mutation(({ ctx, input }) => startPurchase(ctx, ctx.session.user, input)),
 
   submit: authedProcedure
     .input(
       z.object({
         orderId: z.string().min(1),
         xdr: z.string().min(1),
-        card: z.object({ sourceId: z.string().min(1), verificationToken: z.string().optional() }).optional(),
+        card: z
+          .object({ sourceId: z.string().min(1), verificationToken: z.string().optional() })
+          .optional(),
       }),
     )
     .mutation(({ ctx, input }) => submitPurchase(ctx, ctx.session.user, input)),
@@ -37,11 +46,20 @@ export const orderRouter = createRouter({
     .input(z.object({ orderId: z.string().min(1) }))
     .mutation(({ ctx, input }) => cancelPurchase(ctx, ctx.session.user, input.orderId)),
 
-  status: authedProcedure.input(z.object({ orderId: z.string().min(1) })).query(async ({ ctx, input }) => {
-    const order = await ctx.db.order.findFirst({
-      where: { id: input.orderId, buyerId: ctx.session.user.id },
-      select: { id: true, status: true, failureCode: true, txHash: true, quantity: true, itemId: true },
-    });
-    return order;
-  }),
+  status: authedProcedure
+    .input(z.object({ orderId: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      const order = await ctx.db.order.findFirst({
+        where: { id: input.orderId, buyerId: ctx.session.user.id },
+        select: {
+          id: true,
+          status: true,
+          failureCode: true,
+          txHash: true,
+          quantity: true,
+          itemId: true,
+        },
+      });
+      return order;
+    }),
 });

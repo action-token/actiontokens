@@ -42,16 +42,25 @@ export const MOBILE_TABS = ["Home", "Marketplace", "Bounties", "My collection", 
 export function isActive(entry: NavItem, pathname: string, tab: string | null) {
   if (entry.external) return false;
   const path = entry.href.split("?")[0]!;
-  const on = path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(`${path}/`) || (entry.also ?? []).some((extra) => pathname === extra || pathname.startsWith(`${extra}/`));
+  const on =
+    path === "/"
+      ? pathname === "/"
+      : pathname === path ||
+        pathname.startsWith(`${path}/`) ||
+        (entry.also ?? []).some((extra) => pathname === extra || pathname.startsWith(`${extra}/`));
   if (!on) return false;
   if (entry.tab) return tab === entry.tab;
   // The plain entry on a shared page yields to the entry that owns the tab.
-  const sibling = GROUPS.flatMap((group) => group.items).some((other) => other.tab && other.tab === tab && other.href.split("?")[0] === path);
+  const sibling = GROUPS.flatMap((group) => group.items).some(
+    (other) => other.tab && other.tab === tab && other.href.split("?")[0] === path,
+  );
   return !sibling;
 }
 
 /** The artist-portal tile: an invitation for fans, the way in for artists, and the right words in between. Short, so it fits the sidebar. */
-export function artistEntry(artist: { name: string; status: "PENDING" | "APPROVED" | "BANNED" | "REJECTED" } | null) {
+export function artistEntry(
+  artist: { name: string; status: "PENDING" | "APPROVED" | "BANNED" | "REJECTED" } | null,
+) {
   if (!artist) return { title: "Become an artist", hint: "Open your page" };
   if (artist.status === "APPROVED") return { title: "Artist portal", hint: artist.name };
   if (artist.status === "PENDING") return { title: "Artist portal", hint: "In review" };

@@ -15,7 +15,8 @@ export const ITEM_TYPES: { value: ItemKind; label: string; hint: string }[] = [
 ];
 
 /** Art, video, 3D and documents are the file itself, so they can't exist without it. */
-export const fileRequired = (type: ItemKind) => type === "IMAGE" || type === "VIDEO" || type === "MODEL_3D" || type === "DOCUMENT";
+export const fileRequired = (type: ItemKind) =>
+  type === "IMAGE" || type === "VIDEO" || type === "MODEL_3D" || type === "DOCUMENT";
 
 /** What the file picker offers for this kind of item. */
 export function acceptFor(type: ItemKind): string {

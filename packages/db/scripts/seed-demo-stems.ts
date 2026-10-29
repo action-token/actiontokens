@@ -34,9 +34,20 @@ const STEMS = [
 ] as const;
 
 const wave = (type: "sine" | "saw" | "tri", phase: number) =>
-  type === "sine" ? Math.sin(2 * Math.PI * phase) : type === "saw" ? 2 * (phase % 1) - 1 : 2 * Math.abs(2 * (phase % 1) - 1) - 1;
+  type === "sine"
+    ? Math.sin(2 * Math.PI * phase)
+    : type === "saw"
+      ? 2 * (phase % 1) - 1
+      : 2 * Math.abs(2 * (phase % 1) - 1) - 1;
 
-function tone(out: Float32Array, type: "sine" | "saw" | "tri", freq: number, at: number, length: number, peak: number) {
+function tone(
+  out: Float32Array,
+  type: "sine" | "saw" | "tri",
+  freq: number,
+  at: number,
+  length: number,
+  peak: number,
+) {
   const first = Math.floor(at * RATE);
   const count = Math.floor(length * RATE);
   for (let i = 0; i < count && first + i < out.length; i += 1) {
@@ -52,7 +63,9 @@ function burst(out: Float32Array, at: number, length: number, peak: number, tona
   for (let i = 0; i < count && first + i < out.length; i += 1) {
     const t = i / RATE;
     const noise = Math.random() * 2 - 1;
-    const kick = tonal ? Math.sin(2 * Math.PI * (45 * t + (105 * (1 - Math.exp(-30 * t))) / 30)) : 0;
+    const kick = tonal
+      ? Math.sin(2 * Math.PI * (45 * t + (105 * (1 - Math.exp(-30 * t))) / 30))
+      : 0;
     out[first + i]! += (tonal ? kick : noise) * peak * Math.exp(-t * (5 / length));
   }
 }
@@ -61,7 +74,8 @@ function render(key: (typeof STEMS)[number]["key"]) {
   const out = new Float32Array(Math.ceil(SECONDS * RATE));
   for (let bar = 0; bar < BARS; bar += 1) {
     const block = Math.floor(bar / 2);
-    if (key === "chords") for (const f of CHORDS[block]!) tone(out, "tri", f, bar * 4 * BEAT, BEAT * 3.6, 0.13);
+    if (key === "chords")
+      for (const f of CHORDS[block]!) tone(out, "tri", f, bar * 4 * BEAT, BEAT * 3.6, 0.13);
     for (let beat = 0; beat < 4; beat += 1) {
       const at = (bar * 4 + beat) * BEAT;
       if (key === "drums") {
@@ -73,8 +87,17 @@ function render(key: (typeof STEMS)[number]["key"]) {
       for (const half of [0, 1]) {
         const eighth = beat * 2 + half;
         const when = (bar * 4 + eighth / 2) * BEAT;
-        if (key === "bass" && eighth % 4 !== 3) tone(out, "saw", eighth === 4 ? ROOTS[block]! * 2 : ROOTS[block]!, when, BEAT * 0.45, 0.2);
-        if (key === "lead") tone(out, "sine", CHORDS[block]![(eighth * 2 + bar) % 3]! * 2, when, BEAT * 0.5, 0.2);
+        if (key === "bass" && eighth % 4 !== 3)
+          tone(
+            out,
+            "saw",
+            eighth === 4 ? ROOTS[block]! * 2 : ROOTS[block]!,
+            when,
+            BEAT * 0.45,
+            0.2,
+          );
+        if (key === "lead")
+          tone(out, "sine", CHORDS[block]![(eighth * 2 + bar) % 3]! * 2, when, BEAT * 0.5, 0.2);
       }
     }
   }
@@ -83,7 +106,8 @@ function render(key: (typeof STEMS)[number]["key"]) {
 
 function wav(samples: Float32Array) {
   const data = new DataView(new ArrayBuffer(44 + samples.length * 2));
-  const text = (at: number, value: string) => [...value].forEach((char, i) => data.setUint8(at + i, char.charCodeAt(0)));
+  const text = (at: number, value: string) =>
+    [...value].forEach((char, i) => data.setUint8(at + i, char.charCodeAt(0)));
   text(0, "RIFF");
   data.setUint32(4, 36 + samples.length * 2, true);
   text(8, "WAVE");
@@ -97,25 +121,37 @@ function wav(samples: Float32Array) {
   data.setUint16(34, 16, true);
   text(36, "data");
   data.setUint32(40, samples.length * 2, true);
-  samples.forEach((sample, i) => data.setInt16(44 + i * 2, Math.max(-1, Math.min(1, sample)) * 32767, true));
+  samples.forEach((sample, i) =>
+    data.setInt16(44 + i * 2, Math.max(-1, Math.min(1, sample)) * 32767, true),
+  );
   return Buffer.from(data.buffer);
 }
 
 const [title, displayName] = process.argv.slice(2).filter((arg) => !arg.startsWith("--"));
 const remove = process.argv.includes("--remove");
-if (!title || !displayName) throw new Error('Usage: seed-demo-stems.ts "<song title>" "<display name>" [--remove]');
+if (!title || !displayName)
+  throw new Error('Usage: seed-demo-stems.ts "<song title>" "<display name>" [--remove]');
 
-if (!/ep-shy-leaf/.test(process.env.DATABASE_URL ?? "")) throw new Error("Refusing to run: DATABASE_URL is not the development database.");
+if (!/ep-shy-leaf/.test(process.env.DATABASE_URL ?? ""))
+  throw new Error("Refusing to run: DATABASE_URL is not the development database.");
 
-const item = await db.item.findFirst({ where: { title, type: "TRACK", deletedAt: null }, select: { id: true } });
+const item = await db.item.findFirst({
+  where: { title, type: "TRACK", deletedAt: null },
+  select: { id: true },
+});
 const user = await db.user.findFirst({ where: { displayName }, select: { id: true } });
-if (!item || !user) throw new Error(`Couldn't find the song "${title}" or the account "${displayName}".`);
+if (!item || !user)
+  throw new Error(`Couldn't find the song "${title}" or the account "${displayName}".`);
 
 const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-await db.itemStem.deleteMany({ where: { itemId: item.id, sourceUrl: { startsWith: "/demo-stems/" } } });
+await db.itemStem.deleteMany({
+  where: { itemId: item.id, sourceUrl: { startsWith: "/demo-stems/" } },
+});
 
 if (remove) {
-  const removed = await db.ownership.deleteMany({ where: { userId: user.id, itemId: item.id, source: "GIFT" } });
+  const removed = await db.ownership.deleteMany({
+    where: { userId: user.id, itemId: item.id, source: "GIFT" },
+  });
   console.log(`Removed the demo stems and ${removed.count} demo ownership row(s).`);
 } else {
   const folder = join(process.cwd(), "../../apps/app/public/demo-stems");
@@ -123,11 +159,25 @@ if (remove) {
   for (const [index, stem] of STEMS.entries()) {
     writeFileSync(join(folder, `${slug}-${stem.key}.wav`), wav(render(stem.key)));
     await db.itemStem.create({
-      data: { itemId: item.id, name: stem.name, color: stem.color, trackIndex: index, sourceUrl: `/demo-stems/${slug}-${stem.key}.wav`, endSec: SECONDS },
+      data: {
+        itemId: item.id,
+        name: stem.name,
+        color: stem.color,
+        trackIndex: index,
+        sourceUrl: `/demo-stems/${slug}-${stem.key}.wav`,
+        endSec: SECONDS,
+      },
     });
   }
-  const owned = await db.ownership.findUnique({ where: { userId_itemId: { userId: user.id, itemId: item.id } } });
-  if (!owned) await db.ownership.create({ data: { userId: user.id, itemId: item.id, quantity: 1, source: "GIFT" } });
-  console.log(`Seeded ${STEMS.length} stems on "${title}"${owned ? "" : ` and made "${displayName}" its owner (source GIFT)`}.`);
+  const owned = await db.ownership.findUnique({
+    where: { userId_itemId: { userId: user.id, itemId: item.id } },
+  });
+  if (!owned)
+    await db.ownership.create({
+      data: { userId: user.id, itemId: item.id, quantity: 1, source: "GIFT" },
+    });
+  console.log(
+    `Seeded ${STEMS.length} stems on "${title}"${owned ? "" : ` and made "${displayName}" its owner (source GIFT)`}.`,
+  );
 }
 await db.$disconnect();

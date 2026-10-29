@@ -4,7 +4,15 @@ import { distanceMeters } from "@bandcoin/ar-core/ar/geo";
 import { NEARBY_RADIUS_M } from "@bandcoin/ar-core/murals/constants";
 
 import { nameMural, startScan, submitScan } from "../../services/ar/mural-scan";
-import { boxAround, getMuralSettings, LIVE_MURAL, localDay, scansToday, timeZoneAt, toMuralCard } from "../../services/ar/murals";
+import {
+  boxAround,
+  getMuralSettings,
+  LIVE_MURAL,
+  localDay,
+  scansToday,
+  timeZoneAt,
+  toMuralCard,
+} from "../../services/ar/murals";
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 
 const lat = z.number().min(-90).max(90);
@@ -20,7 +28,15 @@ const lng = z.number().min(-180).max(180);
 export const muralRouter = createRouter({
   /** Murals inside the map's viewport, with the viewer's scans today. */
   inArea: publicProcedure
-    .input(z.object({ north: lat, south: lat, east: lng, west: lng, includeUnverified: z.boolean().default(true) }))
+    .input(
+      z.object({
+        north: lat,
+        south: lat,
+        east: lng,
+        west: lng,
+        includeUnverified: z.boolean().default(true),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const settings = await getMuralSettings(ctx.db);
       const murals = await ctx.db.mural.findMany({
@@ -37,7 +53,10 @@ export const muralRouter = createRouter({
       const today = await scansToday(ctx.db, ctx.session?.user.id, murals);
       return {
         dailyLimit: settings.dailyScansPerMural,
-        murals: murals.map((mural) => ({ ...toMuralCard(mural, settings), scansToday: today.get(mural.id) ?? 0 })),
+        murals: murals.map((mural) => ({
+          ...toMuralCard(mural, settings),
+          scansToday: today.get(mural.id) ?? 0,
+        })),
       };
     }),
 
@@ -57,7 +76,14 @@ export const muralRouter = createRouter({
     const scans = await ctx.db.muralScan.findMany({
       where: { muralId: mural.id, userId },
       orderBy: { createdAt: "desc" },
-      select: { id: true, createdAt: true, coinsAwarded: true, discoveryRank: true, keyframes: true, localDay: true },
+      select: {
+        id: true,
+        createdAt: true,
+        coinsAwarded: true,
+        discoveryRank: true,
+        keyframes: true,
+        localDay: true,
+      },
     });
     const day = localDay(timeZoneAt(mural.latitude, mural.longitude));
     return {
@@ -69,7 +95,12 @@ export const muralRouter = createRouter({
         coinsEarned: scans.reduce((sum, scan) => sum + scan.coinsAwarded, 0),
         rank: scans.find((scan) => scan.discoveryRank)?.discoveryRank ?? null,
         canName: !mural.title && scans.some((scan) => scan.discoveryRank),
-        history: scans.map(({ id, createdAt, coinsAwarded, keyframes }) => ({ id, createdAt, coinsAwarded, keyframes })),
+        history: scans.map(({ id, createdAt, coinsAwarded, keyframes }) => ({
+          id,
+          createdAt,
+          coinsAwarded,
+          keyframes,
+        })),
       },
     };
   }),
@@ -82,7 +113,10 @@ export const muralRouter = createRouter({
       include: { embeddings: { select: { vector: true } } },
     });
     const inRange = murals
-      .map((mural) => ({ mural, distanceM: distanceMeters(input, { lat: mural.latitude, lng: mural.longitude }) }))
+      .map((mural) => ({
+        mural,
+        distanceM: distanceMeters(input, { lat: mural.latitude, lng: mural.longitude }),
+      }))
       .filter((row) => row.distanceM <= NEARBY_RADIUS_M)
       .sort((a, b) => a.distanceM - b.distanceM);
     const today = await scansToday(
@@ -115,20 +149,34 @@ export const muralRouter = createRouter({
         lng,
         accuracy: z.number().min(0),
         mock: z.boolean().optional(),
-        sweep: z.object({ spanDeg: z.number().min(0).max(360), durationMs: z.number().int().min(0) }),
+        sweep: z.object({
+          spanDeg: z.number().min(0).max(360),
+          durationMs: z.number().int().min(0),
+        }),
         platform: z.enum(["web", "ios", "android"]),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       ctx.activity.set({ targetType: "MuralScanSession", targetId: input.sessionId });
       const result = await submitScan(ctx.db, ctx.session.user.id, input);
-      if (result.kind !== "rejected") ctx.activity.set({ targetType: "Mural", targetId: result.mural.id, amount: String(result.coins) });
+      if (result.kind !== "rejected")
+        ctx.activity.set({
+          targetType: "Mural",
+          targetId: result.mural.id,
+          amount: String(result.coins),
+        });
       return result;
     }),
 
   /** The first finders may name a mural; the first one to do it wins. */
   name: authedProcedure
-    .input(z.object({ muralId: z.string().min(1), title: z.string().trim().min(2).max(80), artist: z.string().trim().max(80).optional() }))
+    .input(
+      z.object({
+        muralId: z.string().min(1),
+        title: z.string().trim().min(2).max(80),
+        artist: z.string().trim().max(80).optional(),
+      }),
+    )
     .mutation(({ ctx, input }) => {
       ctx.activity.set({ targetType: "Mural", targetId: input.muralId });
       return nameMural(ctx.db, ctx.session.user.id, input);
@@ -136,13 +184,24 @@ export const muralRouter = createRouter({
 
   /** Collection > Murals: one card per mural the viewer has scanned. */
   mine: authedProcedure
-    .input(z.object({ cursor: z.number().int().min(0).default(0), limit: z.number().int().min(1).max(48).default(24) }))
+    .input(
+      z.object({
+        cursor: z.number().int().min(0).default(0),
+        limit: z.number().int().min(1).max(48).default(24),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
       const settings = await getMuralSettings(ctx.db);
       const groups = await ctx.db.muralScan.groupBy({
         by: ["muralId"],
-        where: { userId, mural: { mergedIntoId: null, OR: [{ rejectReason: null }, { rejectReason: { not: "FRAUD" } }] } },
+        where: {
+          userId,
+          mural: {
+            mergedIntoId: null,
+            OR: [{ rejectReason: null }, { rejectReason: { not: "FRAUD" } }],
+          },
+        },
         _count: { _all: true },
         _sum: { coinsAwarded: true },
         _max: { createdAt: true },
@@ -161,7 +220,9 @@ export const muralRouter = createRouter({
         }),
       ]);
       const byId = new Map(murals.map((mural) => [mural.id, mural]));
-      const photo = new Map(latest.map((scan) => [scan.muralId, scan.keyframes[1] ?? scan.keyframes[0]]));
+      const photo = new Map(
+        latest.map((scan) => [scan.muralId, scan.keyframes[1] ?? scan.keyframes[0]]),
+      );
       const next = input.cursor + page.length;
       return {
         total: groups.length,

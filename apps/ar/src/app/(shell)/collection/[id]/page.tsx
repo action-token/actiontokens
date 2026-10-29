@@ -101,7 +101,8 @@ export default function CollectionDetail() {
   );
 
   const siblings = useMemo(
-    () => (pin ? pins.filter((p) => p.artistId === pin.artistId && p.id !== pin.id).slice(0, 6) : []),
+    () =>
+      pin ? pins.filter((p) => p.artistId === pin.artistId && p.id !== pin.id).slice(0, 6) : [],
     [pins, pin],
   );
 

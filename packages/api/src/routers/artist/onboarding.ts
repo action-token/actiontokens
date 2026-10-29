@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-import { applyAsArtist, quoteIssuerOpening, startIssuerOpening, submitIssuerOpening } from "../../services/artist/onboarding";
+import {
+  applyAsArtist,
+  quoteIssuerOpening,
+  startIssuerOpening,
+  submitIssuerOpening,
+} from "../../services/artist/onboarding";
 import { cancelPurchase } from "../../services/purchase";
 import { authedProcedure, createRouter } from "../../trpc";
 
@@ -9,7 +14,11 @@ export const onboardingRouter = createRouter({
   submitApplication: authedProcedure
     .input(
       z.object({
-        name: z.string().trim().min(2, "Use at least 2 characters").max(60, "Use at most 60 characters"),
+        name: z
+          .string()
+          .trim()
+          .min(2, "Use at least 2 characters")
+          .max(60, "Use at most 60 characters"),
         slug: z.string().trim().optional(),
         bio: z.string().trim().max(500).optional(),
       }),

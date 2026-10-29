@@ -43,7 +43,12 @@ export function useToggleFollow() {
   const setFollowing = api.artist.setFollowing.useMutation({
     onMutate: () => setError(null),
     onError: (e) => setError(e.message),
-    onSettled: () => Promise.all([utils.artist.list.invalidate(), utils.artist.byId.invalidate(), utils.pin.list.invalidate()]),
+    onSettled: () =>
+      Promise.all([
+        utils.artist.list.invalidate(),
+        utils.artist.byId.invalidate(),
+        utils.pin.list.invalidate(),
+      ]),
   });
   const pendingId = setFollowing.isPending ? (setFollowing.variables?.artistId ?? null) : null;
 
@@ -51,7 +56,13 @@ export function useToggleFollow() {
     error,
     pendingId,
     labelFor: (artist: Pick<ArArtist, "id" | "followed">) =>
-      pendingId === artist.id ? (artist.followed ? "Unfollowing" : "Following…") : artist.followed ? "Following" : "Follow",
+      pendingId === artist.id
+        ? artist.followed
+          ? "Unfollowing"
+          : "Following…"
+        : artist.followed
+          ? "Following"
+          : "Follow",
     toggle: (artist: Pick<ArArtist, "id" | "followed">) => {
       if (pendingId) return;
       setFollowing.mutate({ artistId: artist.id, following: !artist.followed });

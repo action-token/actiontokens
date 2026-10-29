@@ -22,7 +22,12 @@ export function buildTopUp(input: {
   const builder = startTransaction(input.buyer, input.network, { memo: input.orderId });
   if (input.openTrustline) builder.addOperation(Operation.changeTrust({ asset: input.asset }));
   builder.addOperation(
-    Operation.payment({ source: input.from, destination: input.buyer.accountId(), asset: input.asset, amount: input.amount }),
+    Operation.payment({
+      source: input.from,
+      destination: input.buyer.accountId(),
+      asset: input.asset,
+      amount: input.amount,
+    }),
   );
   return finish(builder, [input.from]);
 }
@@ -40,11 +45,19 @@ export function buildXlmSwap(input: {
   pay: string;
   xlm: string;
 }) {
-  if (isZero(input.pay) || isZero(input.xlm)) throw new RangeError("A swap must move something both ways");
+  if (isZero(input.pay) || isZero(input.xlm))
+    throw new RangeError("A swap must move something both ways");
   const builder = startTransaction(input.buyer, input.network, { memo: input.orderId })
-    .addOperation(Operation.payment({ destination: input.platform, asset: input.asset, amount: input.pay }))
     .addOperation(
-      Operation.payment({ source: input.platform, destination: input.buyer.accountId(), asset: Asset.native(), amount: input.xlm }),
+      Operation.payment({ destination: input.platform, asset: input.asset, amount: input.pay }),
+    )
+    .addOperation(
+      Operation.payment({
+        source: input.platform,
+        destination: input.buyer.accountId(),
+        asset: Asset.native(),
+        amount: input.xlm,
+      }),
     );
   return finish(builder, [input.platform]);
 }
@@ -62,8 +75,13 @@ export function buildActivation(input: {
   startingBalance: string;
 }) {
   if (isZero(input.startingBalance)) throw new RangeError("An activation must fund the account");
-  const builder = startTransaction(input.platform, input.network, { memo: input.orderId }).addOperation(
-    Operation.createAccount({ destination: input.destination, startingBalance: input.startingBalance }),
+  const builder = startTransaction(input.platform, input.network, {
+    memo: input.orderId,
+  }).addOperation(
+    Operation.createAccount({
+      destination: input.destination,
+      startingBalance: input.startingBalance,
+    }),
   );
   return finish(builder, [input.platform.accountId()]);
 }

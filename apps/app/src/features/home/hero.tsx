@@ -49,7 +49,8 @@ export function Hero({ items }: { items: HeroItem[] }) {
       onTouchStart={(event) => setTouchX(event.touches[0]?.clientX ?? null)}
       onTouchEnd={(event) => {
         const end = event.changedTouches[0]?.clientX;
-        if (touchX !== null && end !== undefined && Math.abs(end - touchX) > 40) go(active + (end < touchX ? 1 : -1));
+        if (touchX !== null && end !== undefined && Math.abs(end - touchX) > 40)
+          go(active + (end < touchX ? 1 : -1));
         setTouchX(null);
       }}
       className="relative isolate overflow-hidden border-b"
@@ -77,7 +78,11 @@ export function Hero({ items }: { items: HeroItem[] }) {
               <Link href={`/item/${item.slug}`} tabIndex={-1} className="group block">
                 <div className="border-fg bg-surface overflow-hidden rounded-[1.6rem] border-[3px] shadow-[10px_12px_0_0_var(--color-primary)] transition-transform duration-300 group-hover:-translate-y-1 group-hover:-rotate-3">
                   {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
-                  <img src={item.coverUrl} alt={item.title} className="aspect-square w-full object-cover" />
+                  <img
+                    src={item.coverUrl}
+                    alt={item.title}
+                    className="aspect-square w-full object-cover"
+                  />
                 </div>
               </Link>
               <span className="marker bg-primary text-primary-foreground pointer-events-none absolute -top-5 -left-4 -rotate-12 rounded-lg px-2.5 py-1 text-base sm:-left-8">
@@ -88,10 +93,13 @@ export function Hero({ items }: { items: HeroItem[] }) {
 
           <div className="grid min-w-0 content-center gap-4">
             <div className="grid gap-2">
-              <p className="marker -rotate-2 text-lg text-fg-muted">
+              <p className="marker text-fg-muted -rotate-2 text-lg">
                 *by{" "}
                 {item.artistSlug ? (
-                  <Link href={`/artist/${item.artistSlug}`} className="text-primary-text hover:underline">
+                  <Link
+                    href={`/artist/${item.artistSlug}`}
+                    className="text-primary-text hover:underline"
+                  >
                     {item.artistName}
                   </Link>
                 ) : (
@@ -99,13 +107,25 @@ export function Hero({ items }: { items: HeroItem[] }) {
                 )}
                 *
               </p>
-              <h2 className="display line-clamp-2 text-4xl break-words sm:text-5xl">{item.title}</h2>
-              {item.description && <p className="text-fg-muted line-clamp-2 max-w-xl text-[15px]">{item.description}</p>}
+              <h2 className="display line-clamp-2 text-4xl break-words sm:text-5xl">
+                {item.title}
+              </h2>
+              {item.description && (
+                <p className="text-fg-muted line-clamp-2 max-w-xl text-[15px]">
+                  {item.description}
+                </p>
+              )}
             </div>
 
             {item.price && (
               <div className="bg-primary text-primary-foreground inline-grid w-fit -rotate-2 gap-0.5 rounded-2xl px-4 py-2">
-                <Money amount={item.price.bandcoin} currency="BANDCOIN" short onBrand className="display text-3xl leading-none" />
+                <Money
+                  amount={item.price.bandcoin}
+                  currency="BANDCOIN"
+                  short
+                  onBrand
+                  className="display text-3xl leading-none"
+                />
                 <p className="marker text-sm">
                   ≈ <Money amount={item.price.usd} currency="USD" /> · to own it
                 </p>
@@ -161,17 +181,30 @@ export function Hero({ items }: { items: HeroItem[] }) {
                   {index === active && (
                     <span
                       key={`${active}-${paused}`}
-                      className={cn("bg-primary absolute inset-0 origin-left rounded-full", !paused && "animate-[hero-progress_7s_linear]")}
+                      className={cn(
+                        "bg-primary absolute inset-0 origin-left rounded-full",
+                        !paused && "animate-[hero-progress_7s_linear]",
+                      )}
                     />
                   )}
                 </button>
               ))}
             </div>
             <div className="hidden gap-2 sm:flex">
-              <button type="button" onClick={() => go(active - 1)} aria-label="Previous slide" className="bg-surface hover:border-border-strong grid size-11 place-items-center rounded-full border">
+              <button
+                type="button"
+                onClick={() => go(active - 1)}
+                aria-label="Previous slide"
+                className="bg-surface hover:border-border-strong grid size-11 place-items-center rounded-full border"
+              >
                 <ChevronLeft className="size-5" />
               </button>
-              <button type="button" onClick={() => go(active + 1)} aria-label="Next slide" className="bg-surface hover:border-border-strong grid size-11 place-items-center rounded-full border">
+              <button
+                type="button"
+                onClick={() => go(active + 1)}
+                aria-label="Next slide"
+                className="bg-surface hover:border-border-strong grid size-11 place-items-center rounded-full border"
+              >
                 <ChevronRight className="size-5" />
               </button>
             </div>

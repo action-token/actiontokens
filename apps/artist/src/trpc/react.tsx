@@ -17,13 +17,19 @@ export type RouterOutputs = inferRouterOutputs<PortalRouter>;
 /** Query client and tRPC client, created once per browser tab (never at module scope). */
 export function TRPCReactProvider({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
-    () => new QueryClient({ defaultOptions: { queries: { refetchOnWindowFocus: false, staleTime: 15_000 } } }),
+    () =>
+      new QueryClient({
+        defaultOptions: { queries: { refetchOnWindowFocus: false, staleTime: 15_000 } },
+      }),
   );
   const [trpcClient] = useState(() =>
     api.createClient({
       links: [
         loggerLink({
-          enabled: (op) => process.env.NODE_ENV === "development" && op.direction === "down" && op.result instanceof Error,
+          enabled: (op) =>
+            process.env.NODE_ENV === "development" &&
+            op.direction === "down" &&
+            op.result instanceof Error,
         }),
         httpBatchStreamLink({ url: "/api/trpc", transformer: superjson }),
       ],

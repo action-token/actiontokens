@@ -4,17 +4,27 @@ import { useSession } from "next-auth/react";
 import { type ReactNode, useRef, useState } from "react";
 
 import { isAppError } from "@bandcoin/errors";
-import { CUSTODIAL_COUNTDOWN_SECONDS, type TransactionStep } from "@bandcoin/ui/patterns/transaction-toast";
+import {
+  CUSTODIAL_COUNTDOWN_SECONDS,
+  type TransactionStep,
+} from "@bandcoin/ui/patterns/transaction-toast";
 import { getWalletProvider, signTransaction } from "@bandcoin/wallet";
 
 import { api, type RouterInputs } from "~/trpc/react";
 
 type RechargeInput = RouterInputs["recharge"]["start"];
 type Card = { sourceId: string; verificationToken?: string };
-type Pending = { orderId: string; xdr: string; card?: Card; success: { title: string; body: string } };
+type Pending = {
+  orderId: string;
+  xdr: string;
+  card?: Card;
+  success: { title: string; body: string };
+};
 
 const reasonOf = (error: unknown) =>
-  isAppError(error) || error instanceof Error ? error.message : "Something went wrong. Nothing was charged.";
+  isAppError(error) || error instanceof Error
+    ? error.message
+    : "Something went wrong. Nothing was charged.";
 
 /**
  * One recharge, from the button to the money arriving. Moves a single toast
@@ -35,13 +45,21 @@ export function useRecharge() {
   const [step, setStep] = useState<TransactionStep | null>(null);
   const pending = useRef<Pending | null>(null);
 
-  const busy = step !== null && (step.kind === "countdown" || step.kind === "confirm" || step.kind === "submitting");
+  const busy =
+    step !== null &&
+    (step.kind === "countdown" || step.kind === "confirm" || step.kind === "submitting");
 
-  async function run(input: RechargeInput & { summary: ReactNode; card?: Card; success: Pending["success"] }) {
+  async function run(
+    input: RechargeInput & { summary: ReactNode; card?: Card; success: Pending["success"] },
+  ) {
     const { summary, card, success, ...recharge } = input;
     let started;
     try {
-      setStep({ kind: "submitting", title: "Preparing your order…", summary: "Locking in this price for 60 seconds." });
+      setStep({
+        kind: "submitting",
+        title: "Preparing your order…",
+        summary: "Locking in this price for 60 seconds.",
+      });
       started = await start.mutateAsync(recharge);
     } catch (error) {
       setStep({ kind: "failed", reason: reasonOf(error) });
@@ -59,7 +77,11 @@ export function useRecharge() {
     setStep({ kind: "confirm", summary, walletName });
     let signed: string;
     try {
-      signed = await signTransaction({ xdr: started.xdr, publicKey: user?.walletAddress ?? "", walletType: user?.walletType ?? "" });
+      signed = await signTransaction({
+        xdr: started.xdr,
+        publicKey: user?.walletAddress ?? "",
+        walletType: user?.walletType ?? "",
+      });
     } catch {
       if (pending.current?.orderId === started.orderId) await stop();
       return;
@@ -73,7 +95,10 @@ export function useRecharge() {
   async function send(xdr = pending.current?.xdr) {
     const order = pending.current;
     if (!order || !xdr) return;
-    setStep({ kind: "submitting", summary: "Sending it to your wallet. This takes a few seconds." });
+    setStep({
+      kind: "submitting",
+      summary: "Sending it to your wallet. This takes a few seconds.",
+    });
     try {
       await submit.mutateAsync({ orderId: order.orderId, xdr, card: order.card });
       setStep({ kind: "success", ...order.success });
@@ -93,5 +118,12 @@ export function useRecharge() {
     if (order) await cancel.mutateAsync({ orderId: order.orderId }).catch(() => undefined);
   }
 
-  return { step, busy, run, send: () => void send(), stop: () => void stop(), close: () => setStep(null) };
+  return {
+    step,
+    busy,
+    run,
+    send: () => void send(),
+    stop: () => void stop(),
+    close: () => setStep(null),
+  };
 }

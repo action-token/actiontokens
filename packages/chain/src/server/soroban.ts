@@ -1,4 +1,16 @@
-import { Address, authorizeEntry, Contract, Keypair, nativeToScVal, Operation, rpc, scValToNative, type Transaction, TransactionBuilder, type xdr } from "@stellar/stellar-sdk";
+import {
+  Address,
+  authorizeEntry,
+  Contract,
+  Keypair,
+  nativeToScVal,
+  Operation,
+  rpc,
+  scValToNative,
+  type Transaction,
+  TransactionBuilder,
+  type xdr,
+} from "@stellar/stellar-sdk";
 
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
@@ -16,12 +28,17 @@ const sorobanRpc = () => (server ??= new rpc.Server(chainConfig().rpcUrl));
  * platform-held party (the treasury on NFT buys) signed with `authSecrets`.
  * A contract error surfaces here, before the user is asked to sign anything.
  */
-export async function prepareContractCall(unpreparedXdr: string, authSecrets: string[] = []): Promise<string> {
+export async function prepareContractCall(
+  unpreparedXdr: string,
+  authSecrets: string[] = [],
+): Promise<string> {
   const { passphrase } = chainConfig().network;
   const tx = TransactionBuilder.fromXDR(unpreparedXdr, passphrase) as Transaction;
   const invoke = tx.operations[0];
   if (tx.operations.length !== 1 || invoke?.type !== "invokeHostFunction") {
-    throw new AppError(ErrorCodes.STELLAR_TX_BUILD_FAILED, { message: "Expected one contract call" });
+    throw new AppError(ErrorCodes.STELLAR_TX_BUILD_FAILED, {
+      message: "Expected one contract call",
+    });
   }
 
   const simulation = await sorobanRpc().simulateTransaction(tx);
@@ -37,7 +54,9 @@ export async function prepareContractCall(unpreparedXdr: string, authSecrets: st
   const auth = await Promise.all(
     (simulation.result?.auth ?? []).map(async (entry) => {
       const signer = signers.find((keypair) => keypair.publicKey() === addressOf(entry));
-      return signer ? authorizeEntry(entry, signer, sequence + AUTH_VALID_LEDGERS, passphrase) : entry;
+      return signer
+        ? authorizeEntry(entry, signer, sequence + AUTH_VALID_LEDGERS, passphrase)
+        : entry;
     }),
   );
 
@@ -67,7 +86,9 @@ export function credentialAddress(credentials: xdr.SorobanCredentials): string |
     case "sorobanCredentialsAddressV2":
       return Address.fromScAddress(credentials.addressV2.address).toString();
     case "sorobanCredentialsAddressWithDelegates":
-      return Address.fromScAddress(credentials.addressWithDelegates.addressCredentials.address).toString();
+      return Address.fromScAddress(
+        credentials.addressWithDelegates.addressCredentials.address,
+      ).toString();
     default:
       return null;
   }
@@ -77,17 +98,26 @@ export function credentialAddress(credentials: xdr.SorobanCredentials): string |
  * (`edition_by_ref`), or null when none exists. A read-only simulation, so it
  * costs nothing and signs nothing; `reader` only has to be an account that exists.
  */
-export async function readEditionId(contract: string | null, reader: string, editionRef: string): Promise<number | null> {
-  if (!contract) throw new AppError(ErrorCodes.CONFIG_MISSING, { message: "NFT_CONTRACT isn't set." });
+export async function readEditionId(
+  contract: string | null,
+  reader: string,
+  editionRef: string,
+): Promise<number | null> {
+  if (!contract)
+    throw new AppError(ErrorCodes.CONFIG_MISSING, { message: "NFT_CONTRACT isn't set." });
   const { passphrase } = chainConfig().network;
   const account = await sorobanRpc().getAccount(reader);
   const tx = new TransactionBuilder(account, { fee: "100", networkPassphrase: passphrase })
-    .addOperation(new Contract(contract).call("edition_by_ref", nativeToScVal(editionRef, { type: "string" })))
+    .addOperation(
+      new Contract(contract).call("edition_by_ref", nativeToScVal(editionRef, { type: "string" })),
+    )
     .setTimeout(30)
     .build();
   const simulation = await sorobanRpc().simulateTransaction(tx);
   if (!rpc.Api.isSimulationSuccess(simulation) || !simulation.result) {
-    throw new AppError(ErrorCodes.STELLAR_TX_BUILD_FAILED, { message: "Couldn't read the edition from the contract." });
+    throw new AppError(ErrorCodes.STELLAR_TX_BUILD_FAILED, {
+      message: "Couldn't read the edition from the contract.",
+    });
   }
   const id = scValToNative(simulation.result.retval) as number | null | undefined;
   return id ?? null;

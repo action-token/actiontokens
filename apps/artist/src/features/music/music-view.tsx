@@ -49,8 +49,18 @@ function MusicTabs() {
 
   return (
     <PageBody className="grid gap-6">
-      <PageHeader eyebrow="Catalog" title="Music" description="Release songs fans can buy and preview, and group them into albums." actions={actions} />
-      <Tabs value={tab} onValueChange={(value) => router.replace(value === "albums" ? "/music?tab=albums" : "/music")}>
+      <PageHeader
+        eyebrow="Catalog"
+        title="Music"
+        description="Release songs fans can buy and preview, and group them into albums."
+        actions={actions}
+      />
+      <Tabs
+        value={tab}
+        onValueChange={(value) =>
+          router.replace(value === "albums" ? "/music?tab=albums" : "/music")
+        }
+      >
         <TabsList>
           <TabsTrigger value="songs">Songs</TabsTrigger>
           <TabsTrigger value="albums">Albums</TabsTrigger>
@@ -64,7 +74,8 @@ function MusicTabs() {
 function Songs() {
   const songs = api.music.songs.useQuery();
   if (songs.isPending) return <ListSkeleton />;
-  if (songs.isError) return <ErrorState message="Couldn't load your songs." onRetry={() => void songs.refetch()} />;
+  if (songs.isError)
+    return <ErrorState message="Couldn't load your songs." onRetry={() => void songs.refetch()} />;
   if (songs.data.length === 0) {
     return (
       <EmptyState
@@ -91,19 +102,40 @@ function Songs() {
 }
 
 function SongRow({ song }: { song: Song }) {
-  const status = song.visibility === "DRAFT" ? { tone: "neutral" as const, label: "Draft" } : song.listingStatus === "SOLD_OUT" ? { tone: "warning" as const, label: "Sold out" } : { tone: "success" as const, label: "Released" };
-  const details = [song.albumTitle ?? "Single", song.durationSec ? formatDuration(song.durationSec) : null, `${song.plays.toLocaleString("en-US")} plays`, `${song.sold} sold`, song.stems > 0 ? `${song.stems} stems` : null];
+  const status =
+    song.visibility === "DRAFT"
+      ? { tone: "neutral" as const, label: "Draft" }
+      : song.listingStatus === "SOLD_OUT"
+        ? { tone: "warning" as const, label: "Sold out" }
+        : { tone: "success" as const, label: "Released" };
+  const details = [
+    song.albumTitle ?? "Single",
+    song.durationSec ? formatDuration(song.durationSec) : null,
+    `${song.plays.toLocaleString("en-US")} plays`,
+    `${song.sold} sold`,
+    song.stems > 0 ? `${song.stems} stems` : null,
+  ];
   return (
     <li>
-      <Link href={`/music/${song.id}`} className="bg-surface hover:bg-surface-2 flex items-center gap-4 rounded-xl border p-3 transition-colors sm:p-4">
+      <Link
+        href={`/music/${song.id}`}
+        className="bg-surface hover:bg-surface-2 flex items-center gap-4 rounded-xl border p-3 transition-colors sm:p-4"
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={song.coverUrl} alt="" className="bg-surface-2 size-16 shrink-0 rounded-lg object-cover" />
+        <img
+          src={song.coverUrl}
+          alt=""
+          className="bg-surface-2 size-16 shrink-0 rounded-lg object-cover"
+        />
         <div className="grid min-w-0 flex-1 gap-0.5">
           <b className="truncate">{song.title}</b>
-          <span className="text-fg-muted truncate text-sm">{details.filter(Boolean).join(" · ")}</span>
+          <span className="text-fg-muted truncate text-sm">
+            {details.filter(Boolean).join(" · ")}
+          </span>
           {song.priceBandcoin && song.priceUsd && (
             <span className="text-fg-muted flex flex-wrap items-center gap-x-3 text-sm">
-              <Money amount={song.priceBandcoin} currency="BANDCOIN" /> <Money amount={song.priceUsd} currency="USD" />
+              <Money amount={song.priceBandcoin} currency="BANDCOIN" />{" "}
+              <Money amount={song.priceUsd} currency="USD" />
             </span>
           )}
         </div>
@@ -116,7 +148,10 @@ function SongRow({ song }: { song: Song }) {
 function Albums() {
   const albums = api.music.albums.useQuery();
   if (albums.isPending) return <ListSkeleton />;
-  if (albums.isError) return <ErrorState message="Couldn't load your albums." onRetry={() => void albums.refetch()} />;
+  if (albums.isError)
+    return (
+      <ErrorState message="Couldn't load your albums." onRetry={() => void albums.refetch()} />
+    );
   if (albums.data.length === 0) {
     return (
       <EmptyState
@@ -145,12 +180,21 @@ function Albums() {
 function AlbumRow({ album }: { album: Album }) {
   return (
     <li>
-      <Link href={`/music/albums/${album.id}`} className="bg-surface hover:bg-surface-2 flex items-center gap-4 rounded-xl border p-3 transition-colors sm:p-4">
+      <Link
+        href={`/music/albums/${album.id}`}
+        className="bg-surface hover:bg-surface-2 flex items-center gap-4 rounded-xl border p-3 transition-colors sm:p-4"
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={album.coverUrl} alt="" className="bg-surface-2 size-16 shrink-0 rounded-lg object-cover" />
+        <img
+          src={album.coverUrl}
+          alt=""
+          className="bg-surface-2 size-16 shrink-0 rounded-lg object-cover"
+        />
         <div className="grid min-w-0 flex-1 gap-0.5">
           <b className="truncate">{album.title}</b>
-          <span className="text-fg-muted text-sm">{album.songCount === 1 ? "1 song" : `${album.songCount} songs`}</span>
+          <span className="text-fg-muted text-sm">
+            {album.songCount === 1 ? "1 song" : `${album.songCount} songs`}
+          </span>
         </div>
       </Link>
     </li>

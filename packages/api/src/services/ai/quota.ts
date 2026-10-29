@@ -11,11 +11,16 @@ type QuotaCtx = Pick<Context, "db">;
 type Who = { artistId: string; unlimited: boolean };
 
 /** Midnight UTC of `now`, the key of the day's counter. */
-const dayOf = (now: Date) => new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+const dayOf = (now: Date) =>
+  new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 
 export async function aiRemaining(ctx: QuotaCtx, who: Who, now = new Date()) {
-  if (who.unlimited) return { text: null, image: null, limit: AI_DAILY_LIMIT, unlimited: true as const };
-  const used = await ctx.db.aiUsage.findUnique({ where: { artistId_day: { artistId: who.artistId, day: dayOf(now) } }, select: { text: true, image: true } });
+  if (who.unlimited)
+    return { text: null, image: null, limit: AI_DAILY_LIMIT, unlimited: true as const };
+  const used = await ctx.db.aiUsage.findUnique({
+    where: { artistId_day: { artistId: who.artistId, day: dayOf(now) } },
+    select: { text: true, image: true },
+  });
   return {
     text: Math.max(0, AI_DAILY_LIMIT.text - (used?.text ?? 0)),
     image: Math.max(0, AI_DAILY_LIMIT.image - (used?.image ?? 0)),
@@ -28,7 +33,13 @@ export async function aiRemaining(ctx: QuotaCtx, who: Who, now = new Date()) {
  * Run `work` if the artist has allowance left, and count it only when it
  * succeeds, so a failed generation costs nothing.
  */
-export async function withAiQuota<T>(ctx: QuotaCtx, who: Who, kind: AiKind, work: () => Promise<T>, now = new Date()): Promise<T> {
+export async function withAiQuota<T>(
+  ctx: QuotaCtx,
+  who: Who,
+  kind: AiKind,
+  work: () => Promise<T>,
+  now = new Date(),
+): Promise<T> {
   if (!who.unlimited) {
     const left = await aiRemaining(ctx, who, now);
     if ((left[kind] ?? 0) <= 0) {

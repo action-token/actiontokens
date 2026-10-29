@@ -21,7 +21,12 @@ describe("secrets", () => {
   it("fails with the wrong key or a tampered payload", () => {
     const stored = encryptSecret("secret", KEY);
     expect(() => decryptSecret(stored, "b".repeat(64))).toThrow();
-    expect(() => decryptSecret(stored.replace(/.$/, (c) => (c === "0" ? "1" : "0")), KEY)).toThrow();
+    expect(() =>
+      decryptSecret(
+        stored.replace(/.$/, (c) => (c === "0" ? "1" : "0")),
+        KEY,
+      ),
+    ).toThrow();
     expect(() => encryptSecret("secret", "short")).toThrow();
   });
 });
@@ -64,7 +69,9 @@ describe("liveRates", () => {
   });
 
   it("fails clearly when no price is available", async () => {
-    await expect(liveRates(async () => ({ price: 0 }), 0)).rejects.toMatchObject({ code: "EXTERNAL_SERVICE_FAILED" });
+    await expect(liveRates(async () => ({ price: 0 }), 0)).rejects.toMatchObject({
+      code: "EXTERNAL_SERVICE_FAILED",
+    });
   });
 });
 
@@ -84,15 +91,24 @@ describe("liveBandcoinUsd", () => {
   });
 
   it("on mainnet ignores the dev price and refuses when the market has none", async () => {
-    await expect(liveBandcoinUsd({ name: "mainnet", asset, devPrice: "1" }, async () => ({}), 0)).rejects.toMatchObject({
+    await expect(
+      liveBandcoinUsd({ name: "mainnet", asset, devPrice: "1" }, async () => ({}), 0),
+    ).rejects.toMatchObject({
       code: "EXTERNAL_SERVICE_FAILED",
     });
   });
 
   it("on testnet uses the dev price, since a test asset has no market, and says so when it's missing", async () => {
-    const never = () => Promise.reject(new AppError(ErrorCodes.INTERNAL, { message: "must not call the network" }));
-    expect(await liveBandcoinUsd({ name: "testnet", asset, devPrice: "0.002" }, never, 0)).toBe("0.0020000");
-    await expect(liveBandcoinUsd({ name: "testnet", asset }, never, 0)).rejects.toMatchObject({ code: "CONFIG_MISSING" });
-    await expect(liveBandcoinUsd({ name: "testnet", asset, devPrice: "free" }, never, 0)).rejects.toMatchObject({ code: "CONFIG_MISSING" });
+    const never = () =>
+      Promise.reject(new AppError(ErrorCodes.INTERNAL, { message: "must not call the network" }));
+    expect(await liveBandcoinUsd({ name: "testnet", asset, devPrice: "0.002" }, never, 0)).toBe(
+      "0.0020000",
+    );
+    await expect(liveBandcoinUsd({ name: "testnet", asset }, never, 0)).rejects.toMatchObject({
+      code: "CONFIG_MISSING",
+    });
+    await expect(
+      liveBandcoinUsd({ name: "testnet", asset, devPrice: "free" }, never, 0),
+    ).rejects.toMatchObject({ code: "CONFIG_MISSING" });
   });
 });

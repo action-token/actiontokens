@@ -14,7 +14,10 @@ const loadAlbum = cache(async (slug: string) => {
   try {
     return await (await serverApi()).music.album({ slug });
   } catch (error) {
-    if ((isAppError(error) && error.code === "RESOURCE_NOT_FOUND") || (error instanceof Error && error.message === "This album doesn't exist.")) {
+    if (
+      (isAppError(error) && error.code === "RESOURCE_NOT_FOUND") ||
+      (error instanceof Error && error.message === "This album doesn't exist.")
+    ) {
       notFound();
     }
     throw error;
@@ -46,7 +49,12 @@ export default async function AlbumPage({ params }: Props) {
     <>
       <section className="relative isolate overflow-hidden border-b">
         {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
-        <img src={album.coverUrl} alt="" aria-hidden className="absolute inset-0 -z-10 size-full scale-125 object-cover opacity-30 blur-3xl" />
+        <img
+          src={album.coverUrl}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 -z-10 size-full scale-125 object-cover opacity-30 blur-3xl"
+        />
         <div aria-hidden className="from-bg/0 to-bg absolute inset-0 -z-10 bg-gradient-to-b" />
         <div className="mx-auto flex max-w-[80rem] flex-col gap-6 px-4 pt-8 pb-6 sm:flex-row sm:items-end sm:px-8">
           {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
@@ -60,8 +68,15 @@ export default async function AlbumPage({ params }: Props) {
             <h1 className="display text-4xl break-words sm:text-6xl">{album.title}</h1>
             <p className="text-fg-muted flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
               {album.artist && (
-                <Link href={`/artist/${album.artist.slug}`} className="text-fg flex items-center gap-2 font-semibold hover:underline">
-                  <Avatar name={album.artist.name} url={album.artist.avatarUrl} className="bg-surface-3 grid size-6 place-items-center rounded-full object-cover text-[9px] font-bold" />
+                <Link
+                  href={`/artist/${album.artist.slug}`}
+                  className="text-fg flex items-center gap-2 font-semibold hover:underline"
+                >
+                  <Avatar
+                    name={album.artist.name}
+                    url={album.artist.avatarUrl}
+                    className="bg-surface-3 grid size-6 place-items-center rounded-full object-cover text-[9px] font-bold"
+                  />
                   {album.artist.name}
                 </Link>
               )}
@@ -71,7 +86,9 @@ export default async function AlbumPage({ params }: Props) {
                 {album.durationSec > 0 && `, ${length(album.durationSec)}`}
               </span>
             </p>
-            {album.description && <p className="marker text-fg-muted -rotate-1 text-lg">{album.description}</p>}
+            {album.description && (
+              <p className="marker text-fg-muted -rotate-1 text-lg">{album.description}</p>
+            )}
           </div>
         </div>
       </section>

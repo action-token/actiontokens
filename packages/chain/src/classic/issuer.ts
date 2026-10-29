@@ -27,7 +27,9 @@ export function buildIssuerSetup(input: {
     Operation.createAccount({ destination: input.issuer, startingBalance: ISSUER_STARTING_XLM }),
   );
   if (input.homeDomain) {
-    builder.addOperation(Operation.setOptions({ source: input.issuer, homeDomain: input.homeDomain }));
+    builder.addOperation(
+      Operation.setOptions({ source: input.issuer, homeDomain: input.homeDomain }),
+    );
     return finish(builder, [input.issuer]);
   }
   return finish(builder);
@@ -65,7 +67,12 @@ export function quoteIssuerSetup(input: { xlmFunds: string | null; networkFeeXlm
       problems.push({
         code: "INSUFFICIENT_FUNDS",
         message: `You need ${toDisplay(total - have)} more XLM to open your artist account.`,
-        shortfall: { currency: "XLM", need: toDisplay(total), have: toDisplay(have), short: toDisplay(total - have) },
+        shortfall: {
+          currency: "XLM",
+          need: toDisplay(total),
+          have: toDisplay(have),
+          short: toDisplay(total - have),
+        },
       });
     }
   }
@@ -74,7 +81,12 @@ export function quoteIssuerSetup(input: { xlmFunds: string | null; networkFeeXlm
     problems,
     total: toAmount(total),
     lines: [
-      { key: "issuer", label: "Open your artist account", currency: "XLM", amount: toDisplay(issuer) },
+      {
+        key: "issuer",
+        label: "Open your artist account",
+        currency: "XLM",
+        amount: toDisplay(issuer),
+      },
       { key: "networkFee", label: "Network fee", currency: "XLM", amount: toDisplay(fee) },
       { key: "total", label: "You pay", currency: "XLM", amount: toDisplay(total) },
     ] satisfies RechargeLine[],
@@ -87,7 +99,11 @@ export function quoteIssuerSetup(input: { xlmFunds: string | null; networkFeeXlm
  * minted anything can do this (no trustlines or offers), which is true
  * before approval. The issuer signs; the fee comes out of its own balance.
  */
-export function buildIssuerRefund(input: { issuer: Account; network: NetworkParams; artist: string }) {
+export function buildIssuerRefund(input: {
+  issuer: Account;
+  network: NetworkParams;
+  artist: string;
+}) {
   const builder = startTransaction(input.issuer, input.network).addOperation(
     Operation.accountMerge({ destination: input.artist }),
   );

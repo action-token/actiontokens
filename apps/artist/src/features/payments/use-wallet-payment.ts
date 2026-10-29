@@ -4,14 +4,19 @@ import { useSession } from "next-auth/react";
 import { type ReactNode, useRef, useState } from "react";
 
 import { isAppError } from "@bandcoin/errors";
-import { CUSTODIAL_COUNTDOWN_SECONDS, type TransactionStep } from "@bandcoin/ui/patterns/transaction-toast";
+import {
+  CUSTODIAL_COUNTDOWN_SECONDS,
+  type TransactionStep,
+} from "@bandcoin/ui/patterns/transaction-toast";
 import { getWalletProvider, signTransaction } from "@bandcoin/wallet";
 
 type Started = { orderId: string; xdr: string; signer: "custodial" | "wallet" };
 type Pending = { orderId: string; xdr: string };
 
 const reasonOf = (error: unknown) =>
-  isAppError(error) || error instanceof Error ? error.message : "Something went wrong. Nothing was sent.";
+  isAppError(error) || error instanceof Error
+    ? error.message
+    : "Something went wrong. Nothing was sent.";
 
 /**
  * One wallet payment, from the button to it being done. Moves a single toast
@@ -36,12 +41,18 @@ export function useWalletPayment(steps: {
   const [step, setStep] = useState<TransactionStep | null>(null);
   const pending = useRef<Pending | null>(null);
 
-  const busy = step !== null && (step.kind === "countdown" || step.kind === "confirm" || step.kind === "submitting");
+  const busy =
+    step !== null &&
+    (step.kind === "countdown" || step.kind === "confirm" || step.kind === "submitting");
 
   async function run(summary: ReactNode) {
     let started: Started;
     try {
-      setStep({ kind: "submitting", title: steps.preparing, summary: "Locking in this price for 60 seconds." });
+      setStep({
+        kind: "submitting",
+        title: steps.preparing,
+        summary: "Locking in this price for 60 seconds.",
+      });
       started = await steps.start();
     } catch (error) {
       setStep({ kind: "failed", reason: reasonOf(error) });
@@ -59,7 +70,11 @@ export function useWalletPayment(steps: {
     setStep({ kind: "confirm", summary, walletName });
     let signed: string;
     try {
-      signed = await signTransaction({ xdr: started.xdr, publicKey: user?.walletAddress ?? "", walletType: user?.walletType ?? "" });
+      signed = await signTransaction({
+        xdr: started.xdr,
+        publicKey: user?.walletAddress ?? "",
+        walletType: user?.walletType ?? "",
+      });
     } catch {
       if (pending.current?.orderId === started.orderId) await stop();
       return;
@@ -93,5 +108,12 @@ export function useWalletPayment(steps: {
     if (order) await steps.cancel({ orderId: order.orderId }).catch(() => undefined);
   }
 
-  return { step, busy, run, send: () => void send(), stop: () => void stop(), close: () => setStep(null) };
+  return {
+    step,
+    busy,
+    run,
+    send: () => void send(),
+    stop: () => void stop(),
+    close: () => setStep(null),
+  };
 }

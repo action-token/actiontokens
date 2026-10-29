@@ -8,7 +8,10 @@ import { db } from "@bandcoin/db/server";
  */
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
-  const row = await db.event.findUnique({ where: { id }, include: { artist: { select: { name: true } } } });
+  const row = await db.event.findUnique({
+    where: { id },
+    include: { artist: { select: { name: true } } },
+  });
   if (!row) return new Response("Event not found", { status: 404 });
 
   const ics = eventIcs(

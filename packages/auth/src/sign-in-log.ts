@@ -38,7 +38,9 @@ export async function recordSignIn(
         status: user ? "SUCCESS" : "FAILED",
         errorCode: error ? (isAppError(error) ? error.code : firebaseCode(error)) : null,
         app: input.app,
-        ip: input.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? input.headers.get("x-real-ip"),
+        ip:
+          input.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+          input.headers.get("x-real-ip"),
         userAgent: input.headers.get("user-agent"),
       },
     });

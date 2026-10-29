@@ -33,7 +33,9 @@ export function OnboardingProgress({ step }: { step: OnboardingStep | null }) {
               index > current && "text-fg-faint",
             )}
           >
-            <span className="grid size-4 place-items-center text-[11px]">{done ? <Check className="size-3.5" strokeWidth={3} /> : index + 1}</span>
+            <span className="grid size-4 place-items-center text-[11px]">
+              {done ? <Check className="size-3.5" strokeWidth={3} /> : index + 1}
+            </span>
             {label}
           </li>
         );

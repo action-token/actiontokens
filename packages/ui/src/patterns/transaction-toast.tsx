@@ -155,7 +155,11 @@ function CountdownToast({
           >
             Cancel
           </button>
-          <button type="button" className={cn(actionClass, "text-fg-muted hover:text-fg")} onClick={skip}>
+          <button
+            type="button"
+            className={cn(actionClass, "text-fg-muted hover:text-fg")}
+            onClick={skip}
+          >
             Send now
           </button>
         </>
@@ -195,14 +199,33 @@ export function TransactionToast({
           tone="wait"
           icon={<PenLine />}
           title={`Confirm in ${step.walletName}`}
-          body={<>{step.summary}. Check the amount in the {step.walletName} window, then approve.</>}
+          body={
+            <>
+              {step.summary}. Check the amount in the {step.walletName} window, then approve.
+            </>
+          }
           actions={actions}
         />
       );
     case "submitting":
-      return <ToastFrame tone="wait" icon={<Spin />} title={step.title ?? "Sending to Stellar…"} body={step.summary} />;
+      return (
+        <ToastFrame
+          tone="wait"
+          icon={<Spin />}
+          title={step.title ?? "Sending to Stellar…"}
+          body={step.summary}
+        />
+      );
     case "success":
-      return <ToastFrame tone="ok" icon={<Check />} title={step.title} body={step.body} actions={actions} />;
+      return (
+        <ToastFrame
+          tone="ok"
+          icon={<Check />}
+          title={step.title}
+          body={step.body}
+          actions={actions}
+        />
+      );
     case "canceled":
       return (
         <ToastFrame
@@ -214,7 +237,15 @@ export function TransactionToast({
         />
       );
     case "failed":
-      return <ToastFrame tone="bad" icon={<X />} title="Payment didn't go through" body={step.reason} actions={actions} />;
+      return (
+        <ToastFrame
+          tone="bad"
+          icon={<X />}
+          title="Payment didn't go through"
+          body={step.reason}
+          actions={actions}
+        />
+      );
   }
 }
 

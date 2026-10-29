@@ -4,7 +4,10 @@ import { useSession } from "next-auth/react";
 import { type ReactNode, useRef, useState } from "react";
 
 import { isAppError } from "@bandcoin/errors";
-import { CUSTODIAL_COUNTDOWN_SECONDS, type TransactionStep } from "@bandcoin/ui/patterns/transaction-toast";
+import {
+  CUSTODIAL_COUNTDOWN_SECONDS,
+  type TransactionStep,
+} from "@bandcoin/ui/patterns/transaction-toast";
 import { getWalletProvider, signTransaction } from "@bandcoin/wallet";
 
 /**
@@ -29,8 +32,11 @@ export function useSignedTransaction(flow: {
   const [step, setStep] = useState<TransactionStep | null>(null);
   const pending = useRef<string | null>(null);
 
-  const busy = step !== null && (step.kind === "countdown" || step.kind === "confirm" || step.kind === "submitting");
-  const reasonOf = (error: unknown) => (isAppError(error) || error instanceof Error ? error.message : flow.failure);
+  const busy =
+    step !== null &&
+    (step.kind === "countdown" || step.kind === "confirm" || step.kind === "submitting");
+  const reasonOf = (error: unknown) =>
+    isAppError(error) || error instanceof Error ? error.message : flow.failure;
 
   async function start(summary: ReactNode) {
     let prepared;
@@ -49,10 +55,18 @@ export function useSignedTransaction(flow: {
     }
 
     const user = session.data?.user;
-    setStep({ kind: "confirm", summary, walletName: getWalletProvider(user?.walletType ?? "")?.label ?? "your wallet" });
+    setStep({
+      kind: "confirm",
+      summary,
+      walletName: getWalletProvider(user?.walletType ?? "")?.label ?? "your wallet",
+    });
     let signed: string;
     try {
-      signed = await signTransaction({ xdr: prepared.xdr, publicKey: user?.walletAddress ?? "", walletType: user?.walletType ?? "" });
+      signed = await signTransaction({
+        xdr: prepared.xdr,
+        publicKey: user?.walletAddress ?? "",
+        walletType: user?.walletType ?? "",
+      });
     } catch {
       if (pending.current === prepared.xdr) stop();
       return;

@@ -1,12 +1,27 @@
 "use client";
 
-import { ArrowLeft, Crosshair, Laptop, Loader2, Monitor, PanelLeft, Smartphone } from "lucide-react";
+import {
+  ArrowLeft,
+  Crosshair,
+  Laptop,
+  Loader2,
+  Monitor,
+  PanelLeft,
+  Smartphone,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
-import { ALL_PIN_TYPES, DEFAULT_DRAFT, PIN_TYPE_LABEL, arOrigin, previewUrl, type EmbedDraft } from "@bandcoin/ar-core/embed/snippets";
+import {
+  ALL_PIN_TYPES,
+  DEFAULT_DRAFT,
+  PIN_TYPE_LABEL,
+  arOrigin,
+  previewUrl,
+  type EmbedDraft,
+} from "@bandcoin/ar-core/embed/snippets";
 import { Button } from "@bandcoin/ui/components/button";
 import { Input } from "@bandcoin/ui/components/input";
 import { Label } from "@bandcoin/ui/components/label";
@@ -32,11 +47,22 @@ const WIDTHS = [
   { id: "sidebar", label: "Sidebar", icon: PanelLeft, width: "420px" },
   { id: "phone", label: "Phone", icon: Smartphone, width: "375px" },
 ] as const;
-const TAB_LABEL: Record<Tab, string> = { settings: "Settings", install: "Add to website", stats: "Stats" };
+const TAB_LABEL: Record<Tab, string> = {
+  settings: "Settings",
+  install: "Add to website",
+  stats: "Stats",
+};
 
-const messageOf = (error: unknown) => (error instanceof Error ? error.message : "Something went wrong.");
+const messageOf = (error: unknown) =>
+  error instanceof Error ? error.message : "Something went wrong.";
 
-const draftOf = ({ id: _id, artistId: _artist, createdAt: _created, updatedAt: _updated, ...draft }: Saved): EmbedDraft => draft;
+const draftOf = ({
+  id: _id,
+  artistId: _artist,
+  createdAt: _created,
+  updatedAt: _updated,
+  ...draft
+}: Saved): EmbedDraft => draft;
 
 /**
  * Edit one website map (`id` = "new" to create). The right side is the real
@@ -46,8 +72,21 @@ const draftOf = ({ id: _id, artistId: _artist, createdAt: _created, updatedAt: _
  */
 export function EmbedEditor({ id }: { id: string }) {
   const isNew = id === "new";
-  const saved = api.embeds.embed.useQuery({ embedId: id }, { enabled: !isNew, refetchOnWindowFocus: false });
-  if (!isNew && saved.isError) return <ErrorState message={saved.error.data?.code === "NOT_FOUND" ? "This map doesn't exist." : "Couldn't load this map."} onRetry={() => void saved.refetch()} />;
+  const saved = api.embeds.embed.useQuery(
+    { embedId: id },
+    { enabled: !isNew, refetchOnWindowFocus: false },
+  );
+  if (!isNew && saved.isError)
+    return (
+      <ErrorState
+        message={
+          saved.error.data?.code === "NOT_FOUND"
+            ? "This map doesn't exist."
+            : "Couldn't load this map."
+        }
+        onRetry={() => void saved.refetch()}
+      />
+    );
   if (!isNew && !saved.data) return <Skeleton className="m-6 h-96 rounded-xl" />;
   return <Editor id={id} saved={saved.data ?? null} />;
 }
@@ -59,10 +98,12 @@ function Editor({ id, saved }: { id: string; saved: Saved | null }) {
   const utils = api.useUtils();
   const isNew = saved === null;
   const tabParam = search.get("tab");
-  const tab: Tab = !isNew && (tabParam === "install" || tabParam === "stats") ? tabParam : "settings";
+  const tab: Tab =
+    !isNew && (tabParam === "install" || tabParam === "stats") ? tabParam : "settings";
 
   const status = api.portal.status.useQuery();
-  const artistId = saved?.artistId ?? (status.data?.signedIn ? (status.data.artist?.id ?? null) : null);
+  const artistId =
+    saved?.artistId ?? (status.data?.signedIn ? (status.data.artist?.id ?? null) : null);
   const [draft, setDraft] = useState<EmbedDraft>(saved ? draftOf(saved) : DEFAULT_DRAFT);
   const [dirty, setDirty] = useState(false);
 
@@ -110,9 +151,15 @@ function Editor({ id, saved }: { id: string; saved: Saved | null }) {
         </Button>
         <div className="min-w-0 flex-1">
           <h1 className="display truncate text-lg">{isNew ? "New website map" : draft.name}</h1>
-          <p className="text-fg-muted text-xs">{dirty ? "Unsaved changes" : isNew ? "Not saved yet" : "All changes saved"}</p>
+          <p className="text-fg-muted text-xs">
+            {dirty ? "Unsaved changes" : isNew ? "Not saved yet" : "All changes saved"}
+          </p>
         </div>
-        <div role="tablist" aria-label="Map sections" className="bg-surface-2 order-last flex w-full gap-1 rounded-lg border p-1 sm:order-none sm:w-auto">
+        <div
+          role="tablist"
+          aria-label="Map sections"
+          className="bg-surface-2 order-last flex w-full gap-1 rounded-lg border p-1 sm:order-none sm:w-auto"
+        >
           {(Object.keys(TAB_LABEL) as Tab[]).map((entry) => (
             <button
               key={entry}
@@ -121,7 +168,12 @@ function Editor({ id, saved }: { id: string; saved: Saved | null }) {
               aria-selected={tab === entry}
               disabled={isNew && entry !== "settings"}
               onClick={() => goTo(entry)}
-              className={cn("flex-1 rounded-md px-3 py-1.5 text-sm transition disabled:opacity-40 sm:flex-none", tab === entry ? "bg-primary text-primary-foreground font-medium shadow-sm" : "text-fg-muted hover:text-foreground")}
+              className={cn(
+                "flex-1 rounded-md px-3 py-1.5 text-sm transition disabled:opacity-40 sm:flex-none",
+                tab === entry
+                  ? "bg-primary text-primary-foreground font-medium shadow-sm"
+                  : "text-fg-muted hover:text-foreground",
+              )}
             >
               {TAB_LABEL[entry]}
             </button>
@@ -170,20 +222,36 @@ function Settings({ draft, set }: { draft: EmbedDraft; set: SetDraft }) {
       <Section title="Basics">
         <div className="grid gap-1.5">
           <Label htmlFor="em-name">Name</Label>
-          <Input id="em-name" value={draft.name} maxLength={80} onChange={(event) => set("name", event.target.value)} />
+          <Input
+            id="em-name"
+            value={draft.name}
+            maxLength={80}
+            onChange={(event) => set("name", event.target.value)}
+          />
           <p className="text-fg-muted text-xs">Only you see this.</p>
         </div>
-        <Toggle title="Map is live" hint="Turn off to show 'Map unavailable' on websites" checked={draft.isEnabled} onChange={(value) => set("isEnabled", value)} />
+        <Toggle
+          title="Map is live"
+          hint="Turn off to show 'Map unavailable' on websites"
+          checked={draft.isEnabled}
+          onChange={(value) => set("isEnabled", value)}
+        />
       </Section>
 
       <Section title="Where the map opens">
         <p className="text-fg-muted text-sm">
-          Pan and zoom the preview to the area you want, then press <b>Set start view here</b> above it.
+          Pan and zoom the preview to the area you want, then press <b>Set start view here</b> above
+          it.
         </p>
         <p className="bg-surface-2 num rounded-lg px-3 py-2 font-mono text-xs">
           {draft.centerLat.toFixed(4)}, {draft.centerLng.toFixed(4)} · zoom {draft.zoom.toFixed(1)}
         </p>
-        <Toggle title="“Near me” button" hint="Visitors can tap it to centre on their location. The browser asks for permission only when they tap." checked={draft.showUserLocation} onChange={(value) => set("showUserLocation", value)} />
+        <Toggle
+          title="“Near me” button"
+          hint="Visitors can tap it to centre on their location. The browser asks for permission only when they tap."
+          checked={draft.showUserLocation}
+          onChange={(value) => set("showUserLocation", value)}
+        />
       </Section>
 
       <Section title="Look">
@@ -209,13 +277,26 @@ function Settings({ draft, set }: { draft: EmbedDraft; set: SetDraft }) {
                 type="button"
                 onClick={() => set("accentColor", color)}
                 aria-label={`Accent ${color}`}
-                className={cn("size-7 rounded-full border-2", draft.accentColor.toLowerCase() === color ? "border-foreground" : "border-transparent")}
+                className={cn(
+                  "size-7 rounded-full border-2",
+                  draft.accentColor.toLowerCase() === color
+                    ? "border-foreground"
+                    : "border-transparent",
+                )}
                 style={{ background: color }}
               />
             ))}
-            <input id="em-accent" type="color" value={draft.accentColor} onChange={(event) => set("accentColor", event.target.value)} className="h-8 w-10 cursor-pointer rounded border bg-transparent" />
+            <input
+              id="em-accent"
+              type="color"
+              value={draft.accentColor}
+              onChange={(event) => set("accentColor", event.target.value)}
+              className="h-8 w-10 cursor-pointer rounded border bg-transparent"
+            />
           </div>
-          <p className="text-fg-muted text-xs">Buttons and clusters. Use your website&apos;s colour.</p>
+          <p className="text-fg-muted text-xs">
+            Buttons and clusters. Use your website&apos;s colour.
+          </p>
         </div>
       </Section>
 
@@ -230,7 +311,11 @@ function Settings({ draft, set }: { draft: EmbedDraft; set: SetDraft }) {
               { id: "ALL", label: "All artists" },
             ]}
           />
-          <p className="text-fg-muted text-xs">{draft.pinSource === "ARTIST" ? "Only your own pins appear: on the map, in the list and in search." : "Every artist's pins in the area appear, like the Bandcoin AR app."}</p>
+          <p className="text-fg-muted text-xs">
+            {draft.pinSource === "ARTIST"
+              ? "Only your own pins appear: on the map, in the list and in search."
+              : "Every artist's pins in the area appear, like the Bandcoin AR app."}
+          </p>
         </div>
         <Label className="block pt-1">Pin types</Label>
         <div className="flex flex-wrap gap-1.5">
@@ -243,24 +328,55 @@ function Settings({ draft, set }: { draft: EmbedDraft; set: SetDraft }) {
                 onClick={() =>
                   set(
                     "pinTypes",
-                    on ? draft.pinTypes.filter((entry) => entry !== type) : [...draft.pinTypes, type],
+                    on
+                      ? draft.pinTypes.filter((entry) => entry !== type)
+                      : [...draft.pinTypes, type],
                   )
                 }
-                className={cn("rounded-full border px-3 py-1 text-xs font-medium", on ? "border-primary bg-primary text-primary-foreground" : "text-fg-muted hover:text-foreground")}
+                className={cn(
+                  "rounded-full border px-3 py-1 text-xs font-medium",
+                  on
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "text-fg-muted hover:text-foreground",
+                )}
               >
                 {PIN_TYPE_LABEL[type]}
               </button>
             );
           })}
         </div>
-        <p className="text-fg-muted text-xs">{draft.pinTypes.length ? "Only the selected types show." : "Nothing selected = every type shows."}</p>
-        <Toggle title="Filter chips" hint="Let visitors narrow the map by type" checked={draft.showFilterChips} onChange={(value) => set("showFilterChips", value)} />
+        <p className="text-fg-muted text-xs">
+          {draft.pinTypes.length
+            ? "Only the selected types show."
+            : "Nothing selected = every type shows."}
+        </p>
+        <Toggle
+          title="Filter chips"
+          hint="Let visitors narrow the map by type"
+          checked={draft.showFilterChips}
+          onChange={(value) => set("showFilterChips", value)}
+        />
       </Section>
 
       <Section title="Features">
-        <Toggle title="Search box" hint="Search pins and places" checked={draft.showSearch} onChange={(value) => set("showSearch", value)} />
-        <Toggle title="Nearby list" hint="A list of pins beside the map on wide screens, a strip on phones" checked={draft.showNearby} onChange={(value) => set("showNearby", value)} />
-        <Toggle title="Murals" hint="Street art Bandcoin fans found and admins verified, shown once visitors zoom in" checked={draft.showMurals} onChange={(value) => set("showMurals", value)} />
+        <Toggle
+          title="Search box"
+          hint="Search pins and places"
+          checked={draft.showSearch}
+          onChange={(value) => set("showSearch", value)}
+        />
+        <Toggle
+          title="Nearby list"
+          hint="A list of pins beside the map on wide screens, a strip on phones"
+          checked={draft.showNearby}
+          onChange={(value) => set("showNearby", value)}
+        />
+        <Toggle
+          title="Murals"
+          hint="Street art Bandcoin fans found and admins verified, shown once visitors zoom in"
+          checked={draft.showMurals}
+          onChange={(value) => set("showMurals", value)}
+        />
         <div className="grid gap-1.5">
           <Label>Scrolling</Label>
           <Segmented
@@ -280,8 +396,22 @@ function Settings({ draft, set }: { draft: EmbedDraft; set: SetDraft }) {
       </Section>
 
       <Section title="Buttons on the map">
-        <LinkField title="Events button" label={draft.eventsLabel} url={draft.eventsUrl} defaultUrl={`${arOrigin()}/events`} onLabel={(value) => set("eventsLabel", value)} onUrl={(value) => set("eventsUrl", value)} />
-        <LinkField title="Bounties button" label={draft.bountiesLabel} url={draft.bountiesUrl} defaultUrl={`${arOrigin()}/bounty`} onLabel={(value) => set("bountiesLabel", value)} onUrl={(value) => set("bountiesUrl", value)} />
+        <LinkField
+          title="Events button"
+          label={draft.eventsLabel}
+          url={draft.eventsUrl}
+          defaultUrl={`${arOrigin()}/events`}
+          onLabel={(value) => set("eventsLabel", value)}
+          onUrl={(value) => set("eventsUrl", value)}
+        />
+        <LinkField
+          title="Bounties button"
+          label={draft.bountiesLabel}
+          url={draft.bountiesUrl}
+          defaultUrl={`${arOrigin()}/bounty`}
+          onLabel={(value) => set("bountiesLabel", value)}
+          onUrl={(value) => set("bountiesUrl", value)}
+        />
       </Section>
 
       <Section title="Websites allowed to show this map">
@@ -294,7 +424,9 @@ function Settings({ draft, set }: { draft: EmbedDraft; set: SetDraft }) {
             set("allowedDomains", event.target.value.split(/[\n,\s]+/).filter(Boolean));
           }}
         />
-        <p className={cn("text-xs", draft.allowedDomains.length ? "text-fg-muted" : "text-warning")}>
+        <p
+          className={cn("text-xs", draft.allowedDomains.length ? "text-fg-muted" : "text-warning")}
+        >
           {draft.allowedDomains.length
             ? "One per line. Subdomains (www., maps.) are included. Other sites that copy your snippet get a blocked frame."
             : "Empty = any website can show this map. Add your domain to stop others copying it."}
@@ -304,7 +436,15 @@ function Settings({ draft, set }: { draft: EmbedDraft; set: SetDraft }) {
   );
 }
 
-function Preview({ draft, artistId, onStartView }: { draft: EmbedDraft; artistId: string | null; onStartView: (view: View) => void }) {
+function Preview({
+  draft,
+  artistId,
+  onStartView,
+}: {
+  draft: EmbedDraft;
+  artistId: string | null;
+  onStartView: (view: View) => void;
+}) {
   const frame = useRef<HTMLIFrameElement>(null);
   const [width, setWidth] = useState<(typeof WIDTHS)[number]["id"]>("hero");
   const [height, setHeight] = useState(520);
@@ -318,15 +458,29 @@ function Preview({ draft, artistId, onStartView }: { draft: EmbedDraft; artistId
   }, [draft, artistId]);
 
   const push = useCallback(() => {
-    frame.current?.contentWindow?.postMessage({ type: "bandcoin-embed:config", config: latest.current }, origin);
+    frame.current?.contentWindow?.postMessage(
+      { type: "bandcoin-embed:config", config: latest.current },
+      origin,
+    );
   }, [origin]);
 
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       if (event.origin !== origin) return;
-      const data = event.data as { type?: string; lat?: number; lng?: number; zoom?: number } | null;
+      const data = event.data as {
+        type?: string;
+        lat?: number;
+        lng?: number;
+        zoom?: number;
+      } | null;
       if (data?.type === "bandcoin-embed:ready") push();
-      if (data?.type === "bandcoin-embed:view" && typeof data.lat === "number" && typeof data.lng === "number" && typeof data.zoom === "number") setView({ lat: data.lat, lng: data.lng, zoom: data.zoom });
+      if (
+        data?.type === "bandcoin-embed:view" &&
+        typeof data.lat === "number" &&
+        typeof data.lng === "number" &&
+        typeof data.zoom === "number"
+      )
+        setView({ lat: data.lat, lng: data.lng, zoom: data.zoom });
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
@@ -337,7 +491,11 @@ function Preview({ draft, artistId, onStartView }: { draft: EmbedDraft; artistId
     return () => clearTimeout(timer);
   }, [draft, artistId, push]);
 
-  const sameAsStart = view != null && Math.abs(view.lat - draft.centerLat) < 1e-4 && Math.abs(view.lng - draft.centerLng) < 1e-4 && Math.abs(view.zoom - draft.zoom) < 0.05;
+  const sameAsStart =
+    view != null &&
+    Math.abs(view.lat - draft.centerLat) < 1e-4 &&
+    Math.abs(view.lng - draft.centerLng) < 1e-4 &&
+    Math.abs(view.zoom - draft.zoom) < 0.05;
   const frameWidth = WIDTHS.find((entry) => entry.id === width)?.width ?? "100%";
 
   return (
@@ -345,32 +503,78 @@ function Preview({ draft, artistId, onStartView }: { draft: EmbedDraft; artistId
       <div className="bg-background flex flex-wrap items-center gap-2 border-b px-4 py-2">
         <div className="flex gap-1 rounded-lg border p-0.5">
           {WIDTHS.map((entry) => (
-            <button key={entry.id} type="button" onClick={() => setWidth(entry.id)} className={cn("flex items-center gap-1 rounded-md px-2 py-1 text-xs", width === entry.id ? "bg-surface-2 font-medium" : "text-fg-muted")}>
+            <button
+              key={entry.id}
+              type="button"
+              onClick={() => setWidth(entry.id)}
+              className={cn(
+                "flex items-center gap-1 rounded-md px-2 py-1 text-xs",
+                width === entry.id ? "bg-surface-2 font-medium" : "text-fg-muted",
+              )}
+            >
               <entry.icon className="size-3.5" /> {entry.label}
             </button>
           ))}
         </div>
         <label className="text-fg-muted flex items-center gap-2 text-xs">
           <Laptop className="size-3.5" /> Height
-          <input type="range" min={360} max={760} step={20} value={height} onChange={(event) => setHeight(Number(event.target.value))} />
+          <input
+            type="range"
+            min={360}
+            max={760}
+            step={20}
+            value={height}
+            onChange={(event) => setHeight(Number(event.target.value))}
+          />
           <span className="num w-12">{height}px</span>
         </label>
-        <Button size="sm" className="ml-auto" variant={sameAsStart ? "outline" : "default"} disabled={!view || sameAsStart} onClick={() => view && onStartView(view)}>
+        <Button
+          size="sm"
+          className="ml-auto"
+          variant={sameAsStart ? "outline" : "default"}
+          disabled={!view || sameAsStart}
+          onClick={() => view && onStartView(view)}
+        >
           <Crosshair />
           {sameAsStart ? "This is the start view" : "Set start view here"}
         </Button>
       </div>
       <div className="flex flex-1 items-start justify-center overflow-auto p-4">
-        <div className="bg-background overflow-hidden rounded-xl border shadow-lg transition-[width]" style={{ width: frameWidth, maxWidth: "100%", height }}>
-          <iframe ref={frame} src={src} title="Map preview" className="size-full border-0" allow="geolocation" />
+        <div
+          className="bg-background overflow-hidden rounded-xl border shadow-lg transition-[width]"
+          style={{ width: frameWidth, maxWidth: "100%", height }}
+        >
+          <iframe
+            ref={frame}
+            src={src}
+            title="Map preview"
+            className="size-full border-0"
+            allow="geolocation"
+          />
         </div>
       </div>
-      <p className="text-fg-muted px-4 pb-3 text-center text-xs">Live preview: this is the real map. Stats aren&apos;t counted here.</p>
+      <p className="text-fg-muted px-4 pb-3 text-center text-xs">
+        Live preview: this is the real map. Stats aren&apos;t counted here.
+      </p>
     </div>
   );
 }
 
-function LinkField({ title, label, url, defaultUrl, onLabel, onUrl }: { title: string; label: string; url: string | null; defaultUrl: string; onLabel: (value: string) => void; onUrl: (value: string | null) => void }) {
+function LinkField({
+  title,
+  label,
+  url,
+  defaultUrl,
+  onLabel,
+  onUrl,
+}: {
+  title: string;
+  label: string;
+  url: string | null;
+  defaultUrl: string;
+  onLabel: (value: string) => void;
+  onUrl: (value: string | null) => void;
+}) {
   const on = url != null;
   return (
     <div className="grid gap-2 rounded-xl border p-3">
@@ -380,9 +584,21 @@ function LinkField({ title, label, url, defaultUrl, onLabel, onUrl }: { title: s
       </label>
       {on && (
         <div className="grid gap-2">
-          <Input value={label} maxLength={40} onChange={(event) => onLabel(event.target.value)} placeholder="Button text" />
-          <Input value={url} type="url" onChange={(event) => onUrl(event.target.value)} placeholder="https://" />
-          <p className="text-fg-muted text-[11px]">Opens in a new tab. Use your own page, or keep Bandcoin&apos;s.</p>
+          <Input
+            value={label}
+            maxLength={40}
+            onChange={(event) => onLabel(event.target.value)}
+            placeholder="Button text"
+          />
+          <Input
+            value={url}
+            type="url"
+            onChange={(event) => onUrl(event.target.value)}
+            placeholder="https://"
+          />
+          <p className="text-fg-muted text-[11px]">
+            Opens in a new tab. Use your own page, or keep Bandcoin&apos;s.
+          </p>
         </div>
       )}
     </div>

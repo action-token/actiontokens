@@ -34,7 +34,8 @@ export function RechargeView() {
   const flow = useRechargeFlow();
 
   // A wallet that isn't on the network yet can't recharge: it activates first.
-  if (me.data && !me.data.activated && me.data.walletAddress) return <ActivateWallet address={me.data.walletAddress} />;
+  if (me.data && !me.data.activated && me.data.walletAddress)
+    return <ActivateWallet address={me.data.walletAddress} />;
 
   return (
     <section aria-label="Recharge" className="grid gap-6">
@@ -68,7 +69,12 @@ export function RechargeView() {
                   <Button asChild size="sm" variant="secondary" className="h-8 px-3 text-[13px]">
                     <Link href="/wallet">View wallet</Link>
                   </Button>
-                  <Button size="sm" variant="ghost" className="h-8 px-3 text-[13px]" onClick={flow.close}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 px-3 text-[13px]"
+                    onClick={flow.close}
+                  >
                     Close
                   </Button>
                 </>
@@ -100,7 +106,11 @@ function TopUp({ flow }: { flow: Flow }) {
   const { container: cardField, ...card } = useSquareCard(status === "authenticated");
   const quote = api.recharge.quote.useQuery(
     { kind: "TOP_UP", packageUsd: packageUsd as "9.99" },
-    { refetchInterval: 30_000, placeholderData: (previous) => previous, enabled: status !== "loading" },
+    {
+      refetchInterval: 30_000,
+      placeholderData: (previous) => previous,
+      enabled: status !== "loading",
+    },
   );
 
   async function pay() {
@@ -113,10 +123,14 @@ function TopUp({ flow }: { flow: Flow }) {
       card: cardToken,
       summary: (
         <>
-          <Money amount={packageUsd} currency="USD" /> for <Money amount={quote.data.receive} currency="BANDCOIN" />
+          <Money amount={packageUsd} currency="USD" /> for{" "}
+          <Money amount={quote.data.receive} currency="BANDCOIN" />
         </>
       ),
-      success: { title: "Done. BANDCOIN is in your wallet.", body: "It can take a few seconds to show in your balance." },
+      success: {
+        title: "Done. BANDCOIN is in your wallet.",
+        body: "It can take a few seconds to show in your balance.",
+      },
     });
   }
 
@@ -124,7 +138,11 @@ function TopUp({ flow }: { flow: Flow }) {
     <div className="grid gap-6 md:grid-cols-2 md:gap-x-10">
       <div className="grid content-start gap-3">
         <span className="eyebrow">Choose an amount</span>
-        <div role="group" aria-label="Top-up amount" className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div
+          role="group"
+          aria-label="Top-up amount"
+          className="grid grid-cols-2 gap-2 sm:grid-cols-3"
+        >
           {(options.data?.packagesUsd ?? []).map((usd) => (
             <button
               key={usd}
@@ -142,7 +160,9 @@ function TopUp({ flow }: { flow: Flow }) {
             </button>
           ))}
         </div>
-        <p className="text-fg-faint text-xs">The BANDCOIN you get is set by the live price when you pay, and shown below first.</p>
+        <p className="text-fg-faint text-xs">
+          The BANDCOIN you get is set by the live price when you pay, and shown below first.
+        </p>
       </div>
 
       <div className="grid content-start gap-5">
@@ -156,7 +176,13 @@ function TopUp({ flow }: { flow: Flow }) {
 
         {status === "authenticated" && (
           <div className="grid gap-1.5">
-            <div ref={cardField} className={cn("min-h-[90px]", card.loading && "bg-surface-2 animate-pulse rounded-md")} />
+            <div
+              ref={cardField}
+              className={cn(
+                "min-h-[90px]",
+                card.loading && "bg-surface-2 animate-pulse rounded-md",
+              )}
+            />
             {card.error && <p className="text-danger text-xs">{card.error}</p>}
           </div>
         )}
@@ -181,7 +207,11 @@ function XlmSwap({ flow, onAddBandcoin }: { flow: Flow; onAddBandcoin: () => voi
   const me = api.account.me.useQuery(undefined, { enabled: status === "authenticated" });
   const quote = api.recharge.quote.useQuery(
     { kind: "XLM_SWAP" },
-    { refetchInterval: 30_000, placeholderData: (previous) => previous, enabled: status !== "loading" },
+    {
+      refetchInterval: 30_000,
+      placeholderData: (previous) => previous,
+      enabled: status !== "loading",
+    },
   );
 
   async function pay() {
@@ -190,22 +220,28 @@ function XlmSwap({ flow, onAddBandcoin }: { flow: Flow; onAddBandcoin: () => voi
       kind: "XLM_SWAP",
       summary: (
         <>
-          <Money amount={quote.data.total} currency="BANDCOIN" /> for <Money amount={quote.data.receiveXlm} currency="XLM" />
+          <Money amount={quote.data.total} currency="BANDCOIN" /> for{" "}
+          <Money amount={quote.data.receiveXlm} currency="XLM" />
         </>
       ),
-      success: { title: "Done. 1 XLM is in your wallet.", body: "It can take a few seconds to show in your balance." },
+      success: {
+        title: "Done. 1 XLM is in your wallet.",
+        body: "It can take a few seconds to show in your balance.",
+      },
     });
   }
 
-  const needsBandcoin = quote.data?.problems.some((problem) => problem.code === "INSUFFICIENT_FUNDS");
+  const needsBandcoin = quote.data?.problems.some(
+    (problem) => problem.code === "INSUFFICIENT_FUNDS",
+  );
 
   return (
     <div className="grid gap-6 md:grid-cols-2 md:gap-x-10">
       <div className="grid content-start gap-2">
         <h2 className="text-lg font-semibold">1 XLM for your wallet</h2>
         <p className="text-fg-muted text-sm">
-          XLM pays the small network fee for each action and keeps your wallet open. You pay in BANDCOIN at today&apos;s price,
-          and nothing is swapped unless you tap the button.
+          XLM pays the small network fee for each action and keeps your wallet open. You pay in
+          BANDCOIN at today&apos;s price, and nothing is swapped unless you tap the button.
         </p>
       </div>
 
@@ -216,7 +252,9 @@ function XlmSwap({ flow, onAddBandcoin }: { flow: Flow; onAddBandcoin: () => voi
           problems={quote.data?.problems ?? []}
           loading={quote.isPending}
           error={quote.error?.message}
-          balance={me.data ? { currency: "BANDCOIN", amount: me.data.balances.BANDCOIN } : undefined}
+          balance={
+            me.data ? { currency: "BANDCOIN", amount: me.data.balances.BANDCOIN } : undefined
+          }
         />
         {needsBandcoin ? (
           <Button size="lg" variant="secondary" onClick={onAddBandcoin}>

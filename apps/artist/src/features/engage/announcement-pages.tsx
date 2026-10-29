@@ -16,11 +16,18 @@ export function EditAnnouncementView({ announcementId }: { announcementId: strin
   if (announcement) return <AnnouncementForm existing={announcement} />;
   return (
     <PageBody className="grid gap-6">
-      <PageHeader back={{ href: "/announcements", label: "Announcements" }} eyebrow="Fans" title="Edit announcement" />
+      <PageHeader
+        back={{ href: "/announcements", label: "Announcements" }}
+        eyebrow="Fans"
+        title="Edit announcement"
+      />
       {announcements.isPending ? (
         <Skeleton className="h-96 w-full max-w-2xl rounded-xl" />
       ) : announcements.isError ? (
-        <ErrorState message="Couldn't load this announcement." onRetry={() => void announcements.refetch()} />
+        <ErrorState
+          message="Couldn't load this announcement."
+          onRetry={() => void announcements.refetch()}
+        />
       ) : (
         <ErrorState message="This announcement doesn't exist." />
       )}

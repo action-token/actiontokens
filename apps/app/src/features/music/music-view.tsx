@@ -40,7 +40,10 @@ export function AlbumsCarousel() {
 /** Every song on Bandcoin, sortable, with Play all: the bottom of Home. */
 export function AllSongs() {
   const [sort, setSort] = useState<Sort>("newest");
-  const tracks = api.music.tracks.useInfiniteQuery({ sort }, { getNextPageParam: (page) => page.nextCursor });
+  const tracks = api.music.tracks.useInfiniteQuery(
+    { sort },
+    { getNextPageParam: (page) => page.nextCursor },
+  );
   const list = tracks.data?.pages.flatMap((page) => page.tracks) ?? [];
   const playQueue = usePlayer((state) => state.playQueue);
 
@@ -58,7 +61,12 @@ export function AllSongs() {
         </div>
         <TrackList tracks={list} loading={tracks.isPending} />
         {tracks.hasNextPage && (
-          <Button variant="secondary" className="justify-self-center" disabled={tracks.isFetchingNextPage} onClick={() => void tracks.fetchNextPage()}>
+          <Button
+            variant="secondary"
+            className="justify-self-center"
+            disabled={tracks.isFetchingNextPage}
+            onClick={() => void tracks.fetchNextPage()}
+          >
             {tracks.isFetchingNextPage ? "Loading…" : "Load more"}
           </Button>
         )}
@@ -106,7 +114,9 @@ export function YourSongs() {
       <TrackList
         tracks={tracks}
         loading={mine.isPending}
-        badgeOf={(track) => ((track as (typeof tracks)[number]).source === "created" ? "Yours" : "Owned")}
+        badgeOf={(track) =>
+          (track as (typeof tracks)[number]).source === "created" ? "Yours" : "Owned"
+        }
       />
     </section>
   );
@@ -116,7 +126,9 @@ export function YourSongs() {
 export function FavoriteSongs() {
   const { status } = useSession();
   const openSignIn = useConnectWalletDialogStore((state) => state.setIsOpen);
-  const favorites = api.collection.favorites.useQuery(undefined, { enabled: status === "authenticated" });
+  const favorites = api.collection.favorites.useQuery(undefined, {
+    enabled: status === "authenticated",
+  });
   const playQueue = usePlayer((state) => state.playQueue);
 
   if (status === "unauthenticated") {
@@ -131,11 +143,21 @@ export function FavoriteSongs() {
   }
   const tracks = favorites.data ?? [];
   if (favorites.isSuccess && tracks.length === 0) {
-    return <EmptyState icon={Star} title="No favourites yet" description="Tap the star on any song and it shows up here. Only you can see this list." />;
+    return (
+      <EmptyState
+        icon={Star}
+        title="No favourites yet"
+        description="Tap the star on any song and it shows up here. Only you can see this list."
+      />
+    );
   }
   return (
     <section className="grid gap-3" aria-label="Favourites">
-      <Button className="justify-self-start" disabled={tracks.length === 0} onClick={() => playQueue(tracks)}>
+      <Button
+        className="justify-self-start"
+        disabled={tracks.length === 0}
+        onClick={() => playQueue(tracks)}
+      >
         <Play className="fill-current" /> Play all
       </Button>
       <TrackList tracks={tracks} loading={favorites.isPending} />
@@ -164,7 +186,13 @@ function TrackList({
   return (
     <ol className="grid gap-0.5">
       {tracks.map((track, index) => (
-        <TrackRow key={track.id} track={track} position={index} list={tracks} badge={badgeOf?.(track)} />
+        <TrackRow
+          key={track.id}
+          track={track}
+          position={index}
+          list={tracks}
+          badge={badgeOf?.(track)}
+        />
       ))}
     </ol>
   );

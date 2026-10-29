@@ -9,11 +9,22 @@ import { cn } from "@bandcoin/ui/lib/cn";
 export type PinLook = "hidden" | "expired" | "collected" | "scheduled" | "active";
 
 /** Which pin kinds get their own icon when there's no cover image. */
-export const pinIcon = (type: string): LucideIcon => ({ BOUNTY: Target, EVENT: Calendar, EXPERIENCE: Star, LAUNCH: Rocket })[type] ?? MapPin;
+export const pinIcon = (type: string): LucideIcon =>
+  ({ BOUNTY: Target, EVENT: Calendar, EXPERIENCE: Star, LAUNCH: Rocket })[type] ?? MapPin;
 
 /** The first matching state wins; the server works out the status. */
-export const pinLook = (status: "HIDDEN" | "SCHEDULED" | "LIVE" | "ENDED" | "ALL_COLLECTED"): PinLook =>
-  ({ HIDDEN: "hidden", SCHEDULED: "scheduled", LIVE: "active", ENDED: "expired", ALL_COLLECTED: "collected" } as const)[status];
+export const pinLook = (
+  status: "HIDDEN" | "SCHEDULED" | "LIVE" | "ENDED" | "ALL_COLLECTED",
+): PinLook =>
+  (
+    ({
+      HIDDEN: "hidden",
+      SCHEDULED: "scheduled",
+      LIVE: "active",
+      ENDED: "expired",
+      ALL_COLLECTED: "collected",
+    }) as const
+  )[status];
 
 /**
  * One visual language for pins on the map, as in the fan app:
@@ -78,12 +89,22 @@ export const PinMarker = memo(function PinMarker({
           selected && "ring-primary/40 scale-110 opacity-100 ring-4",
         )}
       >
-        {look === "active" && <span className={cn("border-primary/40 absolute -inset-[2.5px] animate-ping border-2", outer)} aria-hidden />}
+        {look === "active" && (
+          <span
+            className={cn("border-primary/40 absolute -inset-[2.5px] animate-ping border-2", outer)}
+            aria-hidden
+          />
+        )}
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={image} alt="" className={cn("relative size-full object-cover", inner)} />
         ) : (
-          <span className={cn("bg-surface-2 relative flex size-full items-center justify-center", inner)}>
+          <span
+            className={cn(
+              "bg-surface-2 relative flex size-full items-center justify-center",
+              inner,
+            )}
+          >
             <Icon className="text-fg-muted size-5" />
           </span>
         )}
@@ -101,11 +122,19 @@ export const PinMarker = memo(function PinMarker({
 export function PinLegend({ className }: { className?: string }) {
   const looks: PinLook[] = ["active", "scheduled", "collected", "expired"];
   return (
-    <div className={cn("bg-surface/95 border-fg/10 pointer-events-auto rounded-[1.4rem] border-2 p-2.5 text-[11px] shadow-sm", className)}>
+    <div
+      className={cn(
+        "bg-surface/95 border-fg/10 pointer-events-auto rounded-[1.4rem] border-2 p-2.5 text-[11px] shadow-sm",
+        className,
+      )}
+    >
       <ul className="grid gap-1">
         {looks.map((look) => (
           <li key={look} className={cn("flex items-center gap-2", PIN_LOOK[look].opacity)}>
-            <span className={cn("bg-surface size-3 rounded-full border-2", PIN_LOOK[look].border)} aria-hidden />
+            <span
+              className={cn("bg-surface size-3 rounded-full border-2", PIN_LOOK[look].border)}
+              aria-hidden
+            />
             {PIN_LOOK[look].label}
           </li>
         ))}

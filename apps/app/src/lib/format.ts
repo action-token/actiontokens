@@ -60,4 +60,5 @@ export function timeAgo(date: Date | string, now = Date.now()) {
 }
 
 /** "1,204 plays" */
-export const playsLabel = (count: number) => `${count.toLocaleString("en-US")} ${count === 1 ? "play" : "plays"}`;
+export const playsLabel = (count: number) =>
+  `${count.toLocaleString("en-US")} ${count === 1 ? "play" : "plays"}`;

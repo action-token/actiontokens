@@ -53,7 +53,12 @@ export function buildClassicPurchase(input: ClassicPurchaseInput) {
 
   if (input.topUp && !isZero(input.topUp.amount)) {
     builder.addOperation(
-      Operation.payment({ source: input.topUp.from, destination: buyer, asset: Asset.native(), amount: input.topUp.amount }),
+      Operation.payment({
+        source: input.topUp.from,
+        destination: buyer,
+        asset: Asset.native(),
+        amount: input.topUp.amount,
+      }),
     );
     serverSigners.push(input.topUp.from);
   }
@@ -65,7 +70,12 @@ export function buildClassicPurchase(input: ClassicPurchaseInput) {
     for (const payout of [seller, platformFee, royalty]) {
       if (!payout || isZero(payout.amount)) continue;
       builder.addOperation(
-        Operation.payment({ ...(from ? { source: from } : {}), destination: payout.to, asset, amount: payout.amount }),
+        Operation.payment({
+          ...(from ? { source: from } : {}),
+          destination: payout.to,
+          asset,
+          amount: payout.amount,
+        }),
       );
       if (from) serverSigners.push(from);
     }
@@ -84,7 +94,12 @@ export function buildClassicPurchase(input: ClassicPurchaseInput) {
   }
   if (mint && !isZero(mint.amount)) {
     builder.addOperation(
-      Operation.payment({ source: mint.issuer, destination: buyer, asset: input.item, amount: mint.amount }),
+      Operation.payment({
+        source: mint.issuer,
+        destination: buyer,
+        asset: input.item,
+        amount: mint.amount,
+      }),
     );
     serverSigners.push(mint.issuer);
   }

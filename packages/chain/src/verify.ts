@@ -1,4 +1,9 @@
-import { type Asset, FeeBumpTransaction, type Transaction, TransactionBuilder } from "@stellar/stellar-sdk";
+import {
+  type Asset,
+  FeeBumpTransaction,
+  type Transaction,
+  TransactionBuilder,
+} from "@stellar/stellar-sdk";
 
 import { toStroops } from "./money";
 
@@ -31,12 +36,15 @@ export function verifyTransaction(envelopeXdr: string, passphrase: string, expec
   const tx: Transaction = parsed instanceof FeeBumpTransaction ? parsed.innerTransaction : parsed;
   const mismatches: string[] = [];
 
-  if (tx.source !== expected.source) mismatches.push(`source is ${tx.source}, expected ${expected.source}`);
+  if (tx.source !== expected.source)
+    mismatches.push(`source is ${tx.source}, expected ${expected.source}`);
   const memo = memoText(tx);
   if (memo !== expected.memo) mismatches.push(`memo is "${memo}", expected "${expected.memo}"`);
 
   const payments = tx.operations.flatMap((op) =>
-    op.type === "payment" ? [{ from: op.source ?? tx.source, to: op.destination, asset: op.asset, amount: op.amount }] : [],
+    op.type === "payment"
+      ? [{ from: op.source ?? tx.source, to: op.destination, asset: op.asset, amount: op.amount }]
+      : [],
   );
   const unmatched = [...payments];
   for (const want of expected.payments) {

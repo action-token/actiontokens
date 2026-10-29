@@ -43,7 +43,12 @@ function setup(user: SessionUser | null = me) {
     activityLog: { create: vi.fn().mockResolvedValue({}) },
   };
   const caller = createCallerFactory(arRouter)(
-    createContext({ db: db as unknown as Db, chain: {} as ChainGateway, app: "ar", session: user ? { user } : null }),
+    createContext({
+      db: db as unknown as Db,
+      chain: {} as ChainGateway,
+      app: "ar",
+      session: user ? { user } : null,
+    }),
   );
   return { db, caller };
 }
@@ -74,15 +79,22 @@ describe("ar artist.byId and list", () => {
   it("only finds approved artists", async () => {
     const { caller, db } = setup();
     db.artist.findFirst.mockResolvedValue(null);
-    await expect(caller.artist.byId({ id: "pending" })).rejects.toMatchObject({ message: "This artist doesn't exist." });
-    expect(db.artist.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { id: "pending", status: "APPROVED" } }));
+    await expect(caller.artist.byId({ id: "pending" })).rejects.toMatchObject({
+      message: "This artist doesn't exist.",
+    });
+    expect(db.artist.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: "pending", status: "APPROVED" } }),
+    );
   });
 });
 
 describe("ar artist.setFollowing", () => {
   it("follows and unfollows for free, returning the follower count", async () => {
     const { caller, db } = setup();
-    await expect(caller.artist.setFollowing({ artistId: "a1", following: true })).resolves.toEqual({ following: true, followers: 13 });
+    await expect(caller.artist.setFollowing({ artistId: "a1", following: true })).resolves.toEqual({
+      following: true,
+      followers: 13,
+    });
     expect(db.follow.upsert).toHaveBeenCalledWith({
       where: { userId_artistId: { userId: "me", artistId: "a1" } },
       create: { userId: "me", artistId: "a1" },
@@ -93,27 +105,46 @@ describe("ar artist.setFollowing", () => {
   });
 
   it("needs a signed-in fan", async () => {
-    await expect(setup(null).caller.artist.setFollowing({ artistId: "a1", following: true })).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+    await expect(
+      setup(null).caller.artist.setFollowing({ artistId: "a1", following: true }),
+    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });
 
 describe("ar bounty", () => {
   it("serves the fan app's bounties, with the artist on Top bounties", async () => {
     const findMany = vi.fn().mockResolvedValue([
-      { id: "b1", title: "Stream it", prizeAmount: 30000, prizeCurrency: "XLM", artist: { name: "Luna Vale", avatarUrl: null } },
+      {
+        id: "b1",
+        title: "Stream it",
+        prizeAmount: 30000,
+        prizeCurrency: "XLM",
+        artist: { name: "Luna Vale", avatarUrl: null },
+      },
     ]);
     const chain = { config: { name: "testnet", assets: {} } } as unknown as ChainGateway;
     const caller = createCallerFactory(arRouter)(
-      createContext({ db: { bounty: { findMany } } as unknown as Db, chain, app: "ar", session: null }),
+      createContext({
+        db: { bounty: { findMany } } as unknown as Db,
+        chain,
+        app: "ar",
+        session: null,
+      }),
     );
     await expect(caller.bounty.top()).resolves.toEqual([
       {
         id: "b1",
         title: "Stream it",
         artist: { name: "Luna Vale", avatarUrl: null },
-        prize: { amount: "30000", currency: "XLM", explorerUrl: "https://stellar.expert/explorer/testnet/asset/XLM" },
+        prize: {
+          amount: "30000",
+          currency: "XLM",
+          explorerUrl: "https://stellar.expert/explorer/testnet/asset/XLM",
+        },
       },
     ]);
-    expect(findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { fundTxHash: { not: null }, status: "RUNNING" } }));
+    expect(findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { fundTxHash: { not: null }, status: "RUNNING" } }),
+    );
   });
 });

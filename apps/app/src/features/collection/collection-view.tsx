@@ -43,7 +43,10 @@ export function CollectionView() {
   const { status } = useSession();
   const openSignIn = useConnectWalletDialogStore((state) => state.setIsOpen);
   const [type, setType] = useState<TypeFilter>("ALL");
-  const collection = api.collection.mine.useQuery({ type: type === "ALL" ? undefined : type }, { enabled: status === "authenticated" });
+  const collection = api.collection.mine.useQuery(
+    { type: type === "ALL" ? undefined : type },
+    { enabled: status === "authenticated" },
+  );
 
   if (status === "unauthenticated") {
     return (
@@ -87,7 +90,9 @@ export function CollectionView() {
                   {SOURCE_LABEL[item.source] ?? "Owned"}
                 </span>
                 {item.quantity > 1 && (
-                  <span className="bg-primary text-primary-foreground display rounded-md px-1.5 py-0.5 text-[11px] shadow">×{item.quantity.toLocaleString()}</span>
+                  <span className="bg-primary text-primary-foreground display rounded-md px-1.5 py-0.5 text-[11px] shadow">
+                    ×{item.quantity.toLocaleString()}
+                  </span>
                 )}
               </span>
             </div>

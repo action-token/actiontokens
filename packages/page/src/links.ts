@@ -9,7 +9,12 @@ export function safeUrl(value: unknown): string | null {
   }
 }
 
-export type VideoEmbed = { provider: "youtube" | "vimeo"; id: string; embedUrl: string; watchUrl: string };
+export type VideoEmbed = {
+  provider: "youtube" | "vimeo";
+  id: string;
+  embedUrl: string;
+  watchUrl: string;
+};
 
 const YOUTUBE_ID = /^[\w-]{11}$/;
 const VIMEO_ID = /^\d{5,12}$/;
@@ -25,15 +30,34 @@ export function videoEmbed(value: unknown): VideoEmbed | null {
   if (host === "youtu.be") youtube = url.pathname.split("/")[1] ?? null;
   else if (host === "youtube.com" || host === "youtube-nocookie.com") {
     const parts = url.pathname.split("/").filter(Boolean);
-    youtube = url.pathname === "/watch" ? url.searchParams.get("v") : parts[0] === "embed" || parts[0] === "shorts" || parts[0] === "live" ? (parts[1] ?? null) : null;
+    youtube =
+      url.pathname === "/watch"
+        ? url.searchParams.get("v")
+        : parts[0] === "embed" || parts[0] === "shorts" || parts[0] === "live"
+          ? (parts[1] ?? null)
+          : null;
   }
   if (youtube && YOUTUBE_ID.test(youtube)) {
-    return { provider: "youtube", id: youtube, embedUrl: `https://www.youtube-nocookie.com/embed/${youtube}`, watchUrl: `https://www.youtube.com/watch?v=${youtube}` };
+    return {
+      provider: "youtube",
+      id: youtube,
+      embedUrl: `https://www.youtube-nocookie.com/embed/${youtube}`,
+      watchUrl: `https://www.youtube.com/watch?v=${youtube}`,
+    };
   }
 
   if (host === "vimeo.com" || host === "player.vimeo.com") {
-    const id = url.pathname.split("/").filter(Boolean).find((part) => VIMEO_ID.test(part));
-    if (id) return { provider: "vimeo", id, embedUrl: `https://player.vimeo.com/video/${id}?dnt=1`, watchUrl: `https://vimeo.com/${id}` };
+    const id = url.pathname
+      .split("/")
+      .filter(Boolean)
+      .find((part) => VIMEO_ID.test(part));
+    if (id)
+      return {
+        provider: "vimeo",
+        id,
+        embedUrl: `https://player.vimeo.com/video/${id}?dnt=1`,
+        watchUrl: `https://vimeo.com/${id}`,
+      };
   }
   return null;
 }

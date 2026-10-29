@@ -18,6 +18,7 @@ export function useIssuerOpening() {
     preparing: "Preparing your payment…",
     sending: "Opening your artist account. This takes a few seconds.",
     success: { title: "Your artist account is open", body: "An admin will review your page next." },
-    onDone: () => Promise.all([utils.portal.status.invalidate(), utils.onboarding.issuerQuote.invalidate()]),
+    onDone: () =>
+      Promise.all([utils.portal.status.invalidate(), utils.onboarding.issuerQuote.invalidate()]),
   });
 }

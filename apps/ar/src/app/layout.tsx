@@ -13,7 +13,8 @@ import { TRPCReactProvider } from "~/trpc/react";
 
 export const metadata: Metadata = {
   title: { default: "Bandcoin AR: collect the real world", template: "%s · Bandcoin AR" },
-  description: "Walk to pins your favourite artists dropped around the city, collect them in AR and keep the rewards.",
+  description:
+    "Walk to pins your favourite artists dropped around the city, collect them in AR and keep the rewards.",
   appleWebApp: { capable: true, statusBarStyle: "black-translucent" },
 };
 

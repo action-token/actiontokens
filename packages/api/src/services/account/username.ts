@@ -4,7 +4,6 @@ const MIN = 3;
 const MAX = 20;
 const COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000;
 
-
 export const normalizeUsername = (raw: string) => raw.trim().replace(/^@/, "").toLowerCase();
 
 /** null when valid, otherwise what to tell the fan. */
@@ -18,4 +17,5 @@ export function validateUsername(username: string): string | null {
 }
 
 /** When the username can change again; null if it never changed (the first one is free). */
-export const usernameChangeOpensAt = (changedAt: Date | null) => (changedAt ? new Date(changedAt.getTime() + COOLDOWN_MS) : null);
+export const usernameChangeOpensAt = (changedAt: Date | null) =>
+  changedAt ? new Date(changedAt.getTime() + COOLDOWN_MS) : null;

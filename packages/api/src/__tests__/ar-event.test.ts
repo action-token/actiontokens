@@ -13,7 +13,14 @@ const future = new Date(Date.now() + 86_400_000);
 
 function caller(db: object, user: SessionUser | null = me) {
   const full = { ...db, activityLog: { create: vi.fn().mockResolvedValue({}) } } as unknown as Db;
-  return createCallerFactory(arRouter)(createContext({ db: full, chain: {} as ChainGateway, app: "ar", session: user ? { user } : null }));
+  return createCallerFactory(arRouter)(
+    createContext({
+      db: full,
+      chain: {} as ChainGateway,
+      app: "ar",
+      session: user ? { user } : null,
+    }),
+  );
 }
 
 const eventRow = {
@@ -46,7 +53,13 @@ function rsvpDb(over: { capacity?: number | null; endsAt?: Date; taken?: number 
     deleteMany: vi.fn().mockResolvedValue({ count: 1 }),
   };
   return {
-    event: { findUnique: vi.fn().mockResolvedValue({ id: "e1", endsAt: over.endsAt ?? future, capacity: over.capacity ?? null }) },
+    event: {
+      findUnique: vi.fn().mockResolvedValue({
+        id: "e1",
+        endsAt: over.endsAt ?? future,
+        capacity: over.capacity ?? null,
+      }),
+    },
     eventRsvp,
     $transaction: (run: (tx: { eventRsvp: typeof eventRsvp }) => unknown) => run({ eventRsvp }),
   };
@@ -56,9 +69,20 @@ describe("ar event", () => {
   it("shows an event with its funded bounties, and drops links that aren't web links", async () => {
     const db = { event: { findUnique: vi.fn().mockResolvedValue(eventRow) } };
     const event = await caller(db).event.byId({ id: "e1" });
-    expect(event).toMatchObject({ goingCount: 2, commentCount: 1, link: null, hasLink: false, isPast: false, isFull: false });
-    expect(event.bounties).toEqual([{ id: "b1", title: "Film the set", imageUrl: "/brand/bandcoin-mark.png" }]);
-    expect(db.event.findUnique.mock.calls[0]?.[0]).toMatchObject({ include: { bounties: { where: { fundTxHash: { not: null } } } } });
+    expect(event).toMatchObject({
+      goingCount: 2,
+      commentCount: 1,
+      link: null,
+      hasLink: false,
+      isPast: false,
+      isFull: false,
+    });
+    expect(event.bounties).toEqual([
+      { id: "b1", title: "Film the set", imageUrl: "/brand/bandcoin-mark.png" },
+    ]);
+    expect(db.event.findUnique.mock.calls[0]?.[0]).toMatchObject({
+      include: { bounties: { where: { fundTxHash: { not: null } } } },
+    });
   });
 
   it("keeps plain web links", () => {
@@ -68,35 +92,61 @@ describe("ar event", () => {
   });
 
   it("needs sign-in for the Following filter", async () => {
-    await expect(caller({}, null).event.list({ following: true })).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+    await expect(caller({}, null).event.list({ following: true })).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
+    });
   });
 
   it("RSVPs once, and refuses a full or finished event", async () => {
     const db = rsvpDb({ capacity: 10, taken: 3 });
-    await expect(caller(db).event.rsvp({ id: "e1", going: true })).resolves.toEqual({ going: true, goingCount: 3 });
+    await expect(caller(db).event.rsvp({ id: "e1", going: true })).resolves.toEqual({
+      going: true,
+      goingCount: 3,
+    });
     expect(db.eventRsvp.create).toHaveBeenCalledWith({ data: { eventId: "e1", userId: "me" } });
 
-    await expect(caller(rsvpDb({ capacity: 3, taken: 3 })).event.rsvp({ id: "e1", going: true })).rejects.toMatchObject({
+    await expect(
+      caller(rsvpDb({ capacity: 3, taken: 3 })).event.rsvp({ id: "e1", going: true }),
+    ).rejects.toMatchObject({
       message: "This event is full.",
     });
-    await expect(caller(rsvpDb({ endsAt: new Date("2020-01-01") })).event.rsvp({ id: "e1", going: true })).rejects.toMatchObject({
+    await expect(
+      caller(rsvpDb({ endsAt: new Date("2020-01-01") })).event.rsvp({ id: "e1", going: true }),
+    ).rejects.toMatchObject({
       message: "This event has already ended.",
     });
   });
 
   it("lets only the author or the artist delete a comment", async () => {
     const comment = { authorId: "someone", event: { artist: { userId: "artist-user" } } };
-    const db = { eventComment: { findUnique: vi.fn().mockResolvedValue(comment), delete: vi.fn().mockResolvedValue({}) } };
-    await expect(caller(db).event.deleteComment({ kind: "event", commentId: "c1" })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    const db = {
+      eventComment: {
+        findUnique: vi.fn().mockResolvedValue(comment),
+        delete: vi.fn().mockResolvedValue({}),
+      },
+    };
+    await expect(
+      caller(db).event.deleteComment({ kind: "event", commentId: "c1" }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
     expect(db.eventComment.delete).not.toHaveBeenCalled();
 
-    await caller(db, { ...me, id: "artist-user" }).event.deleteComment({ kind: "event", commentId: "c1" });
+    await caller(db, { ...me, id: "artist-user" }).event.deleteComment({
+      kind: "event",
+      commentId: "c1",
+    });
     expect(db.eventComment.delete).toHaveBeenCalledWith({ where: { id: "c1" } });
   });
 
   it("treats an expired announcement as gone", async () => {
     const db = { announcement: { findFirst: vi.fn().mockResolvedValue(null) } };
-    await expect(caller(db).event.announcement({ id: "n1" })).rejects.toMatchObject({ message: "Announcement not found." });
-    expect(db.announcement.findFirst.mock.calls[0]?.[0]).toMatchObject({ where: { id: "n1", OR: [{ expiresAt: null }, { expiresAt: { gt: expect.any(Date) as Date } }] } });
+    await expect(caller(db).event.announcement({ id: "n1" })).rejects.toMatchObject({
+      message: "Announcement not found.",
+    });
+    expect(db.announcement.findFirst.mock.calls[0]?.[0]).toMatchObject({
+      where: {
+        id: "n1",
+        OR: [{ expiresAt: null }, { expiresAt: { gt: expect.any(Date) as Date } }],
+      },
+    });
   });
 });

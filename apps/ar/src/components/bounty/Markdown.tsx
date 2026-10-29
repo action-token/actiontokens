@@ -18,7 +18,7 @@ export function Markdown({ content, className }: { content: string; className?: 
         "[&_blockquote]:border-ar-accent/60 [&_blockquote]:my-3 [&_blockquote]:border-l-2 [&_blockquote]:pl-3",
         "[&_code]:bg-ar-surface-3 [&_code]:rounded [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[12px]",
         "[&_pre]:bg-ar-surface-3 [&_pre]:rounded-ar [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:p-3 [&_pre_code]:bg-transparent [&_pre_code]:p-0",
-        "[&_table]:my-3 [&_table]:block [&_table]:overflow-x-auto [&_table]:text-[12px] [&_td]:border [&_td]:border-ar-line [&_td]:px-2 [&_td]:py-1.5 [&_th]:border [&_th]:border-ar-line [&_th]:px-2 [&_th]:py-1.5 [&_th]:text-left",
+        "[&_td]:border-ar-line [&_th]:border-ar-line [&_table]:my-3 [&_table]:block [&_table]:overflow-x-auto [&_table]:text-[12px] [&_td]:border [&_td]:px-2 [&_td]:py-1.5 [&_th]:border [&_th]:px-2 [&_th]:py-1.5 [&_th]:text-left",
         "[&_hr]:border-ar-line [&_hr]:my-4 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
         className,
       )}

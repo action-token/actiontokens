@@ -49,7 +49,10 @@ export default function ArtistDetail() {
   const { query: urlQuery, ready: urlReady } = useQueryParams();
   const id = typeof urlQuery.id === "string" ? urlQuery.id : null;
 
-  const artistQuery = api.artist.byId.useQuery({ id: id ?? "" }, { enabled: Boolean(id), retry: false });
+  const artistQuery = api.artist.byId.useQuery(
+    { id: id ?? "" },
+    { enabled: Boolean(id), retry: false },
+  );
   const artistsLoading = !urlReady || (Boolean(id) && artistQuery.isLoading);
   const {
     toggle: toggleFollow,

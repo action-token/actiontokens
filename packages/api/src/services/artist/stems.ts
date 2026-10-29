@@ -14,7 +14,16 @@ export const MAX_STEMS = 8;
 const MAX_STEM_SECONDS = 6 * 60 * 60;
 
 /** The mixer's colours, in order; a song's stems take them one after another. */
-export const STEM_COLORS = ["#dbdc2c", "#5ad0c0", "#ff8a5b", "#9b8cff", "#ff6b9d", "#6bd36b", "#4da3ff", "#f2c14e"] as const;
+export const STEM_COLORS = [
+  "#dbdc2c",
+  "#5ad0c0",
+  "#ff8a5b",
+  "#9b8cff",
+  "#ff6b9d",
+  "#6bd36b",
+  "#4da3ff",
+  "#f2c14e",
+] as const;
 
 async function ownSong(ctx: ServiceCtx, artist: { id: string }, itemId: string) {
   const song = await ctx.db.item.findFirst({
@@ -27,7 +36,10 @@ async function ownSong(ctx: ServiceCtx, artist: { id: string }, itemId: string) 
 }
 
 async function ownStem(ctx: ServiceCtx, artist: { id: string }, stemId: string) {
-  const stem = await ctx.db.itemStem.findFirst({ where: { id: stemId, item: { artistId: artist.id, deletedAt: null } }, select: { id: true, itemId: true } });
+  const stem = await ctx.db.itemStem.findFirst({
+    where: { id: stemId, item: { artistId: artist.id, deletedAt: null } },
+    select: { id: true, itemId: true },
+  });
   if (!stem) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Stem not found" });
   ctx.activity.set({ targetType: "Item", targetId: stem.itemId ?? undefined });
   return stem;
@@ -40,7 +52,12 @@ export async function listStems(ctx: ServiceCtx, artist: { id: string }, itemId:
     orderBy: [{ trackIndex: "asc" }, { createdAt: "asc" }],
     select: { id: true, name: true, color: true, trackIndex: true, endSec: true },
   });
-  return rows.map((row) => ({ id: row.id, name: row.name, color: row.color, durationSec: row.endSec }));
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    color: row.color,
+    durationSec: row.endSec,
+  }));
 }
 
 export async function addStem(
@@ -52,13 +69,23 @@ export async function addStem(
   const name = input.name.trim();
   if (name.length === 0 || name.length > 30) throw invalid("Name the stem, for example Vocals.");
   checkOwnUrls({ file: input.audio.url });
-  if (!Number.isInteger(input.audio.durationSec) || input.audio.durationSec < 1 || input.audio.durationSec > MAX_STEM_SECONDS) {
+  if (
+    !Number.isInteger(input.audio.durationSec) ||
+    input.audio.durationSec < 1 ||
+    input.audio.durationSec > MAX_STEM_SECONDS
+  ) {
     throw invalid("We couldn't read the stem's length. Try the file again.");
   }
   const count = await ctx.db.itemStem.count({ where: { itemId: song.id } });
-  if (count >= MAX_STEMS) throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: `A song can have up to ${MAX_STEMS} stems.` });
+  if (count >= MAX_STEMS)
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+      message: `A song can have up to ${MAX_STEMS} stems.`,
+    });
 
-  const last = await ctx.db.itemStem.aggregate({ where: { itemId: song.id }, _max: { trackIndex: true } });
+  const last = await ctx.db.itemStem.aggregate({
+    where: { itemId: song.id },
+    _max: { trackIndex: true },
+  });
   const trackIndex = (last._max.trackIndex ?? -1) + 1;
   const stem = await ctx.db.itemStem.create({
     data: {
@@ -74,10 +101,16 @@ export async function addStem(
   return { stemId: stem.id };
 }
 
-export async function updateStem(ctx: ServiceCtx, artist: { id: string }, input: { stemId: string; name?: string; color?: string }) {
+export async function updateStem(
+  ctx: ServiceCtx,
+  artist: { id: string },
+  input: { stemId: string; name?: string; color?: string },
+) {
   const stem = await ownStem(ctx, artist, input.stemId);
-  if (input.color !== undefined && !/^#[0-9a-fA-F]{6}$/.test(input.color)) throw invalid("Pick a colour.");
-  if (input.name !== undefined && (input.name.trim().length === 0 || input.name.trim().length > 30)) throw invalid("Name the stem, for example Vocals.");
+  if (input.color !== undefined && !/^#[0-9a-fA-F]{6}$/.test(input.color))
+    throw invalid("Pick a colour.");
+  if (input.name !== undefined && (input.name.trim().length === 0 || input.name.trim().length > 30))
+    throw invalid("Name the stem, for example Vocals.");
   const data = {
     ...(input.name !== undefined ? { name: input.name.trim() } : {}),
     ...(input.color !== undefined ? { color: input.color } : {}),

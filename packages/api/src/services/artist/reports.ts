@@ -18,7 +18,12 @@ export const MAX_COLLECTORS = 1000;
 
 const dayOf = Prisma.sql`to_char(c."createdAt", 'YYYY-MM-DD')`;
 
-export async function pinReport(ctx: ReportCtx, artist: ArtistRef, pinId: string, now = new Date()) {
+export async function pinReport(
+  ctx: ReportCtx,
+  artist: ArtistRef,
+  pinId: string,
+  now = new Date(),
+) {
   const pin = await ctx.db.pin.findFirst({
     where: { id: pinId, artistId: artist.id },
     select: {
@@ -36,7 +41,13 @@ export async function pinReport(ctx: ReportCtx, artist: ArtistRef, pinId: string
       spots: {
         where: { isHidden: false },
         orderBy: { id: "asc" },
-        select: { id: true, latitude: true, longitude: true, autoCollect: true, _count: { select: { claims: { where: { isHidden: false } } } } },
+        select: {
+          id: true,
+          latitude: true,
+          longitude: true,
+          autoCollect: true,
+          _count: { select: { claims: { where: { isHidden: false } } } },
+        },
       },
     },
   });
@@ -59,7 +70,16 @@ export async function pinReport(ctx: ReportCtx, artist: ArtistRef, pinId: string
         isRedeemed: true,
         redeemedAt: true,
         spotId: true,
-        user: { select: { id: true, username: true, displayName: true, avatarUrl: true, email: true, walletAddress: true } },
+        user: {
+          select: {
+            id: true,
+            username: true,
+            displayName: true,
+            avatarUrl: true,
+            email: true,
+            walletAddress: true,
+          },
+        },
       },
     }),
   ]);
@@ -72,7 +92,13 @@ export async function pinReport(ctx: ReportCtx, artist: ArtistRef, pinId: string
     daily,
     collectors: claims.map(({ user, ...claim }) => ({
       ...claim,
-      user: { id: user.id, name: user.displayName ?? user.username, image: user.avatarUrl, email: user.email, wallet: user.walletAddress },
+      user: {
+        id: user.id,
+        name: user.displayName ?? user.username,
+        image: user.avatarUrl,
+        email: user.email,
+        wallet: user.walletAddress,
+      },
     })),
   };
 }
@@ -90,7 +116,11 @@ function claimsWhere(artist: ArtistRef, { from, to }: ReportPeriod, pinId?: stri
 
 export type CollectionTotals = { collections: number; collectors: number; redeemed: number };
 
-async function totals(ctx: ReportCtx, artist: ArtistRef, period: ReportPeriod): Promise<CollectionTotals> {
+async function totals(
+  ctx: ReportCtx,
+  artist: ArtistRef,
+  period: ReportPeriod,
+): Promise<CollectionTotals> {
   const [row] = await ctx.db.$queryRaw<CollectionTotals[]>`
     SELECT COUNT(*)::int AS collections, COUNT(DISTINCT c."userId")::int AS collectors,
            COUNT(*) FILTER (WHERE c."isRedeemed")::int AS redeemed
@@ -106,7 +136,12 @@ export function previousPeriod({ from, to }: ReportPeriod, now = new Date()): Re
 }
 
 /** Totals (with the previous period), collections per day, every pin's numbers, and the top collectors. */
-export async function collectionSummary(ctx: ReportCtx, artist: ArtistRef, period: ReportPeriod, now = new Date()) {
+export async function collectionSummary(
+  ctx: ReportCtx,
+  artist: ArtistRef,
+  period: ReportPeriod,
+  now = new Date(),
+) {
   const where = claimsWhere(artist, period);
   const previous = previousPeriod(period, now);
 
@@ -118,14 +153,27 @@ export async function collectionSummary(ctx: ReportCtx, artist: ArtistRef, perio
     ctx.db.$queryRaw<{ pinId: string; n: number; users: number; last: Date }[]>`
       SELECT p.id AS "pinId", COUNT(*)::int AS n, COUNT(DISTINCT c."userId")::int AS users, MAX(c."createdAt") AS last
       FROM ${claimsFrom} WHERE ${where} GROUP BY p.id`,
-    ctx.db.$queryRaw<{ id: string; name: string | null; image: string | null; wallet: string | null; n: number }[]>`
+    ctx.db.$queryRaw<
+      { id: string; name: string | null; image: string | null; wallet: string | null; n: number }[]
+    >`
       SELECT u.id, COALESCE(u."displayName", u.username) AS name, u."avatarUrl" AS image, u."walletAddress" AS wallet, COUNT(*)::int AS n
       FROM ${claimsFrom} JOIN users u ON u.id = c."userId"
       WHERE ${where} GROUP BY u.id ORDER BY n DESC, MAX(c."createdAt") DESC LIMIT 10`,
     ctx.db.pin.findMany({
       where: { artistId: artist.id, isHidden: false },
       orderBy: { createdAt: "desc" },
-      select: { id: true, title: true, imageUrl: true, isHidden: true, startsAt: true, endsAt: true, claimLimit: true, claimsLeft: true, createdAt: true, _count: { select: { spots: { where: { isHidden: false } } } } },
+      select: {
+        id: true,
+        title: true,
+        imageUrl: true,
+        isHidden: true,
+        startsAt: true,
+        endsAt: true,
+        claimLimit: true,
+        claimsLeft: true,
+        createdAt: true,
+        _count: { select: { spots: { where: { isHidden: false } } } },
+      },
     }),
   ]);
 
@@ -137,7 +185,14 @@ export async function collectionSummary(ctx: ReportCtx, artist: ArtistRef, perio
     collectors,
     pins: pins.map(({ _count, ...pin }) => {
       const stats = byPin.get(pin.id);
-      return { ...pin, status: statusOf(pin, now), spots: _count.spots, collected: stats?.n ?? 0, collectors: stats?.users ?? 0, lastCollected: stats?.last ?? null };
+      return {
+        ...pin,
+        status: statusOf(pin, now),
+        spots: _count.spots,
+        collected: stats?.n ?? 0,
+        collectors: stats?.users ?? 0,
+        lastCollected: stats?.last ?? null,
+      };
     }),
   };
 }
@@ -146,8 +201,25 @@ export async function collectionSummary(ctx: ReportCtx, artist: ArtistRef, perio
 export const MAX_EXPORT_ROWS = 50_000;
 
 /** Every collection in the period (or of one pin), one row each, for a CSV download. */
-export async function exportCollections(ctx: ReportCtx, artist: ArtistRef, period: ReportPeriod, pinId?: string) {
-  return ctx.db.$queryRaw<{ pin: string; pinId: string; lat: number; lng: number; wallet: string | null; name: string | null; email: string | null; collectedAt: Date; redeemed: boolean }[]>`
+export async function exportCollections(
+  ctx: ReportCtx,
+  artist: ArtistRef,
+  period: ReportPeriod,
+  pinId?: string,
+) {
+  return ctx.db.$queryRaw<
+    {
+      pin: string;
+      pinId: string;
+      lat: number;
+      lng: number;
+      wallet: string | null;
+      name: string | null;
+      email: string | null;
+      collectedAt: Date;
+      redeemed: boolean;
+    }[]
+  >`
     SELECT p.title AS pin, p.id AS "pinId", s.latitude AS lat, s.longitude AS lng,
            u."walletAddress" AS wallet, COALESCE(u."displayName", u.username) AS name, u.email,
            c."createdAt" AS "collectedAt", c."isRedeemed" AS redeemed

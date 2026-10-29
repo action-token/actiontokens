@@ -22,7 +22,8 @@ const keepInPlace = (event: KeyboardEvent<HTMLInputElement>) => {
   event.preventDefault();
   event.currentTarget.blur();
 };
-const messageOf = (error: unknown) => (error instanceof Error ? error.message : "Something went wrong.");
+const messageOf = (error: unknown) =>
+  error instanceof Error ? error.message : "Something went wrong.";
 
 /**
  * A song's stems: the separate parts (vocals, drums, bass…) owners can mix in the
@@ -32,7 +33,8 @@ const messageOf = (error: unknown) => (error instanceof Error ? error.message : 
 export function StemsPanel({ itemId }: { itemId: string }) {
   const utils = api.useUtils();
   const stems = api.music.stems.useQuery({ itemId });
-  const refresh = () => utils.music.stems.invalidate({ itemId }).then(() => utils.music.songs.invalidate());
+  const refresh = () =>
+    utils.music.stems.invalidate({ itemId }).then(() => utils.music.songs.invalidate());
 
   const [name, setName] = useState("");
   const [file, setFile] = useState<PickedFile | null>(null);
@@ -47,8 +49,14 @@ export function StemsPanel({ itemId }: { itemId: string }) {
     },
     onError: (error) => toast.error(messageOf(error)),
   });
-  const remove = api.music.removeStem.useMutation({ onSuccess: () => void refresh(), onError: (error) => toast.error(messageOf(error)) });
-  const rename = api.music.updateStem.useMutation({ onSuccess: () => void refresh(), onError: (error) => toast.error(messageOf(error)) });
+  const remove = api.music.removeStem.useMutation({
+    onSuccess: () => void refresh(),
+    onError: (error) => toast.error(messageOf(error)),
+  });
+  const rename = api.music.updateStem.useMutation({
+    onSuccess: () => void refresh(),
+    onError: (error) => toast.error(messageOf(error)),
+  });
 
   const count = stems.data?.length ?? 0;
   const ready = name.trim().length > 0 && file !== null && duration > 0;
@@ -67,7 +75,11 @@ export function StemsPanel({ itemId }: { itemId: string }) {
         <ul className="divide-y">
           {stems.data?.map((stem) => (
             <li key={stem.id} className="flex items-center gap-3 py-2">
-              <span className="size-3 shrink-0 rounded-full" style={{ backgroundColor: stem.color }} aria-hidden />
+              <span
+                className="size-3 shrink-0 rounded-full"
+                style={{ backgroundColor: stem.color }}
+                aria-hidden
+              />
               <Input
                 defaultValue={stem.name}
                 maxLength={30}
@@ -79,8 +91,17 @@ export function StemsPanel({ itemId }: { itemId: string }) {
                   if (next && next !== stem.name) rename.mutate({ stemId: stem.id, name: next });
                 }}
               />
-              <span className="text-fg-muted num w-12 text-right text-sm">{stem.durationSec ? formatDuration(stem.durationSec) : ""}</span>
-              <Button type="button" variant="ghost" size="sm" aria-label={`Remove ${stem.name}`} disabled={remove.isPending} onClick={() => remove.mutate({ stemId: stem.id })}>
+              <span className="text-fg-muted num w-12 text-right text-sm">
+                {stem.durationSec ? formatDuration(stem.durationSec) : ""}
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                aria-label={`Remove ${stem.name}`}
+                disabled={remove.isPending}
+                onClick={() => remove.mutate({ stemId: stem.id })}
+              >
                 <Trash2 />
               </Button>
             </li>
@@ -90,7 +111,14 @@ export function StemsPanel({ itemId }: { itemId: string }) {
 
       {count < MAX_STEMS ? (
         <div className="grid gap-3 border-t pt-4">
-          <Input value={name} maxLength={30} placeholder="Stem name, for example Vocals" aria-label="Stem name" onKeyDown={keepInPlace} onChange={(event) => setName(event.target.value)} />
+          <Input
+            value={name}
+            maxLength={30}
+            placeholder="Stem name, for example Vocals"
+            aria-label="Stem name"
+            onKeyDown={keepInPlace}
+            onChange={(event) => setName(event.target.value)}
+          />
           <FileField
             id="stem-file"
             accept="audio/wav,audio/x-wav,audio/mpeg,.wav,.mp3"
@@ -102,7 +130,14 @@ export function StemsPanel({ itemId }: { itemId: string }) {
             onFile={(picked) => void readAudioDuration(picked).then(setDuration)}
             hint="WAV or MP3."
           />
-          <Button type="button" className="justify-self-start" disabled={!ready || add.isPending} onClick={() => file && add.mutate({ itemId, name, audio: { url: file.url, durationSec: duration } })}>
+          <Button
+            type="button"
+            className="justify-self-start"
+            disabled={!ready || add.isPending}
+            onClick={() =>
+              file && add.mutate({ itemId, name, audio: { url: file.url, durationSec: duration } })
+            }
+          >
             {add.isPending ? <Loader2 className="animate-spin" /> : <Plus />} Add stem
           </Button>
         </div>

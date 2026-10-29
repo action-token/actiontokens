@@ -1,6 +1,16 @@
 "use client";
 
-import { AlertCircle, File as FileIcon, ImagePlus, Loader2, Music, RefreshCw, UploadCloud, Video, X } from "lucide-react";
+import {
+  AlertCircle,
+  File as FileIcon,
+  ImagePlus,
+  Loader2,
+  Music,
+  RefreshCw,
+  UploadCloud,
+  Video,
+  X,
+} from "lucide-react";
 import { useId, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -15,9 +25,11 @@ type Kind = "image" | "video" | "audio" | "file";
 /** What a file is, from its type or (for an uploaded address) its extension. */
 function kindOf(file: PickedFile): Kind {
   const hint = `${file.mime} ${file.name} ${file.url}`.toLowerCase();
-  if (file.mime.startsWith("image") || /\.(png|jpe?g|webp|gif|avif|svg)(\?|$)/.test(hint)) return "image";
+  if (file.mime.startsWith("image") || /\.(png|jpe?g|webp|gif|avif|svg)(\?|$)/.test(hint))
+    return "image";
   if (file.mime.startsWith("video") || /\.(mp4|webm|mov|m4v)(\?|$)/.test(hint)) return "video";
-  if (file.mime.startsWith("audio") || /\.(mp3|wav|ogg|flac|m4a|aac)(\?|$)/.test(hint)) return "audio";
+  if (file.mime.startsWith("audio") || /\.(mp3|wav|ogg|flac|m4a|aac)(\?|$)/.test(hint))
+    return "audio";
   return "file";
 }
 
@@ -75,7 +87,15 @@ export function FileField({
 
   return (
     <div className="grid gap-2">
-      <input id={id} ref={input} type="file" accept={accept} hidden aria-describedby={hint ? `${autoId}-hint` : undefined} onChange={(event) => void pick(event.target.files?.[0])} />
+      <input
+        id={id}
+        ref={input}
+        type="file"
+        accept={accept}
+        hidden
+        aria-describedby={hint ? `${autoId}-hint` : undefined}
+        onChange={(event) => void pick(event.target.files?.[0])}
+      />
       <div
         role="button"
         tabIndex={0}
@@ -106,15 +126,35 @@ export function FileField({
       >
         {shownImage ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={shownImage} alt="" className="bg-surface-2 size-20 shrink-0 rounded-lg border object-cover" />
+          <img
+            src={shownImage}
+            alt=""
+            className="bg-surface-2 size-20 shrink-0 rounded-lg border object-cover"
+          />
         ) : (
           <span className="bg-surface text-fg-muted grid size-12 shrink-0 place-items-center rounded-lg border">
             {busy ? <Loader2 className="animate-spin" /> : <Icon className="size-5" />}
           </span>
         )}
         <span className="grid min-w-0 gap-0.5 text-sm">
-          <span className="truncate font-medium">{busy ? "Uploading…" : value ? (preview && kind === "image" ? "Replace the image" : value.name) : dragging ? "Drop it here" : "Drop a file here, or click to choose"}</span>
-          <span className="text-fg-muted text-xs">{failed ? "That didn't upload. Try again." : value ? "Click or drop another file to replace it" : (hint ?? "Uploads as soon as you pick it")}</span>
+          <span className="truncate font-medium">
+            {busy
+              ? "Uploading…"
+              : value
+                ? preview && kind === "image"
+                  ? "Replace the image"
+                  : value.name
+                : dragging
+                  ? "Drop it here"
+                  : "Drop a file here, or click to choose"}
+          </span>
+          <span className="text-fg-muted text-xs">
+            {failed
+              ? "That didn't upload. Try again."
+              : value
+                ? "Click or drop another file to replace it"
+                : (hint ?? "Uploads as soon as you pick it")}
+          </span>
         </span>
         {value && !busy && (
           <button
@@ -129,7 +169,9 @@ export function FileField({
             <X className="size-4" />
           </button>
         )}
-        {failed && !busy && <RefreshCw className="text-danger ml-auto size-4 shrink-0" aria-hidden />}
+        {failed && !busy && (
+          <RefreshCw className="text-danger ml-auto size-4 shrink-0" aria-hidden />
+        )}
       </div>
     </div>
   );

@@ -1,8 +1,21 @@
 import { describe, expect, it } from "vitest";
 
-import { audibleGain, clampPan, clampVolume, defaultSetting, type Mix, startPosition, toggle } from "./mix";
+import {
+  audibleGain,
+  clampPan,
+  clampVolume,
+  defaultSetting,
+  type Mix,
+  startPosition,
+  toggle,
+} from "./mix";
 
-const mix = (over: Mix = {}): Mix => ({ drums: defaultSetting(), bass: defaultSetting(), lead: defaultSetting(), ...over });
+const mix = (over: Mix = {}): Mix => ({
+  drums: defaultSetting(),
+  bass: defaultSetting(),
+  lead: defaultSetting(),
+  ...over,
+});
 
 describe("stem mix", () => {
   it("plays every stem at its own volume when nothing is muted or soloed", () => {
@@ -15,14 +28,19 @@ describe("stem mix", () => {
   });
 
   it("solo silences every stem that isn't soloed, and several can be soloed together", () => {
-    const soloed = mix({ bass: { ...defaultSetting(), solo: true }, lead: { ...defaultSetting(), solo: true, volume: 0.5 } });
+    const soloed = mix({
+      bass: { ...defaultSetting(), solo: true },
+      lead: { ...defaultSetting(), solo: true, volume: 0.5 },
+    });
     expect(audibleGain(soloed, "drums")).toBe(0);
     expect(audibleGain(soloed, "bass")).toBe(1);
     expect(audibleGain(soloed, "lead")).toBe(0.5);
   });
 
   it("a stem that is both soloed and muted stays silent", () => {
-    expect(audibleGain(mix({ bass: { ...defaultSetting(), solo: true, mute: true } }), "bass")).toBe(0);
+    expect(
+      audibleGain(mix({ bass: { ...defaultSetting(), solo: true, mute: true } }), "bass"),
+    ).toBe(0);
   });
 
   it("keeps volume between 0 and 1 and pan between hard left and hard right", () => {

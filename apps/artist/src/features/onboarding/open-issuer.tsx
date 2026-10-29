@@ -23,18 +23,31 @@ export function OpenIssuer() {
   return (
     <section className="bg-surface grid max-w-xl gap-4 rounded-xl border p-5 sm:p-6">
       <p className="text-fg-muted text-sm">
-        This opens the Stellar account every song and collectible you release is issued from. You keep paying for it
-        yourself: Bandcoin never covers the cost. The price below is everything you pay.
+        This opens the Stellar account every song and collectible you release is issued from. You
+        keep paying for it yourself: Bandcoin never covers the cost. The price below is everything
+        you pay.
       </p>
 
-      <QuoteBreakdown quote={quote.data} balance={me.data?.balances.XLM} loading={quote.isPending} />
+      <QuoteBreakdown
+        quote={quote.data}
+        balance={me.data?.balances.XLM}
+        loading={quote.isPending}
+      />
 
       <Button
         disabled={!quote.data?.ok || flow.busy}
         onClick={() => void flow.run(total ? <Money amount={total} currency="XLM" /> : null)}
         className="justify-self-start"
       >
-        {flow.busy ? "Working…" : total ? <>Pay <Money amount={total} currency="XLM" /> and open it</> : "Pay and open it"}
+        {flow.busy ? (
+          "Working…"
+        ) : total ? (
+          <>
+            Pay <Money amount={total} currency="XLM" /> and open it
+          </>
+        ) : (
+          "Pay and open it"
+        )}
       </Button>
 
       {flow.step && (
@@ -45,7 +58,12 @@ export function OpenIssuer() {
             onSend={flow.send}
             onCancel={flow.stop}
             actions={
-              <Button size="sm" variant="secondary" className="h-8 px-3 text-[13px]" onClick={flow.step.kind === "confirm" ? flow.stop : flow.close}>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="h-8 px-3 text-[13px]"
+                onClick={flow.step.kind === "confirm" ? flow.stop : flow.close}
+              >
                 {flow.step.kind === "confirm" ? "Cancel" : "Close"}
               </Button>
             }

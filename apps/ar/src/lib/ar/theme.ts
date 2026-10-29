@@ -40,7 +40,12 @@ export const MAP_STYLE_3D = "mapbox://styles/mapbox/standard";
 export const standardLightPreset = (theme: ResolvedTheme) => (theme === "dark" ? "night" : "day");
 
 /** Sets Standard's light preset when the 3D style is showing; a no-op on the flat styles. */
-export function lightStandardStyle(map: { setConfigProperty?: (importId: string, key: string, value: string) => unknown } | undefined, mode: MapMode, theme: ResolvedTheme) {
+export function lightStandardStyle(
+  map:
+    { setConfigProperty?: (importId: string, key: string, value: string) => unknown } | undefined,
+  mode: MapMode,
+  theme: ResolvedTheme,
+) {
   if (mode !== "3d" || !map?.setConfigProperty) return;
   try {
     map.setConfigProperty("basemap", "lightPreset", standardLightPreset(theme));

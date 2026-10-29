@@ -93,4 +93,3 @@ export function Avatar({
     </span>
   );
 }
-

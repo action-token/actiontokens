@@ -18,7 +18,8 @@ export type SessionUser = {
   email?: string | null;
 };
 
-export const isCustodial = (user: Pick<SessionUser, "walletType">) => isCustodialWallet(user.walletType);
+export const isCustodial = (user: Pick<SessionUser, "walletType">) =>
+  isCustodialWallet(user.walletType);
 
 /** Facts a procedure adds to its own activity log row (`ctx.activity.set`). */
 export type ActivityFacts = {

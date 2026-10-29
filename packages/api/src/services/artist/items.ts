@@ -30,7 +30,9 @@ export const invalid = (message: string) => new AppError(ErrorCodes.VALIDATION_F
 
 function checkSupply(supply: number | null) {
   if (supply !== null && (!Number.isInteger(supply) || supply < 1 || supply > MAX_SUPPLY)) {
-    throw invalid(`Use a whole number from 1 to ${MAX_SUPPLY.toLocaleString("en-US")}, or leave it unlimited.`);
+    throw invalid(
+      `Use a whole number from 1 to ${MAX_SUPPLY.toLocaleString("en-US")}, or leave it unlimited.`,
+    );
   }
 }
 
@@ -48,7 +50,8 @@ export function checkOwnUrls(urls: { cover?: string; file?: string }) {
 
 function checkRoyalty(percent: string | undefined) {
   const value = Number(percent);
-  if (!percent || !(value > 0 && value <= 100)) throw invalid("Enter the share holders split, above 0 and up to 100%.");
+  if (!percent || !(value > 0 && value <= 100))
+    throw invalid("Enter the share holders split, above 0 and up to 100%.");
 }
 
 export type CreateItemInput = {
@@ -70,12 +73,23 @@ export type CreateItemInput = {
   royaltyPercent?: string;
 };
 
-export async function createItem(ctx: ServiceCtx, artist: ArtistRef, user: { id: string }, input: CreateItemInput) {
+export async function createItem(
+  ctx: ServiceCtx,
+  artist: ArtistRef,
+  user: { id: string },
+  input: CreateItemInput,
+) {
   const { db } = ctx;
   const issuer = artist.issuerAccountId
-    ? await db.chainAccount.findUnique({ where: { id: artist.issuerAccountId }, select: { id: true, publicKey: true, activatedAt: true } })
+    ? await db.chainAccount.findUnique({
+        where: { id: artist.issuerAccountId },
+        select: { id: true, publicKey: true, activatedAt: true },
+      })
     : null;
-  if (!issuer?.activatedAt) throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, { message: "Open your artist account first." });
+  if (!issuer?.activatedAt)
+    throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, {
+      message: "Open your artist account first.",
+    });
 
   const code = normalizeAssetCode(input.code);
   const codeProblem = validateAssetCode(code);
@@ -83,11 +97,18 @@ export async function createItem(ctx: ServiceCtx, artist: ArtistRef, user: { id:
   checkPrices(input);
   checkSupply(input.supply);
   checkOwnUrls({ cover: input.coverUrl, file: input.media?.url });
-  if (NEEDS_FILE.includes(input.type) && !input.media) throw invalid("Add the file people will get.");
+  if (NEEDS_FILE.includes(input.type) && !input.media)
+    throw invalid("Add the file people will get.");
   if (input.type === "ROYALTY") checkRoyalty(input.royaltyPercent);
 
-  const taken = await db.classicToken.findUnique({ where: { code_issuer: { code, issuer: issuer.publicKey } }, select: { itemId: true } });
-  if (taken) throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "You already use that code for another item." });
+  const taken = await db.classicToken.findUnique({
+    where: { code_issuer: { code, issuer: issuer.publicKey } },
+    select: { itemId: true },
+  });
+  if (taken)
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+      message: "You already use that code for another item.",
+    });
 
   const item = await db.item.create({
     data: {
@@ -109,8 +130,12 @@ export async function createItem(ctx: ServiceCtx, artist: ArtistRef, user: { id:
               create: {
                 mediaType: input.media.mediaType,
                 sourceUrl: input.media.url,
-                ...(input.media.durationSec !== undefined ? { durationSec: input.media.durationSec } : {}),
-                ...(input.media.previewStartSec !== undefined ? { previewStartSec: input.media.previewStartSec } : {}),
+                ...(input.media.durationSec !== undefined
+                  ? { durationSec: input.media.durationSec }
+                  : {}),
+                ...(input.media.previewStartSec !== undefined
+                  ? { previewStartSec: input.media.previewStartSec }
+                  : {}),
               },
             },
           }
@@ -166,7 +191,11 @@ export async function listMyItems(ctx: Pick<ServiceCtx, "db">, artist: Pick<Arti
       chainType: true,
       classicToken: { select: { code: true } },
       contractNft: { select: { status: true } },
-      listings: { where: { kind: "PRIMARY" }, take: 1, select: { id: true, priceBandcoin: true, priceUsd: true, status: true, quantitySold: true } },
+      listings: {
+        where: { kind: "PRIMARY" },
+        take: 1,
+        select: { id: true, priceBandcoin: true, priceUsd: true, status: true, quantitySold: true },
+      },
     },
   });
   return rows.map((row) => {
@@ -202,7 +231,11 @@ async function ownItem(ctx: ServiceCtx, artist: Pick<ArtistRef, "id">, itemId: s
       chainType: true,
       classicToken: { select: { code: true, issuer: true } },
       contractNft: { select: { status: true } },
-      listings: { where: { kind: "PRIMARY" }, take: 1, select: { id: true, status: true, quantitySold: true } },
+      listings: {
+        where: { kind: "PRIMARY" },
+        take: 1,
+        select: { id: true, status: true, quantitySold: true },
+      },
     },
   });
   if (!item) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Item not found" });
@@ -211,7 +244,11 @@ async function ownItem(ctx: ServiceCtx, artist: Pick<ArtistRef, "id">, itemId: s
 }
 
 /** One item for the edit form: its details, prices, and whether supply and code can still change. */
-export async function getItem(ctx: Pick<ServiceCtx, "db">, artist: Pick<ArtistRef, "id">, itemId: string) {
+export async function getItem(
+  ctx: Pick<ServiceCtx, "db">,
+  artist: Pick<ArtistRef, "id">,
+  itemId: string,
+) {
   const item = await ctx.db.item.findFirst({
     where: { id: itemId, artistId: artist.id, deletedAt: null },
     select: {
@@ -227,7 +264,11 @@ export async function getItem(ctx: Pick<ServiceCtx, "db">, artist: Pick<ArtistRe
       classicToken: { select: { code: true } },
       contractNft: { select: { status: true, royaltyBps: true } },
       media: { select: { mediaType: true, sourceUrl: true } },
-      listings: { where: { kind: "PRIMARY" }, take: 1, select: { priceBandcoin: true, priceUsd: true, status: true, quantitySold: true } },
+      listings: {
+        where: { kind: "PRIMARY" },
+        take: 1,
+        select: { priceBandcoin: true, priceUsd: true, status: true, quantitySold: true },
+      },
     },
   });
   if (!item) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Item not found" });
@@ -260,11 +301,21 @@ export async function getItem(ctx: Pick<ServiceCtx, "db">, artist: Pick<ArtistRe
 /** What a contract NFT's owner may change, given whether it is on the contract yet. */
 function checkNftEdit(status: "PENDING" | "MINTED" | undefined, input: UpdateItemInput) {
   if (input.code !== undefined) throw invalid("Contract NFTs don't have a code.");
-  if (input.visibility === "PUBLIC" && !NFT_CHECKOUT_OPEN) throw invalid("Selling contract NFTs opens soon. Yours stays a draft until then.");
-  const content = [input.title, input.description, input.coverUrl, input.supply, input.priceBandcoin, input.priceUsd];
+  if (input.visibility === "PUBLIC" && !NFT_CHECKOUT_OPEN)
+    throw invalid("Selling contract NFTs opens soon. Yours stays a draft until then.");
+  const content = [
+    input.title,
+    input.description,
+    input.coverUrl,
+    input.supply,
+    input.priceBandcoin,
+    input.priceUsd,
+  ];
   // Once registered these live on the contract, and changing them takes an on-chain update that isn't built yet.
   if (status === "MINTED" && content.some((value) => value !== undefined)) {
-    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "A registered NFT can't be edited yet." });
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+      message: "A registered NFT can't be edited yet.",
+    });
   }
 }
 
@@ -282,7 +333,11 @@ export type UpdateItemInput = {
   visibility?: Extract<Visibility, "DRAFT" | "PUBLIC">;
 };
 
-export async function updateItem(ctx: ServiceCtx, artist: Pick<ArtistRef, "id">, input: UpdateItemInput) {
+export async function updateItem(
+  ctx: ServiceCtx,
+  artist: Pick<ArtistRef, "id">,
+  input: UpdateItemInput,
+) {
   const item = await ownItem(ctx, artist, input.itemId);
   const listing = item.listings[0];
   const sold = (listing?.quantitySold ?? 0) > 0;
@@ -292,20 +347,28 @@ export async function updateItem(ctx: ServiceCtx, artist: Pick<ArtistRef, "id">,
   checkPrices(input);
   checkOwnUrls({ cover: input.coverUrl });
   if (input.supply !== undefined) {
-    if (isNft && input.supply === null) throw invalid("A contract NFT needs a fixed number of copies.");
+    if (isNft && input.supply === null)
+      throw invalid("A contract NFT needs a fixed number of copies.");
     checkSupply(input.supply);
   }
   if ((input.supply !== undefined || input.code !== undefined) && sold) {
-    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "Supply and code can't change after the first sale." });
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+      message: "Supply and code can't change after the first sale.",
+    });
   }
 
   const code = input.code === undefined ? undefined : normalizeAssetCode(input.code);
   if (code !== undefined && item.classicToken) {
     const problem = validateAssetCode(code);
     if (problem) throw invalid(problem);
-    const taken = await ctx.db.classicToken.findUnique({ where: { code_issuer: { code, issuer: item.classicToken.issuer } }, select: { itemId: true } });
+    const taken = await ctx.db.classicToken.findUnique({
+      where: { code_issuer: { code, issuer: item.classicToken.issuer } },
+      select: { itemId: true },
+    });
     if (taken && taken.itemId !== item.id) {
-      throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "You already use that code for another item." });
+      throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+        message: "You already use that code for another item.",
+      });
     }
   }
 
@@ -320,13 +383,18 @@ export async function updateItem(ctx: ServiceCtx, artist: Pick<ArtistRef, "id">,
   const listingData = {
     ...(input.priceBandcoin !== undefined ? { priceBandcoin: input.priceBandcoin } : {}),
     ...(input.priceUsd !== undefined ? { priceUsd: input.priceUsd } : {}),
-    ...(input.visibility !== undefined && listing?.status !== "SOLD_OUT" ? { status: input.visibility === "PUBLIC" ? ("ACTIVE" as const) : ("PAUSED" as const) } : {}),
+    ...(input.visibility !== undefined && listing?.status !== "SOLD_OUT"
+      ? { status: input.visibility === "PUBLIC" ? ("ACTIVE" as const) : ("PAUSED" as const) }
+      : {}),
   };
 
   await ctx.db.$transaction(async (tx) => {
-    if (Object.keys(itemData).length > 0) await tx.item.update({ where: { id: item.id }, data: itemData });
-    if (code !== undefined) await tx.classicToken.update({ where: { itemId: item.id }, data: { code } });
-    if (listing && Object.keys(listingData).length > 0) await tx.listing.update({ where: { id: listing.id }, data: listingData });
+    if (Object.keys(itemData).length > 0)
+      await tx.item.update({ where: { id: item.id }, data: itemData });
+    if (code !== undefined)
+      await tx.classicToken.update({ where: { itemId: item.id }, data: { code } });
+    if (listing && Object.keys(listingData).length > 0)
+      await tx.listing.update({ where: { id: listing.id }, data: listingData });
   });
   return { itemId: item.id };
 }
@@ -336,10 +404,14 @@ export async function removeItem(ctx: ServiceCtx, artist: Pick<ArtistRef, "id">,
   const item = await ownItem(ctx, artist, itemId);
   const listing = item.listings[0];
   if (item.contractNft?.status === "MINTED") {
-    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "A registered NFT can't be deleted." });
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+      message: "A registered NFT can't be deleted.",
+    });
   }
   if ((listing?.quantitySold ?? 0) > 0) {
-    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "This item has sales, so it can't be deleted. Hide it instead." });
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+      message: "This item has sales, so it can't be deleted. Hide it instead.",
+    });
   }
   await ctx.db.$transaction(async (tx) => {
     await tx.item.update({ where: { id: item.id }, data: { deletedAt: new Date() } });

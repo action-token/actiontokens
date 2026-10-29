@@ -8,9 +8,21 @@ import toast from "react-hot-toast";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Input } from "@bandcoin/ui/components/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@bandcoin/ui/components/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@bandcoin/ui/components/select";
 import { Textarea } from "@bandcoin/ui/components/textarea";
-import { Field, FormPage, FormSection, OptionList, SwitchRow } from "@bandcoin/ui/patterns/form-page";
+import {
+  Field,
+  FormPage,
+  FormSection,
+  OptionList,
+  SwitchRow,
+} from "@bandcoin/ui/patterns/form-page";
 import { assetCodeFrom, normalizeAssetCode, validateAssetCode } from "@bandcoin/utils/asset-code";
 import { formatDuration, latestPreviewStart, PREVIEW_SECONDS } from "@bandcoin/utils/preview";
 
@@ -30,14 +42,21 @@ type Existing = RouterOutputs["music"]["song"];
 
 const IMAGE_TYPES = "image/jpeg,image/png,image/webp,image/gif";
 const NO_ALBUM = "none";
-const messageOf = (error: unknown) => (error instanceof Error ? error.message : "Something went wrong.");
+const messageOf = (error: unknown) =>
+  error instanceof Error ? error.message : "Something went wrong.";
 /**
  * One form for releasing a song and for editing it. The audio can't be swapped
  * after release (people may already own that exact recording). Songs are classic
  * tokens: the code is their name on Stellar, and supply and code lock after the
  * first sale. Fans who don't own it hear 30 seconds from the preview point.
  */
-export function SongForm({ existing, defaultAlbumId }: { existing?: Existing; defaultAlbumId?: string }) {
+export function SongForm({
+  existing,
+  defaultAlbumId,
+}: {
+  existing?: Existing;
+  defaultAlbumId?: string;
+}) {
   const router = useRouter();
   const utils = api.useUtils();
   const portal = usePortal();
@@ -48,8 +67,12 @@ export function SongForm({ existing, defaultAlbumId }: { existing?: Existing; de
   const [title, setTitle] = useState(existing?.title ?? "");
   const [artistName, setArtistName] = useState(existing?.artistName ?? "");
   const [description, setDescription] = useState(existing?.description ?? "");
-  const [cover, setCover] = useState<PickedFile | null>(existing ? { url: existing.coverUrl, name: "cover", mime: "image/jpeg" } : null);
-  const [audio, setAudio] = useState<PickedFile | null>(existing?.audioUrl ? { url: existing.audioUrl, name: "Song", mime: "audio/mpeg" } : null);
+  const [cover, setCover] = useState<PickedFile | null>(
+    existing ? { url: existing.coverUrl, name: "cover", mime: "image/jpeg" } : null,
+  );
+  const [audio, setAudio] = useState<PickedFile | null>(
+    existing?.audioUrl ? { url: existing.audioUrl, name: "Song", mime: "audio/mpeg" } : null,
+  );
   const [duration, setDuration] = useState(existing?.durationSec ?? 0);
   const [previewStart, setPreviewStart] = useState(existing?.previewStartSec ?? 0);
   const [albumId, setAlbumId] = useState(existing?.albumId ?? defaultAlbumId ?? NO_ALBUM);
@@ -73,9 +96,12 @@ export function SongForm({ existing, defaultAlbumId }: { existing?: Existing; de
     cover !== null &&
     audio !== null &&
     duration > 0 &&
-    shownCode.length > 0 && !codeProblem &&
-    priceBandcoin !== "" && !prices.bandcoin &&
-    priceUsd !== "" && !prices.usd &&
+    shownCode.length > 0 &&
+    !codeProblem &&
+    priceBandcoin !== "" &&
+    !prices.bandcoin &&
+    priceUsd !== "" &&
+    !prices.usd &&
     supplyOk;
 
   const done = (message: string) => {
@@ -84,10 +110,16 @@ export function SongForm({ existing, defaultAlbumId }: { existing?: Existing; de
     void utils.music.albums.invalidate();
     router.push(defaultAlbumId ? `/music/albums/${defaultAlbumId}` : "/music");
   };
-  const create = api.music.createSong.useMutation({ onSuccess: () => done("Song released"), onError: (error) => toast.error(messageOf(error)) });
+  const create = api.music.createSong.useMutation({
+    onSuccess: () => done("Song released"),
+    onError: (error) => toast.error(messageOf(error)),
+  });
   const updateItem = api.catalog.update.useMutation();
   const updateSong = api.music.updateSong.useMutation();
-  const remove = api.catalog.remove.useMutation({ onSuccess: () => done("Song deleted"), onError: (error) => toast.error(messageOf(error)) });
+  const remove = api.catalog.remove.useMutation({
+    onSuccess: () => done("Song deleted"),
+    onError: (error) => toast.error(messageOf(error)),
+  });
   const saving = create.isPending || updateItem.isPending || updateSong.isPending;
   const aiContext = { title, creditedAs: artistName, description };
   const imagePrompt = imageBrief || [title, description.slice(0, 400)].filter(Boolean).join(". ");
@@ -156,7 +188,11 @@ export function SongForm({ existing, defaultAlbumId }: { existing?: Existing; de
     <FormPage
       title={existing ? existing.title : "New song"}
       eyebrow="Catalog"
-      description={existing ? undefined : "Upload the recording, choose where the 30-second preview starts, and set the price."}
+      description={
+        existing
+          ? undefined
+          : "Upload the recording, choose where the 30-second preview starts, and set the price."
+      }
       back={{ href: backHref, label: defaultAlbumId ? "Album" : "Music" }}
       onSubmit={submit}
       actions={actions}
@@ -168,7 +204,9 @@ export function SongForm({ existing, defaultAlbumId }: { existing?: Existing; de
               <img src={cover.url} alt="" className="aspect-square w-full object-cover" />
             )}
             <div className="grid gap-2 p-5">
-              <p className="text-primary-text text-xs font-semibold tracking-wide uppercase">Preview</p>
+              <p className="text-primary-text text-xs font-semibold tracking-wide uppercase">
+                Preview
+              </p>
               <p className="display text-xl leading-snug">{title || "Untitled song"}</p>
               <p className="text-fg-muted text-sm">
                 {artistName.trim() || portal.artist?.name || "Your artist name"}
@@ -183,7 +221,11 @@ export function SongForm({ existing, defaultAlbumId }: { existing?: Existing; de
             <DeleteCard
               title="Delete this song"
               confirmTitle={`Delete ${existing.title}?`}
-              description={existing.locked ? "This song has sales, so it can't be deleted. Unpublish it to hide it instead." : "It disappears from your page. This can't be undone."}
+              description={
+                existing.locked
+                  ? "This song has sales, so it can't be deleted. Unpublish it to hide it instead."
+                  : "It disappears from your page. This can't be undone."
+              }
               busy={remove.isPending}
               onDelete={() => remove.mutate({ itemId: existing.id })}
             />
@@ -195,7 +237,10 @@ export function SongForm({ existing, defaultAlbumId }: { existing?: Existing; de
         <AiFillCard
           form="song"
           context={aiContext}
-          examples={["A mellow acoustic ballad about leaving home", "An upbeat summer single featuring Kit"]}
+          examples={[
+            "A mellow acoustic ballad about leaving home",
+            "An upbeat summer single featuring Kit",
+          ]}
           apply={(result) => {
             const before = { title, artistName, description, customCode, imageBrief };
             setTitle(result.title);
@@ -215,26 +260,91 @@ export function SongForm({ existing, defaultAlbumId }: { existing?: Existing; de
       )}
 
       <FormSection title="The song" icon={Type}>
-        <Field label="Title" htmlFor="song-title" required action={<AiTextButton form="song" field="title" maxChars={120} value={title} context={aiContext} onChange={setTitle} />}>
-          <Input id="song-title" value={title} maxLength={120} onChange={(event) => setTitle(event.target.value)} />
+        <Field
+          label="Title"
+          htmlFor="song-title"
+          required
+          action={
+            <AiTextButton
+              form="song"
+              field="title"
+              maxChars={120}
+              value={title}
+              context={aiContext}
+              onChange={setTitle}
+            />
+          }
+        >
+          <Input
+            id="song-title"
+            value={title}
+            maxLength={120}
+            onChange={(event) => setTitle(event.target.value)}
+          />
         </Field>
-        <Field label="Credited as" htmlFor="song-artist" hint={'Leave it empty to use your artist name. Use it for features, like "Luna Vale & Kit".'}>
-          <Input id="song-artist" value={artistName} maxLength={120} placeholder={portal.artist?.name ?? "Your artist name"} onChange={(event) => setArtistName(event.target.value)} />
+        <Field
+          label="Credited as"
+          htmlFor="song-artist"
+          hint={
+            'Leave it empty to use your artist name. Use it for features, like "Luna Vale & Kit".'
+          }
+        >
+          <Input
+            id="song-artist"
+            value={artistName}
+            maxLength={120}
+            placeholder={portal.artist?.name ?? "Your artist name"}
+            onChange={(event) => setArtistName(event.target.value)}
+          />
         </Field>
-        <Field label="About the song" htmlFor="song-description" action={<AiTextButton form="song" field="description" maxChars={2000} value={description} context={aiContext} onChange={setDescription} />}>
-          <Textarea id="song-description" value={description} maxLength={2000} rows={4} onChange={(event) => setDescription(event.target.value)} />
+        <Field
+          label="About the song"
+          htmlFor="song-description"
+          action={
+            <AiTextButton
+              form="song"
+              field="description"
+              maxChars={2000}
+              value={description}
+              context={aiContext}
+              onChange={setDescription}
+            />
+          }
+        >
+          <Textarea
+            id="song-description"
+            value={description}
+            maxLength={2000}
+            rows={4}
+            onChange={(event) => setDescription(event.target.value)}
+          />
         </Field>
       </FormSection>
 
       <FormSection title="Cover and recording" icon={ImageIcon}>
         <Field label="Cover art" htmlFor="song-cover" required>
-          <FileField id="song-cover" accept={IMAGE_TYPES} value={cover} onChange={setCover} preview hint="Square works best. JPG, PNG, WebP or GIF." />
-          <AiImagePanel form="song" aspect="square" suggestedPrompt={imagePrompt} onImage={(url) => setCover({ url, name: "cover", mime: "image/png" })} />
+          <FileField
+            id="song-cover"
+            accept={IMAGE_TYPES}
+            value={cover}
+            onChange={setCover}
+            preview
+            hint="Square works best. JPG, PNG, WebP or GIF."
+          />
+          <AiImagePanel
+            form="song"
+            aspect="square"
+            suggestedPrompt={imagePrompt}
+            onImage={(url) => setCover({ url, name: "cover", mime: "image/png" })}
+          />
         </Field>
 
         <Field label="The recording" htmlFor="song-audio" required={!editing}>
           {editing ? (
-            <Note>The recording can&apos;t be replaced after release, because people may already own it. Release a new song instead.</Note>
+            <Note>
+              The recording can&apos;t be replaced after release, because people may already own it.
+              Release a new song instead.
+            </Note>
           ) : (
             <FileField
               id="song-audio"
@@ -257,10 +367,21 @@ export function SongForm({ existing, defaultAlbumId }: { existing?: Existing; de
           {duration > 0 && <Note>Length {formatDuration(duration)}</Note>}
         </Field>
 
-        {audio && duration > 0 && <PreviewPicker audioUrl={audio.url} duration={duration} start={previewStart} onStart={setPreviewStart} />}
+        {audio && duration > 0 && (
+          <PreviewPicker
+            audioUrl={audio.url}
+            duration={duration}
+            start={previewStart}
+            onStart={setPreviewStart}
+          />
+        )}
       </FormSection>
 
-      <FormSection title="Album" icon={Disc3} description="Optional. Songs without an album are singles.">
+      <FormSection
+        title="Album"
+        icon={Disc3}
+        description="Optional. Songs without an album are singles."
+      >
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Album" htmlFor="song-album">
             <Select value={albumId} onValueChange={setAlbumId}>
@@ -278,15 +399,34 @@ export function SongForm({ existing, defaultAlbumId }: { existing?: Existing; de
             </Select>
           </Field>
           <Field label="Track number" htmlFor="song-track">
-            <Input id="song-track" inputMode="numeric" value={trackNumber} disabled={albumId === NO_ALBUM} className="max-w-28" onChange={(event) => setTrackNumber(event.target.value.replace(/\D/g, "").slice(0, 3))} />
+            <Input
+              id="song-track"
+              inputMode="numeric"
+              value={trackNumber}
+              disabled={albumId === NO_ALBUM}
+              className="max-w-28"
+              onChange={(event) =>
+                setTrackNumber(event.target.value.replace(/\D/g, "").slice(0, 3))
+              }
+            />
           </Field>
         </div>
       </FormSection>
 
       <FormSection title="Price and copies" icon={Coins}>
-        <PriceFields bandcoin={priceBandcoin} usd={priceUsd} onBandcoin={setPriceBandcoin} onUsd={setPriceUsd} idPrefix="song-price" />
+        <PriceFields
+          bandcoin={priceBandcoin}
+          usd={priceUsd}
+          onBandcoin={setPriceBandcoin}
+          onUsd={setPriceUsd}
+          idPrefix="song-price"
+        />
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="Copies" htmlFor="song-supply" hint={locked ? `${existing?.sold} sold, so the number of copies is fixed.` : undefined}>
+          <Field
+            label="Copies"
+            htmlFor="song-supply"
+            hint={locked ? `${existing?.sold} sold, so the number of copies is fixed.` : undefined}
+          >
             <div className="flex items-center gap-2">
               <Toggle pressed={limited} disabled={locked} onClick={() => setLimited(true)}>
                 Limited
@@ -294,10 +434,30 @@ export function SongForm({ existing, defaultAlbumId }: { existing?: Existing; de
               <Toggle pressed={!limited} disabled={locked} onClick={() => setLimited(false)}>
                 Unlimited
               </Toggle>
-              {limited && <Input id="song-supply" inputMode="numeric" value={supply} disabled={locked} aria-label="Number of copies" onChange={(event) => setSupply(event.target.value.replace(/\D/g, ""))} className="w-24" />}
+              {limited && (
+                <Input
+                  id="song-supply"
+                  inputMode="numeric"
+                  value={supply}
+                  disabled={locked}
+                  aria-label="Number of copies"
+                  onChange={(event) => setSupply(event.target.value.replace(/\D/g, ""))}
+                  className="w-24"
+                />
+              )}
             </div>
           </Field>
-          <Field label="Asset code" htmlFor="song-code" required error={codeProblem} hint={locked ? "Fixed after the first sale." : "The song's short name on Stellar, up to 12 letters and numbers."}>
+          <Field
+            label="Asset code"
+            htmlFor="song-code"
+            required
+            error={codeProblem}
+            hint={
+              locked
+                ? "Fixed after the first sale."
+                : "The song's short name on Stellar, up to 12 letters and numbers."
+            }
+          >
             <Input
               id="song-code"
               value={shownCode}
@@ -316,7 +476,13 @@ export function SongForm({ existing, defaultAlbumId }: { existing?: Existing; de
 
       <FormSection title="Visibility" icon={Eye}>
         <OptionList>
-          <SwitchRow icon={Eye} title={publish ? "Published" : "Draft"} hint={publish ? "Fans can buy and preview it." : "Only you can see it."} checked={publish} onChange={setPublish} />
+          <SwitchRow
+            icon={Eye}
+            title={publish ? "Published" : "Draft"}
+            hint={publish ? "Fans can buy and preview it." : "Only you can see it."}
+            checked={publish}
+            onChange={setPublish}
+          />
         </OptionList>
       </FormSection>
 
@@ -326,7 +492,17 @@ export function SongForm({ existing, defaultAlbumId }: { existing?: Existing; de
 }
 
 /** Pick where the 30-second preview starts, and hear exactly what fans will hear. */
-function PreviewPicker({ audioUrl, duration, start, onStart }: { audioUrl: string; duration: number; start: number; onStart: (seconds: number) => void }) {
+function PreviewPicker({
+  audioUrl,
+  duration,
+  start,
+  onStart,
+}: {
+  audioUrl: string;
+  duration: number;
+  start: number;
+  onStart: (seconds: number) => void;
+}) {
   const player = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const latest = latestPreviewStart(duration);
@@ -368,7 +544,8 @@ function PreviewPicker({ audioUrl, duration, start, onStart }: { audioUrl: strin
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
         onTimeUpdate={(event) => {
-          if (event.currentTarget.currentTime >= start + PREVIEW_SECONDS) event.currentTarget.pause();
+          if (event.currentTarget.currentTime >= start + PREVIEW_SECONDS)
+            event.currentTarget.pause();
         }}
       />
     </Field>

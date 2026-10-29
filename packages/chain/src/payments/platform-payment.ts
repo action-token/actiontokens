@@ -15,7 +15,9 @@ export function buildPlatformPayment(input: {
   asset: Asset;
   amount: string;
 }) {
-  const builder = startTransaction(input.payer, input.network, { memo: input.orderId }).addOperation(
+  const builder = startTransaction(input.payer, input.network, {
+    memo: input.orderId,
+  }).addOperation(
     Operation.payment({ destination: input.to, asset: input.asset, amount: input.amount }),
   );
   return finish(builder);

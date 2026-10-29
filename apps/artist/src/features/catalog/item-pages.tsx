@@ -16,7 +16,14 @@ export function EditItemView({ itemId }: { itemId: string }) {
   return (
     <PageBody className="grid gap-6">
       <PageHeader back={{ href: "/items", label: "Items" }} eyebrow="Catalog" title="Edit item" />
-      {item.isPending ? <Skeleton className="h-96 w-full max-w-2xl rounded-xl" /> : <ErrorState message={item.error?.message ?? "Couldn't load this item."} onRetry={() => void item.refetch()} />}
+      {item.isPending ? (
+        <Skeleton className="h-96 w-full max-w-2xl rounded-xl" />
+      ) : (
+        <ErrorState
+          message={item.error?.message ?? "Couldn't load this item."}
+          onRetry={() => void item.refetch()}
+        />
+      )}
     </PageBody>
   );
 }

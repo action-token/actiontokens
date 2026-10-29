@@ -20,7 +20,9 @@ export function buildTransfer(input: {
   const builder = startTransaction(input.sender, input.network, { memo: input.memo });
 
   if (input.receiverTrusts || input.asset.isNative()) {
-    builder.addOperation(Operation.payment({ destination: input.to, asset: input.asset, amount: input.amount }));
+    builder.addOperation(
+      Operation.payment({ destination: input.to, asset: input.asset, amount: input.amount }),
+    );
   } else {
     builder.addOperation(
       Operation.createClaimableBalance({
@@ -66,7 +68,12 @@ export function buildIssueTokens(input: {
   memo?: string;
 }) {
   const builder = startTransaction(input.sender, input.network, { memo: input.memo }).addOperation(
-    Operation.payment({ source: input.issuer, destination: input.to, asset: input.asset, amount: input.amount }),
+    Operation.payment({
+      source: input.issuer,
+      destination: input.to,
+      asset: input.asset,
+      amount: input.amount,
+    }),
   );
   return finish(builder, [input.issuer]);
 }

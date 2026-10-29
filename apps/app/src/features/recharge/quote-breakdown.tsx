@@ -10,7 +10,11 @@ import type { DisplayCurrency } from "~/lib/format";
 
 type Line = { label: string; currency: DisplayCurrency; amount: string };
 type Problem_ =
-  | { code: "INSUFFICIENT_FUNDS"; message: string; shortfall: { currency: "BANDCOIN" | "XLM"; short: string } }
+  | {
+      code: "INSUFFICIENT_FUNDS";
+      message: string;
+      shortfall: { currency: "BANDCOIN" | "XLM"; short: string };
+    }
   | { code: string; message: string };
 
 /**
@@ -44,28 +48,43 @@ export function QuoteBreakdown({
   }
   if (error) return <Problem message={error} />;
 
-  const shortfalls = problems.flatMap((problem) => (problem.code === "INSUFFICIENT_FUNDS" && "shortfall" in problem ? [problem.shortfall] : []));
-  const notices = problems.filter((problem) => problem.code === "UNAVAILABLE" || problem.code === "RATE_UNAVAILABLE");
-  const short = balance ? shortfalls.find((shortfall) => shortfall.currency === balance.currency) : undefined;
+  const shortfalls = problems.flatMap((problem) =>
+    problem.code === "INSUFFICIENT_FUNDS" && "shortfall" in problem ? [problem.shortfall] : [],
+  );
+  const notices = problems.filter(
+    (problem) => problem.code === "UNAVAILABLE" || problem.code === "RATE_UNAVAILABLE",
+  );
+  const short = balance
+    ? shortfalls.find((shortfall) => shortfall.currency === balance.currency)
+    : undefined;
 
   return (
     <>
       {pay && (
         <PriceBreakdown
-          lines={lines.map((line) => ({ label: line.label, value: <Money amount={line.amount} currency={line.currency} /> }))}
+          lines={lines.map((line) => ({
+            label: line.label,
+            value: <Money amount={line.amount} currency={line.currency} />,
+          }))}
           total={<Money amount={pay.amount} currency={pay.currency} />}
           balance={
             balance
               ? {
                   value: <Money amount={balance.amount} currency={balance.currency} />,
-                  shortBy: short ? <Money amount={short.short} currency={short.currency} /> : undefined,
+                  shortBy: short ? (
+                    <Money amount={short.short} currency={short.currency} />
+                  ) : undefined,
                 }
               : undefined
           }
         />
       )}
       {shortfalls.map((shortfall) => (
-        <ShortfallNotice key={shortfall.currency} currency={shortfall.currency} shortBy={<Money amount={shortfall.short} currency={shortfall.currency} />} />
+        <ShortfallNotice
+          key={shortfall.currency}
+          currency={shortfall.currency}
+          shortBy={<Money amount={shortfall.short} currency={shortfall.currency} />}
+        />
       ))}
       {notices.map((problem) => (
         <Problem key={problem.message} message={problem.message} />
@@ -76,7 +95,10 @@ export function QuoteBreakdown({
 
 export function Problem({ message }: { message: string }) {
   return (
-    <div role="alert" className="bg-surface-2 text-fg-muted flex gap-2.5 rounded-md p-3 text-[13px]">
+    <div
+      role="alert"
+      className="bg-surface-2 text-fg-muted flex gap-2.5 rounded-md p-3 text-[13px]"
+    >
       <CircleAlert className="text-warning mt-px size-4 shrink-0" />
       {message}
     </div>

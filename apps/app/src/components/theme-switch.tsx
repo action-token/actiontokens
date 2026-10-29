@@ -14,7 +14,11 @@ export function ThemeSwitch() {
   useEffect(() => setMounted(true), []);
 
   return (
-    <div role="group" aria-label="Theme" className="bg-surface inline-flex gap-0.5 rounded-full border p-[3px]">
+    <div
+      role="group"
+      aria-label="Theme"
+      className="bg-surface inline-flex gap-0.5 rounded-full border p-[3px]"
+    >
       {OPTIONS.map((option) => (
         <button
           key={option}

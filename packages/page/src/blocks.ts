@@ -12,23 +12,53 @@ import { safeUrl, videoEmbed } from "./links";
  * Saved pages are read leniently: an unknown block or a bad value is dropped
  * or repaired, never allowed to break the page for visitors.
  */
-export const BLOCK_TYPES = ["cover", "about", "music", "releases", "nft-gallery", "membership", "tour", "links", "videos", "band-members"] as const;
+export const BLOCK_TYPES = [
+  "cover",
+  "about",
+  "music",
+  "releases",
+  "nft-gallery",
+  "membership",
+  "tour",
+  "links",
+  "videos",
+  "band-members",
+] as const;
 export type BlockType = (typeof BLOCK_TYPES)[number];
 
 /** 1 = a quarter of the row, 4 = the full row. */
 export type BlockWidth = 1 | 2 | 3 | 4;
 export const MAX_BLOCKS = 40;
 
-const text = (max: number, fallback: string) => z.string().trim().max(max).catch(fallback).default(fallback);
-const count = (min: number, max: number, fallback: number) => z.number().int().min(min).max(max).catch(fallback).default(fallback);
+const text = (max: number, fallback: string) =>
+  z.string().trim().max(max).catch(fallback).default(fallback);
+const count = (min: number, max: number, fallback: number) =>
+  z.number().int().min(min).max(max).catch(fallback).default(fallback);
 
 /** Keeps the valid items of a list (a bad one doesn't throw the rest away) up to `max`. */
 const items = <T extends z.ZodType>(item: T, max: number) =>
-  z.preprocess((value: unknown) => (Array.isArray(value) ? (value as unknown[]).filter((entry) => item.safeParse(entry).success).slice(0, max) : []), z.array(item)).default([]);
+  z
+    .preprocess(
+      (value: unknown) =>
+        Array.isArray(value)
+          ? (value as unknown[]).filter((entry) => item.safeParse(entry).success).slice(0, max)
+          : [],
+      z.array(item),
+    )
+    .default([]);
 
-const webUrl = z.string().refine((value) => safeUrl(value) !== null).transform((value) => safeUrl(value)!);
-const videoUrl = z.string().refine((value) => videoEmbed(value) !== null).transform((value) => safeUrl(value)!);
-const optionalWebUrl = z.preprocess((value) => (typeof value === "string" && safeUrl(value) ? safeUrl(value) : undefined), z.string().optional());
+const webUrl = z
+  .string()
+  .refine((value) => safeUrl(value) !== null)
+  .transform((value) => safeUrl(value)!);
+const videoUrl = z
+  .string()
+  .refine((value) => videoEmbed(value) !== null)
+  .transform((value) => safeUrl(value)!);
+const optionalWebUrl = z.preprocess(
+  (value) => (typeof value === "string" && safeUrl(value) ? safeUrl(value) : undefined),
+  z.string().optional(),
+);
 
 export const SETTINGS = {
   cover: z.object({ align: z.enum(["left", "center"]).catch("left").default("left") }),
@@ -45,11 +75,21 @@ export const SETTINGS = {
   }),
   videos: z.object({
     heading: text(40, "Videos"),
-    videos: items(z.object({ title: z.string().trim().max(80).catch("").default(""), url: videoUrl }), 8),
+    videos: items(
+      z.object({ title: z.string().trim().max(80).catch("").default(""), url: videoUrl }),
+      8,
+    ),
   }),
   "band-members": z.object({
     heading: text(40, "Band members"),
-    members: items(z.object({ name: z.string().trim().min(1).max(60), role: z.string().trim().max(60).catch("").default(""), photoUrl: optionalWebUrl }), 12),
+    members: items(
+      z.object({
+        name: z.string().trim().min(1).max(60),
+        role: z.string().trim().max(60).catch("").default(""),
+        photoUrl: optionalWebUrl,
+      }),
+      12,
+    ),
   }),
 } satisfies Record<BlockType, z.ZodType>;
 
@@ -235,7 +275,12 @@ export const BLOCK_DEFS: Record<BlockType, BlockDef> = {
         titleKey: "title",
         fields: [
           { key: "title", kind: "text", label: "Title", max: 80 },
-          { key: "url", kind: "text", label: "YouTube or Vimeo address", help: "Starts with https://" },
+          {
+            key: "url",
+            kind: "text",
+            label: "YouTube or Vimeo address",
+            help: "Starts with https://",
+          },
         ],
       },
     ],
@@ -273,25 +318,37 @@ export const BLOCK_LIST: BlockDef[] = BLOCK_TYPES.map((type) => BLOCK_DEFS[type]
 /** A fresh block with its defaults, for "add block". */
 export function makeBlock(type: BlockType, uid: string): Block {
   const def = BLOCK_DEFS[type];
-  return { uid, type, width: def.defaultWidth, hidden: false, hideWhenEmpty: def.defaultHideWhenEmpty, settings: SETTINGS[type].parse({}) };
+  return {
+    uid,
+    type,
+    width: def.defaultWidth,
+    hidden: false,
+    hideWhenEmpty: def.defaultHideWhenEmpty,
+    settings: SETTINGS[type].parse({}),
+  };
 }
 
-const isWidth = (value: unknown): value is BlockWidth => value === 1 || value === 2 || value === 3 || value === 4;
+const isWidth = (value: unknown): value is BlockWidth =>
+  value === 1 || value === 2 || value === 3 || value === 4;
 
 /** One block from anything: unknown types are dropped, bad settings are repaired. */
 export function parseBlock(raw: unknown): Block | null {
   if (!raw || typeof raw !== "object") return null;
   const value = raw as Record<string, unknown>;
   const type = BLOCK_TYPES.find((entry) => entry === value.type);
-  if (!type || typeof value.uid !== "string" || value.uid.length === 0 || value.uid.length > 64) return null;
+  if (!type || typeof value.uid !== "string" || value.uid.length === 0 || value.uid.length > 64)
+    return null;
   const def = BLOCK_DEFS[type];
   return {
     uid: value.uid,
     type,
     width: isWidth(value.width) ? value.width : def.defaultWidth,
     hidden: value.hidden === true,
-    hideWhenEmpty: typeof value.hideWhenEmpty === "boolean" ? value.hideWhenEmpty : def.defaultHideWhenEmpty,
-    settings: SETTINGS[type].parse(value.settings && typeof value.settings === "object" ? value.settings : {}),
+    hideWhenEmpty:
+      typeof value.hideWhenEmpty === "boolean" ? value.hideWhenEmpty : def.defaultHideWhenEmpty,
+    settings: SETTINGS[type].parse(
+      value.settings && typeof value.settings === "object" ? value.settings : {},
+    ),
   };
 }
 
@@ -299,7 +356,10 @@ export function parseBlock(raw: unknown): Block | null {
  * A whole page from anything saved. Repairs it so it always has exactly one
  * cover, first and full width, no repeated ids and at most MAX_BLOCKS blocks.
  */
-export function normalizeBlocks(raw: unknown, newUid: () => string = () => `b-${Math.random().toString(36).slice(2, 10)}`): Block[] {
+export function normalizeBlocks(
+  raw: unknown,
+  newUid: () => string = () => `b-${Math.random().toString(36).slice(2, 10)}`,
+): Block[] {
   const seen = new Set<string>();
   const parsed = (Array.isArray(raw) ? raw : []).flatMap((entry) => {
     const block = parseBlock(entry);

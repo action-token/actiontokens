@@ -8,7 +8,8 @@ export function readAudioDuration(file: File): Promise<number> {
       resolve(seconds);
     };
     audio.preload = "metadata";
-    audio.onloadedmetadata = () => finish(Number.isFinite(audio.duration) ? Math.round(audio.duration) : 0);
+    audio.onloadedmetadata = () =>
+      finish(Number.isFinite(audio.duration) ? Math.round(audio.duration) : 0);
     audio.onerror = () => finish(0);
     audio.src = url;
   });

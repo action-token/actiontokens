@@ -15,7 +15,12 @@ export function useRewardClaim(claimId: string) {
     sending: "Sending the reward to your wallet. This takes a few seconds.",
     success: { title: "Reward claimed", body: "It's in your Stellar wallet now." },
     failure: "Couldn't claim the reward. Nothing was sent.",
-    onDone: () => Promise.all([utils.claim.forPin.invalidate(), utils.claim.quote.invalidate({ claimId }), utils.account.me.invalidate()]),
+    onDone: () =>
+      Promise.all([
+        utils.claim.forPin.invalidate(),
+        utils.claim.quote.invalidate({ claimId }),
+        utils.account.me.invalidate(),
+      ]),
   });
 }
 
@@ -30,6 +35,7 @@ export function useBountyClaim(bountyId: string) {
     sending: "Sending your prize to your wallet. This takes a few seconds.",
     success: { title: "Prize claimed", body: "It's in your wallet now." },
     failure: "Couldn't claim the prize. Nothing was sent.",
-    onDone: () => Promise.all([utils.bounty.byId.invalidate({ bountyId }), utils.account.me.invalidate()]),
+    onDone: () =>
+      Promise.all([utils.bounty.byId.invalidate({ bountyId }), utils.account.me.invalidate()]),
   });
 }

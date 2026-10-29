@@ -6,7 +6,10 @@ const ROLE_NAME: Record<string, string> = { GUEST: "Guest", SYSTEM: "System" };
  * The activity log for /admin/activity: every mutation on the platform,
  * newest first, paged by id. Ids are 64-bit, so they travel as strings.
  */
-export async function listActivity(ctx: Pick<Context, "db">, input: { limit: number; cursor?: string; failedOnly?: boolean }) {
+export async function listActivity(
+  ctx: Pick<Context, "db">,
+  input: { limit: number; cursor?: string; failedOnly?: boolean },
+) {
   const where = {
     ...(input.cursor ? { id: { lt: BigInt(input.cursor) } } : {}),
     ...(input.failedOnly ? { status: "FAILED" as const } : {}),
@@ -37,7 +40,9 @@ export async function listActivity(ctx: Pick<Context, "db">, input: { limit: num
     items: page.map((row) => ({
       id: row.id.toString(),
       action: row.action,
-      actor: row.actor ? (row.actor.displayName ?? row.actor.username ?? row.actorRole) : (ROLE_NAME[row.actorRole] ?? row.actorRole),
+      actor: row.actor
+        ? (row.actor.displayName ?? row.actor.username ?? row.actorRole)
+        : (ROLE_NAME[row.actorRole] ?? row.actorRole),
       actorRole: row.actorRole,
       status: row.status,
       errorCode: row.errorCode,

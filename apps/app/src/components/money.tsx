@@ -27,10 +27,14 @@ export function Money({
 }) {
   // The display face replaces the mono figures (headline prices); both keep equal-width digits.
   const face = className?.includes("display") ? "tabular-nums" : "num";
-  if (currency === "USD") return <span className={cn(face, className)}>{formatAmount(amount, "USD")}</span>;
+  if (currency === "USD")
+    return <span className={cn(face, className)}>{formatAmount(amount, "USD")}</span>;
   return (
     <span className={cn(face, "inline-flex items-center gap-[0.3em] whitespace-nowrap", className)}>
-      <CurrencyIcon currency={currency} className={cn("size-[1.1em]", onBrand && "rounded-full bg-black/85 p-[0.12em]")} />
+      <CurrencyIcon
+        currency={currency}
+        className={cn("size-[1.1em]", onBrand && "rounded-full bg-black/85 p-[0.12em]")}
+      />
       {formatAmount(amount, currency, { short })}
       <span className="sr-only"> {currency}</span>
     </span>
@@ -49,13 +53,21 @@ export function MoneyTotals({
   stacked?: boolean;
 }) {
   return (
-    <span className={cn(stacked ? "grid justify-items-end" : "inline-flex flex-wrap items-center gap-x-1", className)}>
+    <span
+      className={cn(
+        stacked ? "grid justify-items-end" : "inline-flex flex-wrap items-center gap-x-1",
+        className,
+      )}
+    >
       {totals.map((total, index) => (
         <Fragment key={total.currency}>
           {index > 0 && !stacked && <span aria-hidden>+</span>}
           <span className="inline-flex items-center gap-1">
             {index > 0 && stacked && <span aria-hidden>+</span>}
-            <Money amount={total.currency === "USD" ? cardChargeUsd(total.amount) : total.amount} currency={total.currency} />
+            <Money
+              amount={total.currency === "USD" ? cardChargeUsd(total.amount) : total.amount}
+              currency={total.currency}
+            />
           </span>
         </Fragment>
       ))}

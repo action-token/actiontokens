@@ -6,7 +6,13 @@ import { CurrencyIcon } from "@bandcoin/ui/patterns/currency-icon";
 
 import { ArtistAvatar } from "~/components/artist/ArtistAvatar";
 import { Skeleton } from "~/components/ui/Skeleton";
-import { type BountyCard as BountyCardData, formatAmount, perWinner, TONE_CLASS, viewerBadge } from "~/lib/ar/bounty";
+import {
+  type BountyCard as BountyCardData,
+  formatAmount,
+  perWinner,
+  TONE_CLASS,
+  viewerBadge,
+} from "~/lib/ar/bounty";
 
 /**
  * ── BountyCard ─────────────────────────────────────────────────────────────
@@ -17,11 +23,16 @@ import { type BountyCard as BountyCardData, formatAmount, perWinner, TONE_CLASS,
  */
 export function BountyCard({ bounty }: { bounty: BountyCardData }) {
   const badge = viewerBadge(bounty);
-  const art = bounty.musicArt.map((track) => track.albumArtUrl).filter((url): url is string => Boolean(url));
+  const art = bounty.musicArt
+    .map((track) => track.albumArtUrl)
+    .filter((url): url is string => Boolean(url));
   const cover = art[0] ?? bounty.artist.avatarUrl;
 
   return (
-    <Link href={`/bounty/${bounty.id}`} className="ar-bevel group rounded-ar-lg relative block overflow-hidden">
+    <Link
+      href={`/bounty/${bounty.id}`}
+      className="ar-bevel group rounded-ar-lg relative block overflow-hidden"
+    >
       <div className="relative h-[112px] overflow-hidden">
         {cover ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -53,13 +64,18 @@ export function BountyCard({ bounty }: { bounty: BountyCardData }) {
 
       <div className="relative -mt-7 px-3.5 pb-3.5">
         <div className="flex items-end gap-2">
-          <ArtistAvatar src={bounty.artist.avatarUrl} className="ring-ar-surface h-9 w-9 rounded-[11px] ring-2" />
+          <ArtistAvatar
+            src={bounty.artist.avatarUrl}
+            className="ring-ar-surface h-9 w-9 rounded-[11px] ring-2"
+          />
           <span className="font-hud text-ar-dim mb-0.5 truncate text-[10.5px] font-semibold tracking-[0.12em] uppercase">
             {bounty.artist.name}
           </span>
         </div>
 
-        <p className="text-ar-text mt-2 line-clamp-2 text-[15px] leading-snug font-semibold">{bounty.title}</p>
+        <p className="text-ar-text mt-2 line-clamp-2 text-[15px] leading-snug font-semibold">
+          {bounty.title}
+        </p>
 
         <div className="mt-2.5 flex items-end justify-between gap-3">
           <div>

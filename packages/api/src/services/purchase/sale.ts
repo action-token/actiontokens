@@ -43,7 +43,9 @@ export async function loadSale(db: Db, listingId: string) {
     throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "This listing doesn't exist." });
   }
   if (listing.status !== "ACTIVE") {
-    throw new AppError(ErrorCodes.ITEM_NOT_AVAILABLE, { message: "This item isn't for sale right now." });
+    throw new AppError(ErrorCodes.ITEM_NOT_AVAILABLE, {
+      message: "This item isn't for sale right now.",
+    });
   }
   const { item } = listing;
   if (item.chainType !== "CLASSIC_TOKEN" || !item.classicToken) {
@@ -53,7 +55,9 @@ export async function loadSale(db: Db, listingId: string) {
     });
   }
   if (!listing.seller.walletAddress) {
-    throw new AppError(ErrorCodes.ITEM_NOT_AVAILABLE, { message: "The seller has no wallet to be paid in." });
+    throw new AppError(ErrorCodes.ITEM_NOT_AVAILABLE, {
+      message: "The seller has no wallet to be paid in.",
+    });
   }
 
   const token = item.classicToken;
@@ -81,12 +85,16 @@ export function minterOf(
   token: { issuer: string; issuerAccount: { publicKey: string } | null },
   artistIssuer: { publicKey: string; activatedAt: Date | null } | null,
 ) {
-  if (artistIssuer?.publicKey === token.issuer) return artistIssuer.activatedAt ? token.issuer : null;
+  if (artistIssuer?.publicKey === token.issuer)
+    return artistIssuer.activatedAt ? token.issuer : null;
   return token.issuerAccount?.publicKey === token.issuer ? token.issuer : null;
 }
 
 /** Copies still for sale on this listing (null = no limit). */
-export function remainingCopies(listing: { quantity: number | null; quantitySold: number }, supply: number | null) {
+export function remainingCopies(
+  listing: { quantity: number | null; quantitySold: number },
+  supply: number | null,
+) {
   const cap = listing.quantity ?? supply;
   return cap === null ? null : Math.max(0, cap - listing.quantitySold);
 }
@@ -110,10 +118,16 @@ export function planDelivery(input: {
   const toMint = wanted - fromStock;
 
   if (toMint > 0n && (input.kind === "RESALE" || !input.minter)) {
-    throw new AppError(ErrorCodes.ITEM_NOT_AVAILABLE, { message: "Not enough copies are left to deliver." });
+    throw new AppError(ErrorCodes.ITEM_NOT_AVAILABLE, {
+      message: "Not enough copies are left to deliver.",
+    });
   }
   return {
-    ...(fromStock > 0n && input.stockAccount ? { fromStock: { account: input.stockAccount, amount: toAmount(fromStock) } } : {}),
-    ...(toMint > 0n && input.minter ? { mint: { issuer: input.minter, amount: toAmount(toMint) } } : {}),
+    ...(fromStock > 0n && input.stockAccount
+      ? { fromStock: { account: input.stockAccount, amount: toAmount(fromStock) } }
+      : {}),
+    ...(toMint > 0n && input.minter
+      ? { mint: { issuer: input.minter, amount: toAmount(toMint) } }
+      : {}),
   };
 }

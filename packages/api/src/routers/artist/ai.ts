@@ -1,7 +1,13 @@
 import { z } from "zod";
 
 import { FILL_FORMS } from "../../services/ai/forms";
-import { fillForm, generateImage, suggestPinTags, WRITE_MODES, writeField } from "../../services/ai/generate";
+import {
+  fillForm,
+  generateImage,
+  suggestPinTags,
+  WRITE_MODES,
+  writeField,
+} from "../../services/ai/generate";
 import { openaiModel } from "../../services/ai/model";
 import { aiRemaining } from "../../services/ai/quota";
 import { artistProcedure, createRouter } from "../../trpc";
@@ -12,7 +18,9 @@ const context = z.record(z.string(), z.string().max(4000)).default({});
 /** AI help on the create pages (see services/ai): fill a form, write a field, make a cover. */
 export const aiRouter = createRouter({
   /** Today's remaining generations. */
-  usage: artistProcedure.query(({ ctx }) => aiRemaining(ctx, { artistId: ctx.artist.id, unlimited: ctx.session.user.role === "ADMIN" })),
+  usage: artistProcedure.query(({ ctx }) =>
+    aiRemaining(ctx, { artistId: ctx.artist.id, unlimited: ctx.session.user.role === "ADMIN" }),
+  ),
 
   fillForm: artistProcedure
     .input(
@@ -24,7 +32,14 @@ export const aiRouter = createRouter({
         context,
       }),
     )
-    .mutation(({ ctx, input }) => fillForm(ctx, openaiModel, { artist: ctx.artist, unlimited: ctx.session.user.role === "ADMIN" }, input)),
+    .mutation(({ ctx, input }) =>
+      fillForm(
+        ctx,
+        openaiModel,
+        { artist: ctx.artist, unlimited: ctx.session.user.role === "ADMIN" },
+        input,
+      ),
+    ),
 
   writeField: artistProcedure
     .input(
@@ -37,7 +52,14 @@ export const aiRouter = createRouter({
         context,
       }),
     )
-    .mutation(({ ctx, input }) => writeField(ctx, openaiModel, { artist: ctx.artist, unlimited: ctx.session.user.role === "ADMIN" }, input)),
+    .mutation(({ ctx, input }) =>
+      writeField(
+        ctx,
+        openaiModel,
+        { artist: ctx.artist, unlimited: ctx.session.user.role === "ADMIN" },
+        input,
+      ),
+    ),
 
   generateImage: artistProcedure
     .input(
@@ -47,7 +69,14 @@ export const aiRouter = createRouter({
         aspect: z.enum(["square", "wide", "portrait"]).default("wide"),
       }),
     )
-    .mutation(({ ctx, input }) => generateImage(ctx, openaiModel, { artist: ctx.artist, unlimited: ctx.session.user.role === "ADMIN" }, input)),
+    .mutation(({ ctx, input }) =>
+      generateImage(
+        ctx,
+        openaiModel,
+        { artist: ctx.artist, unlimited: ctx.session.user.role === "ADMIN" },
+        input,
+      ),
+    ),
 
   suggestPinTags: artistProcedure
     .input(
@@ -58,5 +87,12 @@ export const aiRouter = createRouter({
         place: z.string().max(240).default(""),
       }),
     )
-    .mutation(({ ctx, input }) => suggestPinTags(ctx, openaiModel, { artist: ctx.artist, unlimited: ctx.session.user.role === "ADMIN" }, input)),
+    .mutation(({ ctx, input }) =>
+      suggestPinTags(
+        ctx,
+        openaiModel,
+        { artist: ctx.artist, unlimited: ctx.session.user.role === "ADMIN" },
+        input,
+      ),
+    ),
 });

@@ -21,7 +21,13 @@ import type { Context } from "../../context";
 /** Slack on the geofence: honest GPS on the boundary still passes. */
 export const GEOFENCE_SLACK_M = 40;
 
-const claimSelect = { userId: true, redeemCode: true, isRedeemed: true, claimedAt: true, createdAt: true } as const;
+const claimSelect = {
+  userId: true,
+  redeemCode: true,
+  isRedeemed: true,
+  claimedAt: true,
+  createdAt: true,
+} as const;
 
 /** The query shape every pin read uses; claims are only ever the viewer's own. */
 export const pinInclude = (viewerId: string | null) =>
@@ -69,20 +75,33 @@ export type Viewer = {
  * Loads what `lockReasonFor` needs. The Horizon read only happens when a
  * member or tier pin is actually among `pins`.
  */
-export async function loadViewer(ctx: Pick<Context, "db" | "chain" | "session">, pins: Pick<PinRow, "visibility">[]): Promise<Viewer> {
+export async function loadViewer(
+  ctx: Pick<Context, "db" | "chain" | "session">,
+  pins: Pick<PinRow, "visibility">[],
+): Promise<Viewer> {
   const user = ctx.session?.user;
   if (!user) return null;
-  const needsBalance = pins.some((pin) => pin.visibility === "MEMBERS" || pin.visibility === "TIER");
+  const needsBalance = pins.some(
+    (pin) => pin.visibility === "MEMBERS" || pin.visibility === "TIER",
+  );
   const [follows, account] = await Promise.all([
     ctx.db.follow.findMany({ where: { userId: user.id }, select: { artistId: true } }),
-    needsBalance ? ctx.chain.loadAccount(user.walletAddress).catch(() => null) : Promise.resolve(null),
+    needsBalance
+      ? ctx.chain.loadAccount(user.walletAddress).catch(() => null)
+      : Promise.resolve(null),
   ]);
   return { id: user.id, followedArtistIds: new Set(follows.map((row) => row.artistId)), account };
 }
 
-const tokenBalance = (account: Horizon.AccountResponse | null, token: { code: string; issuer: string }) => {
+const tokenBalance = (
+  account: Horizon.AccountResponse | null,
+  token: { code: string; issuer: string },
+) => {
   const line = account?.balances.find(
-    (balance) => "asset_code" in balance && balance.asset_code === token.code && balance.asset_issuer === token.issuer,
+    (balance) =>
+      "asset_code" in balance &&
+      balance.asset_code === token.code &&
+      balance.asset_issuer === token.issuer,
   );
   return line ? Number(line.balance) : 0;
 };
@@ -91,7 +110,10 @@ const tokenBalance = (account: Horizon.AccountResponse | null, token: { code: st
  * Why the viewer can't collect this pin, phrased as what unlocks it, or null.
  * Every pin is shown to everyone; this only decides whether it can be taken.
  */
-export function lockReasonFor(pin: Pick<PinRow, "visibility" | "artistId" | "tier" | "artist">, viewer: Viewer): string | null {
+export function lockReasonFor(
+  pin: Pick<PinRow, "visibility" | "artistId" | "tier" | "artist">,
+  viewer: Viewer,
+): string | null {
   const artist = pin.artist.name;
   switch (pin.visibility) {
     case "PUBLIC":
@@ -103,7 +125,12 @@ export function lockReasonFor(pin: Pick<PinRow, "visibility" | "artistId" | "tie
     case "TIER": {
       const token = pin.artist.fanTokenItem?.classicToken;
       const ladder = pin.artist.tiers.map((tier) => Number(tier.requiredTokens));
-      const needed = pin.visibility === "TIER" ? (pin.tier ? Number(pin.tier.requiredTokens) : null) : Math.min(...ladder);
+      const needed =
+        pin.visibility === "TIER"
+          ? pin.tier
+            ? Number(pin.tier.requiredTokens)
+            : null
+          : Math.min(...ladder);
       // Set up wrong by the artist: nobody can clear it, so don't suggest the viewer could.
       if (!token || needed == null || !Number.isFinite(needed)) return "Not available";
       const amount = `${needed.toLocaleString()} ${token.code}`;
@@ -131,7 +158,12 @@ function pinFacts(pin: PinRow) {
 }
 
 /** One spot as the app uses it. */
-export function toArPin(pin: PinRow, spot: SpotFacts, claim: ClaimFacts | undefined, lockReason: string | null): ArPin {
+export function toArPin(
+  pin: PinRow,
+  spot: SpotFacts,
+  claim: ClaimFacts | undefined,
+  lockReason: string | null,
+): ArPin {
   const facts = pinFacts(pin);
   return {
     id: spot.id,
@@ -173,7 +205,15 @@ export function spotsOf(pin: PinRow, viewer: Viewer): ArPin[] {
 }
 
 /** A lat/lng box around a circle, so the database can pre-filter on its index. */
-export function boundingBox({ lat, lng, radiusKm }: { lat: number; lng: number; radiusKm: number }) {
+export function boundingBox({
+  lat,
+  lng,
+  radiusKm,
+}: {
+  lat: number;
+  lng: number;
+  radiusKm: number;
+}) {
   const dLat = radiusKm / 111.32;
   const dLng = radiusKm / (111.32 * Math.max(Math.cos((lat * Math.PI) / 180), 0.01));
   return {
@@ -186,10 +226,24 @@ export function boundingBox({ lat, lng, radiusKm }: { lat: number; lng: number; 
  * Everything both ways of collecting check, apart from where the fan is:
  * the spot exists, the pin is live, and the fan clears its gate right now.
  */
-export async function assertCollectable(ctx: Pick<Context, "db" | "chain" | "session">, userId: string, spotId: string) {
-  const spot = await ctx.db.pinSpot.findUnique({ where: { id: spotId }, include: { pin: { include: pinInclude(userId) } } });
+export async function assertCollectable(
+  ctx: Pick<Context, "db" | "chain" | "session">,
+  userId: string,
+  spotId: string,
+) {
+  const spot = await ctx.db.pinSpot.findUnique({
+    where: { id: spotId },
+    include: { pin: { include: pinInclude(userId) } },
+  });
   const pin = spot?.pin;
-  if (!spot || !pin || spot.isHidden || pin.isHidden || pin.approval !== "APPROVED" || (pin.restrictedToUserId && pin.restrictedToUserId !== userId)) {
+  if (
+    !spot ||
+    !pin ||
+    spot.isHidden ||
+    pin.isHidden ||
+    pin.approval !== "APPROVED" ||
+    (pin.restrictedToUserId && pin.restrictedToUserId !== userId)
+  ) {
     throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "This pin doesn't exist." });
   }
   const now = new Date();
@@ -213,12 +267,20 @@ const isRedeemCodeClash = (error: unknown) =>
  * Records the collect: refuses a second one, takes one claim off a capped pin
  * and writes the claim with a fresh redeem code, all in one transaction.
  */
-export async function writeCollect(db: Db, userId: string, spot: { id: string }, pin: Pick<PinRow, "id" | "isMultiSpot" | "claimLimit">) {
+export async function writeCollect(
+  db: Db,
+  userId: string,
+  spot: { id: string },
+  pin: Pick<PinRow, "id" | "isMultiSpot" | "claimLimit">,
+) {
   const prior = await db.pinClaim.findFirst({
     where: pin.isMultiSpot ? { userId, spotId: spot.id } : { userId, spot: { pinId: pin.id } },
     select: { id: true },
   });
-  if (prior) throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "You've already collected this one." });
+  if (prior)
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+      message: "You've already collected this one.",
+    });
 
   // The redeem code is unique; on the rare clash, try again with a new one.
   for (let attempt = 0; attempt < 5; attempt++) {
@@ -227,15 +289,33 @@ export async function writeCollect(db: Db, userId: string, spot: { id: string },
         let remaining: number | null = null;
         if (pin.claimLimit > 0) {
           // Guarded in the WHERE, so two fans can't both take the last one.
-          const taken = await tx.pin.updateMany({ where: { id: pin.id, claimsLeft: { gt: 0 } }, data: { claimsLeft: { decrement: 1 } } });
-          if (taken.count === 0) throw new AppError(ErrorCodes.ITEM_NOT_AVAILABLE, { message: "Every one of these has been collected." });
-          remaining = (await tx.pin.findUniqueOrThrow({ where: { id: pin.id }, select: { claimsLeft: true } })).claimsLeft;
+          const taken = await tx.pin.updateMany({
+            where: { id: pin.id, claimsLeft: { gt: 0 } },
+            data: { claimsLeft: { decrement: 1 } },
+          });
+          if (taken.count === 0)
+            throw new AppError(ErrorCodes.ITEM_NOT_AVAILABLE, {
+              message: "Every one of these has been collected.",
+            });
+          remaining = (
+            await tx.pin.findUniqueOrThrow({ where: { id: pin.id }, select: { claimsLeft: true } })
+          ).claimsLeft;
         }
         const claim = await tx.pinClaim.create({
-          data: { userId, spotId: spot.id, claimedAt: new Date(), redeemCode: generateRedeemCode() },
+          data: {
+            userId,
+            spotId: spot.id,
+            claimedAt: new Date(),
+            redeemCode: generateRedeemCode(),
+          },
           select: { id: true, redeemCode: true, claimedAt: true },
         });
-        return { id: claim.id, redeemCode: claim.redeemCode, collectedAt: (claim.claimedAt ?? new Date()).toISOString(), remaining };
+        return {
+          id: claim.id,
+          redeemCode: claim.redeemCode,
+          collectedAt: (claim.claimedAt ?? new Date()).toISOString(),
+          remaining,
+        };
       });
     } catch (error) {
       if (isRedeemCodeClash(error)) continue;
@@ -246,7 +326,12 @@ export async function writeCollect(db: Db, userId: string, spot: { id: string },
 }
 
 /** How well a pin matches a search: a title hit beats one in the description. */
-export function searchScore(pin: { title: string; description: string | null; artistName: string }, tags: string[], terms: string[], phrase: string) {
+export function searchScore(
+  pin: { title: string; description: string | null; artistName: string },
+  tags: string[],
+  terms: string[],
+  phrase: string,
+) {
   const title = pin.title.toLowerCase();
   const artist = pin.artistName.toLowerCase();
   const description = (pin.description ?? "").toLowerCase();

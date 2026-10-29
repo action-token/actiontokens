@@ -36,7 +36,7 @@
   --ar-accent-deep: 60 80% 16%;
   --ar-accent-ink: 60 40% 97%;
 
-/* ── Rarity ladder — same hues as the dark palette, relit for a white
+  /* ── Rarity ladder — same hues as the dark palette, relit for a white
      ground ─────────────────────────────────────────────────────────────── */
   --rarity-common: 200 14% 38%;
   --rarity-rare: 199 85% 32%;

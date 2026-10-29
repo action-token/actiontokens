@@ -49,10 +49,18 @@ export const albedoProvider: WalletProvider = {
 
   async sign(xdr, publicKey) {
     try {
-      const result = await albedo.tx({ xdr, pubkey: publicKey, network: stellarNetwork.albedoNetwork, submit: false });
+      const result = await albedo.tx({
+        xdr,
+        pubkey: publicKey,
+        network: stellarNetwork.albedoNetwork,
+        submit: false,
+      });
       return result.signed_envelope_xdr;
     } catch (cause) {
-      throw new AppError(ErrorCodes.WALLET_SIGNING_REJECTED, { message: "Transaction declined in Albedo.", cause });
+      throw new AppError(ErrorCodes.WALLET_SIGNING_REJECTED, {
+        message: "Transaction declined in Albedo.",
+        cause,
+      });
     }
   },
 

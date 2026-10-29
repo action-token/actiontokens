@@ -30,9 +30,15 @@ describe("listActivity", () => {
   it("returns newest first with who did it, and a cursor when there is more", async () => {
     const { ctx, findMany } = setup([row(30), row(29), row(28)]);
     const page = await listActivity(ctx, { limit: 2 });
-    expect(findMany).toHaveBeenCalledWith(expect.objectContaining({ orderBy: { id: "desc" }, take: 3 }));
+    expect(findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ orderBy: { id: "desc" }, take: 3 }),
+    );
     expect(page.items.map((item) => item.id)).toEqual(["30", "29"]);
-    expect(page.items[0]).toMatchObject({ actor: "root", action: "admin.artists.approve", target: "Artist a1" });
+    expect(page.items[0]).toMatchObject({
+      actor: "root",
+      action: "admin.artists.approve",
+      target: "Artist a1",
+    });
     expect(page.nextCursor).toBe("29");
   });
 
@@ -44,9 +50,15 @@ describe("listActivity", () => {
   });
 
   it("can show only failures, and names a signed-out actor", async () => {
-    const { ctx, findMany } = setup([row(7, { actor: null, actorRole: "GUEST", status: "FAILED", errorCode: "AUTH_REQUIRED" })]);
+    const { ctx, findMany } = setup([
+      row(7, { actor: null, actorRole: "GUEST", status: "FAILED", errorCode: "AUTH_REQUIRED" }),
+    ]);
     const page = await listActivity(ctx, { limit: 10, failedOnly: true });
     expect(findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { status: "FAILED" } }));
-    expect(page.items[0]).toMatchObject({ actor: "Guest", status: "FAILED", errorCode: "AUTH_REQUIRED" });
+    expect(page.items[0]).toMatchObject({
+      actor: "Guest",
+      status: "FAILED",
+      errorCode: "AUTH_REQUIRED",
+    });
   });
 });

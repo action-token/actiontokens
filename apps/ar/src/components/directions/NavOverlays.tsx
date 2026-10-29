@@ -118,13 +118,7 @@ export const UserArrow = forwardRef<HTMLDivElement, { hud?: boolean }>(function 
         </svg>
       ) : (
         <svg width="46" height="46" viewBox="0 0 46 46" aria-hidden>
-          <circle
-            cx="23"
-            cy="23"
-            r="21"
-            fill={site.colors.mapLoadingRoute}
-            opacity="0.16"
-          />
+          <circle cx="23" cy="23" r="21" fill={site.colors.mapLoadingRoute} opacity="0.16" />
           <path
             d="M23 7 L35 36 L23 29 L11 36 Z"
             fill={site.colors.mapLoadingRoute}
