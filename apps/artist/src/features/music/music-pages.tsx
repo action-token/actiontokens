@@ -17,6 +17,7 @@ import { api } from "~/trpc/react";
 
 import { AlbumForm } from "./album-form";
 import { SongForm } from "./song-form";
+import { StemsPanel } from "./stems-panel";
 
 export function NewSongView({ albumId }: { albumId?: string }) {
   return (
@@ -65,6 +66,7 @@ export function EditSongView({ itemId }: { itemId: string }) {
       ) : (
         <>
           <SongForm existing={song.data} />
+          <StemsPanel itemId={itemId} />
           <ConfirmDialog
             open={deleting}
             onOpenChange={setDeleting}
