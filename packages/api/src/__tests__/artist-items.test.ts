@@ -277,7 +277,7 @@ describe("listMyItems", () => {
     await expect(listMyItems(ctx, artist)).resolves.toEqual([
       expect.objectContaining({ id: "i1", title: "Night Drive", code: "NIGHTDRV", chain: "CLASSIC_TOKEN", registered: null, sold: 4, supply: 100, priceBandcoin: "25", priceUsd: "0.5", listingStatus: "ACTIVE" }),
     ]);
-    expect(db.item.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { artistId: "a1", deletedAt: null }, orderBy: { createdAt: "desc" } }));
+    expect(db.item.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { artistId: "a1", deletedAt: null, type: { notIn: ["TRACK", "FAN_TOKEN"] } }, orderBy: { createdAt: "desc" } }));
   });
 });
 

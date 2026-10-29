@@ -23,7 +23,7 @@ type ArtistRef = { id: string; slug: string; issuerAccountId: string | null };
 export type CollectibleType = Exclude<ItemType, "TRACK" | "FAN_TOKEN">;
 
 /** These types are the file itself, so they can't exist without it. */
-export const NEEDS_FILE: ItemType[] = ["IMAGE", "VIDEO", "MODEL_3D", "DOCUMENT"];
+export const NEEDS_FILE: ItemType[] = ["IMAGE", "VIDEO", "MODEL_3D", "DOCUMENT", "TRACK"];
 const MAX_SUPPLY = 100_000;
 
 export const invalid = (message: string) => new AppError(ErrorCodes.VALIDATION_FAILED, { message });
@@ -52,11 +52,14 @@ function checkRoyalty(percent: string | undefined) {
 }
 
 export type CreateItemInput = {
-  type: CollectibleType;
+  /** Collectibles, plus songs and fan tokens, which reach this through services/artist/music and fan-token */
+  type: CollectibleType | "TRACK" | "FAN_TOKEN";
   title: string;
   description?: string;
   coverUrl: string;
-  media?: { url: string; mediaType: MediaType };
+  media?: { url: string; mediaType: MediaType; durationSec?: number; previewStartSec?: number };
+  /** Songs only */
+  track?: { artistName: string; albumId?: string | null; trackNumber?: number | null };
   /** The Stellar asset code, e.g. NIGHTDRV */
   code: string;
   /** Total copies; null = unlimited */
@@ -100,7 +103,29 @@ export async function createItem(ctx: ServiceCtx, artist: ArtistRef, user: { id:
       artistId: artist.id,
       createdById: user.id,
       classicToken: { create: { code, issuer: issuer.publicKey, issuerAccountId: issuer.id } },
-      ...(input.media ? { media: { create: { mediaType: input.media.mediaType, sourceUrl: input.media.url } } } : {}),
+      ...(input.media
+        ? {
+            media: {
+              create: {
+                mediaType: input.media.mediaType,
+                sourceUrl: input.media.url,
+                ...(input.media.durationSec !== undefined ? { durationSec: input.media.durationSec } : {}),
+                ...(input.media.previewStartSec !== undefined ? { previewStartSec: input.media.previewStartSec } : {}),
+              },
+            },
+          }
+        : {}),
+      ...(input.track
+        ? {
+            track: {
+              create: {
+                artistName: input.track.artistName,
+                ...(input.track.albumId ? { albumId: input.track.albumId } : {}),
+                ...(input.track.trackNumber ? { trackNumber: input.track.trackNumber } : {}),
+              },
+            },
+          }
+        : {}),
       listings: {
         create: {
           sellerId: user.id,
@@ -126,7 +151,7 @@ export async function freeSlug(db: ServiceCtx["db"], base: string) {
 
 export async function listMyItems(ctx: Pick<ServiceCtx, "db">, artist: Pick<ArtistRef, "id">) {
   const rows = await ctx.db.item.findMany({
-    where: { artistId: artist.id, deletedAt: null },
+    where: { artistId: artist.id, deletedAt: null, type: { notIn: ["TRACK", "FAN_TOKEN"] } },
     orderBy: { createdAt: "desc" },
     take: 200,
     select: {
