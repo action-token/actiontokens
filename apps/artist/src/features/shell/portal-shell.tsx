@@ -99,7 +99,7 @@ function MobileTabs({ groups, pathname, signedIn }: { groups: NavGroup[]; pathna
         {tabs.map((entry) => (
           <Link key={entry.href} href={entry.href} aria-current={isActive(entry, pathname) ? "page" : undefined} className={tabClass}>
             <entry.icon className="size-5" />
-            {entry.label}
+            {entry.shortLabel ?? entry.label}
           </Link>
         ))}
         {more && (

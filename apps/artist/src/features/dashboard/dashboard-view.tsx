@@ -1,6 +1,7 @@
 "use client";
 
 import { Ban, Hourglass, Mic2 } from "lucide-react";
+import { redirect } from "next/navigation";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
@@ -9,13 +10,12 @@ import { ErrorState } from "@bandcoin/ui/patterns/error-state";
 import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
 import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
-import { SetupChecklist } from "./setup-checklist";
 import { ApplyForm } from "~/features/onboarding/apply-form";
 import { OpenIssuer } from "~/features/onboarding/open-issuer";
 import { OnboardingProgress } from "~/features/onboarding/progress";
 import { usePortal } from "~/features/portal/use-portal";
 
-/** The portal's home. What it shows depends on how far this person is (see portal.status). */
+/** The portal's home, for everyone who isn't an approved artist yet (see portal.status). Approved artists land on the pins map. */
 export function DashboardView() {
   const portal = usePortal();
   const openDialog = useConnectWalletDialogStore((state) => state.setIsOpen);
@@ -89,12 +89,8 @@ export function DashboardView() {
         </PageBody>
       );
     case "READY":
-      return (
-        <PageBody className="grid gap-6">
-          <PageHeader eyebrow="Artist portal" title={`Welcome, ${portal.artist?.name}`} description="Release music, sell collectibles and set up memberships for your fans." />
-          <SetupChecklist />
-        </PageBody>
-      );
+      // Approved artists have no home page of their own: they start on the map, like Wadzzo's brand portal.
+      return redirect("/pins");
   }
 }
 

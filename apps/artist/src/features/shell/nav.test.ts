@@ -23,7 +23,7 @@ describe("portal navigation", () => {
   });
 
   it("opens the artist tools once approved", () => {
-    expect(labels({ signedIn: true, step: "READY", isAdmin: false })).toEqual(["Dashboard", "Music", "Items", "Memberships", "Events", "Announcements", "Pins", "Bounties", "Website map"]);
+    expect(labels({ signedIn: true, step: "READY", isAdmin: false })).toEqual(["Map", "Pin management", "Events", "Website map", "Announcements", "Bounties", "Music", "Items", "Memberships"]);
   });
 
   it("shows nothing to a banned artist", () => {
@@ -32,25 +32,31 @@ describe("portal navigation", () => {
 
   it("adds the admin group for admins, even before they are artists", () => {
     expect(navFor({ signedIn: true, step: null, isAdmin: true }).map((group) => group.title)).toEqual(["Artist", "Admin"]);
-    expect(labels({ signedIn: true, step: "READY", isAdmin: true })).toEqual(["Dashboard", "Music", "Items", "Memberships", "Events", "Announcements", "Pins", "Bounties", "Website map", "Artists", "Activity"]);
+    expect(labels({ signedIn: true, step: "READY", isAdmin: true })).toEqual(["Map", "Pin management", "Events", "Website map", "Announcements", "Bounties", "Music", "Items", "Memberships", "Artists", "Mural review", "Activity"]);
+  });
+
+  it("lists the drops first, as Wadzzo's brand portal does", () => {
+    expect(navFor({ signedIn: true, step: "READY", isAdmin: false }).map((group) => group.title)).toEqual(["Drops", "Content", "Sell"]);
   });
 
   it("keeps Items lit on its nested pages", () => {
-    const items = navFor({ signedIn: true, step: "READY", isAdmin: false })[0]!.items.find((entry) => entry.label === "Items");
+    const items = navFor({ signedIn: true, step: "READY", isAdmin: false })[2]!.items.find((entry) => entry.label === "Items");
     expect(isActive(items!, "/items")).toBe(true);
     expect(isActive(items!, "/items/new")).toBe(true);
     expect(isActive(items!, "/")).toBe(false);
   });
 
-  it("highlights the dashboard only on the home page", () => {
-    const dashboard = navFor({ signedIn: true, step: "READY", isAdmin: false })[0]!.items[0]!;
-    expect(isActive(dashboard, "/")).toBe(true);
-    expect(isActive(dashboard, "/admin")).toBe(false);
+  it("lights the map on /pins but not on the pin list", () => {
+    const [map, manage] = navFor({ signedIn: true, step: "READY", isAdmin: false })[0]!.items;
+    expect(isActive(map!, "/pins")).toBe(true);
+    expect(isActive(map!, "/pins/new")).toBe(true);
+    expect(isActive(map!, "/pins/manage")).toBe(false);
+    expect(isActive(manage!, "/pins/manage")).toBe(true);
   });
 
   it("keeps Artists lit on a nested admin page but not Activity", () => {
-    const [, , admin] = navFor({ signedIn: true, step: "READY", isAdmin: true });
-    const [artists, activity] = admin!.items;
+    const admin = navFor({ signedIn: true, step: "READY", isAdmin: true }).at(-1);
+    const [artists, , activity] = admin!.items;
     expect(isActive(artists!, "/admin/artists/abc")).toBe(true);
     expect(isActive(artists!, "/admin/activity")).toBe(false);
     expect(isActive(activity!, "/admin/activity")).toBe(true);
@@ -60,7 +66,7 @@ describe("portal navigation", () => {
     const apply = phoneTabs(navFor({ signedIn: true, step: "OPEN_ISSUER", isAdmin: false }), true);
     expect(apply).toEqual({ tabs: [expect.objectContaining({ label: "Get started" })], more: true });
     const ready = phoneTabs(navFor({ signedIn: true, step: "READY", isAdmin: true }), true);
-    expect(ready.tabs.map((entry) => entry.label)).toEqual(["Dashboard", "Music", "Items", "Memberships"]);
+    expect(ready.tabs.map((entry) => entry.shortLabel ?? entry.label)).toEqual(["Map", "Pins", "Events", "Bounties"]);
     expect(ready.more).toBe(true);
     expect(phoneTabs([], false)).toEqual({ tabs: [], more: false });
   });

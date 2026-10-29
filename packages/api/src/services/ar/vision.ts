@@ -42,7 +42,7 @@ const ART_LABELS = [
 const STREET_ART_MIN = 0.5;
 const ART_MIN = 0.75;
 
-const SCREEN_OBJECTS = [
+export const SCREEN_OBJECTS = [
   "laptop",
   "computer monitor",
   "television",

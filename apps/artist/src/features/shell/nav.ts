@@ -1,8 +1,19 @@
-import { BadgeCheck, CalendarDays, Code2, Crown, LayoutDashboard, ListChecks, Megaphone, MapPin, Music2, Package, Rocket, Trophy, Users, type LucideIcon } from "lucide-react";
+import { BadgeCheck, CalendarDays, Code2, Crown, Frame, ListChecks, Map, MapPin, Megaphone, Music2, Package, Rocket, Trophy, Users, type LucideIcon } from "lucide-react";
 
 import type { OnboardingStep } from "@bandcoin/api";
 
-export type NavItem = { href: string; icon: LucideIcon; label: string; exact?: boolean };
+export type NavItem = {
+  href: string;
+  icon: LucideIcon;
+  label: string;
+  /** What the phone tab bar says when the label is too long for it. */
+  shortLabel?: string;
+  exact?: boolean;
+  /** Sub-paths that belong to another item (e.g. /pins/manage under the map). */
+  exclude?: string[];
+  /** One of the four tabs on a phone's bottom bar. */
+  tab?: boolean;
+};
 export type NavGroup = { title: string; items: NavItem[] };
 
 export type PortalNavInput = {
@@ -16,28 +27,43 @@ const ADMIN: NavGroup = {
   title: "Admin",
   items: [
     { href: "/admin/artists", icon: Users, label: "Artists" },
+    { href: "/admin/murals", icon: Frame, label: "Mural review" },
     { href: "/admin/activity", icon: ListChecks, label: "Activity" },
   ],
 };
 
-/** Ways to reach fans; they open once the artist is approved. */
-const FAN_TOOLS: NavItem[] = [
-  { href: "/events", icon: CalendarDays, label: "Events" },
-  { href: "/announcements", icon: Megaphone, label: "Announcements" },
-  { href: "/pins", icon: MapPin, label: "Pins" },
-  { href: "/bounties", icon: Trophy, label: "Bounties" },
-  { href: "/embeds", icon: Code2, label: "Website map" },
+/** An approved artist's tools, drops first (as in Wadzzo's brand portal), then content, then what they sell. */
+const READY_TOOLS: NavGroup[] = [
+  {
+    title: "Drops",
+    items: [
+      { href: "/pins", icon: Map, label: "Map", exclude: ["/pins/manage"], tab: true },
+      { href: "/pins/manage", icon: MapPin, label: "Pin management", shortLabel: "Pins", tab: true },
+      { href: "/events", icon: CalendarDays, label: "Events", tab: true },
+      { href: "/embeds", icon: Code2, label: "Website map" },
+    ],
+  },
+  {
+    title: "Content",
+    items: [
+      { href: "/announcements", icon: Megaphone, label: "Announcements" },
+      { href: "/bounties", icon: Trophy, label: "Bounties", tab: true },
+    ],
+  },
+  {
+    title: "Sell",
+    items: [
+      { href: "/music", icon: Music2, label: "Music" },
+      { href: "/items", icon: Package, label: "Items" },
+      { href: "/memberships", icon: Crown, label: "Memberships" },
+    ],
+  },
 ];
 
 const ARTIST_TOOLS: Record<OnboardingStep, NavItem[]> = {
   OPEN_ISSUER: [{ href: "/", icon: Rocket, label: "Get started", exact: true }],
   WAITING_FOR_APPROVAL: [{ href: "/", icon: Rocket, label: "Get started", exact: true }],
-  READY: [
-    { href: "/", icon: LayoutDashboard, label: "Dashboard", exact: true },
-    { href: "/music", icon: Music2, label: "Music" },
-    { href: "/items", icon: Package, label: "Items" },
-    { href: "/memberships", icon: Crown, label: "Memberships" },
-  ],
+  READY: [],
   REJECTED: [{ href: "/", icon: Rocket, label: "Apply again", exact: true }],
   BANNED: [],
 };
@@ -50,20 +76,24 @@ const ARTIST_TOOLS: Record<OnboardingStep, NavItem[]> = {
 export function navFor({ signedIn, step, isAdmin }: PortalNavInput): NavGroup[] {
   if (!signedIn) return [];
   const items: NavItem[] = step === null ? [{ href: "/", icon: BadgeCheck, label: "Become an artist", exact: true }] : ARTIST_TOOLS[step];
-  const groups: NavGroup[] = [];
+  const groups: NavGroup[] = step === "READY" ? [...READY_TOOLS] : [];
   if (items.length > 0) groups.push({ title: "Artist", items });
-  if (step === "READY") groups.push({ title: "Fans", items: FAN_TOOLS });
   if (isAdmin) groups.push(ADMIN);
   return groups;
 }
 
+const under = (prefix: string, pathname: string) => pathname === prefix || pathname.startsWith(`${prefix}/`);
+
 export function isActive(entry: NavItem, pathname: string) {
-  return entry.exact ? pathname === entry.href : pathname === entry.href || pathname.startsWith(`${entry.href}/`);
+  if (entry.exact) return pathname === entry.href;
+  return under(entry.href, pathname) && !entry.exclude?.some((prefix) => under(prefix, pathname));
 }
 
 const PHONE_TABS = 4;
 
-/** A phone's tab bar shows the first few pages; "More" opens the rest and the account. */
+/** A phone's tab bar shows the items marked `tab` (else the first few); "More" opens the rest and the account. */
 export function phoneTabs(groups: NavGroup[], signedIn: boolean): { tabs: NavItem[]; more: boolean } {
-  return { tabs: groups.flatMap((group) => group.items).slice(0, PHONE_TABS), more: signedIn };
+  const all = groups.flatMap((group) => group.items);
+  const marked = all.filter((entry) => entry.tab);
+  return { tabs: (marked.length > 0 ? marked : all).slice(0, PHONE_TABS), more: signedIn };
 }
