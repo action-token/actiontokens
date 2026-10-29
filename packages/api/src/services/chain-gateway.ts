@@ -1,4 +1,4 @@
-import type { Horizon } from "@stellar/stellar-sdk";
+import { Keypair, type Horizon } from "@stellar/stellar-sdk";
 
 import {
   addSignatures,
@@ -14,7 +14,7 @@ import {
   submit,
 } from "@bandcoin/chain/server";
 import type { Db } from "@bandcoin/db";
-import { AppError, ErrorCodes, requireEnv } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@bandcoin/errors";
 import { fetchCustodialAccountSecret } from "@bandcoin/wallet/server";
 
 import { chargeCard, refundCard } from "../payments/square";
@@ -57,10 +57,16 @@ export function createChainGateway(db: Db): ChainGateway {
       return liveBandcoinUsd({ name: config.name, asset: config.assets.bandcoin, devPrice: process.env.BANDCOIN_USD_PRICE });
     },
     async signWithServerKeys(xdr, publicKeys) {
-      // The mother account's key lives in env, not in the database.
-      const { mother } = chainConfig();
-      const stored = publicKeys.filter((key) => key !== mother);
-      const secrets = publicKeys.length > stored.length ? [requireEnv("MOTHER_SECRET", process.env.MOTHER_SECRET)] : [];
+      // The mother and treasury keys live in env, not in the database. A secret only counts
+      // for the account it really belongs to, so a wrong value can't sign for a different one.
+      const { mother, treasury } = chainConfig();
+      const fromEnv = [
+        { publicKey: mother, secret: process.env.MOTHER_SECRET },
+        { publicKey: treasury, secret: process.env.TREASURY_SECRET },
+      ].filter((entry) => entry.secret && entry.publicKey && Keypair.fromSecret(entry.secret).publicKey() === entry.publicKey);
+      const held = (key: string) => fromEnv.some((entry) => entry.publicKey === key);
+      const stored = publicKeys.filter((key) => !held(key));
+      const secrets = fromEnv.filter((entry) => publicKeys.includes(entry.publicKey!)).map((entry) => entry.secret!);
       if (stored.length > 0) {
         const accounts = await db.chainAccount.findMany({
           where: { publicKey: { in: stored } },

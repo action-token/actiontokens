@@ -6,6 +6,7 @@ import type { Db } from "@bandcoin/db";
 import { createChainGateway } from "../services/chain-gateway";
 
 const mother = Keypair.random();
+const treasury = Keypair.random();
 const stranger = Keypair.random();
 
 beforeAll(() => {
@@ -13,8 +14,9 @@ beforeAll(() => {
     NEXT_PUBLIC_STELLAR_NETWORK: "testnet",
     NEXT_PUBLIC_ASSET_CODE: "BANDCOIN",
     NEXT_PUBLIC_ASSET_ISSUER: Keypair.random().publicKey(),
-    PLATFORM_TREASURY: Keypair.random().publicKey(),
+    PLATFORM_TREASURY: treasury.publicKey(),
     MOTHER_SECRET: mother.secret(),
+    TREASURY_SECRET: treasury.secret(),
   });
 });
 
@@ -34,6 +36,27 @@ describe("signWithServerKeys", () => {
     expect(signed.signatures).toHaveLength(1);
     expect(mother.verify(signed.hash(), signed.signatures[0]!.signature)).toBe(true);
     expect(findMany).not.toHaveBeenCalled();
+  });
+
+  it("signs for the treasury (the NFT contract's price authority) from env too", async () => {
+    const findMany = vi.fn().mockResolvedValue([]);
+    const gateway = createChainGateway({ chainAccount: { findMany } } as unknown as Db);
+    const signed = TransactionBuilder.fromXDR(await gateway.signWithServerKeys(unsigned(), [treasury.publicKey(), mother.publicKey()]), Networks.TESTNET) as Transaction;
+    expect(signed.signatures).toHaveLength(2);
+    const signedBy = (key: Keypair) => signed.signatures.some((entry) => key.verify(signed.hash(), entry.signature));
+    expect([signedBy(treasury), signedBy(mother)]).toEqual([true, true]);
+    expect(findMany).not.toHaveBeenCalled();
+  });
+
+  it("won't use a TREASURY_SECRET that belongs to a different account than PLATFORM_TREASURY", async () => {
+    const saved = process.env.TREASURY_SECRET;
+    process.env.TREASURY_SECRET = stranger.secret();
+    try {
+      const gateway = createChainGateway({ chainAccount: { findMany: vi.fn().mockResolvedValue([]) } } as unknown as Db);
+      await expect(gateway.signWithServerKeys(unsigned(), [treasury.publicKey()])).rejects.toMatchObject({ details: { missing: [treasury.publicKey()] } });
+    } finally {
+      process.env.TREASURY_SECRET = saved;
+    }
   });
 
   it("still refuses a key it doesn't hold", async () => {
