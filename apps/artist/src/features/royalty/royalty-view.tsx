@@ -30,7 +30,7 @@ export function RoyaltyView() {
   const item = items.data?.find((entry) => entry.id === (pickedId ?? items.data[0]?.id));
 
   return (
-    <PageBody wide className="grid gap-6">
+    <PageBody className="grid max-w-3xl gap-6">
       <PageHeader
         eyebrow="Earnings"
         title="Pay royalties"
@@ -39,7 +39,7 @@ export function RoyaltyView() {
       <SectionTabs tabs={EARNINGS_TABS} label="Earnings" />
 
       {items.isPending ? (
-        <Skeleton className="h-64 w-full max-w-3xl rounded-[1.4rem]" />
+        <Skeleton className="h-64 w-full rounded-[1.4rem]" />
       ) : items.isError ? (
         <ErrorState
           message="Couldn't load your royalty items."
@@ -52,7 +52,7 @@ export function RoyaltyView() {
           description="Make one in Items → New → Royalty share. Fans who buy it get a share of what it earns."
         />
       ) : (
-        <div className="grid max-w-3xl gap-6">
+        <div className="grid gap-6">
           {items.data.length > 1 && (
             <div role="radiogroup" aria-label="Which item?" className="flex flex-wrap gap-2">
               {items.data.map((entry) => (

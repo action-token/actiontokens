@@ -32,7 +32,7 @@ export function AnnouncementsView() {
   );
 
   return (
-    <PageBody className="grid gap-6">
+    <PageBody className="grid max-w-3xl gap-6">
       <PageHeader
         eyebrow="Content"
         title="Announcements"
@@ -41,7 +41,7 @@ export function AnnouncementsView() {
       />
       <SectionTabs tabs={POSTS_TABS} label="Posts" />
       {announcements.isPending ? (
-        <Skeleton className="h-40 w-full max-w-3xl rounded-xl" />
+        <Skeleton className="h-40 w-full rounded-xl" />
       ) : announcements.isError ? (
         <ErrorState
           message="Couldn't load your announcements."
@@ -55,7 +55,7 @@ export function AnnouncementsView() {
           action={add}
         />
       ) : (
-        <ul className="grid max-w-3xl gap-3">
+        <ul className="grid gap-3">
           {announcements.data.map((item) => (
             <AnnouncementCard key={item.id} announcement={item} />
           ))}

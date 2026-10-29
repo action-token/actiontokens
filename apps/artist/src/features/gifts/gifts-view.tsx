@@ -213,17 +213,13 @@ export function GiftsView() {
       <section className="grid gap-3">
         <h2 className="display text-lg">Sent gifts</h2>
         {sent.isPending ? (
-          <Skeleton className="h-24 w-full max-w-3xl rounded-xl" />
+          <Skeleton className="h-24 w-full rounded-xl" />
         ) : sent.isError ? (
           <ErrorState message="Couldn't load your gifts." onRetry={() => void sent.refetch()} />
         ) : sent.data.length === 0 ? (
           <EmptyState icon={Gift} title="No gifts yet" description="Gifts you send show up here." />
         ) : (
-          <ul
-            className={cn(
-              "bg-surface max-w-3xl divide-y overflow-hidden rounded-[1.4rem] border-2",
-            )}
-          >
+          <ul className={cn("bg-surface divide-y overflow-hidden rounded-[1.4rem] border-2")}>
             {sent.data.map((gift) => (
               <li key={gift.id} className="flex items-center gap-3 px-4 py-3">
                 <Avatar src={gift.recipient.image} name={gift.recipient.name} className="size-9" />

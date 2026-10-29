@@ -38,18 +38,18 @@ export function DomainView() {
   const overview = api.vanity.overview.useQuery();
 
   return (
-    <PageBody wide className="grid gap-6">
+    <PageBody className="grid max-w-3xl gap-6">
       <PageHeader
         back={{ href: "/page", label: "My page" }}
         title="Short link"
         description="An easy link to your page, like bandcoin.io/your-name."
       />
       {overview.isPending ? (
-        <Skeleton className="h-64 w-full max-w-3xl rounded-[1.4rem]" />
+        <Skeleton className="h-64 w-full rounded-[1.4rem]" />
       ) : overview.isError ? (
         <ErrorState message="Couldn't load your link." onRetry={() => void overview.refetch()} />
       ) : (
-        <div className="grid max-w-3xl gap-6">
+        <div className="grid gap-6">
           <LinkCard overview={overview.data} />
           <History payments={overview.data.payments} />
         </div>

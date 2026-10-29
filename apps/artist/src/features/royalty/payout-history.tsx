@@ -39,7 +39,7 @@ export function PayoutHistory({
 }) {
   const history = api.royalty.history.useQuery();
 
-  if (history.isPending) return <Skeleton className="h-24 w-full max-w-3xl rounded-xl" />;
+  if (history.isPending) return <Skeleton className="h-24 w-full rounded-xl" />;
   if (history.isError)
     return (
       <ErrorState message="Couldn't load your payouts." onRetry={() => void history.refetch()} />
@@ -54,7 +54,7 @@ export function PayoutHistory({
     );
 
   return (
-    <ul className="bg-surface max-w-3xl divide-y overflow-hidden rounded-[1.4rem] border-2">
+    <ul className="bg-surface divide-y overflow-hidden rounded-[1.4rem] border-2">
       {history.data.map((payout) => (
         <PayoutRow key={payout.id} payout={payout} onResume={onResume} busy={busy} />
       ))}
