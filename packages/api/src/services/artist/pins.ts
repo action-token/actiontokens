@@ -204,7 +204,7 @@ export async function listPins(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef, n
     status: statusOf(pin, now),
     spots: pin.spots.length,
     /** Where each spot is, for the map */
-    spotPoints: pin.spots.map((spot) => ({ id: spot.id, latitude: spot.latitude, longitude: spot.longitude, collected: spot._count.claims })),
+    spotPoints: pin.spots.map((spot) => ({ id: spot.id, latitude: spot.latitude, longitude: spot.longitude, autoCollect: spot.autoCollect, collected: spot._count.claims })),
     autoCollect: pin.spots.some((spot) => spot.autoCollect),
     collected: pin.spots.reduce((sum, spot) => sum + spot._count.claims, 0),
     reward: pin.rewardItem?.title ?? (pin.rewardsFanToken ? "Fan token" : null),

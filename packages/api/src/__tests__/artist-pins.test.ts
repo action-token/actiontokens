@@ -285,8 +285,8 @@ describe("the pin list", () => {
     db.pin.findMany.mockResolvedValue([row({})]);
     const [pin] = await listPins(ctx, artist, now);
     expect(pin?.spotPoints).toEqual([
-      { id: "s1", latitude: 1, longitude: 2, collected: 2 },
-      { id: "s2", latitude: 1.1, longitude: 2.1, collected: 1 },
+      { id: "s1", latitude: 1, longitude: 2, autoCollect: true, collected: 2 },
+      { id: "s2", latitude: 1.1, longitude: 2.1, autoCollect: false, collected: 1 },
     ]);
     expect(pin?.autoCollect).toBe(true);
   });
