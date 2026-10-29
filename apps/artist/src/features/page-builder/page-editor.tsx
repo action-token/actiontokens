@@ -309,7 +309,7 @@ function Editor({ initial, onReload }: { initial: EditorData; onReload: () => Pr
         </DropdownMenu>
 
         <Button variant="outline" asChild>
-          <Link href="/domain">
+          <Link href="/settings?tab=short-link">
             <Link2 /> Short link
           </Link>
         </Button>

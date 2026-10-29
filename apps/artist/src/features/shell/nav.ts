@@ -79,7 +79,7 @@ const READY_TOOLS: NavGroup[] = [
   {
     title: "Content",
     items: [
-      { href: "/page", icon: LayoutTemplate, label: "My page", also: ["/domain"] },
+      { href: "/page", icon: LayoutTemplate, label: "My page" },
       { href: "/posts", icon: FileText, label: "Posts", also: pathsOf(POSTS_TABS), tab: true },
       { href: "/bounties", icon: Trophy, label: "Bounties", tab: true },
     ],

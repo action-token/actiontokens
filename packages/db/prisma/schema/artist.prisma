@@ -66,9 +66,23 @@ model Artist {
   events             Event[]
   announcements      Announcement[]
   mapEmbeds          MapEmbed[]
+  previousSlugs      ArtistSlugHistory[]
 
   @@index([status, createdAt])
   @@map("artists")
+}
+
+/// An address an artist's page used before a rename, so old /artist/{slug}
+/// links keep working (they redirect to the current one). A slug here can't
+/// be taken by another artist.
+model ArtistSlugHistory {
+  slug      String   @id
+  artistId  String
+  artist    Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([artistId])
+  @@map("artist_slug_history")
 }
 
 /// A membership level: hold `requiredTokens` of the artist's fan token.

@@ -6,7 +6,6 @@ import { useCallback, useState, type ReactNode } from "react";
 import { Button } from "@bandcoin/ui/components/button";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { ErrorState } from "@bandcoin/ui/patterns/error-state";
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
 
 import { Money } from "~/components/money";
 import { api, type RouterOutputs } from "~/trpc/react";
@@ -33,28 +32,21 @@ const STATUS: Record<Link["status"], { warn: boolean; say: (link: Link) => strin
  * The artist's short link, bandcoin.io/their-name: free for the first month,
  * then renewed monthly (the grace and name-keeping rules live in
  * services/artist/vanity). Every payment shows its full price first.
+ * Shown as a tab of Settings.
  */
-export function DomainView() {
+export function ShortLinkPanel() {
   const overview = api.vanity.overview.useQuery();
 
+  if (overview.isPending) return <Skeleton className="h-64 w-full rounded-[1.4rem]" />;
+  if (overview.isError)
+    return (
+      <ErrorState message="Couldn't load your link." onRetry={() => void overview.refetch()} />
+    );
   return (
-    <PageBody className="grid max-w-3xl gap-6">
-      <PageHeader
-        back={{ href: "/page", label: "My page" }}
-        title="Short link"
-        description="An easy link to your page, like bandcoin.io/your-name."
-      />
-      {overview.isPending ? (
-        <Skeleton className="h-64 w-full rounded-[1.4rem]" />
-      ) : overview.isError ? (
-        <ErrorState message="Couldn't load your link." onRetry={() => void overview.refetch()} />
-      ) : (
-        <div className="grid gap-6">
-          <LinkCard overview={overview.data} />
-          <History payments={overview.data.payments} />
-        </div>
-      )}
-    </PageBody>
+    <div className="grid gap-6">
+      <LinkCard overview={overview.data} />
+      <History payments={overview.data.payments} />
+    </div>
   );
 }
 

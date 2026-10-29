@@ -1,7 +1,7 @@
 import { Globe, Trophy } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { cache, type ReactNode } from "react";
 
 import { isAppError } from "@bandcoin/errors";
@@ -17,13 +17,17 @@ import { TrackList } from "~/features/music/track-list";
 import { serverApi } from "~/server/api";
 
 export const loadArtist = cache(async (slug: string) => {
+  const api = await serverApi();
   try {
-    return await (await serverApi()).artist.bySlug({ slug });
+    return await api.artist.bySlug({ slug });
   } catch (error) {
     if (
       (isAppError(error) && error.code === "RESOURCE_NOT_FOUND") ||
       (error instanceof Error && error.message === "This artist doesn't exist.")
     ) {
+      // An address the artist used before renaming: send fans to the current one.
+      const current = await api.artist.renamedTo({ slug });
+      if (current) permanentRedirect(`/artist/${current}`);
       notFound();
     }
     throw error;

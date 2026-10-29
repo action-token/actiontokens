@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu } from "lucide-react";
+import { Menu, Settings } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
 import {
@@ -103,6 +103,14 @@ function MobileTabs({
           </SheetHeader>
           <div className="grid gap-4 px-4 pb-6">
             <AccountButton />
+            <Link
+              href="/settings"
+              onClick={() => setOpen(false)}
+              aria-current={pathname.startsWith("/settings") ? "page" : undefined}
+              className="text-fg-muted aria-[current=page]:bg-surface-2 aria-[current=page]:text-fg flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium"
+            >
+              <Settings className="size-[18px]" /> Settings
+            </Link>
             {groups.map((group) => (
               <div key={group.title} className="grid gap-1">
                 <span className="text-fg-faint text-[11px] font-semibold tracking-wider uppercase">

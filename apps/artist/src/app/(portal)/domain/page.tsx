@@ -1,7 +1,6 @@
-import { DomainView } from "~/features/domain/domain-view";
+import { permanentRedirect } from "next/navigation";
 
-export const metadata = { title: "Short link" };
-
+/** The short link moved into Settings. */
 export default function DomainPage() {
-  return <DomainView />;
+  permanentRedirect("/settings?tab=short-link");
 }

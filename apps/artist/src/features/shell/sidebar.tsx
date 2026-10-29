@@ -223,14 +223,14 @@ function ProfileRow({ fallbackName }: { fallbackName?: string }) {
           )}
         </span>
       </button>
-      <a
-        href={`${FAN_APP_URL}/settings`}
+      <Link
+        href="/settings"
         aria-label="Settings"
         title="Settings"
         className="hover:bg-bg/15 hidden size-6 shrink-0 items-center justify-center rounded-lg opacity-80 transition-colors hover:opacity-100 xl:flex"
       >
         <Settings className="size-3.5" strokeWidth={2.6} />
-      </a>
+      </Link>
       <button
         type="button"
         onClick={() => void signOut({ redirect: false })}
