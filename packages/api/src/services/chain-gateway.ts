@@ -13,7 +13,7 @@ import {
   submit,
 } from "@bandcoin/chain/server";
 import type { Db } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes, requireEnv } from "@bandcoin/errors";
 import { fetchCustodialAccountSecret } from "@bandcoin/wallet/server";
 
 import { chargeCard, refundCard } from "../payments/square";
@@ -50,19 +50,22 @@ export function createChainGateway(db: Db): ChainGateway {
     loadAccount,
     rates: () => liveRates(),
     async signWithServerKeys(xdr, publicKeys) {
-      if (publicKeys.length === 0) return xdr;
-      const accounts = await db.chainAccount.findMany({
-        where: { publicKey: { in: publicKeys } },
-        select: { publicKey: true, secretEncrypted: true },
-      });
-      const missing = publicKeys.filter((key) => !accounts.some((account) => account.publicKey === key));
-      if (missing.length > 0) {
-        throw new AppError(ErrorCodes.STORAGE_ACCOUNT_UNAVAILABLE, { details: { missing } });
+      // The mother account's key lives in env, not in the database.
+      const { mother } = chainConfig();
+      const stored = publicKeys.filter((key) => key !== mother);
+      const secrets = publicKeys.length > stored.length ? [requireEnv("MOTHER_SECRET", process.env.MOTHER_SECRET)] : [];
+      if (stored.length > 0) {
+        const accounts = await db.chainAccount.findMany({
+          where: { publicKey: { in: stored } },
+          select: { publicKey: true, secretEncrypted: true },
+        });
+        const missing = stored.filter((key) => !accounts.some((account) => account.publicKey === key));
+        if (missing.length > 0) {
+          throw new AppError(ErrorCodes.STORAGE_ACCOUNT_UNAVAILABLE, { details: { missing } });
+        }
+        secrets.push(...accounts.map((account) => decryptSecret(account.secretEncrypted)));
       }
-      return addSignatures(
-        xdr,
-        accounts.map((account) => decryptSecret(account.secretEncrypted)),
-      );
+      return secrets.length === 0 ? xdr : addSignatures(xdr, secrets);
     },
     async signForCustodialUser(xdr, email) {
       return addSignatures(xdr, [await fetchCustodialAccountSecret(email)]);

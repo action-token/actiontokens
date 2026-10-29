@@ -69,6 +69,10 @@ enum OrderKind {
   GIFT
   VANITY
   STUDIO_COINS
+  /// Card top-up: the platform sends BANDCOIN to the buyer
+  RECHARGE
+  /// The buyer pays BANDCOIN and receives 1 XLM
+  XLM_SWAP
 }
 
 /// One payment by a buyer. Every money flow with a buyer goes through here,

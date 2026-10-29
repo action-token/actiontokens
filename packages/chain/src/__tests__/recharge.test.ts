@@ -21,6 +21,21 @@ describe("quoteTopUp", () => {
     expect(toStroops(quote.receive) * toStroops("0.0030001")).toBeLessThanOrEqual(toStroops("1.99") * 10_000_000n);
   });
 
+  it("shows the refundable 0.5 XLM wallet reserve when BANDCOIN isn't in the wallet yet, and what's missing", () => {
+    const ok = quoteTopUp({ packageUsd: "9.99", ...rates, networkFeeXlm: "0", openTrustline: true, xlmFunds: "2" });
+    expect(ok.ok).toBe(true);
+    expect(ok.lines.find((line) => line.key === "reserve")).toMatchObject({ currency: "XLM", amount: "0.5" });
+
+    const short = quoteTopUp({ packageUsd: "9.99", ...rates, networkFeeXlm: "0", openTrustline: true, xlmFunds: "0.2" });
+    expect(short.problems).toEqual([
+      {
+        code: "INSUFFICIENT_FUNDS",
+        message: "You need 0.3 more XLM to add BANDCOIN to your wallet.",
+        shortfall: { currency: "XLM", need: "0.5", have: "0.2", short: "0.3" },
+      },
+    ]);
+  });
+
   it("only sells the listed packages", () => {
     expect(RECHARGE_PACKAGES_USD).toContain("9.99");
     expect(quoteTopUp({ packageUsd: "9.98", ...rates, networkFeeXlm: "0" })).toMatchObject({

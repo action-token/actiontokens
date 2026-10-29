@@ -1,4 +1,4 @@
-import { Networks } from "@stellar/stellar-sdk";
+import { Keypair, Networks } from "@stellar/stellar-sdk";
 
 import { AppError, ErrorCodes, isEnvValidationSkipped, requireEnv } from "@bandcoin/errors";
 
@@ -34,6 +34,8 @@ export type ChainConfig = {
   assets: PaymentAssets;
   /** Where platform fees go, unless AppSetting.platformFeeRecipient overrides it */
   treasury: string;
+  /** Public key of the platform's mother account (MOTHER_SECRET), which sends top-up BANDCOIN and XLM; null without the key */
+  mother: string | null;
   nftContract: string | null;
   escrowContract: string | null;
 };
@@ -48,6 +50,7 @@ let cached: ChainConfig | null = null;
  *   NEXT_PUBLIC_ASSET_CODE/ISSUER the BANDCOIN asset
  *   NEXT_PUBLIC_USDC_ISSUER       optional, defaults to Circle's
  *   PLATFORM_TREASURY             public key that receives platform fees
+ *   MOTHER_SECRET                 optional here; recharge sends from this account
  *   STELLAR_BASE_FEE, SOROBAN_RPC_URL, HORIZON_URL, NFT_CONTRACT, ESCROW_CONTRACT  optional
  */
 export function chainConfig(env: Record<string, string | undefined> = process.env): ChainConfig {
@@ -74,6 +77,7 @@ export function chainConfig(env: Record<string, string | undefined> = process.en
       usdc: { code: "USDC", issuer: env.NEXT_PUBLIC_USDC_ISSUER ?? USDC_ISSUER[name] },
     },
     treasury: requireEnv("PLATFORM_TREASURY", env.PLATFORM_TREASURY),
+    mother: env.MOTHER_SECRET ? Keypair.fromSecret(env.MOTHER_SECRET).publicKey() : null,
     nftContract: env.NFT_CONTRACT ?? null,
     escrowContract: env.ESCROW_CONTRACT ?? null,
   };

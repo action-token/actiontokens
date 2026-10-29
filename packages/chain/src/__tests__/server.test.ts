@@ -1,5 +1,7 @@
+import { Keypair } from "@stellar/stellar-sdk";
 import { beforeEach, describe, expect, it } from "vitest";
 
+import { chainConfig } from "../server/config";
 import { clearRateCache, liveRates } from "../server/rates";
 import { decryptSecret, encryptSecret } from "../server/secrets";
 
@@ -19,6 +21,26 @@ describe("secrets", () => {
     expect(() => decryptSecret(stored, "b".repeat(64))).toThrow();
     expect(() => decryptSecret(stored.replace(/.$/, (c) => (c === "0" ? "1" : "0")), KEY)).toThrow();
     expect(() => encryptSecret("secret", "short")).toThrow();
+  });
+});
+
+describe("chainConfig mother account", () => {
+  const base = {
+    NEXT_PUBLIC_STELLAR_NETWORK: "testnet",
+    NEXT_PUBLIC_ASSET_CODE: "BANDCOIN",
+    NEXT_PUBLIC_ASSET_ISSUER: Keypair.random().publicKey(),
+    PLATFORM_TREASURY: Keypair.random().publicKey(),
+  };
+
+  it("exposes only the public key of MOTHER_SECRET", () => {
+    const mother = Keypair.random();
+    const config = chainConfig({ ...base, MOTHER_SECRET: mother.secret() });
+    expect(config.mother).toBe(mother.publicKey());
+    expect(JSON.stringify(config)).not.toContain(mother.secret());
+  });
+
+  it("is null when there is no mother key, so the rest of the app still starts", () => {
+    expect(chainConfig(base).mother).toBeNull();
   });
 });
 

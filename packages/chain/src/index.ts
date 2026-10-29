@@ -13,3 +13,4 @@ export * from "./royalty/payout";
 export * from "./nft/calls";
 export * from "./escrow/calls";
 export * from "./recharge";
+export * from "./classic/recharge";

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { buildClassicPurchase, classicPurchaseOperations } from "../classic/purchase";
 import { buildIssuerSetup, ISSUER_STARTING_XLM } from "../classic/issuer";
+import { buildTopUp, buildXlmSwap } from "../classic/recharge";
 import { buildTransfer } from "../classic/transfer";
 import { toStellarError } from "../errors";
 import { buildBountyFund } from "../escrow/calls";
@@ -111,6 +112,35 @@ describe("buildClassicPurchase", () => {
     expect(() =>
       buildClassicPurchase({ buyer: account(), network, orderId, item, openTrustline: false, payment: null, delivery: {} }),
     ).toThrow();
+  });
+});
+
+describe("recharge builders", () => {
+  const mother = key();
+
+  it("top-up: the buyer is the source, the platform sends the BANDCOIN, trustline opened first if needed", () => {
+    const built = buildTopUp({ buyer: account(), network, orderId, asset: bandcoin, from: mother, amount: "4994.999", openTrustline: true });
+    const tx = parse(built.xdr);
+    expect(tx.source).toBe(buyerKey);
+    expect(tx.operations.map((op) => op.type)).toEqual(["changeTrust", "payment"]);
+    expect(tx.operations[1]).toMatchObject({ source: mother, destination: buyerKey, amount: "4994.9990000" });
+    expect(memoText(tx)).toBe(orderId);
+    expect(built.serverSigners).toEqual([mother]);
+    expect(parse(buildTopUp({ buyer: account(), network, orderId, asset: bandcoin, from: mother, amount: "1", openTrustline: false }).xdr).operations).toHaveLength(1);
+  });
+
+  it("swap: the buyer pays BANDCOIN to the platform and gets exactly the XLM, in one transaction", () => {
+    const built = buildXlmSwap({ buyer: account(), network, orderId, asset: bandcoin, platform: mother, pay: "51", xlm: "1" });
+    const tx = parse(built.xdr);
+    expect(tx.operations.map((op) => op.type)).toEqual(["payment", "payment"]);
+    expect(tx.operations[0]).toMatchObject({ destination: mother, amount: "51.0000000" });
+    expect(tx.operations[1]).toMatchObject({ source: mother, destination: buyerKey, amount: "1.0000000" });
+    expect(built.serverSigners).toEqual([mother]);
+  });
+
+  it("refuses to send nothing", () => {
+    expect(() => buildTopUp({ buyer: account(), network, orderId, asset: bandcoin, from: mother, amount: "0", openTrustline: false })).toThrow(RangeError);
+    expect(() => buildXlmSwap({ buyer: account(), network, orderId, asset: bandcoin, platform: mother, pay: "0", xlm: "1" })).toThrow(RangeError);
   });
 });
 

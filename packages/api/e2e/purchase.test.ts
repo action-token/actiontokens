@@ -78,6 +78,7 @@ const chain: ChainGateway = {
     rpcUrl: "",
     assets: { bandcoin: BANDCOIN, usdc: USDC },
     treasury: keys.treasury.publicKey(),
+    mother: null,
     nftContract: null,
     escrowContract: null,
   },

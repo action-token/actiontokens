@@ -26,7 +26,7 @@ export type RechargeProblem =
   | {
       code: "INSUFFICIENT_FUNDS";
       message: string;
-      shortfall: { currency: "BANDCOIN"; need: string; have: string; short: string };
+      shortfall: { currency: "BANDCOIN" | "XLM"; need: string; have: string; short: string };
     };
 
 type Rates = {
@@ -40,7 +40,19 @@ const rateProblem = (rates: Rates): RechargeProblem[] =>
     ? []
     : [{ code: "RATE_UNAVAILABLE", message: "Couldn't load the BANDCOIN price. Try again in a moment." }];
 
-export function quoteTopUp(input: Rates & { packageUsd: string; networkFeeXlm: string }) {
+/** XLM a new BANDCOIN trustline locks in the buyer's wallet (refundable). */
+const TRUSTLINE_RESERVE = toStroops("0.5");
+
+export function quoteTopUp(
+  input: Rates & {
+    packageUsd: string;
+    networkFeeXlm: string;
+    /** The wallet has no BANDCOIN line yet, so one is opened and locks the reserve */
+    openTrustline?: boolean;
+    /** Spendable XLM, only checked when a trustline is opened */
+    xlmFunds?: string | null;
+  },
+) {
   const known = (RECHARGE_PACKAGES_USD as readonly string[]).includes(input.packageUsd);
   const problems: RechargeProblem[] = known
     ? rateProblem(input)
@@ -52,14 +64,25 @@ export function quoteTopUp(input: Rates & { packageUsd: string; networkFeeXlm: s
   const feeUsd = toUsd(toStroops(input.networkFeeXlm), input.xlmUsd);
   // Rounded down: the buyer is never given more than they paid for.
   const receive = ((charge - feeUsd) * 10_000_000n) / input.bandcoinUsd;
+  if (input.openTrustline && input.xlmFunds != null && toStroops(input.xlmFunds) < TRUSTLINE_RESERVE) {
+    const have = toStroops(input.xlmFunds);
+    problems.push({
+      code: "INSUFFICIENT_FUNDS",
+      message: `You need ${toDisplay(TRUSTLINE_RESERVE - have)} more XLM to add BANDCOIN to your wallet.`,
+      shortfall: { currency: "XLM", need: toDisplay(TRUSTLINE_RESERVE), have: toDisplay(have), short: toDisplay(TRUSTLINE_RESERVE - have) },
+    });
+  }
   return {
-    ok: true as const,
+    ok: problems.length === 0,
     problems,
     chargeCents: Number(charge / 100_000n),
     receive: toAmount(receive),
     lines: [
       { key: "charge", label: "Card charge", currency: "USD", amount: toDisplay(charge) },
       { key: "networkFee", label: "Network fee", currency: "XLM", amount: toDisplay(toStroops(input.networkFeeXlm)) },
+      ...(input.openTrustline
+        ? [{ key: "reserve", label: "Wallet reserve (refundable)", currency: "XLM" as const, amount: toDisplay(TRUSTLINE_RESERVE) }]
+        : []),
       { key: "receive", label: "You receive", currency: "BANDCOIN", amount: toDisplay(receive) },
     ] satisfies RechargeLine[],
   };
