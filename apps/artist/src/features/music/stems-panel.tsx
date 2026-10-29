@@ -1,12 +1,13 @@
 "use client";
 
-import { Loader2, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Loader2, Music2, Plus, Trash2 } from "lucide-react";
+import { type KeyboardEvent, useState } from "react";
 import toast from "react-hot-toast";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Input } from "@bandcoin/ui/components/input";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
+import { FormSection } from "@bandcoin/ui/patterns/form-page";
 import { formatDuration } from "@bandcoin/utils/preview";
 
 import { readAudioDuration } from "~/lib/audio";
@@ -15,6 +16,12 @@ import { api } from "~/trpc/react";
 import { FileField, type PickedFile } from "../catalog/file-field";
 
 const MAX_STEMS = 8;
+/** Stems live inside the song's form: Enter confirms the field, it must not save the song. */
+const keepInPlace = (event: KeyboardEvent<HTMLInputElement>) => {
+  if (event.key !== "Enter") return;
+  event.preventDefault();
+  event.currentTarget.blur();
+};
 const messageOf = (error: unknown) => (error instanceof Error ? error.message : "Something went wrong.");
 
 /**
@@ -47,14 +54,11 @@ export function StemsPanel({ itemId }: { itemId: string }) {
   const ready = name.trim().length > 0 && file !== null && duration > 0;
 
   return (
-    <section className="bg-surface grid max-w-2xl gap-4 rounded-xl border p-5 sm:p-6">
-      <div>
-        <h2 className="display text-lg">Stems</h2>
-        <p className="text-fg-muted mt-1 text-sm">
-          Upload the separate parts so owners can mix the song in the player. Everyone else hears 30 seconds of each part. Use one file per part, as long as the song.
-        </p>
-      </div>
-
+    <FormSection
+      title="Stems"
+      icon={Music2}
+      description="Upload the separate parts so owners can mix the song in the player. Everyone else hears 30 seconds of each part. Use one file per part, as long as the song."
+    >
       {stems.isPending ? (
         <Skeleton className="h-16 w-full rounded-lg" />
       ) : count === 0 ? (
@@ -69,6 +73,7 @@ export function StemsPanel({ itemId }: { itemId: string }) {
                 maxLength={30}
                 aria-label={`Name of ${stem.name}`}
                 className="h-8 min-w-0 flex-1"
+                onKeyDown={keepInPlace}
                 onBlur={(event) => {
                   const next = event.target.value.trim();
                   if (next && next !== stem.name) rename.mutate({ stemId: stem.id, name: next });
@@ -85,7 +90,7 @@ export function StemsPanel({ itemId }: { itemId: string }) {
 
       {count < MAX_STEMS ? (
         <div className="grid gap-3 border-t pt-4">
-          <Input value={name} maxLength={30} placeholder="Stem name, for example Vocals" aria-label="Stem name" onChange={(event) => setName(event.target.value)} />
+          <Input value={name} maxLength={30} placeholder="Stem name, for example Vocals" aria-label="Stem name" onKeyDown={keepInPlace} onChange={(event) => setName(event.target.value)} />
           <FileField
             id="stem-file"
             accept="audio/wav,audio/x-wav,audio/mpeg,.wav,.mp3"
@@ -104,6 +109,6 @@ export function StemsPanel({ itemId }: { itemId: string }) {
       ) : (
         <p className="text-fg-faint text-sm">That&apos;s the most a song can have ({MAX_STEMS}).</p>
       )}
-    </section>
+    </FormSection>
   );
 }

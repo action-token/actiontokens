@@ -45,6 +45,11 @@ export const FILL_SCHEMAS = {
     features: z.array(z.string()).max(6).describe("Up to 6 short perks, max 60 chars each"),
     isPopular: z.boolean(),
   }),
+  album: z.object({
+    title: z.string().describe("Album title, max 80 chars"),
+    description: z.string().describe("2-4 sentences about the album for fans"),
+    imagePrompt,
+  }),
   song: z.object({
     title: z.string().describe("Song title, max 80 chars"),
     description: z.string().describe("1-3 sentences about the song for fans"),
@@ -63,5 +68,6 @@ export const FORM_BRIEF: Record<FillForm, string> = {
   announcement: "a short announcement in the artist's news feed",
   item: "a collectible the artist sells to fans",
   tier: "a membership tier fans unlock by holding the artist's fan token",
+  album: "an album that groups the artist's songs",
   song: "a song the artist releases",
 };

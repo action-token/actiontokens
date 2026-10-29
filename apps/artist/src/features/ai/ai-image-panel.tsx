@@ -52,6 +52,7 @@ export function AiImagePanel({
         type="button"
         variant="outline"
         size="sm"
+        className="justify-self-start"
         onClick={() => {
           if (!url && suggestedPrompt) setPrompt(suggestedPrompt);
           setOpen(true);
