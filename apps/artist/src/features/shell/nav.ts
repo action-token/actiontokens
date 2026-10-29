@@ -58,10 +58,9 @@ export function isActive(entry: NavItem, pathname: string) {
   return entry.exact ? pathname === entry.href : pathname === entry.href || pathname.startsWith(`${entry.href}/`);
 }
 
-const PHONE_TABS = 5;
+const PHONE_TABS = 4;
 
-/** A phone's tab bar fits five: more than that and the last slot becomes "More", which opens everything. */
-export function phoneTabs(groups: NavGroup[]): { tabs: NavItem[]; more: boolean } {
-  const all = groups.flatMap((group) => group.items);
-  return all.length <= PHONE_TABS ? { tabs: all, more: false } : { tabs: all.slice(0, PHONE_TABS - 1), more: true };
+/** A phone's tab bar shows the first few pages; "More" opens the rest and the account. */
+export function phoneTabs(groups: NavGroup[], signedIn: boolean): { tabs: NavItem[]; more: boolean } {
+  return { tabs: groups.flatMap((group) => group.items).slice(0, PHONE_TABS), more: signedIn };
 }

@@ -56,11 +56,12 @@ describe("portal navigation", () => {
     expect(isActive(activity!, "/admin/activity")).toBe(true);
   });
 
-  it("fits a phone's tab bar by moving the rest behind More", () => {
-    const apply = phoneTabs(navFor({ signedIn: true, step: "OPEN_ISSUER", isAdmin: false }));
-    expect(apply).toEqual({ tabs: [expect.objectContaining({ label: "Get started" })], more: false });
-    const ready = phoneTabs(navFor({ signedIn: true, step: "READY", isAdmin: true }));
+  it("keeps four tabs on a phone and puts the rest and the account behind More", () => {
+    const apply = phoneTabs(navFor({ signedIn: true, step: "OPEN_ISSUER", isAdmin: false }), true);
+    expect(apply).toEqual({ tabs: [expect.objectContaining({ label: "Get started" })], more: true });
+    const ready = phoneTabs(navFor({ signedIn: true, step: "READY", isAdmin: true }), true);
     expect(ready.tabs.map((entry) => entry.label)).toEqual(["Dashboard", "Music", "Items", "Memberships"]);
     expect(ready.more).toBe(true);
+    expect(phoneTabs([], false)).toEqual({ tabs: [], more: false });
   });
 });

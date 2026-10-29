@@ -41,22 +41,17 @@ export function PortalShell({ children }: { children: ReactNode }) {
             <SidebarGroup key={group.title} group={group} pathname={pathname} divider={index > 0} />
           ))}
         </div>
-        <div className="hidden justify-center xl:flex">
-          <ThemeSwitch />
+        <div className="grid min-w-0 gap-2">
+          <div className="hidden justify-center xl:flex">
+            <ThemeSwitch />
+          </div>
+          <AccountButton rail />
         </div>
       </nav>
 
-      <div className="flex min-w-0 flex-col">
-        <header className="bg-bg/85 sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b px-4 backdrop-blur sm:justify-end sm:px-6">
-          <Link href="/" className="sm:hidden" aria-label="Home">
-            <BrandMark className="size-7" />
-          </Link>
-          <AccountButton />
-        </header>
-        <main className="flex-1 pb-24 sm:pb-12">{children}</main>
-      </div>
+      <main className="min-w-0 pt-4 pb-24 sm:pt-0 sm:pb-12">{children}</main>
 
-      <MobileTabs groups={groups} pathname={pathname} />
+      <MobileTabs groups={groups} pathname={pathname} signedIn={signedIn} />
     </div>
   );
 }
@@ -92,10 +87,10 @@ function SidebarGroup({ group, pathname, divider }: { group: NavGroup; pathname:
 }
 
 /** On phones the first links are tabs and the rest sit behind "More". */
-function MobileTabs({ groups, pathname }: { groups: NavGroup[]; pathname: string }) {
+function MobileTabs({ groups, pathname, signedIn }: { groups: NavGroup[]; pathname: string; signedIn: boolean }) {
   const [open, setOpen] = useState(false);
-  const { tabs, more } = phoneTabs(groups);
-  if (tabs.length < 2 && !more) return null;
+  const { tabs, more } = phoneTabs(groups, signedIn);
+  if (tabs.length === 0 && !more) return null;
   const tabClass = "text-fg-faint aria-[current=page]:text-fg grid min-w-0 flex-1 justify-items-center gap-0.5 py-2 text-[10px] font-medium";
   const hiddenActive = more && !tabs.some((entry) => isActive(entry, pathname));
   return (
@@ -120,7 +115,8 @@ function MobileTabs({ groups, pathname }: { groups: NavGroup[]; pathname: string
             <SheetTitle>Menu</SheetTitle>
             <SheetDescription className="sr-only">Every page in the artist portal</SheetDescription>
           </SheetHeader>
-          <div className="grid gap-4 px-4 pb-6" onClick={() => setOpen(false)}>
+          <div className="grid gap-4 px-4 pb-6">
+            <AccountButton />
             {groups.map((group) => (
               <div key={group.title} className="grid gap-1">
                 <span className="text-fg-faint text-[11px] font-semibold tracking-wider uppercase">{group.title}</span>
@@ -128,6 +124,7 @@ function MobileTabs({ groups, pathname }: { groups: NavGroup[]; pathname: string
                   <Link
                     key={entry.href}
                     href={entry.href}
+                    onClick={() => setOpen(false)}
                     aria-current={isActive(entry, pathname) ? "page" : undefined}
                     className="text-fg-muted aria-[current=page]:bg-surface-2 aria-[current=page]:text-fg flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium"
                   >
