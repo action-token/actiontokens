@@ -96,6 +96,15 @@ export default async function ItemPage({ params }: Props) {
 
   const facts: [string, string][] = [
     ["Type", label],
+    ["Copies", item.supply === null ? "Unlimited" : item.supply.toLocaleString()],
+    ["Sold", item.sold.toLocaleString()],
+    ["Owners", item.holders.toLocaleString()],
+    ...(royalty > 0
+      ? ([["Artist royalty", `${royalty}% of every resale`]] as [string, string][])
+      : []),
+  ];
+  // Only collectors who care about the blockchain need these, so they stay folded.
+  const technical: [string, string][] = [
     ...(item.classicToken
       ? ([
           ["Token code", item.classicToken.code],
@@ -104,12 +113,6 @@ export default async function ItemPage({ params }: Props) {
             `${item.classicToken.issuer.slice(0, 6)}…${item.classicToken.issuer.slice(-6)}`,
           ],
         ] as [string, string][])
-      : []),
-    ["Supply", item.supply === null ? "Unlimited" : item.supply.toLocaleString()],
-    ["Sold", item.sold.toLocaleString()],
-    ["Holders", item.holders.toLocaleString()],
-    ...(royalty > 0
-      ? ([["Artist royalty", `${royalty}% of every resale`]] as [string, string][])
       : []),
     ["Network", item.network === "mainnet" ? "Stellar" : "Stellar testnet"],
   ];
@@ -221,24 +224,21 @@ export default async function ItemPage({ params }: Props) {
                     <Money amount={primary.priceBandcoin} currency="BANDCOIN" onBrand />
                   </Sticker>
                 )}
-                <Sticker
-                  className="text-fg rotate-1 bg-white"
-                  label="Edition"
-                  note={`${item.sold.toLocaleString()} sold`}
-                >
-                  {item.supply === null ? "Open" : item.supply.toLocaleString()}
-                </Sticker>
-                {left !== null && (
+                {left !== null ? (
                   <Sticker
                     className="-rotate-1 bg-white/15"
                     label="Left"
-                    note={
-                      item.supply
-                        ? `${Math.min(100, Math.round((item.sold / item.supply) * 100))}% sold`
-                        : undefined
-                    }
+                    note={item.supply ? `of ${item.supply.toLocaleString()}` : undefined}
                   >
                     {left === 0 ? "Sold out" : left.toLocaleString()}
+                  </Sticker>
+                ) : (
+                  <Sticker
+                    className="-rotate-1 bg-white/15"
+                    label="Edition"
+                    note={`${item.sold.toLocaleString()} sold`}
+                  >
+                    Open
                   </Sticker>
                 )}
                 {royalty > 0 && (
@@ -316,14 +316,27 @@ export default async function ItemPage({ params }: Props) {
               {item.description?.trim() ? item.description : "No description yet."}
             </p>
             <div className="grid gap-5 lg:grid-cols-2">
-              <dl className="divide-border divide-y-2 divide-dashed rounded-[1.2rem] border-2 text-sm">
-                {facts.map(([key, value]) => (
-                  <div key={key} className="flex items-center justify-between gap-3 px-4 py-3">
-                    <dt className="text-fg-muted font-semibold">{key}</dt>
-                    <dd className="truncate font-mono text-[13px] font-medium">{value}</dd>
+              <div className="grid content-start gap-3">
+                <Facts rows={facts} />
+                <details>
+                  <summary className="text-fg-muted hover:text-fg cursor-pointer text-sm font-semibold">
+                    Technical details
+                  </summary>
+                  <div className="grid gap-3 pt-3">
+                    <Facts rows={technical} />
+                    {explorer && (
+                      <a
+                        href={explorer}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="marker text-primary-text inline-flex items-center gap-1.5 text-base hover:underline"
+                      >
+                        view on stellar expert <ExternalLink className="size-3.5" />
+                      </a>
+                    )}
                   </div>
-                ))}
-              </dl>
+                </details>
+              </div>
               <div className="grid content-start gap-4">
                 {item.artist && (
                   <Link
@@ -348,16 +361,6 @@ export default async function ItemPage({ params }: Props) {
                       <ChevronRight className="size-5" strokeWidth={2.6} />
                     </span>
                   </Link>
-                )}
-                {explorer && (
-                  <a
-                    href={explorer}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="marker text-primary-text inline-flex items-center gap-1.5 text-base hover:underline"
-                  >
-                    view on stellar expert <ExternalLink className="size-3.5" />
-                  </a>
                 )}
               </div>
             </div>
@@ -438,6 +441,19 @@ function Sticker({
       <p className="display text-3xl leading-tight lg:text-4xl">{children}</p>
       {note && <p className="text-xs font-bold opacity-75">{note}</p>}
     </div>
+  );
+}
+
+function Facts({ rows }: { rows: [string, string][] }) {
+  return (
+    <dl className="divide-border divide-y-2 divide-dashed rounded-[1.2rem] border-2 text-sm">
+      {rows.map(([key, value]) => (
+        <div key={key} className="flex items-center justify-between gap-3 px-4 py-3">
+          <dt className="text-fg-muted font-semibold">{key}</dt>
+          <dd className="truncate font-mono text-[13px] font-medium">{value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 

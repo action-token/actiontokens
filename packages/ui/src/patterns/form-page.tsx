@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import { ChevronDown, type LucideIcon } from "lucide-react";
 import type { FormEvent, ReactNode } from "react";
 
 import { Label } from "../components/label";
@@ -81,6 +81,55 @@ export function FormSection({
       </div>
       <div className="space-y-4">{children}</div>
     </section>
+  );
+}
+
+/**
+ * The optional parts of a form, folded so the page shows only what most people
+ * fill in. Children stay mounted, so nothing typed is lost when it closes.
+ * `open` forces it open, e.g. when a field inside has an error.
+ */
+export function MoreOptions({
+  title = "More options",
+  hint,
+  open,
+  children,
+  className,
+}: {
+  title?: string;
+  /** What is inside, so people know whether to look */
+  hint?: ReactNode;
+  open?: boolean;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <details
+      open={open || undefined}
+      className={cn(
+        "group/more bg-surface border-fg/10 rounded-[1.4rem] border-2 p-5 [&_summary::-webkit-details-marker]:hidden",
+        className,
+      )}
+    >
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+        <span className="min-w-0">
+          <span className="display block text-xl">{title}</span>
+          {hint && <span className="text-fg-muted block text-sm">{hint}</span>}
+        </span>
+        <ChevronDown className="size-5 shrink-0 transition-transform group-open/more:rotate-180" />
+      </summary>
+      <div className="space-y-6 pt-5">{children}</div>
+    </details>
+  );
+}
+
+/** A titled group inside MoreOptions: a FormSection without its own card. */
+export function OptionGroup({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="space-y-4">
+      <h3 className="text-sm font-semibold">{title}</h3>
+      {children}
+    </div>
   );
 }
 

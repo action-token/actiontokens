@@ -32,6 +32,8 @@ import {
   Field,
   FormPage,
   FormSection,
+  MoreOptions,
+  OptionGroup,
   OptionList,
   SwitchRow,
 } from "@bandcoin/ui/patterns/form-page";
@@ -421,29 +423,6 @@ export function BountyForm({ existing }: { existing?: Existing }) {
             <p className="text-fg-faint text-right text-xs">{state.title.length} / 120</p>
           </Field>
           <Field
-            label="Summary"
-            htmlFor="bounty-summary"
-            hint="A line for the bounty card."
-            action={
-              <AiTextButton
-                form="bounty"
-                field="summary"
-                maxChars={600}
-                value={state.summary}
-                context={aiContext}
-                onChange={(text) => set("summary", text)}
-              />
-            }
-          >
-            <Textarea
-              id="bounty-summary"
-              value={state.summary}
-              rows={2}
-              maxLength={600}
-              onChange={(event) => set("summary", event.target.value)}
-            />
-          </Field>
-          <Field
             label="Description"
             htmlFor="bounty-description"
             hint="Markdown works: headings, lists, links."
@@ -527,164 +506,6 @@ export function BountyForm({ existing }: { existing?: Existing }) {
               )}
             </>
           )}
-          <OptionList>
-            <SwitchRow
-              icon={CheckCircle2}
-              title="Require the Action Cam"
-              hint="Photos and videos must be taken in the app, so where and when they were taken is proven."
-              checked={state.requiresActionCam}
-              onChange={(value) => set("requiresActionCam", value)}
-            />
-            <SwitchRow
-              icon={Music2}
-              title="Music challenge"
-              hint="Fans must also listen to chosen tracks, checked automatically on Last.fm."
-              checked={state.music}
-              onChange={(value) => set("music", value)}
-            >
-              <div className="grid gap-5">
-                {lastFm.data ? (
-                  <p className="flex items-center justify-between gap-3 text-sm">
-                    <span className="flex items-center gap-2">
-                      <CheckCircle2 className="text-success size-4" /> Last.fm connected as{" "}
-                      <b className="font-mono">@{lastFm.data.username}</b>
-                    </span>
-                    <button
-                      type="button"
-                      disabled={disconnect.isPending}
-                      onClick={() => disconnect.mutate()}
-                      className="text-danger text-xs font-semibold uppercase"
-                    >
-                      {disconnect.isPending ? "Disconnecting…" : "Disconnect"}
-                    </button>
-                  </p>
-                ) : (
-                  <div className="bg-danger-soft grid gap-2 rounded-lg p-3 text-sm">
-                    <p className="flex items-center gap-2 font-semibold">
-                      <Radio className="text-danger size-4" /> Connect your Last.fm account
-                    </p>
-                    <p className="text-fg-muted text-xs">
-                      To create music bounties, connect Last.fm so scrobbles can be verified.
-                    </p>
-                    <Button asChild size="sm" className="justify-self-start">
-                      <a href={`/api/lastfm/auth?redirect=${encodeURIComponent("/bounties/new")}`}>
-                        Connect Last.fm
-                      </a>
-                    </Button>
-                  </div>
-                )}
-
-                <Field label="Strategy" htmlFor="bounty-mode">
-                  <div
-                    className="grid gap-2 sm:grid-cols-2"
-                    id="bounty-mode"
-                    role="radiogroup"
-                    aria-label="Strategy"
-                  >
-                    {(
-                      [
-                        {
-                          value: "HYBRID",
-                          title: "Hybrid",
-                          text: "Last.fm plays and a submission report.",
-                        },
-                        {
-                          value: "MUSIC_ONLY",
-                          title: "Music only",
-                          text: "Fully automatic: Last.fm plays decide.",
-                        },
-                      ] as const
-                    ).map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        role="radio"
-                        aria-checked={state.musicMode === option.value}
-                        onClick={() => set("musicMode", option.value)}
-                        className={cn(
-                          "grid gap-0.5 rounded-lg border p-3 text-left transition-colors",
-                          state.musicMode === option.value
-                            ? "border-fg bg-primary/10"
-                            : "hover:bg-surface-2",
-                        )}
-                      >
-                        <b className="text-sm">{option.title}</b>
-                        <span className="text-fg-muted text-xs">{option.text}</span>
-                      </button>
-                    ))}
-                  </div>
-                </Field>
-
-                <Field label="Tracks" htmlFor="bounty-tracks" required>
-                  <TrackPicker tracks={state.tracks} onChange={(tracks) => set("tracks", tracks)} />
-                </Field>
-
-                <Field label="Rule" htmlFor="bounty-rule">
-                  <div className="flex flex-wrap items-center gap-2" id="bounty-rule">
-                    <Toggle
-                      pressed={state.ruleType === "ALL"}
-                      onClick={() => set("ruleType", "ALL")}
-                    >
-                      All tracks
-                    </Toggle>
-                    <Toggle
-                      pressed={state.ruleType === "ANY_N"}
-                      onClick={() => set("ruleType", "ANY_N")}
-                    >
-                      Any N tracks
-                    </Toggle>
-                    <Toggle
-                      pressed={state.ruleType === "TOTAL_PLAYS"}
-                      onClick={() => set("ruleType", "TOTAL_PLAYS")}
-                    >
-                      Total plays
-                    </Toggle>
-                    {state.ruleType === "ANY_N" && (
-                      <Input
-                        inputMode="numeric"
-                        aria-label="How many tracks"
-                        value={state.requiredTracks}
-                        onChange={(event) =>
-                          set(
-                            "requiredTracks",
-                            Math.min(
-                              MAX_TRACKS,
-                              Number(event.target.value.replace(/\D/g, "")) || 1,
-                            ),
-                          )
-                        }
-                        className="w-16"
-                      />
-                    )}
-                    {state.ruleType === "TOTAL_PLAYS" && (
-                      <Input
-                        inputMode="numeric"
-                        aria-label="Total plays"
-                        value={state.totalPlays}
-                        onChange={(event) =>
-                          set("totalPlays", Number(event.target.value.replace(/\D/g, "")) || 1)
-                        }
-                        className="w-20"
-                      />
-                    )}
-                  </div>
-                  <Note>
-                    {ruleSummary({
-                      ruleType: state.ruleType,
-                      trackCount: state.tracks.length,
-                      requiredTracks: state.requiredTracks,
-                      totalPlays: state.totalPlays,
-                    })}
-                  </Note>
-                </Field>
-                {editing && (
-                  <Note>
-                    Changing the tracks or the rule starts every fan&apos;s listening progress over.
-                  </Note>
-                )}
-              </div>
-            </SwitchRow>
-          </OptionList>
         </FormSection>
 
         <FormSection
@@ -775,49 +596,248 @@ export function BountyForm({ existing }: { existing?: Existing }) {
               </Select>
             </Field>
           </div>
-          <Field
-            label="Reward note"
-            htmlFor="bounty-reward-note"
-            hint="How and when winners are paid, if you want to say."
-            action={
-              <AiTextButton
-                form="bounty"
-                field="reward note"
-                maxChars={600}
-                value={state.rewardNote}
-                context={aiContext}
-                onChange={(text) => set("rewardNote", text)}
-              />
-            }
-          >
-            <Textarea
-              id="bounty-reward-note"
-              value={state.rewardNote}
-              rows={2}
-              maxLength={600}
-              onChange={(event) => set("rewardNote", event.target.value)}
-            />
-          </Field>
-          <Field
-            label="Linked event"
-            htmlFor="bounty-event"
-            hint="Optional. Shows this bounty on the event."
-          >
-            <Select value={state.eventId} onValueChange={(value) => set("eventId", value)}>
-              <SelectTrigger id="bounty-event" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NO_EVENT}>No event</SelectItem>
-                {events.data?.map((event) => (
-                  <SelectItem key={event.id} value={event.id}>
-                    {event.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
         </FormSection>
+
+        <MoreOptions
+          open={state.music}
+          hint="Card summary, Action Cam, music challenge, reward note, event"
+        >
+          <OptionGroup title="Card summary">
+            <Field
+              label="Summary"
+              htmlFor="bounty-summary"
+              hint="A line for the bounty card."
+              action={
+                <AiTextButton
+                  form="bounty"
+                  field="summary"
+                  maxChars={600}
+                  value={state.summary}
+                  context={aiContext}
+                  onChange={(text) => set("summary", text)}
+                />
+              }
+            >
+              <Textarea
+                id="bounty-summary"
+                value={state.summary}
+                rows={2}
+                maxLength={600}
+                onChange={(event) => set("summary", event.target.value)}
+              />
+            </Field>
+          </OptionGroup>
+          <OptionGroup title="Challenge options">
+            <OptionList>
+              <SwitchRow
+                icon={CheckCircle2}
+                title="Require the Action Cam"
+                hint="Photos and videos must be taken in the app, so where and when they were taken is proven."
+                checked={state.requiresActionCam}
+                onChange={(value) => set("requiresActionCam", value)}
+              />
+              <SwitchRow
+                icon={Music2}
+                title="Music challenge"
+                hint="Fans must also listen to chosen tracks, checked automatically on Last.fm."
+                checked={state.music}
+                onChange={(value) => set("music", value)}
+              >
+                <div className="grid gap-5">
+                  {lastFm.data ? (
+                    <p className="flex items-center justify-between gap-3 text-sm">
+                      <span className="flex items-center gap-2">
+                        <CheckCircle2 className="text-success size-4" /> Last.fm connected as{" "}
+                        <b className="font-mono">@{lastFm.data.username}</b>
+                      </span>
+                      <button
+                        type="button"
+                        disabled={disconnect.isPending}
+                        onClick={() => disconnect.mutate()}
+                        className="text-danger text-xs font-semibold uppercase"
+                      >
+                        {disconnect.isPending ? "Disconnecting…" : "Disconnect"}
+                      </button>
+                    </p>
+                  ) : (
+                    <div className="bg-danger-soft grid gap-2 rounded-lg p-3 text-sm">
+                      <p className="flex items-center gap-2 font-semibold">
+                        <Radio className="text-danger size-4" /> Connect your Last.fm account
+                      </p>
+                      <p className="text-fg-muted text-xs">
+                        To create music bounties, connect Last.fm so scrobbles can be verified.
+                      </p>
+                      <Button asChild size="sm" className="justify-self-start">
+                        <a
+                          href={`/api/lastfm/auth?redirect=${encodeURIComponent("/bounties/new")}`}
+                        >
+                          Connect Last.fm
+                        </a>
+                      </Button>
+                    </div>
+                  )}
+
+                  <Field label="Strategy" htmlFor="bounty-mode">
+                    <div
+                      className="grid gap-2 sm:grid-cols-2"
+                      id="bounty-mode"
+                      role="radiogroup"
+                      aria-label="Strategy"
+                    >
+                      {(
+                        [
+                          {
+                            value: "HYBRID",
+                            title: "Hybrid",
+                            text: "Last.fm plays and a submission report.",
+                          },
+                          {
+                            value: "MUSIC_ONLY",
+                            title: "Music only",
+                            text: "Fully automatic: Last.fm plays decide.",
+                          },
+                        ] as const
+                      ).map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          role="radio"
+                          aria-checked={state.musicMode === option.value}
+                          onClick={() => set("musicMode", option.value)}
+                          className={cn(
+                            "grid gap-0.5 rounded-lg border p-3 text-left transition-colors",
+                            state.musicMode === option.value
+                              ? "border-fg bg-primary/10"
+                              : "hover:bg-surface-2",
+                          )}
+                        >
+                          <b className="text-sm">{option.title}</b>
+                          <span className="text-fg-muted text-xs">{option.text}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </Field>
+
+                  <Field label="Tracks" htmlFor="bounty-tracks" required>
+                    <TrackPicker
+                      tracks={state.tracks}
+                      onChange={(tracks) => set("tracks", tracks)}
+                    />
+                  </Field>
+
+                  <Field label="Rule" htmlFor="bounty-rule">
+                    <div className="flex flex-wrap items-center gap-2" id="bounty-rule">
+                      <Toggle
+                        pressed={state.ruleType === "ALL"}
+                        onClick={() => set("ruleType", "ALL")}
+                      >
+                        All tracks
+                      </Toggle>
+                      <Toggle
+                        pressed={state.ruleType === "ANY_N"}
+                        onClick={() => set("ruleType", "ANY_N")}
+                      >
+                        Any N tracks
+                      </Toggle>
+                      <Toggle
+                        pressed={state.ruleType === "TOTAL_PLAYS"}
+                        onClick={() => set("ruleType", "TOTAL_PLAYS")}
+                      >
+                        Total plays
+                      </Toggle>
+                      {state.ruleType === "ANY_N" && (
+                        <Input
+                          inputMode="numeric"
+                          aria-label="How many tracks"
+                          value={state.requiredTracks}
+                          onChange={(event) =>
+                            set(
+                              "requiredTracks",
+                              Math.min(
+                                MAX_TRACKS,
+                                Number(event.target.value.replace(/\D/g, "")) || 1,
+                              ),
+                            )
+                          }
+                          className="w-16"
+                        />
+                      )}
+                      {state.ruleType === "TOTAL_PLAYS" && (
+                        <Input
+                          inputMode="numeric"
+                          aria-label="Total plays"
+                          value={state.totalPlays}
+                          onChange={(event) =>
+                            set("totalPlays", Number(event.target.value.replace(/\D/g, "")) || 1)
+                          }
+                          className="w-20"
+                        />
+                      )}
+                    </div>
+                    <Note>
+                      {ruleSummary({
+                        ruleType: state.ruleType,
+                        trackCount: state.tracks.length,
+                        requiredTracks: state.requiredTracks,
+                        totalPlays: state.totalPlays,
+                      })}
+                    </Note>
+                  </Field>
+                  {editing && (
+                    <Note>
+                      Changing the tracks or the rule starts every fan&apos;s listening progress
+                      over.
+                    </Note>
+                  )}
+                </div>
+              </SwitchRow>
+            </OptionList>
+          </OptionGroup>
+          <OptionGroup title="Reward note and event">
+            <Field
+              label="Reward note"
+              htmlFor="bounty-reward-note"
+              hint="How and when winners are paid, if you want to say."
+              action={
+                <AiTextButton
+                  form="bounty"
+                  field="reward note"
+                  maxChars={600}
+                  value={state.rewardNote}
+                  context={aiContext}
+                  onChange={(text) => set("rewardNote", text)}
+                />
+              }
+            >
+              <Textarea
+                id="bounty-reward-note"
+                value={state.rewardNote}
+                rows={2}
+                maxLength={600}
+                onChange={(event) => set("rewardNote", event.target.value)}
+              />
+            </Field>
+            <Field
+              label="Linked event"
+              htmlFor="bounty-event"
+              hint="Optional. Shows this bounty on the event."
+            >
+              <Select value={state.eventId} onValueChange={(value) => set("eventId", value)}>
+                <SelectTrigger id="bounty-event" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_EVENT}>No event</SelectItem>
+                  {events.data?.map((event) => (
+                    <SelectItem key={event.id} value={event.id}>
+                      {event.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          </OptionGroup>
+        </MoreOptions>
       </FormPage>
       <PaymentToast flow={funding} />
     </>

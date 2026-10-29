@@ -1,6 +1,6 @@
 "use client";
 
-import { Coins, Disc3, Eye, ImageIcon, Loader2, Pause, Play, Type } from "lucide-react";
+import { Coins, Eye, ImageIcon, Loader2, Pause, Play, Type } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useRef, useState } from "react";
@@ -20,6 +20,8 @@ import {
   Field,
   FormPage,
   FormSection,
+  MoreOptions,
+  OptionGroup,
   OptionList,
   SwitchRow,
 } from "@bandcoin/ui/patterns/form-page";
@@ -377,42 +379,6 @@ export function SongForm({
         )}
       </FormSection>
 
-      <FormSection
-        title="Album"
-        icon={Disc3}
-        description="Optional. Songs without an album are singles."
-      >
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="Album" htmlFor="song-album">
-            <Select value={albumId} onValueChange={setAlbumId}>
-              <SelectTrigger id="song-album" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NO_ALBUM}>No album (a single)</SelectItem>
-                {albums.data?.map((album) => (
-                  <SelectItem key={album.id} value={album.id}>
-                    {album.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-          <Field label="Track number" htmlFor="song-track">
-            <Input
-              id="song-track"
-              inputMode="numeric"
-              value={trackNumber}
-              disabled={albumId === NO_ALBUM}
-              className="max-w-28"
-              onChange={(event) =>
-                setTrackNumber(event.target.value.replace(/\D/g, "").slice(0, 3))
-              }
-            />
-          </Field>
-        </div>
-      </FormSection>
-
       <FormSection title="Price and copies" icon={Coins}>
         <PriceFields
           bandcoin={priceBandcoin}
@@ -447,6 +413,45 @@ export function SongForm({
               )}
             </div>
           </Field>
+        </div>
+      </FormSection>
+
+      <MoreOptions
+        hint="Album, track number and the song's code on Stellar"
+        open={Boolean(codeProblem)}
+      >
+        <OptionGroup title="Album (leave empty for a single)">
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="Album" htmlFor="song-album">
+              <Select value={albumId} onValueChange={setAlbumId}>
+                <SelectTrigger id="song-album" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_ALBUM}>No album (a single)</SelectItem>
+                  {albums.data?.map((album) => (
+                    <SelectItem key={album.id} value={album.id}>
+                      {album.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label="Track number" htmlFor="song-track">
+              <Input
+                id="song-track"
+                inputMode="numeric"
+                value={trackNumber}
+                disabled={albumId === NO_ALBUM}
+                className="max-w-28"
+                onChange={(event) =>
+                  setTrackNumber(event.target.value.replace(/\D/g, "").slice(0, 3))
+                }
+              />
+            </Field>
+          </div>
+        </OptionGroup>
+        <OptionGroup title="Token">
           <Field
             label="Asset code"
             htmlFor="song-code"
@@ -471,8 +476,8 @@ export function SongForm({
               }}
             />
           </Field>
-        </div>
-      </FormSection>
+        </OptionGroup>
+      </MoreOptions>
 
       <FormSection title="Visibility" icon={Eye}>
         <OptionList>

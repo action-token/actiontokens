@@ -20,6 +20,7 @@ import {
   Field,
   FormPage,
   FormSection,
+  MoreOptions,
   OptionList,
   SwitchRow,
 } from "@bandcoin/ui/patterns/form-page";
@@ -319,31 +320,6 @@ export function ItemForm({ existing }: { existing?: Existing }) {
         )}
 
         <FormSection title="The item" icon={Type}>
-          {!editing && (
-            <Field label="What kind of token?" htmlFor="item-chain">
-              <div className="flex flex-wrap gap-2" id="item-chain">
-                <Toggle pressed={!nft} onClick={() => setNft(false)}>
-                  Classic token
-                </Toggle>
-                <Toggle
-                  pressed={nft}
-                  onClick={() => {
-                    setNft(true);
-                    setLimited(true);
-                    if (type === "ROYALTY") setType("IMAGE");
-                  }}
-                >
-                  Contract NFT
-                </Toggle>
-              </div>
-              <Note>
-                {nft
-                  ? "Numbered copies on a Soroban contract, with a royalty on every resale. Saved as a draft, then registered for a small network fee."
-                  : "A simple Stellar token under your own account. Free to create, and you can publish it right away."}
-              </Note>
-            </Field>
-          )}
-
           <Field
             label="What are you selling?"
             htmlFor="item-type"
@@ -512,7 +488,40 @@ export function ItemForm({ existing }: { existing?: Existing }) {
                 )}
               </div>
             </Field>
+          </div>
+        </FormSection>
 
+        <MoreOptions
+          title="Token settings"
+          hint="The token type and its code on Stellar. The defaults suit most items."
+          open={Boolean(problems.code) || !resaleOk}
+        >
+          {!editing && (
+            <Field label="What kind of token?" htmlFor="item-chain">
+              <div className="flex flex-wrap gap-2" id="item-chain">
+                <Toggle pressed={!nft} onClick={() => setNft(false)}>
+                  Classic token
+                </Toggle>
+                <Toggle
+                  pressed={nft}
+                  onClick={() => {
+                    setNft(true);
+                    setLimited(true);
+                    if (type === "ROYALTY") setType("IMAGE");
+                  }}
+                >
+                  Contract NFT
+                </Toggle>
+              </div>
+              <Note>
+                {nft
+                  ? "Numbered copies on a Soroban contract, with a royalty on every resale. Saved as a draft, then registered for a small network fee."
+                  : "A simple Stellar token under your own account. Free to create, and you can publish it right away."}
+              </Note>
+            </Field>
+          )}
+
+          <div className="grid gap-5 sm:grid-cols-2">
             {nft ? (
               <Field
                 label="Royalty on resales (%)"
@@ -555,7 +564,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
               </Field>
             )}
           </div>
-        </FormSection>
+        </MoreOptions>
 
         <FormSection title="Visibility" icon={Eye}>
           {nft ? (

@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  CalendarClock,
-  Layers,
-  Loader2,
-  MapPin,
-  Settings2,
-  Sparkles,
-  Tag,
-  Users,
-} from "lucide-react";
+import { CalendarClock, Layers, Loader2, MapPin, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { type FormEvent, useState } from "react";
@@ -30,6 +21,8 @@ import {
   Field,
   FormPage,
   FormSection,
+  MoreOptions,
+  OptionGroup,
   OptionList,
   SwitchRow,
 } from "@bandcoin/ui/patterns/form-page";
@@ -217,9 +210,8 @@ export function PinForm({ existing }: { existing?: Existing }) {
   return (
     <FormPage
       title={existing ? existing.title : "New pin"}
-      eyebrow="Fans"
-      description="A reward drop on the map that fans collect when they're nearby. Pins are free and go live as soon as you save."
-      back={{ href: "/pins", label: "Pins" }}
+      description="A reward on the map that fans collect when they're nearby. Free, and live as soon as you save."
+      back={{ href: "/pins", label: "Map & pins" }}
       onSubmit={submit}
       actions={actions}
       aside={
@@ -252,37 +244,45 @@ export function PinForm({ existing }: { existing?: Existing }) {
               }
               onPlace={setPlace}
             />
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-              <Field
-                label="Spread (metres)"
-                htmlFor="pin-radius"
-                hint="How far from the centre the spots may land. 0 puts them all on the pin."
-              >
-                <Input
-                  id="pin-radius"
-                  inputMode="numeric"
-                  value={radius}
-                  disabled={editing}
-                  onChange={(event) => setRadius(event.target.value.replace(/\D/g, "").slice(0, 4))}
-                />
-              </Field>
-              {!editing && (
+            <MoreOptions
+              title="Spots"
+              hint={`${spots} ${spots === 1 ? "spot" : "spots"} within ${radiusMeters} m`}
+              className="rounded-lg border p-3 [&_.display]:text-base"
+            >
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
                 <Field
-                  label="Number of spots"
-                  htmlFor="pin-spots"
-                  hint="Up to 100. Each is a place fans can collect it."
+                  label="Spread (metres)"
+                  htmlFor="pin-radius"
+                  hint="How far from the centre the spots may land. 0 puts them all on the pin."
                 >
                   <Input
-                    id="pin-spots"
+                    id="pin-radius"
                     inputMode="numeric"
-                    value={spotCount}
+                    value={radius}
+                    disabled={editing}
                     onChange={(event) =>
-                      setSpotCount(event.target.value.replace(/\D/g, "").slice(0, 3))
+                      setRadius(event.target.value.replace(/\D/g, "").slice(0, 4))
                     }
                   />
                 </Field>
-              )}
-            </div>
+                {!editing && (
+                  <Field
+                    label="Number of spots"
+                    htmlFor="pin-spots"
+                    hint="Up to 100. Each is a place fans can collect it."
+                  >
+                    <Input
+                      id="pin-spots"
+                      inputMode="numeric"
+                      value={spotCount}
+                      onChange={(event) =>
+                        setSpotCount(event.target.value.replace(/\D/g, "").slice(0, 3))
+                      }
+                    />
+                  </Field>
+                )}
+              </div>
+            </MoreOptions>
           </FormSection>
           <PinSummary
             title={title}
@@ -362,32 +362,6 @@ export function PinForm({ existing }: { existing?: Existing }) {
         />
       )}
 
-      <FormSection title="How fans collect it" icon={Settings2}>
-        <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Collection mode">
-          {(
-            [
-              [false, "Tap to collect", "Fans tap to collect when they're in range."],
-              [true, "Auto collect", "Collected automatically when fans walk into the area."],
-            ] as const
-          ).map(([auto, label, text]) => (
-            <button
-              key={label}
-              type="button"
-              role="radio"
-              aria-checked={autoCollect === auto}
-              onClick={() => setAutoCollect(auto)}
-              className={cn(
-                "rounded-lg border p-3 text-left transition-colors",
-                autoCollect === auto ? "border-primary bg-primary-soft" : "hover:bg-surface-2",
-              )}
-            >
-              <span className="block text-sm font-semibold">{label}</span>
-              <span className="text-fg-muted mt-0.5 block text-xs">{text}</span>
-            </button>
-          ))}
-        </div>
-      </FormSection>
-
       <FormSection title="Details" icon={Sparkles}>
         <Field
           label="Title"
@@ -435,31 +409,6 @@ export function PinForm({ existing }: { existing?: Existing }) {
             onChange={(event) => setDescription(event.target.value)}
           />
         </Field>
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="Pin type" htmlFor="pin-type">
-            <Select value={type} onValueChange={(value) => setType(value as PinTypeName)}>
-              <SelectTrigger id="pin-type" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {PIN_TYPES.map((entry) => (
-                  <SelectItem key={entry.value} value={entry.value}>
-                    {entry.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-          <Field label="Link" htmlFor="pin-link" hint="Optional. Where the pin sends fans.">
-            <Input
-              id="pin-link"
-              type="url"
-              placeholder="https://example.com"
-              value={link}
-              onChange={(event) => setLink(event.target.value.trim())}
-            />
-          </Field>
-        </div>
         <Field label="Cover image" hint="Optional. Shown on the map and the pin card.">
           <FileField id="pin-cover" accept="image/*" preview value={cover} onChange={setCover} />
           <AiImagePanel
@@ -469,31 +418,12 @@ export function PinForm({ existing }: { existing?: Existing }) {
             onImage={(url) => setCover(asCover(url))}
           />
         </Field>
-        <Field
-          label="Linked event"
-          htmlFor="pin-event"
-          hint="Optional. Show this pin on one of your events."
-        >
-          <Select value={eventId} onValueChange={setEventId}>
-            <SelectTrigger id="pin-event" className="w-full sm:max-w-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={NO_EVENT}>None</SelectItem>
-              {options.data?.events.map((event) => (
-                <SelectItem key={event.id} value={event.id}>
-                  {event.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
       </FormSection>
 
       <FormSection
-        title="Collection & tier"
+        title="Who can collect it"
         icon={Users}
-        description="Who can collect it, how many, and what they get."
+        description="How many fans, and what they get."
       >
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Open to" htmlFor="pin-who">
@@ -583,27 +513,96 @@ export function PinForm({ existing }: { existing?: Existing }) {
         </div>
       </FormSection>
 
-      <FormSection
-        title="Tags & options"
-        icon={Tag}
-        description="Tags help fans find it when they search the map."
-      >
-        <PinTagsField
-          tags={tags}
-          onChange={setTags}
-          known={options.data?.tags ?? []}
-          brief={{ title, description, type, place }}
-        />
-        <OptionList>
-          <SwitchRow
-            icon={Layers}
-            title="Each spot separately"
-            hint="Off: collecting any spot collects the whole pin. On: a fan can collect every spot."
-            checked={isMultiSpot}
-            onChange={setIsMultiSpot}
+      <MoreOptions hint="How fans collect it, pin type, link, event, tags">
+        <OptionGroup title="How fans collect it">
+          <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Collection mode">
+            {(
+              [
+                [false, "Tap to collect", "Fans tap to collect when they're in range."],
+                [true, "Auto collect", "Collected automatically when fans walk into the area."],
+              ] as const
+            ).map(([auto, label, text]) => (
+              <button
+                key={label}
+                type="button"
+                role="radio"
+                aria-checked={autoCollect === auto}
+                onClick={() => setAutoCollect(auto)}
+                className={cn(
+                  "rounded-lg border p-3 text-left transition-colors",
+                  autoCollect === auto ? "border-primary bg-primary-soft" : "hover:bg-surface-2",
+                )}
+              >
+                <span className="block text-sm font-semibold">{label}</span>
+                <span className="text-fg-muted mt-0.5 block text-xs">{text}</span>
+              </button>
+            ))}
+          </div>
+        </OptionGroup>
+        <OptionGroup title="Type, link and event">
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="Pin type" htmlFor="pin-type">
+              <Select value={type} onValueChange={(value) => setType(value as PinTypeName)}>
+                <SelectTrigger id="pin-type" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PIN_TYPES.map((entry) => (
+                    <SelectItem key={entry.value} value={entry.value}>
+                      {entry.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label="Link" htmlFor="pin-link" hint="Optional. Where the pin sends fans.">
+              <Input
+                id="pin-link"
+                type="url"
+                placeholder="https://example.com"
+                value={link}
+                onChange={(event) => setLink(event.target.value.trim())}
+              />
+            </Field>
+          </div>
+          <Field
+            label="Linked event"
+            htmlFor="pin-event"
+            hint="Optional. Show this pin on one of your events."
+          >
+            <Select value={eventId} onValueChange={setEventId}>
+              <SelectTrigger id="pin-event" className="w-full sm:max-w-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_EVENT}>None</SelectItem>
+                {options.data?.events.map((event) => (
+                  <SelectItem key={event.id} value={event.id}>
+                    {event.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+        </OptionGroup>
+        <OptionGroup title="Tags">
+          <PinTagsField
+            tags={tags}
+            onChange={setTags}
+            known={options.data?.tags ?? []}
+            brief={{ title, description, type, place }}
           />
-        </OptionList>
-      </FormSection>
+          <OptionList>
+            <SwitchRow
+              icon={Layers}
+              title="Each spot separately"
+              hint="Off: collecting any spot collects the whole pin. On: a fan can collect every spot."
+              checked={isMultiSpot}
+              onChange={setIsMultiSpot}
+            />
+          </OptionList>
+        </OptionGroup>
+      </MoreOptions>
     </FormPage>
   );
 }
