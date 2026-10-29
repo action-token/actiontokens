@@ -27,6 +27,7 @@
     "@trpc/react-query": "catalog:",
     "@trpc/server": "catalog:",
     "lucide-react": "catalog:",
+    "date-fns": "catalog:",
     "mapbox-gl": "catalog:",
     "qrcode": "catalog:",
     "next": "catalog:",

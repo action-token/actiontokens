@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Eye, EyeOff, MapPin, MoreHorizontal, Pencil, Plus, Printer, Search, Trash2, Download } from "lucide-react";
+import { BarChart3, ChevronDown, Eye, EyeOff, MapPin, MoreHorizontal, Pencil, Plus, Printer, Search, Trash2, Download } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -290,6 +290,11 @@ function PinRow({ pin, selected, onSelect, ask, onHide, onDelete, onChanged }: {
             <DropdownMenuItem asChild>
               <Link href={`/pins/${pin.id}`}>
                 <Pencil /> Edit
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href={`/reports/${pin.id}`}>
+                <BarChart3 /> Report
               </Link>
             </DropdownMenuItem>
             {!hidden && pin.spots > 0 && (

@@ -137,7 +137,7 @@ async function resolveEvent(ctx: ServiceCtx, artist: ArtistRef, eventId: string 
   return event.id;
 }
 
-const statusOf = (pin: { isHidden: boolean; startsAt: Date; endsAt: Date; claimLimit: number; claimsLeft: number }, now: Date): PinStatus => {
+export const statusOf = (pin: { isHidden: boolean; startsAt: Date; endsAt: Date; claimLimit: number; claimsLeft: number }, now: Date): PinStatus => {
   if (pin.isHidden) return "HIDDEN";
   if (pin.endsAt < now) return "ENDED";
   if (pin.startsAt > now) return "SCHEDULED";
