@@ -92,3 +92,15 @@ describe("reactions", () => {
     await expect(setup(null).caller.reaction.setLike({ itemId: "i1", on: true })).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });
+
+describe("collection.favorites", () => {
+  it("lists your favourite songs, newest first, as song rows", async () => {
+    const { db, caller } = setup();
+    const row = {
+      item: { id: "i2", slug: "night-drive", title: "Night Drive", type: "TRACK", coverUrl: "c", supply: null, playCount: 12, createdAt: new Date(), artist: { name: "Lumen Avenue", slug: "lumen" }, track: null, media: { mediaType: "AUDIO", durationSec: 211 }, listings: [] },
+    };
+    db.trackFavorite.findMany.mockResolvedValue([row]);
+    await expect(caller.collection.favorites()).resolves.toMatchObject([{ id: "i2", title: "Night Drive", playCount: 12, playable: true }]);
+    expect(db.trackFavorite.findMany.mock.calls[0]?.[0]).toMatchObject({ where: { userId: "me", item: { deletedAt: null } }, orderBy: { createdAt: "desc" } });
+  });
+});

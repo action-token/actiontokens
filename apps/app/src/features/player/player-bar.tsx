@@ -8,7 +8,12 @@ import { Button } from "@bandcoin/ui/components/button";
 
 import { api } from "~/trpc/react";
 
+import { ReactionButtons } from "../reactions/reaction-buttons";
 import { currentTrack, usePlayer } from "./player-store";
+
+let session: string | null = null;
+/** One id per browser tab, so plays from the same tab can be told apart from others. */
+const listeningSession = () => (session ??= crypto.randomUUID());
 
 const clock = (seconds: number) => {
   const whole = Math.max(0, Math.floor(seconds));
@@ -34,6 +39,7 @@ export function PlayerBar() {
   api.media.play.useQuery({ itemId: upNext?.id ?? "" }, { enabled: Boolean(upNext), staleTime: 30 * 60_000 });
 
   const source = playback.data?.url;
+  const recordPlay = api.media.recordPlay.useMutation();
 
   useEffect(() => {
     const element = audio.current;
@@ -71,6 +77,12 @@ export function PlayerBar() {
             if (preview && duration && element.currentTime >= duration) {
               element.pause();
               finish();
+            }
+          }}
+          onPlay={(event) => {
+            // A play counts when a song starts from the beginning, not when it resumes from pause.
+            if (event.currentTarget.currentTime < 0.5) {
+              recordPlay.mutate({ itemId: track.id, sessionId: listeningSession(), isPreview: preview });
             }
           }}
           onEnded={finish}
@@ -131,6 +143,7 @@ export function PlayerBar() {
             <Link href={`/item/${track.slug}`}>Own it for the full track</Link>
           </Button>
         )}
+        <ReactionButtons itemId={track.id} showCounts={false} />
         <Button variant="ghost" size="icon-sm" aria-label={muted ? "Unmute" : "Mute"} onClick={() => setMuted((value) => !value)}>
           {muted ? <VolumeX /> : <Volume2 />}
         </Button>

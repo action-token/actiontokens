@@ -4,19 +4,20 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
 
-import { YourSongs } from "../music/music-view";
+import { FavoriteSongs, YourSongs } from "../music/music-view";
 import { CollectionView } from "./collection-view";
 
-/** My collection: everything you own as cards, or your songs as a list to play in full. */
+/** My collection: everything you own as cards, your songs to play in full, and the songs you starred. */
 export function CollectionTabs() {
   const router = useRouter();
   const pathname = usePathname();
-  const tab = useSearchParams().get("tab") === "songs" ? "songs" : "all";
+  const requested = useSearchParams().get("tab");
+  const tab = requested === "songs" || requested === "favorites" ? requested : "all";
 
   return (
     <Tabs
       value={tab}
-      onValueChange={(value) => router.replace(value === "songs" ? `${pathname}?tab=songs` : pathname, { scroll: false })}
+      onValueChange={(value) => router.replace(value === "all" ? pathname : `${pathname}?tab=${value}`, { scroll: false })}
       className="gap-6"
     >
       <TabsList className="w-fit">
@@ -26,12 +27,18 @@ export function CollectionTabs() {
         <TabsTrigger value="songs" className="font-hud">
           Songs
         </TabsTrigger>
+        <TabsTrigger value="favorites" className="font-hud">
+          Favourites
+        </TabsTrigger>
       </TabsList>
       <TabsContent value="all">
         <CollectionView />
       </TabsContent>
       <TabsContent value="songs">
         <YourSongs />
+      </TabsContent>
+      <TabsContent value="favorites">
+        <FavoriteSongs />
       </TabsContent>
     </Tabs>
   );

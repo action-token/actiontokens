@@ -1,6 +1,6 @@
 "use client";
 
-import { ListPlus, Plus } from "lucide-react";
+import { ListPlus, Loader2, Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -41,11 +41,11 @@ export function AddToPlaylist({ itemId, title, variant = "icon", className }: { 
   const trigger =
     variant === "icon" ? (
       <Button variant="ghost" size="icon-sm" aria-label={`Add ${title} to a playlist`} className={className}>
-        <ListPlus />
+        {add.isPending ? <Loader2 className="animate-spin" /> : <ListPlus />}
       </Button>
     ) : (
       <Button variant="secondary" className={cn("rounded-full", className)}>
-        <ListPlus /> Add to playlist
+        {add.isPending ? <Loader2 className="animate-spin" /> : <ListPlus />} {add.isPending ? "Adding…" : "Add to playlist"}
       </Button>
     );
 
@@ -76,7 +76,7 @@ export function AddToPlaylist({ itemId, title, variant = "icon", className }: { 
           {(mine.data?.length ?? 0) > 0 && <DropdownMenuSeparator />}
           {mine.isPending && <DropdownMenuItem disabled>Loading…</DropdownMenuItem>}
           {mine.data?.map((playlist) => (
-            <DropdownMenuItem key={playlist.id} onSelect={() => add.mutate({ playlistId: playlist.id, itemId })}>
+            <DropdownMenuItem key={playlist.id} disabled={add.isPending} onSelect={() => add.mutate({ playlistId: playlist.id, itemId })}>
               <span className="truncate">{playlist.name}</span>
               <span className="text-fg-faint ml-auto text-xs">{playlist.trackCount}</span>
             </DropdownMenuItem>

@@ -9,6 +9,8 @@ import { PageBody } from "@bandcoin/ui/patterns/page-header";
 
 import { Money } from "~/components/money";
 import { ItemPurchase } from "~/features/buy/item-purchase";
+import { ReactionButtons } from "~/features/reactions/reaction-buttons";
+import { playsLabel } from "~/lib/format";
 import { ItemCard } from "~/features/catalog/item-card";
 import { PlayButton } from "~/features/player/play-button";
 import { AddToPlaylist } from "~/features/playlist/add-to-playlist";
@@ -245,14 +247,20 @@ export default async function ItemPage({ params }: Props) {
                   </Sticker>
                 )}
               </div>
-              {item.media?.mediaType === "AUDIO" && (
-                <AddToPlaylist
-                  itemId={item.id}
-                  title={item.title}
-                  variant="button"
-                  className="w-fit bg-white/15 text-white hover:bg-white/25"
-                />
-              )}
+              <div className="flex flex-wrap items-center gap-3">
+                {item.media?.mediaType === "AUDIO" && (
+                  <AddToPlaylist
+                    itemId={item.id}
+                    title={item.title}
+                    variant="button"
+                    className="w-fit bg-white/15 text-white hover:bg-white/25"
+                  />
+                )}
+                <ReactionButtons itemId={item.id} tone="onDark" className="rounded-full bg-white/10 p-0.5" />
+                {item.media?.mediaType === "AUDIO" && (
+                  <span className="num text-sm text-white/70">{playsLabel(item.playCount)}</span>
+                )}
+              </div>
             </div>
 
             <div className="mx-auto w-full max-w-[22rem]">

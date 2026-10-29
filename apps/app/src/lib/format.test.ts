@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { timeAgo } from "./format";
+import { playsLabel, timeAgo } from "./format";
 
 describe("timeAgo", () => {
   const now = Date.parse("2026-10-29T12:00:00Z");
@@ -13,5 +13,13 @@ describe("timeAgo", () => {
     expect(timeAgo(new Date(now - 3 * 60_000), now)).toBe("3 minutes ago");
     expect(timeAgo(new Date(now - 26 * 3_600_000), now)).toBe("yesterday");
     expect(timeAgo(new Date(now - 40 * 86_400_000), now)).toBe("last month");
+  });
+});
+
+describe("playsLabel", () => {
+  it("reads naturally", () => {
+    expect(playsLabel(0)).toBe("0 plays");
+    expect(playsLabel(1)).toBe("1 play");
+    expect(playsLabel(1204)).toBe("1,204 plays");
   });
 });

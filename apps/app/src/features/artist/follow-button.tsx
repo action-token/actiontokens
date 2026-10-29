@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
@@ -35,6 +36,7 @@ export function FollowButton({
       disabled={mutation.isPending}
       onClick={() => (status === "authenticated" ? mutation.mutate({ slug, following: !following }) : openSignIn(true))}
     >
+      {mutation.isPending && <Loader2 className="animate-spin" />}
       {following ? "Following" : "Follow"}
     </Button>
   );

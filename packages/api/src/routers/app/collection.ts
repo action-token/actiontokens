@@ -40,4 +40,15 @@ export const collectionRouter = createRouter({
         })),
       };
     }),
+
+  /** Songs you saved as favourites (private), newest first. */
+  favorites: authedProcedure.query(async ({ ctx }) => {
+    const rows = await ctx.db.trackFavorite.findMany({
+      where: { userId: ctx.session.user.id, item: { deletedAt: null } },
+      orderBy: { createdAt: "desc" },
+      take: 500,
+      select: { item: { select: itemCardSelect } },
+    });
+    return rows.map((row) => toItemCard(row.item));
+  }),
 });

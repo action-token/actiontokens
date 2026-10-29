@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, Check, Copy, ImagePlus, Settings, X } from "lucide-react";
+import { Camera, Check, Copy, ImagePlus, Loader2, Settings, X } from "lucide-react";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import { type ReactNode, useRef, useState } from "react";
@@ -307,6 +307,7 @@ function ConnectedAccounts({ settings }: { settings: Settings }) {
         </div>
         {settings.lastFm ? (
           <Button variant="secondary" disabled={disconnect.isPending} onClick={() => disconnect.mutate()}>
+            {disconnect.isPending && <Loader2 className="animate-spin" />}
             Disconnect
           </Button>
         ) : (

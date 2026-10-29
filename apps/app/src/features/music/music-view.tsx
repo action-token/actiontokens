@@ -1,6 +1,6 @@
 "use client";
 
-import { ListMusic, Play } from "lucide-react";
+import { ListMusic, Play, Star } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
@@ -108,6 +108,37 @@ export function YourSongs() {
         loading={mine.isPending}
         badgeOf={(track) => ((track as (typeof tracks)[number]).source === "created" ? "Yours" : "Owned")}
       />
+    </section>
+  );
+}
+
+/** Songs you starred: private, any song (owned or not), with Play all. */
+export function FavoriteSongs() {
+  const { status } = useSession();
+  const openSignIn = useConnectWalletDialogStore((state) => state.setIsOpen);
+  const favorites = api.collection.favorites.useQuery(undefined, { enabled: status === "authenticated" });
+  const playQueue = usePlayer((state) => state.playQueue);
+
+  if (status === "unauthenticated") {
+    return (
+      <EmptyState
+        icon={Star}
+        title="Sign in to see your favourites"
+        description="Star a song anywhere and it lands here."
+        action={<Button onClick={() => openSignIn(true)}>Sign in</Button>}
+      />
+    );
+  }
+  const tracks = favorites.data ?? [];
+  if (favorites.isSuccess && tracks.length === 0) {
+    return <EmptyState icon={Star} title="No favourites yet" description="Tap the star on any song and it shows up here. Only you can see this list." />;
+  }
+  return (
+    <section className="grid gap-3" aria-label="Favourites">
+      <Button className="justify-self-start" disabled={tracks.length === 0} onClick={() => playQueue(tracks)}>
+        <Play className="fill-current" /> Play all
+      </Button>
+      <TrackList tracks={tracks} loading={favorites.isPending} />
     </section>
   );
 }
