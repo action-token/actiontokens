@@ -29,6 +29,7 @@
     "next-auth": "catalog:",
     "next-themes": "catalog:",
     "react": "catalog:",
+    "react-hot-toast": "catalog:",
     "react-dom": "catalog:",
     "superjson": "catalog:",
     "zod": "catalog:"

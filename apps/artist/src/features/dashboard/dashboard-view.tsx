@@ -1,7 +1,6 @@
 "use client";
 
-import { Ban, BadgeCheck, Hourglass, Mic2, Rocket } from "lucide-react";
-import Link from "next/link";
+import { Ban, BadgeCheck, Hourglass, Mic2 } from "lucide-react";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
@@ -10,6 +9,9 @@ import { ErrorState } from "@bandcoin/ui/patterns/error-state";
 import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
 import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
+import { ApplyForm } from "~/features/onboarding/apply-form";
+import { OpenIssuer } from "~/features/onboarding/open-issuer";
+import { OnboardingProgress } from "~/features/onboarding/progress";
 import { usePortal } from "~/features/portal/use-portal";
 
 /** The portal's home. What it shows depends on how far this person is (see portal.status). */
@@ -42,44 +44,38 @@ export function DashboardView() {
   switch (portal.step) {
     case null:
       return (
-        <PageBody>
-          <PageHeader eyebrow="Artists" title="Become an artist" description="Open your own issuer on Stellar so every song and collectible you release is yours." />
-          <div className="mt-8">
-            <EmptyState
-              icon={Rocket}
-              title="Start your application"
-              description="Pick your artist name, then pay a one-time 1.5 XLM to open your issuer account. An admin reviews it after that."
-              action={
-                <Button asChild>
-                  <Link href="/apply">Apply</Link>
-                </Button>
-              }
-            />
-          </div>
+        <PageBody className="grid gap-6">
+          <PageHeader eyebrow="Artists" title="Become an artist" description="Tell us who you are, open your own account on Stellar, and an admin reviews your page." />
+          <OnboardingProgress step={null} />
+          <ApplyForm />
+        </PageBody>
+      );
+    case "REJECTED":
+      return (
+        <PageBody className="grid gap-6">
+          <PageHeader eyebrow={portal.artist?.name} title="Your application wasn't approved" description="Your 1.5 XLM was returned to your wallet. Update your details and apply again." />
+          <OnboardingProgress step="REJECTED" />
+          {portal.artist?.rejectionReason && (
+            <div role="note" className="bg-danger-soft max-w-xl rounded-md p-3 text-[13px]">
+              <b>Why:</b> {portal.artist.rejectionReason}
+            </div>
+          )}
+          <ApplyForm initial={{ name: portal.artist?.name ?? "", slug: portal.artist?.slug ?? "", bio: null }} />
         </PageBody>
       );
     case "OPEN_ISSUER":
       return (
-        <PageBody>
-          <PageHeader eyebrow={portal.artist?.name} title="Open your issuer" description="One payment of 1.5 XLM opens the Stellar account your music is issued from." />
-          <div className="mt-8">
-            <EmptyState
-              icon={Rocket}
-              title="Last step before review"
-              description="You see the exact price before you pay."
-              action={
-                <Button asChild>
-                  <Link href="/apply">Continue</Link>
-                </Button>
-              }
-            />
-          </div>
+        <PageBody className="grid gap-6">
+          <PageHeader eyebrow={portal.artist?.name} title="Open your artist account" description="One payment opens the Stellar account your music is issued from." />
+          <OnboardingProgress step="OPEN_ISSUER" />
+          <OpenIssuer />
         </PageBody>
       );
     case "WAITING_FOR_APPROVAL":
       return (
         <PageBody>
-          <PageHeader eyebrow={portal.artist?.name} title="Waiting for approval" description="Your issuer is open. An admin is reviewing your page." />
+          <PageHeader eyebrow={portal.artist?.name} title="Waiting for approval" description="Your artist account is open. An admin is reviewing your page." />
+          <div className="mt-4"><OnboardingProgress step="WAITING_FOR_APPROVAL" /></div>
           <div className="mt-8">
             <EmptyState icon={Hourglass} title="You're in the queue" description="Nothing else to do. Your tools unlock here as soon as you're approved." />
           </div>

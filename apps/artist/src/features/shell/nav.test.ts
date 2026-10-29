@@ -18,6 +18,10 @@ describe("portal navigation", () => {
     expect(labels({ signedIn: true, step: "WAITING_FOR_APPROVAL", isAdmin: false })).toEqual(["Get started"]);
   });
 
+  it("sends a rejected applicant back to the form", () => {
+    expect(labels({ signedIn: true, step: "REJECTED", isAdmin: false })).toEqual(["Apply again"]);
+  });
+
   it("opens the artist tools once approved", () => {
     expect(labels({ signedIn: true, step: "READY", isAdmin: false })).toEqual(["Dashboard"]);
   });
