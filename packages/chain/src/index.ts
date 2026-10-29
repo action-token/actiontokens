@@ -12,3 +12,4 @@ export * from "./payments/platform-payment";
 export * from "./royalty/payout";
 export * from "./nft/calls";
 export * from "./escrow/calls";
+export * from "./recharge";
