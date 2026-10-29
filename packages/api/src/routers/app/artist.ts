@@ -3,12 +3,18 @@ import { z } from "zod";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import { draftDesign, publishedDesign } from "../../services/artist/page";
+import { resolveVanity } from "../../services/artist/vanity";
 import { itemCardSelect, listedItemWhere, toItemCard } from "../../services/catalog/item-card";
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 
 const slugInput = z.object({ slug: z.string().min(1).max(120) });
 
 export const artistRouter = createRouter({
+  /** Who answers at bandcoin.io/name: the artist's slug, and whether the link still works or only redirects. */
+  byVanity: publicProcedure
+    .input(z.object({ name: z.string().min(1).max(60) }))
+    .query(({ ctx, input }) => resolveVanity(ctx, input.name)),
+
   /**
    * An artist's page: profile, follower count, whether you follow them,
    * popular songs, albums, everything for sale and live bounties.

@@ -14,6 +14,7 @@ import { pinsRouter } from "./routers/artist/pins";
 import { redeemRouter } from "./routers/artist/redeem";
 import { postsRouter } from "./routers/artist/posts";
 import { reportsRouter } from "./routers/artist/reports";
+import { vanityRouter } from "./routers/artist/vanity";
 import { portalStatusRouter } from "./routers/artist/portal";
 import { createRouter } from "./trpc";
 
@@ -36,6 +37,7 @@ export const portalRouter = createRouter({
   gifts: giftsRouter,
   reports: reportsRouter,
   redeem: redeemRouter,
+  vanity: vanityRouter,
 });
 
 export type PortalRouter = typeof portalRouter;

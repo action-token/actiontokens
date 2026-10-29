@@ -8,6 +8,7 @@
     "./address": "./src/address.ts",
     "./string": "./src/string.ts",
     "./slug": "./src/slug.ts",
+    "./vanity": "./src/vanity.ts",
     "./asset-code": "./src/asset-code.ts",
     "./preview": "./src/preview.ts",
     "./ipfs": "./src/ipfs.ts",

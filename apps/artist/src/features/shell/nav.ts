@@ -8,6 +8,7 @@ import {
   Frame,
   Gift,
   LayoutTemplate,
+  Link2,
   ListChecks,
   Map,
   MapPin,
@@ -74,6 +75,7 @@ const READY_TOOLS: NavGroup[] = [
     title: "Content",
     items: [
       { href: "/page", icon: LayoutTemplate, label: "My page" },
+      { href: "/domain", icon: Link2, label: "Domain" },
       { href: "/posts", icon: FileText, label: "Posts" },
       { href: "/announcements", icon: Megaphone, label: "Announcements" },
       { href: "/bounties", icon: Trophy, label: "Bounties", tab: true },
