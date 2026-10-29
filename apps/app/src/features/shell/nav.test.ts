@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { GROUPS, isActive } from "./nav";
+import { artistEntry, GROUPS, isActive } from "./nav";
 
 const item = (label: string) => GROUPS.flatMap((group) => group.items).find((entry) => entry.label === label)!;
 
@@ -22,6 +22,21 @@ describe("sidebar", () => {
     expect(isActive(item("Home"), "/marketplace", null)).toBe(false);
     expect(isActive(item("Bounties"), "/bounty/abc", null)).toBe(true);
     expect(isActive(item("Playlists"), "/playlist/p1", null)).toBe(true);
-    expect(isActive(item("AR pins"), "/", null)).toBe(false);
+  });
+
+  it("keeps AR and the artist portal out of the link list: they are launch tiles", () => {
+    expect(GROUPS[0]!.items.map((entry) => entry.label)).toEqual(["Home", "Marketplace", "Bounties"]);
+  });
+});
+
+describe("artistEntry", () => {
+  it("invites a fan to become an artist", () => {
+    expect(artistEntry(null)).toMatchObject({ title: "Become an artist", hint: "Open your page" });
+  });
+
+  it("follows the application: in review, ready, and banned", () => {
+    expect(artistEntry({ name: "Luna Vale", status: "PENDING" })).toMatchObject({ title: "Artist portal", hint: "In review" });
+    expect(artistEntry({ name: "Luna Vale", status: "APPROVED" })).toMatchObject({ title: "Artist portal", hint: "Luna Vale" });
+    expect(artistEntry({ name: "Luna Vale", status: "BANNED" })).toMatchObject({ title: "Artist portal", hint: "Account status" });
   });
 });

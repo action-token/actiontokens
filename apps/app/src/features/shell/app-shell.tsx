@@ -3,17 +3,20 @@
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { type FormEvent, type ReactNode, useState } from "react";
+import { type CSSProperties, type FormEvent, type ReactNode, useEffect, useState } from "react";
 
 import { cn } from "@bandcoin/ui/lib/cn";
 import { BrandMark } from "@bandcoin/ui/patterns/boot-screen";
 
 import { AccountButton } from "~/features/account/account-button";
 import { PlayerBar } from "~/features/player/player-bar";
+import { usePlayer } from "~/features/player/player-store";
 
 import { ContextPanel } from "./context-panel";
 import { isActive, MOBILE_TABS } from "./nav";
+import { usePanelWidths } from "./panel-widths";
 import { hasContextPanel } from "./panel-rule";
+import { ResizeHandle } from "./resize-handle";
 import { Sidebar } from "./sidebar";
 
 /**
@@ -23,13 +26,18 @@ import { Sidebar } from "./sidebar";
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const panel = hasContextPanel(pathname);
+  const hasTrack = usePlayer((state) => state.queue.length > 0);
+  const panel = hasContextPanel(pathname, hasTrack);
+  const { widths, load } = usePanelWidths();
+  // Saved widths are read after the first render, so the server and the browser agree.
+  useEffect(load, [load]);
 
   return (
     <div
+      style={{ "--panel-left": `${widths.left}px`, "--panel-right": `${widths.right}px` } as CSSProperties}
       className={cn(
         "grid min-h-dvh grid-cols-1 sm:grid-cols-[72px_minmax(0,1fr)]",
-        panel ? "xl:grid-cols-[220px_minmax(0,1fr)_288px]" : "xl:grid-cols-[220px_minmax(0,1fr)]",
+        panel ? "xl:grid-cols-[var(--panel-left)_minmax(0,1fr)_var(--panel-right)]" : "xl:grid-cols-[var(--panel-left)_minmax(0,1fr)]",
       )}
     >
       <Sidebar />
@@ -47,17 +55,20 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {panel && (
         <aside
-          aria-label="For this page"
-          className="bg-surface sticky top-0 hidden h-dvh overflow-y-auto border-l p-4 xl:block"
+          aria-label="Now playing"
+          className="bg-surface sticky top-0 hidden h-dvh border-l xl:block"
         >
-          <ContextPanel />
+          <ResizeHandle side="right" label="Resize the now playing panel" />
+          <div className="h-full overflow-y-auto p-4">
+            <ContextPanel />
+          </div>
         </aside>
       )}
 
       <div
         className={cn(
-          "fixed inset-x-0 bottom-0 z-40 sm:left-[72px] xl:left-[220px]",
-          panel && "xl:right-[288px]",
+          "fixed inset-x-0 bottom-0 z-40 sm:left-[72px] xl:left-[var(--panel-left)]",
+          panel && "xl:right-[var(--panel-right)]",
         )}
       >
         <PlayerBar />

@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
 
+import { Money } from "~/components/money";
 import { api } from "~/trpc/react";
 
 import { ReactionButtons } from "../reactions/reaction-buttons";
@@ -62,7 +63,7 @@ export function PlayerBar() {
     <div
       role="region"
       aria-label="Player"
-      className="bg-surface/95 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-t px-4 py-2.5 backdrop-blur sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)]"
+      className="bg-surface/95 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-t px-4 py-2.5 backdrop-blur sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_auto]"
     >
       {source && (
         <audio
@@ -137,13 +138,18 @@ export function PlayerBar() {
         </div>
       </div>
 
-      <div className="hidden items-center justify-end gap-2 sm:flex">
-        {(preview || previewEnded) && (
-          <Button asChild size="sm" variant="secondary">
-            <Link href={`/item/${track.slug}`}>Own it for the full track</Link>
-          </Button>
-        )}
+      {/* Sized to its content, so the song and the seek bar shrink instead of the buttons spilling out */}
+      <div className="hidden items-center justify-end gap-1.5 sm:flex">
         <ReactionButtons itemId={track.id} showCounts={false} />
+        {(preview || previewEnded) && (
+          <Link
+            href={`/item/${track.slug}#buy`}
+            className="bg-primary text-primary-foreground border-fg ml-1 flex h-9 items-center gap-1.5 rounded-full border-2 px-3.5 text-sm font-bold whitespace-nowrap shadow-[2px_3px_0_0_var(--color-fg)] transition-transform hover:-translate-y-0.5"
+          >
+            Buy
+            {track.price && <Money amount={track.price.bandcoin} currency="BANDCOIN" short className="font-bold" onBrand />}
+          </Link>
+        )}
         <Button variant="ghost" size="icon-sm" aria-label={muted ? "Unmute" : "Mute"} onClick={() => setMuted((value) => !value)}>
           {muted ? <VolumeX /> : <Volume2 />}
         </Button>

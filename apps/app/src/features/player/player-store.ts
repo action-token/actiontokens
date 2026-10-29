@@ -8,6 +8,8 @@ export type QueueTrack = {
   title: string;
   artistName: string;
   coverUrl: string;
+  /** Shown on the player's Buy button when the list the song came from knows it */
+  price?: { bandcoin: string; usd: string } | null;
 };
 
 type PlayerState = {

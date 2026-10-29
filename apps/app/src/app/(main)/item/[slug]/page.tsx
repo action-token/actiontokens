@@ -299,7 +299,7 @@ export default async function ItemPage({ params }: Props) {
       </section>
 
       <PageBody wide className="grid gap-8">
-        <section className="border-fg bg-surface rounded-[1.6rem] border-[3px] p-5 shadow-[8px_9px_0_0_var(--color-primary)] sm:p-7">
+        <section id="buy" className="border-fg bg-surface scroll-mt-24 rounded-[1.6rem] border-[3px] p-5 shadow-[8px_9px_0_0_var(--color-primary)] sm:p-7">
           <ItemPurchase itemTitle={item.title} listings={item.listings} />
         </section>
 

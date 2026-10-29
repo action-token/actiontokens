@@ -1,27 +1,14 @@
 "use client";
 
-import { Trophy } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-
-import { Money } from "~/components/money";
-import { api } from "~/trpc/react";
 
 import { currentTrack, usePlayer } from "../player/player-store";
 
-/**
- * The right-hand panel on Home and Music: what's playing and up next, then
- * live bounties and top artists on Home.
- */
+/** The right-hand panel on Home while a song is loaded: what's playing and what's next. */
 export function ContextPanel() {
-  const pathname = usePathname();
-
   return (
     <div className="grid content-start gap-7">
       <NowPlaying />
-      {pathname === "/" && <HomeExtras />}
     </div>
   );
 }
@@ -83,63 +70,6 @@ function NowPlaying() {
   );
 }
 
-function HomeExtras() {
-  const home = api.catalog.home.useQuery(undefined, { staleTime: 60_000 });
-  if (home.isPending) return <PanelSkeleton />;
-  if (!home.data) return null;
-  return (
-    <>
-      {home.data.bounties.length > 0 && (
-        <Section title="Live bounties">
-          <ul className="grid gap-2">
-            {home.data.bounties.map((bounty) => (
-              <li key={bounty.id}>
-                <Link
-                  href={`/bounty/${bounty.id}`}
-                  className="bg-surface-2 hover:bg-surface-3 grid gap-1 rounded-md p-3 text-[13px] transition-colors"
-                >
-                  <b className="flex items-center gap-1.5 font-semibold">
-                    <Trophy className="text-primary-text size-3.5 shrink-0" />
-                    <span className="truncate">{bounty.title}</span>
-                  </b>
-                  <span className="text-fg-muted flex items-center justify-between gap-2">
-                    <span className="truncate">{bounty.artist.name}</span>
-                    <Money
-                      amount={bounty.prize.amount}
-                      currency={bounty.prize.currency}
-                      className="text-fg shrink-0"
-                    />
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </Section>
-      )}
-      <Section title="Top artists">
-        <ul className="grid gap-1">
-          {home.data.artists.slice(0, 6).map((artist) => (
-            <li key={artist.slug}>
-              <Link
-                href={`/artist/${artist.slug}`}
-                className="hover:bg-surface-2 flex items-center gap-3 rounded-sm p-1.5 text-[13px]"
-              >
-                <Avatar name={artist.name} url={artist.avatarUrl} />
-                <span className="min-w-0 flex-1">
-                  <b className="block truncate font-semibold">{artist.name}</b>
-                  <span className="text-fg-muted">
-                    {artist.followers.toLocaleString()} followers
-                  </span>
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </Section>
-    </>
-  );
-}
-
 export function Avatar({
   name,
   url,
@@ -164,12 +94,3 @@ export function Avatar({
   );
 }
 
-function PanelSkeleton() {
-  return (
-    <div className="grid gap-2">
-      <Skeleton className="h-4 w-24" />
-      <Skeleton className="h-14 w-full" />
-      <Skeleton className="h-14 w-full" />
-    </div>
-  );
-}

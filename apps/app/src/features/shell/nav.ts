@@ -1,6 +1,7 @@
-import { Home, Layers, ListMusic, MapPin, Settings, Star, Store, Trophy, Wallet } from "lucide-react";
+import { Home, Layers, ListMusic, Settings, Star, Store, Trophy, Wallet } from "lucide-react";
 
-const AR_URL = process.env.NEXT_PUBLIC_AR_URL ?? "https://ar.bandcoin.io";
+export const AR_URL = process.env.NEXT_PUBLIC_AR_URL ?? "https://ar.bandcoin.io";
+export const ARTIST_URL = process.env.NEXT_PUBLIC_ARTIST_URL ?? "https://artist.bandcoin.io";
 
 export type NavItem = {
   href: string;
@@ -20,7 +21,6 @@ export const GROUPS: { title: string; items: NavItem[] }[] = [
       { href: "/", icon: Home, label: "Home" },
       { href: "/marketplace", icon: Store, label: "Marketplace", also: ["/item", "/album"] },
       { href: "/bounties", icon: Trophy, label: "Bounties", also: ["/bounty"] },
-      { href: AR_URL, icon: MapPin, label: "AR pins", external: true },
     ],
   },
   {
@@ -55,4 +55,12 @@ export function isActive(entry: NavItem, pathname: string, tab: string | null) {
   // The plain entry on a shared page yields to the entry that owns the tab.
   const sibling = GROUPS.flatMap((group) => group.items).some((other) => other.tab && other.tab === tab && other.href.split("?")[0] === path);
   return !sibling;
+}
+
+/** The artist-portal tile: an invitation for fans, the way in for artists, and the right words in between. Short, so it fits the sidebar. */
+export function artistEntry(artist: { name: string; status: "PENDING" | "APPROVED" | "BANNED" } | null) {
+  if (!artist) return { title: "Become an artist", hint: "Open your page" };
+  if (artist.status === "APPROVED") return { title: "Artist portal", hint: artist.name };
+  if (artist.status === "PENDING") return { title: "Artist portal", hint: "In review" };
+  return { title: "Artist portal", hint: "Account status" };
 }
