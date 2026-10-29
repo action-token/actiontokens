@@ -23,7 +23,7 @@ describe("portal navigation", () => {
   });
 
   it("opens the artist tools once approved", () => {
-    expect(labels({ signedIn: true, step: "READY", isAdmin: false })).toEqual(["Map", "Pin management", "Events", "Website map", "Announcements", "Bounties", "Music", "Items", "Memberships"]);
+    expect(labels({ signedIn: true, step: "READY", isAdmin: false })).toEqual(["Map", "Pin management", "Events", "Website map", "Announcements", "Bounties", "Music", "Items", "Memberships", "Reports"]);
   });
 
   it("shows nothing to a banned artist", () => {
@@ -32,11 +32,11 @@ describe("portal navigation", () => {
 
   it("adds the admin group for admins, even before they are artists", () => {
     expect(navFor({ signedIn: true, step: null, isAdmin: true }).map((group) => group.title)).toEqual(["Artist", "Admin"]);
-    expect(labels({ signedIn: true, step: "READY", isAdmin: true })).toEqual(["Map", "Pin management", "Events", "Website map", "Announcements", "Bounties", "Music", "Items", "Memberships", "Artists", "Mural review", "Activity"]);
+    expect(labels({ signedIn: true, step: "READY", isAdmin: true })).toEqual(["Map", "Pin management", "Events", "Website map", "Announcements", "Bounties", "Music", "Items", "Memberships", "Reports", "Artists", "Mural review", "Activity"]);
   });
 
   it("lists the drops first, as Wadzzo's brand portal does", () => {
-    expect(navFor({ signedIn: true, step: "READY", isAdmin: false }).map((group) => group.title)).toEqual(["Drops", "Content", "Sell"]);
+    expect(navFor({ signedIn: true, step: "READY", isAdmin: false }).map((group) => group.title)).toEqual(["Drops", "Content", "Sell", "Insights"]);
   });
 
   it("keeps Items lit on its nested pages", () => {
