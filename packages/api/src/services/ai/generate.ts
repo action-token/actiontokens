@@ -1,7 +1,10 @@
+import { z } from "zod";
+
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 import { uploadBufferToS3 } from "@bandcoin/storage";
 
 import type { Context } from "../../context";
+import { tagName } from "../artist/pins";
 import { FILL_SCHEMAS, type FillForm, type FillResult, FORM_BRIEF } from "./forms";
 import type { AiModel, ImageSize } from "./model";
 import { withAiQuota } from "./quota";
@@ -98,5 +101,36 @@ export async function generateImage(
     });
     if (!bytes) throw new AppError(ErrorCodes.AI_GENERATION_FAILED, { message: "No image came back. Try again." });
     return { url: await uploadBufferToS3(bytes, "image/png") };
+  });
+}
+
+const TAG_COUNT = 7;
+const tagSchema = z.object({ tags: z.array(z.string()).describe(`Exactly ${TAG_COUNT} search tags, most useful first: the artist or series, the kind of thing, the theme, then the place`) });
+
+/**
+ * Search tags for a pin. The same title and place give the same tags, so a
+ * repeat is answered from the cache and costs no allowance.
+ */
+export async function suggestPinTags(
+  ctx: GenerateCtx,
+  model: AiModel,
+  actor: Who,
+  input: { title: string; description: string; type: string; place: string },
+) {
+  const key = `${tagName(input.title)}|${tagName(input.place)}`;
+  const cached = await ctx.db.pinTagCache.findUnique({ where: { title: key }, select: { tags: true } });
+  if (cached) return { tags: cached.tags };
+
+  return withAiQuota(ctx, who(actor), "text", async () => {
+    const filled = await model.fill({
+      system: `You write search tags for a pin on a music map. ${artistLine(actor.artist)}
+Tags are short lowercase phrases of 1-3 words that fans would search for. No hashtags, no duplicates, nothing the artist didn't hint at.`,
+      user: `Title: ${input.title}\nType: ${input.type}\nPlace: ${input.place.trim() || "unknown"}\nDescription: ${input.description.trim().slice(0, 600) || "none"}`,
+      schema: tagSchema,
+    });
+    const tags = [...new Set((filled?.tags ?? []).map((tag) => tag.trim().toLowerCase().replace(/^#/, "")).filter((tag) => tag.length > 0 && tag.length <= 40))].slice(0, TAG_COUNT);
+    if (tags.length === 0) throw new AppError(ErrorCodes.AI_GENERATION_FAILED, { message: "The AI didn't suggest any tags. Try again." });
+    await ctx.db.pinTagCache.upsert({ where: { title: key }, create: { title: key, tags }, update: { tags } });
+    return { tags };
   });
 }

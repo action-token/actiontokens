@@ -7,6 +7,7 @@ import { engageRouter } from "./routers/artist/engage";
 import { membershipsRouter } from "./routers/artist/memberships";
 import { musicRouter } from "./routers/artist/music";
 import { onboardingRouter } from "./routers/artist/onboarding";
+import { pinsRouter } from "./routers/artist/pins";
 import { portalStatusRouter } from "./routers/artist/portal";
 import { createRouter } from "./trpc";
 
@@ -22,6 +23,7 @@ export const portalRouter = createRouter({
   engage: engageRouter,
   ai: aiRouter,
   bounties: bountiesRouter,
+  pins: pinsRouter,
 });
 
 export type PortalRouter = typeof portalRouter;

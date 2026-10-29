@@ -55,6 +55,19 @@ export const FILL_SCHEMAS = {
     features: z.array(z.string()).max(6).describe("Up to 6 short perks, max 60 chars each"),
     isPopular: z.boolean(),
   }),
+  pin: z.object({
+    title: z.string().describe("Max 100 chars"),
+    description: z.string().describe("2-4 sentences: what fans find here and why it's worth the walk"),
+    type: z.enum(["EVENT", "BOUNTY", "EXPERIENCE", "LAUNCH", "LANDMARK", "OTHER"]),
+    startsAt: localDateTime,
+    endsAt: localDateTime,
+    claimLimit: z.number().int().min(1).nullable().describe("How many fans can collect it; only if the artist gave a number"),
+    spotCount: z.number().int().min(1).max(100).nullable().describe("How many spots to scatter; only if the artist gave a number"),
+    radiusMeters: z.number().int().min(10).max(5000).nullable().describe("How far apart the spots may be; only if the artist gave a distance"),
+    link: z.string().nullable().describe("Only a URL the artist gave"),
+    tags: z.array(z.string()).max(7).describe("Up to 7 short search tags: subject, theme, place"),
+    imagePrompt,
+  }),
   album: z.object({
     title: z.string().describe("Album title, max 80 chars"),
     description: z.string().describe("2-4 sentences about the album for fans"),
@@ -79,6 +92,7 @@ export const FORM_BRIEF: Record<FillForm, string> = {
   bounty: "a bounty: a public challenge with a token prize for the best submissions",
   item: "a collectible the artist sells to fans",
   tier: "a membership tier fans unlock by holding the artist's fan token",
+  pin: "a pin: a reward drop placed on the map for fans to walk up to and collect",
   album: "an album that groups the artist's songs",
   song: "a song the artist releases",
 };

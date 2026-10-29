@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { FILL_FORMS } from "../../services/ai/forms";
-import { fillForm, generateImage, WRITE_MODES, writeField } from "../../services/ai/generate";
+import { fillForm, generateImage, suggestPinTags, WRITE_MODES, writeField } from "../../services/ai/generate";
 import { openaiModel } from "../../services/ai/model";
 import { aiRemaining } from "../../services/ai/quota";
 import { artistProcedure, createRouter } from "../../trpc";
@@ -48,4 +48,15 @@ export const aiRouter = createRouter({
       }),
     )
     .mutation(({ ctx, input }) => generateImage(ctx, openaiModel, { artist: ctx.artist, unlimited: ctx.session.user.role === "ADMIN" }, input)),
+
+  suggestPinTags: artistProcedure
+    .input(
+      z.object({
+        title: z.string().trim().min(3, "Give the pin a title first").max(120),
+        description: z.string().max(2000).default(""),
+        type: z.string().max(20),
+        place: z.string().max(240).default(""),
+      }),
+    )
+    .mutation(({ ctx, input }) => suggestPinTags(ctx, openaiModel, { artist: ctx.artist, unlimited: ctx.session.user.role === "ADMIN" }, input)),
 });
