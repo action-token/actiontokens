@@ -58,9 +58,10 @@ export function isActive(entry: NavItem, pathname: string, tab: string | null) {
 }
 
 /** The artist-portal tile: an invitation for fans, the way in for artists, and the right words in between. Short, so it fits the sidebar. */
-export function artistEntry(artist: { name: string; status: "PENDING" | "APPROVED" | "BANNED" } | null) {
+export function artistEntry(artist: { name: string; status: "PENDING" | "APPROVED" | "BANNED" | "REJECTED" } | null) {
   if (!artist) return { title: "Become an artist", hint: "Open your page" };
   if (artist.status === "APPROVED") return { title: "Artist portal", hint: artist.name };
   if (artist.status === "PENDING") return { title: "Artist portal", hint: "In review" };
+  if (artist.status === "REJECTED") return { title: "Artist portal", hint: "Not approved" };
   return { title: "Artist portal", hint: "Account status" };
 }

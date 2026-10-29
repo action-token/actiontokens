@@ -34,6 +34,10 @@ describe("artistEntry", () => {
     expect(artistEntry(null)).toMatchObject({ title: "Become an artist", hint: "Open your page" });
   });
 
+  it("tells a rejected applicant, so they can open the portal and apply again", () => {
+    expect(artistEntry({ name: "Luna Vale", status: "REJECTED" })).toMatchObject({ title: "Artist portal", hint: "Not approved" });
+  });
+
   it("follows the application: in review, ready, and banned", () => {
     expect(artistEntry({ name: "Luna Vale", status: "PENDING" })).toMatchObject({ title: "Artist portal", hint: "In review" });
     expect(artistEntry({ name: "Luna Vale", status: "APPROVED" })).toMatchObject({ title: "Artist portal", hint: "Luna Vale" });
