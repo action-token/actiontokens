@@ -5,6 +5,7 @@ import type { Db } from "@bandcoin/db";
 import { listRewards, lookupCode, normalizeCode, redeemCode, redeemHistory, redeemSummary } from "../services/artist/redeem";
 
 const artist = { id: "a1" };
+const aDate = expect.any(Date) as Date;
 
 const claim = (over: Record<string, unknown> = {}) => ({
   id: "c1",
@@ -64,8 +65,8 @@ describe("redeemCode", () => {
   it("redeems once and logs which claim it was", async () => {
     const { ctx, db, activity } = setup();
     const result = await redeemCode(ctx, artist, "abc234");
-    expect(result).toMatchObject({ status: "success", claim: { redeemedAt: expect.any(Date) } });
-    expect(db.pinClaim.updateMany).toHaveBeenCalledWith({ where: { id: "c1", isRedeemed: false }, data: { isRedeemed: true, redeemedAt: expect.any(Date) } });
+    expect(result).toMatchObject({ status: "success", claim: { redeemedAt: aDate } });
+    expect(db.pinClaim.updateMany).toHaveBeenCalledWith({ where: { id: "c1", isRedeemed: false }, data: { isRedeemed: true, redeemedAt: aDate } });
     expect(activity.set).toHaveBeenCalledWith({ targetType: "PinClaim", targetId: "c1" });
   });
 
@@ -78,7 +79,7 @@ describe("redeemCode", () => {
   it("loses a race gracefully: the second redeemer sees it was already redeemed", async () => {
     const { ctx, db } = setup(claim(), 0);
     db.pinClaim.findFirst.mockResolvedValueOnce(claim()).mockResolvedValueOnce(claim({ isRedeemed: true, redeemedAt: new Date() }));
-    expect(await redeemCode(ctx, artist, "ABC234")).toMatchObject({ status: "already_redeemed", claim: { redeemedAt: expect.any(Date) } });
+    expect(await redeemCode(ctx, artist, "ABC234")).toMatchObject({ status: "already_redeemed", claim: { redeemedAt: aDate } });
   });
 
   it("finds nothing for a code that isn't theirs", async () => {
