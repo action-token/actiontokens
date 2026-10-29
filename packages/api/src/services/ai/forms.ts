@@ -30,6 +30,16 @@ export const FILL_SCHEMAS = {
     ctaUrl: z.string().nullable().describe("Only a URL the artist gave"),
     imagePrompt,
   }),
+  bounty: z.object({
+    title: z.string().describe("Catchy and specific, max 120 chars"),
+    summary: z.string().describe("A one-liner for cards, max 600 chars"),
+    description: z.string().describe("Markdown with sections: Overview, Goals, Evaluation criteria, Deliverables. Max 2500 chars"),
+    prizeAmount: z.number().min(1).nullable().describe("Only if the artist gave a prize"),
+    maxWinners: z.number().int().min(1).max(10),
+    rewardNote: z.string().nullable().describe("How and when the reward is delivered, max 300 chars"),
+    instructions: z.array(z.string()).describe("3 to 6 short strings (each max 200 chars) saying what fans must submit"),
+    imagePrompt,
+  }),
   item: z.object({
     title: z.string().describe("Collectible name, max 60 chars"),
     description: z.string().describe("2-4 sentences on what buyers get"),
@@ -66,6 +76,7 @@ export const FILL_FORMS = Object.keys(FILL_SCHEMAS) as [FillForm, ...FillForm[]]
 export const FORM_BRIEF: Record<FillForm, string> = {
   event: "an event fans can RSVP to (a gig, signing or listening party)",
   announcement: "a short announcement in the artist's news feed",
+  bounty: "a bounty: a public challenge with a token prize for the best submissions",
   item: "a collectible the artist sells to fans",
   tier: "a membership tier fans unlock by holding the artist's fan token",
   album: "an album that groups the artist's songs",
