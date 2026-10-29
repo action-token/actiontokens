@@ -1,4 +1,4 @@
-import { BadgeCheck, CalendarDays, Crown, LayoutDashboard, ListChecks, Megaphone, MapPin, Music2, Package, Rocket, Trophy, Users, type LucideIcon } from "lucide-react";
+import { BadgeCheck, CalendarDays, Code2, Crown, LayoutDashboard, ListChecks, Megaphone, MapPin, Music2, Package, Rocket, Trophy, Users, type LucideIcon } from "lucide-react";
 
 import type { OnboardingStep } from "@bandcoin/api";
 
@@ -26,6 +26,7 @@ const FAN_TOOLS: NavItem[] = [
   { href: "/announcements", icon: Megaphone, label: "Announcements" },
   { href: "/pins", icon: MapPin, label: "Pins" },
   { href: "/bounties", icon: Trophy, label: "Bounties" },
+  { href: "/embeds", icon: Code2, label: "Website map" },
 ];
 
 const ARTIST_TOOLS: Record<OnboardingStep, NavItem[]> = {

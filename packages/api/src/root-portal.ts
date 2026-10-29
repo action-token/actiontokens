@@ -3,6 +3,7 @@ import { adminRouter } from "./routers/admin";
 import { aiRouter } from "./routers/artist/ai";
 import { bountiesRouter } from "./routers/artist/bounties";
 import { catalogRouter } from "./routers/artist/catalog";
+import { embedsRouter } from "./routers/artist/embeds";
 import { engageRouter } from "./routers/artist/engage";
 import { membershipsRouter } from "./routers/artist/memberships";
 import { musicRouter } from "./routers/artist/music";
@@ -24,6 +25,7 @@ export const portalRouter = createRouter({
   ai: aiRouter,
   bounties: bountiesRouter,
   pins: pinsRouter,
+  embeds: embedsRouter,
 });
 
 export type PortalRouter = typeof portalRouter;

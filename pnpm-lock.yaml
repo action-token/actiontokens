@@ -708,6 +708,9 @@ importers:
       '@bandcoin/api':
         specifier: workspace:*
         version: link:../../packages/api
+      '@bandcoin/ar-core':
+        specifier: workspace:*
+        version: link:../../packages/ar-core
       '@bandcoin/auth':
         specifier: workspace:*
         version: link:../../packages/auth
