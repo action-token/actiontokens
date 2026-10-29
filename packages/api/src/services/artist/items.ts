@@ -177,6 +177,47 @@ async function ownItem(ctx: ServiceCtx, artist: Pick<ArtistRef, "id">, itemId: s
   return item;
 }
 
+/** One item for the edit form: its details, prices, and whether supply and code can still change. */
+export async function getItem(ctx: Pick<ServiceCtx, "db">, artist: Pick<ArtistRef, "id">, itemId: string) {
+  const item = await ctx.db.item.findFirst({
+    where: { id: itemId, artistId: artist.id, deletedAt: null },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      coverUrl: true,
+      type: true,
+      supply: true,
+      visibility: true,
+      royaltyPercent: true,
+      classicToken: { select: { code: true } },
+      media: { select: { mediaType: true, sourceUrl: true } },
+      listings: { where: { kind: "PRIMARY" }, take: 1, select: { priceBandcoin: true, priceUsd: true, status: true, quantitySold: true } },
+    },
+  });
+  if (!item) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Item not found" });
+  const listing = item.listings[0];
+  const sold = listing?.quantitySold ?? 0;
+  return {
+    id: item.id,
+    title: item.title,
+    description: item.description ?? "",
+    coverUrl: item.coverUrl,
+    type: item.type,
+    code: item.classicToken?.code ?? null,
+    supply: item.supply,
+    sold,
+    /** After the first sale supply and code are fixed */
+    locked: sold > 0,
+    visibility: item.visibility,
+    royaltyPercent: item.royaltyPercent?.toString() ?? null,
+    priceBandcoin: listing?.priceBandcoin.toString() ?? "",
+    priceUsd: listing?.priceUsd.toString() ?? "",
+    fileUrl: item.media?.sourceUrl ?? null,
+    fileType: item.media?.mediaType ?? null,
+  };
+}
+
 export type UpdateItemInput = {
   itemId: string;
   title?: string;

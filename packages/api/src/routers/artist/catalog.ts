@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { signCreatorUpload } from "@bandcoin/storage";
 
-import { createItem, listMyItems, removeItem, updateItem } from "../../services/artist/items";
+import { createItem, getItem, listMyItems, removeItem, updateItem } from "../../services/artist/items";
 import { artistProcedure, createRouter } from "../../trpc";
 
 const price = z.string().trim().max(20);
@@ -19,6 +19,8 @@ const declaredFile = z.object({
 export const catalogRouter = createRouter({
   /** A signed upload for a cover or the item's file. */
   upload: artistProcedure.input(declaredFile).mutation(({ input }) => signCreatorUpload(input)),
+
+  get: artistProcedure.input(z.object({ itemId: z.string().min(1) })).query(({ ctx, input }) => getItem(ctx, ctx.artist, input.itemId)),
 
   list: artistProcedure.query(({ ctx }) => listMyItems(ctx, ctx.artist)),
 

@@ -6,7 +6,7 @@ import { createContext, type SessionUser } from "../context";
 import { portalRouter } from "../root-portal";
 import type { ChainGateway } from "../services/chain-gateway";
 import { createCallerFactory } from "../trpc";
-import { createItem, listMyItems, removeItem, updateItem } from "../services/artist/items";
+import { createItem, getItem, listMyItems, removeItem, updateItem } from "../services/artist/items";
 
 vi.mock("@bandcoin/storage", () => ({
   isOwnS3Url: (url: string) => url.startsWith("https://cdn.example/"),
@@ -194,6 +194,27 @@ describe("removeItem", () => {
     const { ctx, db } = setup({ item: owned({ listings: [{ id: "l1", kind: "PRIMARY", status: "ACTIVE", quantitySold: 3 }] }) });
     await expect(removeItem(ctx, artist, "i1")).rejects.toMatchObject({ message: "This item has sales, so it can't be deleted. Hide it instead." });
     expect(db.item.update).not.toHaveBeenCalled();
+  });
+});
+
+describe("getItem", () => {
+  it("returns everything the edit form needs, and whether supply and code are still open", async () => {
+    const row = {
+      id: "i1", title: "Night Drive", description: "A print", coverUrl: "c", type: "IMAGE", supply: 100, visibility: "PUBLIC", royaltyPercent: null,
+      classicToken: { code: "NIGHTDRV" },
+      media: { mediaType: "IMAGE", sourceUrl: "https://cdn.example/art.png" },
+      listings: [{ id: "l1", priceBandcoin: { toString: () => "25" }, priceUsd: { toString: () => "0.5" }, status: "ACTIVE", quantitySold: 0 }],
+    };
+    const free = setup({ item: row });
+    await expect(getItem(free.ctx, artist, "i1")).resolves.toMatchObject({
+      id: "i1", title: "Night Drive", description: "A print", code: "NIGHTDRV", supply: 100, sold: 0, locked: false, priceBandcoin: "25", priceUsd: "0.5", fileUrl: "https://cdn.example/art.png",
+    });
+    const sold = setup({ item: { ...row, listings: [{ ...row.listings[0]!, quantitySold: 2 }] } });
+    await expect(getItem(sold.ctx, artist, "i1")).resolves.toMatchObject({ sold: 2, locked: true });
+  });
+
+  it("only shows the artist's own item", async () => {
+    await expect(getItem(setup({ item: null }).ctx, artist, "i1")).rejects.toMatchObject({ message: "Item not found" });
   });
 });
 

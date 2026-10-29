@@ -1,4 +1,4 @@
-import { BadgeCheck, LayoutDashboard, ListChecks, Rocket, Users, type LucideIcon } from "lucide-react";
+import { BadgeCheck, LayoutDashboard, ListChecks, Package, Rocket, Users, type LucideIcon } from "lucide-react";
 
 import type { OnboardingStep } from "@bandcoin/api";
 
@@ -23,7 +23,10 @@ const ADMIN: NavGroup = {
 const ARTIST_TOOLS: Record<OnboardingStep, NavItem[]> = {
   OPEN_ISSUER: [{ href: "/", icon: Rocket, label: "Get started", exact: true }],
   WAITING_FOR_APPROVAL: [{ href: "/", icon: Rocket, label: "Get started", exact: true }],
-  READY: [{ href: "/", icon: LayoutDashboard, label: "Dashboard", exact: true }],
+  READY: [
+    { href: "/", icon: LayoutDashboard, label: "Dashboard", exact: true },
+    { href: "/items", icon: Package, label: "Items" },
+  ],
   REJECTED: [{ href: "/", icon: Rocket, label: "Apply again", exact: true }],
   BANNED: [],
 };
