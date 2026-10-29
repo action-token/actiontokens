@@ -57,6 +57,7 @@ model Artist {
   hotspots           Hotspot[]
   pinTags            PinTag[]
   pinBatchJobs       PinBatchJob[]
+  aiUsage            AiUsage[]
   bounties           Bounty[]
   royaltyPayouts     RoyaltyPayout[]
   generations        Generation[]
@@ -258,4 +259,16 @@ model LastFmAccount {
   isConnected Boolean @default(false)
 
   @@map("lastfm_accounts")
+}
+
+/// How many AI generations an artist has used on a UTC day (the free daily allowance).
+model AiUsage {
+  artistId String
+  artist   Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  day      DateTime @db.Date
+  text     Int      @default(0)
+  image    Int      @default(0)
+
+  @@id([artistId, day])
+  @@map("ai_usage")
 }

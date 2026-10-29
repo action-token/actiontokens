@@ -1,5 +1,6 @@
 import { accountRouter } from "./routers/app/account";
 import { adminRouter } from "./routers/admin";
+import { aiRouter } from "./routers/artist/ai";
 import { catalogRouter } from "./routers/artist/catalog";
 import { engageRouter } from "./routers/artist/engage";
 import { membershipsRouter } from "./routers/artist/memberships";
@@ -18,6 +19,7 @@ export const portalRouter = createRouter({
   music: musicRouter,
   memberships: membershipsRouter,
   engage: engageRouter,
+  ai: aiRouter,
 });
 
 export type PortalRouter = typeof portalRouter;

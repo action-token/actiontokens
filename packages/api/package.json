@@ -29,6 +29,7 @@
     "@stellar/stellar-sdk": "catalog:",
     "@trpc/server": "catalog:",
     "google-auth-library": "catalog:",
+    "openai": "catalog:",
     "superjson": "catalog:",
     "zod": "catalog:"
   },

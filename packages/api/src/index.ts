@@ -18,3 +18,4 @@ export type { OnboardingStep } from "./routers/artist/portal";
 export { canPlayFull, PREVIEW_SECONDS, previewByteRange } from "./services/media/playback";
 export { wavPreview } from "./services/media/wav";
 export { lastFmAuthUrl, lastFmKeys, lastFmSession } from "./services/lastfm";
+export type { FillForm, FillResult } from "./services/ai/forms";
