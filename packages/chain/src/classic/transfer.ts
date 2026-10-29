@@ -49,3 +49,24 @@ export function buildClaimGift(input: {
   builder.addOperation(Operation.claimClaimableBalance({ balanceId: input.balanceId }));
   return finish(builder);
 }
+
+/**
+ * Issues new copies of the sender's own token straight to someone. The sender
+ * (the artist's wallet) is the transaction's source, so they pay the network
+ * fee; the payment itself comes from the issuer account, whose platform-held
+ * key co-signs. The receiver must already trust the asset.
+ */
+export function buildIssueTokens(input: {
+  sender: Account;
+  network: NetworkParams;
+  issuer: string;
+  to: string;
+  asset: Asset;
+  amount: string;
+  memo?: string;
+}) {
+  const builder = startTransaction(input.sender, input.network, { memo: input.memo }).addOperation(
+    Operation.payment({ source: input.issuer, destination: input.to, asset: input.asset, amount: input.amount }),
+  );
+  return finish(builder, [input.issuer]);
+}

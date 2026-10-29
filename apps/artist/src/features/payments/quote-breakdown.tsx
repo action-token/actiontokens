@@ -10,10 +10,10 @@ import type { RouterOutputs } from "~/trpc/react";
 
 import { FAN_APP_URL } from "../shell/links";
 
-type Quote = RouterOutputs["onboarding"]["issuerQuote"] | RouterOutputs["catalog"]["nftQuote"];
+type Quote = RouterOutputs["onboarding"]["issuerQuote"] | RouterOutputs["catalog"]["nftQuote"] | RouterOutputs["gifts"]["quote"];
 
 /**
- * The server's price for a payment in XLM (opening the artist account, registering an NFT):
+ * The server's price for a payment in XLM (opening the artist account, registering an NFT, sending a gift):
  * each cost, what you pay, your XLM, and why it can't go through yet. It does no money math.
  */
 export function QuoteBreakdown({ quote, balance, loading }: { quote: Quote | undefined; balance: string | undefined; loading: boolean }) {

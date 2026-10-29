@@ -1,4 +1,4 @@
-import { BadgeCheck, BarChart3, CalendarDays, Code2, Crown, FileText, Frame, ListChecks, Map, MapPin, Megaphone, Music2, Package, Rocket, Ticket, Trophy, Users, type LucideIcon } from "lucide-react";
+import { BadgeCheck, BarChart3, CalendarDays, Code2, Crown, FileText, Frame, Gift, ListChecks, Map, MapPin, Megaphone, Music2, Package, Rocket, Ticket, Trophy, Users, type LucideIcon } from "lucide-react";
 
 import type { OnboardingStep } from "@bandcoin/api";
 
@@ -57,6 +57,7 @@ const READY_TOOLS: NavGroup[] = [
       { href: "/music", icon: Music2, label: "Music" },
       { href: "/items", icon: Package, label: "Items" },
       { href: "/memberships", icon: Crown, label: "Memberships" },
+      { href: "/gifts", icon: Gift, label: "Gifts" },
     ],
   },
   {

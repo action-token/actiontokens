@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { buildClassicPurchase, classicPurchaseOperations } from "../classic/purchase";
 import { buildIssuerSetup, ISSUER_STARTING_XLM } from "../classic/issuer";
 import { buildActivation, buildTopUp, buildXlmSwap } from "../classic/recharge";
-import { buildTransfer } from "../classic/transfer";
+import { buildIssueTokens, buildTransfer } from "../classic/transfer";
 import { toStellarError } from "../errors";
 import { buildBountyFund } from "../escrow/calls";
 import { buildNftBuyEdition, buildNftBuyListed } from "../nft/calls";
@@ -205,6 +205,16 @@ describe("other builders", () => {
     );
     expect(direct.operations[0]?.type).toBe("payment");
     expect(claimable.operations[0]?.type).toBe("createClaimableBalance");
+  });
+
+  it("issues tokens from the issuer to the fan while the artist's wallet is the source and pays the fee", () => {
+    const built = buildIssueTokens({ sender: account(creator), network, issuer, to: seller, asset: item, amount: "25", memo: orderId });
+    const tx = parse(built.xdr);
+    expect(tx.source).toBe(creator);
+    expect(tx.operations).toHaveLength(1);
+    expect(tx.operations[0]).toMatchObject({ type: "payment", source: issuer, destination: seller, amount: "25.0000000" });
+    expect(built.serverSigners).toEqual([issuer]);
+    expect(memoText(tx)).toBe(orderId);
   });
 
   it("splits royalty payouts into batches of 100 with consecutive sequence numbers", () => {

@@ -5,6 +5,7 @@ import { bountiesRouter } from "./routers/artist/bounties";
 import { catalogRouter } from "./routers/artist/catalog";
 import { embedsRouter } from "./routers/artist/embeds";
 import { engageRouter } from "./routers/artist/engage";
+import { giftsRouter } from "./routers/artist/gifts";
 import { membershipsRouter } from "./routers/artist/memberships";
 import { musicRouter } from "./routers/artist/music";
 import { onboardingRouter } from "./routers/artist/onboarding";
@@ -30,6 +31,7 @@ export const portalRouter = createRouter({
   pins: pinsRouter,
   embeds: embedsRouter,
   posts: postsRouter,
+  gifts: giftsRouter,
   reports: reportsRouter,
   redeem: redeemRouter,
 });
