@@ -23,7 +23,7 @@ describe("portal navigation", () => {
   });
 
   it("opens the artist tools once approved", () => {
-    expect(labels({ signedIn: true, step: "READY", isAdmin: false })).toEqual(["Map", "Pin management", "Events", "Website map", "Announcements", "Bounties", "Music", "Items", "Memberships", "Reports", "Redeem"]);
+    expect(labels({ signedIn: true, step: "READY", isAdmin: false })).toEqual(["Map", "Pin management", "Events", "Website map", "Posts", "Announcements", "Bounties", "Music", "Items", "Memberships", "Reports", "Redeem"]);
   });
 
   it("shows nothing to a banned artist", () => {
@@ -32,7 +32,7 @@ describe("portal navigation", () => {
 
   it("adds the admin group for admins, even before they are artists", () => {
     expect(navFor({ signedIn: true, step: null, isAdmin: true }).map((group) => group.title)).toEqual(["Artist", "Admin"]);
-    expect(labels({ signedIn: true, step: "READY", isAdmin: true })).toEqual(["Map", "Pin management", "Events", "Website map", "Announcements", "Bounties", "Music", "Items", "Memberships", "Reports", "Redeem", "Artists", "Mural review", "Activity"]);
+    expect(labels({ signedIn: true, step: "READY", isAdmin: true })).toEqual(["Map", "Pin management", "Events", "Website map", "Posts", "Announcements", "Bounties", "Music", "Items", "Memberships", "Reports", "Redeem", "Artists", "Mural review", "Activity"]);
   });
 
   it("lists the drops first, as Wadzzo's brand portal does", () => {

@@ -30,6 +30,11 @@ export const FILL_SCHEMAS = {
     ctaUrl: z.string().nullable().describe("Only a URL the artist gave"),
     imagePrompt,
   }),
+  post: z.object({
+    title: z.string().describe("Max 120 chars"),
+    body: z.string().describe("Markdown, 60-250 words: the news, a perk, or a story for followers"),
+    imagePrompt,
+  }),
   bounty: z.object({
     title: z.string().describe("Catchy and specific, max 120 chars"),
     summary: z.string().describe("A one-liner for cards, max 600 chars"),
@@ -89,6 +94,7 @@ export const FILL_FORMS = Object.keys(FILL_SCHEMAS) as [FillForm, ...FillForm[]]
 export const FORM_BRIEF: Record<FillForm, string> = {
   event: "an event fans can RSVP to (a gig, signing or listening party)",
   announcement: "a short announcement in the artist's news feed",
+  post: "a post for followers: news, media or a perk, written in the artist's voice",
   bounty: "a bounty: a public challenge with a token prize for the best submissions",
   item: "a collectible the artist sells to fans",
   tier: "a membership tier fans unlock by holding the artist's fan token",

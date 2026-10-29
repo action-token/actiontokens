@@ -10,6 +10,7 @@ import { musicRouter } from "./routers/artist/music";
 import { onboardingRouter } from "./routers/artist/onboarding";
 import { pinsRouter } from "./routers/artist/pins";
 import { redeemRouter } from "./routers/artist/redeem";
+import { postsRouter } from "./routers/artist/posts";
 import { reportsRouter } from "./routers/artist/reports";
 import { portalStatusRouter } from "./routers/artist/portal";
 import { createRouter } from "./trpc";
@@ -28,6 +29,7 @@ export const portalRouter = createRouter({
   bounties: bountiesRouter,
   pins: pinsRouter,
   embeds: embedsRouter,
+  posts: postsRouter,
   reports: reportsRouter,
   redeem: redeemRouter,
 });
