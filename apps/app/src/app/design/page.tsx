@@ -12,7 +12,7 @@ import { BootDemo } from "~/features/design-preview/boot-demo";
 import { BuyPanelDemo } from "~/features/design-preview/buy-panel-demo";
 import { SampleCover } from "~/features/design-preview/sample-cover";
 import { ShellDemo } from "~/features/design-preview/shell-demo";
-import { ThemeSwitch } from "~/features/design-preview/theme-switch";
+import { ThemeSwitch } from "~/components/theme-switch";
 
 export const metadata: Metadata = { title: "Design preview", robots: { index: false } };
 
