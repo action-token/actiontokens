@@ -2,19 +2,17 @@
 
 import { ListMusic, Play } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
 import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
 import { MediaCarousel, SectionTitle } from "@bandcoin/ui/patterns/media-carousel";
 import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
 import { api, type RouterInputs } from "~/trpc/react";
 
-import { type ItemCardData, ItemCard, POSTER_WIDTH } from "../catalog/item-card";
+import type { ItemCardData } from "../catalog/item-card";
 import { usePlayer } from "../player/player-store";
 import { AlbumCard } from "../catalog/album-card";
 import { TrackRow } from "./track-row";
@@ -26,62 +24,37 @@ const SORTS: { value: Sort; label: string }[] = [
   { value: "title", label: "A–Z" },
 ];
 
-/** Music: new songs up top, every song below; "Your items" lists what you made or own. */
-export function MusicView() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const tab = useSearchParams().get("tab") === "mine" ? "mine" : "all";
-
+/** Full releases, for Home. */
+export function AlbumsCarousel() {
+  const overview = api.music.overview.useQuery();
+  if (!overview.data || overview.data.albums.length === 0) return null;
   return (
-    <Tabs
-      value={tab}
-      onValueChange={(value) => router.replace(value === "mine" ? `${pathname}?tab=mine` : pathname, { scroll: false })}
-      className="gap-6"
-    >
-      <TabsList className="w-fit">
-        <TabsTrigger value="all" className="font-hud">
-          Music
-        </TabsTrigger>
-        <TabsTrigger value="mine" className="font-hud">
-          Your items
-        </TabsTrigger>
-      </TabsList>
-      <TabsContent value="all" className="grid gap-9">
-        <AllMusic />
-      </TabsContent>
-      <TabsContent value="mine">
-        <YourItems />
-      </TabsContent>
-    </Tabs>
+    <MediaCarousel title="Albums" note="full releases" itemWidth="minmax(160px,188px)">
+      {overview.data.albums.map((album) => (
+        <AlbumCard key={album.slug} album={{ ...album, artistName: album.artist?.name }} />
+      ))}
+    </MediaCarousel>
   );
 }
 
-function AllMusic() {
+/** Every song on Bandcoin, sortable, with Play all: the bottom of Home. */
+export function AllSongs() {
   const [sort, setSort] = useState<Sort>("newest");
-  const overview = api.music.overview.useQuery();
   const tracks = api.music.tracks.useInfiniteQuery({ sort }, { getNextPageParam: (page) => page.nextCursor });
   const list = tracks.data?.pages.flatMap((page) => page.tracks) ?? [];
+  const playQueue = usePlayer((state) => state.playQueue);
 
   return (
     <>
-      {overview.data && overview.data.newest.length > 0 && (
-        <MediaCarousel title="New songs" note="just dropped" itemWidth={POSTER_WIDTH}>
-          {overview.data.newest.map((item) => (
-            <ItemCard key={item.id} item={item} queue={overview.data.newest} />
-          ))}
-        </MediaCarousel>
-      )}
-      {overview.data && overview.data.albums.length > 0 && (
-        <MediaCarousel title="Albums" note="full releases" itemWidth="minmax(160px,188px)">
-          {overview.data.albums.map((album) => (
-            <AlbumCard key={album.slug} album={{ ...album, artistName: album.artist?.name }} />
-          ))}
-        </MediaCarousel>
-      )}
       <section className="grid gap-3" aria-label="All songs">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <SectionTitle title="All songs" note="tap a row to listen" />
-          <SortSelect value={sort} onChange={setSort} />
+          <div className="flex items-center gap-2">
+            <SortSelect value={sort} onChange={setSort} />
+            <Button size="sm" disabled={list.length === 0} onClick={() => playQueue(list)}>
+              <Play className="fill-current" /> Play all
+            </Button>
+          </div>
         </div>
         <TrackList tracks={list} loading={tracks.isPending} />
         {tracks.hasNextPage && (
@@ -94,7 +67,8 @@ function AllMusic() {
   );
 }
 
-function YourItems() {
+/** Songs you made or own, in full, with Play all: the Songs tab of My collection. */
+export function YourSongs() {
   const { status } = useSession();
   const openSignIn = useConnectWalletDialogStore((state) => state.setIsOpen);
   const [sort, setSort] = useState<Sort>("newest");
@@ -122,7 +96,7 @@ function YourItems() {
     );
   }
   return (
-    <section className="grid gap-3" aria-label="Your items">
+    <section className="grid gap-3" aria-label="Your songs">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Button disabled={tracks.length === 0} onClick={() => playQueue(tracks)}>
           <Play className="fill-current" /> Play all

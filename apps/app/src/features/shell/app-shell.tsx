@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Layers, ListMusic, MapPin, Music, Search, Store, Trophy } from "lucide-react";
+import { Home, Layers, ListMusic, MapPin, Search, Store, Trophy } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { type FormEvent, type ReactNode, useState } from "react";
@@ -10,7 +10,6 @@ import { BrandMark } from "@bandcoin/ui/patterns/boot-screen";
 
 import { AccountButton } from "~/features/account/account-button";
 import { PlayerBar } from "~/features/player/player-bar";
-import { usePlayer } from "~/features/player/player-store";
 
 import { ContextPanel } from "./context-panel";
 import { hasContextPanel } from "./panel-rule";
@@ -19,7 +18,6 @@ const AR_URL = process.env.NEXT_PUBLIC_AR_URL ?? "https://ar.bandcoin.io";
 
 const NAV = [
   { href: "/", icon: Home, label: "Home" },
-  { href: "/music", icon: Music, label: "Music" },
   { href: "/marketplace", icon: Store, label: "Marketplace" },
   { href: "/bounties", icon: Trophy, label: "Bounties" },
   { href: AR_URL, icon: MapPin, label: "AR pins", external: true },
@@ -31,7 +29,7 @@ const LIBRARY = [
 ] as const;
 
 /** Bottom tabs on phones (the sidebar's main entries). */
-const MOBILE_NAV = [NAV[0], NAV[1], NAV[2], NAV[3], LIBRARY[0]];
+const MOBILE_NAV = [NAV[0], NAV[1], NAV[2], LIBRARY[0], LIBRARY[1]];
 
 const isActive = (pathname: string, href: string) =>
   href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -43,8 +41,7 @@ const isActive = (pathname: string, href: string) =>
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const hasTrack = usePlayer((state) => state.queue.length > 0);
-  const panel = hasContextPanel(pathname, hasTrack);
+  const panel = hasContextPanel(pathname);
 
   return (
     <div

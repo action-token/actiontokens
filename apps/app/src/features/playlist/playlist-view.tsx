@@ -152,7 +152,7 @@ export function PlaylistView({ playlistId }: { playlistId: string }) {
             action={
               data.isOwner ? (
                 <Button asChild variant="secondary">
-                  <Link href="/music">Find songs</Link>
+                  <Link href="/">Find songs</Link>
                 </Button>
               ) : undefined
             }

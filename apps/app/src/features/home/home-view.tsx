@@ -9,6 +9,7 @@ import { Money } from "~/components/money";
 import type { RouterOutputs } from "~/trpc/react";
 
 import { ItemCard, POSTER_WIDTH } from "../catalog/item-card";
+import { AlbumsCarousel, AllSongs } from "../music/music-view";
 import { Avatar } from "../shell/context-panel";
 
 type Home = RouterOutputs["catalog"]["home"];
@@ -19,22 +20,23 @@ const seeAll = (href: string) => (
   </Link>
 );
 
-/** Home below the hero: trending, new music, top artists, live bounties. */
+/** Home below the hero: trending, new songs, albums, top artists, live bounties, then every song. */
 export function HomeView({ home }: { home: Home }) {
   return (
     <div className="grid gap-9">
-
       <MediaCarousel title="Trending this week" note="what fans are playing and buying" action={seeAll("/marketplace?sort=popular")} itemWidth={POSTER_WIDTH}>
         {home.trending.map((item) => (
           <ItemCard key={item.id} item={item} queue={home.trending} />
         ))}
       </MediaCarousel>
 
-      <MediaCarousel title="New music" note="fresh off the press" action={seeAll("/music")} itemWidth={POSTER_WIDTH}>
+      <MediaCarousel title="New songs" note="fresh off the press" itemWidth={POSTER_WIDTH}>
         {home.newMusic.map((item) => (
           <ItemCard key={item.id} item={item} queue={home.newMusic} />
         ))}
       </MediaCarousel>
+
+      <AlbumsCarousel />
 
       <MediaCarousel title="Top artists" note="the artists fans follow most" itemWidth="minmax(120px,136px)">
         {home.artists.map((artist) => (
@@ -75,6 +77,8 @@ export function HomeView({ home }: { home: Home }) {
           </ul>
         </section>
       )}
+
+      <AllSongs />
     </div>
   );
 }
