@@ -1,24 +1,16 @@
 "use client";
 
 import { Check, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { Input } from "@bandcoin/ui/components/input";
 import { Label } from "@bandcoin/ui/components/label";
 import { normalizeVanityName, validateVanityName } from "@bandcoin/utils/vanity";
 
+import { useDebounced } from "~/lib/use-debounced";
 import { api } from "~/trpc/react";
 
 import { VANITY_HOST } from "./host";
-
-function useDebounced<T>(value: T, delay = 400) {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const timer = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(timer);
-  }, [value, delay]);
-  return debounced;
-}
 
 /**
  * The part of the link the artist chooses. Checks the rules as they type, then

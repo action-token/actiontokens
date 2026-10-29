@@ -1,22 +1,18 @@
 import {
   BadgeCheck,
-  BarChart3,
   CalendarDays,
   Code2,
+  Coins,
   Crown,
   FileText,
   Frame,
   Gift,
   LayoutTemplate,
-  Link2,
   ListChecks,
   Map,
-  MapPin,
-  Megaphone,
   Music2,
   Package,
   Rocket,
-  Ticket,
   Trophy,
   Users,
   type LucideIcon,
@@ -31,12 +27,25 @@ export type NavItem = {
   /** What the phone tab bar says when the label is too long for it. */
   shortLabel?: string;
   exact?: boolean;
-  /** Sub-paths that belong to another item (e.g. /pins/manage under the map). */
-  exclude?: string[];
+  /** Other pages this entry covers, reached from tabs or links on its page (e.g. /announcements under Posts). */
+  also?: string[];
   /** One of the four tabs on a phone's bottom bar. */
   tab?: boolean;
 };
 export type NavGroup = { title: string; items: NavItem[] };
+export type SectionTab = Pick<NavItem, "href" | "label">;
+
+/** Pages that share one menu entry and switch with tabs at the top. */
+export const POSTS_TABS: SectionTab[] = [
+  { href: "/posts", label: "Posts" },
+  { href: "/announcements", label: "Announcements" },
+];
+export const EARNINGS_TABS: SectionTab[] = [
+  { href: "/royalty", label: "Royalties" },
+  { href: "/redeem", label: "Redeem" },
+  { href: "/reports", label: "Pin reports" },
+];
+const pathsOf = (tabs: SectionTab[]) => tabs.slice(1).map((tab) => tab.href);
 
 export type PortalNavInput = {
   signedIn: boolean;
@@ -54,19 +63,15 @@ const ADMIN: NavGroup = {
   ],
 };
 
-/** An approved artist's tools, drops first (as in Wadzzo's brand portal), then content, then what they sell. */
+/**
+ * An approved artist's tools, drops first (as in Wadzzo's brand portal). Kept
+ * short on purpose: pages that belong together share one entry.
+ */
 const READY_TOOLS: NavGroup[] = [
   {
     title: "Drops",
     items: [
-      { href: "/pins", icon: Map, label: "Map", exclude: ["/pins/manage"], tab: true },
-      {
-        href: "/pins/manage",
-        icon: MapPin,
-        label: "Pin management",
-        shortLabel: "Pins",
-        tab: true,
-      },
+      { href: "/pins", icon: Map, label: "Map & pins", shortLabel: "Map", tab: true },
       { href: "/events", icon: CalendarDays, label: "Events", tab: true },
       { href: "/embeds", icon: Code2, label: "Website map" },
     ],
@@ -74,10 +79,8 @@ const READY_TOOLS: NavGroup[] = [
   {
     title: "Content",
     items: [
-      { href: "/page", icon: LayoutTemplate, label: "My page" },
-      { href: "/domain", icon: Link2, label: "Domain" },
-      { href: "/posts", icon: FileText, label: "Posts" },
-      { href: "/announcements", icon: Megaphone, label: "Announcements" },
+      { href: "/page", icon: LayoutTemplate, label: "My page", also: ["/domain"] },
+      { href: "/posts", icon: FileText, label: "Posts", also: pathsOf(POSTS_TABS), tab: true },
       { href: "/bounties", icon: Trophy, label: "Bounties", tab: true },
     ],
   },
@@ -88,13 +91,7 @@ const READY_TOOLS: NavGroup[] = [
       { href: "/items", icon: Package, label: "Items" },
       { href: "/memberships", icon: Crown, label: "Memberships" },
       { href: "/gifts", icon: Gift, label: "Gifts" },
-    ],
-  },
-  {
-    title: "Insights",
-    items: [
-      { href: "/reports", icon: BarChart3, label: "Reports" },
-      { href: "/redeem", icon: Ticket, label: "Redeem" },
+      { href: "/royalty", icon: Coins, label: "Earnings", also: pathsOf(EARNINGS_TABS) },
     ],
   },
 ];
@@ -127,9 +124,9 @@ export function navFor({ signedIn, step, isAdmin }: PortalNavInput): NavGroup[] 
 const under = (prefix: string, pathname: string) =>
   pathname === prefix || pathname.startsWith(`${prefix}/`);
 
-export function isActive(entry: NavItem, pathname: string) {
+export function isActive(entry: Pick<NavItem, "href" | "exact" | "also">, pathname: string) {
   if (entry.exact) return pathname === entry.href;
-  return under(entry.href, pathname) && !entry.exclude?.some((prefix) => under(prefix, pathname));
+  return [entry.href, ...(entry.also ?? [])].some((prefix) => under(prefix, pathname));
 }
 
 const PHONE_TABS = 4;

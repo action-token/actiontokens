@@ -106,6 +106,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
     priceUsd !== "" &&
     !problems.usd &&
     supplyOk &&
+    (type !== "ROYALTY" || limited) &&
     royaltyOk &&
     resaleOk;
 
@@ -484,14 +485,16 @@ export function ItemForm({ existing }: { existing?: Existing }) {
                   ? `${existing?.sold} sold, so the number of copies is fixed.`
                   : nft
                     ? "An NFT edition has a fixed number of copies, up to 100,000."
-                    : undefined
+                    : type === "ROYALTY"
+                      ? "Holders get their share of all the copies, so the number is fixed."
+                      : undefined
               }
             >
               <div className="flex items-center gap-2">
                 <Toggle pressed={limited || nft} disabled={locked} onClick={() => setLimited(true)}>
                   {nft ? "Fixed" : "Limited"}
                 </Toggle>
-                {!nft && (
+                {!nft && type !== "ROYALTY" && (
                   <Toggle pressed={!limited} disabled={locked} onClick={() => setLimited(false)}>
                     Unlimited
                   </Toggle>

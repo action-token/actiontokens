@@ -73,6 +73,7 @@ const chain: ChainGateway = {
   prepareContractCall: (xdr) => Promise.resolve(xdr),
   editionIdByRef: () => Promise.resolve(null),
   assetExists: () => Promise.resolve(true),
+  assetHolders: () => Promise.resolve({ holders: [], complete: true }),
   bandcoinUsd: () => Promise.resolve("0.002"),
   config: {
     name: "testnet",

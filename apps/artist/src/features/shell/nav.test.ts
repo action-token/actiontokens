@@ -29,21 +29,17 @@ describe("portal navigation", () => {
 
   it("opens the artist tools once approved", () => {
     expect(labels({ signedIn: true, step: "READY", isAdmin: false })).toEqual([
-      "Map",
-      "Pin management",
+      "Map & pins",
       "Events",
       "Website map",
       "My page",
-      "Domain",
       "Posts",
-      "Announcements",
       "Bounties",
       "Music",
       "Items",
       "Memberships",
       "Gifts",
-      "Reports",
-      "Redeem",
+      "Earnings",
     ]);
   });
 
@@ -56,21 +52,17 @@ describe("portal navigation", () => {
       navFor({ signedIn: true, step: null, isAdmin: true }).map((group) => group.title),
     ).toEqual(["Artist", "Admin"]);
     expect(labels({ signedIn: true, step: "READY", isAdmin: true })).toEqual([
-      "Map",
-      "Pin management",
+      "Map & pins",
       "Events",
       "Website map",
       "My page",
-      "Domain",
       "Posts",
-      "Announcements",
       "Bounties",
       "Music",
       "Items",
       "Memberships",
       "Gifts",
-      "Reports",
-      "Redeem",
+      "Earnings",
       "Artists",
       "Mural review",
       "Activity",
@@ -80,7 +72,7 @@ describe("portal navigation", () => {
   it("lists the drops first, as Wadzzo's brand portal does", () => {
     expect(
       navFor({ signedIn: true, step: "READY", isAdmin: false }).map((group) => group.title),
-    ).toEqual(["Drops", "Content", "Sell", "Insights"]);
+    ).toEqual(["Drops", "Content", "Sell"]);
   });
 
   it("keeps Items lit on its nested pages", () => {
@@ -92,12 +84,20 @@ describe("portal navigation", () => {
     expect(isActive(items!, "/")).toBe(false);
   });
 
-  it("lights the map on /pins but not on the pin list", () => {
-    const [map, manage] = navFor({ signedIn: true, step: "READY", isAdmin: false })[0]!.items;
-    expect(isActive(map!, "/pins")).toBe(true);
-    expect(isActive(map!, "/pins/new")).toBe(true);
-    expect(isActive(map!, "/pins/manage")).toBe(false);
-    expect(isActive(manage!, "/pins/manage")).toBe(true);
+  it("keeps the menu short: one entry lights for every page it covers", () => {
+    const entries = navFor({ signedIn: true, step: "READY", isAdmin: false }).flatMap(
+      (group) => group.items,
+    );
+    const lit = (pathname: string) =>
+      entries.filter((entry) => isActive(entry, pathname)).map((entry) => entry.label);
+    expect(entries.length).toBeLessThanOrEqual(11);
+    expect(lit("/pins")).toEqual(["Map & pins"]);
+    expect(lit("/pins/manage")).toEqual(["Map & pins"]);
+    expect(lit("/domain")).toEqual(["My page"]);
+    expect(lit("/announcements/new")).toEqual(["Posts"]);
+    expect(lit("/reports")).toEqual(["Earnings"]);
+    expect(lit("/redeem")).toEqual(["Earnings"]);
+    expect(lit("/royalty")).toEqual(["Earnings"]);
   });
 
   it("keeps Artists lit on a nested admin page but not Activity", () => {
@@ -117,8 +117,8 @@ describe("portal navigation", () => {
     const ready = phoneTabs(navFor({ signedIn: true, step: "READY", isAdmin: true }), true);
     expect(ready.tabs.map((entry) => entry.shortLabel ?? entry.label)).toEqual([
       "Map",
-      "Pins",
       "Events",
+      "Posts",
       "Bounties",
     ]);
     expect(ready.more).toBe(true);

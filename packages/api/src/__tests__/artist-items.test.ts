@@ -180,6 +180,18 @@ describe("createItem", () => {
     });
     expect(created[0]).toMatchObject({ royaltyPercent: "10" });
   });
+
+  it("needs a fixed number of shares for royalty items", async () => {
+    await expect(
+      createItem(setup().ctx, artist, user, {
+        ...input,
+        type: "ROYALTY",
+        media: undefined,
+        royaltyPercent: "10",
+        supply: null,
+      }),
+    ).rejects.toMatchObject({ message: "A royalty item needs a fixed number of shares." });
+  });
 });
 
 const owned = (extra: Row = {}) => ({

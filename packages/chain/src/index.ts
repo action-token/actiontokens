@@ -10,6 +10,7 @@ export * from "./classic/issuer";
 export * from "./classic/transfer";
 export * from "./payments/platform-payment";
 export * from "./royalty/payout";
+export * from "./royalty/split";
 export * from "./nft/calls";
 export * from "./escrow/calls";
 export * from "./recharge";

@@ -99,7 +99,11 @@ export async function createItem(
   checkOwnUrls({ cover: input.coverUrl, file: input.media?.url });
   if (NEEDS_FILE.includes(input.type) && !input.media)
     throw invalid("Add the file people will get.");
-  if (input.type === "ROYALTY") checkRoyalty(input.royaltyPercent);
+  if (input.type === "ROYALTY") {
+    checkRoyalty(input.royaltyPercent);
+    // Holders are paid by their share of all the shares, so the total must be fixed.
+    if (input.supply === null) throw invalid("A royalty item needs a fixed number of shares.");
+  }
 
   const taken = await db.classicToken.findUnique({
     where: { code_issuer: { code, issuer: issuer.publicKey } },

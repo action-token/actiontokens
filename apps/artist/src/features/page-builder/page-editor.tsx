@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   ExternalLink,
   LayoutTemplate,
+  Link2,
   Loader2,
   Monitor,
   MoreHorizontal,
@@ -307,6 +308,11 @@ function Editor({ initial, onReload }: { initial: EditorData; onReload: () => Pr
           </DropdownMenuContent>
         </DropdownMenu>
 
+        <Button variant="outline" asChild>
+          <Link href="/domain">
+            <Link2 /> Short link
+          </Link>
+        </Button>
         {published && (
           <Button variant="outline" asChild>
             <a href={`${FAN_APP_URL}/artist/${initial.slug}`} target="_blank" rel="noreferrer">

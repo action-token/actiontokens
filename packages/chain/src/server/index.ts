@@ -7,6 +7,7 @@ export {
   fundsOf,
   horizon,
   loadAccount,
+  loadAssetHolders,
   spendableXlm,
   submit,
   trusts,

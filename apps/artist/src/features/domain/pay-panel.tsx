@@ -141,17 +141,12 @@ export function PayPanel({
           "Working…"
         ) : main ? (
           <>
-            {purpose === "RENEWAL" ? "Pay for a month" : "Change name"} ·{" "}
-            <Money amount={main.amount} currency={currency} />
+            Pay <Money amount={main.amount} currency={currency} />
           </>
         ) : (
           "Pay"
         )}
       </Button>
-      <p className="text-fg-faint text-xs">
-        You pay the price and the network fee. Bandcoin never covers it, and nothing is signed until
-        you press the button.
-      </p>
 
       {flow.step && (
         <ToastViewport>

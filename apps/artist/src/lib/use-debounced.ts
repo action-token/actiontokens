@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 
-/** `value`, but only after it has stopped changing for `ms`. */
-export function useDebounced<T>(value: T, ms = 500) {
-  const [settled, setSettled] = useState(value);
+/** A value that follows `value` once it has stopped changing for `delay` ms (for search boxes and live checks). */
+export function useDebounced<T>(value: T, delay = 400) {
+  const [debounced, setDebounced] = useState(value);
   useEffect(() => {
-    const timer = setTimeout(() => setSettled(value), ms);
+    const timer = setTimeout(() => setDebounced(value), delay);
     return () => clearTimeout(timer);
-  }, [value, ms]);
-  return settled;
+  }, [value, delay]);
+  return debounced;
 }

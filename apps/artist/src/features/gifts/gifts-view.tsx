@@ -1,7 +1,7 @@
 "use client";
 
 import { Gift, Search, Send, Users, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Input } from "@bandcoin/ui/components/input";
@@ -16,20 +16,12 @@ import { ToastViewport, TransactionToast } from "@bandcoin/ui/patterns/transacti
 
 import { Money } from "~/components/money";
 import { timeAgo } from "~/lib/format";
+import { useDebounced } from "~/lib/use-debounced";
 import { api } from "~/trpc/react";
 
 import { QuoteBreakdown } from "../payments/quote-breakdown";
 
 import { useGift } from "./use-gift";
-
-function useDebounced<T>(value: T, delay = 400) {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const timer = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(timer);
-  }, [value, delay]);
-  return debounced;
-}
 
 /**
  * Gifts: give a fan some of your fan token, for example to lift them into a

@@ -1,4 +1,4 @@
-import { Keypair, type Horizon } from "@stellar/stellar-sdk";
+import { Asset, Keypair, type Horizon } from "@stellar/stellar-sdk";
 
 import {
   addSignatures,
@@ -10,6 +10,7 @@ import {
   liveBandcoinUsd,
   liveRates,
   loadAccount,
+  loadAssetHolders,
   prepareContractCall,
   readEditionId,
   type Rates,
@@ -38,6 +39,11 @@ export type ChainGateway = {
   signForCustodialUser(xdr: string, email: string): Promise<string>;
   /** Simulates a contract call and fills in its footprint and fee, ready to sign. `signers` are platform-held keys that authorise it (the price authority) */
   prepareContractCall(xdr: string, signers?: string[]): Promise<string>;
+  /** Every account holding an asset and how much; `complete` is false when there were too many to list */
+  assetHolders(
+    code: string,
+    issuer: string,
+  ): Promise<{ holders: { address: string; balance: string }[]; complete: boolean }>;
   /** Whether an asset (code + issuer) exists on the network */
   assetExists(code: string, issuer: string): Promise<boolean>;
   /** The on-chain id of the edition registered under `editionRef`, or null when there is none */
@@ -116,6 +122,7 @@ export function createChainGateway(db: Db): ChainGateway {
       prepareContractCall(xdr, await serverSecrets(db, signers)),
     submit,
     assetExists,
+    assetHolders: (code, issuer) => loadAssetHolders(new Asset(code, issuer)),
     editionIdByRef: (editionRef) =>
       readEditionId(chainConfig().nftContract, chainConfig().treasury, editionRef),
     findTransaction,

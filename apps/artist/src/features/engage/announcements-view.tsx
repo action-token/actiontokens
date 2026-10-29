@@ -12,6 +12,8 @@ import { ErrorState } from "@bandcoin/ui/patterns/error-state";
 import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
 import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
 
+import { SectionTabs } from "~/components/section-tabs";
+import { POSTS_TABS } from "~/features/shell/nav";
 import { formatWhen } from "~/lib/datetime";
 import { api, type RouterOutputs } from "~/trpc/react";
 
@@ -32,11 +34,12 @@ export function AnnouncementsView() {
   return (
     <PageBody className="grid gap-6">
       <PageHeader
-        eyebrow="Fans"
+        eyebrow="Content"
         title="Announcements"
-        description="Short news for your fans in the AR app. Add a button, pin the important ones, and set when they disappear."
+        description="Short news for fans in the AR app."
         actions={announcements.data && announcements.data.length > 0 ? add : undefined}
       />
+      <SectionTabs tabs={POSTS_TABS} label="Posts" />
       {announcements.isPending ? (
         <Skeleton className="h-40 w-full max-w-3xl rounded-xl" />
       ) : announcements.isError ? (

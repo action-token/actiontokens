@@ -43,6 +43,29 @@ const line = (account: Horizon.AccountResponse, asset: Asset) =>
 export const trusts = (account: Horizon.AccountResponse, asset: Asset) =>
   asset.isNative() || Boolean(line(account, asset));
 
+const HOLDERS_PER_PAGE = 200;
+/** A token with more holders than this isn't paid out in one go; the quote says so. */
+export const MAX_HOLDER_PAGES = 25;
+
+/** Every account holding an asset and how much, in pages of 200 (`complete` is false past the cap). */
+export async function loadAssetHolders(
+  asset: Asset,
+  maxPages = MAX_HOLDER_PAGES,
+): Promise<{ holders: { address: string; balance: string }[]; complete: boolean }> {
+  const holders: { address: string; balance: string }[] = [];
+  let page = await horizon().accounts().forAsset(asset).limit(HOLDERS_PER_PAGE).call();
+  for (let count = 1; ; count++) {
+    for (const account of page.records) {
+      const held = line(account as unknown as Horizon.AccountResponse, asset);
+      if (held && toStroops(held.balance) > 0n)
+        holders.push({ address: account.account_id, balance: held.balance });
+    }
+    if (page.records.length < HOLDERS_PER_PAGE) return { holders, complete: true };
+    if (count >= maxPages) return { holders, complete: false };
+    page = await page.next();
+  }
+}
+
 /** XLM the account can spend: balance − reserves − XLM locked in offers. */
 export function spendableXlm(account: Horizon.AccountResponse): string {
   const native = account.balances.find((balance) => balance.asset_type === "native");

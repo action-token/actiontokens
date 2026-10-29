@@ -8,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@bandcoin/ui/component
 import { cn } from "@bandcoin/ui/lib/cn";
 import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
 
+import { SectionTabs } from "~/components/section-tabs";
+import { EARNINGS_TABS } from "~/features/shell/nav";
 import { api } from "~/trpc/react";
 
 import { CodeChecker } from "./code-checker";
@@ -32,10 +34,11 @@ export function RedeemView() {
   return (
     <PageBody className="grid gap-6">
       <PageHeader
-        eyebrow="Insights"
+        eyebrow="Earnings"
         title="Redeem"
         description="Check a fan's code and redeem the reward they collected."
       />
+      <SectionTabs tabs={EARNINGS_TABS} label="Earnings" />
       <div className="grid gap-4 sm:grid-cols-3">
         <SummaryCard icon={Ticket} label="Total rewards" value={summary.data?.rewards} />
         <SummaryCard icon={Users} label="Waiting to redeem" value={summary.data?.waiting} warn />
