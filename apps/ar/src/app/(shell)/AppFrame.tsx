@@ -12,6 +12,7 @@ import { ConnectWalletPopups } from "@bandcoin/wallet";
 import { AuthGate } from "~/components/auth/AuthGate";
 import { SessionSync } from "~/components/auth/SessionSync";
 import { BootSequence } from "~/components/boot/BootSequence";
+import { MuralPackHud } from "~/components/murals/MuralPackHud";
 import { DeviceFrame } from "~/components/shell/DeviceFrame";
 import { hasBooted, markBooted } from "~/lib/ar/store";
 
@@ -60,6 +61,9 @@ export function AppFrame({ children }: { children: ReactNode }) {
         </motion.div>
 
         <AuthGate />
+
+        {/* Mural pack: background install + HUD pill + ready toast. */}
+        <MuralPackHud />
 
         {/* No presence wrapper needed: BootSequence has no `exit` prop — it
             plays its own iris-open inside `animate` and then unmounts itself

@@ -3,6 +3,7 @@ import { ArrowUpRight, Camera, Check, MapPin, X, type LucideIcon } from "lucide-
 import { useRouter } from "~/lib/navigation";
 import { useEffect, useState } from "react";
 
+import { packProgress, useMuralPack } from "~/lib/murals/pack";
 import { readCameraPermissions, type PermAnswers } from "~/lib/ar/cameraPermissions";
 
 import { CAMERA_MODES, tone, type CameraModeDef, type CameraPerm } from "./modes";
@@ -221,8 +222,43 @@ function BentoCard({
           {mode.blurb}
         </p>
         {!soon && <Readiness mode={mode} perms={perms} />}
+        {mode.id === "murals" && <PackChip />}
       </div>
     </motion.button>
+  );
+}
+
+/** Murals tile: the pack's install state, with a mini bar while it downloads. */
+function PackChip() {
+  const s = useMuralPack();
+  if (s.status === "ready") {
+    return (
+      <p className="font-hud text-ar-accent-hot mt-2 flex items-center gap-1 text-[9.5px] font-bold tracking-[0.14em] uppercase">
+        <Check className="h-3 w-3" strokeWidth={3} /> Mural pack ready
+      </p>
+    );
+  }
+  if (s.status === "idle") return null;
+  const pct = Math.floor(packProgress(s) * 100);
+  return (
+    <div className="mt-2">
+      <p className="font-hud text-rarity-epic flex items-center justify-between text-[9.5px] font-bold tracking-[0.14em] uppercase">
+        <span>
+          {s.status === "error"
+            ? "Pack paused"
+            : s.status === "verifying"
+              ? "Verifying pack"
+              : "Downloading pack"}
+        </span>
+        <span className="tabular-nums">{s.status === "error" ? "" : `${pct}%`}</span>
+      </p>
+      <div className="bg-ar-void/60 mt-1 h-1.5 overflow-hidden rounded-full">
+        <div
+          className="to-rarity-epic h-full rounded-full bg-linear-to-r from-cyan-400 transition-[width] duration-300"
+          style={{ width: `${Math.max(3, pct)}%` }}
+        />
+      </div>
+    </div>
   );
 }
 

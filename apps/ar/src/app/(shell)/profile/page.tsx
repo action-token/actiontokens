@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ChevronRight,
   Coins,
   Footprints,
   LogOut,
@@ -14,10 +15,12 @@ import {
   Users,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { useRouter } from "~/lib/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { HoloCard } from "~/components/cards/HoloCard";
+import { MuralPackSettings } from "~/components/murals/MuralPackSettings";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { AppShell, BackButton, ScreenHeader } from "~/components/shell/AppShell";
 import { ArButton, ArLinkButton } from "~/components/ui/ArButton";
@@ -30,6 +33,7 @@ import { type ThemePreference, useTheme } from "~/lib/ar/theme";
 import type { ArSettings } from "@bandcoin/ar-core/ar/types";
 import { useDragScroll } from "~/lib/ar/useDragScroll";
 import { useArtists, useCollectedPinsQuery } from "~/lib/ar/usePins";
+import { site } from "@bandcoin/ar-core/site";
 import { cn } from "@bandcoin/ui/lib/cn";
 
 const THEME_OPTIONS: {
@@ -109,6 +113,7 @@ export default function ProfileScreen() {
   const collected = latest.pins;
   const total = latest.facets?.total ?? 0;
   const me = api.account.me.useQuery(undefined, { enabled: Boolean(user), staleTime: 30_000 });
+  const coins = api.coin.balance.useQuery(undefined, { enabled: Boolean(user), staleTime: 30_000 });
 
   const artists = useArtists();
   const following = artists.filter((b) => b.followed).length;
@@ -172,6 +177,23 @@ export default function ProfileScreen() {
             </div>
           </div>
         </div>
+
+        {/* ── Mural Coins (off-chain, from murals) ────────────────────
+            Its own gold row, apart from the on-chain balance above, so the
+            two never read as the same number. */}
+        <Link
+          href="/coins"
+          className="rounded-ar border-gold/35 bg-gold/10 hover:bg-gold/15 mx-5 mt-3 flex items-center gap-3 border px-4 py-2.5 transition-colors"
+        >
+          <Coins size={16} strokeWidth={2.4} className="text-gold" />
+          <span className="font-hud text-ar-dim flex-1 text-[11px] font-semibold tracking-[0.14em] uppercase">
+            {site.coinName}
+          </span>
+          <span className="font-hud text-gold text-[16px] font-bold tabular-nums">
+            {(coins.data?.balance ?? 0).toLocaleString()}
+          </span>
+          <ChevronRight size={15} strokeWidth={2.4} className="text-ar-faint" />
+        </Link>
 
         {/* ── Totals ───────────────────────────────────────────────── */}
         <div className="rounded-ar border-ar-line mx-5 mt-3 flex items-center justify-around border bg-white/[0.03] py-3">
@@ -361,6 +383,14 @@ export default function ProfileScreen() {
 
             {SHOW_FEEDBACK_TEST && <FeedbackTest />}
           </div>
+        </section>
+
+        {/* ── Mural pack ───────────────────────────────────────────── */}
+        <section className="mx-5 mt-4">
+          <p className="font-hud text-ar-faint mb-2 text-[10px] font-semibold tracking-[0.28em] uppercase">
+            Downloads
+          </p>
+          <MuralPackSettings />
         </section>
 
         <div className="px-5 pt-4 pb-8">

@@ -5,6 +5,7 @@ import { useRouter } from "~/lib/navigation";
 import { useState } from "react";
 
 import { CameraLauncher } from "~/components/camera/CameraLauncher";
+import { PackRing } from "~/components/murals/PackRing";
 
 import { cn } from "@bandcoin/ui/lib/cn";
 
@@ -54,7 +55,7 @@ export function BottomTabBar() {
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
   // QR is a mode of the same camera screen, reached from the AR tab.
   const arActive = isActive("/ar") || isActive("/scan");
-  // The AR button opens the camera launcher (AR · QR), same as the
+  // The AR button opens the camera launcher (AR · QR · Murals), same as the
   // mobile app, instead of going straight to /ar.
   const [launcherOpen, setLauncherOpen] = useState(false);
 
@@ -97,6 +98,10 @@ export function BottomTabBar() {
                 <ArGlyph active={arActive} />
               </span>
             </button>
+            {/* Mural pack "charging" the camera while it downloads. A sibling,
+                not a child: its % badge is its own button, and buttons can't
+                nest. Overlaid on the 62px key above. */}
+            <PackRing />
           </div>
 
           {/* ── The bar ─────────────────────────────────────────────────── */}

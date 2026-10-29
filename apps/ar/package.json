@@ -21,6 +21,7 @@
     "@bandcoin/ui": "workspace:*",
     "@bandcoin/utils": "workspace:*",
     "@bandcoin/wallet": "workspace:*",
+    "@huggingface/transformers": "catalog:",
     "@tanstack/react-query": "catalog:",
     "@trpc/client": "catalog:",
     "@trpc/react-query": "catalog:",

@@ -5,6 +5,8 @@ import { useQueryParams, useRouter } from "~/lib/navigation";
 import { useEffect, useState } from "react";
 
 import { HoloCard } from "~/components/cards/HoloCard";
+import { MuralCollection } from "~/components/murals/MuralCollection";
+import { SegmentedTabs } from "~/components/ui/SegmentedTabs";
 import { CardSkeleton, StatRowSkeleton } from "~/components/ui/Skeleton";
 import { AppShell, ScreenHeader } from "~/components/shell/AppShell";
 import { ArButton, ArLinkButton } from "~/components/ui/ArButton";
@@ -16,10 +18,11 @@ import { useDragScroll } from "~/lib/ar/useDragScroll";
 import { useCollectedPinsQuery } from "~/lib/ar/usePins";
 import { cn } from "@bandcoin/ui/lib/cn";
 
-/** Cards mounted per page, the same budget as an artist page. */
+/** Cards mounted per page — same budget as the artist grid. */
 const PAGE_SIZE = 24;
 
 type Sort = "newest" | "rarest" | "artist";
+type CollectionTab = "drops" | "murals";
 
 const SORTS: { id: Sort; label: string }[] = [
   { id: "newest", label: "Newest" },
@@ -45,6 +48,14 @@ export default function CollectionScreen() {
   const router = useRouter();
   const { query: urlQuery, ready: urlReady } = useQueryParams();
   const signedIn = useAuth((s) => Boolean(s.user));
+  // Drops | Murals — in the URL so the camera's coin pill and back-navigation land on the right one.
+  const tab: CollectionTab = urlQuery.tab === "murals" ? "murals" : "drops";
+  const setTab = (t: CollectionTab) =>
+    void router.replace(
+      { pathname: router.pathname, query: t === "murals" ? { tab: t } : {} },
+      undefined,
+      { shallow: true },
+    );
   const [query, setQuery] = useState("");
   const [rarity, setRarity] = useState<Rarity | "all">("all");
   const [sort, setSort] = useState<Sort>("newest");
@@ -87,7 +98,8 @@ export default function CollectionScreen() {
           eyebrow="Your collection"
           title="Collection"
           trailing={
-            <button
+            tab === "drops" && (
+              <button
                 onClick={() =>
                   setSort((s) => SORTS[(SORTS.findIndex((x) => x.id === s) + 1) % SORTS.length]!.id)
                 }
@@ -98,11 +110,25 @@ export default function CollectionScreen() {
                   {SORTS.find((s) => s.id === sort)?.label}
                 </span>
               </button>
+            )
           }
         />
 
-        {/* Murals get their own tab with the AR extras (stage 7). */}
-        <>
+        <SegmentedTabs
+          tabs={[
+            { id: "drops", label: "Drops", icon: Sparkles },
+            { id: "murals", label: "Murals", icon: Frame },
+          ]}
+          value={tab}
+          onChange={setTab}
+          layoutId="collection-tab"
+          className="mx-5 mb-3"
+        />
+
+        {tab === "murals" ? (
+          <MuralCollection signedIn={signedIn} />
+        ) : (
+          <>
             {/* ── Stats ────────────────────────────────────────────────── */}
             {loading ? (
               <div className="mx-5">
@@ -232,7 +258,8 @@ export default function CollectionScreen() {
                 />
               )}
             </div>
-        </>
+          </>
+        )}
       </div>
     </AppShell>
   );

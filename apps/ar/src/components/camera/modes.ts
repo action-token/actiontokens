@@ -49,8 +49,7 @@ export const CAMERA_MODES: CameraModeDef[] = [
   },
   {
     id: "murals",
-    // Murals arrive with the AR extras (stage 7 of docs/plans/10-ar-app.md)
-    href: null,
+    href: "/murals",
     label: "Murals",
     title: "Murals",
     blurb: `Scan murals and street art to earn ${site.coinName}.`,

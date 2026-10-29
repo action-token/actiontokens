@@ -16,9 +16,10 @@ import { AppError, ErrorCodes } from "@bandcoin/errors";
  * Plain REST with google-auth-library rather than @google-cloud/vision: two
  * calls don't justify the client's dependency tree.
  *
- * GOOGLE_VISION_CREDENTIALS is a service-account JSON key. Without it the
- * checks are skipped outside production (so the flow can be tried end to end
- * on a laptop) and refused in production.
+ * Signs in with GOOGLE_VISION_CREDENTIALS (a service-account JSON key) or,
+ * failing that, Application Default Credentials for GOOGLE_CLOUD_PROJECT.
+ * With neither, the checks are skipped outside production (so the flow can
+ * be tried end to end on a laptop) and refused in production.
  *
  * Thresholds below are first guesses; tune them against real scans
  * (MuralScan.vision keeps every raw response).
@@ -86,13 +87,21 @@ export type VisionReport = {
   webFullMatches?: number;
 };
 
+const SCOPES = ["https://www.googleapis.com/auth/cloud-vision"];
+
 let auth: GoogleAuth | null = null;
+/**
+ * A service-account key (GOOGLE_VISION_CREDENTIALS) when set; otherwise the
+ * machine's Application Default Credentials, billed to GOOGLE_CLOUD_PROJECT.
+ * Null when neither is configured.
+ */
 function client() {
-  if (!process.env.GOOGLE_VISION_CREDENTIALS) return null;
-  auth ??= new GoogleAuth({
-    credentials: JSON.parse(process.env.GOOGLE_VISION_CREDENTIALS) as Record<string, string>,
-    scopes: ["https://www.googleapis.com/auth/cloud-vision"],
-  });
+  const key = process.env.GOOGLE_VISION_CREDENTIALS;
+  const project = process.env.GOOGLE_CLOUD_PROJECT;
+  if (!key && !project) return null;
+  auth ??= key
+    ? new GoogleAuth({ credentials: JSON.parse(key) as Record<string, string>, scopes: SCOPES })
+    : new GoogleAuth({ projectId: project, scopes: SCOPES });
   return auth;
 }
 
@@ -103,11 +112,22 @@ async function annotate(
   }[],
 ) {
   const c = client()!;
-  const res = await c.request<{ responses: AnnotateResponse[] }>({
-    url: ENDPOINT,
-    method: "POST",
-    data: { requests },
-  });
+  const project = process.env.GOOGLE_VISION_CREDENTIALS ? undefined : process.env.GOOGLE_CLOUD_PROJECT;
+  let res;
+  try {
+    res = await c.request<{ responses: AnnotateResponse[] }>({
+      url: ENDPOINT,
+      method: "POST",
+      data: { requests },
+      // User credentials need a project to bill; a service account bills its own.
+      ...(project ? { headers: { "x-goog-user-project": project } } : {}),
+    });
+  } catch (error) {
+    throw new AppError(ErrorCodes.EXTERNAL_SERVICE_FAILED, {
+      message: "Couldn't check the scan with Google Vision. Try again in a moment.",
+      cause: error,
+    });
+  }
   for (const r of res.data.responses)
     if (r.error)
       throw new AppError(ErrorCodes.EXTERNAL_SERVICE_FAILED, {

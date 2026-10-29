@@ -7,8 +7,7 @@ import { cn } from "@bandcoin/ui/lib/cn";
 const MODES = [
   { id: "ar", href: "/ar", label: "AR", icon: ScanLine },
   { id: "qr", href: "/scan", label: "QR", icon: QrCode },
-  // Murals arrive with the AR extras; until then the pill shows but is disabled
-  { id: "murals", href: null, label: "ART", icon: Frame },
+  { id: "murals", href: "/murals", label: "ART", icon: Frame },
 ] as const;
 
 /** Murals wear the launcher tile's epic purple; the other two stay green. */
@@ -60,18 +59,15 @@ export function CameraModeSwitch({ mode, className }: { mode: CameraMode; classN
       {MODES.map((m) => {
         const active = m.id === mode;
         const Icon = m.icon;
-        const href = m.href;
         return (
           <button
             key={m.id}
             role="tab"
             aria-selected={active}
-            disabled={!href}
-            title={href ? undefined : "Coming soon"}
             onClick={() => {
-              if (!active && href) void router.replace(href);
+              if (!active) void router.replace(m.href);
             }}
-            className="relative flex w-[58px] items-center justify-center gap-1 rounded-full disabled:opacity-40"
+            className="relative flex w-[58px] items-center justify-center gap-1 rounded-full"
           >
             {active && (
               <motion.span
