@@ -54,7 +54,9 @@ export function ItemsView() {
 }
 
 function ItemRow({ row }: { row: Row }) {
-  const status = row.visibility === "DRAFT" ? { tone: "neutral" as const, label: "Draft" } : row.listingStatus === "SOLD_OUT" ? { tone: "warning" as const, label: "Sold out" } : { tone: "success" as const, label: "For sale" };
+  const status = row.registered === "PENDING"
+    ? { tone: "warning" as const, label: "Needs registering" }
+    : row.visibility === "DRAFT" ? { tone: "neutral" as const, label: "Draft" } : row.listingStatus === "SOLD_OUT" ? { tone: "warning" as const, label: "Sold out" } : { tone: "success" as const, label: "For sale" };
   return (
     <li>
       <Link href={`/items/${row.id}`} className="bg-surface hover:bg-surface-2 flex items-center gap-4 rounded-xl border p-3 transition-colors sm:p-4">
@@ -63,7 +65,7 @@ function ItemRow({ row }: { row: Row }) {
         <div className="grid min-w-0 flex-1 gap-0.5">
           <b className="truncate">{row.title}</b>
           <span className="text-fg-muted truncate text-sm">
-            {typeLabel(row.type)} · {row.code} · {row.sold} sold{row.supply === null ? "" : ` of ${row.supply}`}
+            {typeLabel(row.type)} · {row.chain === "CONTRACT_NFT" ? "NFT" : row.code} · {row.sold} sold{row.supply === null ? "" : ` of ${row.supply}`}
           </span>
           {row.priceBandcoin && row.priceUsd && (
             <span className="text-fg-muted flex flex-wrap items-center gap-x-3 text-sm">

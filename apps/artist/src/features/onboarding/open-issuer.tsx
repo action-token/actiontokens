@@ -6,7 +6,7 @@ import { ToastViewport, TransactionToast } from "@bandcoin/ui/patterns/transacti
 import { Money } from "~/components/money";
 import { api } from "~/trpc/react";
 
-import { QuoteBreakdown } from "./quote-breakdown";
+import { QuoteBreakdown } from "../payments/quote-breakdown";
 import { useIssuerOpening } from "./use-issuer-opening";
 
 /**

@@ -10,11 +10,11 @@ import type { RouterOutputs } from "~/trpc/react";
 
 import { FAN_APP_URL } from "../shell/links";
 
-type Quote = RouterOutputs["onboarding"]["issuerQuote"];
+type Quote = RouterOutputs["onboarding"]["issuerQuote"] | RouterOutputs["catalog"]["nftQuote"];
 
 /**
- * The server's price for opening the artist account: each cost, what you pay,
- * your XLM, and why it can't go through yet. It does no money math.
+ * The server's price for a payment in XLM (opening the artist account, registering an NFT):
+ * each cost, what you pay, your XLM, and why it can't go through yet. It does no money math.
  */
 export function QuoteBreakdown({ quote, balance, loading }: { quote: Quote | undefined; balance: string | undefined; loading: boolean }) {
   if (loading || !quote) {

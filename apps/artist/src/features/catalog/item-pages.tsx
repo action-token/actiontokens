@@ -14,6 +14,7 @@ import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
 import { api } from "~/trpc/react";
 
 import { ItemForm } from "./item-form";
+import { RegisterNft } from "./register-nft";
 
 export function NewItemView() {
   return (
@@ -61,12 +62,19 @@ export function EditItemView({ itemId }: { itemId: string }) {
         <ErrorState message={item.error.message} onRetry={() => void item.refetch()} />
       ) : (
         <>
+          {item.data.chain === "CONTRACT_NFT" && item.data.registered === "PENDING" && <RegisterNft itemId={itemId} />}
           <ItemForm existing={item.data} />
           <ConfirmDialog
             open={deleting}
             onOpenChange={setDeleting}
             title={`Delete ${item.data.title}?`}
-            description={item.data.locked ? "This item has sales, so it can't be deleted. Hide it by unpublishing instead." : "It disappears from your page. This can't be undone."}
+            description={
+              item.data.registered === "MINTED"
+                ? "A registered NFT is on the contract, so it can't be deleted."
+                : item.data.locked
+                  ? "This item has sales, so it can't be deleted. Hide it by unpublishing instead."
+                  : "It disappears from your page. This can't be undone."
+            }
             confirmLabel={remove.isPending ? "Deleting…" : "Delete"}
             busy={remove.isPending}
             onConfirm={() => remove.mutate({ itemId })}
