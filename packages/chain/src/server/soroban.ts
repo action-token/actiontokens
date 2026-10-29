@@ -52,11 +52,26 @@ export async function prepareContractCall(unpreparedXdr: string, authSecrets: st
 
 /** The account an auth entry is for; null when it is the transaction source's own auth. */
 function addressOf(entry: xdr.SorobanAuthorizationEntry): string | null {
-  const { credentials } = entry;
-  if (credentials.type !== "sorobanCredentialsAddress") return null;
-  return Address.fromScAddress(credentials.address.address).toString();
+  return credentialAddress(entry.credentials);
 }
 
+/**
+ * The signer named by a set of credentials. Current nodes simulate with
+ * `address_v2` credentials as well as the classic `address` kind; missing one
+ * leaves the entry unsigned and the contract call fails on-chain.
+ */
+export function credentialAddress(credentials: xdr.SorobanCredentials): string | null {
+  switch (credentials.type) {
+    case "sorobanCredentialsAddress":
+      return Address.fromScAddress(credentials.address.address).toString();
+    case "sorobanCredentialsAddressV2":
+      return Address.fromScAddress(credentials.addressV2.address).toString();
+    case "sorobanCredentialsAddressWithDelegates":
+      return Address.fromScAddress(credentials.addressWithDelegates.addressCredentials.address).toString();
+    default:
+      return null;
+  }
+}
 /**
  * The id of the edition registered under `editionRef` on the nft_oz contract
  * (`edition_by_ref`), or null when none exists. A read-only simulation, so it
