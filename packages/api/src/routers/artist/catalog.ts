@@ -1,0 +1,60 @@
+import { z } from "zod";
+
+import { signCreatorUpload } from "@bandcoin/storage";
+
+import { createItem, listMyItems, removeItem, updateItem } from "../../services/artist/items";
+import { artistProcedure, createRouter } from "../../trpc";
+
+const price = z.string().trim().max(20);
+const visibility = z.enum(["DRAFT", "PUBLIC"]);
+
+const declaredFile = z.object({
+  fileName: z.string().min(1).max(200),
+  fileType: z.string().min(1).max(100),
+  fileSize: z.number().int().positive(),
+  checksum: z.string().min(1).max(100),
+});
+
+/** The artist's collectibles (see services/artist/items). Approved artists only. */
+export const catalogRouter = createRouter({
+  /** A signed upload for a cover or the item's file. */
+  upload: artistProcedure.input(declaredFile).mutation(({ input }) => signCreatorUpload(input)),
+
+  list: artistProcedure.query(({ ctx }) => listMyItems(ctx, ctx.artist)),
+
+  create: artistProcedure
+    .input(
+      z.object({
+        type: z.enum(["IMAGE", "VIDEO", "MODEL_3D", "DOCUMENT", "ROYALTY", "TICKET", "MERCH"]),
+        title: z.string().trim().min(1, "Give it a title").max(120),
+        description: z.string().trim().max(2000).optional(),
+        coverUrl: z.string().url(),
+        media: z.object({ url: z.string().url(), mediaType: z.enum(["AUDIO", "VIDEO", "IMAGE", "MODEL_3D", "DOCUMENT"]) }).optional(),
+        code: z.string().trim().max(12),
+        supply: z.number().int().nullable(),
+        priceBandcoin: price,
+        priceUsd: price,
+        visibility,
+        royaltyPercent: z.string().trim().max(10).optional(),
+      }),
+    )
+    .mutation(({ ctx, input }) => createItem(ctx, ctx.artist, ctx.session.user, input)),
+
+  update: artistProcedure
+    .input(
+      z.object({
+        itemId: z.string().min(1),
+        title: z.string().trim().min(1).max(120).optional(),
+        description: z.string().trim().max(2000).optional(),
+        coverUrl: z.string().url().optional(),
+        priceBandcoin: price.optional(),
+        priceUsd: price.optional(),
+        supply: z.number().int().nullable().optional(),
+        code: z.string().trim().max(12).optional(),
+        visibility: visibility.optional(),
+      }),
+    )
+    .mutation(({ ctx, input }) => updateItem(ctx, ctx.artist, input)),
+
+  remove: artistProcedure.input(z.object({ itemId: z.string().min(1) })).mutation(({ ctx, input }) => removeItem(ctx, ctx.artist, input.itemId)),
+});

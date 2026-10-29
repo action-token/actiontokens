@@ -1,5 +1,6 @@
 import { accountRouter } from "./routers/app/account";
 import { adminRouter } from "./routers/admin";
+import { catalogRouter } from "./routers/artist/catalog";
 import { onboardingRouter } from "./routers/artist/onboarding";
 import { portalStatusRouter } from "./routers/artist/portal";
 import { createRouter } from "./trpc";
@@ -10,6 +11,7 @@ export const portalRouter = createRouter({
   portal: portalStatusRouter,
   onboarding: onboardingRouter,
   admin: adminRouter,
+  catalog: catalogRouter,
 });
 
 export type PortalRouter = typeof portalRouter;

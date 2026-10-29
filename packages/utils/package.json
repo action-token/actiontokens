@@ -8,6 +8,7 @@
     "./address": "./src/address.ts",
     "./string": "./src/string.ts",
     "./slug": "./src/slug.ts",
+    "./asset-code": "./src/asset-code.ts",
     "./ipfs": "./src/ipfs.ts",
     "./blank": "./src/blank.ts",
     "./redeem-code": "./src/redeem-code.ts",
