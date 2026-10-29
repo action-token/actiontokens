@@ -38,6 +38,13 @@ describe("portal.status", () => {
     });
   });
 
+  it("tells a rejected applicant why, so they can fix it and apply again", async () => {
+    const rejected = { id: "a1", name: "Luna Vale", slug: "luna-vale", status: "REJECTED", issuerAccountId: null, rejectionReason: "Use your real artist name" };
+    await expect(setup(fan, rejected).caller.portal.status()).resolves.toMatchObject({
+      artist: { status: "REJECTED", step: "REJECTED", rejectionReason: "Use your real artist name" },
+    });
+  });
+
   it("marks approved and banned artists, and admins", async () => {
     const approved = { id: "a1", name: "Luna Vale", slug: "luna-vale", status: "APPROVED", issuerAccountId: "chain1" };
     await expect(setup(fan, approved).caller.portal.status()).resolves.toMatchObject({ artist: { status: "APPROVED", step: "READY" } });

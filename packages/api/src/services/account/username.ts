@@ -1,14 +1,9 @@
+import { isReservedName } from "@bandcoin/utils/slug";
+
 const MIN = 3;
 const MAX = 20;
 const COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000;
 
-/** Top-level routes and names that could be mistaken for the platform. */
-const RESERVED = new Set([
-  "admin", "administrator", "api", "app", "artist", "artists", "about", "bandcoin", "bounty", "bounties", "collection",
-  "collections", "creator", "creators", "drop", "explore", "feed", "help", "library", "login", "logout", "market",
-  "marketplace", "me", "moderator", "music", "notification", "notifications", "playlist", "playlists", "privacy", "recharge",
-  "root", "settings", "staff", "studio", "support", "system", "terms", "u", "wallet",
-]);
 
 export const normalizeUsername = (raw: string) => raw.trim().replace(/^@/, "").toLowerCase();
 
@@ -18,7 +13,7 @@ export function validateUsername(username: string): string | null {
   if (username.length > MAX) return `Use at most ${MAX} characters`;
   if (!/^[a-z0-9_]+$/.test(username)) return "Use only lowercase letters, numbers and underscores";
   if (!/^[a-z0-9]/.test(username)) return "Start with a letter or number";
-  if (RESERVED.has(username)) return "That name is reserved";
+  if (isReservedName(username)) return "That name is reserved";
   return null;
 }
 

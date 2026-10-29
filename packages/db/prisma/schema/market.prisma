@@ -75,6 +75,8 @@ enum OrderKind {
   XLM_SWAP
   /// A new wallet created with its first XLM, paid by card
   ACTIVATION
+  /// An artist pays XLM to open their issuer account
+  ISSUER_SETUP
 }
 
 /// One payment by a buyer. Every money flow with a buyer goes through here,

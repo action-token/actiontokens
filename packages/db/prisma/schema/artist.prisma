@@ -5,6 +5,8 @@ enum ArtistStatus {
   PENDING
   APPROVED
   BANNED
+  /// An admin turned the application down; the artist's XLM was returned and they can apply again
+  REJECTED
 }
 
 model Artist {
@@ -26,6 +28,8 @@ model Artist {
   twitter           String?
   instagram         String?
   status            ArtistStatus  @default(PENDING)
+  /// What the admin told the applicant when rejecting
+  rejectionReason   String?
   storageAccountId  String?       @unique
   storageAccount    ChainAccount? @relation("ArtistStorage", fields: [storageAccountId], references: [id], onDelete: SetNull)
   /// The artist's one issuer: their fan token and every item they create are

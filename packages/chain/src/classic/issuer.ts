@@ -1,5 +1,7 @@
 import { type Account, Operation } from "@stellar/stellar-sdk";
 
+import { toAmount, toDisplay, toStroops } from "../money";
+import type { RechargeLine, RechargeProblem } from "../recharge";
 import { finish, type NetworkParams, startTransaction } from "../transaction";
 
 /**
@@ -45,4 +47,49 @@ export function buildStorageSetup(input: {
     Operation.createAccount({ destination: input.storage, startingBalance: input.startingXlm }),
   );
   return finish(builder);
+}
+
+/**
+ * The price of opening an issuer, for the apply screen: the starting XLM and
+ * the network fee, both paid by the artist, checked against their spendable XLM.
+ */
+export function quoteIssuerSetup(input: { xlmFunds: string | null; networkFeeXlm: string }) {
+  const issuer = toStroops(ISSUER_STARTING_XLM);
+  const fee = toStroops(input.networkFeeXlm);
+  const total = issuer + fee;
+  const problems: RechargeProblem[] = [];
+  if (input.xlmFunds === null) problems.push({ code: "SIGN_IN", message: "Sign in to pay." });
+  else {
+    const have = toStroops(input.xlmFunds);
+    if (have < total) {
+      problems.push({
+        code: "INSUFFICIENT_FUNDS",
+        message: `You need ${toDisplay(total - have)} more XLM to open your artist account.`,
+        shortfall: { currency: "XLM", need: toDisplay(total), have: toDisplay(have), short: toDisplay(total - have) },
+      });
+    }
+  }
+  return {
+    ok: problems.length === 0,
+    problems,
+    total: toAmount(total),
+    lines: [
+      { key: "issuer", label: "Open your artist account", currency: "XLM", amount: toDisplay(issuer) },
+      { key: "networkFee", label: "Network fee", currency: "XLM", amount: toDisplay(fee) },
+      { key: "total", label: "You pay", currency: "XLM", amount: toDisplay(total) },
+    ] satisfies RechargeLine[],
+  };
+}
+
+/**
+ * Gives an artist their XLM back when their application is rejected: the
+ * issuer account closes into the artist's wallet. Only an issuer that never
+ * minted anything can do this (no trustlines or offers), which is true
+ * before approval. The issuer signs; the fee comes out of its own balance.
+ */
+export function buildIssuerRefund(input: { issuer: Account; network: NetworkParams; artist: string }) {
+  const builder = startTransaction(input.issuer, input.network).addOperation(
+    Operation.accountMerge({ destination: input.artist }),
+  );
+  return finish(builder, [input.issuer.accountId()]);
 }

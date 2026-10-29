@@ -1,4 +1,5 @@
 import { accountRouter } from "./routers/app/account";
+import { onboardingRouter } from "./routers/artist/onboarding";
 import { portalStatusRouter } from "./routers/artist/portal";
 import { createRouter } from "./trpc";
 
@@ -6,6 +7,7 @@ import { createRouter } from "./trpc";
 export const portalRouter = createRouter({
   account: accountRouter,
   portal: portalStatusRouter,
+  onboarding: onboardingRouter,
 });
 
 export type PortalRouter = typeof portalRouter;
