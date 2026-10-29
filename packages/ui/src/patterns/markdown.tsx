@@ -1,7 +1,7 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "../lib/cn";
 
 /**
  * Renders a bounty description or report (CommonMark + tables, lists,

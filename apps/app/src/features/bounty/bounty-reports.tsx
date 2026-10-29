@@ -21,13 +21,13 @@ import toast from "react-hot-toast";
 import { Button } from "@bandcoin/ui/components/button";
 import { Dialog, DialogContent, DialogTitle } from "@bandcoin/ui/components/dialog";
 import { cn } from "@bandcoin/ui/lib/cn";
+import { Markdown } from "@bandcoin/ui/patterns/markdown";
+import { MarkdownEditor } from "@bandcoin/ui/patterns/markdown-editor";
 import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
 
 import { timeAgo } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";
 
-import { Markdown } from "./markdown";
-import { MarkdownEditor } from "./markdown-editor";
 
 type Bounty = RouterOutputs["bounty"]["byId"];
 type Music = NonNullable<Bounty["music"]>;

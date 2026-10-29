@@ -4,9 +4,9 @@ import "@uiw/react-md-editor/markdown-editor.css";
 
 import { commands, type MDEditorProps } from "@uiw/react-md-editor";
 import dynamic from "next/dynamic";
-import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "../lib/cn";
 
 import { Markdown } from "./markdown";
 
@@ -30,6 +30,20 @@ const TEXT_COMMANDS: MDEditorProps["commands"] = [
   commands.table,
 ];
 
+/** The page's theme, read from `data-theme` on <html> (what the apps' theme switch sets) and followed as it changes. */
+function useColorMode(): "light" | "dark" {
+  const [mode, setMode] = useState<"light" | "dark">("dark");
+  useEffect(() => {
+    const root = document.documentElement;
+    const read = () => setMode(root.getAttribute("data-theme") === "light" ? "light" : "dark");
+    read();
+    const observer = new MutationObserver(read);
+    observer.observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
+  }, []);
+  return mode;
+}
+
 const wordsIn = (text: string) => (text.trim() ? text.trim().split(/\s+/).length : 0);
 
 /**
@@ -51,7 +65,7 @@ export function MarkdownEditor({
   minHeight?: number;
   maxWords?: number;
 }) {
-  const { resolvedTheme } = useTheme();
+  const colorMode = useColorMode();
   const words = wordsIn(value);
   const left = maxWords ? maxWords - words : null;
 
@@ -59,7 +73,7 @@ export function MarkdownEditor({
     <div className={cn("grid gap-1.5", disabled && "pointer-events-none opacity-60")}>
       <div
         className="[&_.w-md-editor]:bg-surface-2 [&_.w-md-editor-toolbar]:bg-surface [&_.w-md-editor]:text-fg overflow-hidden rounded-xl border [&_.w-md-editor]:!rounded-xl [&_.w-md-editor]:!border-0 [&_.w-md-editor]:!shadow-none [&_.w-md-editor-toolbar]:border-b"
-        data-color-mode={resolvedTheme === "light" ? "light" : "dark"}
+        data-color-mode={colorMode}
       >
         <MDEditor
           value={value}

@@ -26,6 +26,7 @@ import toast from "react-hot-toast";
 import { Button } from "@bandcoin/ui/components/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
 import { cn } from "@bandcoin/ui/lib/cn";
+import { Markdown } from "@bandcoin/ui/patterns/markdown";
 import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
 import { ToastViewport, TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
 import { useConnectWalletDialogStore } from "@bandcoin/wallet";
@@ -36,7 +37,6 @@ import { api, type RouterOutputs } from "~/trpc/react";
 
 import { Avatar } from "../shell/context-panel";
 import { BountyReports } from "./bounty-reports";
-import { Markdown } from "./markdown";
 import { useClaim } from "./use-claim";
 
 type Bounty = RouterOutputs["bounty"]["byId"];

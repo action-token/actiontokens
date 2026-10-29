@@ -81,6 +81,18 @@ export const bountiesRouter = createRouter({
     .input(bountyId.extend({ winnerUserId: z.string().min(1), amount: z.string().trim().max(30), xdr: z.string().min(1) }))
     .mutation(({ ctx, input }) => submitWinner(ctx, ctx.artist, ctx.session.user, input)),
 
+  /** The Last.fm account connected for music bounties, if any. */
+  lastFm: artistProcedure.query(async ({ ctx }) => {
+    const account = await ctx.db.lastFmAccount.findFirst({ where: { userId: ctx.session.user.id, isConnected: true }, select: { username: true } });
+    return account ? { username: account.username } : null;
+  }),
+
+  disconnectLastFm: artistProcedure.mutation(async ({ ctx }) => {
+    await ctx.db.lastFmAccount.updateMany({ where: { userId: ctx.session.user.id }, data: { isConnected: false, sessionKey: null } });
+    ctx.activity.set({ targetType: "LastFmAccount", targetId: ctx.session.user.id });
+    return { disconnected: true };
+  }),
+
   searchTracks: artistProcedure.input(z.object({ query: z.string().trim().max(120) })).query(({ input }) => searchTracks(input.query)),
   topTracks: artistProcedure.input(z.object({ artist: z.string().trim().max(120) })).query(({ input }) => topTracks(input.artist)),
 });
