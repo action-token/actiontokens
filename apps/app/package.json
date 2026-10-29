@@ -34,6 +34,7 @@
     "react-dom": "catalog:",
     "react-hot-toast": "catalog:",
     "react-markdown": "catalog:",
+    "react-qr-code": "catalog:",
     "remark-gfm": "catalog:",
     "superjson": "catalog:",
     "zod": "catalog:",

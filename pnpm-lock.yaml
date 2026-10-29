@@ -508,6 +508,9 @@ importers:
       react-markdown:
         specifier: 'catalog:'
         version: 10.1.0(@types/react@19.3.0)(react@19.3.0)
+      react-qr-code:
+        specifier: 'catalog:'
+        version: 2.2.0(react@19.3.0)
       remark-gfm:
         specifier: 'catalog:'
         version: 4.0.1
