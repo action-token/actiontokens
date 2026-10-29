@@ -63,7 +63,7 @@ export function ReactionButtons({
   };
 
   const button = cn(
-    "inline-flex h-8 items-center gap-1 rounded-full px-2 text-xs font-semibold transition-colors disabled:opacity-60",
+    "inline-flex h-7 items-center gap-1 rounded-full px-1.5 text-xs font-semibold transition-colors disabled:opacity-60",
     tone === "onDark" ? "text-white/80 hover:bg-white/15 hover:text-white" : "text-fg-muted hover:bg-surface-3 hover:text-fg",
   );
   const on = tone === "onDark" ? "text-white" : "text-primary-text";

@@ -63,7 +63,7 @@ export function PlayerBar() {
     <div
       role="region"
       aria-label="Player"
-      className="bg-surface/95 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-t px-4 py-2.5 backdrop-blur sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_auto]"
+      className="bg-surface/95 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t px-4 py-1.5 backdrop-blur sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_auto]"
     >
       {source && (
         <audio
@@ -92,25 +92,25 @@ export function PlayerBar() {
 
       <Link href={`/item/${track.slug}`} className="flex min-w-0 items-center gap-3">
         {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
-        <img src={track.coverUrl} alt="" className="size-11 shrink-0 rounded-sm object-cover" />
+        <img src={track.coverUrl} alt="" className="size-9 shrink-0 rounded-sm object-cover" />
         <div className="min-w-0">
-          <b className="display block truncate text-sm">{track.title}</b>
-          <span className="text-fg-muted block truncate text-xs">
+          <b className="display block truncate text-[13px] leading-tight">{track.title}</b>
+          <span className="text-fg-muted block truncate text-[11px] leading-tight">
             {track.artistName}
             {preview && " · 30 s preview"}
           </span>
         </div>
       </Link>
 
-      <div className="grid justify-items-center gap-1">
-        <div className="flex items-center gap-3">
+      <div className="grid justify-items-center gap-0.5">
+        <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon-sm" aria-label="Previous" className="hidden sm:inline-flex" onClick={previous}>
             <SkipBack className="fill-current" />
           </Button>
           <Button
-            size="icon"
+            size="icon-sm"
             aria-label={playing ? "Pause" : "Play"}
-            className="bg-fg text-bg hover:bg-fg/90"
+            className="bg-fg text-bg hover:bg-fg/90 size-8 rounded-full"
             disabled={!source}
             onClick={toggle}
           >
@@ -120,7 +120,7 @@ export function PlayerBar() {
             <SkipForward className="fill-current" />
           </Button>
         </div>
-        <div className="num text-fg-faint hidden w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 text-[11px] sm:grid">
+        <div className="num text-fg-faint hidden w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 text-[10px] leading-none sm:grid">
           <span>{clock(time.current)}</span>
           <input
             type="range"
@@ -139,12 +139,12 @@ export function PlayerBar() {
       </div>
 
       {/* Sized to its content, so the song and the seek bar shrink instead of the buttons spilling out */}
-      <div className="hidden items-center justify-end gap-1.5 sm:flex">
+      <div className="hidden items-center justify-end gap-1 sm:flex">
         <ReactionButtons itemId={track.id} showCounts={false} />
         {(preview || previewEnded) && (
           <Link
             href={`/item/${track.slug}#buy`}
-            className="bg-primary text-primary-foreground border-fg ml-1 flex h-9 items-center gap-1.5 rounded-full border-2 px-3.5 text-sm font-bold whitespace-nowrap shadow-[2px_3px_0_0_var(--color-fg)] transition-transform hover:-translate-y-0.5"
+            className="bg-primary text-primary-foreground border-fg ml-1 flex h-8 items-center gap-1.5 rounded-full border-2 px-3 text-[13px] font-bold whitespace-nowrap shadow-[2px_2px_0_0_var(--color-fg)] transition-transform hover:-translate-y-0.5"
           >
             Buy
             {track.price && <Money amount={track.price.bandcoin} currency="BANDCOIN" short className="font-bold" onBrand />}

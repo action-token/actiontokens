@@ -50,7 +50,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <SearchBox />
           <AccountButton />
         </header>
-        <main className="flex-1 pb-36 sm:pb-24">{children}</main>
+        <main className="flex-1 pb-32 sm:pb-20">{children}</main>
       </div>
 
       {panel && (
