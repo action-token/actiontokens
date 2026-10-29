@@ -23,7 +23,7 @@ describe("portal navigation", () => {
   });
 
   it("opens the artist tools once approved", () => {
-    expect(labels({ signedIn: true, step: "READY", isAdmin: false })).toEqual(["Dashboard", "Music", "Items"]);
+    expect(labels({ signedIn: true, step: "READY", isAdmin: false })).toEqual(["Dashboard", "Music", "Items", "Memberships"]);
   });
 
   it("shows nothing to a banned artist", () => {
@@ -32,7 +32,7 @@ describe("portal navigation", () => {
 
   it("adds the admin group for admins, even before they are artists", () => {
     expect(navFor({ signedIn: true, step: null, isAdmin: true }).map((group) => group.title)).toEqual(["Artist", "Admin"]);
-    expect(labels({ signedIn: true, step: "READY", isAdmin: true })).toEqual(["Dashboard", "Music", "Items", "Artists", "Activity"]);
+    expect(labels({ signedIn: true, step: "READY", isAdmin: true })).toEqual(["Dashboard", "Music", "Items", "Memberships", "Artists", "Activity"]);
   });
 
   it("keeps Items lit on its nested pages", () => {

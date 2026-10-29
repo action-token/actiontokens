@@ -10,7 +10,7 @@ import { Input } from "@bandcoin/ui/components/input";
 import { Label } from "@bandcoin/ui/components/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@bandcoin/ui/components/select";
 import { Textarea } from "@bandcoin/ui/components/textarea";
-import { normalizeAssetCode, validateAssetCode } from "@bandcoin/utils/asset-code";
+import { assetCodeFrom, normalizeAssetCode, validateAssetCode } from "@bandcoin/utils/asset-code";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 
@@ -22,9 +22,6 @@ type Existing = RouterOutputs["catalog"]["get"];
 
 const IMAGE_TYPES = "image/jpeg,image/png,image/webp,image/gif";
 const messageOf = (error: unknown) => (error instanceof Error ? error.message : "Something went wrong.");
-
-/** A code suggestion from the title: letters and numbers only, up to 12. */
-const codeFrom = (title: string) => normalizeAssetCode(title.normalize("NFKD").replace(/[^A-Za-z0-9]/g, "")).slice(0, 12);
 
 /**
  * One form for a new item and for editing one. Editing can't change the kind,
@@ -61,7 +58,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
   const [publish, setPublish] = useState(existing ? existing.visibility === "PUBLIC" : true);
 
   const kinds = nft ? ITEM_TYPES.filter((entry) => entry.value !== "ROYALTY") : ITEM_TYPES;
-  const shownCode = customCode ? code : codeFrom(title);
+  const shownCode = customCode ? code : assetCodeFrom(title);
   const problems = {
     code: !nft && shownCode ? validateAssetCode(shownCode) : null,
     ...priceProblems(priceBandcoin, priceUsd),

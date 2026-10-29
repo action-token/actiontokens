@@ -1,6 +1,6 @@
 "use client";
 
-import { Ban, BadgeCheck, Hourglass, Mic2 } from "lucide-react";
+import { Ban, Hourglass, Mic2 } from "lucide-react";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
@@ -9,6 +9,7 @@ import { ErrorState } from "@bandcoin/ui/patterns/error-state";
 import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
 import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
+import { SetupChecklist } from "./setup-checklist";
 import { ApplyForm } from "~/features/onboarding/apply-form";
 import { OpenIssuer } from "~/features/onboarding/open-issuer";
 import { OnboardingProgress } from "~/features/onboarding/progress";
@@ -89,11 +90,9 @@ export function DashboardView() {
       );
     case "READY":
       return (
-        <PageBody>
-          <PageHeader eyebrow="Artist portal" title={`Welcome, ${portal.artist?.name}`} description="Your tools will appear here as they are ready." />
-          <div className="mt-8">
-            <EmptyState icon={BadgeCheck} title="You're approved" description="Catalog, music, pins and bounties arrive next." />
-          </div>
+        <PageBody className="grid gap-6">
+          <PageHeader eyebrow="Artist portal" title={`Welcome, ${portal.artist?.name}`} description="Release music, sell collectibles and set up memberships for your fans." />
+          <SetupChecklist />
         </PageBody>
       );
   }

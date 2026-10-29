@@ -9,7 +9,7 @@ import { Button } from "@bandcoin/ui/components/button";
 import { Input } from "@bandcoin/ui/components/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@bandcoin/ui/components/select";
 import { Textarea } from "@bandcoin/ui/components/textarea";
-import { normalizeAssetCode, validateAssetCode } from "@bandcoin/utils/asset-code";
+import { assetCodeFrom, normalizeAssetCode, validateAssetCode } from "@bandcoin/utils/asset-code";
 import { formatDuration, latestPreviewStart, PREVIEW_SECONDS } from "@bandcoin/utils/preview";
 
 import { readAudioDuration } from "~/lib/audio";
@@ -24,8 +24,6 @@ type Existing = RouterOutputs["music"]["song"];
 const IMAGE_TYPES = "image/jpeg,image/png,image/webp,image/gif";
 const NO_ALBUM = "none";
 const messageOf = (error: unknown) => (error instanceof Error ? error.message : "Something went wrong.");
-const codeFrom = (title: string) => normalizeAssetCode(title.normalize("NFKD").replace(/[^A-Za-z0-9]/g, "")).slice(0, 12);
-
 /**
  * One form for releasing a song and for editing it. The audio can't be swapped
  * after release (people may already own that exact recording). Songs are classic
@@ -57,7 +55,7 @@ export function SongForm({ existing, defaultAlbumId }: { existing?: Existing; de
   const [priceUsd, setPriceUsd] = useState(existing?.priceUsd ?? "");
   const [publish, setPublish] = useState(existing ? existing.visibility === "PUBLIC" : true);
 
-  const shownCode = customCode ? code : codeFrom(title);
+  const shownCode = customCode ? code : assetCodeFrom(title);
   const codeProblem = shownCode ? validateAssetCode(shownCode) : null;
   const prices = priceProblems(priceBandcoin, priceUsd);
   const supplyNumber = Number(supply);
