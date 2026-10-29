@@ -20,6 +20,7 @@ import { statusLabel, statusTone } from "~/lib/wallet";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import { ItemCard } from "../catalog/item-card";
+import { ActivateWallet } from "../recharge/activate-wallet";
 
 type Me = NonNullable<RouterOutputs["account"]["me"]>;
 
@@ -47,6 +48,7 @@ export function WalletView() {
   return (
     <div className="grid gap-8">
       <Balances me={me.data} />
+      {!me.data.activated && me.data.walletAddress && <ActivateWallet address={me.data.walletAddress} />}
       <Tabs defaultValue="history">
         <TabsList className="grid w-full max-w-sm grid-cols-2">
           <TabsTrigger value="history">History</TabsTrigger>
@@ -74,9 +76,6 @@ function Balances({ me }: { me: Me }) {
           </div>
         ))}
       </div>
-      {!me.activated && (
-        <p className="text-warning text-sm">Your wallet isn&apos;t active yet. It needs its first XLM before you can pay or recharge.</p>
-      )}
       <div className="flex flex-wrap gap-2">
         <Button asChild>
           <Link href="/recharge">

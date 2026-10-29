@@ -1,15 +1,12 @@
 "use client";
 
-import { CircleAlert } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@bandcoin/ui/components/tabs";
 import { cn } from "@bandcoin/ui/lib/cn";
-import { PriceBreakdown, ShortfallNotice } from "@bandcoin/ui/patterns/price-breakdown";
 import { ToastViewport, TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
 import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
@@ -18,6 +15,8 @@ import { payOf, shownLines } from "~/lib/recharge";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import { useSquareCard } from "../buy/square-card";
+import { ActivateWallet } from "./activate-wallet";
+import { QuoteBreakdown } from "./quote-breakdown";
 import { useRecharge as useRechargeFlow } from "./use-recharge";
 
 type Quote = RouterOutputs["recharge"]["quote"];
@@ -29,8 +28,13 @@ type Tab = "top-up" | "xlm";
  * breakdown from the server before anything is signed or charged.
  */
 export function RechargeView() {
+  const { status } = useSession();
+  const me = api.account.me.useQuery(undefined, { enabled: status === "authenticated" });
   const [tab, setTab] = useState<Tab>("top-up");
   const flow = useRechargeFlow();
+
+  // A wallet that isn't on the network yet can't recharge: it activates first.
+  if (me.data && !me.data.activated && me.data.walletAddress) return <ActivateWallet address={me.data.walletAddress} />;
 
   return (
     <section aria-label="Recharge" className="grid gap-6">
@@ -93,7 +97,6 @@ function TopUp({ flow }: { flow: Flow }) {
   const openSignIn = useConnectWalletDialogStore((state) => state.setIsOpen);
   const options = api.recharge.options.useQuery(undefined, { staleTime: Infinity });
   const [packageUsd, setPackageUsd] = useState("9.99");
-  const me = api.account.me.useQuery(undefined, { enabled: status === "authenticated" });
   const { container: cardField, ...card } = useSquareCard(status === "authenticated");
   const quote = api.recharge.quote.useQuery(
     { kind: "TOP_UP", packageUsd: packageUsd as "9.99" },
@@ -143,7 +146,13 @@ function TopUp({ flow }: { flow: Flow }) {
       </div>
 
       <div className="grid content-start gap-5">
-        <Breakdown quote={quote.data} loading={quote.isPending} error={quote.error?.message} balances={me.data?.balances} />
+        <QuoteBreakdown
+          lines={quote.data ? shownLines(quote.data) : []}
+          pay={quote.data ? payOf(quote.data) : null}
+          problems={quote.data?.problems ?? []}
+          loading={quote.isPending}
+          error={quote.error?.message}
+        />
 
         {status === "authenticated" && (
           <div className="grid gap-1.5">
@@ -201,7 +210,14 @@ function XlmSwap({ flow, onAddBandcoin }: { flow: Flow; onAddBandcoin: () => voi
       </div>
 
       <div className="grid content-start gap-5">
-        <Breakdown quote={quote.data} loading={quote.isPending} error={quote.error?.message} balances={me.data?.balances} />
+        <QuoteBreakdown
+          lines={quote.data ? shownLines(quote.data) : []}
+          pay={quote.data ? payOf(quote.data) : null}
+          problems={quote.data?.problems ?? []}
+          loading={quote.isPending}
+          error={quote.error?.message}
+          balance={me.data ? { currency: "BANDCOIN", amount: me.data.balances.BANDCOIN } : undefined}
+        />
         {needsBandcoin ? (
           <Button size="lg" variant="secondary" onClick={onAddBandcoin}>
             Add BANDCOIN with a card
@@ -217,76 +233,6 @@ function XlmSwap({ flow, onAddBandcoin }: { flow: Flow; onAddBandcoin: () => voi
           />
         )}
       </div>
-    </div>
-  );
-}
-
-function Breakdown({
-  quote,
-  loading,
-  error,
-  balances,
-}: {
-  quote: Quote | undefined;
-  loading: boolean;
-  error?: string;
-  balances?: Record<"BANDCOIN" | "XLM" | "USDC", string>;
-}) {
-  if (loading) {
-    return (
-      <div className="grid gap-2 border-t pt-3">
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-3/4" />
-        <Skeleton className="h-5 w-full" />
-      </div>
-    );
-  }
-  if (error || !quote) return <Problem message={error ?? "Couldn't get the price. Try again in a moment."} />;
-
-  const pay = payOf(quote);
-  const shortfalls = quote.problems.flatMap((problem) => (problem.code === "INSUFFICIENT_FUNDS" ? [problem.shortfall] : []));
-  const notices = quote.problems.filter((problem) => problem.code === "UNAVAILABLE" || problem.code === "RATE_UNAVAILABLE");
-  const paying = quote.kind === "XLM_SWAP" ? "BANDCOIN" : null;
-  const short = shortfalls.find((shortfall) => shortfall.currency === paying);
-
-  return (
-    <>
-      {pay && (
-        <PriceBreakdown
-          lines={shownLines(quote).map((line) => ({
-            label: line.label,
-            value: <Money amount={line.amount} currency={line.currency} />,
-          }))}
-          total={<Money amount={pay.amount} currency={pay.currency} />}
-          balance={
-            paying && balances
-              ? {
-                  value: <Money amount={balances[paying]} currency={paying} />,
-                  shortBy: short ? <Money amount={short.short} currency={short.currency} /> : undefined,
-                }
-              : undefined
-          }
-        />
-      )}
-      {shortfalls.map((shortfall) => (
-        <ShortfallNotice
-          key={shortfall.currency}
-          currency={shortfall.currency}
-          shortBy={<Money amount={shortfall.short} currency={shortfall.currency} />}
-        />
-      ))}
-      {notices.map((problem) => (
-        <Problem key={problem.message} message={problem.message} />
-      ))}
-    </>
-  );
-}
-
-function Problem({ message }: { message: string }) {
-  return (
-    <div role="alert" className="bg-surface-2 text-fg-muted flex gap-2.5 rounded-md p-3 text-[13px]">
-      <CircleAlert className="text-warning mt-px size-4 shrink-0" />
-      {message}
     </div>
   );
 }
