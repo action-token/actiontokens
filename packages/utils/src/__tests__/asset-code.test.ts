@@ -1,10 +1,22 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizeAssetCode, validateAssetCode, validatePrice } from "../asset-code";
+import { assetCodeFrom, normalizeAssetCode, validateAssetCode, validatePrice } from "../asset-code";
 
 describe("normalizeAssetCode", () => {
   it("trims and upper-cases", () => {
     expect(normalizeAssetCode("  nightdrv ")).toBe("NIGHTDRV");
+  });
+});
+
+describe("assetCodeFrom", () => {
+  it("keeps letters and numbers, upper-cased, up to 12", () => {
+    expect(assetCodeFrom("Luna Vale")).toBe("LUNAVALE");
+    expect(assetCodeFrom("Beyoncé & Co.")).toBe("BEYONCECO");
+    expect(assetCodeFrom("The Night Drivers Band")).toBe("THENIGHTDRIV");
+  });
+
+  it("is empty when nothing usable is left", () => {
+    expect(assetCodeFrom("!!!")).toBe("");
   });
 });
 

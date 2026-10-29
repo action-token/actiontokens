@@ -4,6 +4,7 @@ import {
   addSignatures,
   chainConfig,
   type ChainConfig,
+  assetExists,
   decryptSecret,
   findTransaction,
   liveBandcoinUsd,
@@ -37,6 +38,8 @@ export type ChainGateway = {
   signForCustodialUser(xdr: string, email: string): Promise<string>;
   /** Simulates a contract call and fills in its footprint and fee, ready to sign. `signers` are platform-held keys that authorise it (the price authority) */
   prepareContractCall(xdr: string, signers?: string[]): Promise<string>;
+  /** Whether an asset (code + issuer) exists on the network */
+  assetExists(code: string, issuer: string): Promise<boolean>;
   /** The on-chain id of the edition registered under `editionRef`, or null when there is none */
   editionIdByRef(editionRef: string): Promise<number | null>;
   submit(xdr: string): Promise<{ hash: string }>;
@@ -91,6 +94,7 @@ export function createChainGateway(db: Db): ChainGateway {
     },
     prepareContractCall: async (xdr, signers = []) => prepareContractCall(xdr, await serverSecrets(db, signers)),
     submit,
+    assetExists,
     editionIdByRef: (editionRef) => readEditionId(chainConfig().nftContract, chainConfig().treasury, editionRef),
     findTransaction,
     card: { charge: chargeCard, refund: refundCard },

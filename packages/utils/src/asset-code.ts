@@ -1,6 +1,10 @@
 /** Currencies the platform itself issues or accepts; an artist's item can't take their names. */
 const RESERVED = new Set(["BANDCOIN", "XLM", "USDC", "USD"]);
 
+/** A code suggestion from a title or name: letters and numbers only, up to 12. */
+export const assetCodeFrom = (text: string) =>
+  normalizeAssetCode(text.normalize("NFKD").replace(/[^A-Za-z0-9]/g, "")).slice(0, 12);
+
 export const normalizeAssetCode = (raw: string) => raw.trim().toUpperCase();
 
 /** null when `code` can be a Stellar asset code for an item, otherwise what to tell the artist. */

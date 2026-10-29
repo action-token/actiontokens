@@ -20,6 +20,12 @@ export async function loadAccount(id: string): Promise<Horizon.AccountResponse |
   }
 }
 
+/** Whether an asset exists on the network, so a fan token can point at one the artist already issued. */
+export async function assetExists(code: string, issuer: string): Promise<boolean> {
+  const page = await horizon().assets().forCode(code).forIssuer(issuer).limit(1).call();
+  return page.records.length > 0;
+}
+
 const line = (account: Horizon.AccountResponse, asset: Asset) =>
   account.balances.find(
     (balance) =>
