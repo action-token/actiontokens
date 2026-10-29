@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isActive, navFor, type PortalNavInput } from "./nav";
+import { isActive, navFor, phoneTabs, type PortalNavInput } from "./nav";
 
 const labels = (input: PortalNavInput) => navFor(input).flatMap((group) => group.items.map((entry) => entry.label));
 
@@ -23,7 +23,7 @@ describe("portal navigation", () => {
   });
 
   it("opens the artist tools once approved", () => {
-    expect(labels({ signedIn: true, step: "READY", isAdmin: false })).toEqual(["Dashboard", "Music", "Items", "Memberships"]);
+    expect(labels({ signedIn: true, step: "READY", isAdmin: false })).toEqual(["Dashboard", "Music", "Items", "Memberships", "Events", "Announcements"]);
   });
 
   it("shows nothing to a banned artist", () => {
@@ -32,7 +32,7 @@ describe("portal navigation", () => {
 
   it("adds the admin group for admins, even before they are artists", () => {
     expect(navFor({ signedIn: true, step: null, isAdmin: true }).map((group) => group.title)).toEqual(["Artist", "Admin"]);
-    expect(labels({ signedIn: true, step: "READY", isAdmin: true })).toEqual(["Dashboard", "Music", "Items", "Memberships", "Artists", "Activity"]);
+    expect(labels({ signedIn: true, step: "READY", isAdmin: true })).toEqual(["Dashboard", "Music", "Items", "Memberships", "Events", "Announcements", "Artists", "Activity"]);
   });
 
   it("keeps Items lit on its nested pages", () => {
@@ -49,10 +49,18 @@ describe("portal navigation", () => {
   });
 
   it("keeps Artists lit on a nested admin page but not Activity", () => {
-    const [, admin] = navFor({ signedIn: true, step: "READY", isAdmin: true });
+    const [, , admin] = navFor({ signedIn: true, step: "READY", isAdmin: true });
     const [artists, activity] = admin!.items;
     expect(isActive(artists!, "/admin/artists/abc")).toBe(true);
     expect(isActive(artists!, "/admin/activity")).toBe(false);
     expect(isActive(activity!, "/admin/activity")).toBe(true);
+  });
+
+  it("fits a phone's tab bar by moving the rest behind More", () => {
+    const apply = phoneTabs(navFor({ signedIn: true, step: "OPEN_ISSUER", isAdmin: false }));
+    expect(apply).toEqual({ tabs: [expect.objectContaining({ label: "Get started" })], more: false });
+    const ready = phoneTabs(navFor({ signedIn: true, step: "READY", isAdmin: true }));
+    expect(ready.tabs.map((entry) => entry.label)).toEqual(["Dashboard", "Music", "Items", "Memberships"]);
+    expect(ready.more).toBe(true);
   });
 });

@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { Menu } from "lucide-react";
+import { type ReactNode, useState } from "react";
 
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@bandcoin/ui/components/sheet";
 import { cn } from "@bandcoin/ui/lib/cn";
 import { BrandMark } from "@bandcoin/ui/patterns/boot-screen";
 
@@ -11,7 +13,7 @@ import { ThemeSwitch } from "~/components/theme-switch";
 import { AccountButton } from "~/features/account/account-button";
 import { usePortal } from "~/features/portal/use-portal";
 
-import { isActive, type NavGroup, navFor } from "./nav";
+import { isActive, type NavGroup, navFor, phoneTabs } from "./nav";
 
 /**
  * The frame around every portal page: a sidebar of what this person may use
@@ -89,26 +91,55 @@ function SidebarGroup({ group, pathname, divider }: { group: NavGroup; pathname:
   );
 }
 
-/** On phones every link is one tab; the page is only a few links while onboarding. */
+/** On phones the first links are tabs and the rest sit behind "More". */
 function MobileTabs({ groups, pathname }: { groups: NavGroup[]; pathname: string }) {
-  const items = groups.flatMap((group) => group.items);
-  if (items.length < 2) return null;
+  const [open, setOpen] = useState(false);
+  const { tabs, more } = phoneTabs(groups);
+  if (tabs.length < 2 && !more) return null;
+  const tabClass = "text-fg-faint aria-[current=page]:text-fg grid min-w-0 flex-1 justify-items-center gap-0.5 py-2 text-[10px] font-medium";
+  const hiddenActive = more && !tabs.some((entry) => isActive(entry, pathname));
   return (
-    <nav
-      aria-label="Tabs"
-      className="bg-surface fixed inset-x-0 bottom-0 z-40 flex border-t pb-[env(safe-area-inset-bottom)] sm:hidden"
-    >
-      {items.map((entry) => (
-        <Link
-          key={entry.href}
-          href={entry.href}
-          aria-current={isActive(entry, pathname) ? "page" : undefined}
-          className="text-fg-faint aria-[current=page]:text-fg grid min-w-0 flex-1 justify-items-center gap-0.5 py-2 text-[10px] font-medium"
-        >
-          <entry.icon className="size-5" />
-          {entry.label}
-        </Link>
-      ))}
-    </nav>
+    <>
+      <nav aria-label="Tabs" className="bg-surface fixed inset-x-0 bottom-0 z-40 flex border-t pb-[env(safe-area-inset-bottom)] sm:hidden">
+        {tabs.map((entry) => (
+          <Link key={entry.href} href={entry.href} aria-current={isActive(entry, pathname) ? "page" : undefined} className={tabClass}>
+            <entry.icon className="size-5" />
+            {entry.label}
+          </Link>
+        ))}
+        {more && (
+          <button type="button" aria-current={hiddenActive ? "page" : undefined} onClick={() => setOpen(true)} className={tabClass}>
+            <Menu className="size-5" />
+            More
+          </button>
+        )}
+      </nav>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="bottom" className="max-h-[80dvh] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Menu</SheetTitle>
+            <SheetDescription className="sr-only">Every page in the artist portal</SheetDescription>
+          </SheetHeader>
+          <div className="grid gap-4 px-4 pb-6" onClick={() => setOpen(false)}>
+            {groups.map((group) => (
+              <div key={group.title} className="grid gap-1">
+                <span className="text-fg-faint text-[11px] font-semibold tracking-wider uppercase">{group.title}</span>
+                {group.items.map((entry) => (
+                  <Link
+                    key={entry.href}
+                    href={entry.href}
+                    aria-current={isActive(entry, pathname) ? "page" : undefined}
+                    className="text-fg-muted aria-[current=page]:bg-surface-2 aria-[current=page]:text-fg flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium"
+                  >
+                    <entry.icon className="size-[18px]" />
+                    {entry.label}
+                  </Link>
+                ))}
+              </div>
+            ))}
+          </div>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }

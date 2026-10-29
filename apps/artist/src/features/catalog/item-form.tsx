@@ -7,7 +7,6 @@ import toast from "react-hot-toast";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Input } from "@bandcoin/ui/components/input";
-import { Label } from "@bandcoin/ui/components/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@bandcoin/ui/components/select";
 import { Textarea } from "@bandcoin/ui/components/textarea";
 import { assetCodeFrom, normalizeAssetCode, validateAssetCode } from "@bandcoin/utils/asset-code";

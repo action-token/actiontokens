@@ -1,6 +1,7 @@
 "use client";
 
 import { Crown, Plus } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
@@ -17,7 +18,6 @@ import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import { FanTokenSetup } from "./fan-token-setup";
-import { TierDialog } from "./tier-dialog";
 
 type Tier = RouterOutputs["memberships"]["tiers"][number];
 
@@ -55,11 +55,11 @@ export function MembershipsView() {
 
 function Tiers({ tokenCode }: { tokenCode: string }) {
   const tiers = api.memberships.tiers.useQuery();
-  const [editing, setEditing] = useState<Tier | "new" | null>(null);
-
   const add = (
-    <Button onClick={() => setEditing("new")}>
-      <Plus /> New tier
+    <Button asChild>
+      <Link href="/memberships/tiers/new">
+        <Plus /> New tier
+      </Link>
     </Button>
   );
 
@@ -78,18 +78,15 @@ function Tiers({ tokenCode }: { tokenCode: string }) {
       ) : (
         <ul className="grid gap-3">
           {tiers.data.map((tier) => (
-            <TierCard key={tier.id} tier={tier} tokenCode={tokenCode} onEdit={() => setEditing(tier)} />
+            <TierCard key={tier.id} tier={tier} tokenCode={tokenCode} />
           ))}
         </ul>
-      )}
-      {editing && (
-        <TierDialog key={editing === "new" ? "new" : editing.id} tier={editing === "new" ? undefined : editing} tokenCode={tokenCode} open onOpenChange={(open) => !open && setEditing(null)} />
       )}
     </section>
   );
 }
 
-function TierCard({ tier, tokenCode, onEdit }: { tier: Tier; tokenCode: string; onEdit: () => void }) {
+function TierCard({ tier, tokenCode }: { tier: Tier; tokenCode: string }) {
   const utils = api.useUtils();
   const [deleting, setDeleting] = useState(false);
   const refresh = () => void utils.memberships.tiers.invalidate();
@@ -129,8 +126,8 @@ function TierCard({ tier, tokenCode, onEdit }: { tier: Tier; tokenCode: string; 
         </ul>
       )}
       <div className="flex flex-wrap gap-2 border-t pt-3">
-        <Button size="sm" variant="secondary" onClick={onEdit}>
-          Edit
+        <Button asChild size="sm" variant="secondary">
+          <Link href={`/memberships/tiers/${tier.id}`}>Edit</Link>
         </Button>
         <Button size="sm" variant="ghost" disabled={toggle.isPending} onClick={() => toggle.mutate({ tierId: tier.id, isActive: !tier.isActive })}>
           {tier.isActive ? "Hide" : "Show"}
