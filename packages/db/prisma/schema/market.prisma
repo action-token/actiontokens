@@ -77,6 +77,8 @@ enum OrderKind {
   ACTIVATION
   /// An artist pays XLM to open their issuer account
   ISSUER_SETUP
+  /// An artist pays the network fee to register a contract NFT edition on-chain
+  NFT_REGISTER
 }
 
 /// One payment by a buyer. Every money flow with a buyer goes through here,

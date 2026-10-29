@@ -182,6 +182,50 @@ describe("updateItem", () => {
   });
 });
 
+const nft = (status: "PENDING" | "MINTED", extra: Row = {}) =>
+  owned({ chainType: "CONTRACT_NFT", classicToken: null, contractNft: { status }, visibility: "DRAFT", listings: [{ id: "l1", kind: "PRIMARY", status: "PAUSED", quantitySold: 0 }], ...extra });
+
+describe("contract NFT items", () => {
+  it("can be edited freely until they are registered on the contract", async () => {
+    const { ctx, db } = setup({ item: nft("PENDING") });
+    await updateItem(ctx, artist, { itemId: "i1", title: "New title", supply: 20, priceBandcoin: "30" });
+    expect(db.item.update).toHaveBeenCalledWith({ where: { id: "i1" }, data: { title: "New title", supply: 20 } });
+    expect(db.listing.update).toHaveBeenCalledWith({ where: { id: "l1" }, data: { priceBandcoin: "30" } });
+    expect(db.classicToken.update).not.toHaveBeenCalled();
+  });
+
+  it("are fixed once registered: changing them would need an on-chain update, which isn't built yet", async () => {
+    const { ctx, db } = setup({ item: nft("MINTED") });
+    await expect(updateItem(ctx, artist, { itemId: "i1", title: "New title" })).rejects.toMatchObject({
+      message: "A registered NFT can't be edited yet.",
+    });
+    expect(db.item.update).not.toHaveBeenCalled();
+  });
+
+  it("can't be published while fan checkout for NFTs is closed", async () => {
+    const { ctx, db } = setup({ item: nft("MINTED") });
+    await expect(updateItem(ctx, artist, { itemId: "i1", visibility: "PUBLIC" })).rejects.toMatchObject({
+      message: "Selling contract NFTs opens soon. Yours stays a draft until then.",
+    });
+    expect(db.item.update).not.toHaveBeenCalled();
+  });
+
+  it("can't take a classic code", async () => {
+    await expect(updateItem(setup({ item: nft("PENDING") }).ctx, artist, { itemId: "i1", code: "ABC" })).rejects.toMatchObject({
+      message: "Contract NFTs don't have a code.",
+    });
+  });
+
+  it("can be deleted only before registration", async () => {
+    const free = setup({ item: nft("PENDING") });
+    await removeItem(free.ctx, artist, "i1");
+    expect(free.db.item.update).toHaveBeenCalled();
+    await expect(removeItem(setup({ item: nft("MINTED") }).ctx, artist, "i1")).rejects.toMatchObject({
+      message: "A registered NFT can't be deleted.",
+    });
+  });
+});
+
 describe("removeItem", () => {
   it("deletes an item nobody bought, and closes its listing", async () => {
     const { ctx, db } = setup({ item: owned() });
@@ -224,14 +268,16 @@ describe("listMyItems", () => {
     db.item.findMany.mockResolvedValue([
       {
         id: "i1", slug: "s", title: "Night Drive", type: "IMAGE", coverUrl: "c", supply: 100, visibility: "PUBLIC", createdAt: new Date("2026-10-01"),
+        chainType: "CLASSIC_TOKEN",
         classicToken: { code: "NIGHTDRV" },
+        contractNft: null,
         listings: [{ id: "l1", priceBandcoin: { toString: () => "25" }, priceUsd: { toString: () => "0.5" }, status: "ACTIVE", quantitySold: 4 }],
       },
     ]);
     await expect(listMyItems(ctx, artist)).resolves.toEqual([
-      expect.objectContaining({ id: "i1", title: "Night Drive", code: "NIGHTDRV", sold: 4, supply: 100, priceBandcoin: "25", priceUsd: "0.5", listingStatus: "ACTIVE" }),
+      expect.objectContaining({ id: "i1", title: "Night Drive", code: "NIGHTDRV", chain: "CLASSIC_TOKEN", registered: null, sold: 4, supply: 100, priceBandcoin: "25", priceUsd: "0.5", listingStatus: "ACTIVE" }),
     ]);
-    expect(db.item.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { artistId: "a1", deletedAt: null, chainType: "CLASSIC_TOKEN" }, orderBy: { createdAt: "desc" } }));
+    expect(db.item.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { artistId: "a1", deletedAt: null }, orderBy: { createdAt: "desc" } }));
   });
 });
 

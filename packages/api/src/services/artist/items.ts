@@ -7,6 +7,7 @@ import { normalizeAssetCode, validateAssetCode, validatePrice } from "@bandcoin/
 import { slugFromName } from "@bandcoin/utils/slug";
 
 import type { Context } from "../../context";
+import { NFT_CHECKOUT_OPEN } from "../purchase/sale";
 
 /**
  * The artist's classic collectibles: creating, editing, hiding and deleting.
@@ -22,10 +23,10 @@ type ArtistRef = { id: string; slug: string; issuerAccountId: string | null };
 export type CollectibleType = Exclude<ItemType, "TRACK" | "FAN_TOKEN">;
 
 /** These types are the file itself, so they can't exist without it. */
-const NEEDS_FILE: ItemType[] = ["IMAGE", "VIDEO", "MODEL_3D", "DOCUMENT"];
+export const NEEDS_FILE: ItemType[] = ["IMAGE", "VIDEO", "MODEL_3D", "DOCUMENT"];
 const MAX_SUPPLY = 100_000;
 
-const invalid = (message: string) => new AppError(ErrorCodes.VALIDATION_FAILED, { message });
+export const invalid = (message: string) => new AppError(ErrorCodes.VALIDATION_FAILED, { message });
 
 function checkSupply(supply: number | null) {
   if (supply !== null && (!Number.isInteger(supply) || supply < 1 || supply > MAX_SUPPLY)) {
@@ -33,14 +34,14 @@ function checkSupply(supply: number | null) {
   }
 }
 
-function checkPrices(prices: { priceBandcoin?: string; priceUsd?: string }) {
+export function checkPrices(prices: { priceBandcoin?: string; priceUsd?: string }) {
   for (const price of [prices.priceBandcoin, prices.priceUsd]) {
     const problem = price === undefined ? null : validatePrice(price);
     if (problem) throw invalid(problem);
   }
 }
 
-function checkOwnUrls(urls: { cover?: string; file?: string }) {
+export function checkOwnUrls(urls: { cover?: string; file?: string }) {
   if (urls.cover !== undefined && !isOwnS3Url(urls.cover)) throw invalid("Upload the cover again.");
   if (urls.file !== undefined && !isOwnS3Url(urls.file)) throw invalid("Upload the file again.");
 }
@@ -117,7 +118,7 @@ export async function createItem(ctx: ServiceCtx, artist: ArtistRef, user: { id:
 }
 
 /** `base`, or `base` with a short random ending when someone already has it. */
-async function freeSlug(db: ServiceCtx["db"], base: string) {
+export async function freeSlug(db: ServiceCtx["db"], base: string) {
   const slug = base.slice(0, 80).replace(/-+$/, "");
   if (!(await db.item.findUnique({ where: { slug }, select: { id: true } }))) return slug;
   return `${slug}-${crypto.randomBytes(3).toString("hex").slice(0, 4)}`;
@@ -125,7 +126,7 @@ async function freeSlug(db: ServiceCtx["db"], base: string) {
 
 export async function listMyItems(ctx: Pick<ServiceCtx, "db">, artist: Pick<ArtistRef, "id">) {
   const rows = await ctx.db.item.findMany({
-    where: { artistId: artist.id, deletedAt: null, chainType: "CLASSIC_TOKEN" },
+    where: { artistId: artist.id, deletedAt: null },
     orderBy: { createdAt: "desc" },
     take: 200,
     select: {
@@ -137,7 +138,9 @@ export async function listMyItems(ctx: Pick<ServiceCtx, "db">, artist: Pick<Arti
       supply: true,
       visibility: true,
       createdAt: true,
+      chainType: true,
       classicToken: { select: { code: true } },
+      contractNft: { select: { status: true } },
       listings: { where: { kind: "PRIMARY" }, take: 1, select: { id: true, priceBandcoin: true, priceUsd: true, status: true, quantitySold: true } },
     },
   });
@@ -150,6 +153,9 @@ export async function listMyItems(ctx: Pick<ServiceCtx, "db">, artist: Pick<Arti
       type: row.type,
       coverUrl: row.coverUrl,
       code: row.classicToken?.code ?? null,
+      chain: row.chainType,
+      /** For contract NFTs: PENDING until registered on the contract, then MINTED */
+      registered: row.contractNft?.status ?? null,
       supply: row.supply,
       sold: listing?.quantitySold ?? 0,
       priceBandcoin: listing?.priceBandcoin.toString() ?? null,
@@ -168,7 +174,9 @@ async function ownItem(ctx: ServiceCtx, artist: Pick<ArtistRef, "id">, itemId: s
       id: true,
       supply: true,
       visibility: true,
+      chainType: true,
       classicToken: { select: { code: true, issuer: true } },
+      contractNft: { select: { status: true } },
       listings: { where: { kind: "PRIMARY" }, take: 1, select: { id: true, status: true, quantitySold: true } },
     },
   });
@@ -190,7 +198,9 @@ export async function getItem(ctx: Pick<ServiceCtx, "db">, artist: Pick<ArtistRe
       supply: true,
       visibility: true,
       royaltyPercent: true,
+      chainType: true,
       classicToken: { select: { code: true } },
+      contractNft: { select: { status: true, royaltyBps: true } },
       media: { select: { mediaType: true, sourceUrl: true } },
       listings: { where: { kind: "PRIMARY" }, take: 1, select: { priceBandcoin: true, priceUsd: true, status: true, quantitySold: true } },
     },
@@ -205,6 +215,10 @@ export async function getItem(ctx: Pick<ServiceCtx, "db">, artist: Pick<ArtistRe
     coverUrl: item.coverUrl,
     type: item.type,
     code: item.classicToken?.code ?? null,
+    chain: item.chainType,
+    registered: item.contractNft?.status ?? null,
+    /** Contract NFTs: what the artist earns on each resale, in percent */
+    resaleRoyaltyPercent: item.contractNft ? String(item.contractNft.royaltyBps / 100) : null,
     supply: item.supply,
     sold,
     /** After the first sale supply and code are fixed */
@@ -216,6 +230,17 @@ export async function getItem(ctx: Pick<ServiceCtx, "db">, artist: Pick<ArtistRe
     fileUrl: item.media?.sourceUrl ?? null,
     fileType: item.media?.mediaType ?? null,
   };
+}
+
+/** What a contract NFT's owner may change, given whether it is on the contract yet. */
+function checkNftEdit(status: "PENDING" | "MINTED" | undefined, input: UpdateItemInput) {
+  if (input.code !== undefined) throw invalid("Contract NFTs don't have a code.");
+  if (input.visibility === "PUBLIC" && !NFT_CHECKOUT_OPEN) throw invalid("Selling contract NFTs opens soon. Yours stays a draft until then.");
+  const content = [input.title, input.description, input.coverUrl, input.supply, input.priceBandcoin, input.priceUsd];
+  // Once registered these live on the contract, and changing them takes an on-chain update that isn't built yet.
+  if (status === "MINTED" && content.some((value) => value !== undefined)) {
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "A registered NFT can't be edited yet." });
+  }
 }
 
 export type UpdateItemInput = {
@@ -237,9 +262,14 @@ export async function updateItem(ctx: ServiceCtx, artist: Pick<ArtistRef, "id">,
   const listing = item.listings[0];
   const sold = (listing?.quantitySold ?? 0) > 0;
 
+  const isNft = item.chainType === "CONTRACT_NFT";
+  if (isNft) checkNftEdit(item.contractNft?.status, input);
   checkPrices(input);
   checkOwnUrls({ cover: input.coverUrl });
-  if (input.supply !== undefined) checkSupply(input.supply);
+  if (input.supply !== undefined) {
+    if (isNft && input.supply === null) throw invalid("A contract NFT needs a fixed number of copies.");
+    checkSupply(input.supply);
+  }
   if ((input.supply !== undefined || input.code !== undefined) && sold) {
     throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "Supply and code can't change after the first sale." });
   }
@@ -280,6 +310,9 @@ export async function updateItem(ctx: ServiceCtx, artist: Pick<ArtistRef, "id">,
 export async function removeItem(ctx: ServiceCtx, artist: Pick<ArtistRef, "id">, itemId: string) {
   const item = await ownItem(ctx, artist, itemId);
   const listing = item.listings[0];
+  if (item.contractNft?.status === "MINTED") {
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "A registered NFT can't be deleted." });
+  }
   if ((listing?.quantitySold ?? 0) > 0) {
     throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "This item has sales, so it can't be deleted. Hide it instead." });
   }
