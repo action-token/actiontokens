@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { toAmount, toStroops } from "../money";
-import { quoteTopUp, quoteXlmSwap, RECHARGE_PACKAGES_USD } from "../recharge";
+import { ACTIVATION_PRICE_USD, quoteActivation, quoteTopUp, quoteXlmSwap, RECHARGE_PACKAGES_USD } from "../recharge";
 
 const rates = { bandcoinUsd: toStroops("0.002"), xlmUsd: toStroops("0.1") };
 
@@ -83,5 +83,31 @@ describe("quoteXlmSwap", () => {
     expect(quoteXlmSwap({ ...rates, bandcoinBalance: null, networkFeeXlm: "0" }).problems).toEqual([
       { code: "SIGN_IN", message: "Sign in to pay." },
     ]);
+  });
+});
+
+describe("quoteActivation", () => {
+  it("sells a fixed card price and sends the XLM it buys as the new wallet's starting balance", () => {
+    // $1.99 at $0.1 per XLM: the $0.000002 fee comes out, 19.89998 XLM arrive
+    const quote = quoteActivation({ xlmUsd: toStroops("0.1"), networkFeeXlm: "0.00002" });
+    expect(ACTIVATION_PRICE_USD).toBe("1.99");
+    expect(quote).toMatchObject({ ok: true, chargeCents: 199, startingBalance: "19.8999800" });
+    expect(quote.lines.map((line) => [line.key, line.currency, line.amount])).toEqual([
+      ["charge", "USD", "1.99"],
+      ["networkFee", "XLM", "0.00002"],
+      ["receive", "XLM", "19.89998"],
+    ]);
+  });
+
+  it("rounds down, and refuses if the XLM it buys wouldn't cover the 1 XLM account reserve", () => {
+    expect(quoteActivation({ xlmUsd: toStroops("0.3333333"), networkFeeXlm: "0" }).startingBalance).toBe("5.9700005");
+    expect(quoteActivation({ xlmUsd: toStroops("2"), networkFeeXlm: "0" })).toMatchObject({
+      ok: false,
+      problems: [{ code: "UNAVAILABLE", message: "Activation isn't available at today's XLM price." }],
+    });
+  });
+
+  it("refuses without a price", () => {
+    expect(quoteActivation({ xlmUsd: 0n, networkFeeXlm: "0" })).toMatchObject({ ok: false, problems: [{ code: "RATE_UNAVAILABLE" }] });
   });
 });

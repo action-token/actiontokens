@@ -6,6 +6,7 @@ import { collectionRouter } from "./routers/app/collection";
 import { itemRouter } from "./routers/app/item";
 import { mediaRouter } from "./routers/app/media";
 import { musicRouter } from "./routers/app/music";
+import { activationRouter } from "./routers/app/activation";
 import { orderRouter } from "./routers/app/order";
 import { rechargeRouter } from "./routers/app/recharge";
 import { walletRouter } from "./routers/app/wallet";
@@ -23,6 +24,7 @@ export const appRouter = createRouter({
   item: itemRouter,
   media: mediaRouter,
   music: musicRouter,
+  activation: activationRouter,
   order: orderRouter,
   recharge: rechargeRouter,
   wallet: walletRouter,

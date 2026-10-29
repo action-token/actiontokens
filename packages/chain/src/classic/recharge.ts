@@ -48,3 +48,22 @@ export function buildXlmSwap(input: {
     );
   return finish(builder, [input.platform]);
 }
+
+/**
+ * Activation: the platform creates the fan's account with its starting XLM.
+ * The platform account is the source (and fee payer), so the fan, whose account
+ * doesn't exist yet, signs nothing.
+ */
+export function buildActivation(input: {
+  platform: Account;
+  network: NetworkParams;
+  orderId: string;
+  destination: string;
+  startingBalance: string;
+}) {
+  if (isZero(input.startingBalance)) throw new RangeError("An activation must fund the account");
+  const builder = startTransaction(input.platform, input.network, { memo: input.orderId }).addOperation(
+    Operation.createAccount({ destination: input.destination, startingBalance: input.startingBalance }),
+  );
+  return finish(builder, [input.platform.accountId()]);
+}

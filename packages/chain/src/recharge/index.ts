@@ -122,3 +122,39 @@ export function quoteXlmSwap(input: Rates & { bandcoinBalance: string | null; ne
     ] satisfies RechargeLine[],
   };
 }
+
+/** What a new wallet pays by card: one fixed price, all of it turned into the wallet's first XLM. */
+export const ACTIVATION_PRICE_USD = "1.99";
+/** The XLM a Stellar account must hold to exist (two base reserves). */
+const ACCOUNT_RESERVE = toStroops("1");
+
+/**
+ * Activating a wallet that doesn't exist on the network yet. The card price
+ * buys XLM at the live rate, minus the network fee the platform pays on chain;
+ * what is left becomes the starting balance of the new account.
+ */
+export function quoteActivation(input: { xlmUsd: bigint; networkFeeXlm: string }) {
+  const empty = { ok: false as const, lines: [] as RechargeLine[], chargeCents: 0, startingBalance: "0" };
+  if (input.xlmUsd <= 0n) {
+    return { ...empty, problems: [{ code: "RATE_UNAVAILABLE", message: "Couldn't load the XLM price. Try again in a moment." }] satisfies RechargeProblem[] };
+  }
+  const charge = toStroops(ACTIVATION_PRICE_USD);
+  const fee = toStroops(input.networkFeeXlm);
+  const feeUsd = toUsd(fee, input.xlmUsd);
+  // Rounded down: the wallet is never given more than the card paid for.
+  const receive = ((charge - feeUsd) * 10_000_000n) / input.xlmUsd;
+  if (receive < ACCOUNT_RESERVE) {
+    return { ...empty, problems: [{ code: "UNAVAILABLE", message: "Activation isn't available at today's XLM price." }] satisfies RechargeProblem[] };
+  }
+  return {
+    ok: true as const,
+    problems: [] as RechargeProblem[],
+    chargeCents: Number(charge / 100_000n),
+    startingBalance: toAmount(receive),
+    lines: [
+      { key: "charge", label: "Card charge", currency: "USD", amount: toDisplay(charge) },
+      { key: "networkFee", label: "Network fee", currency: "XLM", amount: toDisplay(fee) },
+      { key: "receive", label: "Your wallet starts with", currency: "XLM", amount: toDisplay(receive) },
+    ] satisfies RechargeLine[],
+  };
+}

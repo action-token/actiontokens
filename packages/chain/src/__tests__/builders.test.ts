@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { buildClassicPurchase, classicPurchaseOperations } from "../classic/purchase";
 import { buildIssuerSetup, ISSUER_STARTING_XLM } from "../classic/issuer";
-import { buildTopUp, buildXlmSwap } from "../classic/recharge";
+import { buildActivation, buildTopUp, buildXlmSwap } from "../classic/recharge";
 import { buildTransfer } from "../classic/transfer";
 import { toStellarError } from "../errors";
 import { buildBountyFund } from "../escrow/calls";
@@ -136,6 +136,17 @@ describe("recharge builders", () => {
     expect(tx.operations[0]).toMatchObject({ destination: mother, amount: "51.0000000" });
     expect(tx.operations[1]).toMatchObject({ source: mother, destination: buyerKey, amount: "1.0000000" });
     expect(built.serverSigners).toEqual([mother]);
+  });
+
+  it("activation: the platform creates the account in one transaction the fan never signs", () => {
+    const built = buildActivation({ platform: new Account(mother, "7"), network, orderId, destination: buyerKey, startingBalance: "19.89998" });
+    const tx = parse(built.xdr);
+    expect(tx.source).toBe(mother);
+    expect(tx.operations).toHaveLength(1);
+    expect(tx.operations[0]).toMatchObject({ type: "createAccount", destination: buyerKey, startingBalance: "19.8999800" });
+    expect(memoText(tx)).toBe(orderId);
+    expect(built.serverSigners).toEqual([mother]);
+    expect(() => buildActivation({ platform: new Account(mother, "7"), network, orderId, destination: buyerKey, startingBalance: "0" })).toThrow(RangeError);
   });
 
   it("refuses to send nothing", () => {
