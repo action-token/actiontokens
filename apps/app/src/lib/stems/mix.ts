@@ -35,3 +35,8 @@ export function toggle(mix: Mix, id: string, key: "mute" | "solo"): Mix {
   const current = mix[id] ?? defaultSetting();
   return { ...mix, [id]: { ...current, [key]: !current[key] } };
 }
+
+/** Where the stems should start when switching in from the full song: the same spot, or the top if the stems end before it. */
+export function startPosition(songSeconds: number, stemSeconds: number) {
+  return Number.isFinite(songSeconds) && songSeconds < stemSeconds ? Math.max(0, songSeconds) : 0;
+}

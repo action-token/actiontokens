@@ -4,11 +4,12 @@ import { AudioLines, Loader2, Pause, Play, RotateCcw, Upload } from "lucide-reac
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
-import { cn } from "@bandcoin/ui/lib/cn";
 
 import { renderDemoStems } from "~/lib/stems/demo";
 import { StemEngine, type LoadedStem } from "~/lib/stems/engine";
-import { clampPan, clampVolume, defaultSetting, type Mix, toggle } from "~/lib/stems/mix";
+import { defaultSetting, type Mix } from "~/lib/stems/mix";
+
+import { StemRows } from "./stem-rows";
 
 const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
 const COLORS = ["#e5484d", "#30a46c", "#0091ff", "#f76b15", "#ab4aba", "#12a594"];
@@ -100,7 +101,6 @@ export function StemLab() {
   }
 
   const duration = Math.max(0, ...stems.map((stem) => stem.buffer.duration));
-  const update = (id: string, change: Partial<Mix[string]>) => setMix((current) => ({ ...current, [id]: { ...(current[id] ?? defaultSetting()), ...change } }));
 
   return (
     <div className="grid gap-6">
@@ -152,54 +152,9 @@ export function StemLab() {
             </Button>
           </div>
 
-          <ul className="grid gap-2">
-            {stems.map((stem) => {
-              const setting = mix[stem.id] ?? defaultSetting();
-              const anySolo = Object.values(mix).some((entry) => entry.solo);
-              const heard = !setting.mute && (!anySolo || setting.solo);
-              return (
-                <li key={stem.id} className={cn("grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-2 rounded-xl border p-3 transition-opacity sm:grid-cols-[10rem_auto_minmax(0,1fr)_minmax(0,9rem)]", !heard && "opacity-50")}>
-                  <span className="flex min-w-0 items-center gap-2 font-semibold">
-                    <span aria-hidden className="size-3 shrink-0 rounded-full" style={{ background: stem.color }} />
-                    <span className="truncate">{stem.name}</span>
-                  </span>
-                  <span className="flex gap-1">
-                    <StemToggle label="Mute" short="M" on={setting.mute} tone="danger" onClick={() => setMix((current) => toggle(current, stem.id, "mute"))} />
-                    <StemToggle label="Solo" short="S" on={setting.solo} tone="primary" onClick={() => setMix((current) => toggle(current, stem.id, "solo"))} />
-                  </span>
-                  <label className="text-fg-muted col-span-2 flex items-center gap-2 text-xs sm:col-span-1">
-                    Volume
-                    <input type="range" aria-label={`${stem.name} volume`} min={0} max={1} step={0.01} value={setting.volume} onChange={(event) => update(stem.id, { volume: clampVolume(Number(event.target.value)) })} className="accent-fg h-1 min-w-0 flex-1 cursor-pointer" />
-                    <span className="num w-8 text-right">{Math.round(setting.volume * 100)}</span>
-                  </label>
-                  <label className="text-fg-muted col-span-2 flex items-center gap-2 text-xs sm:col-span-1">
-                    Pan
-                    <input type="range" aria-label={`${stem.name} pan`} min={-1} max={1} step={0.05} value={setting.pan} onChange={(event) => update(stem.id, { pan: clampPan(Number(event.target.value)) })} onDoubleClick={() => update(stem.id, { pan: 0 })} className="accent-fg h-1 min-w-0 flex-1 cursor-pointer" />
-                    <span className="num w-6 text-right">{setting.pan === 0 ? "C" : setting.pan < 0 ? "L" : "R"}</span>
-                  </label>
-                </li>
-              );
-            })}
-          </ul>
+          <StemRows stems={stems} mix={mix} setMix={setMix} />
         </section>
       )}
     </div>
-  );
-}
-
-function StemToggle({ label, short, on, tone, onClick }: { label: string; short: string; on: boolean; tone: "danger" | "primary"; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      aria-pressed={on}
-      onClick={onClick}
-      className={cn(
-        "grid size-8 place-items-center rounded-md border text-xs font-bold transition-colors",
-        on ? (tone === "danger" ? "bg-danger border-danger text-white" : "bg-primary text-primary-foreground border-fg") : "text-fg-muted hover:bg-surface-2",
-      )}
-    >
-      {short}
-    </button>
   );
 }

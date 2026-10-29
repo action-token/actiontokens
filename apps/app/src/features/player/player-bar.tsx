@@ -1,15 +1,18 @@
 "use client";
 
-import { Pause, Play, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react";
+import { AudioLines, Loader2, Pause, Play, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@bandcoin/ui/components/popover";
 
 import { Money } from "~/components/money";
 import { api } from "~/trpc/react";
 
 import { ReactionButtons } from "../reactions/reaction-buttons";
+import { StemRows } from "../stems/stem-rows";
+import { useStemMode } from "../stems/use-stem-mode";
 import { currentTrack, usePlayer } from "./player-store";
 
 let session: string | null = null;
@@ -41,23 +44,28 @@ export function PlayerBar() {
 
   const source = playback.data?.url;
   const recordPlay = api.media.recordPlay.useMutation();
+  const preview = playback.data ? !playback.data.full : false;
+  const finish = () => {
+    if (preview && track) setPreviewEndedFor(track.id);
+    next();
+  };
 
+  const stemList = api.media.stems.useQuery({ itemId: track?.id ?? "" }, { enabled: Boolean(track), staleTime: 30 * 60_000 });
+  const stems = useStemMode({ trackId: track?.id ?? null, sources: stemList.data?.stems ?? [], playing, onEnded: finish });
+
+  // The normal audio stays silent while the stems are playing.
   useEffect(() => {
     const element = audio.current;
     if (!element || !source) return;
-    if (playing) void element.play().catch(() => setPlaying(false));
+    if (playing && !stems.active) void element.play().catch(() => setPlaying(false));
     else element.pause();
-  }, [playing, source, setPlaying]);
+  }, [playing, source, setPlaying, stems.active]);
 
   if (!track) return null;
-  const preview = playback.data ? !playback.data.full : false;
   const previewEnded = previewEndedFor === track.id;
   const time = progress.trackId === track.id ? progress : { current: 0, duration: 0 };
-  const duration = playback.data?.durationSec ?? time.duration;
-  const finish = () => {
-    if (preview) setPreviewEndedFor(track.id);
-    next();
-  };
+  const duration = stems.active ? stems.duration : (playback.data?.durationSec ?? time.duration);
+  const current = stems.active ? stems.position : time.current;
 
   return (
     <div
@@ -121,16 +129,18 @@ export function PlayerBar() {
           </Button>
         </div>
         <div className="num text-fg-faint hidden w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 text-[10px] leading-none sm:grid">
-          <span>{clock(time.current)}</span>
+          <span>{clock(current)}</span>
           <input
             type="range"
             aria-label="Seek"
             min={0}
             max={duration || 0}
             step={0.5}
-            value={Math.min(time.current, duration || 0)}
+            value={Math.min(current, duration || 0)}
             onChange={(event) => {
-              if (audio.current) audio.current.currentTime = Number(event.target.value);
+              const next = Number(event.target.value);
+              if (stems.active) stems.seek(next);
+              else if (audio.current) audio.current.currentTime = next;
             }}
             className="accent-fg h-1 w-full cursor-pointer"
           />
@@ -141,6 +151,18 @@ export function PlayerBar() {
       {/* Sized to its content, so the song and the seek bar shrink instead of the buttons spilling out */}
       <div className="hidden items-center justify-end gap-1 sm:flex">
         <ReactionButtons itemId={track.id} showCounts={false} />
+        {stems.available && (
+          <StemsButton
+            stems={stems}
+            sources={stemList.data?.stems ?? []}
+            preview={!stemList.data?.full}
+            onStart={() => void stems.start(audio.current?.currentTime ?? 0)}
+            onStop={() => {
+              const at = stems.stop();
+              if (audio.current && at > 0) audio.current.currentTime = at;
+            }}
+          />
+        )}
         {(preview || previewEnded) && (
           <Link
             href={`/item/${track.slug}#buy`}
@@ -155,5 +177,62 @@ export function PlayerBar() {
         </Button>
       </div>
     </div>
+  );
+}
+
+/**
+ * The Stems button: opens a small mixer for the song's parts. Switching stems
+ * on hands playback over from the normal audio at the same spot; "Back to the
+ * full song" hands it back.
+ */
+function StemsButton({
+  stems,
+  sources,
+  preview,
+  onStart,
+  onStop,
+}: {
+  stems: ReturnType<typeof useStemMode>;
+  sources: { id: string; name: string; color: string }[];
+  preview: boolean;
+  onStart: () => void;
+  onStop: () => void;
+}) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="icon-sm" aria-label="Stems" aria-pressed={stems.active} className={stems.active ? "text-primary-text bg-primary-soft" : undefined}>
+          {stems.loading ? <Loader2 className="animate-spin" /> : <AudioLines />}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" side="top" className="grid max-h-[70dvh] w-[22rem] gap-3 overflow-y-auto">
+        <div>
+          <h3 className="display text-base">Stems</h3>
+          <p className="text-fg-muted text-xs">
+            {stems.active
+              ? "Mix this song's parts live."
+              : `Hear ${sources.length} separate parts of this song and mix them yourself.`}
+            {preview && " You get the first 30 seconds; own the song for all of it."}
+          </p>
+        </div>
+        {stems.active ? (
+          <>
+            <StemRows stems={sources} mix={stems.mix} setMix={stems.setMix} compact />
+            <Button variant="secondary" size="sm" onClick={onStop}>
+              Back to the full song
+            </Button>
+          </>
+        ) : (
+          <Button disabled={stems.loading} onClick={onStart}>
+            {stems.loading ? <Loader2 className="animate-spin" /> : <AudioLines />} {stems.loading ? "Loading the parts…" : "Play with stems"}
+          </Button>
+        )}
+        {stems.error && (
+          <p role="alert" className="text-danger text-xs">
+            {stems.error}
+          </p>
+        )}
+      </PopoverContent>
+    </Popover>
   );
 }

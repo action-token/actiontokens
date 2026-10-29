@@ -51,7 +51,7 @@ export async function playbackFor(db: Db, viewerId: string | null, itemId: strin
   return { url: `/api/media/preview/${itemId}`, full: false, durationSec: previewLength };
 }
 
-async function canPlayFull(
+export async function canPlayFull(
   db: Db,
   viewerId: string,
   itemId: string,

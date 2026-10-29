@@ -3,6 +3,7 @@ import { z } from "zod";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import { playbackFor } from "../../services/media/playback";
+import { stemsFor } from "../../services/media/stems";
 import { createRouter, publicProcedure } from "../../trpc";
 
 export const mediaRouter = createRouter({
@@ -10,6 +11,15 @@ export const mediaRouter = createRouter({
   play: publicProcedure
     .input(z.object({ itemId: z.string().min(1) }))
     .query(({ ctx, input }) => playbackFor(ctx.db, ctx.session?.user.id ?? null, input.itemId)),
+
+  /**
+   * A song's stems for the player's mixer. Everyone gets them; only people who
+   * may play the full song (owners, its creator and artist) get them full
+   * length, everyone else the first 30 seconds.
+   */
+  stems: publicProcedure
+    .input(z.object({ itemId: z.string().min(1) }))
+    .query(({ ctx, input }) => stemsFor(ctx.db, ctx.session?.user.id ?? null, input.itemId)),
 
   /**
    * One listen. Every play start counts (previews too, signed in or not); the

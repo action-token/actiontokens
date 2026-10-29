@@ -27,3 +27,6 @@ next-env.d.ts
 .vercel
 npm-debug.log*
 
+
+# generated demo audio for stems (scripts/seed-demo-stems.ts)
+apps/app/public/demo-stems

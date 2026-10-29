@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { audibleGain, clampPan, clampVolume, defaultSetting, type Mix, toggle } from "./mix";
+import { audibleGain, clampPan, clampVolume, defaultSetting, type Mix, startPosition, toggle } from "./mix";
 
 const mix = (over: Mix = {}): Mix => ({ drums: defaultSetting(), bass: defaultSetting(), lead: defaultSetting(), ...over });
 
@@ -38,5 +38,14 @@ describe("stem mix", () => {
     expect(next.bass?.solo).toBe(true);
     expect(next.drums?.solo).toBe(false);
     expect(toggle(next, "bass", "solo").bass?.solo).toBe(false);
+  });
+});
+
+describe("startPosition", () => {
+  it("carries the playhead over to the stems, or starts over if the stems are shorter than where the song is", () => {
+    expect(startPosition(12.5, 20)).toBe(12.5);
+    expect(startPosition(45, 20)).toBe(0);
+    expect(startPosition(20, 20)).toBe(0);
+    expect(startPosition(Number.NaN, 20)).toBe(0);
   });
 });
