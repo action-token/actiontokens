@@ -844,6 +844,9 @@ importers:
       '@bandcoin/geo':
         specifier: workspace:*
         version: link:../geo
+      '@bandcoin/page':
+        specifier: workspace:*
+        version: link:../page
       '@bandcoin/storage':
         specifier: workspace:*
         version: link:../storage

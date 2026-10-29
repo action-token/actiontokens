@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
+import { draftDesign, publishedDesign } from "../../services/artist/page";
 import { itemCardSelect, listedItemWhere, toItemCard } from "../../services/catalog/item-card";
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 
@@ -26,6 +27,7 @@ export const artistRouter = createRouter({
         website: true,
         twitter: true,
         instagram: true,
+        fanTokenItem: { select: { classicToken: { select: { code: true } } } },
         _count: { select: { followers: true, items: { where: listedItemWhere } } },
       },
     });
@@ -33,7 +35,7 @@ export const artistRouter = createRouter({
       throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "This artist doesn't exist." });
 
     const mine = { ...listedItemWhere, artistId: artist.id };
-    const [popular, forSale, albums, bounties, following] = await Promise.all([
+    const [popular, forSale, albums, bounties, following, tiers, events, design] = await Promise.all([
       ctx.db.item.findMany({
         where: { ...mine, type: "TRACK" },
         orderBy: [{ playCount: "desc" }, { createdAt: "desc" }],
@@ -76,11 +78,28 @@ export const artistRouter = createRouter({
             select: { userId: true },
           })
         : null,
+      ctx.db.membershipTier.findMany({
+        where: { artistId: artist.id, isActive: true },
+        orderBy: [{ requiredTokens: "asc" }, { sortOrder: "asc" }],
+        select: { id: true, name: true, description: true, features: true, color: true, isPopular: true, requiredTokens: true },
+      }),
+      ctx.db.event.findMany({
+        where: { artistId: artist.id, endsAt: { gte: new Date() } },
+        orderBy: { startsAt: "asc" },
+        take: 10,
+        select: { id: true, title: true, startsAt: true, endsAt: true, venueName: true, address: true, coverUrl: true },
+      }),
+      publishedDesign(ctx, artist.id),
     ]);
 
-    const { _count, id: _id, ...profile } = artist;
+    const { _count, id: _id, fanTokenItem, ...profile } = artist;
     return {
       ...profile,
+      /** The page the artist designed in the page builder, or null for the standard page */
+      design,
+      tokenCode: fanTokenItem?.classicToken?.code ?? null,
+      tiers: tiers.map((tier) => ({ ...tier, requiredTokens: tier.requiredTokens.toString() })),
+      events,
       followers: _count.followers,
       itemCount: _count.items,
       following: Boolean(following),
@@ -101,6 +120,14 @@ export const artistRouter = createRouter({
         participants: bounty._count.participants,
       })),
     };
+  }),
+
+  /** The unpublished design, for the artist's own live preview in the page builder. */
+  draftDesign: authedProcedure.input(slugInput).query(async ({ ctx, input }) => {
+    const artist = await ctx.db.artist.findFirst({ where: { slug: input.slug }, select: { id: true, userId: true } });
+    if (!artist) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "This artist doesn't exist." });
+    if (artist.userId !== ctx.session.user.id && ctx.session.user.role !== "ADMIN") throw new AppError(ErrorCodes.AUTH_FORBIDDEN, { message: "Only the artist can preview their draft." });
+    return draftDesign(ctx, artist.id);
   }),
 
   /** Follow or unfollow an artist (free; holding their token is a separate thing). */

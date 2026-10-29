@@ -9,6 +9,7 @@ import { giftsRouter } from "./routers/artist/gifts";
 import { membershipsRouter } from "./routers/artist/memberships";
 import { musicRouter } from "./routers/artist/music";
 import { onboardingRouter } from "./routers/artist/onboarding";
+import { pageRouter } from "./routers/artist/page";
 import { pinsRouter } from "./routers/artist/pins";
 import { redeemRouter } from "./routers/artist/redeem";
 import { postsRouter } from "./routers/artist/posts";
@@ -30,6 +31,7 @@ export const portalRouter = createRouter({
   bounties: bountiesRouter,
   pins: pinsRouter,
   embeds: embedsRouter,
+  page: pageRouter,
   posts: postsRouter,
   gifts: giftsRouter,
   reports: reportsRouter,

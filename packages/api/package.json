@@ -22,6 +22,7 @@
     "@bandcoin/db": "workspace:*",
     "@bandcoin/errors": "workspace:*",
     "@bandcoin/geo": "workspace:*",
+    "@bandcoin/page": "workspace:*",
     "@bandcoin/storage": "workspace:*",
     "@bandcoin/utils": "workspace:*",
     "@bandcoin/wallet": "workspace:*",
