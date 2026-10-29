@@ -9,6 +9,7 @@ import { membershipsRouter } from "./routers/artist/memberships";
 import { musicRouter } from "./routers/artist/music";
 import { onboardingRouter } from "./routers/artist/onboarding";
 import { pinsRouter } from "./routers/artist/pins";
+import { redeemRouter } from "./routers/artist/redeem";
 import { reportsRouter } from "./routers/artist/reports";
 import { portalStatusRouter } from "./routers/artist/portal";
 import { createRouter } from "./trpc";
@@ -28,6 +29,7 @@ export const portalRouter = createRouter({
   pins: pinsRouter,
   embeds: embedsRouter,
   reports: reportsRouter,
+  redeem: redeemRouter,
 });
 
 export type PortalRouter = typeof portalRouter;
