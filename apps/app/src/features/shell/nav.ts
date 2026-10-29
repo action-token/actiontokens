@@ -1,4 +1,4 @@
-import { Home, Layers, ListMusic, Settings, Star, Store, Trophy, Wallet } from "lucide-react";
+import { Home, Layers, ListMusic, Star, Store, Trophy } from "lucide-react";
 
 export const AR_URL = process.env.NEXT_PUBLIC_AR_URL ?? "https://ar.bandcoin.io";
 export const ARTIST_URL = process.env.NEXT_PUBLIC_ARTIST_URL ?? "https://artist.bandcoin.io";
@@ -29,13 +29,6 @@ export const GROUPS: { title: string; items: NavItem[] }[] = [
       { href: "/collection", icon: Layers, label: "My collection" },
       { href: "/collection?tab=favorites", icon: Star, label: "Favourites", tab: "favorites" },
       { href: "/playlists", icon: ListMusic, label: "Playlists", also: ["/playlist"] },
-    ],
-  },
-  {
-    title: "Account",
-    items: [
-      { href: "/wallet", icon: Wallet, label: "Wallet", also: ["/recharge"] },
-      { href: "/settings", icon: Settings, label: "Settings" },
     ],
   },
 ];

@@ -5,9 +5,8 @@ import { artistEntry, GROUPS, isActive } from "./nav";
 const item = (label: string) => GROUPS.flatMap((group) => group.items).find((entry) => entry.label === label)!;
 
 describe("sidebar", () => {
-  it("groups the links: browse, library, account", () => {
-    expect(GROUPS.map((group) => group.title)).toEqual(["Browse", "Library", "Account"]);
-    expect(GROUPS[2]!.items.map((entry) => entry.label)).toEqual(["Wallet", "Settings"]);
+  it("groups the links: browse, library", () => {
+    expect(GROUPS.map((group) => group.title)).toEqual(["Browse", "Library"]);
   });
 
   it("highlights exactly one entry on the collection page: the tab you're on", () => {
