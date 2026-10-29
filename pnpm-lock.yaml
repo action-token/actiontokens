@@ -466,6 +466,9 @@ importers:
       '@bandcoin/errors':
         specifier: workspace:*
         version: link:../../packages/errors
+      '@bandcoin/page':
+        specifier: workspace:*
+        version: link:../../packages/page
       '@bandcoin/storage':
         specifier: workspace:*
         version: link:../../packages/storage
@@ -729,6 +732,9 @@ importers:
       '@bandcoin/geo':
         specifier: workspace:*
         version: link:../../packages/geo
+      '@bandcoin/page':
+        specifier: workspace:*
+        version: link:../../packages/page
       '@bandcoin/ui':
         specifier: workspace:*
         version: link:../../packages/ui

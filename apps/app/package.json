@@ -17,6 +17,7 @@
     "@bandcoin/auth": "workspace:*",
     "@bandcoin/db": "workspace:*",
     "@bandcoin/errors": "workspace:*",
+    "@bandcoin/page": "workspace:*",
     "@bandcoin/storage": "workspace:*",
     "@bandcoin/ui": "workspace:*",
     "@bandcoin/utils": "workspace:*",

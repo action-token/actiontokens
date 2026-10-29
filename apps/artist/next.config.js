@@ -13,6 +13,7 @@ const config = {
     "@bandcoin/chain",
     "@bandcoin/db",
     "@bandcoin/errors",
+    "@bandcoin/page",
     "@bandcoin/geo",
     "@bandcoin/storage",
     "@bandcoin/ui",

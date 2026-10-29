@@ -9,11 +9,11 @@ import { MediaCarousel, SectionTitle } from "@bandcoin/ui/patterns/media-carouse
 import { PageBody } from "@bandcoin/ui/patterns/page-header";
 
 import { Money } from "~/components/money";
-import { ArtistActions } from "~/features/artist/artist-actions";
+import { CoverBanner } from "~/features/artist-page/cover-banner";
+import { PageRenderer } from "~/features/artist-page/page-renderer";
 import { AlbumCard } from "~/features/catalog/album-card";
 import { ItemCard } from "~/features/catalog/item-card";
 import { TrackList } from "~/features/music/track-list";
-import { Avatar } from "~/features/shell/context-panel";
 import { serverApi } from "~/server/api";
 
 const loadArtist = cache(async (slug: string) => {
@@ -48,51 +48,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
  */
 export default async function ArtistPage({ params }: Props) {
   const artist = await loadArtist((await params).slug);
-  const banner = artist.coverUrl ?? artist.avatarUrl;
+
+  // The artist designed their own page in the page builder: show that.
+  if (artist.design)
+    return (
+      <PageRenderer blocks={artist.design.blocks} theme={artist.design.theme} artist={artist} />
+    );
 
   return (
     <>
-      <section className="relative isolate flex min-h-[300px] items-end overflow-hidden text-white sm:min-h-[340px]">
-        {banner ? (
-          // eslint-disable-next-line @next/next/no-img-element -- images come from many hosts
-          <img
-            src={banner}
-            alt=""
-            aria-hidden
-            className="absolute inset-0 -z-20 size-full object-cover"
-          />
-        ) : (
-          <div aria-hidden className="bg-primary absolute inset-0 -z-20" />
-        )}
-        <div
-          aria-hidden
-          className="absolute inset-0 -z-10 bg-gradient-to-t from-black/90 via-black/45 to-black/10"
-        />
-        <div className="mx-auto grid w-full max-w-[80rem] gap-5 px-4 pt-16 pb-7 sm:px-8">
-          <div className="flex items-end gap-5">
-            <Avatar
-              name={artist.name}
-              url={artist.avatarUrl}
-              className="bg-surface-3 text-fg hidden size-28 shrink-0 place-items-center rounded-full border-4 border-white object-cover text-3xl font-bold shadow-xl sm:grid lg:size-36"
-            />
-            <div className="grid min-w-0 gap-1">
-              <span className="marker -rotate-1 text-lg text-white/80">*artist*</span>
-              <h1 className="display text-5xl break-words sm:text-6xl xl:text-7xl">
-                {artist.name}
-              </h1>
-              <span className="text-sm text-white/75">
-                {artist.itemCount.toLocaleString()} {artist.itemCount === 1 ? "drop" : "drops"}
-              </span>
-            </div>
-          </div>
-          <ArtistActions
-            slug={artist.slug}
-            following={artist.following}
-            followers={artist.followers}
-            popular={artist.popular}
-          />
-        </div>
-      </section>
+      <CoverBanner artist={artist} />
 
       <PageBody wide className="grid gap-12">
         {artist.popular.length > 0 && (
