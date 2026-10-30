@@ -77,8 +77,10 @@ enum OrderKind {
   ACTIVATION
   /// An artist pays XLM to open their issuer account
   ISSUER_SETUP
-  /// An artist pays XLM to open their storage account (a balance for bounty prizes)
+  /// An artist pays XLM to open their storage account (where their copies wait)
   STORAGE_SETUP
+  /// An artist pays the network fee to mint copies of their token into storage
+  STORAGE_STOCK
   /// An artist pays the network fee to register a contract NFT edition on-chain
   NFT_REGISTER
 }

@@ -58,7 +58,7 @@ export function FanTokenTab({ profile, onAccounts }: { profile: Profile; onAccou
 /**
  * The Stellar accounts Bandcoin keeps for the artist, each with the way to
  * open it when it's missing: the issuer (needed: every token comes from it)
- * and storage (optional: a separate balance that can pay bounty prizes).
+ * and storage (optional: where copies wait, as in bandfan).
  * The artist pays for both; the price shows in full first.
  */
 export function AccountsTab({ profile }: { profile: Profile }) {
@@ -74,11 +74,12 @@ export function AccountsTab({ profile }: { profile: Profile }) {
       <AccountCard
         label="Storage"
         tag="Optional"
-        note="A separate balance for paying bounty prizes, instead of your own wallet."
+        note="Holds your copies. Sales, pin claims and gifts take from it first."
         account={profile.storageAccount}
         open={<OpenStorage />}
       />
       <p className="text-fg-faint text-xs">
+        {profile.storageAccount && "Add copies to storage from each item's page. "}
         Bandcoin keeps the keys for these accounts safe; you never need them.
       </p>
     </div>
@@ -135,7 +136,7 @@ function OpenStorage() {
   const flow = useStorageOpening();
   return (
     <PayToOpen
-      intro="Storage is a Stellar account of your own, apart from your wallet. Put BANDCOIN, XLM or USDC in it and pay bounty prizes from there. You pay what it starts with; Bandcoin never covers the cost."
+      intro="Storage is a Stellar account of your own, apart from your wallet, where your copies wait. Sales, pin claims and gifts take from it before making new ones, and it can fund bounty prizes. Without it, copies are made when they're needed. You pay what it starts with; Bandcoin never covers the cost."
       quote={quote.data}
       loading={quote.isPending}
       flow={flow}

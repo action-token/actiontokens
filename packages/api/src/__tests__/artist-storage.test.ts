@@ -26,13 +26,15 @@ const me: SessionUser = {
   walletAddress: wallet.publicKey(),
   walletType: "freighter",
 };
-const approved = { id: "a1", status: "APPROVED", storageAccountId: null };
+const approved = { id: "a1", status: "APPROVED", storageAccountId: null, fanTokenItemId: null };
 
 beforeAll(() => {
   process.env.CHAIN_ACCOUNT_KEY = "ab".repeat(32);
 });
 
 type Row = Record<string, unknown>;
+
+const fanToken = { code: "FYRON", issuer: Keypair.random().publicKey() };
 
 function setup(opts: { xlm?: string } = {}) {
   const artists = new Map<string, Row>([["a1", { ...approved }]]);
@@ -46,13 +48,16 @@ function setup(opts: { xlm?: string } = {}) {
       }),
     },
     chainAccount: {
-      findFirst: vi.fn(({ where }: { where: { ownerId: string; kind: string } }) =>
-        Promise.resolve(
-          [...chainAccounts.values()].find(
-            (row) =>
-              row.ownerId === where.ownerId && row.kind === where.kind && row.activatedAt === null,
-          ) ?? null,
-        ),
+      findFirst: vi.fn(
+        ({ where }: { where: { ownerId: string; kind: string; activatedAt: null | object } }) =>
+          Promise.resolve(
+            [...chainAccounts.values()].find(
+              (row) =>
+                row.ownerId === where.ownerId &&
+                row.kind === where.kind &&
+                (where.activatedAt === null ? row.activatedAt === null : row.activatedAt !== null),
+            ) ?? null,
+          ),
       ),
       findUnique: vi.fn(({ where }: { where: { publicKey: string } }) =>
         Promise.resolve(chainAccounts.get(where.publicKey) ?? null),
@@ -67,6 +72,11 @@ function setup(opts: { xlm?: string } = {}) {
         Object.assign(row, data);
         return Promise.resolve(row);
       }),
+    },
+    classicToken: {
+      findUnique: vi.fn(({ where }: { where: { itemId: string } }) =>
+        Promise.resolve(where.itemId === "fan" ? fanToken : null),
+      ),
     },
     order: {
       create: vi.fn(({ data }: { data: Row }) => {
@@ -184,5 +194,31 @@ describe("opening the storage account", () => {
       submitStorageOpening(ctx, me, approved, { orderId: ORDER, xdr: tx.toXDR() }),
     ).rejects.toThrow();
     expect(artists.get("a1")?.storageAccountId).toBeNull();
+  });
+
+  it("also trusts the fan token when there is one, with its reserve in the price", async () => {
+    const { ctx } = setup();
+    const withToken = { ...approved, fanTokenItemId: "fan" };
+    await expect(quoteStorageOpening(ctx, me, withToken)).resolves.toMatchObject({
+      total: "3.0000400",
+    });
+    const started = await startStorageOpening(ctx, me, withToken);
+    const tx = TransactionBuilder.fromXDR(started.xdr, Networks.TESTNET) as Transaction;
+    expect(tx.operations).toHaveLength(4);
+    expect(tx.operations[3]).toMatchObject({ type: "changeTrust", line: { code: "FYRON" } });
+  });
+
+  it("won't open a second storage account for the same person", async () => {
+    const { ctx, chainAccounts } = setup();
+    chainAccounts.set("GOLD", {
+      id: "old",
+      ownerId: "me",
+      kind: "STORAGE",
+      activatedAt: new Date(),
+    });
+    await expect(quoteStorageOpening(ctx, me, approved)).resolves.toMatchObject({
+      ok: false,
+      problems: [{ message: "Your storage account is already open." }],
+    });
   });
 });

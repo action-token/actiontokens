@@ -9,9 +9,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildIssuerRefund,
+  buildStockStorage,
   buildStorageSetup,
   quoteIssuerSetup,
   quoteStorageSetup,
+  storageStartingXlm,
 } from "../classic/issuer";
 
 const network = { passphrase: Networks.TESTNET, baseFee: "100" };
@@ -96,5 +98,56 @@ describe("storage account", () => {
       { type: "changeTrust", source: storage },
     ]);
     expect(built.serverSigners).toEqual([storage]);
+  });
+
+  it("starts with room for every trustline it opens with", () => {
+    expect(storageStartingXlm(2)).toBe("2.5");
+    expect(storageStartingXlm(3)).toBe("3");
+    expect(quoteStorageSetup({ xlmFunds: "10", networkFeeXlm: "0", startingXlm: "3" }).total).toBe(
+      "3.0000000",
+    );
+  });
+});
+
+describe("stocking storage", () => {
+  const artist = Keypair.random().publicKey();
+  const storage = Keypair.random().publicKey();
+  const issuer = Keypair.random().publicKey();
+  const asset = { code: "SONG1", issuer };
+
+  it("mints copies from the issuer into storage, the artist paying the fee", () => {
+    const built = buildStockStorage({
+      artist: new Account(artist, "3"),
+      network,
+      storage,
+      issuer,
+      asset,
+      amount: "10",
+      openTrustline: false,
+    });
+    const tx = parse(built.xdr);
+    expect(tx.source).toBe(artist);
+    expect(tx.operations).toMatchObject([
+      { type: "payment", source: issuer, destination: storage, amount: "10.0000000" },
+    ]);
+    expect(built.serverSigners).toEqual([issuer]);
+  });
+
+  it("first funds and opens storage's trustline when it doesn't hold the token yet", () => {
+    const built = buildStockStorage({
+      artist: new Account(artist, "3"),
+      network,
+      storage,
+      issuer,
+      asset,
+      amount: "1",
+      openTrustline: true,
+    });
+    expect(parse(built.xdr).operations).toMatchObject([
+      { type: "payment", destination: storage, amount: "0.5000000", asset: { code: "XLM" } },
+      { type: "changeTrust", source: storage, line: { code: "SONG1" } },
+      { type: "payment", source: issuer, destination: storage },
+    ]);
+    expect(built.serverSigners).toEqual([issuer, storage]);
   });
 });

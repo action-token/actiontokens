@@ -36,6 +36,7 @@ import { AiTextButton } from "../ai/ai-text-button";
 import { FileField, type PickedFile } from "./file-field";
 import { Note, PriceFields, priceProblems, Toggle } from "./form-parts";
 import { RegisterNft } from "./register-nft";
+import { StorageStock } from "./storage-stock";
 import { acceptFor, fileRequired, ITEM_TYPES, type ItemKind, mediaTypeFor } from "./item-types";
 
 type Existing = RouterOutputs["catalog"]["get"];
@@ -243,6 +244,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
               </p>
             </div>
           </section>
+          {existing?.chain === "CLASSIC_TOKEN" && <StorageStock itemId={existing.id} />}
           {existing && (
             <DeleteCard
               title="Delete this item"

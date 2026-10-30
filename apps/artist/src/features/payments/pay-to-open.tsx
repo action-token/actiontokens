@@ -6,13 +6,13 @@ import { Button } from "@bandcoin/ui/components/button";
 import { ToastViewport, TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
 
 import { Money } from "~/components/money";
-import { api, type RouterOutputs } from "~/trpc/react";
+import { api } from "~/trpc/react";
 
-import { QuoteBreakdown } from "./quote-breakdown";
+import { QuoteBreakdown, type XlmQuote } from "./quote-breakdown";
 import type { useWalletPayment } from "./use-wallet-payment";
 
 /**
- * Paying XLM to open an account (issuer or storage): what it is for, the full
+ * Paying XLM for an account step (opening the issuer or storage, adding copies): what it is for, the full
  * price, then one button. Nothing is signed until it is pressed; custodial
  * wallets get the 5 second countdown with Cancel.
  */
@@ -24,10 +24,7 @@ export function PayToOpen({
   action,
 }: {
   intro: ReactNode;
-  quote:
-    | RouterOutputs["onboarding"]["issuerQuote"]
-    | RouterOutputs["profile"]["storageQuote"]
-    | undefined;
+  quote: XlmQuote | undefined;
   loading: boolean;
   flow: ReturnType<typeof useWalletPayment>;
   /** "open it", "open storage": the end of "Pay 1.5 XLM and …" */

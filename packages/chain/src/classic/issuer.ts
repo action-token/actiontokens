@@ -3,6 +3,7 @@ import { type Account, Asset, Operation } from "@stellar/stellar-sdk";
 import type { AssetRef } from "../currency";
 
 import { toAmount, toDisplay, toStroops } from "../money";
+import { TRUSTLINE_RESERVE_XLM } from "../quote";
 import type { RechargeLine, RechargeProblem } from "../recharge";
 import { finish, type NetworkParams, startTransaction } from "../transaction";
 
@@ -38,15 +39,21 @@ export function buildIssuerSetup(input: {
 }
 
 /**
- * XLM the artist puts into their storage account: the reserves for the
- * account and its two trustlines (BANDCOIN and USDC), plus room for fees.
+ * XLM the artist puts into their storage account: the account's two base
+ * reserves, one reserve per trustline it opens with, and room for fees.
  */
-export const STORAGE_STARTING_XLM = "2.5";
+export function storageStartingXlm(trustlines: number) {
+  return toDisplay(toStroops("1.5") + BigInt(trustlines) * toStroops(TRUSTLINE_RESERVE_XLM));
+}
+
+/** For the usual opening: BANDCOIN and USDC. */
+export const STORAGE_STARTING_XLM = storageStartingXlm(2);
 
 /**
- * Opens an artist's storage account, paid by the artist: a separate balance
- * that can pay bounty prizes. It trusts the payment assets (`trust`) so it can
- * hold them; those operations come from storage, so its key signs too.
+ * Opens an artist's storage account, paid by the artist. Storage is where the
+ * artist's copies wait (stock): sales, pin claims and gifts take from it
+ * before minting more, and it can fund bounties. It trusts the assets it will
+ * hold (`trust`); those operations come from storage, so its key signs too.
  */
 export function buildStorageSetup(input: {
   artist: Account;
@@ -58,7 +65,7 @@ export function buildStorageSetup(input: {
   const builder = startTransaction(input.artist, input.network).addOperation(
     Operation.createAccount({
       destination: input.storage,
-      startingBalance: input.startingXlm ?? STORAGE_STARTING_XLM,
+      startingBalance: input.startingXlm ?? storageStartingXlm(input.trust?.length ?? 0),
     }),
   );
   for (const asset of input.trust ?? [])
@@ -69,6 +76,46 @@ export function buildStorageSetup(input: {
       }),
     );
   return input.trust?.length ? finish(builder, [input.storage]) : finish(builder);
+}
+
+/**
+ * Mints copies of the artist's own token into their storage, ready for sales
+ * and pin claims. The artist's wallet is the source and pays the fee; when
+ * storage doesn't trust the token yet, the artist also sends it the 0.5 XLM
+ * the new trustline locks up. The issuer (and storage, for its trustline)
+ * co-sign with platform-held keys.
+ */
+export function buildStockStorage(input: {
+  artist: Account;
+  network: NetworkParams;
+  storage: string;
+  issuer: string;
+  asset: AssetRef;
+  amount: string;
+  openTrustline: boolean;
+  memo?: string;
+}) {
+  const asset = new Asset(input.asset.code, input.asset.issuer);
+  const builder = startTransaction(input.artist, input.network, { memo: input.memo });
+  if (input.openTrustline)
+    builder
+      .addOperation(
+        Operation.payment({
+          destination: input.storage,
+          asset: Asset.native(),
+          amount: TRUSTLINE_RESERVE_XLM,
+        }),
+      )
+      .addOperation(Operation.changeTrust({ source: input.storage, asset }));
+  builder.addOperation(
+    Operation.payment({
+      source: input.issuer,
+      destination: input.storage,
+      asset,
+      amount: input.amount,
+    }),
+  );
+  return finish(builder, input.openTrustline ? [input.issuer, input.storage] : [input.issuer]);
 }
 
 /**
@@ -126,10 +173,14 @@ export const quoteIssuerSetup = (input: { xlmFunds: string | null; networkFeeXlm
   });
 
 /** The price of opening a storage account, for Settings. */
-export const quoteStorageSetup = (input: { xlmFunds: string | null; networkFeeXlm: string }) =>
+export const quoteStorageSetup = (input: {
+  xlmFunds: string | null;
+  networkFeeXlm: string;
+  startingXlm?: string;
+}) =>
   quoteAccountSetup({
     ...input,
-    startingXlm: STORAGE_STARTING_XLM,
+    startingXlm: input.startingXlm ?? STORAGE_STARTING_XLM,
     label: "Open your storage account",
     purpose: "open your storage account",
   });

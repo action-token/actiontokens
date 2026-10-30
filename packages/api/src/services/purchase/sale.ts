@@ -21,7 +21,13 @@ export async function loadSale(db: Db, listingId: string) {
         select: {
           id: true,
           walletAddress: true,
-          chainAccounts: { where: { kind: "STORAGE" }, select: { publicKey: true }, take: 1 },
+          // A user has one storage account; the oldest open one if data ever holds more.
+          chainAccounts: {
+            where: { kind: "STORAGE", activatedAt: { not: null } },
+            orderBy: { createdAt: "asc" },
+            select: { publicKey: true },
+            take: 1,
+          },
         },
       },
       item: {

@@ -12,8 +12,19 @@ import {
   startStorageOpening,
   submitStorageOpening,
 } from "../../services/artist/storage-account";
+import {
+  MAX_STOCK,
+  quoteStock,
+  startStock,
+  submitStock,
+} from "../../services/artist/storage-stock";
 import { cancelPurchase } from "../../services/purchase";
 import { artistProcedure, createRouter } from "../../trpc";
+
+const stockInput = z.object({
+  itemId: z.string().min(1),
+  quantity: z.number().int().min(1).max(MAX_STOCK),
+});
 
 /** The artist's own profile, as the Settings page shows and edits it. */
 export const profileRouter = createRouter({
@@ -37,7 +48,7 @@ export const profileRouter = createRouter({
     )
     .mutation(({ ctx, input }) => setProfileImage(ctx, ctx.artist, input)),
 
-  /** Opening the optional storage account (see services/artist/storage-account). */
+  /** Opening the storage account, where copies wait (see services/artist/storage-account). */
   storageQuote: artistProcedure.query(({ ctx }) =>
     quoteStorageOpening(ctx, ctx.session.user, ctx.artist),
   ),
@@ -48,6 +59,20 @@ export const profileRouter = createRouter({
     .input(z.object({ orderId: z.string().min(1), xdr: z.string().min(1) }))
     .mutation(({ ctx, input }) => submitStorageOpening(ctx, ctx.session.user, ctx.artist, input)),
   storageCancel: artistProcedure
+    .input(z.object({ orderId: z.string().min(1) }))
+    .mutation(({ ctx, input }) => cancelPurchase(ctx, ctx.session.user, input.orderId)),
+
+  /** Adding copies of an item to storage (see services/artist/storage-stock). */
+  stockQuote: artistProcedure
+    .input(stockInput)
+    .query(({ ctx, input }) => quoteStock(ctx, ctx.session.user, ctx.artist, input)),
+  stockStart: artistProcedure
+    .input(stockInput)
+    .mutation(({ ctx, input }) => startStock(ctx, ctx.session.user, ctx.artist, input)),
+  stockSubmit: artistProcedure
+    .input(z.object({ orderId: z.string().min(1), xdr: z.string().min(1) }))
+    .mutation(({ ctx, input }) => submitStock(ctx, ctx.session.user, ctx.artist, input)),
+  stockCancel: artistProcedure
     .input(z.object({ orderId: z.string().min(1) }))
     .mutation(({ ctx, input }) => cancelPurchase(ctx, ctx.session.user, input.orderId)),
 });

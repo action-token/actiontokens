@@ -1,10 +1,12 @@
 import { Account, Keypair, type Transaction, TransactionBuilder } from "@stellar/stellar-sdk";
 
 import {
+  type AssetRef,
   buildStorageSetup,
   networkFeeXlm,
   quoteStorageSetup,
   type RechargeProblem,
+  storageStartingXlm,
 } from "@bandcoin/chain";
 import { QUOTE_TTL_SECONDS } from "@bandcoin/chain/quote";
 import { encryptSecret, fundsOf } from "@bandcoin/chain/server";
@@ -15,27 +17,53 @@ import { transitionOrder } from "../order-state";
 import { deliverOrder, failOrder, ownOrder, userSignature } from "../purchase";
 
 /**
- * Opening an artist's storage account: an optional balance, separate from
- * their wallet, that can pay bounty prizes. The artist pays the 2.5 XLM it
- * starts with and the network fee (quote → start → submit, like the issuer).
- * The key is made here and kept encrypted by the platform. The artist is
- * linked to it only once the payment is on the network.
+ * Opening an artist's storage account, as in bandfan: the account where their
+ * copies wait. Sales, pin claims and gifts take from it before minting more,
+ * and it can fund bounties. Here it is optional (copies are minted on demand
+ * without it) and the artist pays the XLM it starts with and the network fee
+ * (quote → start → submit, like the issuer). The key is made here and kept
+ * encrypted by the platform. The artist is linked to it only once the payment
+ * is on the network. A user has at most one storage account, which also holds
+ * what they list for resale.
  */
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
-type ArtistRef = { id: string; status: string; storageAccountId: string | null };
+type ArtistRef = {
+  id: string;
+  status: string;
+  storageAccountId: string | null;
+  fanTokenItemId: string | null;
+};
 
-/** createAccount plus a trustline for BANDCOIN and one for USDC. */
-const OPERATIONS = 3;
+/** What storage trusts from the start: the payment assets and the artist's fan token. */
+async function assetsToTrust(ctx: ServiceCtx, artist: ArtistRef): Promise<AssetRef[]> {
+  const { bandcoin, usdc } = ctx.chain.config.assets;
+  const fanToken = artist.fanTokenItemId
+    ? await ctx.db.classicToken.findUnique({
+        where: { itemId: artist.fanTokenItemId },
+        select: { code: true, issuer: true },
+      })
+    : null;
+  return fanToken ? [bandcoin, usdc, fanToken] : [bandcoin, usdc];
+}
 
 async function priceStorage(ctx: ServiceCtx, user: SessionUser, artist: ArtistRef) {
-  const account = await ctx.chain.loadAccount(user.walletAddress);
+  const [account, trust, existing] = await Promise.all([
+    ctx.chain.loadAccount(user.walletAddress),
+    assetsToTrust(ctx, artist),
+    ctx.db.chainAccount.findFirst({
+      where: { ownerId: user.id, kind: "STORAGE", activatedAt: { not: null } },
+      select: { id: true },
+    }),
+  ]);
   const quote = quoteStorageSetup({
     xlmFunds: fundsOf(account, ctx.chain.config.assets).XLM,
-    networkFeeXlm: networkFeeXlm(OPERATIONS, ctx.chain.config.network.baseFee),
+    // createAccount, then one changeTrust per asset
+    networkFeeXlm: networkFeeXlm(1 + trust.length, ctx.chain.config.network.baseFee),
+    startingXlm: storageStartingXlm(trust.length),
   });
 
   const extra: RechargeProblem[] = [];
-  if (artist.storageAccountId)
+  if (artist.storageAccountId || existing)
     extra.push({ code: "UNAVAILABLE", message: "Your storage account is already open." });
   else if (artist.status !== "APPROVED")
     extra.push({
@@ -56,6 +84,7 @@ async function priceStorage(ctx: ServiceCtx, user: SessionUser, artist: ArtistRe
       expiresAt: new Date(Date.now() + QUOTE_TTL_SECONDS * 1000).toISOString(),
     },
     account,
+    trust,
   };
 }
 
@@ -65,7 +94,7 @@ export async function quoteStorageOpening(ctx: ServiceCtx, user: SessionUser, ar
 
 /** Creates the order and the unsigned payment; reuses a key from a payment that never went through. */
 export async function startStorageOpening(ctx: ServiceCtx, user: SessionUser, artist: ArtistRef) {
-  const { quote, account } = await priceStorage(ctx, user, artist);
+  const { quote, account, trust } = await priceStorage(ctx, user, artist);
   if (!quote.ok || !account) {
     throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, {
       message: quote.problems[0]?.message ?? "This can't go through right now.",
@@ -109,12 +138,11 @@ export async function startStorageOpening(ctx: ServiceCtx, user: SessionUser, ar
     currency: "XLM",
   });
 
-  const { bandcoin, usdc } = ctx.chain.config.assets;
   const built = buildStorageSetup({
     artist: new Account(account.accountId(), account.sequenceNumber()),
     network: ctx.chain.config.network,
     storage: storage.publicKey,
-    trust: [bandcoin, usdc],
+    trust,
   });
   // The hash doesn't change when signatures are added, so it pins the exact transaction.
   await transitionOrder(ctx.db, order.id, "AWAITING_SIGNATURE", { txHash: built.hash });

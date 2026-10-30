@@ -37,6 +37,7 @@ import { AiImagePanel } from "../ai/ai-image-panel";
 import { AiTextButton } from "../ai/ai-text-button";
 import { FileField, type PickedFile } from "../catalog/file-field";
 import { Note, PriceFields, priceProblems, Toggle } from "../catalog/form-parts";
+import { StorageStock } from "../catalog/storage-stock";
 import { usePortal } from "../portal/use-portal";
 import { StemsPanel } from "./stems-panel";
 
@@ -219,6 +220,7 @@ export function SongForm({
               </p>
             </div>
           </section>
+          {existing && <StorageStock itemId={existing.id} />}
           {existing && (
             <DeleteCard
               title="Delete this song"
