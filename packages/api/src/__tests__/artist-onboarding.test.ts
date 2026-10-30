@@ -210,6 +210,18 @@ describe("applyAsArtist", () => {
 });
 
 describe("quoteIssuerOpening", () => {
+  it("lets an artist approved before paying open it late, but not a banned one", async () => {
+    await expect(
+      quoteIssuerOpening(setup({ artist: { ...pending, status: "APPROVED" } }).ctx, me),
+    ).resolves.toMatchObject({ ok: true });
+    await expect(
+      quoteIssuerOpening(setup({ artist: { ...pending, status: "BANNED" } }).ctx, me),
+    ).resolves.toMatchObject({
+      ok: false,
+      problems: [{ message: "Your artist account is suspended." }],
+    });
+  });
+
   it("prices the 1.5 XLM and the fee for a pending applicant", async () => {
     await expect(quoteIssuerOpening(setup({ artist: pending }).ctx, me)).resolves.toMatchObject({
       ok: true,

@@ -35,14 +35,7 @@ type Tab = (typeof TABS)[number]["id"];
 export function SettingsView() {
   const profile = api.profile.overview.useQuery();
 
-  if (profile.isPending)
-    return (
-      <PageBody className="grid gap-4">
-        <Skeleton className="h-48 w-full rounded-[1.4rem]" />
-        <Skeleton className="h-10 w-1/2" />
-        <Skeleton className="h-64 w-full rounded-[1.4rem]" />
-      </PageBody>
-    );
+  if (profile.isPending) return <SettingsSkeleton />;
   if (profile.isError)
     return (
       <PageBody>
@@ -76,13 +69,19 @@ function Settings({ profile }: { profile: RouterOutputs["profile"]["overview"] }
         <InfoCard
           icon={Coins}
           label="Fan token"
-          value={profile.fanToken ? profile.fanToken.code : "Not set up"}
+          value={profile.fanToken ? profile.fanToken.code : "Not set up yet"}
           onOpen={() => setTab("fan-token")}
         />
         <InfoCard
           icon={Wallet}
           label="Accounts"
-          value={profile.issuerAccount ? "Issuer and storage" : "Not set up"}
+          value={
+            !profile.issuerAccount
+              ? "Issuer needed"
+              : profile.storageAccount
+                ? "All open"
+                : "Issuer open"
+          }
           onOpen={() => setTab("accounts")}
         />
       </div>
@@ -99,7 +98,7 @@ function Settings({ profile }: { profile: RouterOutputs["profile"]["overview"] }
           <ProfileForm profile={profile} />
         </TabsContent>
         <TabsContent value="fan-token" className="mt-5">
-          <FanTokenTab profile={profile} />
+          <FanTokenTab profile={profile} onAccounts={() => setTab("accounts")} />
         </TabsContent>
         <TabsContent value="short-link" className="mt-5">
           <ShortLinkPanel />
@@ -170,5 +169,35 @@ function InfoCard({
         Open
       </Button>
     </div>
+  );
+}
+
+/** The page's shape while it loads: full-width hero, picture and name, three cards, tabs, form. */
+function SettingsSkeleton() {
+  return (
+    <PageBody className="grid max-w-none gap-6" aria-busy>
+      <div>
+        <Skeleton className="-mx-4 -mt-5 h-44 rounded-none sm:-mx-6 sm:h-56 lg:mx-[calc(var(--page-pad-x-lg,1.5rem)*-1)] lg:-mt-8 lg:h-64" />
+        <div className="flex items-end gap-4 px-2 sm:px-5">
+          <Skeleton className="border-bg -mt-14 size-24 shrink-0 rounded-full border-4 sm:size-28" />
+          <div className="grid flex-1 gap-2 pb-1">
+            <Skeleton className="h-7 w-56" />
+            <Skeleton className="h-3 w-40" />
+          </div>
+          <Skeleton className="hidden h-9 w-32 rounded-full sm:block" />
+        </div>
+        <div className="mt-3 grid gap-2 px-2 sm:px-5">
+          <Skeleton className="h-4 w-80 max-w-full" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+      </div>
+      <div className="grid gap-2 md:grid-cols-3">
+        {[0, 1, 2].map((key) => (
+          <Skeleton key={key} className="h-16 rounded-[1.2rem]" />
+        ))}
+      </div>
+      <Skeleton className="h-9 w-96 max-w-full" />
+      <Skeleton className="h-72 w-full rounded-[1.4rem]" />
+    </PageBody>
   );
 }

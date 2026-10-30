@@ -7,6 +7,12 @@ import {
   setProfileImage,
   updateProfile,
 } from "../../services/artist/profile";
+import {
+  quoteStorageOpening,
+  startStorageOpening,
+  submitStorageOpening,
+} from "../../services/artist/storage-account";
+import { cancelPurchase } from "../../services/purchase";
 import { artistProcedure, createRouter } from "../../trpc";
 
 /** The artist's own profile, as the Settings page shows and edits it. */
@@ -30,4 +36,18 @@ export const profileRouter = createRouter({
       z.object({ kind: z.enum(["avatar", "cover"]), url: z.string().url().max(2048).nullable() }),
     )
     .mutation(({ ctx, input }) => setProfileImage(ctx, ctx.artist, input)),
+
+  /** Opening the optional storage account (see services/artist/storage-account). */
+  storageQuote: artistProcedure.query(({ ctx }) =>
+    quoteStorageOpening(ctx, ctx.session.user, ctx.artist),
+  ),
+  storageStart: artistProcedure.mutation(({ ctx }) =>
+    startStorageOpening(ctx, ctx.session.user, ctx.artist),
+  ),
+  storageSubmit: artistProcedure
+    .input(z.object({ orderId: z.string().min(1), xdr: z.string().min(1) }))
+    .mutation(({ ctx, input }) => submitStorageOpening(ctx, ctx.session.user, ctx.artist, input)),
+  storageCancel: artistProcedure
+    .input(z.object({ orderId: z.string().min(1) }))
+    .mutation(({ ctx, input }) => cancelPurchase(ctx, ctx.session.user, input.orderId)),
 });

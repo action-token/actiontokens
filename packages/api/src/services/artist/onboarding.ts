@@ -86,8 +86,10 @@ async function priceOpening(ctx: ServiceCtx, user: SessionUser) {
       code: "UNAVAILABLE",
       message: "Apply first, then you can open your artist account.",
     });
-  } else if (artist.status !== "PENDING" || artist.issuerAccountId) {
+  } else if (artist.issuerAccountId) {
     extra.push({ code: "UNAVAILABLE", message: "Your artist account is already open." });
+  } else if (artist.status === "BANNED") {
+    extra.push({ code: "UNAVAILABLE", message: "Your artist account is suspended." });
   } else if (!account) {
     extra.push({
       code: "UNAVAILABLE",

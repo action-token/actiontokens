@@ -10,8 +10,9 @@ import type { RouterOutputs } from "~/trpc/react";
 
 import { FAN_APP_URL } from "../shell/links";
 
-type Quote =
+export type XlmQuote =
   | RouterOutputs["onboarding"]["issuerQuote"]
+  | RouterOutputs["profile"]["storageQuote"]
   | RouterOutputs["catalog"]["nftQuote"]
   | RouterOutputs["gifts"]["quote"];
 
@@ -24,7 +25,7 @@ export function QuoteBreakdown({
   balance,
   loading,
 }: {
-  quote: Quote | undefined;
+  quote: XlmQuote | undefined;
   balance: string | undefined;
   loading: boolean;
 }) {

@@ -9,14 +9,19 @@ import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
 import { abbreviateAddress } from "@bandcoin/utils/address";
 import { stellarExpertAccountUrl } from "@bandcoin/wallet/config";
 
-import type { RouterOutputs } from "~/trpc/react";
+import { api, type RouterOutputs } from "~/trpc/react";
+
+import { OpenIssuer } from "../onboarding/open-issuer";
+import { PayToOpen } from "../payments/pay-to-open";
+
+import { useStorageOpening } from "./use-storage-opening";
 
 type Profile = RouterOutputs["profile"]["overview"];
 
 /** The fan token fans hold for memberships; made and managed on the Memberships page. */
-export function FanTokenTab({ profile }: { profile: Profile }) {
+export function FanTokenTab({ profile, onAccounts }: { profile: Profile; onAccounts: () => void }) {
   if (!profile.fanToken)
-    return (
+    return profile.issuerAccount ? (
       <EmptyState
         icon={Coins}
         title="No fan token yet"
@@ -26,6 +31,13 @@ export function FanTokenTab({ profile }: { profile: Profile }) {
             <Link href="/memberships">Set up memberships</Link>
           </Button>
         }
+      />
+    ) : (
+      <EmptyState
+        icon={Coins}
+        title="Open your issuer first"
+        description="Your fan token is issued from your issuer account. Set it up under Accounts, then make the token on the Memberships page."
+        action={<Button onClick={onAccounts}>Go to Accounts</Button>}
       />
     );
   return (
@@ -44,42 +56,91 @@ export function FanTokenTab({ profile }: { profile: Profile }) {
 }
 
 /**
- * The Stellar accounts Bandcoin keeps for the artist: the issuer every token
- * comes from, and storage, which holds stock and can fund bounties.
+ * The Stellar accounts Bandcoin keeps for the artist, each with the way to
+ * open it when it's missing: the issuer (needed: every token comes from it)
+ * and storage (optional: a separate balance that can pay bounty prizes).
+ * The artist pays for both; the price shows in full first.
  */
 export function AccountsTab({ profile }: { profile: Profile }) {
-  const accounts = [
-    {
-      label: "Issuer",
-      note: "Issues your fan token and every item you sell.",
-      account: profile.issuerAccount,
-    },
-    {
-      label: "Storage",
-      note: "Holds your stock and can pay bounty prizes.",
-      account: profile.storageAccount,
-    },
-  ];
   return (
     <div className="grid gap-3">
-      {accounts.map(({ label, note, account }) => (
-        <Row
-          key={label}
-          label={label}
-          note={note}
-          value={
-            account ? (
-              <Address publicKey={account.publicKey} pending={!account.activatedAt} />
-            ) : (
-              <span className="text-fg-muted text-sm">Not set up yet</span>
-            )
-          }
-        />
-      ))}
+      <AccountCard
+        label="Issuer"
+        tag="Needed"
+        note="Issues your fan token and every item you sell."
+        account={profile.issuerAccount}
+        open={<OpenIssuer approved />}
+      />
+      <AccountCard
+        label="Storage"
+        tag="Optional"
+        note="A separate balance for paying bounty prizes, instead of your own wallet."
+        account={profile.storageAccount}
+        open={<OpenStorage />}
+      />
       <p className="text-fg-faint text-xs">
         Bandcoin keeps the keys for these accounts safe; you never need them.
       </p>
     </div>
+  );
+}
+
+function AccountCard({
+  label,
+  tag,
+  note,
+  account,
+  open,
+}: {
+  label: string;
+  tag: string;
+  note: string;
+  account: Profile["issuerAccount"];
+  open: React.ReactNode;
+}) {
+  const [opening, setOpening] = useState(false);
+  return (
+    <div className="bg-surface grid gap-4 rounded-[1.2rem] border-2 p-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="flex items-center gap-2 text-sm font-semibold">
+            {label}
+            <span className="text-fg-muted bg-surface-2 rounded-full px-2 py-0.5 text-[11px] font-medium">
+              {tag}
+            </span>
+          </p>
+          <p className="text-fg-muted text-xs">{note}</p>
+        </div>
+        {account ? (
+          <Address publicKey={account.publicKey} pending={!account.activatedAt} />
+        ) : (
+          <span className="flex items-center gap-2">
+            <span className="text-fg-muted text-sm">Not set up yet</span>
+            {!opening && (
+              <Button size="sm" onClick={() => setOpening(true)}>
+                Set it up
+              </Button>
+            )}
+          </span>
+        )}
+      </div>
+      {/* The price is fetched only once the artist asks, so the tab opens without a network call. */}
+      {!account && opening && <div className="border-t pt-4">{open}</div>}
+    </div>
+  );
+}
+
+function OpenStorage() {
+  const quote = api.profile.storageQuote.useQuery(undefined, { refetchInterval: 30_000 });
+  const flow = useStorageOpening();
+  return (
+    <PayToOpen
+      intro="Storage is a Stellar account of your own, apart from your wallet. Put BANDCOIN, XLM or USDC in it and pay bounty prizes from there. You pay what it starts with; Bandcoin never covers the cost."
+      quote={quote.data}
+      loading={quote.isPending}
+      flow={flow}
+      action="open storage"
+    />
   );
 }
 
