@@ -17,6 +17,7 @@ import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 
+import { StorageStock } from "../catalog/storage-stock";
 import { FanTokenSetup } from "./fan-token-setup";
 
 type Tier = RouterOutputs["memberships"]["tiers"][number];
@@ -57,6 +58,11 @@ export function MembershipsView() {
               </span>
             </div>
           </section>
+          {!token.data.external && (
+            <div className="max-w-2xl">
+              <StorageStock itemId={token.data.itemId} />
+            </div>
+          )}
           <Tiers tokenCode={token.data.code} />
         </>
       )}

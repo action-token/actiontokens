@@ -14,6 +14,7 @@ import { api, type RouterOutputs } from "~/trpc/react";
 import { OpenIssuer } from "../onboarding/open-issuer";
 import { PayToOpen } from "../payments/pay-to-open";
 
+import { StorageContents } from "./storage-contents";
 import { useStorageOpening } from "./use-storage-opening";
 
 type Profile = RouterOutputs["profile"]["overview"];
@@ -77,7 +78,9 @@ export function AccountsTab({ profile }: { profile: Profile }) {
         note="Holds your copies. Sales, pin claims and gifts take from it first."
         account={profile.storageAccount}
         open={<OpenStorage />}
-      />
+      >
+        <StorageContents />
+      </AccountCard>
       <p className="text-fg-faint text-xs">
         {profile.storageAccount && "Add copies to storage from each item's page. "}
         Bandcoin keeps the keys for these accounts safe; you never need them.
@@ -92,12 +95,15 @@ function AccountCard({
   note,
   account,
   open,
+  children,
 }: {
   label: string;
   tag: string;
   note: string;
   account: Profile["issuerAccount"];
   open: React.ReactNode;
+  /** Shown once the account is open */
+  children?: React.ReactNode;
 }) {
   const [opening, setOpening] = useState(false);
   return (
@@ -127,6 +133,7 @@ function AccountCard({
       </div>
       {/* The price is fetched only once the artist asks, so the tab opens without a network call. */}
       {!account && opening && <div className="border-t pt-4">{open}</div>}
+      {account?.activatedAt && children && <div className="border-t pt-4">{children}</div>}
     </div>
   );
 }

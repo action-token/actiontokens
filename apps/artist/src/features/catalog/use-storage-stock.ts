@@ -21,6 +21,10 @@ export function useStorageStock(input: { itemId: string; quantity: number }) {
       title: "Copies added",
       body: "Sales and pin claims take from storage first.",
     },
-    onDone: () => utils.profile.stockQuote.invalidate(),
+    onDone: () =>
+      Promise.all([
+        utils.profile.stockQuote.invalidate(),
+        utils.profile.storageContents.invalidate(),
+      ]),
   });
 }

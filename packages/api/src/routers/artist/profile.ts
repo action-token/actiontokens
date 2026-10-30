@@ -18,12 +18,24 @@ import {
   startStock,
   submitStock,
 } from "../../services/artist/storage-stock";
+import {
+  quoteWithdraw,
+  startWithdraw,
+  storageContents,
+  submitWithdraw,
+} from "../../services/artist/storage-withdraw";
 import { cancelPurchase } from "../../services/purchase";
 import { artistProcedure, createRouter } from "../../trpc";
 
 const stockInput = z.object({
   itemId: z.string().min(1),
   quantity: z.number().int().min(1).max(MAX_STOCK),
+});
+
+const withdrawInput = z.object({
+  code: z.string().min(1).max(12),
+  issuer: z.string().length(56).nullable(),
+  amount: z.string().max(24),
 });
 
 /** The artist's own profile, as the Settings page shows and edits it. */
@@ -73,6 +85,21 @@ export const profileRouter = createRouter({
     .input(z.object({ orderId: z.string().min(1), xdr: z.string().min(1) }))
     .mutation(({ ctx, input }) => submitStock(ctx, ctx.session.user, ctx.artist, input)),
   stockCancel: artistProcedure
+    .input(z.object({ orderId: z.string().min(1) }))
+    .mutation(({ ctx, input }) => cancelPurchase(ctx, ctx.session.user, input.orderId)),
+
+  /** What storage holds, and taking some back into the wallet (see services/artist/storage-withdraw). */
+  storageContents: artistProcedure.query(({ ctx }) => storageContents(ctx, ctx.artist)),
+  withdrawQuote: artistProcedure
+    .input(withdrawInput)
+    .query(({ ctx, input }) => quoteWithdraw(ctx, ctx.session.user, ctx.artist, input)),
+  withdrawStart: artistProcedure
+    .input(withdrawInput)
+    .mutation(({ ctx, input }) => startWithdraw(ctx, ctx.session.user, ctx.artist, input)),
+  withdrawSubmit: artistProcedure
+    .input(z.object({ orderId: z.string().min(1), xdr: z.string().min(1) }))
+    .mutation(({ ctx, input }) => submitWithdraw(ctx, ctx.session.user, ctx.artist, input)),
+  withdrawCancel: artistProcedure
     .input(z.object({ orderId: z.string().min(1) }))
     .mutation(({ ctx, input }) => cancelPurchase(ctx, ctx.session.user, input.orderId)),
 });

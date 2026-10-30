@@ -119,6 +119,35 @@ export function buildStockStorage(input: {
 }
 
 /**
+ * Takes something out of the artist's storage into their own wallet: copies,
+ * BANDCOIN, USDC or XLM (`asset` null). The artist's wallet is the source and
+ * pays the fee; when it doesn't hold that token yet it opens the trustline
+ * first, its own 0.5 XLM reserve. Storage co-signs for the payment.
+ */
+export function buildStorageWithdraw(input: {
+  artist: Account;
+  network: NetworkParams;
+  storage: string;
+  asset: AssetRef | null;
+  amount: string;
+  openTrustline: boolean;
+  memo?: string;
+}) {
+  const asset = input.asset ? new Asset(input.asset.code, input.asset.issuer) : Asset.native();
+  const builder = startTransaction(input.artist, input.network, { memo: input.memo });
+  if (input.openTrustline && input.asset) builder.addOperation(Operation.changeTrust({ asset }));
+  builder.addOperation(
+    Operation.payment({
+      source: input.storage,
+      destination: input.artist.accountId(),
+      asset,
+      amount: input.amount,
+    }),
+  );
+  return finish(builder, [input.storage]);
+}
+
+/**
  * The price of opening an account the artist pays for (issuer or storage):
  * the starting XLM and the network fee, checked against their spendable XLM.
  */

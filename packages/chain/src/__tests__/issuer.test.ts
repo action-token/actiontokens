@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildIssuerRefund,
   buildStockStorage,
+  buildStorageWithdraw,
   buildStorageSetup,
   quoteIssuerSetup,
   quoteStorageSetup,
@@ -149,5 +150,43 @@ describe("stocking storage", () => {
       { type: "payment", source: issuer, destination: storage },
     ]);
     expect(built.serverSigners).toEqual([issuer, storage]);
+  });
+});
+
+describe("taking things out of storage", () => {
+  const artist = Keypair.random().publicKey();
+  const storage = Keypair.random().publicKey();
+  const issuer = Keypair.random().publicKey();
+
+  it("pays from storage into the artist's wallet, opening its trustline when needed", () => {
+    const built = buildStorageWithdraw({
+      artist: new Account(artist, "3"),
+      network,
+      storage,
+      asset: { code: "SONG1", issuer },
+      amount: "2",
+      openTrustline: true,
+    });
+    const tx = parse(built.xdr);
+    expect(tx.source).toBe(artist);
+    expect(tx.operations).toMatchObject([
+      { type: "changeTrust", line: { code: "SONG1" } },
+      { type: "payment", source: storage, destination: artist, amount: "2.0000000" },
+    ]);
+    expect(built.serverSigners).toEqual([storage]);
+  });
+
+  it("moves XLM with no trustline", () => {
+    const built = buildStorageWithdraw({
+      artist: new Account(artist, "3"),
+      network,
+      storage,
+      asset: null,
+      amount: "1",
+      openTrustline: true,
+    });
+    expect(parse(built.xdr).operations).toMatchObject([
+      { type: "payment", source: storage, asset: { code: "XLM" } },
+    ]);
   });
 });

@@ -81,6 +81,8 @@ enum OrderKind {
   STORAGE_SETUP
   /// An artist pays the network fee to mint copies of their token into storage
   STORAGE_STOCK
+  /// An artist moves copies or money from their storage into their own wallet
+  STORAGE_WITHDRAW
   /// An artist pays the network fee to register a contract NFT edition on-chain
   NFT_REGISTER
 }
