@@ -32,6 +32,8 @@ describe("portal navigation", () => {
       "Map & pins",
       "Events",
       "Website map",
+      "Pin reports",
+      "Redeem",
       "My page",
       "Posts",
       "Bounties",
@@ -39,7 +41,7 @@ describe("portal navigation", () => {
       "Items",
       "Memberships",
       "Gifts",
-      "Earnings",
+      "Royalties",
     ]);
   });
 
@@ -55,6 +57,8 @@ describe("portal navigation", () => {
       "Map & pins",
       "Events",
       "Website map",
+      "Pin reports",
+      "Redeem",
       "My page",
       "Posts",
       "Bounties",
@@ -62,7 +66,7 @@ describe("portal navigation", () => {
       "Items",
       "Memberships",
       "Gifts",
-      "Earnings",
+      "Royalties",
       "Artists",
       "Users",
       "Mural review",
@@ -91,13 +95,14 @@ describe("portal navigation", () => {
     );
     const lit = (pathname: string) =>
       entries.filter((entry) => isActive(entry, pathname)).map((entry) => entry.label);
-    expect(entries.length).toBeLessThanOrEqual(11);
+    expect(entries.length).toBeLessThanOrEqual(13);
     expect(lit("/pins")).toEqual(["Map & pins"]);
     expect(lit("/pins/manage")).toEqual(["Map & pins"]);
     expect(lit("/announcements/new")).toEqual(["Posts"]);
-    expect(lit("/reports")).toEqual(["Earnings"]);
-    expect(lit("/redeem")).toEqual(["Earnings"]);
-    expect(lit("/royalty")).toEqual(["Earnings"]);
+    expect(lit("/reports")).toEqual(["Pin reports"]);
+    expect(lit("/reports/pin1")).toEqual(["Pin reports"]);
+    expect(lit("/redeem")).toEqual(["Redeem"]);
+    expect(lit("/royalty")).toEqual(["Royalties"]);
   });
 
   it("keeps Artists lit on a nested admin page but not Activity", () => {

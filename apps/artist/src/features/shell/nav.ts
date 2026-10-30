@@ -1,5 +1,6 @@
 import {
   BadgeCheck,
+  BarChart3,
   CalendarDays,
   Code2,
   Coins,
@@ -14,6 +15,7 @@ import {
   Music2,
   Package,
   Rocket,
+  TicketCheck,
   Trophy,
   Users,
   type LucideIcon,
@@ -40,11 +42,6 @@ export type SectionTab = Pick<NavItem, "href" | "label">;
 export const POSTS_TABS: SectionTab[] = [
   { href: "/posts", label: "Posts" },
   { href: "/announcements", label: "Announcements" },
-];
-export const EARNINGS_TABS: SectionTab[] = [
-  { href: "/royalty", label: "Royalties" },
-  { href: "/redeem", label: "Redeem" },
-  { href: "/reports", label: "Pin reports" },
 ];
 const pathsOf = (tabs: SectionTab[]) => tabs.slice(1).map((tab) => tab.href);
 
@@ -76,6 +73,8 @@ const READY_TOOLS: NavGroup[] = [
       { href: "/pins", icon: Map, label: "Map & pins", shortLabel: "Map", tab: true },
       { href: "/events", icon: CalendarDays, label: "Events", tab: true },
       { href: "/embeds", icon: Code2, label: "Website map" },
+      { href: "/reports", icon: BarChart3, label: "Pin reports" },
+      { href: "/redeem", icon: TicketCheck, label: "Redeem" },
     ],
   },
   {
@@ -93,7 +92,7 @@ const READY_TOOLS: NavGroup[] = [
       { href: "/items", icon: Package, label: "Items" },
       { href: "/memberships", icon: Crown, label: "Memberships" },
       { href: "/gifts", icon: Gift, label: "Gifts" },
-      { href: "/royalty", icon: Coins, label: "Earnings", also: pathsOf(EARNINGS_TABS) },
+      { href: "/royalty", icon: Coins, label: "Royalties" },
     ],
   },
 ];

@@ -11,8 +11,6 @@ import { ErrorState } from "@bandcoin/ui/patterns/error-state";
 import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
 import { ToastViewport, TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
 
-import { SectionTabs } from "~/components/section-tabs";
-import { EARNINGS_TABS } from "~/features/shell/nav";
 import { timeAgo } from "~/lib/format";
 import { api } from "~/trpc/react";
 
@@ -32,11 +30,10 @@ export function RoyaltyView() {
   return (
     <PageBody className="grid max-w-3xl gap-6">
       <PageHeader
-        eyebrow="Earnings"
+        eyebrow="Sell"
         title="Pay royalties"
         description="Share what a royalty item earned with the fans who hold it."
       />
-      <SectionTabs tabs={EARNINGS_TABS} label="Earnings" />
 
       {items.isPending ? (
         <Skeleton className="h-64 w-full rounded-[1.4rem]" />

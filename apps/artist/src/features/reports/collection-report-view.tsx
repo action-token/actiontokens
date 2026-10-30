@@ -28,8 +28,6 @@ import { StatCard } from "@bandcoin/ui/patterns/stat-card";
 import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
 import { SearchInput } from "@bandcoin/ui/patterns/toolbar";
 
-import { SectionTabs } from "~/components/section-tabs";
-import { EARNINGS_TABS } from "~/features/shell/nav";
 import { STATUS } from "~/features/pins/pins-view";
 import { api, type RouterOutputs } from "~/trpc/react";
 
@@ -200,7 +198,7 @@ export function CollectionReportView() {
   return (
     <PageBody wide className="grid gap-4">
       <PageHeader
-        eyebrow="Earnings"
+        eyebrow="Drops"
         title="Pin reports"
         description="How your pins are collected: by whom, where and when."
         actions={
@@ -209,7 +207,6 @@ export function CollectionReportView() {
           </Button>
         }
       />
-      <SectionTabs tabs={EARNINGS_TABS} label="Earnings" />
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
         <PeriodPicker value={period} onChange={setPeriod} />
