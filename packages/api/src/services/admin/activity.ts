@@ -1,18 +1,50 @@
+import type { Prisma } from "@bandcoin/db";
+
 import type { Context } from "../../context";
 
 const ROLE_NAME: Record<string, string> = { GUEST: "Guest", SYSTEM: "System" };
 
+export const ACTIVITY_KINDS = ["signIn", "money", "claims", "uploads", "bounties"] as const;
+export type ActivityKind = (typeof ACTIVITY_KINDS)[number];
+
+const startsWithAny = (prefixes: string[]): Prisma.ActivityLogWhereInput[] =>
+  prefixes.map((prefix) => ({ action: { startsWith: prefix } }));
+
+/** Which log rows each timeline filter covers, by procedure name (or a payment on the row). */
+const KIND_WHERE: Record<ActivityKind, Prisma.ActivityLogWhereInput> = {
+  signIn: { action: { startsWith: "auth." } },
+  money: {
+    OR: [
+      { amount: { not: null } },
+      { txHash: { not: null } },
+      ...startsWithAny(["purchase.", "order.", "recharge.", "vanity.", "gifts.", "royalty."]),
+    ],
+  },
+  claims: { OR: startsWithAny(["pin.", "claim.", "redeem."]) },
+  uploads: { action: { contains: "upload", mode: "insensitive" } },
+  bounties: { OR: startsWithAny(["bounty.", "bounties."]) },
+};
+
 /**
- * The activity log for /admin/activity: every mutation on the platform,
- * newest first, paged by id. Ids are 64-bit, so they travel as strings.
+ * The activity log for /admin/activity and a person's timeline: every
+ * mutation, newest first, paged by id. Ids are 64-bit, so they travel as
+ * strings.
  */
 export async function listActivity(
   ctx: Pick<Context, "db">,
-  input: { limit: number; cursor?: string; failedOnly?: boolean },
+  input: {
+    limit: number;
+    cursor?: string;
+    failedOnly?: boolean;
+    actorId?: string;
+    kind?: ActivityKind;
+  },
 ) {
-  const where = {
+  const where: Prisma.ActivityLogWhereInput = {
     ...(input.cursor ? { id: { lt: BigInt(input.cursor) } } : {}),
     ...(input.failedOnly ? { status: "FAILED" as const } : {}),
+    ...(input.actorId ? { actorId: input.actorId } : {}),
+    ...(input.kind ? { AND: [KIND_WHERE[input.kind]] } : {}),
   };
   const rows = await ctx.db.activityLog.findMany({
     where,

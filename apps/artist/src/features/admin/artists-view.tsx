@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Loader2, Users } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
@@ -127,8 +128,13 @@ function ArtistCard({ row }: { row: Row }) {
           <h2 className="display text-lg">{row.name}</h2>
           <p className="text-fg-muted text-sm">
             bandcoin.io/{row.slug} · by{" "}
-            {row.owner.name ?? abbreviateAddress(row.owner.walletAddress ?? undefined)} · applied{" "}
-            {timeAgo(row.createdAt)}
+            <Link
+              href={`/admin/users/${row.owner.id}`}
+              className="underline-offset-4 hover:underline"
+            >
+              {row.owner.name ?? abbreviateAddress(row.owner.walletAddress ?? undefined)}
+            </Link>{" "}
+            · applied {timeAgo(row.createdAt)}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">

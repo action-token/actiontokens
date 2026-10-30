@@ -61,4 +61,16 @@ describe("listActivity", () => {
       errorCode: "AUTH_REQUIRED",
     });
   });
+
+  it("narrows to one person and one kind of action, for their timeline", async () => {
+    const { ctx, findMany } = setup([]);
+    await listActivity(ctx, { limit: 20, actorId: "u1", kind: "signIn" });
+    expect(findMany.mock.calls[0]?.[0]).toMatchObject({
+      where: { actorId: "u1", AND: [{ action: { startsWith: "auth." } }] },
+    });
+    await listActivity(ctx, { limit: 20, actorId: "u1", kind: "money" });
+    expect(findMany.mock.calls[1]?.[0].where.AND[0].OR).toEqual(
+      expect.arrayContaining([{ amount: { not: null } }, { action: { startsWith: "purchase." } }]),
+    );
+  });
 });

@@ -222,7 +222,7 @@ describe("listApplications", () => {
         rejectionReason: null,
         createdAt: new Date("2026-10-01"),
         issuerAccount: null,
-        user: { username: "luna", displayName: "Luna", walletAddress: artistWallet },
+        user: { id: "u1", username: "luna", displayName: "Luna", walletAddress: artistWallet },
       },
     ]);
     const rows = await listApplications(ctx, {});
@@ -231,7 +231,7 @@ describe("listApplications", () => {
       ["a2", "APPROVED", true],
     ]);
     expect(rows[0]).toMatchObject({
-      owner: { name: "Luna", username: "luna", walletAddress: artistWallet },
+      owner: { id: "u1", name: "Luna", username: "luna", walletAddress: artistWallet },
     });
   });
 });

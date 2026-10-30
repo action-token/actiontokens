@@ -32,7 +32,7 @@ export async function listApplications(ctx: Pick<Context, "db">, input: { status
       rejectionReason: true,
       createdAt: true,
       issuerAccount: { select: { publicKey: true } },
-      user: { select: { username: true, displayName: true, walletAddress: true } },
+      user: { select: { id: true, username: true, displayName: true, walletAddress: true } },
     },
   });
   // Waiting applications first; within a status the newest stays on top (the query order).
@@ -51,6 +51,7 @@ export async function listApplications(ctx: Pick<Context, "db">, input: { status
       paid: row.issuerAccount !== null,
       issuer: row.issuerAccount?.publicKey ?? null,
       owner: {
+        id: row.user.id,
         name: row.user.displayName ?? row.user.username,
         username: row.user.username,
         walletAddress: row.user.walletAddress,

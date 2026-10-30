@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { listActivity } from "../../services/admin/activity";
+import { ACTIVITY_KINDS, listActivity } from "../../services/admin/activity";
 import {
   decideMural,
   editMural,
@@ -24,6 +24,7 @@ import {
   unsuspendUser,
   userCounts,
 } from "../../services/admin/users";
+import { getPerson } from "../../services/admin/person";
 import { getMuralSettings } from "../../services/ar/murals";
 import { adminProcedure, createRouter } from "../../trpc";
 
@@ -64,6 +65,7 @@ export const adminRouter = createRouter({
       )
       .query(({ ctx, input }) => listUsers(ctx, { ...input, cursor: input.cursor ?? undefined })),
     counts: adminProcedure.query(({ ctx }) => userCounts(ctx)),
+    get: adminProcedure.input(userId).query(({ ctx, input }) => getPerson(ctx, input.userId)),
     suspend: adminProcedure
       .input(
         userId.extend({
@@ -126,6 +128,8 @@ export const adminRouter = createRouter({
           limit: z.number().int().min(1).max(100).default(50),
           cursor: z.string().regex(/^\d+$/).optional(),
           failedOnly: z.boolean().optional(),
+          actorId: z.string().min(1).optional(),
+          kind: z.enum(ACTIVITY_KINDS).optional(),
         }),
       )
       .query(({ ctx, input }) => listActivity(ctx, input)),
