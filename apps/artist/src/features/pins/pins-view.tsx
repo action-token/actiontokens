@@ -47,6 +47,8 @@ type Status = Pin["status"];
 type Filter = Status | "ALL";
 
 export const STATUS: Record<Status, { label: string; tone: Tone }> = {
+  IN_REVIEW: { label: "In review", tone: "warning" },
+  NOT_APPROVED: { label: "Not approved", tone: "danger" },
   LIVE: { label: "Live", tone: "success" },
   SCHEDULED: { label: "Scheduled", tone: "info" },
   ENDED: { label: "Ended", tone: "neutral" },

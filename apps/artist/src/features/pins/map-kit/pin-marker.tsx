@@ -14,10 +14,14 @@ export const pinIcon = (type: string): LucideIcon =>
 
 /** The first matching state wins; the server works out the status. */
 export const pinLook = (
-  status: "HIDDEN" | "SCHEDULED" | "LIVE" | "ENDED" | "ALL_COLLECTED",
+  status:
+    "IN_REVIEW" | "NOT_APPROVED" | "HIDDEN" | "SCHEDULED" | "LIVE" | "ENDED" | "ALL_COLLECTED",
 ): PinLook =>
   (
     ({
+      // Fans can't see these yet (or at all), so they look like hidden pins.
+      IN_REVIEW: "hidden",
+      NOT_APPROVED: "hidden",
       HIDDEN: "hidden",
       SCHEDULED: "scheduled",
       LIVE: "active",

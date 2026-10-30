@@ -145,7 +145,7 @@ function setup(
 }
 
 describe("creating a pin", () => {
-  it("saves it live, scatters the spots inside the radius and logs it", async () => {
+  it("saves it for review, scatters the spots inside the radius and logs it", async () => {
     const { ctx, created, activity } = setup();
     await expect(createPin(ctx, artist, basePin, now)).resolves.toEqual({ pinId: "p1" });
     const data = created[0] as {
@@ -159,7 +159,7 @@ describe("creating a pin", () => {
     expect(data).toMatchObject({
       artistId: "a1",
       title: "Secret show",
-      approval: "APPROVED",
+      approval: "PENDING",
       claimLimit: 0,
       claimsLeft: 0,
       radiusMeters: 50,

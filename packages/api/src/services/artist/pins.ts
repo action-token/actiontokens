@@ -76,7 +76,9 @@ export type UpdatePinInput = Partial<
   >
 > & { pinId: string };
 
-export type PinStatus = "HIDDEN" | "SCHEDULED" | "LIVE" | "ENDED" | "ALL_COLLECTED";
+/** IN_REVIEW and NOT_APPROVED come from the admin review: fans see a pin only once it is approved. */
+export type PinStatus =
+  "IN_REVIEW" | "NOT_APPROVED" | "HIDDEN" | "SCHEDULED" | "LIVE" | "ENDED" | "ALL_COLLECTED";
 
 /** A tag as stored: lowercase and dashed so "Street Art" and "street art" are one tag. */
 export const tagName = (label: string) => label.trim().toLowerCase().replace(/\s+/g, "-");
@@ -198,9 +200,18 @@ async function resolveEvent(
 }
 
 export const statusOf = (
-  pin: { isHidden: boolean; startsAt: Date; endsAt: Date; claimLimit: number; claimsLeft: number },
+  pin: {
+    approval: "PENDING" | "APPROVED" | "REJECTED";
+    isHidden: boolean;
+    startsAt: Date;
+    endsAt: Date;
+    claimLimit: number;
+    claimsLeft: number;
+  },
   now: Date,
 ): PinStatus => {
+  if (pin.approval === "REJECTED") return "NOT_APPROVED";
+  if (pin.approval === "PENDING") return "IN_REVIEW";
   if (pin.isHidden) return "HIDDEN";
   if (pin.endsAt < now) return "ENDED";
   if (pin.startsAt > now) return "SCHEDULED";
@@ -430,8 +441,8 @@ export async function createPin(
         radiusMeters: input.radiusMeters,
         isMultiSpot: input.isMultiSpot,
         eventId,
-        // Pins go live as soon as they are saved; an admin can hide one later.
-        approval: "APPROVED",
+        // Waits for an admin, as in Wadzzo: fans see it once it is approved.
+        approval: "PENDING",
         spots: {
           createMany: {
             data: Array.from({ length: input.spotCount }, () => {
