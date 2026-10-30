@@ -81,10 +81,9 @@ export function AccountsTab({ profile }: { profile: Profile }) {
       >
         <StorageContents />
       </AccountCard>
-      <p className="text-fg-faint text-xs">
-        {profile.storageAccount && "Add copies to storage from each item's page. "}
-        Bandcoin keeps the keys for these accounts safe; you never need them.
-      </p>
+      {profile.storageAccount && (
+        <p className="text-fg-muted text-xs">Add copies to storage from each item&apos;s page.</p>
+      )}
     </div>
   );
 }
