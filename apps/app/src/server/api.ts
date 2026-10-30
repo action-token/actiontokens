@@ -7,6 +7,7 @@ import {
   createCallerFactory,
   createChainGateway,
   createContext,
+  liveSession,
 } from "@bandcoin/api";
 import { sessionUserOf } from "@bandcoin/auth";
 import { db } from "@bandcoin/db/server";
@@ -23,7 +24,7 @@ export async function createAppContext(requestHeaders: Headers) {
     db,
     chain: chain(),
     app: "app",
-    session: sessionUserOf(await getSession()),
+    session: await liveSession(db, sessionUserOf(await getSession())),
     headers: requestHeaders,
   });
 }

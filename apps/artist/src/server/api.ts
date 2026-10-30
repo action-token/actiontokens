@@ -6,6 +6,7 @@ import {
   createCallerFactory,
   createChainGateway,
   createContext,
+  liveSession,
   portalRouter,
 } from "@bandcoin/api";
 import { sessionUserOf } from "@bandcoin/auth";
@@ -23,7 +24,7 @@ export async function createPortalContext(requestHeaders: Headers) {
     db,
     chain: chain(),
     app: "artist",
-    session: sessionUserOf(await getSession()),
+    session: await liveSession(db, sessionUserOf(await getSession())),
     headers: requestHeaders,
   });
 }

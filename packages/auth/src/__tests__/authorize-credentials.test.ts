@@ -97,6 +97,22 @@ describe("authorizeCredentials", () => {
     ).rejects.toMatchObject({ code: "WALLET_AUTH_FAILED" });
   });
 
+  it("refuses a suspended account, even with a valid signature", async () => {
+    mocks.verifyLoginChallenge.mockReturnValue(true);
+    db.user.findUnique.mockResolvedValue({
+      ...row,
+      signUpMethod: "frieghter",
+      suspendedAt: new Date(),
+    });
+    await expect(
+      authorizeCredentials(asDb, {
+        walletType: "frieghter",
+        pubkey: PUBLIC_KEY,
+        signedXDR: "AAAA",
+      }),
+    ).rejects.toMatchObject({ code: "AUTH_SUSPENDED" });
+  });
+
   it("fills in a missing email on an existing user, and keeps their role", async () => {
     const artist = { ...row, role: "ARTIST", signUpMethod: "google" };
     db.user.findUnique.mockResolvedValue(artist);
@@ -230,5 +246,9 @@ describe("session refresh", () => {
     db.user.findUnique.mockResolvedValue(null);
     const deleted = await jwt({ token: { sub: "u1", role: "FAN", roleCheckedAt: 0 } });
     expect(deleted.sub).toBeUndefined();
+
+    db.user.findUnique.mockResolvedValue({ role: "FAN", suspendedAt: new Date() });
+    const suspended = await jwt({ token: { sub: "u1", role: "FAN", roleCheckedAt: 0 } });
+    expect(suspended.sub).toBeUndefined();
   });
 });

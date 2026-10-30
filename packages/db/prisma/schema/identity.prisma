@@ -25,6 +25,9 @@ model User {
   signUpMethod      String?
   signedUpFromApp   Boolean   @default(false)
   showCollection    Boolean   @default(true)
+  /// Set by an admin: can't sign in or do anything until unsuspended
+  suspendedAt       DateTime?
+  suspendedReason   String?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 

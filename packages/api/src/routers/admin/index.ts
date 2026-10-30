@@ -17,11 +17,19 @@ import {
   listApplications,
   rejectArtist,
 } from "../../services/admin/artists";
+import {
+  listUsers,
+  setAdmin,
+  suspendUser,
+  unsuspendUser,
+  userCounts,
+} from "../../services/admin/users";
 import { getMuralSettings } from "../../services/ar/murals";
 import { adminProcedure, createRouter } from "../../trpc";
 
 const artistId = z.object({ artistId: z.string().min(1) });
 const muralId = z.object({ muralId: z.string().min(1) });
+const userId = z.object({ userId: z.string().min(1) });
 const nullableName = z.string().max(120).nullable();
 
 /** Admin tools (artist.bandcoin.io/admin). Every procedure here is admin-only. */
@@ -43,6 +51,30 @@ export const adminRouter = createRouter({
     ban: adminProcedure
       .input(artistId)
       .mutation(({ ctx, input }) => banArtist(ctx, input.artistId)),
+  }),
+  users: createRouter({
+    list: adminProcedure
+      .input(
+        z.object({
+          search: z.string().max(120).optional(),
+          role: z.enum(["FAN", "ARTIST", "ADMIN"]).optional(),
+          status: z.enum(["active", "suspended"]).optional(),
+          cursor: z.string().nullish(),
+        }),
+      )
+      .query(({ ctx, input }) => listUsers(ctx, { ...input, cursor: input.cursor ?? undefined })),
+    counts: adminProcedure.query(({ ctx }) => userCounts(ctx)),
+    suspend: adminProcedure
+      .input(
+        userId.extend({
+          reason: z.string().trim().min(3, "Say why, in a few words").max(300),
+        }),
+      )
+      .mutation(({ ctx, input }) => suspendUser(ctx, ctx.session.user, input)),
+    unsuspend: adminProcedure.input(userId).mutation(({ ctx, input }) => unsuspendUser(ctx, input)),
+    setAdmin: adminProcedure
+      .input(userId.extend({ admin: z.boolean() }))
+      .mutation(({ ctx, input }) => setAdmin(ctx, ctx.session.user, input)),
   }),
   murals: createRouter({
     counts: adminProcedure.query(({ ctx }) => muralCounts(ctx)),

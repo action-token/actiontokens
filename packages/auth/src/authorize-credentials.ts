@@ -161,6 +161,7 @@ const invalidSignature = () =>
 type UserRow = Awaited<ReturnType<typeof findOrCreateUser>>;
 
 function signedIn(user: UserRow, walletType: WalletType): AuthenticatedUser {
+  if (user.suspendedAt) throw new AppError(ErrorCodes.AUTH_SUSPENDED);
   return {
     id: user.id,
     walletAddress: user.walletAddress!,

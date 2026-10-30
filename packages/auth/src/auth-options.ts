@@ -19,7 +19,7 @@ declare module "next-auth/jwt" {
   }
 }
 
-/** A role change (artist approved, admin removed) reaches open sessions within this long. */
+/** A role change or suspension reaches open sessions within this long (the API checks suspension on every request anyway). */
 const ROLE_REFRESH_MS = 5 * 60_000;
 
 /**
@@ -72,9 +72,10 @@ export function createAuthOptions(input: {
         if (token.sub && Date.now() - (token.roleCheckedAt ?? 0) > ROLE_REFRESH_MS) {
           const row = await db.user.findUnique({
             where: { id: token.sub },
-            select: { role: true },
+            select: { role: true, suspendedAt: true },
           });
-          if (!row) return { ...token, sub: undefined };
+          // Gone or suspended: the session ends at its next refresh.
+          if (!row || row.suspendedAt) return { ...token, sub: undefined };
           return { ...token, role: row.role, roleCheckedAt: Date.now() };
         }
         return token;

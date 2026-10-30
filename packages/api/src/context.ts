@@ -16,6 +16,8 @@ export type SessionUser = {
   /** A `WalletType`: Freighter, Albedo… sign themselves; email/Google/Apple are custodial */
   walletType: string;
   email?: string | null;
+  /** An admin suspended the account: every signed-in call is refused */
+  suspended?: boolean;
 };
 
 export const isCustodial = (user: Pick<SessionUser, "walletType">) =>
@@ -49,6 +51,24 @@ export function createActivityRecorder(): Context["activity"] {
     },
     facts: () => collected,
   };
+}
+
+/**
+ * Marks the session's user as suspended when an admin suspended them since
+ * they signed in. Their JWT stays valid until it refreshes, so this is read
+ * on every request (one lookup by id).
+ */
+export async function liveSession(
+  db: Db,
+  session: { user: SessionUser } | null,
+): Promise<{ user: SessionUser } | null> {
+  if (!session) return null;
+  const row = await db.user.findUnique({
+    where: { id: session.user.id },
+    select: { suspendedAt: true },
+  });
+  if (!row) return null;
+  return row.suspendedAt ? { user: { ...session.user, suspended: true } } : session;
 }
 
 /** One context per request. Each app's route handler passes its session and headers. */

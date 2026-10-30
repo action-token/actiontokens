@@ -1,6 +1,7 @@
 export {
   createContext,
   isCustodial,
+  liveSession,
   type AppName,
   type Context,
   type SessionUser,

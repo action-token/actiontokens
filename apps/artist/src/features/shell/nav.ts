@@ -10,6 +10,7 @@ import {
   LayoutTemplate,
   ListChecks,
   Map,
+  Mic2,
   Music2,
   Package,
   Rocket,
@@ -57,7 +58,8 @@ export type PortalNavInput = {
 const ADMIN: NavGroup = {
   title: "Admin",
   items: [
-    { href: "/admin/artists", icon: Users, label: "Artists" },
+    { href: "/admin/artists", icon: Mic2, label: "Artists" },
+    { href: "/admin/users", icon: Users, label: "Users" },
     { href: "/admin/murals", icon: Frame, label: "Mural review" },
     { href: "/admin/activity", icon: ListChecks, label: "Activity" },
   ],

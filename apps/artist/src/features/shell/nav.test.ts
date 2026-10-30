@@ -64,6 +64,7 @@ describe("portal navigation", () => {
       "Gifts",
       "Earnings",
       "Artists",
+      "Users",
       "Mural review",
       "Activity",
     ]);
@@ -101,7 +102,8 @@ describe("portal navigation", () => {
 
   it("keeps Artists lit on a nested admin page but not Activity", () => {
     const admin = navFor({ signedIn: true, step: "READY", isAdmin: true }).at(-1);
-    const [artists, , activity] = admin!.items;
+    const find = (label: string) => admin!.items.find((entry) => entry.label === label);
+    const [artists, activity] = [find("Artists"), find("Activity")];
     expect(isActive(artists!, "/admin/artists/abc")).toBe(true);
     expect(isActive(artists!, "/admin/activity")).toBe(false);
     expect(isActive(activity!, "/admin/activity")).toBe(true);

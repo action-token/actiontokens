@@ -37,6 +37,7 @@ This plan rebuilds `bandfan` (one Next 14 Pages Router app, about 150k lines, 88
 | 07  | [07-apps.md](07-apps.md)                                 | Route maps for app, artist (+admin), ar, studio, worker                             |
 | 08  | [08-studio-coin.md](08-studio-coin.md)                   | Studio coin token, top-up, ledger, pricing per generation                           |
 | 09  | [09-quality-and-delivery.md](09-quality-and-delivery.md) | Tests, CI, env files, deploys, cutover                                              |
+| 11  | [11-admin.md](11-admin.md)                               | Stage 6: users, suspend, person timelines, pins, bounties, items, fees, alerts      |
 
 ## Phases
 

@@ -43,6 +43,11 @@ export const ERROR_DEFINITIONS = define({
     message: "You don't have permission to do that.",
   },
   AUTH_ADMIN_ONLY: { status: 403, trpc: "FORBIDDEN", message: "This area is for admins only." },
+  AUTH_SUSPENDED: {
+    status: 403,
+    trpc: "FORBIDDEN",
+    message: "This account is suspended. Contact support if you think this is a mistake.",
+  },
   AUTH_NOT_A_CREATOR: {
     status: 403,
     trpc: "FORBIDDEN",

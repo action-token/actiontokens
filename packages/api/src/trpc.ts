@@ -37,10 +37,11 @@ const baseProcedure = t.procedure
 /** Anyone, signed in or not. Browsing and previews work without an account. */
 export const publicProcedure = baseProcedure;
 
-/** Signed-in users: `ctx.session.user` is guaranteed. */
+/** Signed-in users who aren't suspended: `ctx.session.user` is guaranteed. */
 export const authedProcedure = baseProcedure.use(({ ctx, next }) => {
   const user = ctx.session?.user;
   if (!user) throw new AppError(ErrorCodes.AUTH_REQUIRED);
+  if (user.suspended) throw new AppError(ErrorCodes.AUTH_SUSPENDED);
   return next({ ctx: { session: { user } } });
 });
 
