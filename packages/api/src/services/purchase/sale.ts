@@ -48,6 +48,11 @@ export async function loadSale(db: Db, listingId: string) {
   if (!listing || listing.item.deletedAt) {
     throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "This listing doesn't exist." });
   }
+  if (listing.item.hiddenAt) {
+    throw new AppError(ErrorCodes.ITEM_NOT_AVAILABLE, {
+      message: "This item isn't for sale right now.",
+    });
+  }
   if (listing.status !== "ACTIVE") {
     throw new AppError(ErrorCodes.ITEM_NOT_AVAILABLE, {
       message: "This item isn't for sale right now.",

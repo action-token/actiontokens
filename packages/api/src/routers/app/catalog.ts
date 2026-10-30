@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { ItemType, type Prisma } from "@bandcoin/db";
 
+import { publicBountyWhere } from "./bounty";
 import { itemCardSelect, listedItemWhere, toItemCard } from "../../services/catalog/item-card";
 import { createRouter, publicProcedure } from "../../trpc";
 
@@ -51,7 +52,7 @@ export const catalogRouter = createRouter({
         },
       }),
       ctx.db.bounty.findMany({
-        where: { status: "RUNNING", fundTxHash: { not: null } },
+        where: { ...publicBountyWhere, status: "RUNNING" },
         orderBy: { createdAt: "desc" },
         take: 4,
         select: {

@@ -49,6 +49,9 @@ model Item {
   collectionId   String?
   collection     ItemCollection? @relation(fields: [collectionId], references: [id], onDelete: SetNull)
   deletedAt      DateTime?
+  /// Hidden by an admin: fans can't see or buy it, and only an admin can show it again
+  hiddenAt       DateTime?
+  hiddenReason   String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 

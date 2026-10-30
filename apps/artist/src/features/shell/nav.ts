@@ -11,6 +11,7 @@ import {
   LayoutTemplate,
   ListChecks,
   Map,
+  MapPinned,
   Mic2,
   Music2,
   Package,
@@ -57,6 +58,9 @@ const ADMIN: NavGroup = {
   items: [
     { href: "/admin/artists", icon: Mic2, label: "Artists" },
     { href: "/admin/users", icon: Users, label: "Users" },
+    { href: "/admin/pins", icon: MapPinned, label: "Pins" },
+    { href: "/admin/bounties", icon: Trophy, label: "Bounties" },
+    { href: "/admin/items", icon: Package, label: "Items" },
     { href: "/admin/murals", icon: Frame, label: "Mural review" },
     { href: "/admin/activity", icon: ListChecks, label: "Activity" },
   ],

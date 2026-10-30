@@ -25,6 +25,9 @@ model Bounty {
   fundTxHash        String?
   fundedFromStorage Boolean      @default(false)
   requiresActionCam Boolean      @default(false)
+  /// Hidden by an admin: fans stop seeing it; the escrow is untouched
+  hiddenAt          DateTime?
+  hiddenReason      String?
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 

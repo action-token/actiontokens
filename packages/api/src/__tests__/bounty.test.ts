@@ -83,7 +83,7 @@ describe("bounties", () => {
       message: "This bounty doesn't exist.",
     });
     expect(db.bounty.findFirst).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { id: "b1", fundTxHash: { not: null } } }),
+      expect.objectContaining({ where: { id: "b1", fundTxHash: { not: null }, hiddenAt: null } }),
     );
   });
 

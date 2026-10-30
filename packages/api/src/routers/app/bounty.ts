@@ -24,7 +24,8 @@ const artistSelect = { id: true, name: true, slug: true, avatarUrl: true, userId
 const userSelect = { username: true, displayName: true, avatarUrl: true } as const;
 
 /** Only funded bounties are shown: the prize must already sit in escrow. */
-const fundedWhere = { fundTxHash: { not: null } } as const;
+/** Bounties fans can see: funded, and not hidden by an admin. */
+export const publicBountyWhere = { fundTxHash: { not: null }, hiddenAt: null } as const;
 
 const cardSelect = {
   id: true,
@@ -91,7 +92,7 @@ function toCard(row: CardRow, config: ChainConfig, viewerId: string | undefined,
 /** The bounty, if fans can take part right now. */
 async function runningBounty(db: Db, bountyId: string, userId: string) {
   const bounty = await db.bounty.findFirst({
-    where: { id: bountyId, ...fundedWhere },
+    where: { id: bountyId, ...publicBountyWhere },
     select: { id: true, status: true, artist: { select: { userId: true } } },
   });
   if (!bounty)
@@ -179,7 +180,7 @@ export const bountyRouter = createRouter({
       if (input.filter === "joined" && !viewerId) return { items: [], nextCursor: null };
 
       const where: Prisma.BountyWhereInput = {
-        ...fundedWhere,
+        ...publicBountyWhere,
         ...(input.search ? { title: { contains: input.search, mode: "insensitive" } } : {}),
         ...(input.filter === "joined"
           ? { participants: { some: { userId: viewerId } } }
@@ -219,7 +220,7 @@ export const bountyRouter = createRouter({
   /** "Top Bounties": the running ones with the biggest prizes. */
   top: publicProcedure.query(async ({ ctx }) => {
     const rows = await ctx.db.bounty.findMany({
-      where: { ...fundedWhere, status: "RUNNING" },
+      where: { ...publicBountyWhere, status: "RUNNING" },
       orderBy: { prizeAmount: "desc" },
       take: 5,
       select: {
@@ -291,7 +292,7 @@ export const bountyRouter = createRouter({
   byId: publicProcedure.input(bountyInput).query(async ({ ctx, input }) => {
     const viewerId = ctx.session?.user.id;
     const bounty = await ctx.db.bounty.findFirst({
-      where: { id: input.bountyId, ...fundedWhere },
+      where: { id: input.bountyId, ...publicBountyWhere },
       select: {
         ...cardSelect,
         rewardNote: true,

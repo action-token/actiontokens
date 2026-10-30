@@ -5,6 +5,7 @@ import { AppError, ErrorCodes } from "@bandcoin/errors";
 import { draftDesign, publishedDesign } from "../../services/artist/page";
 import { currentSlugFor } from "../../services/artist/profile";
 import { resolveVanity } from "../../services/artist/vanity";
+import { publicBountyWhere } from "./bounty";
 import { itemCardSelect, listedItemWhere, toItemCard } from "../../services/catalog/item-card";
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 
@@ -73,7 +74,7 @@ export const artistRouter = createRouter({
           },
         }),
         ctx.db.bounty.findMany({
-          where: { artistId: artist.id, status: "RUNNING", fundTxHash: { not: null } },
+          where: { ...publicBountyWhere, artistId: artist.id, status: "RUNNING" },
           orderBy: { createdAt: "desc" },
           take: 4,
           select: {

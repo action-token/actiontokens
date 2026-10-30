@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
+import { listedItemWhere } from "../../services/catalog/item-card";
 import { remainingCopies } from "../../services/purchase/sale";
 import { createRouter, publicProcedure } from "../../trpc";
 
@@ -16,7 +17,7 @@ export const itemRouter = createRouter({
     .query(async ({ ctx, input }) => {
       const viewerId = ctx.session?.user.id;
       const item = await ctx.db.item.findFirst({
-        where: { slug: input.slug, deletedAt: null, visibility: { not: "DRAFT" } },
+        where: { slug: input.slug, ...listedItemWhere },
         select: {
           id: true,
           type: true,

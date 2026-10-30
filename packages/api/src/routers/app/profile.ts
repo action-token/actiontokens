@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
-import { itemCardSelect, toItemCard } from "../../services/catalog/item-card";
+import { itemCardSelect, listedItemWhere, toItemCard } from "../../services/catalog/item-card";
 import { createRouter, publicProcedure } from "../../trpc";
 
 export const profileRouter = createRouter({
@@ -40,7 +40,7 @@ export const profileRouter = createRouter({
               where: {
                 userId: user.id,
                 quantity: { gt: 0 },
-                item: { deletedAt: null, visibility: { not: "DRAFT" } },
+                item: listedItemWhere,
               },
               orderBy: { acquiredAt: "desc" },
               take: 24,

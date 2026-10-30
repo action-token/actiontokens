@@ -84,3 +84,7 @@ export const stellarNetwork: StellarNetworkConfig = STELLAR_NETWORKS[resolveStel
 /** Where to look an account up on a block explorer. */
 export const stellarExpertAccountUrl = (publicKey: string, network = stellarNetwork) =>
   `https://stellar.expert/explorer/${network.stellarExpertNetwork}/account/${publicKey}`;
+
+/** Where to look a transaction up on a block explorer. */
+export const stellarExpertTxUrl = (hash: string, network = stellarNetwork) =>
+  `https://stellar.expert/explorer/${network.stellarExpertNetwork}/tx/${hash}`;

@@ -24,13 +24,27 @@ import {
   unsuspendUser,
   userCounts,
 } from "../../services/admin/users";
+import { listBounties, setBountyHidden } from "../../services/admin/bounties";
+import { listItems, setItemHidden } from "../../services/admin/items";
 import { getPerson } from "../../services/admin/person";
+import { deletePin, listPins, setPinHidden } from "../../services/admin/pins";
 import { getMuralSettings } from "../../services/ar/murals";
 import { adminProcedure, createRouter } from "../../trpc";
 
 const artistId = z.object({ artistId: z.string().min(1) });
 const muralId = z.object({ muralId: z.string().min(1) });
 const userId = z.object({ userId: z.string().min(1) });
+const pinId = z.object({ pinId: z.string().min(1) });
+const search = z.string().max(120).optional();
+const cursor = z.string().nullish();
+/** Hiding needs a reason the log (and later the artist) can read; showing again doesn't. */
+const hideInput = z.discriminatedUnion("hidden", [
+  z.object({
+    hidden: z.literal(true),
+    reason: z.string().trim().min(3, "Say why, in a few words").max(300),
+  }),
+  z.object({ hidden: z.literal(false) }),
+]);
 const nullableName = z.string().max(120).nullable();
 
 /** Admin tools (artist.bandcoin.io/admin). Every procedure here is admin-only. */
@@ -77,6 +91,52 @@ export const adminRouter = createRouter({
     setAdmin: adminProcedure
       .input(userId.extend({ admin: z.boolean() }))
       .mutation(({ ctx, input }) => setAdmin(ctx, ctx.session.user, input)),
+  }),
+  pins: createRouter({
+    list: adminProcedure
+      .input(
+        z.object({
+          search,
+          status: z.enum(["live", "hidden", "ended", "upcoming"]).optional(),
+          cursor,
+        }),
+      )
+      .query(({ ctx, input }) => listPins(ctx, { ...input, cursor: input.cursor ?? undefined })),
+    setHidden: adminProcedure
+      .input(pinId.extend({ hidden: z.boolean() }))
+      .mutation(({ ctx, input }) => setPinHidden(ctx, input)),
+    remove: adminProcedure.input(pinId).mutation(({ ctx, input }) => deletePin(ctx, input)),
+  }),
+  bounties: createRouter({
+    list: adminProcedure
+      .input(
+        z.object({
+          search,
+          status: z.enum(["draft", "running", "paused", "completed", "hidden"]).optional(),
+          cursor,
+        }),
+      )
+      .query(({ ctx, input }) =>
+        listBounties(ctx, { ...input, cursor: input.cursor ?? undefined }),
+      ),
+    setHidden: adminProcedure
+      .input(z.object({ bountyId: z.string().min(1) }).and(hideInput))
+      .mutation(({ ctx, input }) => setBountyHidden(ctx, input)),
+  }),
+  items: createRouter({
+    list: adminProcedure
+      .input(
+        z.object({
+          search,
+          status: z.enum(["listed", "draft", "hidden"]).optional(),
+          chain: z.enum(["CLASSIC_TOKEN", "CONTRACT_NFT"]).optional(),
+          cursor,
+        }),
+      )
+      .query(({ ctx, input }) => listItems(ctx, { ...input, cursor: input.cursor ?? undefined })),
+    setHidden: adminProcedure
+      .input(z.object({ itemId: z.string().min(1) }).and(hideInput))
+      .mutation(({ ctx, input }) => setItemHidden(ctx, input)),
   }),
   murals: createRouter({
     counts: adminProcedure.query(({ ctx }) => muralCounts(ctx)),

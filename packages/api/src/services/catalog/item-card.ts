@@ -48,8 +48,9 @@ export function toItemCard(row: ItemCardRow) {
 
 export type ItemCard = ReturnType<typeof toItemCard>;
 
-/** Items anyone may see in lists: published and not deleted. */
+/** Items anyone may see in lists: published, not deleted, not hidden by an admin. */
 export const listedItemWhere = {
   deletedAt: null,
+  hiddenAt: null,
   visibility: { not: "DRAFT" },
 } satisfies Prisma.ItemWhereInput;

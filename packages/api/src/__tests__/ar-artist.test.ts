@@ -144,7 +144,9 @@ describe("ar bounty", () => {
       },
     ]);
     expect(findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { fundTxHash: { not: null }, status: "RUNNING" } }),
+      expect.objectContaining({
+        where: { fundTxHash: { not: null }, hiddenAt: null, status: "RUNNING" },
+      }),
     );
   });
 });
