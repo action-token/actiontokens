@@ -1,15 +1,17 @@
 "use client";
 
 import { ShieldAlert } from "lucide-react";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { Button } from "@bandcoin/ui/components/button";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
 import { PageBody } from "@bandcoin/ui/patterns/page-header";
 
 import { usePortal } from "~/features/portal/use-portal";
 
-/** Admin pages only render for admins; everyone else gets a plain explanation. The API enforces it too. */
+/** Admin pages only render for admins; other signed-in people get a plain explanation and a way back. The API enforces it too. */
 export function AdminGate({ children }: { children: ReactNode }) {
   const portal = usePortal();
   if (portal.loading) {
@@ -26,7 +28,12 @@ export function AdminGate({ children }: { children: ReactNode }) {
         <EmptyState
           icon={ShieldAlert}
           title="Admins only"
-          description="This area is for the Bandcoin team. Sign in with an admin account to use it."
+          description="This area is for Bandcoin admins. Your account doesn't have admin access."
+          action={
+            <Button asChild variant="outline">
+              <Link href="/">Back to your portal</Link>
+            </Button>
+          }
         />
       </PageBody>
     );

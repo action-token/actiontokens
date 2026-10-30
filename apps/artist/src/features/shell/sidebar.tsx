@@ -18,7 +18,9 @@ import { useSyncExternalStore } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@bandcoin/ui/components/avatar";
 import { cn } from "@bandcoin/ui/lib/cn";
+import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { BrandMark } from "@bandcoin/ui/patterns/boot-screen";
+import { copyrightLine, INFO_LINKS, SOCIALS } from "@bandcoin/ui/patterns/site-links";
 import { abbreviateAddress } from "@bandcoin/utils/address";
 import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
@@ -30,7 +32,8 @@ import { isActive, type NavGroup, type NavItem } from "./nav";
 /**
  * The portal sidebar, laid out like Wadzzo's brand portal: the name on top, a
  * scrolling body (the sections, then tiles to the other Bandcoin apps) between
- * dashed rules, and a fixed footer with who is signed in and the theme. Below
+ * dashed rules, and a fixed footer with who is signed in, the theme, the
+ * socials, and the info pages with the copyright (as bandfan had). Below
  * the xl breakpoint it is an icon rail.
  */
 export function Sidebar({
@@ -104,8 +107,40 @@ export function Sidebar({
 
       <div className="grid gap-2 p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] xl:p-3">
         <ProfileRow fallbackName={fallbackName} />
-        <div className="hidden xl:flex">
+        <div className="hidden items-center justify-between gap-2 xl:flex">
           <ThemeSwitch />
+          <div className="flex gap-1">
+            {SOCIALS.map((social) => (
+              <a
+                key={social.href}
+                href={social.href}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={social.label}
+                title={social.label}
+                className="bg-fg text-bg flex size-6 items-center justify-center rounded-full transition-transform hover:scale-110"
+              >
+                <social.icon className="size-3" />
+              </a>
+            ))}
+          </div>
+        </div>
+        {/* info pages and the copyright share the last row, as in Wadzzo */}
+        <div className="border-fg/20 hidden items-center justify-between gap-2 border-t-2 border-dashed pt-2 text-[10px] leading-none whitespace-nowrap xl:flex">
+          <div className="text-fg-muted flex gap-1.5 font-medium">
+            {INFO_LINKS.map((info) => (
+              <a
+                key={info.path}
+                href={`${FAN_APP_URL}${info.path}`}
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-fg hover:underline"
+              >
+                {info.label}
+              </a>
+            ))}
+          </div>
+          <span className="text-fg-faint font-medium">{copyrightLine()}</span>
         </div>
       </div>
     </nav>
@@ -178,6 +213,9 @@ function ProfileRow({ fallbackName }: { fallbackName?: string }) {
   const me = api.account.me.useQuery(undefined, {
     enabled: session.status === "authenticated",
   });
+
+  if (session.status === "loading")
+    return <Skeleton className="h-9 rounded-lg" aria-label="Loading your account" />;
 
   if (session.status === "unauthenticated") {
     return (

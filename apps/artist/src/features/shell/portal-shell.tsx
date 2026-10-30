@@ -18,10 +18,12 @@ import { type PortalStatus, usePortal } from "~/features/portal/use-portal";
 
 import { isActive, type NavGroup, navFor, phoneTabs } from "./nav";
 import { Sidebar } from "./sidebar";
+import { SignInScreen } from "./sign-in-screen";
 
 /**
  * The frame around every portal page: a sidebar of what this person may use
  * right now (see navFor), a top bar with the account, and a tab bar on phones.
+ * Signed-out visitors get the sign-in card instead.
  */
 export function PortalShell({
   children,
@@ -31,8 +33,11 @@ export function PortalShell({
   initialStatus?: PortalStatus;
 }) {
   const pathname = usePathname();
-  const { signedIn, step, isAdmin, artist } = usePortal(initialStatus);
+  const { signedIn, step, isAdmin, artist, loading } = usePortal(initialStatus);
   const groups = navFor({ signedIn, step, isAdmin });
+
+  // Signed out: the sign-in card alone, as in Wadzzo's brand portal.
+  if (!loading && !signedIn) return <SignInScreen />;
 
   return (
     <div className="grid min-h-dvh grid-cols-1 sm:grid-cols-[72px_minmax(0,1fr)] xl:grid-cols-[240px_minmax(0,1fr)]">

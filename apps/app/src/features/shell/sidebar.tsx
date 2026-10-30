@@ -8,6 +8,7 @@ import { Fragment, Suspense } from "react";
 
 import { cn } from "@bandcoin/ui/lib/cn";
 import { BrandMark } from "@bandcoin/ui/patterns/boot-screen";
+import { copyrightLine, INFO_LINKS, SOCIALS } from "@bandcoin/ui/patterns/site-links";
 import { abbreviateAddress } from "@bandcoin/utils/address";
 
 import { Money } from "~/components/money";
@@ -20,7 +21,8 @@ import { ResizeHandle } from "./resize-handle";
 /**
  * The desktop sidebar: links in groups (the page you're on is filled in the
  * brand yellow), and your account at the bottom with your balance and a
- * Recharge button. Below the xl breakpoint it is an icon rail.
+ * Recharge button, then the socials, info pages and copyright (as bandfan
+ * had). Below the xl breakpoint it is an icon rail.
  */
 export function Sidebar() {
   return (
@@ -48,6 +50,7 @@ export function Sidebar() {
       <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2">
         <LaunchTiles />
         <AccountCard />
+        <SiteFooter />
       </div>
       <ResizeHandle side="left" label="Resize the sidebar" />
     </nav>
@@ -212,6 +215,39 @@ function AccountCard() {
       >
         <Plus className="size-4" strokeWidth={3} />
       </Link>
+    </div>
+  );
+}
+
+/** Bandcoin's socials, then the info pages and the copyright on one small row; wide sidebar only. */
+function SiteFooter() {
+  return (
+    <div className="border-fg/15 hidden gap-2 border-t pt-2 xl:grid">
+      <div className="flex gap-1.5">
+        {SOCIALS.map((social) => (
+          <a
+            key={social.href}
+            href={social.href}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={social.label}
+            title={social.label}
+            className="bg-surface-2 text-fg-muted hover:text-fg flex size-7 items-center justify-center rounded-full transition-colors"
+          >
+            <social.icon className="size-3.5" />
+          </a>
+        ))}
+      </div>
+      <div className="flex items-center justify-between gap-2 text-[10px] leading-none whitespace-nowrap">
+        <div className="text-fg-muted flex gap-1.5 font-medium">
+          {INFO_LINKS.map((info) => (
+            <Link key={info.path} href={info.path} className="hover:text-fg hover:underline">
+              {info.label}
+            </Link>
+          ))}
+        </div>
+        <span className="text-fg-faint">{copyrightLine()}</span>
+      </div>
     </div>
   );
 }
