@@ -302,9 +302,11 @@ export const pinRouter = createRouter({
       const { spot, pin } = await assertCollectable(ctx, userId, input.spotId);
       ctx.activity.set({ targetType: "Pin", targetId: pin.id });
       const distance = distanceMeters(input, { lat: spot.latitude, lng: spot.longitude });
-      if (distance > AR_CAPTURE_RADIUS + GEOFENCE_SLACK_M) {
+      // An NFT's unlock place uses the radius its artist set; every other pin the AR capture radius.
+      const within = pin.unlockLockedContentId ? pin.radiusMeters : AR_CAPTURE_RADIUS;
+      if (distance > within + GEOFENCE_SLACK_M) {
         throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, {
-          message: `You're ${Math.round(distance)} m away. Get within ${AR_CAPTURE_RADIUS} m to collect this.`,
+          message: `You're ${Math.round(distance)} m away. Get within ${Math.round(within)} m to collect this.`,
         });
       }
       return writeCollect(ctx.db, userId, spot, pin);

@@ -190,7 +190,9 @@ describe("collectionSummary", () => {
     expect(summary.previous).toBeNull();
     expect(summary.totals).toEqual({ collections: 0, collectors: 0, redeemed: 0 });
     expect(db.pin.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { artistId: "a1", isHidden: false } }),
+      expect.objectContaining({
+        where: { artistId: "a1", isHidden: false, unlockLockedContentId: null },
+      }),
     );
   });
 });
@@ -211,7 +213,10 @@ describe("every artist (admins)", () => {
     };
     await collectionSummary({ db: db as unknown as Db }, null, {}, now);
     expect(db.pin.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { isHidden: false }, take: 500 }),
+      expect.objectContaining({
+        where: { isHidden: false, unlockLockedContentId: null },
+        take: 500,
+      }),
     );
     for (const call of db.$queryRaw.mock.calls) expect(sqlOf(call)).not.toContain('"artistId"');
   });

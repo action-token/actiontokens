@@ -3,6 +3,7 @@ import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import type { Context } from "../../context";
 import { statusOf } from "../artist/pins";
+import { notUnlockPin } from "../catalog/unlock-pins";
 
 /**
  * Admin › Pin review, as in Wadzzo: an artist's new pin waits (PENDING) until
@@ -26,6 +27,7 @@ const APPROVAL_OF: Record<PinView, ApprovalStatus> = {
 function whereOf(input: PinFilter): Prisma.PinWhereInput {
   const q = input.search?.trim();
   return {
+    ...notUnlockPin,
     approval: APPROVAL_OF[input.view],
     ...(q
       ? {
@@ -100,7 +102,11 @@ export async function listPins(ctx: Pick<Context, "db">, input: PinFilter, now =
 
 /** How many pins are in each list, for the view chips. */
 export async function pinCounts(ctx: Pick<Context, "db">) {
-  const groups = await ctx.db.pin.groupBy({ by: ["approval"], _count: { _all: true } });
+  const groups = await ctx.db.pin.groupBy({
+    by: ["approval"],
+    where: notUnlockPin,
+    _count: { _all: true },
+  });
   const of = (approval: ApprovalStatus) =>
     groups.find((group) => group.approval === approval)?._count._all ?? 0;
   return { pending: of("PENDING"), approved: of("APPROVED"), rejected: of("REJECTED") };
@@ -154,6 +160,7 @@ export async function pinsForMap(
 ) {
   const rows = await ctx.db.pin.findMany({
     where: {
+      ...notUnlockPin,
       ...(input.artistId ? { artistId: input.artistId } : {}),
       ...(input.includeEnded ? {} : { endsAt: { gte: now } }),
     },

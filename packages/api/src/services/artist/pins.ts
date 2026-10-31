@@ -8,6 +8,7 @@ import type { Context } from "../../context";
 import { webLink } from "./events";
 import { invalid } from "./items";
 import { creditLines, freeOf, openedStorage } from "./storage-withdraw";
+import { notUnlockPin } from "../catalog/unlock-pins";
 
 /**
  * Pins: reward drops the artist places on the map. A pin is one title, one
@@ -341,7 +342,7 @@ const fanTokenLabel = (amount: { toString(): string }) => {
 
 export async function listPins(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef, now = new Date()) {
   const rows = await ctx.db.pin.findMany({
-    where: { artistId: artist.id },
+    where: { artistId: artist.id, ...notUnlockPin },
     orderBy: { createdAt: "desc" },
     include: {
       rewardItem: { select: { title: true, coverUrl: true } },

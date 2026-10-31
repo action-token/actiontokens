@@ -168,6 +168,7 @@ describe("listRewards", () => {
       where: {
         artistId: "a1",
         isHidden: false,
+        unlockLockedContentId: null,
         title: { contains: "poster", mode: "insensitive" },
       },
     });

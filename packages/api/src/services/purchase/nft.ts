@@ -35,6 +35,7 @@ import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
 import { type Context, isCustodial, type SessionUser } from "../../context";
 import { DEFAULT_PLATFORM_FEE_BPS } from "../admin/settings";
 import { accessOf, accessSelect, checkAccess } from "../catalog/access";
+import { ensureUnlockPins } from "../catalog/unlock-pins";
 import { transitionOrder } from "../order-state";
 import { failOrder, holdsLine, ownOrder, userSignature } from "./index";
 
@@ -577,14 +578,14 @@ export async function finishNftPurchase(ctx: Pick<Context, "db" | "chain">, orde
   // A failed read throws: "no receipt" must only ever mean the contract has none.
   const receipt = await ctx.chain.nftPurchaseByRef(orderId);
   if (!receipt) return { orderId, status: "SUBMITTED" as const };
-  await ctx.db.$transaction(async (tx) => {
+  const tokenIds = Array.from(
+    { length: receipt.lastTokenId - receipt.firstTokenId + 1 },
+    (_, index) => String(receipt.firstTokenId + index),
+  );
+  const order = await ctx.db.$transaction(async (tx) => {
     await transitionOrder(tx, orderId, "CONFIRMED");
     const order = await tx.order.findUniqueOrThrow({ where: { id: orderId } });
     if (!order.buyerId || !order.itemId) throw new AppError(ErrorCodes.INTERNAL);
-    const tokenIds = Array.from(
-      { length: receipt.lastTokenId - receipt.firstTokenId + 1 },
-      (_, index) => String(receipt.firstTokenId + index),
-    );
     await tx.nftEdition.createMany({
       data: tokenIds.map((tokenId) => ({
         itemId: order.itemId!,
@@ -618,6 +619,18 @@ export async function finishNftPurchase(ctx: Pick<Context, "db" | "chain">, orde
         await tx.listing.update({ where: { id: listing.id }, data: { status: "SOLD_OUT" } });
     }
     await transitionOrder(tx, orderId, "DELIVERED");
+    return order;
   });
+  // The places to visit for each new copy. Outside the transaction (it can be
+  // many pins); anything missing is made when the owner opens the item.
+  try {
+    const editions = await ctx.db.nftEdition.findMany({
+      where: { tokenId: { in: tokenIds } },
+      select: { id: true, ownerId: true },
+    });
+    await ensureUnlockPins(ctx.db, order.itemId!, editions);
+  } catch (error) {
+    console.error("[nft] unlock pins not made yet", { orderId, error });
+  }
   return { orderId, status: "DELIVERED" as const };
 }

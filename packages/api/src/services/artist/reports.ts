@@ -3,6 +3,7 @@ import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import type { Context } from "../../context";
 import { statusOf } from "./pins";
+import { notUnlockPin } from "../catalog/unlock-pins";
 
 /**
  * Collection reports: how an artist's pins are collected, by whom and when.
@@ -167,7 +168,7 @@ export async function collectionSummary(
       FROM ${claimsFrom} JOIN users u ON u.id = c."userId"
       WHERE ${where} GROUP BY u.id ORDER BY n DESC, MAX(c."createdAt") DESC LIMIT 10`,
     ctx.db.pin.findMany({
-      where: { ...(artist ? { artistId: artist.id } : {}), isHidden: false },
+      where: { ...(artist ? { artistId: artist.id } : {}), isHidden: false, ...notUnlockPin },
       orderBy: { createdAt: "desc" },
       ...(artist ? {} : { take: MAX_REPORT_PINS }),
       select: {

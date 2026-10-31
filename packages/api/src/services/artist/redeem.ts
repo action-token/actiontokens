@@ -2,6 +2,7 @@ import { Prisma } from "@bandcoin/db";
 
 import type { Context } from "../../context";
 import { invalid } from "./items";
+import { notUnlockPin } from "../catalog/unlock-pins";
 
 /**
  * Redeem: a fan shows the 6-character code they got when they collected a
@@ -128,7 +129,7 @@ export async function redeemCode(
 export async function redeemSummary(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef) {
   const claims = { isHidden: false, spot: { pin: { artistId: artist.id, isHidden: false } } };
   const [rewards, collected, redeemed] = await Promise.all([
-    ctx.db.pin.count({ where: { artistId: artist.id, isHidden: false } }),
+    ctx.db.pin.count({ where: { artistId: artist.id, isHidden: false, ...notUnlockPin } }),
     ctx.db.pinClaim.count({ where: claims }),
     ctx.db.pinClaim.count({ where: { ...claims, isRedeemed: true } }),
   ]);
@@ -149,6 +150,7 @@ export async function listRewards(
   const where: Prisma.PinWhereInput = {
     artistId: artist.id,
     isHidden: false,
+    ...notUnlockPin,
     ...(search ? { title: { contains: search, mode: "insensitive" } } : {}),
   };
   const [total, pins] = await Promise.all([

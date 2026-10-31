@@ -53,7 +53,10 @@ describe("admin pin review", () => {
     expect(query.where.OR).toHaveLength(4);
     expect(query.orderBy).toEqual([{ createdAt: "asc" }, { id: "asc" }]);
     await listPins(ctx, { view: "approved" }, now);
-    expect(findMany.mock.calls[1]?.[0].where).toEqual({ approval: "APPROVED" });
+    expect(findMany.mock.calls[1]?.[0].where).toEqual({
+      unlockLockedContentId: null,
+      approval: "APPROVED",
+    });
     expect(findMany.mock.calls[1]?.[0].orderBy).toEqual([{ createdAt: "desc" }, { id: "desc" }]);
   });
 
@@ -122,9 +125,15 @@ describe("admin pin map", () => {
       ["p2", "LIVE", 0, 1],
     ]);
     expect(capped).toBe(false);
-    expect(findMany.mock.calls[0]?.[0].where).toEqual({ endsAt: { gte: now } });
+    expect(findMany.mock.calls[0]?.[0].where).toEqual({
+      unlockLockedContentId: null,
+      endsAt: { gte: now },
+    });
     await pinsForMap(ctx, { artistId: "a1", includeEnded: true }, now);
-    expect(findMany.mock.calls[1]?.[0].where).toEqual({ artistId: "a1" });
+    expect(findMany.mock.calls[1]?.[0].where).toEqual({
+      unlockLockedContentId: null,
+      artistId: "a1",
+    });
   });
 });
 

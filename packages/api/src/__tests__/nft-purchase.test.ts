@@ -121,12 +121,31 @@ function setup(
       ),
     },
     nftEdition: {
+      findMany: vi.fn(() =>
+        Promise.resolve(editions.map((row, index) => ({ id: `e${index}`, ownerId: row.ownerId }))),
+      ),
       createMany: vi.fn(({ data }: { data: Row[] }) => {
         editions.push(...data);
         return Promise.resolve({ count: data.length });
       }),
     },
     ownership: { upsert: vi.fn().mockResolvedValue({}) },
+    item: {
+      findUnique: vi.fn().mockResolvedValue({ title: "VIP pass", coverUrl: null, artistId: "a1" }),
+    },
+    lockedContent: {
+      findMany: vi.fn().mockResolvedValue([
+        {
+          id: "lc1",
+          label: "Backstage",
+          unlockRule: { radiusMeters: 50, points: [{ latitude: 1, longitude: 2 }] },
+        },
+      ]),
+    },
+    pin: {
+      findMany: vi.fn().mockResolvedValue([]),
+      create: vi.fn().mockResolvedValue({ id: "pin" }),
+    },
     $transaction: (run: (tx: unknown) => unknown) => run(db),
   };
   let calls = 0;
@@ -301,6 +320,11 @@ describe("buying with BANDCOIN from a wallet", () => {
       expect.objectContaining({ create: expect.objectContaining({ quantity: 2 }) }),
     );
     expect(orders.get(orderId)).toMatchObject({ status: "DELIVERED" });
+    // Each new copy gets its own places to visit, only for its owner.
+    expect(db.pin.create).toHaveBeenCalledTimes(2);
+    expect(db.pin.create.mock.calls[0]![0]).toMatchObject({
+      data: { restrictedToUserId: "fan", unlockEditionId: "e0", unlockLockedContentId: "lc1" },
+    });
   });
 });
 

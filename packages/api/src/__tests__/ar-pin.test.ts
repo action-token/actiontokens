@@ -224,6 +224,18 @@ describe("pin.collect", () => {
     });
   });
 
+  it("uses the artist's radius for an NFT's unlock place", async () => {
+    const unlock = { unlockLockedContentId: "lc1", radiusMeters: 300, restrictedToUserId: "me" };
+    const near = collectDb(pinRow(unlock as Partial<PinRow>));
+    await expect(
+      caller(near.db).pin.collect({ spotId: "s1", ...offsetBy(here, 250, 0) }),
+    ).resolves.toMatchObject({ id: "c1" });
+    const far = collectDb(pinRow({ ...unlock, radiusMeters: 20 } as Partial<PinRow>));
+    await expect(
+      caller(far.db).pin.collect({ spotId: "s1", ...offsetBy(here, 100, 0) }),
+    ).rejects.toMatchObject({ message: "You're 100 m away. Get within 20 m to collect this." });
+  });
+
   it("refuses a second collect of the same pin", async () => {
     const { db } = collectDb(pinRow(), { id: "old" });
     await expect(caller(db).pin.collectByQr({ spotId: "s1" })).rejects.toMatchObject({
