@@ -76,6 +76,7 @@ const chain: ChainGateway = {
   nftFeeSettings: () => Promise.resolve({ feeBps: 0, treasury: null, owner: null }),
   assetExists: () => Promise.resolve(true),
   contractIsLive: () => Promise.resolve(true),
+  claimableFor: () => Promise.resolve([]),
   assetHolders: () => Promise.resolve({ holders: [], complete: true }),
   bandcoinUsd: () => Promise.resolve("0.002"),
   config: {

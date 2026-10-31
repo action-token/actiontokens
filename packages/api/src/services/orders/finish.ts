@@ -34,7 +34,13 @@ export async function finishPlain(
   return { orderId, status: "DELIVERED" };
 }
 
-export type GiftDetails = { recipientId: string; itemId: string; amount: number };
+export type GiftDetails = {
+  recipientId: string;
+  itemId: string;
+  amount: number;
+  /** Held as a claimable balance: the fan owns it once they claim it */
+  claimable?: boolean;
+};
 
 /** A gift: the recipient now owns it. */
 export async function finishGift(ctx: Pick<Context, "db">, orderId: string): Promise<FinishResult> {
@@ -46,16 +52,17 @@ export async function finishGift(ctx: Pick<Context, "db">, orderId: string): Pro
     });
     const gift = (order.breakdown as { giftDetails?: GiftDetails } | null)?.giftDetails;
     if (!gift) throw new AppError(ErrorCodes.INTERNAL, { message: "This order has no gift." });
-    await tx.ownership.upsert({
-      where: { userId_itemId: { userId: gift.recipientId, itemId: gift.itemId } },
-      create: {
-        userId: gift.recipientId,
-        itemId: gift.itemId,
-        quantity: gift.amount,
-        source: "GIFT",
-      },
-      update: { quantity: { increment: gift.amount } },
-    });
+    if (!gift.claimable)
+      await tx.ownership.upsert({
+        where: { userId_itemId: { userId: gift.recipientId, itemId: gift.itemId } },
+        create: {
+          userId: gift.recipientId,
+          itemId: gift.itemId,
+          quantity: gift.amount,
+          source: "GIFT",
+        },
+        update: { quantity: { increment: gift.amount } },
+      });
     await transitionOrder(tx, orderId, "DELIVERED");
   });
   return { orderId, status: "DELIVERED" };

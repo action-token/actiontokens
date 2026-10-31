@@ -29,7 +29,7 @@ export const giftsRouter = createRouter({
 
   submit: artistProcedure
     .input(z.object({ orderId: z.string().min(1), xdr: z.string().min(1) }))
-    .mutation(({ ctx, input }) => submitGift(ctx, ctx.session.user, input)),
+    .mutation(({ ctx, input }) => submitGift(ctx, ctx.session.user, ctx.artist, input)),
 
   cancel: artistProcedure
     .input(z.object({ orderId: z.string().min(1) }))

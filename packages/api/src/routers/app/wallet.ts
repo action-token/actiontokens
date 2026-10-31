@@ -1,6 +1,9 @@
+import { z } from "zod";
+
 import { toDisplay, toStroops } from "@bandcoin/chain";
 import type { OrderKind, OrderStatus } from "@bandcoin/db";
 
+import { listGifts, prepareGiftClaim, submitGiftClaim } from "../../services/gifts/claim";
 import { authedProcedure, createRouter } from "../../trpc";
 
 /** Orders that reached the chain or failed; quotes, unsigned carts and cancellations aren't history. */
@@ -33,6 +36,15 @@ function orderTitle(kind: OrderKind, quantity: number, itemTitle: string | null)
 const amountOf = (value: { toString(): string }) => toDisplay(toStroops(value));
 
 export const walletRouter = createRouter({
+  /** Gifts an artist left for this fan to claim (they didn't hold the token yet). */
+  gifts: authedProcedure.query(({ ctx }) => listGifts(ctx, ctx.session.user)),
+  prepareGiftClaim: authedProcedure
+    .input(z.object({ balanceId: z.string().regex(/^[0-9a-f]{72}$/) }))
+    .mutation(({ ctx, input }) => prepareGiftClaim(ctx, ctx.session.user, input.balanceId)),
+  submitGiftClaim: authedProcedure
+    .input(z.object({ balanceId: z.string().regex(/^[0-9a-f]{72}$/), xdr: z.string().min(1) }))
+    .mutation(({ ctx, input }) => submitGiftClaim(ctx, ctx.session.user, input)),
+
   /** What went in and out of the fan's wallet through Bandcoin, newest first. */
   history: authedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;

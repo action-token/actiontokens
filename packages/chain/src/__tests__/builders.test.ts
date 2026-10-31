@@ -13,7 +13,7 @@ import { describe, expect, it } from "vitest";
 import { buildClassicPurchase, classicPurchaseOperations } from "../classic/purchase";
 import { buildIssuerSetup, ISSUER_STARTING_XLM } from "../classic/issuer";
 import { buildActivation, buildTopUp, buildXlmSwap } from "../classic/recharge";
-import { buildIssueTokens, buildTransfer } from "../classic/transfer";
+import { buildIssueTokens, buildStorageGift, buildTransfer } from "../classic/transfer";
 import { toStellarError } from "../errors";
 import { buildBountyFund } from "../escrow/calls";
 import { buildNftBuyEdition, buildNftBuyListed, buildNftSetPlatformFee } from "../nft/calls";
@@ -504,5 +504,49 @@ describe("toStellarError", () => {
     expect(toStellarError(horizonFailure(["op_weird"])).message).toBe(
       "The Stellar network rejected that transaction (tx_failed, op_weird).",
     );
+  });
+});
+
+describe("buildStorageGift", () => {
+  const sender = Keypair.random().publicKey();
+  const storage = Keypair.random().publicKey();
+  const fan = Keypair.random().publicKey();
+  const asset = new Asset("LUNA", Keypair.random().publicKey());
+  const net = { passphrase: Networks.TESTNET, baseFee: "100" };
+  const ops = (xdr: string) => TransactionBuilder.fromXDR(xdr, Networks.TESTNET).operations;
+
+  it("pays a fan who trusts the token straight from storage", () => {
+    const built = buildStorageGift({
+      sender: new Account(sender, "1"),
+      network: net,
+      storage,
+      to: fan,
+      asset,
+      amount: "25",
+      claimable: false,
+    });
+    expect(ops(built.xdr)).toMatchObject([
+      { type: "payment", source: storage, destination: fan, amount: "25.0000000" },
+    ]);
+    expect(built.serverSigners).toEqual([storage]);
+  });
+
+  it("otherwise funds the 1 XLM reserve and leaves a claimable balance storage can take back", () => {
+    const built = buildStorageGift({
+      sender: new Account(sender, "1"),
+      network: net,
+      storage,
+      to: fan,
+      asset,
+      amount: "25",
+      claimable: true,
+    });
+    const [reserve, balance] = ops(built.xdr) as unknown as [
+      { type: string; destination: string; amount: string },
+      { type: string; source: string; claimants: { destination: string }[] },
+    ];
+    expect(reserve).toMatchObject({ type: "payment", destination: storage, amount: "1.0000000" });
+    expect(balance).toMatchObject({ type: "createClaimableBalance", source: storage });
+    expect(balance.claimants.map((claimant) => claimant.destination)).toEqual([fan, storage]);
   });
 });

@@ -137,6 +137,25 @@ export function otherAssetsOf(
   });
 }
 
+/** A token waiting to be claimed by an account (a gift), as Horizon lists it. */
+export type ClaimableToken = { id: string; code: string; issuer: string; amount: string; sponsor: string };
+
+/** Claimable balances the account can accept now: tokens only (not XLM), up to 50. */
+export async function claimableFor(address: string): Promise<ClaimableToken[]> {
+  const page = await horizon().claimableBalances().claimant(address).limit(50).call();
+  return page.records.flatMap((record) => {
+    const [code, issuer] = record.asset.split(":");
+    const unconditional = record.claimants.some(
+      (claimant) =>
+        claimant.destination === address &&
+        "unconditional" in claimant.predicate &&
+        claimant.predicate.unconditional === true,
+    );
+    if (!code || !issuer || !unconditional) return [];
+    return [{ id: record.id, code, issuer, amount: record.amount, sponsor: record.sponsor ?? "" }];
+  });
+}
+
 /** Adds the server's signatures to a transaction the user already signed. */
 export function addSignatures(xdr: string, secrets: string[]): string {
   const tx = TransactionBuilder.fromXDR(xdr, chainConfig().network.passphrase);

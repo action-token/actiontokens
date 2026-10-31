@@ -25,7 +25,13 @@ const fanWallet = Keypair.random().publicKey();
 const issuerKey = Keypair.random().publicKey();
 const network = { passphrase: Networks.TESTNET, baseFee: "100" };
 const ORDER = "cmvorder0000000000000007";
-const artist: { id: string; fanTokenItemId: string | null } = { id: "a1", fanTokenItemId: "tok1" };
+const storageKey = Keypair.random().publicKey();
+const artist: { id: string; fanTokenItemId: string | null; storageAccountId: string | null } = {
+  id: "a1",
+  fanTokenItemId: "tok1",
+  storageAccountId: null,
+};
+const withStorage = { ...artist, storageAccountId: "st1" };
 const me: SessionUser = {
   id: "u-artist",
   role: "ARTIST",
@@ -48,6 +54,8 @@ function setup(
     token?: Row | null;
     fanTrusts?: boolean;
     fan?: Row | null;
+    follows?: boolean;
+    stored?: string;
     submit?: (xdr: string) => Promise<{ hash: string }>;
   } = {},
 ) {
@@ -69,7 +77,15 @@ function setup(
       findMany: vi.fn().mockResolvedValue([fan]),
     },
     ownership: { upsert: vi.fn().mockResolvedValue({}) },
+    chainAccount: {
+      findUnique: vi.fn(({ where }: { where: { id: string } }) =>
+        Promise.resolve(
+          where.id === "st1" ? { publicKey: storageKey, activatedAt: new Date() } : null,
+        ),
+      ),
+    },
     follow: {
+      findUnique: vi.fn().mockResolvedValue(opts.follows === false ? null : { userId: "u-fan" }),
       findMany: vi
         .fn()
         .mockResolvedValue([{ user: fan }, { user: { ...fan, id: "u2", walletAddress: null } }]),
@@ -117,6 +133,18 @@ function setup(
             },
           ],
   });
+  const storageAccount = Object.assign(new Account(storageKey, "2"), {
+    balances: [
+      { asset_type: "native", balance: "3", selling_liabilities: "0" },
+      {
+        asset_type: "credit_alphanum4",
+        asset_code: "LUNA",
+        asset_issuer: issuerKey,
+        balance: opts.stored ?? "1000000",
+        selling_liabilities: "0",
+      },
+    ],
+  });
   const chain = {
     config: {
       name: "testnet",
@@ -131,7 +159,13 @@ function setup(
     },
     loadAccount: vi.fn((id: string) =>
       Promise.resolve(
-        id === wallet.publicKey() ? artistAccount : id === fanWallet ? fanAccount : null,
+        id === wallet.publicKey()
+          ? artistAccount
+          : id === fanWallet
+            ? fanAccount
+            : id === storageKey
+              ? storageAccount
+              : null,
       ),
     ),
     signWithServerKeys: vi.fn((xdr: string) => Promise.resolve(xdr)),
@@ -228,6 +262,74 @@ describe("quoteGift", () => {
   });
 });
 
+describe("gifts from storage", () => {
+  const opsOf = (xdr: string) =>
+    (TransactionBuilder.fromXDR(xdr, Networks.TESTNET) as Transaction).operations;
+
+  it("goes to followers only", async () => {
+    const quote = await quoteGift(setup({ follows: false }).ctx, me, withStorage, ask);
+    expect(quote.problems[0]?.message).toBe(
+      "Ana B doesn't follow you. Gifts go to your followers.",
+    );
+  });
+
+  it("pays a fan who trusts the token straight from storage, storage co-signing", async () => {
+    const { ctx, chain, db } = setup();
+    const quote = await quoteGift(ctx, me, withStorage, ask);
+    expect(quote).toMatchObject({
+      ok: true,
+      total: "0.0000100",
+      gift: { from: "STORAGE", claimable: false },
+    });
+    const started = await startGift(ctx, me, withStorage, ask);
+    expect(opsOf(started.xdr)).toMatchObject([
+      { type: "payment", source: storageKey, destination: fanWallet, amount: "25.0000000" },
+    ]);
+    const tx = TransactionBuilder.fromXDR(started.xdr, Networks.TESTNET) as Transaction;
+    tx.sign(wallet);
+    await submitGift(ctx, me, withStorage, { orderId: started.orderId, xdr: tx.toXDR() });
+    expect(chain.signWithServerKeys).toHaveBeenCalledWith(expect.any(String), [storageKey]);
+    expect(db.ownership.upsert).toHaveBeenCalled();
+  });
+
+  it("leaves a claimable balance for a fan without a trustline, the artist paying its 1 XLM", async () => {
+    const { ctx, db } = setup({ fanTrusts: false });
+    const quote = await quoteGift(ctx, me, withStorage, ask);
+    expect(quote).toMatchObject({ ok: true, total: "1.0000200", gift: { claimable: true } });
+    expect(quote.lines[0]).toMatchObject({
+      key: "reserve",
+      label: "Holds the gift until they claim it",
+    });
+    const started = await startGift(ctx, me, withStorage, ask);
+    expect(opsOf(started.xdr).map((op) => op.type)).toEqual(["payment", "createClaimableBalance"]);
+    const tx = TransactionBuilder.fromXDR(started.xdr, Networks.TESTNET) as Transaction;
+    tx.sign(wallet);
+    await submitGift(ctx, me, withStorage, { orderId: started.orderId, xdr: tx.toXDR() });
+    // They own it once they claim it, not before.
+    expect(db.ownership.upsert).not.toHaveBeenCalled();
+  });
+
+  it("refuses more than storage holds, and allows a token issued elsewhere", async () => {
+    const short = await quoteGift(setup({ stored: "10" }).ctx, me, withStorage, ask);
+    expect(short.problems[0]?.message).toMatch(/Your storage has 10 LUNA/);
+    const external = await quoteGift(
+      setup({
+        token: {
+          itemId: "tok1",
+          code: "LUNA",
+          issuer: issuerKey,
+          isExternal: true,
+          issuerAccount: null,
+        },
+      }).ctx,
+      me,
+      withStorage,
+      ask,
+    );
+    expect(external.ok).toBe(true);
+  });
+});
+
 describe("startGift", () => {
   it("issues from the issuer to the fan with the artist's wallet as source, and signs nothing yet", async () => {
     const { ctx, chain, orders } = setup();
@@ -266,7 +368,7 @@ describe("submitGift", () => {
   it("has the issuer co-sign, sends it, and records the fan's new tokens", async () => {
     const { ctx, chain, db, orders, activity } = setup();
     const { xdr } = await startGift(ctx, me, artist, ask);
-    await expect(submitGift(ctx, me, { orderId: ORDER, xdr })).resolves.toEqual({
+    await expect(submitGift(ctx, me, artist, { orderId: ORDER, xdr })).resolves.toEqual({
       orderId: ORDER,
       status: "DELIVERED",
     });
@@ -284,7 +386,7 @@ describe("submitGift", () => {
   it("fails the order and gives nothing when the network says no", async () => {
     const { ctx, db, orders } = setup({ submit: () => Promise.reject(new Error("tx_failed")) });
     const { xdr } = await startGift(ctx, me, artist, ask);
-    await expect(submitGift(ctx, me, { orderId: ORDER, xdr })).rejects.toThrow("tx_failed");
+    await expect(submitGift(ctx, me, artist, { orderId: ORDER, xdr })).rejects.toThrow("tx_failed");
     expect(db.ownership.upsert).not.toHaveBeenCalled();
     expect(orders.get(ORDER)).toMatchObject({ status: "FAILED" });
   });
@@ -300,9 +402,11 @@ describe("submitGift", () => {
       .build()
       .toXDR();
     expect(xdr).not.toBe(other);
-    await expect(submitGift(ctx, me, { orderId: ORDER, xdr: other })).rejects.toMatchObject({
-      message: "That transaction doesn't belong to this order.",
-    });
+    await expect(submitGift(ctx, me, artist, { orderId: ORDER, xdr: other })).rejects.toMatchObject(
+      {
+        message: "That transaction doesn't belong to this order.",
+      },
+    );
     expect(chain.submit).not.toHaveBeenCalled();
   });
 
@@ -310,15 +414,15 @@ describe("submitGift", () => {
     const { ctx, orders, chain } = setup();
     const { xdr } = await startGift(ctx, me, artist, ask);
     await expect(
-      submitGift(ctx, { ...me, id: "other" }, { orderId: ORDER, xdr }),
+      submitGift(ctx, { ...me, id: "other" }, artist, { orderId: ORDER, xdr }),
     ).rejects.toMatchObject({ message: "Order not found" });
-    await submitGift(ctx, me, { orderId: ORDER, xdr });
-    await expect(submitGift(ctx, me, { orderId: ORDER, xdr })).rejects.toMatchObject({
+    await submitGift(ctx, me, artist, { orderId: ORDER, xdr });
+    await expect(submitGift(ctx, me, artist, { orderId: ORDER, xdr })).rejects.toMatchObject({
       message: expect.stringContaining("already") as unknown,
     });
     expect(chain.submit).toHaveBeenCalledTimes(1);
     orders.get(ORDER)!.kind = "ISSUER_SETUP";
-    await expect(submitGift(ctx, me, { orderId: ORDER, xdr })).rejects.toMatchObject({
+    await expect(submitGift(ctx, me, artist, { orderId: ORDER, xdr })).rejects.toMatchObject({
       message: "Order not found",
     });
   });
@@ -327,7 +431,7 @@ describe("submitGift", () => {
     const { ctx, orders, chain } = setup();
     const { xdr } = await startGift(ctx, me, artist, ask);
     orders.get(ORDER)!.quoteExpiresAt = new Date(Date.now() - 1000);
-    await expect(submitGift(ctx, me, { orderId: ORDER, xdr })).rejects.toBeTruthy();
+    await expect(submitGift(ctx, me, artist, { orderId: ORDER, xdr })).rejects.toBeTruthy();
     expect(chain.submit).not.toHaveBeenCalled();
     expect(orders.get(ORDER)).toMatchObject({ status: "FAILED" });
   });

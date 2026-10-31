@@ -14,6 +14,8 @@ import {
   liveRates,
   loadAccount,
   loadAssetHolders,
+  claimableFor,
+  type ClaimableToken,
   contractIsLive,
   prepareContractCall,
   readEditionId,
@@ -51,6 +53,8 @@ export type ChainGateway = {
   ): Promise<{ holders: { address: string; balance: string }[]; complete: boolean }>;
   /** Whether a contract exists at this address (an asset's contract only once it's set up) */
   contractIsLive(contract: string): Promise<boolean>;
+  /** Tokens waiting for this account to claim (gifts) */
+  claimableFor(address: string): Promise<ClaimableToken[]>;
   /** Whether an asset (code + issuer) exists on the network */
   assetExists(code: string, issuer: string): Promise<boolean>;
   /** The issuer's stellar.toml address for an asset, or null */
@@ -138,6 +142,7 @@ export function createChainGateway(db: Db): ChainGateway {
       prepareContractCall(xdr, await serverSecrets(db, signers)),
     submit,
     contractIsLive,
+    claimableFor,
     assetExists,
     assetTomlUrl,
     assetHolders: (code, issuer) => loadAssetHolders(new Asset(code, issuer)),

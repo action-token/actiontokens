@@ -26,8 +26,9 @@ import { useGift } from "./use-gift";
 /**
  * Gifts: give a fan some of your fan token, for example to lift them into a
  * membership tier. Pick a follower or type a username, email or wallet. The
- * price shown is everything you pay (the network fee); the tokens themselves
- * are newly issued, so nothing is taken from your balance.
+ * tokens come from your storage account (or are newly issued without one);
+ * the price shown is everything you pay: the network fee, plus 1 XLM held
+ * for a fan who has to claim it.
  */
 export function GiftsView() {
   const [recipient, setRecipient] = useState("");
@@ -64,7 +65,7 @@ export function GiftsView() {
       <PageHeader
         eyebrow="Sell"
         title="Gifts"
-        description="Give a fan some of your fan token, for example to lift them into a membership tier. They must already have added your token to their wallet."
+        description="Give a follower some of your fan token, for example to lift them into a membership tier. It comes from your storage account. A fan who hasn't added your token yet gets it as a gift to claim in the app."
       />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
@@ -174,6 +175,14 @@ export function GiftsView() {
             <p className="text-sm">
               <b className="num">{validAmount ? amount.toLocaleString() : "?"}</b>{" "}
               {quote.data.gift.code} to <b>{quote.data.gift.recipient.name ?? "this fan"}</b>
+              {quote.data.gift.from === "STORAGE" && (
+                <span className="text-fg-muted"> · from your storage</span>
+              )}
+            </p>
+          )}
+          {quote.data?.gift.claimable && (
+            <p className="text-fg-muted text-xs">
+              They haven&apos;t added your token yet, so they&apos;ll claim it in the Bandcoin app.
             </p>
           )}
           {typed.length === 0 ? (

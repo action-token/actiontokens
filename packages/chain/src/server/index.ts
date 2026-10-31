@@ -6,6 +6,8 @@ export {
   assetTomlUrl,
   findTransaction,
   availableOf,
+  claimableFor,
+  type ClaimableToken,
   fundsOf,
   otherAssetsOf,
   horizon,

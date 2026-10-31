@@ -54,9 +54,11 @@ funding source. One prize token per bounty, as now.
 - The fan token is sent from storage (the platform signs for storage), not
   newly issued, so the supply stays what was issued.
 - A fan with a trustline gets it straight away. Without one, storage creates
-  a claimable balance for them (like main); its 0.5 XLM reserve is paid by
+  a claimable balance for them (like main), claimable by the fan and by
+  storage (so it can come back). It locks 1 XLM (0.5 per claimant), paid by
   the artist and shown in the breakdown before they confirm. The fan claims
-  it in the app; opening their trustline is their own 0.5 XLM.
+  it on their wallet page; opening their trustline is their own 0.5 XLM.
+- Not yet: a button for the artist to take back an unclaimed gift.
 - No "Become a member" button: membership stays "you hold enough tokens".
 - Falls back to issuing only if the artist has no storage.
 

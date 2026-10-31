@@ -3,6 +3,8 @@ import type { Horizon } from "@stellar/stellar-sdk";
 
 import {
   buildIssueTokens,
+  buildStorageGift,
+  CLAIMABLE_RESERVE_XLM,
   networkFeeXlm,
   type RechargeProblem,
   toAmount,
@@ -17,19 +19,25 @@ import { type Context, type SessionUser, isCustodial } from "../../context";
 import { transitionOrder } from "../order-state";
 import { finishGift } from "../orders/finish";
 import { failOrder, ownOrder, userSignature } from "../purchase";
+import { creditLines, freeOf, openedStorage } from "./storage-withdraw";
 
 /**
- * Gifts: an artist gives some of their fan token to a fan, for example to
- * lift them into a membership tier. The new tokens are issued straight to the
- * fan's wallet. The artist's wallet is the transaction's source, so they pay
- * the network fee and nothing else; the platform's issuer key only co-signs.
+ * Gifts: an artist gives some of their fan token to one of their followers,
+ * for example to lift them into a membership tier, as on the old Bandcoin.
  *
- * Version 1 covers fan tokens issued by the artist's own Bandcoin account,
- * sent to Bandcoin fans who already trust the token. Collectibles, fans
- * without a trustline and email invites come later.
+ *   from storage   the tokens come out of the artist's storage account (the
+ *                  supply issued at approval), so nothing new is made. A fan
+ *                  without a trustline gets a claimable balance they accept
+ *                  in the fan app; the artist pays the 1 XLM it locks.
+ *   no storage     the old way: new tokens are issued to a fan who already
+ *                  trusts the token.
+ *
+ * The artist's wallet is the transaction's source and pays the network fee;
+ * the platform co-signs for storage (or the issuer). Collectibles and email
+ * invites come later.
  */
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
-type ArtistRef = { id: string; fanTokenItemId: string | null };
+type ArtistRef = { id: string; fanTokenItemId: string | null; storageAccountId: string | null };
 
 export const MAX_GIFT = 1_000_000;
 const MAX_FOLLOWERS_SHOWN = 50;
@@ -43,6 +51,10 @@ export type GiftBreakdown = {
   code: string;
   issuer: string;
   amount: number;
+  /** Where the tokens come from */
+  from?: "STORAGE" | "ISSUER";
+  /** The fan claims it later (they didn't trust the token yet) */
+  claimable?: boolean;
 };
 
 const holdsTrustline = (account: Horizon.AccountResponse, code: string, issuer: string) =>
@@ -96,12 +108,13 @@ async function prepare(
         },
       })
     : null;
+  const storage = await openedStorage(ctx, artist);
   if (!token)
     problems.push(unavailable("Create your fan token first (Memberships), then you can gift it."));
-  else if (token.isExternal || !token.issuerAccount)
+  else if (!storage && (token.isExternal || !token.issuerAccount))
     problems.push(
       unavailable(
-        "Gifts work for tokens issued by your Bandcoin artist account. Yours was issued elsewhere.",
+        "Your token was issued elsewhere, so gifts come from your storage account. Open it under Settings › Accounts.",
       ),
     );
 
@@ -118,6 +131,17 @@ async function prepare(
     );
   else if (recipient.id === user.id)
     problems.push(unavailable("You can't gift tokens to yourself."));
+  else if (
+    !(await db.follow.findUnique({
+      where: { userId_artistId: { userId: recipient.id, artistId: artist.id } },
+      select: { userId: true },
+    }))
+  )
+    problems.push(
+      unavailable(
+        `${recipient.name ?? "This fan"} doesn't follow you. Gifts go to your followers.`,
+      ),
+    );
 
   const account = await chain.loadAccount(user.walletAddress);
   if (!account)
@@ -125,50 +149,78 @@ async function prepare(
       unavailable("Your wallet needs its first XLM before it can pay the network fee."),
     );
 
-  if (token && recipient && recipient.id !== user.id && !token.isExternal) {
+  let claimable = false;
+  if (token && recipient && problems.length === 0) {
     const theirs = await chain.loadAccount(recipient.walletAddress);
-    if (!theirs || !holdsTrustline(theirs, token.code, token.issuer)) {
+    const trusts = Boolean(theirs && holdsTrustline(theirs, token.code, token.issuer));
+    if (storage) {
+      claimable = !trusts;
+      const held = await chain.loadAccount(storage.publicKey);
+      const line = creditLines(held).find(
+        (entry) => entry.asset_code === token.code && entry.asset_issuer === token.issuer,
+      );
+      const have = line ? freeOf(line) : 0n;
+      if (have < toStroops(String(input.amount)))
+        problems.push(
+          unavailable(
+            `Your storage has ${toDisplay(have)} ${token.code}. Move more in under Settings › Balances, or gift less.`,
+          ),
+        );
+    } else if (!trusts) {
       problems.push(
         unavailable(
-          `${recipient.name ?? "This fan"} hasn't added your token to their wallet yet, so it can't be sent to them. Ask them to follow you and open your page, then try again.`,
+          `${recipient.name ?? "This fan"} hasn't added your token to their wallet yet. Open your storage account (Settings › Accounts) to send it as a gift they can claim.`,
         ),
       );
     }
   }
 
-  const fee = toStroops(networkFeeXlm(1, chain.config.network.baseFee));
+  const fee = toStroops(networkFeeXlm(claimable ? 2 : 1, chain.config.network.baseFee));
+  const reserve = claimable ? toStroops(CLAIMABLE_RESERVE_XLM) : 0n;
   const xlm = fundsOf(account, chain.config.assets).XLM;
   if (problems.length === 0 && xlm !== null) {
     const have = toStroops(xlm);
-    if (have < fee) {
+    if (have < fee + reserve) {
       problems.push({
         code: "INSUFFICIENT_FUNDS",
-        message: `You need ${toDisplay(fee - have)} more XLM to pay the network fee.`,
+        message: `You need ${toDisplay(fee + reserve - have)} more XLM to send this.`,
         shortfall: {
           currency: "XLM",
-          need: toDisplay(fee),
+          need: toDisplay(fee + reserve),
           have: toDisplay(have),
-          short: toDisplay(fee - have),
+          short: toDisplay(fee + reserve - have),
         },
       });
     }
   }
-  return { token, recipient, account, fee, problems };
+  return { token, recipient, account, storage, claimable, fee, reserve, problems };
 }
 
 function priceOf(prepared: Awaited<ReturnType<typeof prepare>>, input: { amount: number }) {
-  const { token, recipient, fee, problems } = prepared;
+  const { token, recipient, storage, claimable, fee, reserve, problems } = prepared;
   return {
     ok: problems.length === 0,
     problems,
-    total: toAmount(fee),
+    total: toAmount(fee + reserve),
     lines: [
+      ...(claimable
+        ? [
+            {
+              key: "reserve",
+              label: "Holds the gift until they claim it",
+              currency: "XLM",
+              amount: toDisplay(reserve),
+            },
+          ]
+        : []),
       { key: "networkFee", label: "Network fee", currency: "XLM", amount: toDisplay(fee) },
-      { key: "total", label: "You pay", currency: "XLM", amount: toDisplay(fee) },
+      { key: "total", label: "You pay", currency: "XLM", amount: toDisplay(fee + reserve) },
     ],
-    /** What is being given, shown next to the price: the gift itself costs nothing, it is newly issued */
+    /** What is being given, shown next to the price: it comes from storage (or is newly issued) */
     gift: {
       amount: input.amount,
+      from: storage ? ("STORAGE" as const) : ("ISSUER" as const),
+      claimable,
       code: token?.code ?? null,
       recipient: recipient
         ? { id: recipient.id, name: recipient.name, image: recipient.image }
@@ -196,8 +248,8 @@ export async function startGift(
 ) {
   const prepared = await prepare(ctx, user, artist, input);
   const quote = priceOf(prepared, input);
-  const { token, recipient, account } = prepared;
-  if (!quote.ok || !token?.issuerAccount || !recipient || !account) {
+  const { token, recipient, account, storage, claimable } = prepared;
+  if (!quote.ok || !token || (!storage && !token.issuerAccount) || !recipient || !account) {
     throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, {
       message: quote.problems[0]?.message ?? "This can't go through right now.",
       details: { problems: quote.problems },
@@ -211,6 +263,8 @@ export async function startGift(
     code: token.code,
     issuer: token.issuer,
     amount: input.amount,
+    from: storage ? "STORAGE" : "ISSUER",
+    claimable,
   };
   const order = await ctx.db.order.create({
     data: {
@@ -234,15 +288,30 @@ export async function startGift(
     currency: "XLM",
   });
 
-  const built = buildIssueTokens({
-    sender: new Account(account.accountId(), account.sequenceNumber()),
-    network: ctx.chain.config.network,
-    issuer: token.issuerAccount.publicKey,
-    to: recipient.walletAddress,
-    asset: new Asset(token.code, token.issuer),
-    amount: toAmount(toStroops(String(input.amount))),
-    memo: order.id,
-  });
+  const sender = new Account(account.accountId(), account.sequenceNumber());
+  const asset = new Asset(token.code, token.issuer);
+  const amount = toAmount(toStroops(String(input.amount)));
+  const { network } = ctx.chain.config;
+  const built = storage
+    ? buildStorageGift({
+        sender,
+        network,
+        storage: storage.publicKey,
+        to: recipient.walletAddress,
+        asset,
+        amount,
+        claimable,
+        memo: order.id,
+      })
+    : buildIssueTokens({
+        sender,
+        network,
+        issuer: (token.issuerAccount as { publicKey: string }).publicKey,
+        to: recipient.walletAddress,
+        asset,
+        amount,
+        memo: order.id,
+      });
   // The hash doesn't change when signatures are added, so it pins the exact transaction.
   await transitionOrder(ctx.db, order.id, "AWAITING_SIGNATURE", { txHash: built.hash });
   return {
@@ -253,10 +322,11 @@ export async function startGift(
   };
 }
 
-/** Sends the gift: the artist's signature (their wallet, or the server's after the countdown), then the issuer's. */
+/** Sends the gift: the artist's signature (their wallet, or the server's after the countdown), then storage's or the issuer's. */
 export async function submitGift(
   ctx: ServiceCtx,
   user: SessionUser,
+  artist: Pick<ArtistRef, "storageAccountId">,
   input: { orderId: string; xdr: string },
 ) {
   const { chain, db } = ctx;
@@ -282,16 +352,20 @@ export async function submitGift(
   const gift = (order.breakdown as { giftDetails?: GiftBreakdown } | null)?.giftDetails;
   if (!gift) throw new AppError(ErrorCodes.INTERNAL, { message: "This order has no gift." });
 
-  // The issuer account is looked up from the token, never taken from the request.
-  const token = await db.classicToken.findUnique({
-    where: { itemId: gift.itemId },
-    select: { issuerAccount: { select: { publicKey: true } } },
-  });
-  if (!token?.issuerAccount)
-    throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Order not found" });
+  // The co-signing account is looked up here, never taken from the request; the hash pins the payment.
+  const signer =
+    gift.from === "STORAGE"
+      ? (await openedStorage(ctx, artist))?.publicKey
+      : (
+          await db.classicToken.findUnique({
+            where: { itemId: gift.itemId },
+            select: { issuerAccount: { select: { publicKey: true } } },
+          })
+        )?.issuerAccount?.publicKey;
+  if (!signer) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Order not found" });
 
   let xdr = await userSignature(ctx, user, order.txHash, input.xdr);
-  xdr = await chain.signWithServerKeys(xdr, [token.issuerAccount.publicKey]);
+  xdr = await chain.signWithServerKeys(xdr, [signer]);
 
   await transitionOrder(db, order.id, "SUBMITTED");
   try {

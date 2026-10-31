@@ -37,6 +37,7 @@ import { api, type RouterOutputs } from "~/trpc/react";
 
 import { ItemCard } from "../catalog/item-card";
 import { ActivateWallet } from "../recharge/activate-wallet";
+import { GiftsToClaim } from "./gifts-to-claim";
 
 type Me = NonNullable<RouterOutputs["account"]["me"]>;
 
@@ -68,6 +69,7 @@ export function WalletView() {
       {!me.data.activated && me.data.walletAddress && (
         <ActivateWallet address={me.data.walletAddress} />
       )}
+      <GiftsToClaim />
       <Tabs defaultValue="history">
         <TabsList className="grid w-full max-w-sm grid-cols-2">
           <TabsTrigger value="history">History</TabsTrigger>
