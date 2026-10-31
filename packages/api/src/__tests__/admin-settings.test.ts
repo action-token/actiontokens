@@ -10,6 +10,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { Db } from "@bandcoin/db";
 
 import { changeContractFee, readContractFee } from "../services/admin/contract-fee";
+import { DEFAULT_ALERT_RULES } from "../services/admin/alerts";
 import { getSettings, updateSettings } from "../services/admin/settings";
 import type { ChainGateway } from "../services/chain-gateway";
 
@@ -75,6 +76,7 @@ const saved = {
   vanityNameChangeBandcoin: null,
   vanityNameChangeUsd: null,
   nearbyPinRadiusMeters: 500,
+  alertRules: DEFAULT_ALERT_RULES,
 };
 
 describe("saved settings", () => {

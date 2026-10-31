@@ -74,6 +74,7 @@ describe("portal navigation", () => {
       "Mural review",
       "Bounties",
       "Items",
+      "Alerts",
       "Settings",
       "Activity",
     ]);

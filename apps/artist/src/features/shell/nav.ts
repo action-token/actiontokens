@@ -1,6 +1,7 @@
 import {
   BadgeCheck,
   BarChart3,
+  BellRing,
   CalendarDays,
   Code2,
   Coins,
@@ -65,6 +66,7 @@ const ADMIN: NavGroup = {
     { href: "/admin/murals", icon: Frame, label: "Mural review" },
     { href: "/admin/bounties", icon: Trophy, label: "Bounties" },
     { href: "/admin/items", icon: Package, label: "Items" },
+    { href: "/admin/alerts", icon: BellRing, label: "Alerts" },
     { href: "/admin/settings", icon: SlidersHorizontal, label: "Settings" },
     { href: "/admin/activity", icon: ListChecks, label: "Activity" },
   ],

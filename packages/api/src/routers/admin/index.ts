@@ -3,6 +3,7 @@ import { z } from "zod";
 import { NFT_MAX_PLATFORM_FEE_BPS } from "@bandcoin/chain";
 
 import { ACTIVITY_KINDS, listActivity } from "../../services/admin/activity";
+import { listAlerts, listReviewedAlerts, reviewAlert } from "../../services/admin/alerts";
 import {
   decideMural,
   editMural,
@@ -203,6 +204,19 @@ export const adminRouter = createRouter({
         updateMuralSettings({ ...ctx, adminId: ctx.session.user.id }, input),
       ),
   }),
+  alerts: createRouter({
+    list: adminProcedure.query(({ ctx }) => listAlerts(ctx)),
+    reviewed: adminProcedure.query(({ ctx }) => listReviewedAlerts(ctx)),
+    review: adminProcedure
+      .input(
+        z.object({
+          key: z.string().min(1).max(500),
+          kind: z.enum(["failedPayments", "signInFailures", "fastClaims", "largeOrder", "stuck"]),
+          note: z.string().max(300).optional(),
+        }),
+      )
+      .mutation(({ ctx, input }) => reviewAlert(ctx, ctx.session.user, input)),
+  }),
   settings: createRouter({
     get: adminProcedure.query(({ ctx }) => getSettings(ctx)),
     update: adminProcedure
@@ -215,6 +229,13 @@ export const adminRouter = createRouter({
           vanityNameChangeBandcoin: amount,
           vanityNameChangeUsd: amount,
           nearbyPinRadiusMeters: z.number().min(10).max(50_000),
+          alertRules: z.object({
+            failedPayments: z.number().int().min(1).max(1000),
+            signInFailures: z.number().int().min(1).max(10_000),
+            claimSpeedKmh: z.number().min(10).max(5000),
+            largeOrderUsd: z.number().min(1).max(10_000_000),
+            stuckMinutes: z.number().int().min(1).max(10_080),
+          }),
         }),
       )
       .mutation(({ ctx, input }) => updateSettings(ctx, input)),

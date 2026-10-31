@@ -1,4 +1,5 @@
 import type { Context } from "../../context";
+import { type AlertRules, rulesOf } from "./alerts";
 
 /**
  * Admin › Settings: the one AppSetting row (id 1). The platform fee here is
@@ -20,6 +21,7 @@ export type SettingsInput = {
   vanityNameChangeBandcoin: string | null;
   vanityNameChangeUsd: string | null;
   nearbyPinRadiusMeters: number;
+  alertRules: AlertRules;
 };
 
 const LABELS: Record<keyof SettingsInput, string> = {
@@ -30,6 +32,7 @@ const LABELS: Record<keyof SettingsInput, string> = {
   vanityNameChangeBandcoin: "Short link name change (BANDCOIN)",
   vanityNameChangeUsd: "Short link name change (USD)",
   nearbyPinRadiusMeters: "Nearby pin radius",
+  alertRules: "Alert thresholds",
 };
 
 async function savedSettings(ctx: Pick<Context, "db">): Promise<SettingsInput> {
@@ -44,6 +47,7 @@ async function savedSettings(ctx: Pick<Context, "db">): Promise<SettingsInput> {
     vanityNameChangeBandcoin: money(row?.vanityNameChangeBandcoin),
     vanityNameChangeUsd: money(row?.vanityNameChangeUsd),
     nearbyPinRadiusMeters: row?.nearbyPinRadiusMeters ?? 500,
+    alertRules: rulesOf(row?.alertRules),
   };
 }
 
@@ -57,7 +61,7 @@ export async function updateSettings(ctx: ServiceCtx, input: SettingsInput) {
   const before = await savedSettings(ctx);
   await ctx.db.appSetting.upsert({ where: { id: 1 }, create: { id: 1, ...input }, update: input });
   const changes = (Object.keys(LABELS) as (keyof SettingsInput)[])
-    .filter((key) => String(before[key] ?? "") !== String(input[key] ?? ""))
+    .filter((key) => JSON.stringify(before[key] ?? "") !== JSON.stringify(input[key] ?? ""))
     .map((key) => ({ field: key, label: LABELS[key], before: before[key], after: input[key] }));
   return { changes };
 }

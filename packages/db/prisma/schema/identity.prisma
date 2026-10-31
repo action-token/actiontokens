@@ -45,6 +45,7 @@ model User {
   collections          ItemCollection[]
   collectionLikes      CollectionLike[]
   redeemClaims         RedeemClaim[]
+  alertReviews         AdminAlertReview[]    @relation("AlertReviewer")
   playlists            Playlist[]
   trackFavorites       TrackFavorite[]
   stemMixes            StemMix[]

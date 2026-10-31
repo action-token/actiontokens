@@ -13,9 +13,25 @@ model AppSetting {
   vanityNameChangeUsd      Decimal? @db.Decimal(20, 7)
   /// { TEXT: per 1k tokens, IMAGE: per image, MUSIC: per 30 s, VIDEO: per 5 s }
   studioPrices             Json?
+  /// Admin › Alerts thresholds; missing keys use the defaults in services/admin/alerts.ts
+  alertRules               Json?
   updatedAt                DateTime @updatedAt
 
   @@map("app_settings")
+}
+
+/// An admin marked one alert as looked at, so it leaves the Alerts list. The
+/// key names the exact occurrence (kind, who, latest event), so a new
+/// occurrence shows again.
+model AdminAlertReview {
+  key        String   @id
+  kind       String
+  reviewerId String?
+  reviewer   User?    @relation("AlertReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@map("admin_alert_reviews")
 }
 
 /// Every object we put in S3, so unused uploads can be cleaned up.

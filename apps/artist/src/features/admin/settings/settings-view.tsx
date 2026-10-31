@@ -18,7 +18,18 @@ import { SettingsSection } from "../../settings/settings-section";
 import { ContractFeeCard } from "./contract-fee-card";
 
 type Saved = RouterOutputs["admin"]["settings"]["get"]["saved"];
-type Form = Record<keyof Saved, string>;
+type Rules = Saved["alertRules"];
+type RuleKey = keyof Rules;
+type Form = Record<Exclude<keyof Saved, "alertRules"> | RuleKey, string>;
+
+/** Alert thresholds: label, unit and the range the server accepts. */
+const RULES: { key: RuleKey; label: string; min: number; max: number }[] = [
+  { key: "failedPayments", label: "Failed payments in 24 h", min: 1, max: 1000 },
+  { key: "signInFailures", label: "Failed sign-ins from one IP in 1 h", min: 1, max: 10_000 },
+  { key: "claimSpeedKmh", label: "Claim speed limit (km/h)", min: 10, max: 5000 },
+  { key: "largeOrderUsd", label: "Large payment (USD)", min: 1, max: 10_000_000 },
+  { key: "stuckMinutes", label: "Payment stuck after (minutes)", min: 1, max: 10_080 },
+];
 
 const ACCOUNT = /^G[A-Z2-7]{55}$/;
 const AMOUNT = /^\d+(\.\d{1,7})?$/;
@@ -37,6 +48,9 @@ const toForm = (saved: Saved): Form => ({
   vanityNameChangeBandcoin: saved.vanityNameChangeBandcoin ?? "",
   vanityNameChangeUsd: saved.vanityNameChangeUsd ?? "",
   nearbyPinRadiusMeters: String(saved.nearbyPinRadiusMeters),
+  ...(Object.fromEntries(
+    RULES.map((rule) => [rule.key, String(saved.alertRules[rule.key])]),
+  ) as Record<RuleKey, string>),
 });
 
 function errorsOf(form: Form) {
@@ -51,10 +65,15 @@ function errorsOf(form: Form) {
     if (form[key].trim() && !AMOUNT.test(form[key].trim())) errors[key] = "A number";
   if (Number.isNaN(radius) || radius < 10 || radius > 50_000)
     errors.nearbyPinRadiusMeters = "10 to 50,000 m";
+  for (const rule of RULES) {
+    const value = Number(form[rule.key]);
+    if (form[rule.key].trim() === "" || Number.isNaN(value) || value < rule.min || value > rule.max)
+      errors[rule.key] = `${rule.min.toLocaleString("en")} to ${rule.max.toLocaleString("en")}`;
+  }
   return errors;
 }
 
-/** Admin › Settings: the platform fee, short link prices and the pin radius, then the contract-NFT fee. */
+/** Admin › Settings: the platform fee, short link prices, the pin radius and alert thresholds, then the contract-NFT fee. */
 export function AdminSettingsView() {
   const settings = api.admin.settings.get.useQuery(undefined, { refetchOnWindowFocus: false });
   return (
@@ -114,6 +133,9 @@ function SavedForm({ saved, treasury }: { saved: Saved; treasury: string }) {
           vanityNameChangeBandcoin: money("vanityNameChangeBandcoin"),
           vanityNameChangeUsd: money("vanityNameChangeUsd"),
           nearbyPinRadiusMeters: Number(form.nearbyPinRadiusMeters),
+          alertRules: Object.fromEntries(
+            RULES.map((rule) => [rule.key, Number(form[rule.key])]),
+          ) as Rules,
         });
       }}
     >
@@ -210,6 +232,29 @@ function SavedForm({ saved, treasury }: { saved: Saved; treasury: string }) {
             onChange={set("nearbyPinRadiusMeters")}
           />
         </Field>
+      </SettingsSection>
+
+      <SettingsSection
+        title="Alert thresholds"
+        description="When something shows up on the Alerts page."
+      >
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {RULES.map((rule) => (
+            <Field
+              key={rule.key}
+              label={rule.label}
+              htmlFor={`rule-${rule.key}`}
+              error={errors[rule.key]}
+            >
+              <Input
+                id={`rule-${rule.key}`}
+                inputMode="numeric"
+                value={form[rule.key]}
+                onChange={set(rule.key)}
+              />
+            </Field>
+          ))}
+        </div>
       </SettingsSection>
 
       <div className="flex justify-end gap-2 border-t pt-4">
