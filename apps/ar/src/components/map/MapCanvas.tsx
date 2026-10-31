@@ -5,7 +5,6 @@ import Supercluster, { type ClusterProperties } from "supercluster";
 import { AR_CAPTURE_RADIUS, distanceMeters } from "@bandcoin/ar-core/ar/geo";
 import type { ArPin, Coords, GeoFix } from "@bandcoin/ar-core/ar/types";
 import {
-  lightStandardStyle,
   mapStyleFor,
   type ResolvedTheme,
   useMapMode,
@@ -237,11 +236,6 @@ export const MapCanvas = forwardRef<MapCanvasHandle, Props>(function MapCanvas(
       essential: true,
     });
   }, [is3d, ready]);
-
-  // 3D is one style for both themes; the theme sets its day or night light.
-  useEffect(() => {
-    if (ready) lightStandardStyle(mapRef.current?.getMap(), mapMode, theme);
-  }, [ready, mapMode, theme]);
 
   // Follow the fix while the viewer hasn't taken the wheel.
   useEffect(() => {

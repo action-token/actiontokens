@@ -30,35 +30,21 @@ const THEME_COLOR: Record<ResolvedTheme, string> = {
 };
 
 /**
- * The 3D look: Mapbox Standard (3D buildings, landmarks, lighting) with its
- * day or night light preset per theme (`standardLightPreset`). One style URL
- * for both, so a theme switch changes the light, not the style.
+ * The 3D look, per theme, from Wadzzo: "Wadzzo 3D Dark/Light" in Mapbox Studio
+ * (account: wadzzo), Mapbox Standard with 3D buildings, landmarks and lighting
+ * and a colour theme of its own. Needs Wadzzo's Mapbox token
+ * (NEXT_PUBLIC_MAPBOX_API), which owns the styles.
  */
-export const MAP_STYLE_3D = "mapbox://styles/mapbox/standard";
-
-/** Standard's light preset for a theme. Apply with `setConfigProperty("basemap", "lightPreset", …)`. */
-export const standardLightPreset = (theme: ResolvedTheme) => (theme === "dark" ? "night" : "day");
-
-/** Sets Standard's light preset when the 3D style is showing; a no-op on the flat styles. */
-export function lightStandardStyle(
-  map:
-    { setConfigProperty?: (importId: string, key: string, value: string) => unknown } | undefined,
-  mode: MapMode,
-  theme: ResolvedTheme,
-) {
-  if (mode !== "3d" || !map?.setConfigProperty) return;
-  try {
-    map.setConfigProperty("basemap", "lightPreset", standardLightPreset(theme));
-  } catch {
-    // The style is still loading; the next style.load applies it.
-  }
-}
+export const MAP_STYLE_3D: Record<ResolvedTheme, string> = {
+  dark: "mapbox://styles/wadzzo/cmuwbonsf00rv01sdcun4fhdu",
+  light: "mapbox://styles/wadzzo/cmuwc16ut00gz01sd6359b3sw",
+};
 
 /**
  * ── Map mode: 2D / 3D ──────────────────────────────────────────────────────
  *
  * "2d" is the default: a flat Mapbox Light (day) / Dark (night) basemap seen
- * straight down. "3d" is Mapbox Standard with 3D buildings, tilted. The choice is stored per device and shared by every map
+ * straight down. "3d" is the Wadzzo 3D style above (Mapbox Standard with 3D buildings), tilted. The choice is stored per device and shared by every map
  * in the app, so flipping it on the main map also applies to directions, a
  * collected card's mini-map and the embed.
  */
@@ -73,7 +59,7 @@ export const MAP_STYLE_2D: Record<ResolvedTheme, string> = {
 
 /** The basemap style for a mode + live theme. */
 export function mapStyleFor(mode: MapMode, theme: ResolvedTheme): string {
-  return mode === "3d" ? MAP_STYLE_3D : MAP_STYLE_2D[theme];
+  return mode === "3d" ? MAP_STYLE_3D[theme] : MAP_STYLE_2D[theme];
 }
 
 const mapModeListeners = new Set<() => void>();

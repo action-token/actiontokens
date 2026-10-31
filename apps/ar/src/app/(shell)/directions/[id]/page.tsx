@@ -58,7 +58,6 @@ import { formatDuration, formatNavDistance } from "~/lib/ar/navigation";
 import { RARITY_META } from "@bandcoin/ar-core/ar/rarity";
 import { MapModeButton } from "~/components/map/MapModeButton";
 import {
-  lightStandardStyle,
   mapStyleFor,
   setMapMode,
   useMapMode,
@@ -193,16 +192,8 @@ export default function DirectionsScreen() {
   const styleUrl = mapStyleFor(mapMode, theme);
   const styleUrlRef = useRef(styleUrl);
   styleUrlRef.current = styleUrl;
-  const mapModeRef = useRef(mapMode);
-  mapModeRef.current = mapMode;
-  const themeRef = useRef(theme);
-  themeRef.current = theme;
   const [loadedStyle, setLoadedStyle] = useState<string | null>(null);
   const styleReady = loadedStyle === styleUrl;
-  // 3D is one style for both themes, so a theme switch only changes its light.
-  useEffect(() => {
-    if (styleReady) lightStandardStyle(mapRef.current?.getMap(), mapMode, theme);
-  }, [styleReady, mapMode, theme]);
   const mapRef = useRef<MapRef | null>(null);
   const arrowRef = useRef<HTMLDivElement | null>(null);
   const dialRef = useRef<HTMLDivElement | null>(null);
@@ -627,7 +618,6 @@ export default function DirectionsScreen() {
                   });
               });
               map.on("style.load", () => {
-                lightStandardStyle(map, mapModeRef.current, themeRef.current);
                 setLoadedStyle(styleUrlRef.current);
               });
               if (map.isStyleLoaded()) setLoadedStyle(styleUrlRef.current);
