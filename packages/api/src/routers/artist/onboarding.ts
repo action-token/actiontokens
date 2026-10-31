@@ -37,7 +37,7 @@ export const onboardingRouter = createRouter({
               mode: z.literal("EXISTING"),
               code: z.string().trim(),
               issuer: z.string().trim(),
-              coverUrl: z.string().url(),
+              coverUrl: z.string().url().optional(),
             }),
           ])
           .optional(),

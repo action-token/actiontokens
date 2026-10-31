@@ -25,7 +25,15 @@ import { api } from "~/trpc/react";
 import { AiImagePanel } from "../../ai/ai-image-panel";
 import { AiTextButton } from "../../ai/ai-text-button";
 import { ChangeBadge, UploadArea } from "./image-picker";
-import { BIO_MAX, codeProblem, type Draft, issuerProblem, NAME_MAX, slugProblem } from "./model";
+import {
+  BIO_MAX,
+  codeProblem,
+  type Draft,
+  issuerProblem,
+  NAME_MAX,
+  slugProblem,
+  tokenPicture,
+} from "./model";
 
 type Set = (patch: Partial<Draft>) => void;
 
@@ -211,6 +219,7 @@ export function ProfileStep({ draft, set }: { draft: Draft; set: Set }) {
 export function TokenStep({ draft, set, check }: { draft: Draft; set: Set; check: LiveCheck }) {
   const isNew = draft.tokenMode === "NEW";
   const code = isNew ? draft.code : draft.existingCode;
+  const picture = tokenPicture(draft);
   const problem = code ? codeProblem(code) : null;
   return (
     <div className="grid gap-6">
@@ -241,21 +250,21 @@ export function TokenStep({ draft, set, check }: { draft: Draft; set: Set; check
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-start">
         <div className="grid justify-items-center gap-2">
           <UploadArea
-            label={draft.tokenImage ? "Change the token image" : "Add a token image"}
+            label={picture ? "Change the token image" : "Add a token image"}
             onChange={(tokenImage) => set({ tokenImage })}
             className="size-28 overflow-visible rounded-full"
           >
             <span
               className={cn(
                 "flex size-full items-center justify-center overflow-hidden rounded-full",
-                draft.tokenImage
+                picture
                   ? "border-border border"
                   : "bg-surface-2 outline-primary text-fg-muted group-hover:text-fg outline-2 -outline-offset-4 outline-dashed",
               )}
             >
-              {draft.tokenImage ? (
-                // eslint-disable-next-line @next/next/no-img-element -- images come from our storage
-                <img src={draft.tokenImage} alt="" className="size-full object-cover" />
+              {picture ? (
+                // eslint-disable-next-line @next/next/no-img-element -- ours, or the issuer's published image
+                <img src={picture} alt="" className="size-full object-cover" />
               ) : (
                 <span className="grid justify-items-center gap-0.5 text-xs font-semibold">
                   <ImagePlus className="size-5" />
@@ -263,9 +272,22 @@ export function TokenStep({ draft, set, check }: { draft: Draft; set: Set; check
                 </span>
               )}
             </span>
-            {draft.tokenImage && <ChangeBadge className="right-0 bottom-0" />}
+            {picture && <ChangeBadge className="right-0 bottom-0" />}
           </UploadArea>
-          <p className="text-fg-faint text-xs">Square, round crop</p>
+          <p className="text-fg-faint max-w-36 text-center text-xs">
+            {isNew
+              ? "Square, round crop"
+              : draft.tokenImage
+                ? "Your own image"
+                : draft.stellarImage
+                  ? "From Stellar · click to use another"
+                  : "Optional · we use your photo"}
+          </p>
+          {!isNew && draft.tokenImage && (
+            <Button type="button" variant="ghost" size="xs" onClick={() => set({ tokenImage: "" })}>
+              {draft.stellarImage ? "Use the Stellar image" : "Remove"}
+            </Button>
+          )}
         </div>
 
         {isNew ? (
@@ -320,16 +342,18 @@ export function TokenStep({ draft, set, check }: { draft: Draft; set: Set; check
         )}
       </div>
 
-      <AiImagePanel
-        form="profile"
-        aspect="square"
-        label="Make the token image with AI"
-        suggestedPrompt={tokenBrief(draft, code)}
-        onImage={(tokenImage) => set({ tokenImage })}
-      />
+      {isNew && (
+        <AiImagePanel
+          form="profile"
+          aspect="square"
+          label="Make the token image with AI"
+          suggestedPrompt={tokenBrief(draft, code)}
+          onImage={(tokenImage) => set({ tokenImage })}
+        />
+      )}
 
-      {code && !problem && draft.tokenImage && (
-        <TokenChip image={draft.tokenImage} code={code} note={isNew ? "New" : "Your own"} />
+      {code && !problem && picture && (
+        <TokenChip image={picture} code={code} note={isNew ? "New" : "Your own"} />
       )}
     </div>
   );
@@ -490,9 +514,13 @@ export function ReviewSummary({ draft, onEdit }: { draft: Draft; onEdit: (step: 
         <dl className="border-border divide-border divide-y border-t text-sm">
           <Row label="Fan token" onEdit={() => onEdit(1)}>
             <span className="flex items-center gap-2">
-              {draft.tokenImage && (
-                // eslint-disable-next-line @next/next/no-img-element -- images come from our storage
-                <img src={draft.tokenImage} alt="" className="size-6 rounded-full object-cover" />
+              {tokenPicture(draft) && (
+                // eslint-disable-next-line @next/next/no-img-element -- ours, or the issuer's published image
+                <img
+                  src={tokenPicture(draft)}
+                  alt=""
+                  className="size-6 rounded-full object-cover"
+                />
               )}
               <span className="font-mono font-semibold tracking-wider">{code}</span>
               <span className="text-fg-muted">

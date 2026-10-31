@@ -9,13 +9,14 @@ import {
 import { QUOTE_TTL_SECONDS } from "@bandcoin/chain/quote";
 import { encryptSecret, fundsOf } from "@bandcoin/chain/server";
 import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
-import { isOwnS3Url } from "@bandcoin/storage";
+import { copyImageToBucket, isOwnS3Url } from "@bandcoin/storage";
 import { normalizeAssetCode, validateAssetCode } from "@bandcoin/utils/asset-code";
 import { slugFromName, validateSlug } from "@bandcoin/utils/slug";
 
 import { type Context, isCustodial, type SessionUser } from "../../context";
 import { checkExistingToken, type TokenCheck } from "./fan-token";
 import { checkOwnUrls, invalid } from "./items";
+import { existingTokenImage } from "./token-image";
 import { transitionOrder } from "../order-state";
 import { deliverOrder, failOrder, ownOrder, userSignature } from "../purchase";
 
@@ -40,13 +41,18 @@ export type PendingFanToken =
   | { mode: "NEW"; code: string; coverUrl: string }
   | { mode: "EXISTING"; code: string; issuer: string; coverUrl: string };
 
+/** As sent from the wizard: a token already on Stellar may come without an image (we read its own). */
+export type FanTokenChoice =
+  | { mode: "NEW"; code: string; coverUrl: string }
+  | { mode: "EXISTING"; code: string; issuer: string; coverUrl?: string };
+
 export type ApplicationInput = {
   name: string;
   slug?: string;
   bio?: string;
   avatarUrl?: string;
   coverUrl?: string;
-  fanToken?: PendingFanToken;
+  fanToken?: FanTokenChoice;
 };
 
 /** Is this page address free for this person? For the live check while they type. */
@@ -71,34 +77,44 @@ export async function checkToken(
   ctx: Pick<Context, "db" | "chain">,
   user: SessionUser,
   input: { code: string; issuer: string },
-): Promise<TokenCheck> {
+): Promise<TokenCheck & { image?: string | null }> {
   const artist = await ctx.db.artist.findUnique({
     where: { userId: user.id },
     select: { id: true },
   });
-  return checkExistingToken(ctx, { id: artist?.id ?? "" }, input);
+  const check = await checkExistingToken(ctx, { id: artist?.id ?? "" }, input);
+  // Found it: also show the image its issuer published, so there's nothing to upload.
+  return check.status === "OK"
+    ? { ...check, image: await existingTokenImage(ctx, { code: check.code, issuer: input.issuer }) }
+    : check;
 }
 
 async function checkFanToken(
   ctx: Pick<Context, "db" | "chain">,
   user: SessionUser,
-  token: PendingFanToken,
-) {
-  checkOwnUrls({ cover: token.coverUrl });
+  token: FanTokenChoice,
+  avatarUrl: string | undefined,
+): Promise<PendingFanToken> {
+  if (token.coverUrl !== undefined) checkOwnUrls({ cover: token.coverUrl });
   const code = normalizeAssetCode(token.code);
   const problem = validateAssetCode(code);
   if (problem) throw invalid(problem);
   if (code.length < 4) throw invalid("Use 4 to 12 letters or numbers");
-  if (token.mode === "NEW") return { mode: "NEW" as const, code, coverUrl: token.coverUrl };
+  if (token.mode === "NEW") return { mode: "NEW", code, coverUrl: token.coverUrl };
   const check = await checkToken(ctx, user, { code, issuer: token.issuer });
   if (check.status !== "OK")
     throw check.status === "USED"
       ? new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: check.message })
       : invalid(check.message);
-  return { mode: "EXISTING" as const, code, issuer: token.issuer, coverUrl: token.coverUrl };
+  // No image picked: copy the one its issuer published (their link could change), else their photo.
+  const coverUrl =
+    token.coverUrl ??
+    (check.image ? await copyImageToBucket(check.image).catch(() => null) : null) ??
+    avatarUrl;
+  if (!coverUrl) throw invalid("Add an image for your token.");
+  return { mode: "EXISTING", code, issuer: token.issuer, coverUrl };
 }
 
-/** The person's own application as they last sent it, to fill the wizard back in (null before they apply). */
 export async function getApplication(ctx: Pick<Context, "db">, user: SessionUser) {
   const artist = await ctx.db.artist.findUnique({
     where: { userId: user.id },
@@ -149,7 +165,9 @@ export async function applyAsArtist(
   if (taken && taken.id !== existing?.id) {
     throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "That page address is taken" });
   }
-  const fanToken = input.fanToken ? await checkFanToken(ctx, user, input.fanToken) : undefined;
+  const fanToken = input.fanToken
+    ? await checkFanToken(ctx, user, input.fanToken, input.avatarUrl)
+    : undefined;
 
   const details = {
     name,

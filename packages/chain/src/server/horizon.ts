@@ -32,6 +32,14 @@ export async function assetExists(code: string, issuer: string): Promise<boolean
   return page.records.length > 0;
 }
 
+/** Where the asset's issuer publishes its stellar.toml (from its home domain), or null. */
+export async function assetTomlUrl(code: string, issuer: string): Promise<string | null> {
+  const page = await horizon().assets().forCode(code).forIssuer(issuer).limit(1).call();
+  const href = (page.records[0] as { _links?: { toml?: { href?: string } } } | undefined)?._links
+    ?.toml?.href;
+  return href?.startsWith("https://") ? href : null;
+}
+
 const line = (account: Horizon.AccountResponse, asset: Asset) =>
   account.balances.find(
     (balance) =>

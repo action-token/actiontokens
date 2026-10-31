@@ -14,8 +14,12 @@ import { portalRouter } from "../root-portal";
 import type { ChainGateway } from "../services/chain-gateway";
 import { createCallerFactory } from "../trpc";
 
+const tokenImage = vi.hoisted(() => vi.fn().mockResolvedValue(null));
+vi.mock("../services/artist/token-image", () => ({ existingTokenImage: tokenImage }));
 vi.mock("@bandcoin/storage", () => ({
   isOwnS3Url: (url: string) => url.startsWith("https://cdn.example/"),
+  copyImageToBucket: (url: string) =>
+    Promise.resolve(`https://cdn.example/copied-of-${url.split("/").pop()}`),
 }));
 import {
   applyAsArtist,
@@ -228,6 +232,30 @@ describe("applyAsArtist", () => {
       coverUrl: "https://cdn.example/cover.jpg",
       pendingFanToken: { mode: "NEW", code: "LUNA", coverUrl: "https://cdn.example/token.png" },
     });
+  });
+
+  it("uses the image a token already on Stellar publishes, else the profile photo", async () => {
+    const issuer = Keypair.random().publicKey();
+    const existing = { mode: "EXISTING" as const, code: "LUNA", issuer };
+    tokenImage.mockResolvedValueOnce("https://luna.example/luna.png");
+    const published = setup();
+    await applyAsArtist(published.ctx, me, { name: "Luna Vale", fanToken: existing });
+    expect(published.artists.get("a1")).toMatchObject({
+      pendingFanToken: { ...existing, coverUrl: "https://cdn.example/copied-of-luna.png" },
+    });
+
+    const none = setup();
+    await applyAsArtist(none.ctx, me, {
+      name: "Luna Vale",
+      avatarUrl: "https://cdn.example/me.jpg",
+      fanToken: existing,
+    });
+    expect(none.artists.get("a1")).toMatchObject({
+      pendingFanToken: { coverUrl: "https://cdn.example/me.jpg" },
+    });
+    await expect(
+      applyAsArtist(setup().ctx, me, { name: "Luna Vale", fanToken: existing }),
+    ).rejects.toThrow(/Add an image/);
   });
 
   it("checks a token already on Stellar, and refuses uploads from elsewhere or a short code", async () => {

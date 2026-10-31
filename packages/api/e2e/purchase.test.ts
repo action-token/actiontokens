@@ -72,6 +72,7 @@ function fakeAccount(id: string): Horizon.AccountResponse | null {
 const chain: ChainGateway = {
   prepareContractCall: (xdr) => Promise.resolve(xdr),
   editionIdByRef: () => Promise.resolve(null),
+  assetTomlUrl: () => Promise.resolve(null),
   nftFeeSettings: () => Promise.resolve({ feeBps: 0, treasury: null, owner: null }),
   assetExists: () => Promise.resolve(true),
   assetHolders: () => Promise.resolve({ holders: [], complete: true }),

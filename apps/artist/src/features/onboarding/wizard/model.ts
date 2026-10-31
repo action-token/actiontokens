@@ -14,6 +14,8 @@ export type Draft = {
   existingCode: string;
   issuer: string;
   tokenImage: string;
+  /** The image an existing token already shows on Stellar (from the live check; not saved) */
+  stellarImage: string;
   slug: string;
   slugTouched: boolean;
 };
@@ -29,6 +31,7 @@ export const EMPTY_DRAFT: Draft = {
   existingCode: "",
   issuer: "",
   tokenImage: "",
+  stellarImage: "",
   slug: "",
   slugTouched: false,
 };
@@ -67,10 +70,8 @@ export function stepReady(step: number, draft: Draft, live: { slugOk: boolean; t
     case 1:
       return draft.tokenMode === "NEW"
         ? !codeProblem(draft.code) && Boolean(draft.tokenImage)
-        : !codeProblem(draft.existingCode) &&
-            !issuerProblem(draft.issuer) &&
-            live.tokenOk &&
-            Boolean(draft.tokenImage);
+        : // Its image comes from Stellar (or their photo), so picking one is optional.
+          !codeProblem(draft.existingCode) && !issuerProblem(draft.issuer) && live.tokenOk;
     case 2:
       return !slugProblem(draft.slug) && live.slugOk;
     default:
@@ -86,8 +87,12 @@ export const fanTokenOf = (draft: Draft) =>
         mode: "EXISTING" as const,
         code: normalizeAssetCode(draft.existingCode),
         issuer: draft.issuer.trim(),
-        coverUrl: draft.tokenImage,
+        ...(draft.tokenImage ? { coverUrl: draft.tokenImage } : {}),
       };
+
+/** The token's picture as it will be: theirs, else Stellar's (existing tokens), else their photo. */
+export const tokenPicture = (draft: Draft) =>
+  draft.tokenImage || (draft.tokenMode === "EXISTING" ? draft.stellarImage || draft.avatarUrl : "");
 
 const storageKey = (userId: string) => `bandcoin-onboarding:${userId}`;
 

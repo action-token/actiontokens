@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { codeProblem, EMPTY_DRAFT, fanTokenOf, stepReady } from "./model";
+import { codeProblem, EMPTY_DRAFT, fanTokenOf, stepReady, tokenPicture } from "./model";
 
 const issuer = `G${"A".repeat(55)}`;
 const live = { slugOk: true, tokenOk: true };
@@ -36,6 +36,24 @@ describe("onboarding wizard", () => {
     expect(stepReady(1, draft, live)).toBe(true);
     expect(stepReady(1, draft, { ...live, tokenOk: false })).toBe(false);
     expect(stepReady(1, { ...draft, issuer: "GBAD" }, live)).toBe(false);
+  });
+
+  it("doesn't ask for an image for a token already on Stellar, and shows the best one it has", () => {
+    const draft = {
+      ...EMPTY_DRAFT,
+      tokenMode: "EXISTING" as const,
+      existingCode: "LUNA",
+      issuer,
+      avatarUrl: "me.jpg",
+    };
+    expect(stepReady(1, draft, live)).toBe(true);
+    expect(fanTokenOf(draft)).toEqual({ mode: "EXISTING", code: "LUNA", issuer });
+    expect(tokenPicture(draft)).toBe("me.jpg");
+    expect(tokenPicture({ ...draft, stellarImage: "stellar.png" })).toBe("stellar.png");
+    expect(tokenPicture({ ...draft, stellarImage: "stellar.png", tokenImage: "mine.png" })).toBe(
+      "mine.png",
+    );
+    expect(tokenPicture({ ...draft, tokenMode: "NEW" })).toBe("");
   });
 
   it("needs a free, well-formed page address", () => {

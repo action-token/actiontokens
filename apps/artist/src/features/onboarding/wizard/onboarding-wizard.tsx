@@ -117,6 +117,9 @@ function Wizard({ userId, initial, startAt }: { userId: string; initial: Draft; 
   const tokenCheck = api.onboarding.checkToken.useQuery(existing, {
     enabled: existingValid && step === 1,
   });
+  // A found token brings the image its issuer published; keep it for the preview and review.
+  const found = tokenCheck.data?.status === "OK" ? (tokenCheck.data.image ?? "") : null;
+  const view = found !== null ? { ...draft, stellarImage: found } : draft;
   const live = {
     slug: liveOf(
       slugValid,
@@ -258,11 +261,11 @@ function Wizard({ userId, initial, startAt }: { userId: string; initial: Draft; 
           </div>
 
           {step === 0 && <ProfileStep draft={draft} set={set} />}
-          {step === 1 && <TokenStep draft={draft} set={set} check={live.token} />}
+          {step === 1 && <TokenStep draft={view} set={set} check={live.token} />}
           {step === 2 && <AddressStep draft={draft} set={set} check={live.slug} />}
           {step === PAY && (
             <div className="grid gap-6">
-              <ReviewSummary draft={draft} onEdit={go} />
+              <ReviewSummary draft={view} onEdit={go} />
               <PayToOpen
                 intro="This opens the Stellar account your fan token and everything you sell come from. You pay for it yourself; this is the whole price."
                 quote={quote.data}

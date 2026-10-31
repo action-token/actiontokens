@@ -5,6 +5,7 @@ import {
   chainConfig,
   type ChainConfig,
   assetExists,
+  assetTomlUrl,
   decryptSecret,
   findTransaction,
   liveBandcoinUsd,
@@ -47,6 +48,8 @@ export type ChainGateway = {
   ): Promise<{ holders: { address: string; balance: string }[]; complete: boolean }>;
   /** Whether an asset (code + issuer) exists on the network */
   assetExists(code: string, issuer: string): Promise<boolean>;
+  /** The issuer's stellar.toml address for an asset, or null */
+  assetTomlUrl(code: string, issuer: string): Promise<string | null>;
   /** The on-chain id of the edition registered under `editionRef`, or null when there is none */
   editionIdByRef(editionRef: string): Promise<number | null>;
   /** What the NFT contract enforces now: fee (basis points), treasury, owner */
@@ -125,6 +128,7 @@ export function createChainGateway(db: Db): ChainGateway {
       prepareContractCall(xdr, await serverSecrets(db, signers)),
     submit,
     assetExists,
+    assetTomlUrl,
     assetHolders: (code, issuer) => loadAssetHolders(new Asset(code, issuer)),
     editionIdByRef: (editionRef) =>
       readEditionId(chainConfig().nftContract, chainConfig().treasury, editionRef),

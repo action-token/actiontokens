@@ -3,6 +3,7 @@ export { chainConfig, type ChainConfig } from "./config";
 export {
   addSignatures,
   assetExists,
+  assetTomlUrl,
   findTransaction,
   fundsOf,
   horizon,
