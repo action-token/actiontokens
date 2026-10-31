@@ -323,6 +323,7 @@ export default async function ItemPage({ params }: Props) {
           itemId={item.id}
           pieces={item.lockedContent}
           owned={item.ownedQuantity > 0}
+          network={item.network}
         />
 
         <div className="grid gap-3">

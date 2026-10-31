@@ -5,6 +5,10 @@ import type { Db } from "@bandcoin/db";
 export const SCHEDULES: { type: JobType; everyMs: number }[] = [
   // Settle payments whose answer from Stellar was lost.
   { type: "order.reconcile", everyMs: 60_000 },
+  // Record NFT unlocks a collect couldn't record right away.
+  { type: "nft.unlocks", everyMs: 5 * 60_000 },
+  // Keep the NFT contract's unlock records alive (archived after months untouched).
+  { type: "nft.keep-alive", everyMs: 7 * 24 * 60 * 60_000 },
 ];
 
 /**

@@ -19,6 +19,7 @@ import {
   writeCollect,
 } from "../../services/ar/pins";
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
+import { unlockAfterCollect } from "../../services/catalog/unlock-chain";
 
 const lat = z.number().min(-90).max(90);
 const lng = z.number().min(-180).max(180);
@@ -309,7 +310,9 @@ export const pinRouter = createRouter({
           message: `You're ${Math.round(distance)} m away. Get within ${Math.round(within)} m to collect this.`,
         });
       }
-      return writeCollect(ctx.db, userId, spot, pin);
+      const collected = await writeCollect(ctx.db, userId, spot, pin);
+      await unlockAfterCollect(ctx, pin);
+      return collected;
     }),
 
   /**
@@ -323,6 +326,8 @@ export const pinRouter = createRouter({
       const userId = ctx.session.user.id;
       const { spot, pin } = await assertCollectable(ctx, userId, input.spotId);
       ctx.activity.set({ targetType: "Pin", targetId: pin.id });
-      return writeCollect(ctx.db, userId, spot, pin);
+      const collected = await writeCollect(ctx.db, userId, spot, pin);
+      await unlockAfterCollect(ctx, pin);
+      return collected;
     }),
 });

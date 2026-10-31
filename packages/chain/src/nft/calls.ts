@@ -245,3 +245,40 @@ export function buildNftRegisterEdition(
     ],
   });
 }
+
+/** The most (token, piece) pairs one `keep_unlocked_alive` call takes (MAX_UNLOCKED_PER_CALL). */
+export const NFT_MAX_UNLOCKED_PER_CALL = 80;
+
+/**
+ * Records on the contract that a copy's locked piece is unlocked
+ * (`unlock_item_for`), once its owner visited every place. Only the
+ * contract's unlock authority (the platform's treasury) may call it; it is
+ * the source too, so it signs and pays. Repeating it changes nothing.
+ */
+export function buildNftUnlockItemFor(
+  input: Common & { caller: string; tokenId: number; mediaIndex: number },
+) {
+  return buildContractCall({
+    ...input,
+    method: "unlock_item_for",
+    serverSigners: [input.caller],
+    args: [arg.address(input.caller), arg.u32(input.tokenId), arg.u32(input.mediaIndex)],
+  });
+}
+
+/** Keeps unlock records from being archived (`keep_unlocked_alive`). Anyone may call it; the source pays. */
+export function buildNftKeepUnlockedAlive(
+  input: Common & { unlocked: { tokenId: number; mediaIndex: number }[] },
+) {
+  if (input.unlocked.length === 0 || input.unlocked.length > NFT_MAX_UNLOCKED_PER_CALL)
+    throw new RangeError(`Keep 1 to ${NFT_MAX_UNLOCKED_PER_CALL} unlock records alive at a time`);
+  return buildContractCall({
+    ...input,
+    method: "keep_unlocked_alive",
+    args: [
+      arg.vec(
+        input.unlocked.map((pair) => arg.vec([arg.u32(pair.tokenId), arg.u32(pair.mediaIndex)])),
+      ),
+    ],
+  });
+}

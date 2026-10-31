@@ -36,10 +36,13 @@ export function LockedContent({
   itemId,
   pieces,
   owned,
+  network,
 }: {
   itemId: string;
   pieces: Preview[];
   owned: boolean;
+  /** "mainnet" or "testnet", for the transaction link */
+  network: string;
 }) {
   const { status } = useSession();
   const mine = api.item.lockedForMe.useQuery(
@@ -80,6 +83,7 @@ export function LockedContent({
                 <OwnedRow
                   key={piece.id}
                   piece={piece}
+                  network={network}
                   places={pieces.find((entry) => entry.id === piece.id)?.unlock?.places ?? []}
                 />
               ))}
@@ -157,9 +161,11 @@ function PreviewRow({ piece }: { piece: Preview }) {
 function OwnedRow({
   piece,
   places,
+  network,
 }: {
   piece: OwnedPiece;
   places: { lat: number; lng: number; label: string | null }[];
+  network: string;
 }) {
   const progress = piece.required > 0 ? Math.round((piece.visited / piece.required) * 100) : 100;
   return (
@@ -177,7 +183,19 @@ function OwnedRow({
         )}
       </div>
       {piece.unlocked && piece.url ? (
-        <Content type={piece.type} url={piece.url} />
+        <>
+          <Content type={piece.type} url={piece.url} />
+          {piece.onChain?.txHash && (
+            <a
+              href={`https://stellar.expert/explorer/${network === "mainnet" ? "public" : "testnet"}/tx/${piece.onChain.txHash}`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-fg-muted hover:text-fg inline-flex items-center gap-1 text-xs"
+            >
+              Recorded on Stellar <ExternalLink className="size-3" />
+            </a>
+          )}
+        </>
       ) : (
         <>
           <div className="bg-surface-2 h-2 overflow-hidden rounded-full" aria-hidden>

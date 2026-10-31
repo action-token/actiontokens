@@ -1,6 +1,8 @@
 import {
   createContext,
+  keepUnlocksAlive,
   reconcileOrders,
+  syncUnlocks,
   type ChainGateway,
   type TranscodePart,
 } from "@bandcoin/api";
@@ -20,6 +22,11 @@ export function handlersFor(deps: WorkerDeps): Record<string, JobHandler> {
   return {
     // Settle payments whose answer from Stellar was lost (see services/orders/reconcile).
     "order.reconcile": async () => ({ result: await reconcileOrders(context()) }),
+
+    // Record NFT unlocks the app couldn't (see catalog/unlock-chain); not a payment, so it retries.
+    "nft.unlocks": async () => ({ result: await syncUnlocks(context()) }),
+    // Keep the contract's unlock records from being archived.
+    "nft.keep-alive": async () => ({ result: await keepUnlocksAlive(context()) }),
 
     // A song's stream, preview, waveform and stems (see media/transcode).
     "media.transcode": async (job) => {

@@ -16,7 +16,13 @@ import { buildActivation, buildTopUp, buildXlmSwap } from "../classic/recharge";
 import { buildIssueTokens, buildStorageGift, buildTransfer } from "../classic/transfer";
 import { toStellarError } from "../errors";
 import { buildBountyFund } from "../escrow/calls";
-import { buildNftBuyEdition, buildNftBuyListed, buildNftSetPlatformFee } from "../nft/calls";
+import {
+  buildNftBuyEdition,
+  buildNftBuyListed,
+  buildNftKeepUnlockedAlive,
+  buildNftSetPlatformFee,
+  buildNftUnlockItemFor,
+} from "../nft/calls";
 import { buildPlatformPayment } from "../payments/platform-payment";
 import { buildRoyaltyPayouts } from "../royalty/payout";
 import { memoFor, networkFeeXlm, signersNeeded, wrapInFeeBump } from "../transaction";
@@ -449,6 +455,49 @@ describe("other builders", () => {
     const base = { source: account(owner), network, contract, treasury };
     expect(() => buildNftSetPlatformFee({ ...base, feeBps: 1001 })).toThrow(/0 to 10%/);
     expect(() => buildNftSetPlatformFee({ ...base, feeBps: 2.5 })).toThrow();
+  });
+
+  it("encodes unlock_item_for, sent and signed by the unlock authority", () => {
+    const contract = "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC";
+    const built = buildNftUnlockItemFor({
+      source: account(treasury),
+      network,
+      contract,
+      caller: treasury,
+      tokenId: 40,
+      mediaIndex: 1,
+    });
+    const op = parse(built.xdr).operations[0];
+    if (op?.type !== "invokeHostFunction" || op.func.type !== "hostFunctionTypeInvokeContract")
+      throw new Error("not a contract call");
+    expect(String(op.func.invokeContract.functionName)).toBe("unlock_item_for");
+    expect(op.func.invokeContract.args.map((value) => scValToNative(value) as unknown)).toEqual([
+      treasury,
+      40,
+      1,
+    ]);
+    expect(built.serverSigners).toEqual([treasury]);
+  });
+
+  it("encodes keep_unlocked_alive as (token, piece) pairs, 1 to 80 at a time", () => {
+    const contract = "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC";
+    const base = { source: account(treasury), network, contract };
+    const op = parse(
+      buildNftKeepUnlockedAlive({
+        ...base,
+        unlocked: [
+          { tokenId: 40, mediaIndex: 1 },
+          { tokenId: 41, mediaIndex: 0 },
+        ],
+      }).xdr,
+    ).operations[0];
+    if (op?.type !== "invokeHostFunction" || op.func.type !== "hostFunctionTypeInvokeContract")
+      throw new Error("not a contract call");
+    expect(scValToNative(op.func.invokeContract.args[0]!)).toEqual([
+      [40, 1],
+      [41, 0],
+    ]);
+    expect(() => buildNftKeepUnlockedAlive({ ...base, unlocked: [] })).toThrow();
   });
 
   it("encodes the bounty escrow deposit", () => {

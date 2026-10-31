@@ -11,8 +11,13 @@ export const RETRY_MINUTES = [1, 5, 15, 60] as const;
 /** A job still RUNNING this long after it was taken belonged to a worker that died. */
 export const STALE_AFTER_MS = 15 * 60_000;
 
-export type JobType = "order.reconcile" | "media.transcode";
-export const JOB_TYPES: readonly JobType[] = ["order.reconcile", "media.transcode"];
+export type JobType = "order.reconcile" | "media.transcode" | "nft.unlocks" | "nft.keep-alive";
+export const JOB_TYPES: readonly JobType[] = [
+  "order.reconcile",
+  "media.transcode",
+  "nft.unlocks",
+  "nft.keep-alive",
+];
 
 /**
  * Adds a job. With `dedupe`, a job of the same type and payload that is
