@@ -85,9 +85,10 @@ export function FormSection({
 }
 
 /**
- * The optional parts of a form, folded so the page shows only what most people
- * fill in. Children stay mounted, so nothing typed is lost when it closes.
- * `open` forces it open, e.g. when a field inside has an error.
+ * The optional parts of a form, grouped under one heading. Open by default so
+ * every field is in view; people can fold it away. Children stay mounted, so
+ * nothing typed is lost when it closes. `open` re-opens it, e.g. when a field
+ * inside has an error.
  */
 export function MoreOptions({
   title = "More options",
@@ -105,7 +106,11 @@ export function MoreOptions({
 }) {
   return (
     <details
-      open={open || undefined}
+      open
+      // Re-opens it on each render while `open` is set, even after someone folded it.
+      ref={(element) => {
+        if (element && open) element.open = true;
+      }}
       className={cn(
         "group/more bg-surface border-fg/10 rounded-[1.4rem] border-2 p-5 [&_summary::-webkit-details-marker]:hidden",
         className,
