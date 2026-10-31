@@ -13,6 +13,7 @@ import {
   getSong,
   listAlbums,
   listSongs,
+  retrySongProcessing,
   updateAlbum,
   updateSong,
 } from "../services/artist/music";
@@ -44,7 +45,14 @@ const song = {
   visibility: "PUBLIC" as const,
 };
 
-function setup(opts: { album?: Row | null; item?: Row | null; takenAlbumSlug?: string } = {}) {
+function setup(
+  opts: {
+    album?: Row | null;
+    item?: Row | null;
+    takenAlbumSlug?: string;
+    mediaStatus?: string;
+  } = {},
+) {
   const created: Row[] = [];
   const db = {
     chainAccount: {
@@ -74,7 +82,17 @@ function setup(opts: { album?: Row | null; item?: Row | null; takenAlbumSlug?: s
       update: vi.fn().mockResolvedValue({}),
     },
     track: { update: vi.fn().mockResolvedValue({}) },
-    itemMedia: { update: vi.fn().mockResolvedValue({}) },
+    itemMedia: {
+      update: vi.fn().mockResolvedValue({}),
+      findUnique: vi.fn().mockResolvedValue({ status: opts.mediaStatus ?? "PENDING" }),
+      updateMany: vi.fn(({ where }: { where: { status: string } }) =>
+        Promise.resolve({ count: where.status === opts.mediaStatus ? 1 : 0 }),
+      ),
+    },
+    job: {
+      findFirst: vi.fn().mockResolvedValue(null),
+      create: vi.fn(({ data }: { data: Row }) => Promise.resolve({ id: "j1", ...data })),
+    },
     listing: { update: vi.fn().mockResolvedValue({}) },
     $transaction: (run: (tx: unknown) => unknown) => run(db),
   };
@@ -100,6 +118,7 @@ describe("createSong", () => {
           sourceUrl: "https://cdn.example/song.mp3",
           durationSec: 200,
           previewStartSec: 60,
+          status: "PENDING",
         },
       },
       track: { create: { artistName: "Luna Vale", albumId: "al1", trackNumber: 2 } },
@@ -152,6 +171,50 @@ describe("createSong", () => {
       previewStartSec: 0,
     });
     expect(created[0]).toMatchObject({ media: { create: { previewStartSec: 0 } } });
+  });
+});
+
+describe("processing a song's recording", () => {
+  const queued = (db: ReturnType<typeof setup>["db"]) =>
+    db.job.create.mock.calls.map(([{ data }]) => data.payload);
+
+  it("queues a new song for the worker", async () => {
+    const { ctx, db } = setup();
+    await createSong(ctx, artist, user, song);
+    expect(queued(db)).toEqual([{ itemId: "i1", part: "all" }]);
+  });
+
+  it("re-cuts only the preview when its start moves on a processed song", async () => {
+    const owned = { id: "i1", type: "TRACK", media: { durationSec: 200 } };
+    const ready = setup({ item: owned, mediaStatus: "READY" });
+    await updateSong(ready.ctx, artist, { itemId: "i1", previewStartSec: 90 });
+    expect(queued(ready.db)).toEqual([{ itemId: "i1", part: "preview" }]);
+
+    // Still waiting for its first run, which reads the new start anyway.
+    const waiting = setup({ item: owned, mediaStatus: "PENDING" });
+    await updateSong(waiting.ctx, artist, { itemId: "i1", previewStartSec: 90 });
+    await updateSong(ready.ctx, artist, { itemId: "i1", artistName: "Kit" });
+    expect(queued(waiting.db)).toEqual([]);
+    expect(queued(ready.db)).toHaveLength(1);
+  });
+
+  it("retries only a song that failed, and only the artist's own", async () => {
+    const failed = setup({ item: { id: "i1" }, mediaStatus: "FAILED" });
+    await expect(retrySongProcessing(failed.ctx, artist, "i1")).resolves.toEqual({ itemId: "i1" });
+    expect(failed.db.itemMedia.updateMany).toHaveBeenCalledWith({
+      where: { itemId: "i1", status: "FAILED" },
+      data: { status: "PENDING" },
+    });
+    expect(queued(failed.db)).toEqual([{ itemId: "i1", part: "all" }]);
+
+    const fine = setup({ item: { id: "i1" }, mediaStatus: "READY" });
+    await expect(retrySongProcessing(fine.ctx, artist, "i1")).rejects.toMatchObject({
+      code: "RESOURCE_CONFLICT",
+    });
+    expect(queued(fine.db)).toEqual([]);
+    await expect(
+      retrySongProcessing(setup({ item: null }).ctx, artist, "i1"),
+    ).rejects.toMatchObject({ message: "Song not found" });
   });
 });
 

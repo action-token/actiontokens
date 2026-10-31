@@ -71,8 +71,14 @@ function MusicTabs() {
   );
 }
 
+/** Songs the worker is still working on refresh until they're done. */
+const isProcessing = (song: Song) =>
+  song.processing === "PENDING" || song.processing === "PROCESSING";
+
 function Songs() {
-  const songs = api.music.songs.useQuery();
+  const songs = api.music.songs.useQuery(undefined, {
+    refetchInterval: (query) => (query.state.data?.some(isProcessing) ? 10_000 : false),
+  });
   if (songs.isPending) return <ListSkeleton />;
   if (songs.isError)
     return <ErrorState message="Couldn't load your songs." onRetry={() => void songs.refetch()} />;
@@ -115,12 +121,13 @@ function SongRow({ song }: { song: Song }) {
     `${song.plays.toLocaleString("en-US")} plays`,
     `${song.sold} sold`,
     song.stems > 0 ? `${song.stems} stems` : null,
+    isProcessing(song) ? "Processing the recording…" : null,
   ];
   return (
-    <li>
+    <li className="bg-surface overflow-hidden rounded-xl border">
       <Link
         href={`/music/${song.id}`}
-        className="bg-surface hover:bg-surface-2 flex items-center gap-4 rounded-xl border p-3 transition-colors sm:p-4"
+        className="hover:bg-surface-2 flex items-center gap-4 p-3 transition-colors sm:p-4"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -142,7 +149,35 @@ function SongRow({ song }: { song: Song }) {
         </div>
         <StatusPill tone={status.tone}>{status.label}</StatusPill>
       </Link>
+      {song.processing === "FAILED" && <ProcessingFailed itemId={song.id} />}
     </li>
+  );
+}
+
+/** The worker gave up on the recording. It still plays as uploaded; Retry tries again. */
+function ProcessingFailed({ itemId }: { itemId: string }) {
+  const utils = api.useUtils();
+  const retry = api.music.retryProcessing.useMutation({
+    onSuccess: () => utils.music.songs.invalidate(),
+  });
+  return (
+    <div className="bg-danger-soft flex flex-wrap items-center gap-x-3 gap-y-2 border-t px-4 py-2.5 text-sm">
+      <span className="min-w-0 flex-1">
+        <b>Couldn&apos;t process the recording.</b>{" "}
+        <span className="text-fg-muted">
+          {retry.error?.message ?? "It still plays as you uploaded it."}
+        </span>
+      </span>
+      <Button
+        size="sm"
+        variant="secondary"
+        className="h-8 px-3 text-[13px]"
+        disabled={retry.isPending}
+        onClick={() => retry.mutate({ itemId })}
+      >
+        {retry.isPending ? "Retrying…" : "Retry"}
+      </Button>
+    </div>
   );
 }
 

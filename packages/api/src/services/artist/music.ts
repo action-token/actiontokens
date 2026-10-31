@@ -5,6 +5,7 @@ import { latestPreviewStart, PREVIEW_SECONDS } from "@bandcoin/utils/preview";
 import { slugFromName } from "@bandcoin/utils/slug";
 
 import type { Context } from "../../context";
+import { queueRedo, queueTranscode, retryTranscode } from "../media/processing";
 import { checkOwnUrls, type CreateItemInput, createItem, invalid } from "./items";
 
 /**
@@ -65,12 +66,21 @@ export async function createSong(
   checkPreview(previewStartSec, audio.durationSec);
   if (albumId) await ownAlbum(ctx.db, artist.id, albumId);
 
-  return createItem(ctx, artist, user, {
+  const song = await createItem(ctx, artist, user, {
     ...rest,
     type: "TRACK",
-    media: { url: audio.url, mediaType: "AUDIO", durationSec: audio.durationSec, previewStartSec },
+    media: {
+      url: audio.url,
+      mediaType: "AUDIO",
+      durationSec: audio.durationSec,
+      previewStartSec,
+      status: "PENDING",
+    },
     track: { artistName: artistName?.trim() || artist.name, albumId, trackNumber },
   });
+  // The worker makes the stream, the preview and the waveform; until then it plays as uploaded.
+  await queueTranscode(ctx.db, song.itemId, "all");
+  return song;
 }
 
 export async function listSongs(ctx: Pick<ServiceCtx, "db">, artist: Pick<ArtistRef, "id">) {
@@ -121,6 +131,8 @@ export async function listSongs(ctx: Pick<ServiceCtx, "db">, artist: Pick<Artist
       plays: row.playCount,
       sold: listing?.quantitySold ?? 0,
       stems: row._count.stems,
+      /** LEGACY / PENDING / PROCESSING / READY / FAILED: the worker's processing */
+      processing: row.media?.status ?? null,
       durationSec: row.media?.durationSec ?? null,
       artistName: row.track?.artistName ?? null,
       albumId: row.track?.album?.id ?? null,
@@ -228,7 +240,23 @@ export async function updateSong(
         data: { previewStartSec: input.previewStartSec },
       });
   });
+  if (input.previewStartSec !== undefined) await queueRedo(ctx.db, song.id, "preview");
   return { itemId: song.id };
+}
+
+/** Retry on a song whose processing failed. */
+export async function retrySongProcessing(
+  ctx: ServiceCtx,
+  artist: Pick<ArtistRef, "id">,
+  itemId: string,
+) {
+  const song = await ctx.db.item.findFirst({
+    where: { id: itemId, artistId: artist.id, deletedAt: null, type: "TRACK" },
+    select: { id: true },
+  });
+  if (!song) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Song not found" });
+  ctx.activity.set({ targetType: "Item", targetId: song.id });
+  return retryTranscode(ctx.db, song.id);
 }
 
 export async function listAlbums(ctx: Pick<ServiceCtx, "db">, artist: Pick<ArtistRef, "id">) {

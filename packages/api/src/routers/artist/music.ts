@@ -13,6 +13,7 @@ import {
   getSong,
   listAlbums,
   listSongs,
+  retrySongProcessing,
   updateAlbum,
   updateSong,
 } from "../../services/artist/music";
@@ -60,6 +61,11 @@ export const musicRouter = createRouter({
       }),
     )
     .mutation(({ ctx, input }) => updateSong(ctx, ctx.artist, input)),
+
+  /** "Couldn't process" → Retry: the worker tries the recording again. */
+  retryProcessing: artistProcedure
+    .input(z.object({ itemId: z.string().min(1) }))
+    .mutation(({ ctx, input }) => retrySongProcessing(ctx, ctx.artist, input.itemId)),
 
   albums: artistProcedure.query(({ ctx }) => listAlbums(ctx, ctx.artist)),
 

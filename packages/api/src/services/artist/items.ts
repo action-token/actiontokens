@@ -60,7 +60,14 @@ export type CreateItemInput = {
   title: string;
   description?: string;
   coverUrl: string;
-  media?: { url: string; mediaType: MediaType; durationSec?: number; previewStartSec?: number };
+  media?: {
+    url: string;
+    mediaType: MediaType;
+    durationSec?: number;
+    previewStartSec?: number;
+    /** PENDING when the worker will process it (songs); otherwise served as uploaded */
+    status?: "PENDING";
+  };
   /** Songs only */
   track?: { artistName: string; albumId?: string | null; trackNumber?: number | null };
   /** The Stellar asset code, e.g. NIGHTDRV */
@@ -140,6 +147,7 @@ export async function createItem(
                 ...(input.media.previewStartSec !== undefined
                   ? { previewStartSec: input.media.previewStartSec }
                   : {}),
+                ...(input.media.status ? { status: input.media.status } : {}),
               },
             },
           }

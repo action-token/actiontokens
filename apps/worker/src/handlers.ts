@@ -1,9 +1,18 @@
-import { createContext, reconcileOrders, type ChainGateway } from "@bandcoin/api";
+import {
+  createContext,
+  reconcileOrders,
+  type ChainGateway,
+  type TranscodePart,
+} from "@bandcoin/api";
 import type { Db } from "@bandcoin/db";
+import { AppError, ErrorCodes } from "@bandcoin/errors";
 
+import { mediaIo, type MediaIo, transcodeItem } from "./media/transcode";
 import type { JobHandler } from "./runner";
 
-export type WorkerDeps = { db: Db; chain: ChainGateway };
+export type WorkerDeps = { db: Db; chain: ChainGateway; media?: MediaIo };
+
+const PARTS: readonly TranscodePart[] = ["all", "preview", "stems"];
 
 /** Every job type this worker runs. A type missing here is never taken from the queue. */
 export function handlersFor(deps: WorkerDeps): Record<string, JobHandler> {
@@ -11,5 +20,21 @@ export function handlersFor(deps: WorkerDeps): Record<string, JobHandler> {
   return {
     // Settle payments whose answer from Stellar was lost (see services/orders/reconcile).
     "order.reconcile": async () => ({ result: await reconcileOrders(context()) }),
+
+    // A song's stream, preview, waveform and stems (see media/transcode).
+    "media.transcode": async (job) => {
+      const payload = job.payload as { itemId?: unknown; part?: unknown };
+      const part = PARTS.find((known) => known === payload.part) ?? "all";
+      if (typeof payload.itemId !== "string")
+        throw new AppError(ErrorCodes.VALIDATION_FAILED, {
+          message: "media.transcode needs an itemId",
+        });
+      const result = await transcodeItem(deps.db, deps.media ?? mediaIo, {
+        itemId: payload.itemId,
+        part,
+        lastAttempt: job.attempts >= job.maxAttempts,
+      });
+      return { result, target: { type: "Item", id: payload.itemId } };
+    },
   };
 }

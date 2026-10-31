@@ -37,11 +37,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ stem
   const full = viewerId !== null && (await canPlayFull(db, viewerId, stem.item.id, stem.item));
 
   try {
-    const source = stem.streamKey
-      ? new URL(await signedMediaUrl(stem.streamKey))
-      : stem.sourceUrl.startsWith(LOCAL_PREFIX)
-        ? new URL(stem.sourceUrl, request.url)
-        : await assertPublicHttpUrl(stem.sourceUrl);
+    // The processed file is for full playback only: the 30 s cut below needs the original.
+    const source =
+      full && stem.streamKey
+        ? new URL(await signedMediaUrl(stem.streamKey))
+        : stem.sourceUrl.startsWith(LOCAL_PREFIX)
+          ? new URL(stem.sourceUrl, request.url)
+          : await assertPublicHttpUrl(stem.sourceUrl);
 
     if (full) {
       const whole = await fetch(source);

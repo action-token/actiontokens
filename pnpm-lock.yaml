@@ -844,6 +844,9 @@ importers:
       '@bandcoin/errors':
         specifier: workspace:*
         version: link:../../packages/errors
+      '@bandcoin/storage':
+        specifier: workspace:*
+        version: link:../../packages/storage
       tsx:
         specifier: 'catalog:'
         version: 4.23.15

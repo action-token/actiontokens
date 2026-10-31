@@ -9,13 +9,15 @@
     "start": "tsx src/main.ts",
     "lint": "eslint src",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "backfill:music": "tsx --env-file-if-exists=.env.local src/backfill-music.ts"
   },
   "dependencies": {
     "@bandcoin/api": "workspace:*",
     "@bandcoin/db": "workspace:*",
     "@bandcoin/errors": "workspace:*",
-    "tsx": "catalog:"
+    "tsx": "catalog:",
+    "@bandcoin/storage": "workspace:*"
   },
   "devDependencies": {
     "@bandcoin/eslint-config": "workspace:*",

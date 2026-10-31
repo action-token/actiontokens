@@ -12,7 +12,13 @@ type Row = Record<string, unknown>;
 const artist = { id: "a1" };
 
 function setup(
-  opts: { song?: Row | null; stem?: Row | null; count?: number; last?: number | null } = {},
+  opts: {
+    song?: Row | null;
+    stem?: Row | null;
+    count?: number;
+    last?: number | null;
+    mediaStatus?: string;
+  } = {},
 ) {
   const db = {
     item: {
@@ -34,6 +40,13 @@ function setup(
         .mockResolvedValue(opts.stem === undefined ? { id: "s1", itemId: "i1" } : opts.stem),
       update: vi.fn().mockResolvedValue({}),
       delete: vi.fn().mockResolvedValue({}),
+    },
+    itemMedia: {
+      findUnique: vi.fn().mockResolvedValue({ status: opts.mediaStatus ?? "PENDING" }),
+    },
+    job: {
+      findFirst: vi.fn().mockResolvedValue(null),
+      create: vi.fn().mockResolvedValue({ id: "j1" }),
     },
   };
   const activity = { set: vi.fn(), facts: () => ({}) };
@@ -61,6 +74,21 @@ describe("addStem", () => {
       },
       select: { id: true },
     });
+  });
+
+  it("has the worker process a stem added to an already processed song", async () => {
+    const ready = setup({ mediaStatus: "READY" });
+    await addStem(ready.ctx, artist, stem);
+    expect(ready.db.job.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        type: "media.transcode",
+        payload: { itemId: "i1", part: "stems" },
+      }) as unknown,
+    });
+    // Not processed yet: its first run takes every stem.
+    const waiting = setup();
+    await addStem(waiting.ctx, artist, stem);
+    expect(waiting.db.job.create).not.toHaveBeenCalled();
   });
 
   it("puts each new stem after the last and cycles through the colours", async () => {

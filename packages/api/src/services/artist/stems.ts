@@ -1,6 +1,7 @@
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import type { Context } from "../../context";
+import { queueRedo } from "../media/processing";
 import { checkOwnUrls, invalid } from "./items";
 
 /**
@@ -98,6 +99,7 @@ export async function addStem(
     },
     select: { id: true },
   });
+  await queueRedo(ctx.db, song.id, "stems");
   return { stemId: stem.id };
 }
 

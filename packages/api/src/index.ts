@@ -37,3 +37,4 @@ export {
   retryJob,
 } from "./services/jobs/queue";
 export { reconcileOrders } from "./services/orders/reconcile";
+export { queueTranscode, type TranscodePart } from "./services/media/processing";
