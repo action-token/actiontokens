@@ -506,13 +506,14 @@ export function ReviewSummary({ draft, onEdit }: { draft: Draft; onEdit: (step: 
           <EditButton onClick={() => onEdit(0)} className="absolute top-2 right-2" />
         </div>
         <div className="flex items-start gap-3 px-4 pb-4">
-          <span className="border-surface bg-surface-2 -mt-8 size-16 shrink-0 overflow-hidden rounded-full border-4">
+          {/* Above the cover (which is positioned for its Edit button), not under it. */}
+          <span className="bg-surface-2 relative z-10 -mt-10 size-20 shrink-0 overflow-hidden rounded-full border-4 border-[var(--color-surface)] shadow-sm">
             {draft.avatarUrl && (
               // eslint-disable-next-line @next/next/no-img-element -- images come from our storage
               <img src={draft.avatarUrl} alt="" className="size-full object-cover" />
             )}
           </span>
-          <div className="min-w-0 flex-1 pt-2">
+          <div className="min-w-0 flex-1 pt-3">
             <p className="display truncate text-lg">{draft.name}</p>
             <p className="text-fg-muted line-clamp-2 text-sm">
               {draft.bio || "No line about you yet."}
