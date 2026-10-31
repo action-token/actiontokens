@@ -18,12 +18,12 @@ import { type PortalStatus, usePortal } from "~/features/portal/use-portal";
 
 import { isActive, type NavGroup, navFor, phoneTabs } from "./nav";
 import { Sidebar } from "./sidebar";
-import { SignInScreen } from "./sign-in-screen";
+import { SignInCard } from "./sign-in-card";
 
 /**
  * The frame around every portal page: a sidebar of what this person may use
  * right now (see navFor), a top bar with the account, and a tab bar on phones.
- * Signed-out visitors get the sign-in card instead.
+ * Signed out, the menu stays and every page shows the sign-in card.
  */
 export function PortalShell({
   children,
@@ -36,8 +36,8 @@ export function PortalShell({
   const { signedIn, step, isAdmin, artist, loading } = usePortal(initialStatus);
   const groups = navFor({ signedIn, step, isAdmin });
 
-  // Signed out: the sign-in card alone, as in Wadzzo's brand portal.
-  if (!loading && !signedIn) return <SignInScreen />;
+  // Signed out: the menu stays (links still change the page), the page itself is the sign-in card.
+  const signedOut = !loading && !signedIn;
 
   return (
     <div className="grid min-h-dvh grid-cols-1 sm:grid-cols-[72px_minmax(0,1fr)] xl:grid-cols-[240px_minmax(0,1fr)]">
@@ -48,7 +48,9 @@ export function PortalShell({
         fallbackName={artist?.name}
       />
 
-      <main className="min-w-0 pt-4 pb-24 sm:pt-0 sm:pb-12">{children}</main>
+      <main className="min-w-0 pt-4 pb-24 sm:pt-0 sm:pb-12">
+        {signedOut ? <SignInCard /> : children}
+      </main>
 
       <MobileTabs groups={groups} pathname={pathname} signedIn={signedIn} />
     </div>

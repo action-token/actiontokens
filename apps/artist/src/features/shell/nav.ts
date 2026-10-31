@@ -121,7 +121,8 @@ const ARTIST_TOOLS: Record<OnboardingStep, NavItem[]> = {
  * the admin group whatever their own artist status is.
  */
 export function navFor({ signedIn, step, isAdmin }: PortalNavInput): NavGroup[] {
-  if (!signedIn) return [];
+  // Signed out: the artist menu as a preview; every page shows the sign-in card.
+  if (!signedIn) return [...READY_TOOLS];
   const items: NavItem[] =
     step === null
       ? [{ href: "/", icon: BadgeCheck, label: "Become an artist", exact: true }]

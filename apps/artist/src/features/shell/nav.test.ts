@@ -11,7 +11,9 @@ describe("portal navigation", () => {
   });
 
   it("shows no links to someone who is signed out", () => {
-    expect(navFor({ signedIn: false, step: null, isAdmin: false })).toEqual([]);
+    expect(
+      navFor({ signedIn: false, step: null, isAdmin: false }).map((group) => group.title),
+    ).toEqual(["Drops", "Content", "Sell"]);
   });
 
   it("keeps an applicant on onboarding until an admin approves", () => {
