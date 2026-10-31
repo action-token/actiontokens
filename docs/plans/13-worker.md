@@ -58,7 +58,9 @@ Changing the preview start re-cuts only the preview. A file ffmpeg can't read
 ends `FAILED`; the song still plays from the original upload, and the artist
 sees "Couldn't process the recording" on the song with a Retry. Existing
 songs (`LEGACY`) keep working as now; one command processes them in batches
-when you want.
+when you want
+(`pnpm --filter @bandcoin/worker backfill:music 50`). Stems for people who
+don't own the song still get their 30 s cut from the original file.
 
 ## The worker itself
 
@@ -71,7 +73,9 @@ when you want.
   graceful stop finishes the running job.
 - **Admin › Jobs:** recent and failed jobs with their error, and a Retry
   button on music jobs only (none on payment jobs).
-- **Ships as** a Dockerfile (Node 24 + ffmpeg) and `apps/worker/.env.example`.
+- **Ships as** `apps/worker/Dockerfile` (Node 24 + ffmpeg, built from the repo
+  root with `turbo prune`) and `apps/worker/.env.example`. It needs no wallet
+  secrets: the worker never signs.
   Picking the host and deploying is a separate step with you; nothing is
   deployed by this plan.
 
