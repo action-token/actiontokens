@@ -9,6 +9,7 @@ import { slugFromName } from "@bandcoin/utils/slug";
 import type { Context } from "../../context";
 import { NFT_CHECKOUT_OPEN } from "../purchase/sale";
 import { accessKindOf, type ItemAccessInput, resolveItemAccess } from "./item-access";
+import { lockedContentsFor } from "./locked-content";
 
 /**
  * The artist's classic collectibles: creating, editing, hiding and deleting.
@@ -324,6 +325,9 @@ export async function getItem(
     priceUsd: listing?.priceUsd.toString() ?? "",
     fileUrl: item.media?.sourceUrl ?? null,
     fileType: item.media?.mediaType ?? null,
+    /** Contract NFTs: the locked content, read-only once created */
+    lockedContents:
+      item.chainType === "CONTRACT_NFT" ? await lockedContentsFor(ctx.db, item.id) : [],
   };
 }
 

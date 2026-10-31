@@ -108,6 +108,29 @@ export const catalogRouter = createRouter({
         priceBandcoin: price,
         priceUsd: price,
         resaleRoyaltyPercent: z.string().trim().max(6),
+        lockedContents: z
+          .array(
+            z.object({
+              type: z.enum(["SONG", "IMAGE", "VIDEO", "OTHER"]),
+              url: z.string().trim().max(2048),
+              label: z.string().trim().max(80).optional(),
+              unlock: z
+                .object({
+                  radiusMeters: z.number(),
+                  places: z
+                    .array(
+                      z.object({
+                        lat: z.number(),
+                        lng: z.number(),
+                        label: z.string().trim().max(80).optional(),
+                      }),
+                    )
+                    .max(20),
+                })
+                .optional(),
+            }),
+          )
+          .max(20),
       }),
     )
     .mutation(({ ctx, input }) => createNftDraft(ctx, ctx.artist, ctx.session.user, input)),

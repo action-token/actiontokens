@@ -17,6 +17,7 @@ import {
   submitNftRegistration,
 } from "../services/artist/nft";
 import type { ChainGateway } from "../services/chain-gateway";
+import type { LockedContentInput } from "../services/artist/locked-content";
 
 vi.mock("@bandcoin/storage", () => ({
   isOwnS3Url: (url: string) => url.startsWith("https://cdn.example/"),
@@ -35,7 +36,7 @@ const me: SessionUser = {
   walletType: "freighter",
 };
 
-const input = {
+const input: Parameters<typeof createNftDraft>[3] & { lockedContents: LockedContentInput[] } = {
   type: "IMAGE" as const,
   title: "Night Drive",
   description: "A print",
@@ -45,6 +46,21 @@ const input = {
   priceBandcoin: "25",
   priceUsd: "0.5",
   resaleRoyaltyPercent: "5",
+  lockedContents: [
+    { type: "SONG" as const, url: "https://cdn.example/bonus.mp3", label: "Bonus track" },
+    {
+      type: "OTHER" as const,
+      url: "https://tickets.example/vip",
+      label: "VIP pass",
+      unlock: {
+        radiusMeters: 80,
+        places: [
+          { lat: 23.78, lng: 90.4, label: "Gate A" },
+          { lat: 23.79, lng: 90.41 },
+        ],
+      },
+    },
+  ],
 };
 
 type Row = Record<string, unknown>;
@@ -334,5 +350,71 @@ describe("registering on the network", () => {
     await expect(
       submitNftRegistration(ctx, me, { orderId: ORDER, xdr }, { retryDelayMs: 0 }),
     ).rejects.toMatchObject({ message: "Order not found" });
+  });
+});
+
+describe("locked content", () => {
+  it("saves each piece in order, with its places, and fixes its chain index", async () => {
+    const { ctx, created } = setup();
+    await createNftDraft(ctx, artist, me, input);
+    expect(created[0]!.lockedContents).toEqual({
+      create: [
+        {
+          type: "SONG",
+          url: "https://cdn.example/bonus.mp3",
+          label: "Bonus track",
+          sortOrder: 0,
+          chainIndex: 0,
+        },
+        {
+          type: "OTHER",
+          url: "https://tickets.example/vip",
+          label: "VIP pass",
+          sortOrder: 1,
+          chainIndex: 1,
+          unlockRule: {
+            create: {
+              radiusMeters: 80,
+              points: {
+                create: [
+                  { latitude: 23.78, longitude: 90.4, label: "Gate A", sortOrder: 0 },
+                  { latitude: 23.79, longitude: 90.41, label: null, sortOrder: 1 },
+                ],
+              },
+            },
+          },
+        },
+      ],
+    });
+  });
+
+  it("refuses what the form would block", async () => {
+    const song = input.lockedContents[0]!;
+    const gated = input.lockedContents[1]!;
+    const cases: [LockedContentInput[], string][] = [
+      [[], "Add at least one piece of locked content."],
+      [Array.from({ length: 21 }, () => song), "Up to 20 pieces of locked content."],
+      [[{ ...song, url: "https://evil.example/x.mp3" }], "Locked item 1: upload the file again."],
+      [
+        [song, { ...gated, url: "javascript:alert(1)" }],
+        "Locked item 2: enter a web link starting with https://.",
+      ],
+      [
+        [{ ...gated, unlock: { radiusMeters: 50, places: [] } }],
+        "Locked item 1: add at least one place, or turn the condition off.",
+      ],
+      [
+        [{ ...gated, unlock: { radiusMeters: 5, places: gated.unlock!.places } }],
+        "Locked item 1: the radius can be from 10 to 1000 m.",
+      ],
+      [
+        [{ ...gated, unlock: { radiusMeters: 50, places: [{ lat: 95, lng: 0 }] } }],
+        "Locked item 1: one of the places isn't on the map.",
+      ],
+    ];
+    for (const [lockedContents, message] of cases)
+      await expect(
+        createNftDraft(setup().ctx, artist, me, { ...input, lockedContents }),
+      ).rejects.toMatchObject({ message });
   });
 });

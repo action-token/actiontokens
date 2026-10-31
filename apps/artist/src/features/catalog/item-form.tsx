@@ -40,6 +40,8 @@ import { RegisterNft } from "./register-nft";
 import { StorageStock } from "./storage-stock";
 import { acceptFor, fileRequired, ITEM_TYPES, type ItemKind, mediaTypeFor } from "./item-types";
 import { type AccessChoice, AccessField, accessChoiceOf, accessInput } from "./access-field";
+import { type LockedDraft, lockedReady, newLocked, toLockedInput } from "./locked/drafts";
+import { LockedContentField, LockedContentView } from "./locked/locked-content-field";
 
 type Existing = RouterOutputs["catalog"]["get"];
 
@@ -86,6 +88,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
   const [publish, setPublish] = useState(existing ? existing.visibility === "PUBLIC" : true);
   const [access, setAccess] = useState<AccessChoice>(accessChoiceOf(existing?.access));
   const [imageBrief, setImageBrief] = useState("");
+  const [lockedContents, setLockedContents] = useState<LockedDraft[]>(() => [newLocked()]);
 
   const kinds = nft ? ITEM_TYPES.filter((entry) => entry.value !== "ROYALTY") : ITEM_TYPES;
   const shownCode = customCode ? code : assetCodeFrom(title);
@@ -113,7 +116,8 @@ export function ItemForm({ existing }: { existing?: Existing }) {
     supplyOk &&
     (type !== "ROYALTY" || limited) &&
     royaltyOk &&
-    resaleOk;
+    resaleOk &&
+    (!nft || editing || lockedReady(lockedContents));
 
   const done = (message: string, to = "/items") => {
     toast.success(message);
@@ -173,6 +177,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
         priceBandcoin,
         priceUsd,
         resaleRoyaltyPercent: resale,
+        lockedContents: toLockedInput(lockedContents),
       });
     } else {
       create.mutate({
@@ -572,6 +577,11 @@ export function ItemForm({ existing }: { existing?: Existing }) {
             )}
           </div>
         </MoreOptions>
+
+        {nft && !editing && (
+          <LockedContentField value={lockedContents} onChange={setLockedContents} />
+        )}
+        {existing && <LockedContentView items={existing.lockedContents} />}
 
         <FormSection title="Visibility" icon={Eye}>
           {nft ? (

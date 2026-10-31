@@ -36,7 +36,8 @@ full locked content feature (main: `artist/smart-contract/create`,
   with the condition on has no places.
 - Saved with each item's `chainIndex` (its first position, never changed).
 - The edit page lists the items and their places read-only.
-- Create stays a database save; the artist-pays-to-register step goes away.
+- Create stays a database save. The artist-pays-to-register step goes away
+  in step 2, once the first sale registers the edition.
 
 ## 2. Fan checkout for contract NFTs
 

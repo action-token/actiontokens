@@ -26,6 +26,11 @@ import {
   invalid,
   NEEDS_FILE,
 } from "./items";
+import {
+  checkLockedContents,
+  type LockedContentInput,
+  lockedContentsCreate,
+} from "./locked-content";
 
 /**
  * Contract NFTs. An NFT is saved as an unpublished draft first, then the artist
@@ -52,6 +57,8 @@ export type CreateNftInput = Omit<
   supply: number;
   /** What the artist earns each time a copy is resold, 0 to 90 */
   resaleRoyaltyPercent: string;
+  /** Hidden until a copy is bought (and its places visited); at least one, fixed once created */
+  lockedContents: LockedContentInput[];
 };
 
 export async function createNftDraft(
@@ -70,6 +77,7 @@ export async function createNftDraft(
   checkOwnUrls({ cover: input.coverUrl, file: input.media?.url });
   if (NEEDS_FILE.includes(input.type) && !input.media)
     throw invalid("Add the file people will get.");
+  checkLockedContents(input.lockedContents);
 
   const item = await ctx.db.item.create({
     data: {
@@ -93,6 +101,7 @@ export async function createNftDraft(
       ...(input.media
         ? { media: { create: { mediaType: input.media.mediaType, sourceUrl: input.media.url } } }
         : {}),
+      lockedContents: { create: lockedContentsCreate(input.lockedContents) },
       listings: {
         create: {
           sellerId: user.id,
