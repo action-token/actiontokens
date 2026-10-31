@@ -78,6 +78,7 @@ describe("portal navigation", () => {
       "Items",
       "Collection reports",
       "Alerts",
+      "Jobs",
       "Settings",
       "Activity",
     ]);

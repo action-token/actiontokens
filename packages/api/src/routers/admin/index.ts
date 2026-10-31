@@ -32,6 +32,7 @@ import {
 } from "../../services/admin/users";
 import { listBounties, setBountyHidden } from "../../services/admin/bounties";
 import { listItems, setItemHidden } from "../../services/admin/items";
+import { listJobs, retryAdminJob } from "../../services/admin/jobs";
 import { changeContractFee, readContractFee } from "../../services/admin/contract-fee";
 import { getPerson } from "../../services/admin/person";
 import { getSettings, updateSettings } from "../../services/admin/settings";
@@ -267,6 +268,22 @@ export const adminRouter = createRouter({
     changeContractFee: adminProcedure
       .input(contractFee)
       .mutation(({ ctx, input }) => changeContractFee(ctx, input)),
+  }),
+  jobs: createRouter({
+    list: adminProcedure
+      .input(
+        z.object({
+          status: z.enum(["failed", "waiting", "running", "done"]).optional(),
+          cursor,
+        }),
+      )
+      .query(({ ctx, input }) =>
+        listJobs(ctx, { status: input.status, cursor: input.cursor ?? undefined }),
+      ),
+    /** Music jobs only; payment jobs are never retried. */
+    retry: adminProcedure
+      .input(z.object({ jobId: z.string().min(1) }))
+      .mutation(({ ctx, input }) => retryAdminJob(ctx, input.jobId)),
   }),
   activity: createRouter({
     list: adminProcedure
