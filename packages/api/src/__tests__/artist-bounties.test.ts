@@ -161,6 +161,7 @@ function setup(
     bountyWinner: { create: vi.fn().mockResolvedValue({}) },
     notificationEvent: { create: vi.fn().mockResolvedValue({}) },
     chainAccount: { findUnique: vi.fn().mockResolvedValue({ publicKey: storage }) },
+    classicToken: { findUnique: vi.fn().mockResolvedValue(fan) },
     $transaction: (run: (tx: unknown) => unknown) => run(db),
   };
   const chain = {
@@ -482,14 +483,16 @@ describe("funding the prize", () => {
 
   it("shows what the wallet and the storage account hold", async () => {
     const { ctx } = setup();
-    const sources = await fundingSources(ctx, artist, user);
+    const sources = await fundingSources(ctx, { ...artist, fanTokenItemId: "fan" }, user);
+    expect(sources.fanToken).toEqual(fan);
     expect(sources.wallet?.BANDCOIN).toBe("500.0000000");
     expect(sources.storage?.BANDCOIN).toBe("500.0000000");
     expect(sources.wallet?.others).toEqual([
       { code: "LUNA", issuer: fan.issuer, amount: "900.0000000" },
     ]);
     expect(
-      (await fundingSources(ctx, { ...artist, storageAccountId: null }, user)).storage,
+      (await fundingSources(ctx, { ...artist, storageAccountId: null, fanTokenItemId: null }, user))
+        .storage,
     ).toBeNull();
   });
 });
@@ -526,9 +529,9 @@ describe("a prize in the artist's own token", () => {
 
     await createBounty(ctx, artist, { ...rest, prizeAsset: assets.bandcoin });
     expect(written[1]).toMatchObject({ prizeCurrency: "BANDCOIN", prizeAssetCode: null });
-    await expect(
-      createBounty(ctx, artist, { ...base, prizeAsset: fan }),
-    ).rejects.toThrow(/Choose what the prize is paid in/);
+    await expect(createBounty(ctx, artist, { ...base, prizeAsset: fan })).rejects.toThrow(
+      /Choose what the prize is paid in/,
+    );
   });
 
   it("asks for the token's one-time setup before funding", async () => {
@@ -569,9 +572,9 @@ describe("a prize in the artist's own token", () => {
     const prepared = await prepareFunding(ctx, artist, user, "b1");
     expect(prepared.code).toBe("LUNA");
     const token = tokenAddressOf(new Asset(fan.code, fan.issuer), network.passphrase);
-    await expect(
-      submitFunding(ctx, artist, user, "b1", fundXdr({ token })),
-    ).resolves.toEqual({ txHash: "tx1" });
+    await expect(submitFunding(ctx, artist, user, "b1", fundXdr({ token }))).resolves.toEqual({
+      txHash: "tx1",
+    });
     await expect(submitFunding(ctx, artist, user, "b1", fundXdr())).rejects.toThrow(
       /isn't the one we prepared/,
     );

@@ -26,12 +26,3 @@ export function covers(balance: string | undefined, prize: string) {
   if (!Number.isFinite(need) || need <= 0) return null;
   return Number(balance) >= need;
 }
-
-/** The fund sources worth offering: the wallet always, the storage account only when the artist has one. */
-export function sourceOptions(sources: { wallet: unknown; storage: unknown } | undefined) {
-  const options: { value: "wallet" | "storage"; label: string }[] = [
-    { value: "wallet", label: "My wallet" },
-  ];
-  if (sources?.storage) options.push({ value: "storage", label: "My storage account" });
-  return options;
-}

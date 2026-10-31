@@ -22,7 +22,9 @@ import { Input } from "@bandcoin/ui/components/input";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@bandcoin/ui/components/select";
@@ -49,13 +51,15 @@ import { AiFillCard } from "../ai/ai-fill-card";
 import { AiTextButton } from "../ai/ai-text-button";
 import { Note, Toggle } from "../catalog/form-parts";
 import { PaymentToast } from "../payments/payment-toast";
-import { covers, type RuleType, ruleSummary, sourceOptions } from "./bounty-rules";
+import { covers, type RuleType, ruleSummary } from "./bounty-rules";
 import {
+  choiceValue,
   heldOf,
+  parseChoice,
   type PrizeKey,
+  prizeGroups,
   prizeInput,
   prizeLabel,
-  prizeOptions,
   shortIssuer,
   tokenKey,
 } from "./prize-choice";
@@ -385,8 +389,8 @@ export function BountyForm({
                 )}
                 {enough === false && (
                   <p role="alert" className="text-danger text-xs">
-                    Not enough {shown.code} here. Pick another source or currency, or add{" "}
-                    {shown.code} first. We never convert it for you.
+                    Not enough {shown.code} here. Pick another token or place, or add {shown.code}{" "}
+                    first. We never convert it for you.
                   </p>
                 )}
                 <p className="text-fg-faint text-xs">
@@ -561,31 +565,58 @@ export function BountyForm({
                 onChange={(event) => set("prizeAmount", event.target.value.trim())}
               />
             </Field>
-            <Field label="Paid in" htmlFor="bounty-currency">
+            <Field
+              label="Paid in"
+              htmlFor="bounty-currency"
+              hint="From your wallet or your storage account. Your fan token is listed first."
+            >
               <Select
-                value={state.currency}
+                value={choiceValue(state.source, state.currency)}
                 disabled={editing}
-                onValueChange={(value) => set("currency", value)}
+                onValueChange={(value) => {
+                  const { source, key } = parseChoice(value);
+                  setState((current) => ({ ...current, source, currency: key }));
+                }}
               >
                 <SelectTrigger id="bounty-currency" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {prizeOptions(holdings, state.currency).map((option) => (
-                    <SelectItem key={option.key} value={option.key}>
-                      {option.code}
-                      {option.issuer && (
-                        <span className="text-fg-faint"> · {shortIssuer(option.issuer)}</span>
-                      )}
-                      {option.have !== undefined && (
-                        <span className="text-fg-faint">
-                          {" "}
-                          · you have{" "}
-                          {formatAmount(option.have, prizeLabel(option.key).currency ?? "XLM")}
-                        </span>
-                      )}
-                    </SelectItem>
-                  ))}
+                  {prizeGroups(sources.data, { source: state.source, key: state.currency }).map(
+                    (group) => (
+                      <SelectGroup key={group.source}>
+                        <SelectLabel>{group.label}</SelectLabel>
+                        {group.options.map((option) => (
+                          <SelectItem
+                            key={option.key}
+                            value={choiceValue(group.source, option.key)}
+                          >
+                            {option.code}
+                            {option.fanToken ? (
+                              <span className="text-fg-faint"> · your fan token</span>
+                            ) : (
+                              option.issuer && (
+                                <span className="text-fg-faint">
+                                  {" "}
+                                  · {shortIssuer(option.issuer)}
+                                </span>
+                              )
+                            )}
+                            {option.have !== undefined && (
+                              <span className="text-fg-faint">
+                                {" "}
+                                · {group.source === "storage" ? "storage has" : "you have"}{" "}
+                                {formatAmount(
+                                  option.have,
+                                  prizeLabel(option.key).currency ?? "XLM",
+                                )}
+                              </span>
+                            )}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    ),
+                  )}
                 </SelectContent>
               </Select>
             </Field>
@@ -605,24 +636,6 @@ export function BountyForm({
                 }
                 className="max-w-28"
               />
-            </Field>
-            <Field label="Fund it from" htmlFor="bounty-source">
-              <Select
-                value={state.source}
-                disabled={editing}
-                onValueChange={(value) => set("source", value as State["source"])}
-              >
-                <SelectTrigger id="bounty-source" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {sourceOptions(sources.data).map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </Field>
           </div>
         </FormSection>

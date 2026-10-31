@@ -128,7 +128,7 @@ async function sourceAccount(ctx: ServiceCtx, address: string) {
 /** What each place the artist can fund from holds, so the form can show it before they choose. */
 export async function fundingSources(
   ctx: ServiceCtx,
-  artist: ArtistRef,
+  artist: ArtistRef & { fanTokenItemId: string | null },
   user: Pick<SessionUser, "walletAddress">,
 ) {
   const read = async (address: string | null | undefined) => {
@@ -145,7 +145,18 @@ export async function fundingSources(
         select: { publicKey: true },
       })
     : null;
-  return { wallet: await read(user.walletAddress), storage: await read(storage?.publicKey) };
+  const fanToken = artist.fanTokenItemId
+    ? await ctx.db.classicToken.findUnique({
+        where: { itemId: artist.fanTokenItemId },
+        select: { code: true, issuer: true },
+      })
+    : null;
+  return {
+    wallet: await read(user.walletAddress),
+    storage: await read(storage?.publicKey),
+    /** The artist's fan token (page asset), listed first */
+    fanToken,
+  };
 }
 
 export async function prepareFunding(

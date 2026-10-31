@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { covers, ruleSummary, sourceOptions } from "./bounty-rules";
+import { covers, ruleSummary } from "./bounty-rules";
 
 describe("ruleSummary", () => {
   it("says what fans must do for each rule", () => {
@@ -32,16 +32,5 @@ describe("covers", () => {
     expect(covers(undefined, "250")).toBeNull();
     expect(covers("500", "")).toBeNull();
     expect(covers("500", "0")).toBeNull();
-  });
-});
-
-describe("sourceOptions", () => {
-  it("offers storage only when the artist has a storage account", () => {
-    expect(sourceOptions({ wallet: {}, storage: null }).map((o) => o.value)).toEqual(["wallet"]);
-    expect(sourceOptions({ wallet: {}, storage: {} }).map((o) => o.value)).toEqual([
-      "wallet",
-      "storage",
-    ]);
-    expect(sourceOptions(undefined).map((o) => o.value)).toEqual(["wallet"]);
   });
 });

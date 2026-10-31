@@ -1,13 +1,32 @@
 import { describe, expect, it } from "vitest";
 
-import { heldOf, prizeInput, prizeLabel, prizeOptions, tokenKey } from "./prize-choice";
+import {
+  choiceValue,
+  heldOf,
+  parseChoice,
+  prizeGroups,
+  prizeInput,
+  prizeLabel,
+  tokenKey,
+} from "./prize-choice";
 
 const issuer = `G${"A".repeat(55)}`;
-const holdings = {
+const other = `G${"B".repeat(55)}`;
+const fanToken = { code: "LUNA", issuer };
+const wallet = {
   BANDCOIN: "50",
   XLM: "10",
   USDC: "0",
-  others: [{ code: "LUNA", issuer, amount: "900" }],
+  others: [
+    { code: "MISC", issuer: other, amount: "5" },
+    { code: "LUNA", issuer, amount: "900" },
+  ],
+};
+const storage = {
+  BANDCOIN: "0",
+  XLM: "1",
+  USDC: "0",
+  others: [{ code: "LUNA", issuer, amount: "1000000" }],
 };
 
 describe("prize choice", () => {
@@ -18,26 +37,38 @@ describe("prize choice", () => {
     expect(prizeLabel(tokenKey("LUNA", issuer))).toEqual({ currency: null, code: "LUNA" });
   });
 
-  it("lists the currencies, then the tokens held, with balances", () => {
-    expect(prizeOptions(holdings, "BANDCOIN").map((option) => [option.code, option.have])).toEqual([
-      ["BANDCOIN", "50"],
-      ["XLM", "10"],
-      ["USDC", "0"],
-      ["LUNA", "900"],
-    ]);
-    expect(heldOf(holdings, tokenKey("LUNA", issuer))).toBe("900");
-    expect(heldOf(holdings, tokenKey("GONE", issuer))).toBe("0");
+  it("one choice carries the token and where it comes from", () => {
+    const value = choiceValue("storage", tokenKey("LUNA", issuer));
+    expect(parseChoice(value)).toEqual({ source: "storage", key: tokenKey("LUNA", issuer) });
+    expect(parseChoice(choiceValue("wallet", "XLM"))).toEqual({ source: "wallet", key: "XLM" });
+  });
+
+  it("groups wallet and storage, the fan token first in each", () => {
+    const groups = prizeGroups(
+      { wallet, storage, fanToken },
+      { source: "wallet", key: "BANDCOIN" },
+    );
+    expect(groups.map((group) => group.source)).toEqual(["wallet", "storage"]);
+    expect(groups[0]?.options.map((option) => [option.code, option.have, option.fanToken])).toEqual(
+      [
+        ["LUNA", "900", true],
+        ["BANDCOIN", "50", false],
+        ["XLM", "10", false],
+        ["USDC", "0", false],
+        ["MISC", "5", false],
+      ],
+    );
+    expect(groups[1]?.options[0]).toMatchObject({ code: "LUNA", have: "1000000", fanToken: true });
+    expect(heldOf(storage, tokenKey("LUNA", issuer))).toBe("1000000");
     expect(heldOf(undefined, "XLM")).toBeUndefined();
   });
 
-  it("keeps a chosen token on the list after switching to a source without it", () => {
-    const other = { ...holdings, others: [] };
-    const options = prizeOptions(other, tokenKey("LUNA", issuer));
-    expect(options.at(-1)).toEqual({
-      key: tokenKey("LUNA", issuer),
-      code: "LUNA",
-      issuer,
-      have: "0",
-    });
+  it("shows storage only when it's open, and keeps a chosen token that's gone", () => {
+    const noStorage = prizeGroups(
+      { wallet, storage: null, fanToken },
+      { source: "wallet", key: tokenKey("GONE", other) },
+    );
+    expect(noStorage).toHaveLength(1);
+    expect(noStorage[0]?.options.at(-1)).toMatchObject({ code: "GONE", have: "0" });
   });
 });
