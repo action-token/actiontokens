@@ -7,8 +7,8 @@ import { AppError, ErrorCodes } from "@bandcoin/errors";
 import type { Context } from "../../context";
 
 /**
- * What an admin does with artists: review an application (approve or reject)
- * or ban. Every call is a mutation, so it lands in the activity log with the
+ * What an admin does with artists: review an application (approve or reject),
+ * ban, or unban. Every call is a mutation, so it lands in the activity log with the
  * admin as the actor; `ctx.activity.set` names the artist it was about.
  *
  * Rejecting gives the artist their XLM back (the issuer account closes into
@@ -28,10 +28,13 @@ export async function listApplications(ctx: Pick<Context, "db">, input: { status
       name: true,
       slug: true,
       bio: true,
+      avatarUrl: true,
       status: true,
       rejectionReason: true,
       createdAt: true,
       issuerAccount: { select: { publicKey: true } },
+      fanTokenItem: { select: { classicToken: { select: { code: true } } } },
+      _count: { select: { pins: true, followers: true } },
       user: { select: { id: true, username: true, displayName: true, walletAddress: true } },
     },
   });
@@ -44,12 +47,16 @@ export async function listApplications(ctx: Pick<Context, "db">, input: { status
       name: row.name,
       slug: row.slug,
       bio: row.bio,
+      avatarUrl: row.avatarUrl,
       status: row.status,
       rejectionReason: row.rejectionReason,
       createdAt: row.createdAt,
       /** The issuer account is open: they paid the 1.5 XLM */
       paid: row.issuerAccount !== null,
       issuer: row.issuerAccount?.publicKey ?? null,
+      fanToken: row.fanTokenItem?.classicToken?.code ?? null,
+      pins: row._count.pins,
+      followers: row._count.followers,
       owner: {
         id: row.user.id,
         name: row.user.displayName ?? row.user.username,
@@ -148,4 +155,15 @@ export async function banArtist(ctx: ServiceCtx, artistId: string) {
     throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "They are already banned." });
   await ctx.db.artist.update({ where: { id: artist.id }, data: { status: "BANNED" } });
   return { artistId: artist.id, status: "BANNED" as const };
+}
+
+/** Undoes a ban. Someone who had opened their artist account is approved again; otherwise they're back to waiting. */
+export async function unbanArtist(ctx: ServiceCtx, artistId: string) {
+  const artist = await loadArtist(ctx, artistId);
+  ctx.activity.set({ targetType: "Artist", targetId: artist.id });
+  if (artist.status !== "BANNED")
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "They aren't banned." });
+  const status = artist.issuerAccountId ? ("APPROVED" as const) : ("PENDING" as const);
+  await ctx.db.artist.update({ where: { id: artist.id }, data: { status } });
+  return { artistId: artist.id, status };
 }

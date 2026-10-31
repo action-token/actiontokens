@@ -1,4 +1,4 @@
-import { ArtistsView } from "~/features/admin/artists-view";
+import { ArtistsView } from "~/features/admin/artists/artists-view";
 
 export const metadata = { title: "Artists" };
 

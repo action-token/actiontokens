@@ -11,11 +11,13 @@ import {
   revokePreview,
   updateMuralSettings,
 } from "../../services/admin/murals";
+import { getArtist } from "../../services/admin/artist-detail";
 import {
   approveArtist,
   banArtist,
   listApplications,
   rejectArtist,
+  unbanArtist,
 } from "../../services/admin/artists";
 import {
   listUsers,
@@ -53,6 +55,7 @@ export const adminRouter = createRouter({
     list: adminProcedure
       .input(z.object({ status: z.enum(["PENDING", "APPROVED", "REJECTED", "BANNED"]).optional() }))
       .query(({ ctx, input }) => listApplications(ctx, input)),
+    get: adminProcedure.input(artistId).query(({ ctx, input }) => getArtist(ctx, input.artistId)),
     approve: adminProcedure
       .input(artistId)
       .mutation(({ ctx, input }) => approveArtist(ctx, input.artistId)),
@@ -66,6 +69,9 @@ export const adminRouter = createRouter({
     ban: adminProcedure
       .input(artistId)
       .mutation(({ ctx, input }) => banArtist(ctx, input.artistId)),
+    unban: adminProcedure
+      .input(artistId)
+      .mutation(({ ctx, input }) => unbanArtist(ctx, input.artistId)),
   }),
   users: createRouter({
     list: adminProcedure
@@ -94,9 +100,7 @@ export const adminRouter = createRouter({
   }),
   pins: createRouter({
     list: adminProcedure
-      .input(
-        z.object({ view: z.enum(["pending", "approved", "rejected"]), search, cursor }),
-      )
+      .input(z.object({ view: z.enum(["pending", "approved", "rejected"]), search, cursor }))
       .query(({ ctx, input }) => listPins(ctx, { ...input, cursor: input.cursor ?? undefined })),
     counts: adminProcedure.query(({ ctx }) => pinCounts(ctx)),
     decide: adminProcedure
