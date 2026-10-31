@@ -41,10 +41,10 @@ export type PendingFanToken =
   | { mode: "NEW"; code: string; coverUrl: string }
   | { mode: "EXISTING"; code: string; issuer: string; coverUrl: string };
 
-/** As sent from the wizard: a token already on Stellar may come without an image (we read its own). */
+/** As sent from the wizard. A token already on Stellar comes without an image: it keeps the one it has there. */
 export type FanTokenChoice =
   | { mode: "NEW"; code: string; coverUrl: string }
-  | { mode: "EXISTING"; code: string; issuer: string; coverUrl?: string };
+  | { mode: "EXISTING"; code: string; issuer: string };
 
 export type ApplicationInput = {
   name: string;
@@ -95,7 +95,7 @@ async function checkFanToken(
   token: FanTokenChoice,
   avatarUrl: string | undefined,
 ): Promise<PendingFanToken> {
-  if (token.coverUrl !== undefined) checkOwnUrls({ cover: token.coverUrl });
+  if (token.mode === "NEW") checkOwnUrls({ cover: token.coverUrl });
   const code = normalizeAssetCode(token.code);
   const problem = validateAssetCode(code);
   if (problem) throw invalid(problem);
@@ -106,12 +106,11 @@ async function checkFanToken(
     throw check.status === "USED"
       ? new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: check.message })
       : invalid(check.message);
-  // No image picked: copy the one its issuer published (their link could change), else their photo.
+  // Its image is the one its issuer published on Stellar, copied in (their link could change).
+  // A token with none shows the artist's photo in lists, as any item needs a picture.
   const coverUrl =
-    token.coverUrl ??
-    (check.image ? await copyImageToBucket(check.image).catch(() => null) : null) ??
-    avatarUrl;
-  if (!coverUrl) throw invalid("Add an image for your token.");
+    (check.image ? await copyImageToBucket(check.image).catch(() => null) : null) ?? avatarUrl;
+  if (!coverUrl) throw invalid("Add your profile photo first.");
   return { mode: "EXISTING", code, issuer: token.issuer, coverUrl };
 }
 

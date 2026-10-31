@@ -234,7 +234,7 @@ describe("applyAsArtist", () => {
     });
   });
 
-  it("uses the image a token already on Stellar publishes, else the profile photo", async () => {
+  it("uses the image a token already on Stellar has there (no upload), else the profile photo", async () => {
     const issuer = Keypair.random().publicKey();
     const existing = { mode: "EXISTING" as const, code: "LUNA", issuer };
     tokenImage.mockResolvedValueOnce("https://luna.example/luna.png");
@@ -255,19 +255,18 @@ describe("applyAsArtist", () => {
     });
     await expect(
       applyAsArtist(setup().ctx, me, { name: "Luna Vale", fanToken: existing }),
-    ).rejects.toThrow(/Add an image/);
+    ).rejects.toThrow(/profile photo first/);
   });
 
   it("checks a token already on Stellar, and refuses uploads from elsewhere or a short code", async () => {
     const issuer = Keypair.random().publicKey();
-    const existing = {
-      mode: "EXISTING" as const,
-      code: "LUNA",
-      issuer,
-      coverUrl: "https://cdn.example/t.png",
-    };
+    const existing = { mode: "EXISTING" as const, code: "LUNA", issuer };
     const ok = setup();
-    await applyAsArtist(ok.ctx, me, { name: "Luna Vale", fanToken: existing });
+    await applyAsArtist(ok.ctx, me, {
+      name: "Luna Vale",
+      avatarUrl: "https://cdn.example/me.jpg",
+      fanToken: existing,
+    });
     expect(ok.chain.assetExists).toHaveBeenCalledWith("LUNA", issuer);
     expect(ok.artists.get("a1")).toMatchObject({ pendingFanToken: existing });
 

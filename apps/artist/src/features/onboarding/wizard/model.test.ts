@@ -38,22 +38,19 @@ describe("onboarding wizard", () => {
     expect(stepReady(1, { ...draft, issuer: "GBAD" }, live)).toBe(false);
   });
 
-  it("doesn't ask for an image for a token already on Stellar, and shows the best one it has", () => {
+  it("never asks for an image for a token already on Stellar: it keeps the one it has there", () => {
     const draft = {
       ...EMPTY_DRAFT,
       tokenMode: "EXISTING" as const,
       existingCode: "LUNA",
       issuer,
-      avatarUrl: "me.jpg",
+      tokenImage: "uploaded-earlier.png",
     };
-    expect(stepReady(1, draft, live)).toBe(true);
+    expect(stepReady(1, { ...draft, tokenImage: "" }, live)).toBe(true);
     expect(fanTokenOf(draft)).toEqual({ mode: "EXISTING", code: "LUNA", issuer });
-    expect(tokenPicture(draft)).toBe("me.jpg");
+    expect(tokenPicture(draft)).toBe("");
     expect(tokenPicture({ ...draft, stellarImage: "stellar.png" })).toBe("stellar.png");
-    expect(tokenPicture({ ...draft, stellarImage: "stellar.png", tokenImage: "mine.png" })).toBe(
-      "mine.png",
-    );
-    expect(tokenPicture({ ...draft, tokenMode: "NEW" })).toBe("");
+    expect(tokenPicture({ ...draft, tokenMode: "NEW" })).toBe("uploaded-earlier.png");
   });
 
   it("needs a free, well-formed page address", () => {
@@ -78,6 +75,6 @@ describe("onboarding wizard", () => {
         issuer: ` ${issuer} `,
         tokenImage: "i",
       }),
-    ).toEqual({ mode: "EXISTING", code: "LUNA", issuer, coverUrl: "i" });
+    ).toEqual({ mode: "EXISTING", code: "LUNA", issuer });
   });
 });

@@ -249,45 +249,54 @@ export function TokenStep({ draft, set, check }: { draft: Draft; set: Set; check
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-start">
         <div className="grid justify-items-center gap-2">
-          <UploadArea
-            label={picture ? "Change the token image" : "Add a token image"}
-            onChange={(tokenImage) => set({ tokenImage })}
-            className="size-28 overflow-visible rounded-full"
-          >
-            <span
-              className={cn(
-                "flex size-full items-center justify-center overflow-hidden rounded-full",
-                picture
-                  ? "border-border border"
-                  : "bg-surface-2 outline-primary text-fg-muted group-hover:text-fg outline-2 -outline-offset-4 outline-dashed",
-              )}
+          {isNew ? (
+            <UploadArea
+              label={picture ? "Change the token image" : "Add a token image"}
+              onChange={(tokenImage) => set({ tokenImage })}
+              className="size-28 overflow-visible rounded-full"
             >
+              <span
+                className={cn(
+                  "flex size-full items-center justify-center overflow-hidden rounded-full",
+                  picture
+                    ? "border-border border"
+                    : "bg-surface-2 outline-primary text-fg-muted group-hover:text-fg outline-2 -outline-offset-4 outline-dashed",
+                )}
+              >
+                {picture ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- images come from our storage
+                  <img src={picture} alt="" className="size-full object-cover" />
+                ) : (
+                  <span className="grid justify-items-center gap-0.5 text-xs font-semibold">
+                    <ImagePlus className="size-5" />
+                    Image
+                  </span>
+                )}
+              </span>
+              {picture && <ChangeBadge className="right-0 bottom-0" />}
+            </UploadArea>
+          ) : (
+            // A token already on Stellar keeps the image it has there: nothing to upload.
+            <span className="bg-surface-2 border-border flex size-28 items-center justify-center overflow-hidden rounded-full border">
               {picture ? (
-                // eslint-disable-next-line @next/next/no-img-element -- ours, or the issuer's published image
+                // eslint-disable-next-line @next/next/no-img-element -- the image its issuer published
                 <img src={picture} alt="" className="size-full object-cover" />
               ) : (
-                <span className="grid justify-items-center gap-0.5 text-xs font-semibold">
-                  <ImagePlus className="size-5" />
-                  Image
+                <span className="text-fg-muted font-mono text-sm font-bold tracking-wider">
+                  {code.toUpperCase().slice(0, 6) || "?"}
                 </span>
               )}
             </span>
-            {picture && <ChangeBadge className="right-0 bottom-0" />}
-          </UploadArea>
+          )}
           <p className="text-fg-faint max-w-36 text-center text-xs">
             {isNew
               ? "Square, round crop"
-              : draft.tokenImage
-                ? "Your own image"
-                : draft.stellarImage
-                  ? "From Stellar · click to use another"
-                  : "Optional · we use your photo"}
+              : picture
+                ? "Its image on Stellar"
+                : check.state === "ok"
+                  ? "No image published on Stellar"
+                  : "Shown once it's found"}
           </p>
-          {!isNew && draft.tokenImage && (
-            <Button type="button" variant="ghost" size="xs" onClick={() => set({ tokenImage: "" })}>
-              {draft.stellarImage ? "Use the Stellar image" : "Remove"}
-            </Button>
-          )}
         </div>
 
         {isNew ? (
