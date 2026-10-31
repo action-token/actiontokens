@@ -83,6 +83,8 @@ enum OrderKind {
   STORAGE_STOCK
   /// An artist moves copies or money from their storage into their own wallet
   STORAGE_WITHDRAW
+  /// The artist moved XLM or tokens from their wallet into storage
+  STORAGE_DEPOSIT
   /// An artist pays the network fee to register a contract NFT edition on-chain
   NFT_REGISTER
   /// Unused: the NFT contract's fee is changed server-signed by the treasury (admin/contract-fee.ts)

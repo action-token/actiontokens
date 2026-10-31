@@ -9,6 +9,12 @@ import {
 } from "../../services/artist/profile";
 import { openStorage } from "../../services/artist/storage-account";
 import {
+  quoteDeposit,
+  startDeposit,
+  submitDeposit,
+  walletContents,
+} from "../../services/artist/storage-deposit";
+import {
   MAX_STOCK,
   quoteStock,
   startStock,
@@ -85,6 +91,23 @@ export const profileRouter = createRouter({
     .input(z.object({ orderId: z.string().min(1), xdr: z.string().min(1) }))
     .mutation(({ ctx, input }) => submitWithdraw(ctx, ctx.session.user, ctx.artist, input)),
   withdrawCancel: artistProcedure
+    .input(z.object({ orderId: z.string().min(1) }))
+    .mutation(({ ctx, input }) => cancelPurchase(ctx, ctx.session.user, input.orderId)),
+
+  /** The wallet next to storage, and moving some into storage (see services/artist/storage-deposit). */
+  walletContents: artistProcedure.query(({ ctx }) =>
+    walletContents(ctx, ctx.session.user, ctx.artist),
+  ),
+  depositQuote: artistProcedure
+    .input(withdrawInput)
+    .query(({ ctx, input }) => quoteDeposit(ctx, ctx.session.user, ctx.artist, input)),
+  depositStart: artistProcedure
+    .input(withdrawInput)
+    .mutation(({ ctx, input }) => startDeposit(ctx, ctx.session.user, ctx.artist, input)),
+  depositSubmit: artistProcedure
+    .input(z.object({ orderId: z.string().min(1), xdr: z.string().min(1) }))
+    .mutation(({ ctx, input }) => submitDeposit(ctx, ctx.session.user, ctx.artist, input)),
+  depositCancel: artistProcedure
     .input(z.object({ orderId: z.string().min(1) }))
     .mutation(({ ctx, input }) => cancelPurchase(ctx, ctx.session.user, input.orderId)),
 });

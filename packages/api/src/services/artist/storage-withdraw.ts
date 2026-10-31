@@ -32,16 +32,16 @@ export type WithdrawBreakdown = { code: string; issuer: string | null; amount: s
 const unavailable = (message: string): RechargeProblem => ({ code: "UNAVAILABLE", message });
 const AMOUNT = /^\d{1,12}(\.\d{1,7})?$/;
 
-type CreditLine = Extract<Horizon.HorizonApi.BalanceLine, { asset_code: string }>;
-const creditLines = (account: Horizon.AccountResponse | null) =>
+export type CreditLine = Extract<Horizon.HorizonApi.BalanceLine, { asset_code: string }>;
+export const creditLines = (account: Horizon.AccountResponse | null) =>
   (account?.balances ?? []).filter((line): line is CreditLine => "asset_code" in line);
 /** What can move now: the balance less anything promised to open offers. */
-const freeOf = (line: CreditLine) => {
+export const freeOf = (line: CreditLine) => {
   const free = toStroops(line.balance) - toStroops(line.selling_liabilities ?? "0");
   return free > 0n ? free : 0n;
 };
 
-async function openStorage(ctx: ServiceCtx, artist: ArtistRef) {
+export async function openedStorage(ctx: ServiceCtx, artist: ArtistRef) {
   const storage = artist.storageAccountId
     ? await ctx.db.chainAccount.findUnique({
         where: { id: artist.storageAccountId },
@@ -53,7 +53,7 @@ async function openStorage(ctx: ServiceCtx, artist: ArtistRef) {
 
 /** Everything in storage that can be taken out: spare XLM first, then payment assets, then copies. */
 export async function storageContents(ctx: ServiceCtx, artist: ArtistRef) {
-  const storage = await openStorage(ctx, artist);
+  const storage = await openedStorage(ctx, artist);
   if (!storage) return null;
   const account = await ctx.chain.loadAccount(storage.publicKey);
   const lines = creditLines(account);
@@ -103,7 +103,7 @@ async function prepare(
 ) {
   const { chain } = ctx;
   const problems: RechargeProblem[] = [];
-  const storage = await openStorage(ctx, artist);
+  const storage = await openedStorage(ctx, artist);
   if (!storage) problems.push(unavailable("Your storage account isn't open."));
   const native = input.issuer === null;
   if (native && input.code !== "XLM")
@@ -285,7 +285,7 @@ export async function submitWithdraw(
   }
 
   // Storage's key is looked up here, never taken from the request; the hash pins the payment.
-  const storage = await openStorage(ctx, artist);
+  const storage = await openedStorage(ctx, artist);
   if (!storage) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Order not found" });
   let xdr = await userSignature(ctx, user, order.txHash, input.xdr);
   const paysFromStorage = (

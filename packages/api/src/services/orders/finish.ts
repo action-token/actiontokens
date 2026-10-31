@@ -143,6 +143,7 @@ export async function finishOrder(
       return { orderId: order.id, status: (await deliverVanity(ctx, order.id)).status };
     case "STORAGE_STOCK":
     case "STORAGE_WITHDRAW":
+    case "STORAGE_DEPOSIT":
     case "NFT_PLATFORM_FEE":
       return finishPlain(ctx, order.id);
     case "ISSUER_SETUP":

@@ -13,9 +13,6 @@ import { stellarExpertAccountUrl } from "@bandcoin/wallet/config";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import { OpenIssuer } from "../onboarding/open-issuer";
-import { PayToOpen } from "../payments/pay-to-open";
-
-import { StorageContents } from "./storage-contents";
 
 type Profile = RouterOutputs["profile"]["overview"];
 
@@ -79,11 +76,12 @@ export function AccountsTab({ profile }: { profile: Profile }) {
         note="Holds your fan tokens and copies. Sales, pin claims and gifts take from it first."
         account={profile.storageAccount}
         open={<OpenStorage />}
-      >
-        <StorageContents />
-      </AccountCard>
+      />
       {profile.storageAccount && (
-        <p className="text-fg-muted text-xs">Add copies to storage from each item&apos;s page.</p>
+        <p className="text-fg-muted text-xs">
+          See what&apos;s in it, and move things in or out, under Balances. Add copies of an item
+          from its page.
+        </p>
       )}
     </div>
   );

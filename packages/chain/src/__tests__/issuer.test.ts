@@ -11,6 +11,7 @@ import {
   buildIssuerRefund,
   buildStockStorage,
   buildStorageWithdraw,
+  buildStorageDeposit,
   buildStorageSetup,
   quoteIssuerSetup,
   quoteStorageSetup,
@@ -210,5 +211,43 @@ describe("taking things out of storage", () => {
     expect(parse(built.xdr).operations).toMatchObject([
       { type: "payment", source: storage, asset: { code: "XLM" } },
     ]);
+  });
+});
+
+describe("moving into storage", () => {
+  const artist = Keypair.random().publicKey();
+  const storage = Keypair.random().publicKey();
+  const asset = { code: "LUNA", issuer: Keypair.random().publicKey() };
+
+  it("pays straight in when storage already holds the token", () => {
+    const built = buildStorageDeposit({
+      artist: new Account(artist, "1"),
+      network,
+      storage,
+      asset,
+      amount: "25",
+      openTrustline: false,
+    });
+    expect(parse(built.xdr).operations).toMatchObject([
+      { type: "payment", destination: storage, amount: "25.0000000" },
+    ]);
+    expect(built.serverSigners).toEqual([]);
+  });
+
+  it("first sends the trustline's 0.5 XLM and lets storage hold it, storage co-signing", () => {
+    const built = buildStorageDeposit({
+      artist: new Account(artist, "1"),
+      network,
+      storage,
+      asset,
+      amount: "25",
+      openTrustline: true,
+    });
+    expect(parse(built.xdr).operations).toMatchObject([
+      { type: "payment", destination: storage, amount: "0.5000000" },
+      { type: "changeTrust", source: storage },
+      { type: "payment", destination: storage, amount: "25.0000000" },
+    ]);
+    expect(built.serverSigners).toEqual([storage]);
   });
 });

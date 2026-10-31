@@ -18,6 +18,7 @@ import { VANITY_HOST } from "../domain/host";
 import { FAN_APP_URL } from "../shell/links";
 
 import { AccountsTab, FanTokenTab } from "./account-tabs";
+import { BalancesTab } from "./balances-tab";
 import { ProfileForm } from "./profile-form";
 import { FULL_BLEED, ProfileHeader, SETTINGS_COLUMN } from "./profile-header";
 import { SettingsSection } from "./settings-section";
@@ -29,6 +30,7 @@ const TABS = [
   { id: "fan-token", label: "Fan token", icon: Coins },
   { id: "short-link", label: "Short link", icon: Link2 },
   { id: "accounts", label: "Accounts", icon: Wallet },
+  { id: "balances", label: "Balances", icon: Coins },
 ] as const;
 type Tab = (typeof TABS)[number]["id"];
 
@@ -126,9 +128,17 @@ function Settings({ profile }: { profile: Profile }) {
           <TabsContent value="accounts">
             <SettingsSection
               title="Stellar accounts"
-              description="The accounts behind your tokens. You pay to open them; Bandcoin keeps their keys safe, so you never need them."
+              description="The accounts behind your tokens. You open your issuer when you apply; Bandcoin opens storage for you. Bandcoin keeps their keys safe, so you never need them."
             >
               <AccountsTab profile={profile} />
+            </SettingsSection>
+          </TabsContent>
+          <TabsContent value="balances">
+            <SettingsSection
+              title="Balances"
+              description="What your wallet and your storage account hold. Move XLM or tokens between them; you see the network fee first."
+            >
+              <BalancesTab storageOpen={Boolean(profile.storageAccount?.activatedAt)} />
             </SettingsSection>
           </TabsContent>
         </Tabs>

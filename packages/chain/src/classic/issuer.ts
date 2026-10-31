@@ -165,6 +165,40 @@ export function buildStorageWithdraw(input: {
 }
 
 /**
+ * Moves some of the artist's own XLM or tokens from their wallet into their
+ * storage. The wallet is the source and pays the fee. When storage doesn't
+ * trust the token yet, the wallet also sends it the 0.5 XLM the trustline
+ * locks, storage opens the trustline, and storage co-signs.
+ */
+export function buildStorageDeposit(input: {
+  artist: Account;
+  network: NetworkParams;
+  storage: string;
+  asset: AssetRef | null;
+  amount: string;
+  openTrustline: boolean;
+  memo?: string;
+}) {
+  const asset = input.asset ? new Asset(input.asset.code, input.asset.issuer) : Asset.native();
+  const builder = startTransaction(input.artist, input.network, { memo: input.memo });
+  const trust = input.openTrustline && input.asset !== null;
+  if (trust) {
+    builder.addOperation(
+      Operation.payment({
+        destination: input.storage,
+        asset: Asset.native(),
+        amount: TRUSTLINE_RESERVE_XLM,
+      }),
+    );
+    builder.addOperation(Operation.changeTrust({ source: input.storage, asset }));
+  }
+  builder.addOperation(
+    Operation.payment({ destination: input.storage, asset, amount: input.amount }),
+  );
+  return trust ? finish(builder, [input.storage]) : finish(builder);
+}
+
+/**
  * The price of opening an account the artist pays for (issuer or storage):
  * the starting XLM and the network fee, checked against their spendable XLM.
  */
