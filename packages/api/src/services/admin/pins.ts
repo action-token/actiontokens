@@ -2,6 +2,7 @@ import type { ApprovalStatus, Prisma } from "@bandcoin/db";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import type { Context } from "../../context";
+import { statusOf } from "../artist/pins";
 
 /**
  * Admin › Pin review, as in Wadzzo: an artist's new pin waits (PENDING) until
@@ -137,4 +138,70 @@ export async function deletePins(ctx: ServiceCtx, input: { pinIds: string[] }) {
     });
   const { count } = await ctx.db.pin.deleteMany({ where: { id: { in: input.pinIds } } });
   return { count };
+}
+
+/** Most pins the all-pins map draws at once */
+export const MAP_PINS = 2000;
+
+/**
+ * Admin › Pin map: every artist's pins (or one artist's) on one map, with the
+ * same status the artist sees. Ended pins only when asked.
+ */
+export async function pinsForMap(
+  ctx: Pick<Context, "db">,
+  input: { artistId?: string; includeEnded?: boolean },
+  now = new Date(),
+) {
+  const rows = await ctx.db.pin.findMany({
+    where: {
+      ...(input.artistId ? { artistId: input.artistId } : {}),
+      ...(input.includeEnded ? {} : { endsAt: { gte: now } }),
+    },
+    orderBy: { createdAt: "desc" },
+    take: MAP_PINS,
+    select: {
+      id: true,
+      title: true,
+      type: true,
+      imageUrl: true,
+      approval: true,
+      isHidden: true,
+      startsAt: true,
+      endsAt: true,
+      claimLimit: true,
+      claimsLeft: true,
+      artist: { select: { id: true, name: true, avatarUrl: true } },
+      spots: {
+        where: { isHidden: false },
+        select: {
+          id: true,
+          latitude: true,
+          longitude: true,
+          autoCollect: true,
+          _count: { select: { claims: true } },
+        },
+      },
+    },
+  });
+  return {
+    pins: rows.map((pin) => ({
+      id: pin.id,
+      title: pin.title,
+      type: pin.type,
+      imageUrl: pin.imageUrl,
+      artist: pin.artist,
+      startsAt: pin.startsAt,
+      endsAt: pin.endsAt,
+      status: statusOf(pin, now),
+      collected: pin.spots.reduce((sum, spot) => sum + spot._count.claims, 0),
+      spotPoints: pin.spots.map((spot) => ({
+        id: spot.id,
+        latitude: spot.latitude,
+        longitude: spot.longitude,
+        autoCollect: spot.autoCollect,
+        collected: spot._count.claims,
+      })),
+    })),
+    capped: rows.length === MAP_PINS,
+  };
 }

@@ -4,7 +4,7 @@ import type { Db } from "@bandcoin/db";
 
 import { listBounties, setBountyHidden } from "../services/admin/bounties";
 import { listItems, setItemHidden } from "../services/admin/items";
-import { decidePins, deletePins, listPins, pinCounts } from "../services/admin/pins";
+import { decidePins, deletePins, listPins, pinCounts, pinsForMap } from "../services/admin/pins";
 
 const now = new Date("2026-10-30T12:00:00Z");
 const day = 24 * 60 * 60 * 1000;
@@ -96,6 +96,32 @@ describe("admin pin review", () => {
     expect(deleteMany).not.toHaveBeenCalled();
     expect(await deletePins(ctx, { pinIds: ["p1", "p2"] })).toEqual({ count: 2 });
     expect(deleteMany).toHaveBeenCalledWith({ where: { id: { in: ["p1", "p2"] } } });
+  });
+});
+
+describe("admin pin map", () => {
+  it("draws every artist's pins with the artist's status, leaving out ended ones unless asked", async () => {
+    const spot = (id: string, claims: number) => ({
+      id,
+      latitude: 1,
+      longitude: 2,
+      autoCollect: false,
+      _count: { claims },
+    });
+    const findMany = vi.fn().mockResolvedValue([
+      { ...pinRow({ approval: "PENDING" }), spots: [spot("s1", 2), spot("s2", 1)] },
+      { ...pinRow({ id: "p2", approval: "APPROVED" }), spots: [spot("s3", 0)] },
+    ]);
+    const { ctx } = ctxWith({ pin: { findMany } });
+    const { pins, capped } = await pinsForMap(ctx, {}, now);
+    expect(pins.map((pin) => [pin.id, pin.status, pin.collected, pin.spotPoints.length])).toEqual([
+      ["p1", "IN_REVIEW", 3, 2],
+      ["p2", "LIVE", 0, 1],
+    ]);
+    expect(capped).toBe(false);
+    expect(findMany.mock.calls[0]?.[0].where).toEqual({ endsAt: { gte: now } });
+    await pinsForMap(ctx, { artistId: "a1", includeEnded: true }, now);
+    expect(findMany.mock.calls[1]?.[0].where).toEqual({ artistId: "a1" });
   });
 });
 

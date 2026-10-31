@@ -8,11 +8,13 @@ import {
   Clock,
   ExternalLink,
   Eye,
+  Map as MapIcon,
   MapPin,
   Trash2,
   X,
   XCircle,
 } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import toast, { type Toast } from "react-hot-toast";
@@ -236,6 +238,13 @@ export function PinReviewView() {
         eyebrow="Admin"
         title="Pin review"
         description="New pins from artists wait here. Fans only see them once you approve."
+        actions={
+          <Button variant="outline" asChild>
+            <Link href="/admin/pins/map">
+              <MapIcon /> Map
+            </Link>
+          </Button>
+        }
       />
 
       {/* Row 1: which list + search. Row 2: how to arrange it. */}

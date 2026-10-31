@@ -35,7 +35,7 @@ import { listItems, setItemHidden } from "../../services/admin/items";
 import { changeContractFee, readContractFee } from "../../services/admin/contract-fee";
 import { getPerson } from "../../services/admin/person";
 import { getSettings, updateSettings } from "../../services/admin/settings";
-import { decidePins, deletePins, listPins, pinCounts } from "../../services/admin/pins";
+import { decidePins, deletePins, listPins, pinCounts, pinsForMap } from "../../services/admin/pins";
 import { getMuralSettings } from "../../services/ar/murals";
 import { adminProcedure, createRouter } from "../../trpc";
 
@@ -125,6 +125,11 @@ export const adminRouter = createRouter({
       .input(z.object({ view: z.enum(["pending", "approved", "rejected"]), search, cursor }))
       .query(({ ctx, input }) => listPins(ctx, { ...input, cursor: input.cursor ?? undefined })),
     counts: adminProcedure.query(({ ctx }) => pinCounts(ctx)),
+    map: adminProcedure
+      .input(
+        z.object({ artistId: z.string().min(1).optional(), includeEnded: z.boolean().optional() }),
+      )
+      .query(({ ctx, input }) => pinsForMap(ctx, input)),
     decide: adminProcedure
       .input(pinIds.extend({ approval: z.enum(["PENDING", "APPROVED", "REJECTED"]) }))
       .mutation(({ ctx, input }) => decidePins(ctx, input)),
