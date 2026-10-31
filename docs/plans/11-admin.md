@@ -18,6 +18,18 @@ to the activity log (`admin.*` actions with the target).
 | Platform fee       | **Both, like main:** the saved fee % for classic sales, and the contract-NFT fee changed on-chain by the admin's wallet. |
 | Extras from main   | Collection report (all artists), map of all pins, wallet asset list: **built last**, after everything else.              |
 
+## Status (2026-10-31): done
+
+Built following Wadzzo's admin (decided 2026-10-30): Artists + artist page,
+Users + user page, Admins, Pin review (approve first) + pin map, Mural review,
+Bounties, Items, Collection reports (every artist or one), Alerts, Settings
+(fees, short link prices, pin radius, alert thresholds, contract-NFT fee
+server-signed by the treasury), Activity. Changed from the plan below:
+
+- **Overview** not built: `/admin` opens Artists, as in Wadzzo.
+- **Pins** need approval first (not "live without review").
+- **Wallet asset list** dropped: admins don't curate Stellar assets in this app (asked 2026-10-31).
+
 ## Pages
 
 ### 1. Overview `/admin`
