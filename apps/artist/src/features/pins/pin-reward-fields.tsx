@@ -18,15 +18,17 @@ import { Field } from "@bandcoin/ui/patterns/form-page";
 import type { RouterOutputs } from "~/trpc/react";
 
 import { Note } from "../catalog/form-parts";
+import { amountProblem, storageNote } from "./reward-amount";
 
 export type RewardKind = "NONE" | "FAN_TOKEN" | "ITEM";
 type Options = RouterOutputs["pins"]["pinOptions"];
 
-export type RewardState = { kind: RewardKind; itemId: string; claimLimit: string };
+/** `amount` = fan tokens per collect; empty means one */
+export type RewardState = { kind: RewardKind; itemId: string; claimLimit: string; amount: string };
 
 /**
- * What a fan gets for collecting: nothing (a pin to find), your fan token or one of your items.
- * One unit per fan, sent from your stock or made on demand, up to the limit.
+ * What a fan gets for collecting: nothing (a pin to find), an amount of your
+ * fan token (sent from storage) or one copy of one of your items, up to the limit.
  */
 export function PinRewardFields({
   value,
@@ -54,6 +56,17 @@ export function PinRewardFields({
         : claimed && limit > 0 && limit < claimed
           ? `${claimed} fans already collected it.`
           : null;
+  const fanToken = options?.fanToken;
+  const amountError = value.kind === "FAN_TOKEN" ? amountProblem(value.amount) : null;
+  const note =
+    value.kind === "FAN_TOKEN" && fanToken?.code
+      ? storageNote({
+          amount: value.amount,
+          claimLimit: value.claimLimit,
+          code: fanToken.code,
+          inStorage: fanToken.inStorage,
+        })
+      : null;
 
   return (
     <div className="grid gap-5">
@@ -80,12 +93,39 @@ export function PinRewardFields({
           }
           hint={
             options?.fanToken
-              ? "Each fan who collects gets one."
+              ? "Sent from your storage when a fan claims."
               : "Create your fan token under Memberships first."
           }
           checked={value.kind === "FAN_TOKEN"}
           disabled={locked || !options?.fanToken}
-        />
+        >
+          {value.kind === "FAN_TOKEN" && (
+            <div className="mt-3 grid gap-2">
+              <Field
+                label="Tokens each fan gets"
+                htmlFor="pin-amount"
+                error={amountError}
+                hint={amountError ? undefined : "Leave empty for one."}
+              >
+                <Input
+                  id="pin-amount"
+                  inputMode="decimal"
+                  placeholder="1"
+                  value={value.amount}
+                  disabled={locked}
+                  aria-invalid={Boolean(amountError)}
+                  className="max-w-40"
+                  onChange={(event) => onChange({ ...value, amount: event.target.value })}
+                />
+              </Field>
+              {note && (
+                <p className={cn("text-xs", note.short ? "text-warning" : "text-fg-muted")}>
+                  {note.text}
+                </p>
+              )}
+            </div>
+          )}
+        </Choice>
         <Choice
           value="ITEM"
           icon={Gift}

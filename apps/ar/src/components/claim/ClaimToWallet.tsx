@@ -47,7 +47,7 @@ export function ClaimToWallet({ pinId }: { pinId: string }) {
       <Notice
         icon={CheckCircle2}
         title="In your wallet"
-        body={`${overview.reward.name} is yours on Stellar.`}
+        body={`${trimAmount(overview.reward.amount)} ${overview.reward.name} is yours on Stellar.`}
       />
     );
   }
@@ -63,6 +63,7 @@ export function ClaimToWallet({ pinId }: { pinId: string }) {
         claimId={overview.claimId}
         name={overview.reward.name}
         code={overview.reward.code}
+        amount={overview.reward.amount}
       />
     </>
   );
@@ -86,12 +87,15 @@ function ClaimSheet({
   claimId,
   name,
   code,
+  amount,
 }: {
   open: boolean;
   onClose: () => void;
   claimId: string;
   name: string;
   code: string;
+  /** How many the claim sends: one copy of an item, or the pin's fan-token amount */
+  amount: string;
 }) {
   const quote = api.claim.quote.useQuery({ claimId }, { enabled: open, staleTime: 20_000 });
   const flow = useRewardClaim(claimId);
@@ -114,8 +118,11 @@ function ClaimSheet({
           Claim to wallet
         </h2>
         <p className="text-ar-dim mt-1 text-[12.5px] leading-relaxed">
-          Send <b className="text-ar-text">1 {name}</b> to your Stellar wallet. You only pay
-          Stellar&apos;s costs; Bandcoin charges nothing.
+          Send{" "}
+          <b className="text-ar-text">
+            {trimAmount(amount)} {name}
+          </b>{" "}
+          to your Stellar wallet. You only pay Stellar&apos;s costs; Bandcoin charges nothing.
         </p>
 
         <div className="mt-4 min-h-24">

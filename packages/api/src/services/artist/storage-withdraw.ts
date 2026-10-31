@@ -41,7 +41,10 @@ export const freeOf = (line: CreditLine) => {
   return free > 0n ? free : 0n;
 };
 
-export async function openedStorage(ctx: ServiceCtx, artist: ArtistRef) {
+export async function openedStorage(
+  ctx: Pick<Context, "db">,
+  artist: Pick<ArtistRef, "storageAccountId">,
+) {
   const storage = artist.storageAccountId
     ? await ctx.db.chainAccount.findUnique({
         where: { id: artist.storageAccountId },

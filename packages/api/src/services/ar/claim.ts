@@ -18,10 +18,13 @@ type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 /**
  * "Claim to wallet": delivering a collected pin's reward on Stellar.
  *
- * Collecting only records that the fan found the pin. Claiming sends one copy
- * of the reward (an item, or the artist's fan token) to the fan's wallet:
- * from the artist's storage stock first, minted by the artist's issuer when
- * the stock is gone. The fan is the source and pays only the network fee,
+ * Collecting only records that the fan found the pin. Claiming sends the
+ * reward to the fan's wallet. An item gives one copy: from the artist's
+ * storage stock first, minted by the artist's issuer when the stock is gone.
+ * The fan token gives the pin's amount, from storage only, so a pin can't
+ * create tokens the artist didn't put aside; when storage runs out, claims
+ * wait (an artist without storage still mints, as before). The fan is the
+ * source and pays only the network fee,
  * plus the trustline reserve if they don't hold the token yet. No platform fee.
  *
  *   quote   → what it costs and whether it will go through
@@ -29,7 +32,7 @@ type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
  *   submit  → checks it is this claim, co-signs, submits, records it
  */
 
-/** One copy per claim, as on the old Bandcoin. */
+/** An item reward gives one copy per claim, as on the old Bandcoin. */
 export const CLAIM_AMOUNT = "1";
 /** Stellar's base reserve: what a new trustline locks in the fan's wallet. */
 const TRUSTLINE_RESERVE_XLM = "0.5";
@@ -42,6 +45,7 @@ const claimInclude = {
           id: true,
           title: true,
           rewardsFanToken: true,
+          rewardAmount: true,
           rewardItem: {
             include: {
               classicToken: { include: { issuerAccount: { select: { publicKey: true } } } },
@@ -78,6 +82,10 @@ async function loadClaim(ctx: ServiceCtx, userId: string, claimId: string) {
   const { pin } = claim.spot;
   const item = pin.rewardItem ?? (pin.rewardsFanToken ? pin.artist.fanTokenItem : null);
   const token = item?.chainType === "CLASSIC_TOKEN" ? item.classicToken : null;
+  const stockAccount = pin.artist.storageAccount?.publicKey ?? null;
+  const fanToken = !pin.rewardItem && pin.rewardsFanToken;
+  // The fan token comes out of storage only; minting is for items, or an artist without storage.
+  const storageOnly = fanToken && stockAccount !== null;
   const reward =
     item && token
       ? {
@@ -85,8 +93,11 @@ async function loadClaim(ctx: ServiceCtx, userId: string, claimId: string) {
           name: item.title,
           imageUrl: item.coverUrl,
           asset: new Asset(token.code, token.issuer),
-          stockAccount: pin.artist.storageAccount?.publicKey ?? null,
-          minter: token.isExternal ? null : minterOf(token, pin.artist.issuerAccount),
+          amount: fanToken ? toAmount(toStroops(pin.rewardAmount.toString())) : CLAIM_AMOUNT,
+          stockAccount,
+          storageOnly,
+          minter:
+            token.isExternal || storageOnly ? null : minterOf(token, pin.artist.issuerAccount),
         }
       : null;
   return { claim, pin, item, reward };
@@ -119,7 +130,12 @@ export async function claimOverview(ctx: ServiceCtx, userId: string, spotId: str
   return {
     claimId: claim.id,
     state: claim.tokenClaimedAt ? ("delivered" as const) : ("available" as const),
-    reward: { name: reward.name, code: reward.asset.getCode(), imageUrl: reward.imageUrl },
+    reward: {
+      name: reward.name,
+      code: reward.asset.getCode(),
+      amount: reward.amount,
+      imageUrl: reward.imageUrl,
+    },
   };
 }
 
@@ -177,16 +193,23 @@ async function plan(ctx: ServiceCtx, user: SessionUser, loaded: Loaded) {
   try {
     delivery = planDelivery({
       kind: "PRIMARY",
-      quantity: Number(CLAIM_AMOUNT),
+      quantity: Number(reward.amount),
       stockAccount: reward.stockAccount,
       stockBalance: stock,
       minter: reward.minter,
     });
   } catch {
-    problems.push({
-      code: "NOT_STOCKED",
-      message: `${loaded.pin.artist.name} hasn't stocked this reward yet, so it can't be sent. Your collect is safe; try again later.`,
-    });
+    problems.push(
+      reward.storageOnly
+        ? {
+            code: "STORAGE_EMPTY",
+            message: `${loaded.pin.artist.name} has run out of ${reward.asset.getCode()} for pin rewards. Your collect is safe; try again later.`,
+          }
+        : {
+            code: "NOT_STOCKED",
+            message: `${loaded.pin.artist.name} hasn't stocked this reward yet, so it can't be sent. Your collect is safe; try again later.`,
+          },
+    );
   }
 
   const openTrustline = fan ? !trusts(fan, reward.asset) : true;
@@ -266,8 +289,8 @@ export async function prepareClaim(ctx: ServiceCtx, user: SessionUser, claimId: 
 }
 
 /**
- * The claim may only open a trustline to the reward and move copies of it to
- * the fan from the artist's stock or issuer, adding up to one copy. Returns
+ * The claim may only open a trustline to the reward and move it to the fan
+ * from the artist's stock or issuer, adding up to exactly the reward. Returns
  * the platform keys that must co-sign (taken from the database, not the XDR).
  */
 export function assertIsClaim(
@@ -309,7 +332,7 @@ export function assertIsClaim(
     }
     ok = false;
   }
-  if (!ok || delivered !== toStroops(CLAIM_AMOUNT)) {
+  if (!ok || delivered !== toStroops(reward.amount)) {
     throw new AppError(ErrorCodes.STELLAR_TX_REJECTED, {
       message: "That transaction isn't this reward claim.",
     });
@@ -365,11 +388,16 @@ export async function submitClaim(
     await ctx.db.pinClaim.update({ where: { id: claim.id }, data: { tokenClaimedAt: null } });
     throw error;
   }
-  ctx.activity.set({ txHash: hash, amount: CLAIM_AMOUNT });
+  ctx.activity.set({ txHash: hash, amount: reward.amount });
   await ctx.db.ownership.upsert({
     where: { userId_itemId: { userId: user.id, itemId: reward.itemId } },
-    create: { userId: user.id, itemId: reward.itemId, quantity: CLAIM_AMOUNT, source: "PIN_CLAIM" },
-    update: { quantity: { increment: CLAIM_AMOUNT } },
+    create: {
+      userId: user.id,
+      itemId: reward.itemId,
+      quantity: reward.amount,
+      source: "PIN_CLAIM",
+    },
+    update: { quantity: { increment: reward.amount } },
   });
   return { txHash: hash };
 }

@@ -32,6 +32,8 @@ model Pin {
   rewardItemId          String?
   rewardItem            Item?           @relation("PinRewardItem", fields: [rewardItemId], references: [id], onDelete: Cascade)
   rewardsFanToken       Boolean         @default(false)
+  /// Fan tokens one collect gives, sent from storage; items always give one copy
+  rewardAmount          Decimal         @default(1) @db.Decimal(20, 7)
   claimLimit            Int             @default(0)
   claimsLeft            Int             @default(0)
   startsAt              DateTime

@@ -7,6 +7,7 @@ import type { AiModel } from "../services/ai/model";
 import {
   createPin,
   listPins,
+  pinOptions,
   removePin,
   removeSpot,
   setPinHidden,
@@ -329,7 +330,12 @@ describe("creating a pin", () => {
       { ...basePin, reward: { kind: "FAN_TOKEN" }, claimLimit: 50 },
       now,
     );
-    expect(created[0]).toMatchObject({ rewardItemId: null, rewardsFanToken: true, claimLimit: 50 });
+    expect(created[0]).toMatchObject({
+      rewardItemId: null,
+      rewardsFanToken: true,
+      rewardAmount: "1.0000000",
+      claimLimit: 50,
+    });
     await expect(
       createPin(
         setup({ owner: { fanTokenItemId: null } }).ctx,
@@ -338,6 +344,55 @@ describe("creating a pin", () => {
         now,
       ),
     ).rejects.toThrow(/fan token first/i);
+  });
+
+  it("gives an amount of the fan token per collect, above zero", async () => {
+    const { ctx, created } = setup();
+    await createPin(
+      ctx,
+      artist,
+      { ...basePin, reward: { kind: "FAN_TOKEN", amount: "12.5" }, claimLimit: 10 },
+      now,
+    );
+    expect(created[0]).toMatchObject({ rewardsFanToken: true, rewardAmount: "12.5000000" });
+    for (const amount of ["0", "-3", "1.12345678", "lots"])
+      await expect(
+        createPin(
+          setup().ctx,
+          artist,
+          { ...basePin, reward: { kind: "FAN_TOKEN", amount }, claimLimit: 10 },
+          now,
+        ),
+      ).rejects.toThrow(/how many tokens each fan gets/i);
+  });
+
+  it("locks the fan-token amount once someone collected", async () => {
+    const pin = {
+      id: "p1",
+      startsAt: starts,
+      endsAt: ends,
+      claimLimit: 10,
+      claimsLeft: 9,
+      rewardItemId: null,
+      rewardsFanToken: true,
+      rewardAmount: "5",
+      visibility: "PUBLIC",
+      tierId: null,
+    };
+    await expect(
+      updatePin(setup({ claims: 1, pin }).ctx, artist, {
+        pinId: "p1",
+        reward: { kind: "FAN_TOKEN", amount: "50" },
+      }),
+    ).rejects.toThrow(/reward can't change/i);
+    // The same amount typed differently is no change.
+    const same = setup({ claims: 1, pin });
+    await updatePin(same.ctx, artist, {
+      pinId: "p1",
+      reward: { kind: "FAN_TOKEN", amount: "5.00" },
+      claimLimit: 20,
+    });
+    expect(same.updated[0]).toMatchObject({ claimLimit: 20, rewardAmount: "5.0000000" });
   });
 
   it("links an event of the artist's own", async () => {
@@ -554,10 +609,11 @@ describe("the pin list", () => {
     const { ctx, db } = setup();
     db.pin.findMany.mockResolvedValue([
       row({ rewardItem: { title: "Sticker", coverUrl: "x" } }),
-      row({ id: "p2", rewardsFanToken: true }),
+      row({ id: "p2", rewardsFanToken: true, rewardAmount: "1" }),
+      row({ id: "p3", rewardsFanToken: true, rewardAmount: "25" }),
     ]);
     const pins = await listPins(ctx, artist, now);
-    expect(pins.map((pin) => pin.reward)).toEqual(["Sticker", "Fan token"]);
+    expect(pins.map((pin) => pin.reward)).toEqual(["Sticker", "1 fan token", "25 fan tokens"]);
   });
 });
 
@@ -610,5 +666,68 @@ describe("AI tag suggestions", () => {
     await expect(suggestPinTags(ctx, model(null), actor, input)).rejects.toThrow(/didn't suggest/i);
     expect(db.aiUsage.upsert).not.toHaveBeenCalled();
     expect(db.pinTagCache.upsert).not.toHaveBeenCalled();
+  });
+});
+
+describe("pin options", () => {
+  function optionsCtx(storage: { activatedAt: Date | null } | null, balance?: string) {
+    const db = {
+      item: { findMany: vi.fn().mockResolvedValue([]) },
+      membershipTier: { findMany: vi.fn().mockResolvedValue([]) },
+      event: { findMany: vi.fn().mockResolvedValue([]) },
+      pinTag: { findMany: vi.fn().mockResolvedValue([]) },
+      artist: {
+        findUnique: vi.fn().mockResolvedValue({
+          fanTokenItem: {
+            title: "Luna",
+            coverUrl: null,
+            classicToken: { code: "LUNA", issuer: "GISSUER" },
+          },
+        }),
+      },
+      chainAccount: {
+        findUnique: vi
+          .fn()
+          .mockResolvedValue(
+            storage && { publicKey: "GSTORAGE", activatedAt: storage.activatedAt },
+          ),
+      },
+    };
+    const chain = {
+      loadAccount: vi.fn().mockResolvedValue({
+        balances: [
+          { asset_type: "native", balance: "5" },
+          ...(balance === undefined
+            ? []
+            : [
+                {
+                  asset_type: "credit_alphanum4",
+                  asset_code: "LUNA",
+                  asset_issuer: "GISSUER",
+                  balance,
+                  selling_liabilities: "0",
+                },
+              ]),
+        ],
+      }),
+    };
+    return { db: db as unknown as Db, chain: chain as never };
+  }
+
+  it("says how many fan tokens storage holds for rewards", async () => {
+    const opened = await pinOptions(optionsCtx({ activatedAt: new Date() }, "1500"), {
+      id: "a1",
+      storageAccountId: "s1",
+    });
+    expect(opened.fanToken).toMatchObject({ code: "LUNA", inStorage: "1500.0000000" });
+
+    const empty = await pinOptions(optionsCtx({ activatedAt: new Date() }), {
+      id: "a1",
+      storageAccountId: "s1",
+    });
+    expect(empty.fanToken?.inStorage).toBe("0.0000000");
+
+    const closed = await pinOptions(optionsCtx(null), { id: "a1", storageAccountId: null });
+    expect(closed.fanToken?.inStorage).toBeNull();
   });
 });

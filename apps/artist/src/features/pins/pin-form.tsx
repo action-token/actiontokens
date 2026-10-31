@@ -39,6 +39,7 @@ import { Note } from "../catalog/form-parts";
 import { MapPicker } from "./map-kit/map-picker";
 import { PIN_TYPES, PinSummary, type PinTypeName } from "./pin-summary";
 import { PinRewardFields, type RewardState } from "./pin-reward-fields";
+import { amountProblem } from "./reward-amount";
 import { PinSpotsCard } from "./pin-spots-card";
 import { PinTagsField } from "./pin-tags-field";
 
@@ -80,6 +81,10 @@ export function PinForm({ existing }: { existing?: Existing }) {
   const [reward, setReward] = useState<RewardState>({
     kind: existing?.reward.kind ?? "NONE",
     itemId: existing?.reward.kind === "ITEM" ? existing.reward.itemId : "",
+    amount:
+      existing?.reward.kind === "FAN_TOKEN" && Number(existing.reward.amount) !== 1
+        ? String(Number(existing.reward.amount))
+        : "",
     claimLimit: existing && existing.claimLimit > 0 ? String(existing.claimLimit) : "",
   });
   const [startsAt, setStartsAt] = useState(existing ? toLocalInput(existing.startsAt) : "");
@@ -134,7 +139,8 @@ export function PinForm({ existing }: { existing?: Existing }) {
   const claimLimit = Number(reward.claimLimit) || 0;
   const rewardOk =
     reward.kind === "NONE" ||
-    (claimLimit >= 1 && (reward.kind === "FAN_TOKEN" || reward.itemId !== ""));
+    (claimLimit >= 1 &&
+      (reward.kind === "FAN_TOKEN" ? amountProblem(reward.amount) === null : reward.itemId !== ""));
   const tierOk = visibility !== "TIER" || tierId !== "";
   const ready =
     title.trim().length >= 3 &&
@@ -146,7 +152,7 @@ export function PinForm({ existing }: { existing?: Existing }) {
 
   const rewardName =
     reward.kind === "FAN_TOKEN"
-      ? `Fan token${options.data?.fanToken?.code ? ` (${options.data.fanToken.code})` : ""}`
+      ? `${reward.amount.trim() || "1"} ${options.data?.fanToken?.code ?? "fan token"} each`
       : reward.kind === "ITEM"
         ? (options.data?.items.find((item) => item.id === reward.itemId)?.title ?? null)
         : null;
@@ -175,7 +181,9 @@ export function PinForm({ existing }: { existing?: Existing }) {
       reward:
         reward.kind === "ITEM"
           ? { kind: "ITEM" as const, itemId: reward.itemId }
-          : { kind: reward.kind },
+          : reward.kind === "FAN_TOKEN"
+            ? { kind: "FAN_TOKEN" as const, amount: reward.amount.trim() || "1" }
+            : { kind: "NONE" as const },
       claimLimit,
       startsAt: start ?? new Date(),
       endsAt: end,

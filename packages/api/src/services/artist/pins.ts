@@ -1,3 +1,4 @@
+import { toAmount, toStroops } from "@bandcoin/chain";
 import type { PinType, Prisma } from "@bandcoin/db";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 import { randomLocation } from "@bandcoin/geo";
@@ -6,6 +7,7 @@ import { isOwnS3Url } from "@bandcoin/storage";
 import type { Context } from "../../context";
 import { webLink } from "./events";
 import { invalid } from "./items";
+import { creditLines, freeOf, openedStorage } from "./storage-withdraw";
 
 /**
  * Pins: reward drops the artist places on the map. A pin is one title, one
@@ -25,7 +27,11 @@ const MAX_TAGS = 10;
 /** Who can collect it; DRAFT stays out because a hidden pin is already "not shown yet". */
 export type PinVisibility = "PUBLIC" | "FOLLOWERS" | "MEMBERS" | "TIER";
 
-export type PinReward = { kind: "NONE" } | { kind: "FAN_TOKEN" } | { kind: "ITEM"; itemId: string };
+/** A fan-token reward gives `amount` per collect (default 1); an item always gives one copy. */
+export type PinReward =
+  { kind: "NONE" } | { kind: "FAN_TOKEN"; amount?: string } | { kind: "ITEM"; itemId: string };
+
+const AMOUNT = /^\d{1,12}(\.\d{1,7})?$/;
 
 export type PinInput = {
   title: string;
@@ -142,9 +148,9 @@ async function resolveTier(
 }
 
 /**
- * The reward is one unit of an item per claim, sent from the artist's stock or
- * minted on demand up to the claim limit, so a reward always needs a limit and
- * a capped item can't promise more than exists.
+ * The reward is one copy of an item per claim, sent from the artist's stock or
+ * minted on demand, or an amount of the fan token, sent from storage. Either
+ * way a reward needs a limit, and a capped item can't promise more than exists.
  */
 async function resolveReward(
   ctx: ServiceCtx,
@@ -154,7 +160,8 @@ async function resolveReward(
 ) {
   if (!Number.isInteger(claimLimit) || claimLimit < 0 || claimLimit > MAX_CLAIMS)
     throw invalid("The collect limit must be a whole number.");
-  if (reward.kind === "NONE") return { rewardItemId: null, rewardsFanToken: false };
+  if (reward.kind === "NONE")
+    return { rewardItemId: null, rewardsFanToken: false, rewardAmount: "1" };
   if (claimLimit < 1)
     throw invalid("Set how many fans can collect it, since each one gets a reward.");
 
@@ -164,7 +171,10 @@ async function resolveReward(
       select: { fanTokenItemId: true },
     });
     if (!owner?.fanTokenItemId) throw invalid("Create your fan token first.");
-    return { rewardItemId: null, rewardsFanToken: true };
+    const amount = reward.amount?.trim() || "1";
+    if (!AMOUNT.test(amount) || toStroops(amount) <= 0n)
+      throw invalid("Enter how many tokens each fan gets, above zero.");
+    return { rewardItemId: null, rewardsFanToken: true, rewardAmount: toAmount(toStroops(amount)) };
   }
 
   const item = await ctx.db.item.findFirst({
@@ -182,7 +192,7 @@ async function resolveReward(
     throw invalid(
       `${item.title} only has ${item.supply.toLocaleString("en-US")} copies, so up to that many fans can collect it.`,
     );
-  return { rewardItemId: item.id, rewardsFanToken: false };
+  return { rewardItemId: item.id, rewardsFanToken: false, rewardAmount: "1" };
 }
 
 async function resolveEvent(
@@ -229,6 +239,7 @@ async function ownPin(ctx: ServiceCtx, artist: ArtistRef, pinId: string) {
       claimsLeft: true,
       rewardItemId: true,
       rewardsFanToken: true,
+      rewardAmount: true,
       visibility: true,
       tierId: true,
     },
@@ -242,7 +253,10 @@ const claimsOn = (db: ServiceCtx["db"], where: Prisma.PinClaimWhereInput) =>
   db.pinClaim.count({ where });
 
 /** The things the form offers to pick from, plus what the artist has tagged before. */
-export async function pinOptions(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef) {
+export async function pinOptions(
+  ctx: Pick<Context, "db" | "chain">,
+  artist: ArtistRef & { storageAccountId: string | null },
+) {
   const [items, tiers, events, tags, owner] = await Promise.all([
     ctx.db.item.findMany({
       where: {
@@ -275,11 +289,16 @@ export async function pinOptions(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef)
       where: { id: artist.id },
       select: {
         fanTokenItem: {
-          select: { title: true, coverUrl: true, classicToken: { select: { code: true } } },
+          select: {
+            title: true,
+            coverUrl: true,
+            classicToken: { select: { code: true, issuer: true } },
+          },
         },
       },
     }),
   ]);
+  const token = owner?.fanTokenItem?.classicToken ?? null;
   return {
     items,
     tiers: tiers.map((tier) => ({ ...tier, requiredTokens: tier.requiredTokens.toString() })),
@@ -289,11 +308,36 @@ export async function pinOptions(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef)
       ? {
           title: owner.fanTokenItem.title,
           coverUrl: owner.fanTokenItem.coverUrl,
-          code: owner.fanTokenItem.classicToken?.code ?? null,
+          code: token?.code ?? null,
+          inStorage: await fanTokensInStorage(ctx, artist, token),
         }
       : null,
   };
 }
+
+/** How many fan tokens storage holds for pin rewards; null when storage isn't open or can't be read. */
+async function fanTokensInStorage(
+  ctx: Pick<Context, "db" | "chain">,
+  artist: { storageAccountId: string | null },
+  token: { code: string; issuer: string } | null,
+) {
+  const storage = await openedStorage(ctx, artist);
+  if (!storage || !token) return null;
+  // A failed read says nothing rather than "0": the form only shows what it knows.
+  const account = await ctx.chain.loadAccount(storage.publicKey).catch(() => undefined);
+  if (account === undefined) return null;
+  const line = creditLines(account).find(
+    (entry) => entry.asset_code === token.code && entry.asset_issuer === token.issuer,
+  );
+  return toAmount(line ? freeOf(line) : 0n);
+}
+
+const fanTokenLabel = (amount: { toString(): string }) => {
+  const count = Number(amount.toString());
+  return count === 1
+    ? "1 fan token"
+    : `${count.toLocaleString("en-US", { maximumFractionDigits: 7 })} fan tokens`;
+};
 
 export async function listPins(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef, now = new Date()) {
   const rows = await ctx.db.pin.findMany({
@@ -339,7 +383,7 @@ export async function listPins(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef, n
     })),
     autoCollect: pin.spots.some((spot) => spot.autoCollect),
     collected: pin.spots.reduce((sum, spot) => sum + spot._count.claims, 0),
-    reward: pin.rewardItem?.title ?? (pin.rewardsFanToken ? "Fan token" : null),
+    reward: pin.rewardItem?.title ?? (pin.rewardsFanToken ? fanTokenLabel(pin.rewardAmount) : null),
     event: pin.event?.title ?? null,
     tags: pin.tags.map((link) => link.tag.label),
   }));
@@ -384,9 +428,11 @@ export async function getPin(
     reward: (pin.rewardItemId
       ? { kind: "ITEM", itemId: pin.rewardItemId, title: pin.rewardItem?.title ?? "" }
       : pin.rewardsFanToken
-        ? { kind: "FAN_TOKEN" }
+        ? { kind: "FAN_TOKEN", amount: pin.rewardAmount.toString() }
         : { kind: "NONE" }) as
-      { kind: "NONE" } | { kind: "FAN_TOKEN" } | { kind: "ITEM"; itemId: string; title: string },
+      | { kind: "NONE" }
+      | { kind: "FAN_TOKEN"; amount: string }
+      | { kind: "ITEM"; itemId: string; title: string },
     claimLimit: pin.claimLimit,
     claimsLeft: pin.claimsLeft,
     startsAt: pin.startsAt,
@@ -529,10 +575,14 @@ export async function updatePin(ctx: ServiceCtx, artist: ArtistRef, input: Updat
     const current: PinReward = pin.rewardItemId
       ? { kind: "ITEM", itemId: pin.rewardItemId }
       : pin.rewardsFanToken
-        ? { kind: "FAN_TOKEN" }
+        ? { kind: "FAN_TOKEN", amount: pin.rewardAmount.toString() }
         : { kind: "NONE" };
     const next = input.reward ?? current;
-    const changed = JSON.stringify(next) !== JSON.stringify(current);
+    const same = (a: PinReward, b: PinReward) =>
+      a.kind === "FAN_TOKEN" && b.kind === "FAN_TOKEN"
+        ? toStroops(a.amount?.trim() || "1") === toStroops(b.amount?.trim() || "1")
+        : JSON.stringify(a) === JSON.stringify(b);
+    const changed = !same(next, current);
     if (changed && claimed > 0)
       throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
         message: "Fans have already collected this pin, so its reward can't change.",
@@ -542,6 +592,7 @@ export async function updatePin(ctx: ServiceCtx, artist: ArtistRef, input: Updat
       ? { connect: { id: reward.rewardItemId } }
       : { disconnect: true };
     data.rewardsFanToken = reward.rewardsFanToken;
+    data.rewardAmount = reward.rewardAmount;
     data.claimLimit = claimLimit;
     data.claimsLeft = claimLimit > 0 ? claimLimit - claimed : 0;
   }

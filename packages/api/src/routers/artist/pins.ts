@@ -14,7 +14,7 @@ import { artistProcedure, createRouter } from "../../trpc";
 
 const reward = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("NONE") }),
-  z.object({ kind: z.literal("FAN_TOKEN") }),
+  z.object({ kind: z.literal("FAN_TOKEN"), amount: z.string().trim().max(24).optional() }),
   z.object({ kind: z.literal("ITEM"), itemId: z.string().min(1) }),
 ]);
 
