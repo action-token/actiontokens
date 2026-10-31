@@ -10,7 +10,7 @@ Same contracts, no contract change.
 | Topic | Decision |
 | --- | --- |
 | Who pays for storage | **The platform**, at approval (≈1.5 XLM: account + fan-token trustline). The artist still pays only the 1.5 XLM issuer setup when applying. |
-| Starting supply | **A fixed amount** for every artist, issued into storage at approval. Kept in admin settings so it can change (default to confirm). |
+| Starting supply | **A fixed amount** for every artist (1,000,000), issued into storage at approval. Kept in admin settings so it can change. |
 | Storage used by | Bounty prizes (wallet + storage, page asset shown), Sell Page Assets, **gifts from storage**, **pin rewards**, **a balances page**. |
 | Artists approved before this | **Open it from the portal**: "Open your storage account"; the platform pays, as at approval. |
 
@@ -48,11 +48,17 @@ The prize list shows wallet and storage holdings together, grouped "Wallet"
 and "Storage", with the fan token (page asset) first. Picking one sets the
 funding source. One prize token per bounty, as now.
 
-## 5. Gifts from storage
+## 5. Gifts from storage (main's token gift, decided 2026-10-31)
 
-Gifting the fan token sends it from storage (the platform signs for storage)
-instead of issuing new tokens, so the supply stays what was issued. Falls back
-to the old way only if the artist has no storage.
+- Followers only (the free follow), like main's check.
+- The fan token is sent from storage (the platform signs for storage), not
+  newly issued, so the supply stays what was issued.
+- A fan with a trustline gets it straight away. Without one, storage creates
+  a claimable balance for them (like main); its 0.5 XLM reserve is paid by
+  the artist and shown in the breakdown before they confirm. The fan claims
+  it in the app; opening their trustline is their own 0.5 XLM.
+- No "Become a member" button: membership stays "you hold enough tokens".
+- Falls back to issuing only if the artist has no storage.
 
 ## 6. Pin rewards
 
