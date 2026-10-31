@@ -26,3 +26,13 @@ export { canPlayFull, PREVIEW_SECONDS, previewByteRange } from "./services/media
 export { wavPreview } from "./services/media/wav";
 export { lastFmAuthUrl, lastFmKeys, lastFmSession } from "./services/lastfm";
 export type { FillForm, FillResult } from "./services/ai/forms";
+export {
+  claimJob,
+  completeJob,
+  enqueueJob,
+  failJob,
+  JOB_TYPES,
+  type JobType,
+  releaseStaleJobs,
+  retryJob,
+} from "./services/jobs/queue";

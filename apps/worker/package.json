@@ -1,0 +1,29 @@
+{
+  "name": "@bandcoin/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Bandcoin worker: finishes payments whose answer got lost and processes uploaded music.",
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=.env.local src/main.ts",
+    "start": "tsx src/main.ts",
+    "lint": "eslint src",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@bandcoin/api": "workspace:*",
+    "@bandcoin/db": "workspace:*",
+    "@bandcoin/errors": "workspace:*",
+    "tsx": "catalog:"
+  },
+  "devDependencies": {
+    "@bandcoin/eslint-config": "workspace:*",
+    "@bandcoin/tsconfig": "workspace:*",
+    "@bandcoin/vitest-config": "workspace:*",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
