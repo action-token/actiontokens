@@ -15,6 +15,7 @@ import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
 
 import { type Context, type SessionUser, isCustodial } from "../../context";
 import { transitionOrder } from "../order-state";
+import { finishGift } from "../orders/finish";
 import { failOrder, ownOrder, userSignature } from "../purchase";
 
 /**
@@ -303,21 +304,7 @@ export async function submitGift(
     throw error;
   }
 
-  await db.$transaction(async (tx) => {
-    await transitionOrder(tx, order.id, "CONFIRMED");
-    await tx.ownership.upsert({
-      where: { userId_itemId: { userId: gift.recipientId, itemId: gift.itemId } },
-      create: {
-        userId: gift.recipientId,
-        itemId: gift.itemId,
-        quantity: gift.amount,
-        source: "GIFT",
-      },
-      update: { quantity: { increment: gift.amount } },
-    });
-    await transitionOrder(tx, order.id, "DELIVERED");
-  });
-  return { orderId: order.id, status: "DELIVERED" as const };
+  return finishGift(ctx, order.id);
 }
 
 /** Gifts the artist has sent, newest first. */

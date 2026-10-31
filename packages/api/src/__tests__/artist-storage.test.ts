@@ -26,7 +26,13 @@ const me: SessionUser = {
   walletAddress: wallet.publicKey(),
   walletType: "freighter",
 };
-const approved = { id: "a1", status: "APPROVED", storageAccountId: null, fanTokenItemId: null };
+const approved = {
+  id: "a1",
+  userId: "me",
+  status: "APPROVED",
+  storageAccountId: null,
+  fanTokenItemId: null,
+};
 
 beforeAll(() => {
   process.env.CHAIN_ACCOUNT_KEY = "ab".repeat(32);
@@ -42,9 +48,12 @@ function setup(opts: { xlm?: string } = {}) {
   const orders = new Map<string, Row>();
   const db = {
     artist: {
-      update: vi.fn(({ where, data }: { where: { id: string }; data: Row }) => {
-        Object.assign(artists.get(where.id)!, data);
-        return Promise.resolve(artists.get(where.id));
+      update: vi.fn(({ where, data }: { where: { id?: string; userId?: string }; data: Row }) => {
+        const row = where.id
+          ? artists.get(where.id)!
+          : [...artists.values()].find((entry) => entry.userId === where.userId)!;
+        Object.assign(row, data);
+        return Promise.resolve(row);
       }),
     },
     chainAccount: {

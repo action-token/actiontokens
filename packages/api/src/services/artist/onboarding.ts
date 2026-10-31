@@ -18,7 +18,8 @@ import { checkExistingToken, type TokenCheck } from "./fan-token";
 import { checkOwnUrls, invalid } from "./items";
 import { existingTokenImage } from "./token-image";
 import { transitionOrder } from "../order-state";
-import { deliverOrder, failOrder, ownOrder, userSignature } from "../purchase";
+import { finishAccountOpening } from "../orders/finish";
+import { failOrder, ownOrder, userSignature } from "../purchase";
 
 /**
  * Becoming an artist, in two steps the artist does and one an admin does:
@@ -368,13 +369,5 @@ export async function submitIssuerOpening(
     throw error;
   }
 
-  const artist = await db.artist.findUniqueOrThrow({
-    where: { userId: user.id },
-    select: { id: true },
-  });
-  await db.$transaction(async (tx) => {
-    await tx.chainAccount.update({ where: { id: issuer.id }, data: { activatedAt: new Date() } });
-    await tx.artist.update({ where: { id: artist.id }, data: { issuerAccountId: issuer.id } });
-  });
-  return deliverOrder(ctx, order.id);
+  return finishAccountOpening(ctx, order.id, xdr, "ISSUER");
 }

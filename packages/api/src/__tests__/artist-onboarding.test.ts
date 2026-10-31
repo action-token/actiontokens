@@ -79,8 +79,10 @@ function setup(
         artists.set("a1", row);
         return Promise.resolve(row);
       }),
-      update: vi.fn(({ where, data }: { where: { id: string }; data: Row }) => {
-        const row = artists.get(where.id)!;
+      update: vi.fn(({ where, data }: { where: { id?: string; userId?: string }; data: Row }) => {
+        const row = where.id
+          ? artists.get(where.id)!
+          : [...artists.values()].find((entry) => entry.userId === where.userId)!;
         Object.assign(row, data);
         return Promise.resolve(row);
       }),

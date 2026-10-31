@@ -16,6 +16,7 @@ import { slugFromName } from "@bandcoin/utils/slug";
 
 import { type Context, isCustodial, type SessionUser } from "../../context";
 import { transitionOrder } from "../order-state";
+import { finishNftRegistration } from "../orders/finish";
 import { failOrder, ownOrder, userSignature } from "../purchase";
 import {
   checkOwnUrls,
@@ -336,17 +337,10 @@ export async function submitNftRegistration(
     throw error;
   }
 
-  const itemId = (order.breakdown as { itemId?: string } | null)?.itemId;
-  if (!itemId) throw new AppError(ErrorCodes.INTERNAL, { message: "This order has no item." });
-  // The contract's answer shows up a moment after the payment; the next quote finishes this if it doesn't here.
+  // The contract's answer shows up a moment after the payment; the worker finishes this if it doesn't here.
   for (let attempt = 0; attempt < READ_BACK_ATTEMPTS; attempt += 1) {
-    const editionId = await chain.editionIdByRef(itemId).catch(() => null);
-    if (editionId !== null) {
-      await markRegistered(ctx, itemId, editionId);
-      await transitionOrder(db, order.id, "CONFIRMED");
-      await transitionOrder(db, order.id, "DELIVERED");
-      return { orderId: order.id, status: "DELIVERED" as const };
-    }
+    const finished = await finishNftRegistration(ctx, order.id);
+    if (finished.status === "DELIVERED") return { orderId: order.id, status: "DELIVERED" as const };
     await sleep(options.retryDelayMs ?? 1000);
   }
   throw new AppError(ErrorCodes.EXTERNAL_SERVICE_FAILED, {

@@ -14,6 +14,7 @@ import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
 
 import { type Context, isCustodial, type SessionUser } from "../../context";
 import { transitionOrder } from "../order-state";
+import { finishPlain } from "../orders/finish";
 import { failOrder, ownOrder, userSignature } from "../purchase";
 
 /**
@@ -305,9 +306,5 @@ export async function submitWithdraw(
     throw error;
   }
 
-  await db.$transaction(async (tx) => {
-    await transitionOrder(tx, order.id, "CONFIRMED");
-    await transitionOrder(tx, order.id, "DELIVERED");
-  });
-  return { orderId: order.id, status: "DELIVERED" as const };
+  return finishPlain(ctx, order.id);
 }

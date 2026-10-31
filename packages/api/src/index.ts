@@ -36,3 +36,4 @@ export {
   releaseStaleJobs,
   retryJob,
 } from "./services/jobs/queue";
+export { reconcileOrders } from "./services/orders/reconcile";

@@ -14,7 +14,8 @@ import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
 
 import { type Context, isCustodial, type SessionUser } from "../../context";
 import { transitionOrder } from "../order-state";
-import { deliverOrder, failOrder, ownOrder, userSignature } from "../purchase";
+import { finishAccountOpening } from "../orders/finish";
+import { failOrder, ownOrder, userSignature } from "../purchase";
 
 /**
  * Opening an artist's storage account, as in bandfan: the account where their
@@ -206,9 +207,5 @@ export async function submitStorageOpening(
     throw error;
   }
 
-  await db.$transaction(async (tx) => {
-    await tx.chainAccount.update({ where: { id: storage.id }, data: { activatedAt: new Date() } });
-    await tx.artist.update({ where: { id: artist.id }, data: { storageAccountId: storage.id } });
-  });
-  return deliverOrder(ctx, order.id);
+  return finishAccountOpening(ctx, order.id, xdr, "STORAGE");
 }
