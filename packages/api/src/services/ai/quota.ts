@@ -3,12 +3,12 @@ import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
 import type { Context } from "../../context";
 import { friendlyProviderError } from "./model";
 
-/** The free daily allowance, per artist and UTC day. Admins aren't limited. */
+/** The free daily allowance, per person and UTC day (applicants and artists alike). Admins aren't limited. */
 export const AI_DAILY_LIMIT = { text: 50, image: 10 } as const;
 export type AiKind = keyof typeof AI_DAILY_LIMIT;
 
 type QuotaCtx = Pick<Context, "db">;
-type Who = { artistId: string; unlimited: boolean };
+type Who = { userId: string; unlimited: boolean };
 
 /** Midnight UTC of `now`, the key of the day's counter. */
 const dayOf = (now: Date) =>
@@ -18,7 +18,7 @@ export async function aiRemaining(ctx: QuotaCtx, who: Who, now = new Date()) {
   if (who.unlimited)
     return { text: null, image: null, limit: AI_DAILY_LIMIT, unlimited: true as const };
   const used = await ctx.db.aiUsage.findUnique({
-    where: { artistId_day: { artistId: who.artistId, day: dayOf(now) } },
+    where: { userId_day: { userId: who.userId, day: dayOf(now) } },
     select: { text: true, image: true },
   });
   return {
@@ -30,7 +30,7 @@ export async function aiRemaining(ctx: QuotaCtx, who: Who, now = new Date()) {
 }
 
 /**
- * Run `work` if the artist has allowance left, and count it only when it
+ * Run `work` if the person has allowance left, and count it only when it
  * succeeds, so a failed generation costs nothing.
  */
 export async function withAiQuota<T>(
@@ -61,8 +61,8 @@ export async function withAiQuota<T>(
   if (!who.unlimited) {
     const day = dayOf(now);
     await ctx.db.aiUsage.upsert({
-      where: { artistId_day: { artistId: who.artistId, day } },
-      create: { artistId: who.artistId, day, [kind]: 1 },
+      where: { userId_day: { userId: who.userId, day } },
+      create: { userId: who.userId, day, [kind]: 1 },
       update: { [kind]: { increment: 1 } },
     });
   }

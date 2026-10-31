@@ -20,10 +20,63 @@ import { Textarea } from "@bandcoin/ui/components/textarea";
 import { cn } from "@bandcoin/ui/lib/cn";
 import { Field } from "@bandcoin/ui/patterns/form-page";
 
+import { api } from "~/trpc/react";
+
+import { AiImagePanel } from "../../ai/ai-image-panel";
+import { AiTextButton } from "../../ai/ai-text-button";
 import { ChangeBadge, UploadArea } from "./image-picker";
 import { BIO_MAX, codeProblem, type Draft, issuerProblem, NAME_MAX, slugProblem } from "./model";
 
 type Set = (patch: Partial<Draft>) => void;
+
+/** A starting brief for the AI, from what the artist has typed. */
+const about = (draft: Draft) =>
+  [draft.name.trim() && `for the artist "${draft.name.trim()}"`, draft.bio.trim().slice(0, 300)]
+    .filter(Boolean)
+    .join(". ");
+const coverBrief = (draft: Draft) =>
+  `A wide cover banner ${about(draft) || "for a music artist"}. Atmospheric, room on the left for a profile photo.`;
+const tokenBrief = (draft: Draft, code: string) =>
+  `A round badge for a fan token${code ? ` called ${code.toUpperCase()}` : ""} ${about(draft)}. Bold, simple, centred, works small.`;
+
+/** "Suggest codes": three AI ideas that fit the name, one click to use. */
+function CodeSuggestions({ draft, onPick }: { draft: Draft; onPick: (code: string) => void }) {
+  const suggest = api.ai.suggestTokenCodes.useMutation();
+  const ready = draft.name.trim().length >= 2;
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <Button
+        type="button"
+        variant="outline"
+        size="xs"
+        disabled={!ready || suggest.isPending}
+        title={ready ? undefined : "Add your name on step 1 first"}
+        onClick={() => suggest.mutate({ name: draft.name, bio: draft.bio })}
+      >
+        {suggest.isPending ? (
+          <Loader2 className="animate-spin" />
+        ) : (
+          <Sparkles className="text-primary-text" />
+        )}
+        {suggest.data ? "More ideas" : "Suggest with AI"}
+      </Button>
+      {suggest.data?.codes.map((code) => (
+        <button
+          key={code}
+          type="button"
+          onClick={() => onPick(code)}
+          className={cn(
+            "rounded-full border px-2.5 py-0.5 font-mono text-xs font-semibold tracking-wider transition-colors",
+            draft.code === code ? "bg-primary border-fg" : "border-border hover:border-fg/40",
+          )}
+        >
+          {code}
+        </button>
+      ))}
+      {suggest.error && <span className="text-danger text-xs">{suggest.error.message}</span>}
+    </div>
+  );
+}
 export type LiveCheck = { state: "idle" | "checking" | "ok" | "bad"; message?: string };
 
 /** What this step asks, in a sentence or two. */
@@ -98,6 +151,13 @@ export function ProfileStep({ draft, set }: { draft: Draft; set: Set }) {
             </p>
           </div>
         </div>
+        <AiImagePanel
+          form="profile"
+          aspect="wide"
+          label="Make a cover with AI"
+          suggestedPrompt={coverBrief(draft)}
+          onImage={(coverUrl) => set({ coverUrl })}
+        />
       </div>
 
       <div className="grid gap-5">
@@ -120,6 +180,18 @@ export function ProfileStep({ draft, set }: { draft: Draft; set: Set }) {
           label="About you (optional)"
           htmlFor="ob-bio"
           hint={`${draft.bio.length} / ${BIO_MAX}`}
+          action={
+            draft.name.trim().length >= 2 ? (
+              <AiTextButton
+                form="profile"
+                field="bio"
+                value={draft.bio}
+                maxChars={BIO_MAX}
+                context={{ name: draft.name, bio: draft.bio }}
+                onChange={(bio) => set({ bio })}
+              />
+            ) : undefined
+          }
         >
           <Textarea
             id="ob-bio"
@@ -214,6 +286,7 @@ export function TokenStep({ draft, set, check }: { draft: Draft; set: Set; check
                 set({ code: event.target.value.toUpperCase(), codeTouched: true })
               }
             />
+            <CodeSuggestions draft={draft} onPick={(code) => set({ code, codeTouched: true })} />
           </Field>
         ) : (
           <div className="grid content-start gap-4">
@@ -246,6 +319,14 @@ export function TokenStep({ draft, set, check }: { draft: Draft; set: Set; check
           </div>
         )}
       </div>
+
+      <AiImagePanel
+        form="profile"
+        aspect="square"
+        label="Make the token image with AI"
+        suggestedPrompt={tokenBrief(draft, code)}
+        onImage={(tokenImage) => set({ tokenImage })}
+      />
 
       {code && !problem && draft.tokenImage && (
         <TokenChip image={draft.tokenImage} code={code} note={isNew ? "New" : "Your own"} />

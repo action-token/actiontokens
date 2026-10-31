@@ -568,7 +568,7 @@ describe("tag names", () => {
 });
 
 describe("AI tag suggestions", () => {
-  const actor = { artist: { id: "a1", name: "Luna", bio: null }, unlimited: false };
+  const actor = { artist: { userId: "u1", name: "Luna", bio: null }, unlimited: false };
   const input = {
     title: "Secret show",
     description: "By the fountain",

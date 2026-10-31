@@ -73,6 +73,7 @@ model User {
   eventRsvps           EventRsvp[]
   eventComments        EventComment[]
   announcementComments AnnouncementComment[]
+  aiUsages             AiUsage[]
 
   @@map("users")
 }

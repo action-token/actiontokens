@@ -2,7 +2,11 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { Db } from "@bandcoin/db";
 
-import { fillForm, generateImage, writeField } from "../services/ai/generate";
+import { createContext, type SessionUser } from "../context";
+import { portalRouter } from "../root-portal";
+import { fillForm, generateImage, suggestTokenCodes, writeField } from "../services/ai/generate";
+import type { ChainGateway } from "../services/chain-gateway";
+import { createCallerFactory } from "../trpc";
 import type { AiModel } from "../services/ai/model";
 import { AI_DAILY_LIMIT, aiRemaining, withAiQuota } from "../services/ai/quota";
 
@@ -13,7 +17,7 @@ vi.mock("../services/ai/model", () => ({
   friendlyProviderError: () => "The AI couldn't finish that. Try again.",
 }));
 
-const artist = { id: "a1", name: "Luna Vale", bio: "Dream pop from Dhaka" };
+const artist = { userId: "u1", name: "Luna Vale", bio: "Dream pop from Dhaka" };
 const actor = { artist, unlimited: false };
 const now = new Date("2026-11-01T10:00:00Z");
 
@@ -37,7 +41,7 @@ const fakeModel = (over: Partial<AiModel> = {}): AiModel => ({
 describe("the daily allowance", () => {
   it("reports what is left today", async () => {
     const { ctx } = setup({ text: 8, image: 10 });
-    await expect(aiRemaining(ctx, { artistId: "a1", unlimited: false }, now)).resolves.toEqual({
+    await expect(aiRemaining(ctx, { userId: "u1", unlimited: false }, now)).resolves.toEqual({
       text: 42,
       image: 0,
       limit: AI_DAILY_LIMIT,
@@ -49,14 +53,14 @@ describe("the daily allowance", () => {
     const { ctx, db } = setup();
     await withAiQuota(
       ctx,
-      { artistId: "a1", unlimited: false },
+      { userId: "u1", unlimited: false },
       "text",
       () => Promise.resolve("ok"),
       now,
     );
     expect(db.aiUsage.upsert).toHaveBeenCalledWith({
-      where: { artistId_day: { artistId: "a1", day: new Date("2026-11-01T00:00:00Z") } },
-      create: { artistId: "a1", day: new Date("2026-11-01T00:00:00Z"), text: 1 },
+      where: { userId_day: { userId: "u1", day: new Date("2026-11-01T00:00:00Z") } },
+      create: { userId: "u1", day: new Date("2026-11-01T00:00:00Z"), text: 1 },
       update: { text: { increment: 1 } },
     });
   });
@@ -67,7 +71,7 @@ describe("the daily allowance", () => {
     await expect(
       withAiQuota(
         ctx,
-        { artistId: "a1", unlimited: false },
+        { userId: "u1", unlimited: false },
         "text",
         () => Promise.reject(new Error("boom")),
         now,
@@ -80,7 +84,7 @@ describe("the daily allowance", () => {
     const { ctx } = setup({ image: AI_DAILY_LIMIT.image });
     const work = vi.fn();
     await expect(
-      withAiQuota(ctx, { artistId: "a1", unlimited: false }, "image", work, now),
+      withAiQuota(ctx, { userId: "u1", unlimited: false }, "image", work, now),
     ).rejects.toThrow(/used today's 10 AI images/);
     expect(work).not.toHaveBeenCalled();
   });
@@ -88,13 +92,7 @@ describe("the daily allowance", () => {
   it("never limits or counts an admin", async () => {
     const { ctx, db } = setup({ text: 999 });
     await expect(
-      withAiQuota(
-        ctx,
-        { artistId: "a1", unlimited: true },
-        "text",
-        () => Promise.resolve("ok"),
-        now,
-      ),
+      withAiQuota(ctx, { userId: "u1", unlimited: true }, "text", () => Promise.resolve("ok"), now),
     ).resolves.toBe("ok");
     expect(db.aiUsage.findUnique).not.toHaveBeenCalled();
     expect(db.aiUsage.upsert).not.toHaveBeenCalled();
@@ -184,5 +182,64 @@ describe("generating", () => {
       generateImage(ctx, model, actor, { form: "item", prompt: "neon guitar", aspect: "square" }),
     ).rejects.toThrow(/No image came back/);
     expect(db.aiUsage.upsert).not.toHaveBeenCalled();
+  });
+});
+
+describe("token code suggestions", () => {
+  it("keeps three codes that follow the rules, and counts one text use", async () => {
+    const { ctx, db } = setup();
+    const model = fakeModel({
+      fill: vi.fn().mockResolvedValue({ codes: ["luna", "LV", "LUNA FANS", "XLM", "luna"] }),
+    });
+    await expect(
+      suggestTokenCodes(ctx, model, actor, { name: "Luna Vale", bio: "" }),
+    ).resolves.toEqual({ codes: ["LUNA", "LUNAFANS"] });
+    expect(db.aiUsage.upsert).toHaveBeenCalledTimes(1);
+  });
+
+  it("says so when nothing usable came back, without counting it", async () => {
+    const { ctx, db } = setup();
+    const model = fakeModel({ fill: vi.fn().mockResolvedValue({ codes: ["X"] }) });
+    await expect(
+      suggestTokenCodes(ctx, model, actor, { name: "Luna Vale", bio: "" }),
+    ).rejects.toThrow(/didn't come up with a code/);
+    expect(db.aiUsage.upsert).not.toHaveBeenCalled();
+  });
+});
+
+describe("who can use AI", () => {
+  const user: SessionUser = { id: "u9", role: "FAN", walletAddress: "GX", walletType: "freighter" };
+  const caller = (artist: Record<string, unknown> | null) =>
+    createCallerFactory(portalRouter)(
+      createContext({
+        db: {
+          artist: { findUnique: vi.fn().mockResolvedValue(artist) },
+          aiUsage: { findUnique: vi.fn().mockResolvedValue(null) },
+          user: { findUnique: vi.fn().mockResolvedValue({ suspendedAt: null }) },
+          activityLog: { create: vi.fn() },
+        } as unknown as Db,
+        chain: {} as ChainGateway,
+        app: "artist",
+        session: { user },
+      }),
+    );
+
+  it("lets someone filling in the wizard use the same allowance as artists", async () => {
+    await expect(caller(null).ai.usage()).resolves.toMatchObject({
+      text: AI_DAILY_LIMIT.text,
+      image: AI_DAILY_LIMIT.image,
+    });
+  });
+
+  it("refuses a banned artist", async () => {
+    await expect(
+      caller({ name: "X", bio: null, status: "BANNED" }).ai.usage(),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("keeps filling whole forms for approved artists", async () => {
+    await expect(
+      caller(null).ai.fillForm({ form: "item", prompt: "a poster", now: "x", timeZone: "UTC" }),
+    ).rejects.toBeDefined();
   });
 });

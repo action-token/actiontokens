@@ -117,6 +117,10 @@ export const FILL_SCHEMAS = {
     description: z.string().describe("2-4 sentences about the album for fans"),
     imagePrompt,
   }),
+  profile: z.object({
+    bio: z.string().describe("2-4 sentences about the artist for their page, in their voice"),
+    imagePrompt,
+  }),
   song: z.object({
     title: z.string().describe("Song title, max 80 chars"),
     description: z.string().describe("1-3 sentences about the song for fans"),
@@ -140,4 +144,6 @@ export const FORM_BRIEF: Record<FillForm, string> = {
   pin: "a pin: a reward drop placed on the map for fans to walk up to and collect",
   album: "an album that groups the artist's songs",
   song: "a song the artist releases",
+  profile:
+    "an artist's page on Bandcoin: their bio, cover banner and fan token (the token fans hold to join memberships)",
 };

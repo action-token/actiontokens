@@ -5,21 +5,58 @@ import {
   fillForm,
   generateImage,
   suggestPinTags,
+  suggestTokenCodes,
   WRITE_MODES,
   writeField,
 } from "../../services/ai/generate";
 import { openaiModel } from "../../services/ai/model";
 import { aiRemaining } from "../../services/ai/quota";
-import { artistProcedure, createRouter } from "../../trpc";
+import { AppError, ErrorCodes } from "@bandcoin/errors";
+
+import { artistProcedure, authedProcedure, createRouter } from "../../trpc";
 
 const form = z.enum(FILL_FORMS);
 const context = z.record(z.string(), z.string().max(4000)).default({});
 
-/** AI help on the create pages (see services/ai): fill a form, write a field, make a cover. */
+/**
+ * Anyone signed in who isn't banned: artists, and people filling in the
+ * onboarding wizard (who may have no artist page yet). Same daily allowance,
+ * counted per account. The AI is told the artist's name from their page, or
+ * from the wizard's `context.name` before there is one.
+ */
+const aiUserProcedure = authedProcedure.use(async ({ ctx, next }) => {
+  const artist = await ctx.db.artist.findUnique({
+    where: { userId: ctx.session.user.id },
+    select: { name: true, bio: true, status: true },
+  });
+  if (artist?.status === "BANNED") throw new AppError(ErrorCodes.AUTH_FORBIDDEN);
+  return next({
+    ctx: {
+      aiActor: {
+        userId: ctx.session.user.id,
+        name: artist?.name ?? null,
+        bio: artist?.bio ?? null,
+      },
+      unlimited: ctx.session.user.role === "ADMIN",
+    },
+  });
+});
+
+/** The artist as the AI should see them: the page's name, or what they typed in the wizard. */
+const actorOf = (
+  aiActor: { userId: string; name: string | null; bio: string | null },
+  context: Record<string, string>,
+) => ({
+  userId: aiActor.userId,
+  name: context.name?.trim() || aiActor.name || "a new artist",
+  bio: context.bio?.trim() || aiActor.bio,
+});
+
+/** AI help on the create pages and the onboarding wizard (see services/ai): fill a form, write a field, make an image. */
 export const aiRouter = createRouter({
   /** Today's remaining generations. */
-  usage: artistProcedure.query(({ ctx }) =>
-    aiRemaining(ctx, { artistId: ctx.artist.id, unlimited: ctx.session.user.role === "ADMIN" }),
+  usage: aiUserProcedure.query(({ ctx }) =>
+    aiRemaining(ctx, { userId: ctx.session.user.id, unlimited: ctx.unlimited }),
   ),
 
   fillForm: artistProcedure
@@ -41,7 +78,7 @@ export const aiRouter = createRouter({
       ),
     ),
 
-  writeField: artistProcedure
+  writeField: aiUserProcedure
     .input(
       z.object({
         form,
@@ -56,12 +93,12 @@ export const aiRouter = createRouter({
       writeField(
         ctx,
         openaiModel,
-        { artist: ctx.artist, unlimited: ctx.session.user.role === "ADMIN" },
+        { artist: actorOf(ctx.aiActor, input.context), unlimited: ctx.unlimited },
         input,
       ),
     ),
 
-  generateImage: artistProcedure
+  generateImage: aiUserProcedure
     .input(
       z.object({
         form,
@@ -73,7 +110,24 @@ export const aiRouter = createRouter({
       generateImage(
         ctx,
         openaiModel,
-        { artist: ctx.artist, unlimited: ctx.session.user.role === "ADMIN" },
+        { artist: actorOf(ctx.aiActor, {}), unlimited: ctx.unlimited },
+        input,
+      ),
+    ),
+
+  /** Three fan token codes for the onboarding wizard. */
+  suggestTokenCodes: aiUserProcedure
+    .input(
+      z.object({
+        name: z.string().trim().min(2, "Add your name first").max(60),
+        bio: z.string().max(500).default(""),
+      }),
+    )
+    .mutation(({ ctx, input }) =>
+      suggestTokenCodes(
+        ctx,
+        openaiModel,
+        { artist: actorOf(ctx.aiActor, input), unlimited: ctx.unlimited },
         input,
       ),
     ),

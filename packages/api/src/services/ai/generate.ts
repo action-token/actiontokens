@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 import { uploadBufferToS3 } from "@bandcoin/storage";
+import { normalizeAssetCode, validateAssetCode } from "@bandcoin/utils/asset-code";
 
 import type { Context } from "../../context";
 import { tagName } from "../artist/pins";
@@ -10,8 +11,8 @@ import type { AiModel, ImageSize } from "./model";
 import { withAiQuota } from "./quota";
 
 type GenerateCtx = Pick<Context, "db">;
-/** The signed-in artist the allowance belongs to. */
-type Artist = { id: string; name: string; bio: string | null };
+/** The signed-in artist; the allowance belongs to their account (userId). */
+type Artist = { userId: string; name: string; bio: string | null };
 type Who = { artist: Artist; unlimited: boolean };
 
 const RULES = `Rules:
@@ -42,7 +43,7 @@ const contextBlock = (context: Record<string, string>) => {
     : "The form is empty so far.";
 };
 
-const who = ({ artist, unlimited }: Who) => ({ artistId: artist.id, unlimited });
+const who = ({ artist, unlimited }: Who) => ({ userId: artist.userId, unlimited });
 
 /** "Fill with AI": one description becomes every field of a form, for the artist to review. */
 export async function fillForm<F extends FillForm>(
@@ -194,5 +195,42 @@ Tags are short lowercase phrases of 1-3 words that fans would search for. No has
       update: { tags },
     });
     return { tags };
+  });
+}
+
+const codeSchema = z.object({
+  codes: z
+    .array(z.string())
+    .describe(
+      "Exactly 3 fan token codes: 4-12 capital letters or digits, no spaces, short and memorable",
+    ),
+});
+
+/** Three fan token codes that fit the artist's name, checked against the code rules. */
+export async function suggestTokenCodes(
+  ctx: GenerateCtx,
+  model: AiModel,
+  actor: Who,
+  input: { name: string; bio: string },
+) {
+  return withAiQuota(ctx, who(actor), "text", async () => {
+    const filled = await model.fill({
+      system: `You suggest the code of a music artist's fan token on Stellar. Fans hold it to join the artist's memberships.
+Codes are 4-12 capital letters or digits, easy to say, clearly tied to the artist (a short form of the name, a nickname, or name + FANS / CLUB / CREW). Never BANDCOIN, XLM, USDC or USD.`,
+      user: `Artist: ${input.name}\nAbout: ${input.bio.trim().slice(0, 500) || "nothing yet"}`,
+      schema: codeSchema,
+    });
+    const codes = [
+      ...new Set(
+        (filled?.codes ?? [])
+          .map((code) => normalizeAssetCode(code).replace(/[^A-Z0-9]/g, ""))
+          .filter((code) => code.length >= 4 && !validateAssetCode(code)),
+      ),
+    ].slice(0, 3);
+    if (codes.length === 0)
+      throw new AppError(ErrorCodes.AI_GENERATION_FAILED, {
+        message: "The AI didn't come up with a code. Try again.",
+      });
+    return { codes };
   });
 }
