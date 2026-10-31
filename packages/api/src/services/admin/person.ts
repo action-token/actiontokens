@@ -53,7 +53,7 @@ export async function getPerson(ctx: ServiceCtx, userId: string) {
   });
   if (!user) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "User not found" });
 
-  const [orders, owned, account, lastActive] = await Promise.all([
+  const [orders, owned, pinClaims, redeemed, account, lastActive] = await Promise.all([
     db.order.findMany({
       where: { buyerId: user.id },
       orderBy: { createdAt: "desc" },
@@ -79,6 +79,41 @@ export async function getPerson(ctx: ServiceCtx, userId: string) {
         source: true,
         acquiredAt: true,
         item: { select: { id: true, title: true, coverUrl: true } },
+      },
+    }),
+    db.pinClaim.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: RECENT,
+      select: {
+        id: true,
+        isRedeemed: true,
+        claimedAt: true,
+        createdAt: true,
+        spot: {
+          select: {
+            pin: {
+              select: {
+                id: true,
+                title: true,
+                type: true,
+                imageUrl: true,
+                artist: { select: { id: true, name: true } },
+              },
+            },
+          },
+        },
+      },
+    }),
+    db.redeemClaim.findMany({
+      where: { userId: user.id },
+      orderBy: { claimedAt: "desc" },
+      take: RECENT,
+      select: {
+        id: true,
+        code: true,
+        claimedAt: true,
+        redeem: { select: { item: { select: { id: true, title: true } } } },
       },
     }),
     // A slow or missing network shouldn't stop the page: balances just don't show.
@@ -125,5 +160,17 @@ export async function getPerson(ctx: ServiceCtx, userId: string) {
       : null,
     orders: orders.map((order) => ({ ...order, total: order.total.toString() })),
     owned: owned.map((row) => ({ ...row, quantity: row.quantity.toString() })),
+    pinsCollected: pinClaims.map((claim) => ({
+      id: claim.id,
+      redeemed: claim.isRedeemed,
+      at: claim.claimedAt ?? claim.createdAt,
+      pin: claim.spot.pin,
+    })),
+    redeemed: redeemed.map((claim) => ({
+      id: claim.id,
+      code: claim.code,
+      at: claim.claimedAt,
+      item: claim.redeem.item,
+    })),
   };
 }

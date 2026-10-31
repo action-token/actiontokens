@@ -68,6 +68,39 @@ function setup(opts: { user?: Record<string, unknown> | null; offline?: boolean 
         ]),
       ),
     },
+    pinClaim: {
+      findMany: vi.fn(() =>
+        Promise.resolve([
+          {
+            id: "c1",
+            isRedeemed: false,
+            claimedAt: null,
+            createdAt: new Date("2026-10-20"),
+            spot: {
+              pin: {
+                id: "p1",
+                title: "Rooftop",
+                type: "OTHER",
+                imageUrl: null,
+                artist: { id: "a1", name: "Luna Vale" },
+              },
+            },
+          },
+        ]),
+      ),
+    },
+    redeemClaim: {
+      findMany: vi.fn(() =>
+        Promise.resolve([
+          {
+            id: "r1",
+            code: "ABC123",
+            claimedAt: new Date("2026-10-21"),
+            redeem: { item: { id: "i1", title: "Song" } },
+          },
+        ]),
+      ),
+    },
     activityLog: {
       findFirst: vi.fn(() => Promise.resolve({ createdAt: new Date("2026-10-30") })),
     },
@@ -98,6 +131,10 @@ describe("person page", () => {
       orders: [{ id: "o1", total: "12.5", item: { title: "Song" } }],
       owned: [{ quantity: "2", item: { title: "Song" } }],
       lastActiveAt: new Date("2026-10-30"),
+      pinsCollected: [
+        { id: "c1", redeemed: false, at: new Date("2026-10-20"), pin: { title: "Rooftop" } },
+      ],
+      redeemed: [{ code: "ABC123", item: { title: "Song" } }],
     });
     expect(person.balances?.XLM).toBeDefined();
   });

@@ -64,6 +64,7 @@ export async function listUsers(ctx: Pick<Context, "db">, input: UserFilter) {
       createdAt: true,
       suspendedAt: true,
       artist: { select: { id: true, name: true, status: true } },
+      _count: { select: { pinClaims: true, ownerships: true } },
     },
   });
   const page = rows.slice(0, USERS_PAGE);
@@ -88,6 +89,8 @@ export async function listUsers(ctx: Pick<Context, "db">, input: UserFilter) {
       createdAt: row.createdAt,
       suspended: row.suspendedAt !== null,
       artist: row.artist,
+      collected: row._count.pinClaims,
+      owned: row._count.ownerships,
       lastActiveAt: lastActive.get(row.id) ?? null,
     })),
     nextCursor: rows.length > USERS_PAGE ? (page.at(-1)?.id ?? null) : null,

@@ -27,7 +27,13 @@ function setup(people: Row[] = []) {
   const users = new Map<string, Row>(
     people.map((person) => [
       person.id as string,
-      { role: "FAN", suspendedAt: null, artist: null, ...person },
+      {
+        role: "FAN",
+        suspendedAt: null,
+        artist: null,
+        _count: { pinClaims: 2, ownerships: 5 },
+        ...person,
+      },
     ]),
   );
   const db = {
@@ -62,7 +68,7 @@ describe("finding people", () => {
     const { ctx } = setup(many);
     const page = await listUsers(ctx, {});
     expect(page.users).toHaveLength(USERS_PAGE);
-    expect(page.users[0]).toMatchObject({ id: "u1", suspended: false });
+    expect(page.users[0]).toMatchObject({ id: "u1", suspended: false, collected: 2, owned: 5 });
     expect(page.users[0]?.lastActiveAt).toEqual(new Date("2026-10-29"));
     expect(page.nextCursor).toBe(page.users.at(-1)?.id);
   });

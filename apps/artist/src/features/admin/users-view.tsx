@@ -1,17 +1,16 @@
 "use client";
 
-import { Users } from "lucide-react";
+import { Ban, Mic2, Shield, Users, type LucideIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
 import { abbreviateAddress } from "@bandcoin/utils/address";
 import { Button } from "@bandcoin/ui/components/button";
-import { Tabs, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
 import { DataTable, type Column } from "@bandcoin/ui/patterns/data-table";
 import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
 import { Person } from "@bandcoin/ui/patterns/person";
 import { StatusPill, type Tone } from "@bandcoin/ui/patterns/status-pill";
-import { SearchInput, Toolbar } from "@bandcoin/ui/patterns/toolbar";
+import { FilterChips, SearchInput, Toolbar } from "@bandcoin/ui/patterns/toolbar";
 
 import { timeAgo } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";
@@ -21,18 +20,19 @@ import { useUserActions } from "./user-actions";
 type Row = RouterOutputs["admin"]["users"]["list"]["users"][number];
 type Filter = "all" | "FAN" | "ARTIST" | "ADMIN" | "suspended";
 
-const FILTERS: { value: Filter; label: string }[] = [
+const FILTERS: { value: Filter; label: string; icon?: LucideIcon }[] = [
   { value: "all", label: "Everyone" },
-  { value: "FAN", label: "Fans" },
-  { value: "ARTIST", label: "Artists" },
-  { value: "ADMIN", label: "Admins" },
-  { value: "suspended", label: "Suspended" },
+  { value: "FAN", label: "Fans", icon: Users },
+  { value: "ARTIST", label: "Artists", icon: Mic2 },
+  { value: "ADMIN", label: "Admins", icon: Shield },
+  { value: "suspended", label: "Suspended", icon: Ban },
 ];
 
-const ROLE: Record<Row["role"], { tone: Tone; label: string }> = {
-  FAN: { tone: "neutral", label: "Fan" },
-  ARTIST: { tone: "info", label: "Artist" },
-  ADMIN: { tone: "warning", label: "Admin" },
+const ARTIST_TONE: Record<NonNullable<Row["artist"]>["status"], Tone> = {
+  PENDING: "warning",
+  APPROVED: "success",
+  REJECTED: "neutral",
+  BANNED: "danger",
 };
 
 /** Everyone with an account: find a person, open them, suspend or make admin. */
@@ -52,38 +52,30 @@ export function UsersView() {
   const { actionsFor, dialogs } = useUserActions(me);
   const rows = list.data?.pages.flatMap((page) => page.users);
 
-  const countOf = (value: Filter) => {
-    if (!counts.data) return null;
-    return value === "all" ? counts.data.all : counts.data[value];
-  };
+  const countOf = (value: Filter) =>
+    counts.data && (value === "all" ? counts.data.all : counts.data[value]);
+  const total = countOf(filter);
+  const left = total !== undefined && rows && !search ? total - rows.length : null;
 
   const columns: Column<Row>[] = [
     {
       id: "person",
-      header: "Person",
+      header: "User",
       skeleton: "person",
       cell: (row) => (
         <Person
           name={row.name}
           image={row.avatarUrl}
           id={row.walletAddress ?? row.id}
-          sub={row.username ? `@${row.username}` : (row.email ?? undefined)}
+          sub={
+            row.email ??
+            (row.walletAddress ? (
+              <span className="font-mono">{abbreviateAddress(row.walletAddress, 5)}</span>
+            ) : row.username ? (
+              `@${row.username}`
+            ) : undefined)
+          }
         />
-      ),
-    },
-    {
-      id: "contact",
-      header: "Email or wallet",
-      skeleton: "mono",
-      cell: (row) => (
-        <div className="grid min-w-0 gap-0.5 text-sm">
-          {row.email && <span className="truncate">{row.email}</span>}
-          {row.walletAddress && (
-            <span className="text-fg-muted font-mono text-xs" title={row.walletAddress}>
-              {abbreviateAddress(row.walletAddress, 5)}
-            </span>
-          )}
-        </div>
       ),
     },
     {
@@ -92,59 +84,80 @@ export function UsersView() {
       skeleton: "pill",
       cell: (row) => (
         <div className="flex flex-wrap gap-1">
-          <StatusPill tone={ROLE[row.role].tone}>{ROLE[row.role].label}</StatusPill>
+          {row.role === "ADMIN" && (
+            <StatusPill tone="info" icon={Shield}>
+              Admin
+            </StatusPill>
+          )}
+          {row.artist ? (
+            <StatusPill tone={ARTIST_TONE[row.artist.status]} icon={Mic2}>
+              Artist
+            </StatusPill>
+          ) : (
+            row.role !== "ADMIN" && <StatusPill>Fan</StatusPill>
+          )}
           {row.suspended && <StatusPill tone="danger">Suspended</StatusPill>}
         </div>
+      ),
+    },
+    {
+      id: "collected",
+      header: "Collected",
+      align: "right",
+      skeleton: "number",
+      cell: (row) => (
+        <span className="num text-sm" title={`${row.owned} items owned`}>
+          {row.collected.toLocaleString()}
+        </span>
+      ),
+    },
+    {
+      id: "method",
+      header: "Signed up with",
+      skeleton: "short",
+      cell: (row) => (
+        <span className="text-fg-muted text-sm capitalize">{row.signUpMethod ?? "—"}</span>
       ),
     },
     {
       id: "joined",
       header: "Joined",
       skeleton: "short",
-      cell: (row) => <span className="text-fg-muted text-sm">{timeAgo(row.createdAt)}</span>,
-    },
-    {
-      id: "active",
-      header: "Last active",
-      skeleton: "short",
       cell: (row) => (
-        <span className="text-fg-muted text-sm">
-          {row.lastActiveAt ? timeAgo(row.lastActiveAt) : "Never"}
-        </span>
+        <span className="text-fg-muted text-sm whitespace-nowrap">{timeAgo(row.createdAt)}</span>
       ),
     },
   ];
 
   return (
-    <PageBody className="grid gap-6">
+    <PageBody wide>
       <PageHeader
         eyebrow="Admin"
         title="Users"
-        description="Everyone with a Bandcoin account. Open a person to see what they did, or suspend them."
+        description={
+          counts.data
+            ? `${counts.data.all.toLocaleString()} people have a Bandcoin account. Open one to see what they did, or suspend them.`
+            : "Everyone with a Bandcoin account. Open one to see what they did, or suspend them."
+        }
       />
 
-      <Toolbar>
+      <Toolbar className="mt-6">
+        <FilterChips
+          label="Role"
+          value={filter}
+          onChange={setFilter}
+          options={FILTERS.map((entry) => ({ ...entry, count: countOf(entry.value) }))}
+        />
         <SearchInput
           value={search}
           onSearch={setSearch}
           placeholder="Name, @username, email or wallet"
-          className="sm:w-80"
+          className="sm:ml-auto sm:w-72"
         />
-        <Tabs value={filter} onValueChange={(value) => setFilter(value as Filter)}>
-          <TabsList className="max-w-full overflow-x-auto">
-            {FILTERS.map((entry) => (
-              <TabsTrigger key={entry.value} value={entry.value}>
-                {entry.label}
-                {countOf(entry.value) !== null && (
-                  <span className="text-fg-muted num ml-1 text-xs">{countOf(entry.value)}</span>
-                )}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
       </Toolbar>
 
       <DataTable
+        className="mt-4"
         label="Users"
         columns={columns}
         rows={rows}
@@ -169,7 +182,11 @@ export function UsersView() {
               disabled={list.isFetchingNextPage}
               onClick={() => void list.fetchNextPage()}
             >
-              {list.isFetchingNextPage ? "Loading…" : "Show more"}
+              {list.isFetchingNextPage
+                ? "Loading…"
+                : left && left > 0
+                  ? `Load more (${left.toLocaleString()} left)`
+                  : "Load more"}
             </Button>
           ) : undefined
         }
