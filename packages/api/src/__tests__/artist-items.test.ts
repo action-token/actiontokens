@@ -30,7 +30,13 @@ const input = {
 };
 
 function setup(
-  opts: { issuer?: Row | null; takenCode?: boolean; takenSlug?: string; item?: Row | null } = {},
+  opts: {
+    issuer?: Row | null;
+    takenCode?: boolean;
+    takenSlug?: string;
+    item?: Row | null;
+    owner?: Row | null;
+  } = {},
 ) {
   const created: Row[] = [];
   const db = {
@@ -60,6 +66,15 @@ function setup(
       update: vi.fn().mockResolvedValue({}),
     },
     listing: { update: vi.fn().mockResolvedValue({}) },
+    artist: {
+      findUnique: vi
+        .fn()
+        .mockResolvedValue(
+          opts.owner === undefined
+            ? { fanTokenItemId: "fan1", tiers: [{ id: "t1" }, { id: "t2" }] }
+            : opts.owner,
+        ),
+    },
     $transaction: (run: (tx: unknown) => unknown) => run(db),
   };
   const activity = { set: vi.fn(), facts: () => ({}) };
@@ -202,6 +217,55 @@ const owned = (extra: Row = {}) => ({
   classicToken: { code: "NIGHTDRV", issuer: "GISSUER" },
   listings: [{ id: "l1", kind: "PRIMARY", status: "ACTIVE", quantitySold: 0 }],
   ...extra,
+});
+
+describe("who can buy an item", () => {
+  it("saves everyone, members, or one of the artist's tiers", async () => {
+    const { ctx, created } = setup();
+    await createItem(ctx, artist, user, { ...input, access: { kind: "TIER", tierId: "t2" } });
+    expect(created[0]).toMatchObject({ membersOnly: false, tierId: "t2" });
+    await createItem(ctx, artist, user, { ...input, access: { kind: "MEMBERS" } });
+    expect(created[1]).toMatchObject({ membersOnly: true, tierId: null });
+    await createItem(ctx, artist, user, input);
+    expect(created[2]).not.toHaveProperty("membersOnly");
+  });
+
+  it("needs a fan token, a tier for members, and only the artist's own active tier", async () => {
+    await expect(
+      createItem(setup().ctx, artist, user, { ...input, access: { kind: "TIER", tierId: "x" } }),
+    ).rejects.toThrow(/active membership tiers/);
+    await expect(
+      createItem(setup({ owner: { fanTokenItemId: null, tiers: [] } }).ctx, artist, user, {
+        ...input,
+        access: { kind: "MEMBERS" },
+      }),
+    ).rejects.toThrow(/fan token first/);
+    await expect(
+      createItem(setup({ owner: { fanTokenItemId: "fan1", tiers: [] } }).ctx, artist, user, {
+        ...input,
+        access: { kind: "MEMBERS" },
+      }),
+    ).rejects.toThrow(/membership tier first/);
+  });
+
+  it("changes it on an existing item, back to everyone too", async () => {
+    const { ctx, db } = setup({
+      item: {
+        id: "i1",
+        supply: 10,
+        visibility: "PUBLIC",
+        chainType: "CLASSIC_TOKEN",
+        classicToken: { code: "X", issuer: "G" },
+        contractNft: null,
+        listings: [{ id: "l1", status: "ACTIVE", quantitySold: 3 }],
+      },
+    });
+    await updateItem(ctx, artist, { itemId: "i1", access: { kind: "PUBLIC" } });
+    expect(db.item.update).toHaveBeenCalledWith({
+      where: { id: "i1" },
+      data: { membersOnly: false, tierId: null },
+    });
+  });
 });
 
 describe("updateItem", () => {

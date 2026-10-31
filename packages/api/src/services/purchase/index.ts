@@ -18,6 +18,7 @@ import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
 
 import { type Context, isCustodial, type SessionUser } from "../../context";
 import { DEFAULT_PLATFORM_FEE_BPS } from "../admin/settings";
+import { accessOf, checkAccess } from "../catalog/access";
 import { transitionOrder } from "../order-state";
 import { loadSale, planDelivery, type Sale } from "./sale";
 
@@ -75,6 +76,12 @@ async function priceSale(
 
   if (user?.id === sale.listing.sellerId) {
     extraProblems.push({ code: "UNAVAILABLE", message: "This is your own listing." });
+  }
+  // Members-only and tier items: only the artist's own sale is gated; resales are open.
+  const access = sale.listing.kind === "PRIMARY" ? accessOf(sale.item) : null;
+  const allowed = access && checkAccess(access, user ? { account: buyerAccount } : null);
+  if (allowed && !allowed.ok) {
+    extraProblems.push({ code: "UNAVAILABLE", message: allowed.reason ?? "Not available." });
   }
   if (sale.remaining !== null && input.quantity > sale.remaining) {
     extraProblems.push({

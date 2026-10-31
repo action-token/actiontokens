@@ -28,6 +28,12 @@ const declaredFile = z.object({
   checksum: z.string().min(1).max(100),
 });
 
+/** Who can buy an item: everyone, members, or one tier (main's item forms). */
+export const itemAccess = z.object({
+  kind: z.enum(["PUBLIC", "MEMBERS", "TIER"]),
+  tierId: z.string().min(1).nullish(),
+});
+
 /** The artist's collectibles (see services/artist/items). Approved artists only. */
 export const catalogRouter = createRouter({
   /** A signed upload for a cover or the item's file. */
@@ -58,6 +64,7 @@ export const catalogRouter = createRouter({
         priceUsd: price,
         visibility,
         royaltyPercent: z.string().trim().max(10).optional(),
+        access: itemAccess.optional(),
       }),
     )
     .mutation(({ ctx, input }) => createItem(ctx, ctx.artist, ctx.session.user, input)),
@@ -74,6 +81,7 @@ export const catalogRouter = createRouter({
         supply: z.number().int().nullable().optional(),
         code: z.string().trim().max(12).optional(),
         visibility: visibility.optional(),
+        access: itemAccess.optional(),
       }),
     )
     .mutation(({ ctx, input }) => updateItem(ctx, ctx.artist, input)),

@@ -35,6 +35,12 @@ import { api, type RouterOutputs } from "~/trpc/react";
 import { AiFillCard } from "../ai/ai-fill-card";
 import { AiImagePanel } from "../ai/ai-image-panel";
 import { AiTextButton } from "../ai/ai-text-button";
+import {
+  type AccessChoice,
+  AccessField,
+  accessChoiceOf,
+  accessInput,
+} from "../catalog/access-field";
 import { FileField, type PickedFile } from "../catalog/file-field";
 import { Note, PriceFields, priceProblems, Toggle } from "../catalog/form-parts";
 import { HiddenNotice } from "../catalog/hidden-notice";
@@ -88,6 +94,7 @@ export function SongForm({
   const [priceBandcoin, setPriceBandcoin] = useState(existing?.priceBandcoin ?? "");
   const [priceUsd, setPriceUsd] = useState(existing?.priceUsd ?? "");
   const [publish, setPublish] = useState(existing ? existing.visibility === "PUBLIC" : true);
+  const [access, setAccess] = useState<AccessChoice>(accessChoiceOf(existing?.access));
   const [imageBrief, setImageBrief] = useState("");
 
   const shownCode = customCode ? code : assetCodeFrom(title);
@@ -140,6 +147,7 @@ export function SongForm({
         priceBandcoin,
         priceUsd,
         visibility: publish ? "PUBLIC" : "DRAFT",
+        access: accessInput(access),
         ...(locked ? {} : { supply: limited ? supplyNumber : null, code: shownCode }),
       });
       await updateSong.mutateAsync({
@@ -170,6 +178,7 @@ export function SongForm({
       priceBandcoin,
       priceUsd,
       visibility: publish ? "PUBLIC" : "DRAFT",
+      access: accessInput(access),
       albumId: albumId === NO_ALBUM ? undefined : albumId,
       trackNumber: trackNumber ? Number(trackNumber) : undefined,
       artistName: artistName.trim() || undefined,
@@ -493,6 +502,7 @@ export function SongForm({
             onChange={setPublish}
           />
         </OptionList>
+        <AccessField id="song-access" value={access} onChange={setAccess} />
       </FormSection>
 
       {existing && <StemsPanel itemId={existing.id} />}

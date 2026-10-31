@@ -32,6 +32,9 @@ model Item {
   /// Dominant cover color, for the item page glow
   accentColor    String?
   visibility     Visibility      @default(PUBLIC)
+  /// Only members can buy it: fans holding the artist's lowest tier. Ignored when tierId is set
+  membersOnly    Boolean         @default(false)
+  /// Only fans holding this tier's tokens can buy it
   tierId         String?
   tier           MembershipTier? @relation(fields: [tierId], references: [id], onDelete: SetNull)
   /// Total copies; null = unlimited

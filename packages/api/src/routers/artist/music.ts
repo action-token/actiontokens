@@ -17,6 +17,7 @@ import {
   updateAlbum,
   updateSong,
 } from "../../services/artist/music";
+import { itemAccess } from "./catalog";
 import { artistProcedure, createRouter } from "../../trpc";
 
 const price = z.string().trim().max(20);
@@ -42,6 +43,7 @@ export const musicRouter = createRouter({
         priceBandcoin: price,
         priceUsd: price,
         visibility: z.enum(["DRAFT", "PUBLIC"]),
+        access: itemAccess.optional(),
         albumId: z.string().min(1).optional(),
         trackNumber: z.number().int().min(1).max(999).optional(),
         artistName: z.string().trim().max(120).optional(),

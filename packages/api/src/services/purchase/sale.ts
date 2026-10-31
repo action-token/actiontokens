@@ -4,6 +4,8 @@ import type { Db } from "@bandcoin/db";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 import { toAmount, toStroops } from "@bandcoin/chain";
 
+import { accessSelect } from "../catalog/access";
+
 /**
  * Contract NFTs can be created and registered, but fan checkout for them isn't
  * built yet, so they can't be published. Flip this when `loadSale` can deliver them.
@@ -33,8 +35,10 @@ export async function loadSale(db: Db, listingId: string) {
       item: {
         include: {
           classicToken: { include: { issuerAccount: { select: { publicKey: true } } } },
+          tier: accessSelect.tier,
           artist: {
             select: {
+              ...accessSelect.artist.select,
               id: true,
               user: { select: { walletAddress: true } },
               issuerAccount: { select: { publicKey: true, activatedAt: true } },

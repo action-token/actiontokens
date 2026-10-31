@@ -167,9 +167,10 @@ export default async function ItemPage({ params }: Props) {
                 <span className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-bold tracking-wider uppercase">
                   {label}
                 </span>
-                {item.tier && (
+                {item.access && (
                   <span className="bg-primary text-primary-foreground inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold tracking-wider uppercase">
-                    <Lock className="size-3.5" /> {item.tier.name} members
+                    <Lock className="size-3.5" />{" "}
+                    {item.access.tierName ? `${item.access.tierName} members` : "Members only"}
                   </span>
                 )}
                 {item.ownedQuantity > 0 && (
@@ -307,6 +308,9 @@ export default async function ItemPage({ params }: Props) {
           id="buy"
           className="border-fg bg-surface scroll-mt-24 rounded-[1.6rem] border-[3px] p-5 shadow-[8px_9px_0_0_var(--color-primary)] sm:p-7"
         >
+          {item.access && !item.access.ok && (
+            <AccessNotice access={item.access} artist={item.artist} />
+          )}
           <ItemPurchase itemTitle={item.title} listings={item.listings} />
         </section>
 
@@ -470,5 +474,35 @@ function Fold({ title, open, children }: { title: string; open?: boolean; childr
       </summary>
       <div className="grid gap-5 pt-4">{children}</div>
     </details>
+  );
+}
+
+/** A members-only or tier item the viewer can't buy yet: what unlocks it, and where to get the token. */
+function AccessNotice({
+  access,
+  artist,
+}: {
+  access: { tierName: string | null; code: string | null; reason: string | null };
+  artist: { name: string; slug: string } | null;
+}) {
+  return (
+    <p
+      role="note"
+      className="bg-surface-2 mb-5 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl p-4 text-sm"
+    >
+      <Lock className="text-primary-text size-4 shrink-0" />
+      <span className="font-semibold">
+        {access.tierName ? `For ${access.tierName} members.` : "For members."}
+      </span>
+      <span className="text-fg-muted">{access.reason}</span>
+      {artist && access.code && (
+        <Link
+          href={`/artist/${artist.slug}`}
+          className="text-primary-text font-semibold hover:underline"
+        >
+          Get {access.code} from {artist.name}
+        </Link>
+      )}
+    </p>
   );
 }

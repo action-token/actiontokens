@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
+import { accessOf, accessSelect, checkAccess } from "../../services/catalog/access";
 import { listedItemWhere } from "../../services/catalog/item-card";
 import { remainingCopies } from "../../services/purchase/sale";
 import { createRouter, publicProcedure } from "../../trpc";
@@ -32,12 +33,21 @@ export const itemRouter = createRouter({
           releaseAt: true,
           saleEndsAt: true,
           playCount: true,
-          artist: { select: { name: true, slug: true, avatarUrl: true, bio: true } },
+          artist: {
+            select: {
+              ...accessSelect.artist.select,
+              name: true,
+              slug: true,
+              avatarUrl: true,
+              bio: true,
+            },
+          },
+          membersOnly: true,
           classicToken: { select: { code: true, issuer: true } },
           contractNft: { select: { contractAddress: true, mintedCount: true, royaltyBps: true } },
           track: { select: { artistName: true, album: { select: { title: true, slug: true } } } },
           media: { select: { mediaType: true, previewStartSec: true, durationSec: true } },
-          tier: { select: { name: true } },
+          tier: accessSelect.tier,
           listings: {
             where: { status: "ACTIVE" },
             orderBy: [{ kind: "asc" }, { priceBandcoin: "asc" }],
@@ -57,7 +67,9 @@ export const itemRouter = createRouter({
       if (!item)
         throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "This item doesn't exist." });
 
-      const [owned, recentSales] = await Promise.all([
+      const gate = accessOf(item);
+      const user = ctx.session?.user;
+      const [owned, recentSales, account] = await Promise.all([
         viewerId
           ? ctx.db.ownership.findUnique({
               where: { userId_itemId: { userId: viewerId, itemId: item.id } },
@@ -78,11 +90,33 @@ export const itemRouter = createRouter({
             buyer: { select: { username: true, displayName: true } },
           },
         }),
+        gate && user?.walletAddress
+          ? ctx.chain.loadAccount(user.walletAddress).catch(() => null)
+          : null,
       ]);
 
-      const { listings, _count, ...rest } = item;
+      const { listings, _count, membersOnly: _, tier, artist, ...rest } = item;
+      const artistView = artist
+        ? { name: artist.name, slug: artist.slug, avatarUrl: artist.avatarUrl, bio: artist.bio }
+        : null;
+      const allowed = gate && checkAccess(gate, user ? { account } : null);
       return {
         ...rest,
+        artist: artistView,
+        tier: tier ? { name: tier.name } : null,
+        /** Members or one tier only: what unlocks the artist's sale, and where the viewer stands */
+        access:
+          gate && allowed
+            ? {
+                kind: gate.kind,
+                tierName: gate.tierName,
+                code: gate.token?.code ?? null,
+                needed: gate.needed,
+                have: allowed.have,
+                ok: allowed.ok,
+                reason: allowed.reason,
+              }
+            : null,
         royaltyPercent: item.royaltyPercent?.toString() ?? null,
         holders: _count.ownerships,
         likes: _count.likes,

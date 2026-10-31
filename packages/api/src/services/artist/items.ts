@@ -8,6 +8,7 @@ import { slugFromName } from "@bandcoin/utils/slug";
 
 import type { Context } from "../../context";
 import { NFT_CHECKOUT_OPEN } from "../purchase/sale";
+import { accessKindOf, type ItemAccessInput, resolveItemAccess } from "./item-access";
 
 /**
  * The artist's classic collectibles: creating, editing, hiding and deleting.
@@ -78,6 +79,8 @@ export type CreateItemInput = {
   priceUsd: string;
   visibility: Extract<Visibility, "DRAFT" | "PUBLIC">;
   royaltyPercent?: string;
+  /** Who can buy it; everyone when left out */
+  access?: ItemAccessInput;
 };
 
 export async function createItem(
@@ -112,6 +115,7 @@ export async function createItem(
     if (input.supply === null) throw invalid("A royalty item needs a fixed number of shares.");
   }
 
+  const access = await resolveItemAccess(ctx, artist, input.access);
   const taken = await db.classicToken.findUnique({
     where: { code_issuer: { code, issuer: issuer.publicKey } },
     select: { itemId: true },
@@ -130,6 +134,7 @@ export async function createItem(
       description: input.description?.trim() || null,
       coverUrl: input.coverUrl,
       visibility: input.visibility,
+      ...access,
       supply: input.supply,
       ...(input.type === "ROYALTY" ? { royaltyPercent: input.royaltyPercent } : {}),
       artistId: artist.id,
@@ -277,6 +282,8 @@ export async function getItem(
       hiddenAt: true,
       hiddenReason: true,
       visibility: true,
+      membersOnly: true,
+      tierId: true,
       royaltyPercent: true,
       chainType: true,
       classicToken: { select: { code: true } },
@@ -308,6 +315,8 @@ export async function getItem(
     /** After the first sale supply and code are fixed */
     locked: sold > 0,
     visibility: item.visibility,
+    /** Who can buy it */
+    access: { kind: accessKindOf(item), tierId: item.tierId },
     /** Set when an admin took it off fans' screens */
     hidden: item.hiddenAt ? { at: item.hiddenAt, reason: item.hiddenReason } : null,
     royaltyPercent: item.royaltyPercent?.toString() ?? null,
@@ -351,6 +360,7 @@ export type UpdateItemInput = {
   /** Only before the first sale */
   code?: string;
   visibility?: Extract<Visibility, "DRAFT" | "PUBLIC">;
+  access?: ItemAccessInput;
 };
 
 export async function updateItem(
@@ -377,6 +387,7 @@ export async function updateItem(
     });
   }
 
+  const access = await resolveItemAccess(ctx, artist, input.access);
   const code = input.code === undefined ? undefined : normalizeAssetCode(input.code);
   if (code !== undefined && item.classicToken) {
     const problem = validateAssetCode(code);
@@ -398,6 +409,7 @@ export async function updateItem(
     ...(input.coverUrl !== undefined ? { coverUrl: input.coverUrl } : {}),
     ...(input.supply !== undefined ? { supply: input.supply } : {}),
     ...(input.visibility !== undefined ? { visibility: input.visibility } : {}),
+    ...access,
   };
   // A sold-out listing stays sold out; everything else follows the item's visibility.
   const listingData = {

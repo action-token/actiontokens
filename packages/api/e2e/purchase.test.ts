@@ -194,6 +194,8 @@ afterAll(async () => {
   await db.ownership.deleteMany({ where: { itemId } });
   await db.listing.deleteMany({ where: { itemId } });
   await db.item.deleteMany({ where: { id: itemId } });
+  await db.artist.updateMany({ where: { id: ids.artist }, data: { fanTokenItemId: null } });
+  await db.item.deleteMany({ where: { artistId: ids.artist } });
   await db.artist.deleteMany({ where: { id: ids.artist } });
   await db.chainAccount.deleteMany({ where: { id: ids.chainAccount } });
   await db.user.deleteMany({ where: { id: { in: ids.users } } });
@@ -348,5 +350,73 @@ describe("buying a classic token", () => {
     const caller = callerFor(buyer);
     await expect(caller.order.start(purchase("XLM"))).rejects.toThrow(/short/);
     await expect(caller.order.start(purchase("BANDCOIN", 4))).rejects.toThrow(/Only 2 left/);
+  });
+});
+
+describe("a members-only or tier item", () => {
+  const fanCode = `F${code.slice(1)}`;
+
+  it("can be bought only by fans holding enough of the artist's fan token", async () => {
+    const fanToken = await db.item.create({
+      data: {
+        type: "FAN_TOKEN",
+        chainType: "CLASSIC_TOKEN",
+        title: "E2E fan token",
+        slug: `${run}-fan`,
+        coverUrl: "https://picsum.photos/seed/e2e-fan/400",
+        artistId: ids.artist,
+        createdById: ids.users[0] ?? "",
+        classicToken: { create: { code: fanCode, issuer: keys.issuer.publicKey() } },
+      },
+    });
+    await db.artist.update({ where: { id: ids.artist }, data: { fanTokenItemId: fanToken.id } });
+    const [low, gold] = await Promise.all([
+      db.membershipTier.create({
+        data: { artistId: ids.artist, name: "Fan", description: "", requiredTokens: "10" },
+      }),
+      db.membershipTier.create({
+        data: { artistId: ids.artist, name: "Gold", description: "", requiredTokens: "50" },
+      }),
+    ]);
+    const caller = callerFor(buyer);
+    const holding = (balance: string) =>
+      wallets.set(keys.buyer.publicKey(), {
+        xlm: "10",
+        lines: [
+          { ...BANDCOIN, balance: "100" },
+          { code: fanCode, issuer: keys.issuer.publicKey(), balance },
+        ],
+      });
+
+    await db.item.update({ where: { id: itemId }, data: { tierId: gold.id } });
+    holding("20");
+    const short = await caller.order.quote(purchase("BANDCOIN", 1));
+    expect(short.ok).toBe(false);
+    expect(short.problems[0]?.message).toBe(`Hold 50 ${fanCode} to buy this. You have 20.`);
+    const page = await caller.item.bySlug({ slug: `${run}-track` });
+    expect(page.access).toMatchObject({
+      kind: "TIER",
+      tierName: "Gold",
+      needed: "50",
+      have: "20",
+      ok: false,
+    });
+    await expect(caller.order.start(purchase("BANDCOIN", 1))).rejects.toThrow(/Hold 50/);
+
+    holding("50");
+    expect((await caller.order.quote(purchase("BANDCOIN", 1))).ok).toBe(true);
+
+    // Members: the lowest tier counts.
+    await db.item.update({ where: { id: itemId }, data: { tierId: null, membersOnly: true } });
+    holding("10");
+    expect((await caller.order.quote(purchase("BANDCOIN", 1))).ok).toBe(true);
+    holding("9");
+    expect((await caller.order.quote(purchase("BANDCOIN", 1))).problems[0]?.message).toMatch(
+      /Hold 10/,
+    );
+
+    await db.item.update({ where: { id: itemId }, data: { membersOnly: false } });
+    wallets.set(keys.buyer.publicKey(), { xlm: "10", lines: [{ ...BANDCOIN, balance: "100" }] });
+    await db.membershipTier.deleteMany({ where: { id: { in: [low.id, gold.id] } } });
   });
 });

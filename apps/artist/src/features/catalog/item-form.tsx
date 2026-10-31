@@ -39,6 +39,7 @@ import { HiddenNotice } from "./hidden-notice";
 import { RegisterNft } from "./register-nft";
 import { StorageStock } from "./storage-stock";
 import { acceptFor, fileRequired, ITEM_TYPES, type ItemKind, mediaTypeFor } from "./item-types";
+import { type AccessChoice, AccessField, accessChoiceOf, accessInput } from "./access-field";
 
 type Existing = RouterOutputs["catalog"]["get"];
 
@@ -83,6 +84,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
   const [royalty, setRoyalty] = useState(existing?.royaltyPercent ?? "");
   const [resale, setResale] = useState(existing?.resaleRoyaltyPercent ?? "5");
   const [publish, setPublish] = useState(existing ? existing.visibility === "PUBLIC" : true);
+  const [access, setAccess] = useState<AccessChoice>(accessChoiceOf(existing?.access));
   const [imageBrief, setImageBrief] = useState("");
 
   const kinds = nft ? ITEM_TYPES.filter((entry) => entry.value !== "ROYALTY") : ITEM_TYPES;
@@ -155,7 +157,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
         coverUrl: cover.url,
         priceBandcoin,
         priceUsd,
-        ...(nft ? {} : { visibility }),
+        ...(nft ? {} : { visibility, access: accessInput(access) }),
         ...(locked
           ? {}
           : { supply: limited || nft ? supplyNumber : null, ...(nft ? {} : { code: shownCode }) }),
@@ -184,6 +186,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
         priceBandcoin,
         priceUsd,
         visibility,
+        access: accessInput(access),
         royaltyPercent: type === "ROYALTY" ? royalty : undefined,
       });
     }
@@ -587,6 +590,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
               />
             </OptionList>
           )}
+          {!nft && <AccessField id="item-access" value={access} onChange={setAccess} />}
         </FormSection>
       </fieldset>
     </FormPage>

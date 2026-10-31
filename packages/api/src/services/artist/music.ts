@@ -6,6 +6,7 @@ import { slugFromName } from "@bandcoin/utils/slug";
 
 import type { Context } from "../../context";
 import { queueRedo, queueTranscode, retryTranscode } from "../media/processing";
+import { accessKindOf } from "./item-access";
 import { checkOwnUrls, type CreateItemInput, createItem, invalid } from "./items";
 
 /**
@@ -163,6 +164,8 @@ export async function getSong(
       hiddenAt: true,
       hiddenReason: true,
       visibility: true,
+      membersOnly: true,
+      tierId: true,
       classicToken: { select: { code: true } },
       media: { select: { sourceUrl: true, durationSec: true, previewStartSec: true } },
       track: { select: { artistName: true, trackNumber: true, albumId: true } },
@@ -187,6 +190,8 @@ export async function getSong(
     /** After the first sale supply and code are fixed */
     locked: sold > 0,
     visibility: song.visibility,
+    /** Who can buy it */
+    access: { kind: accessKindOf(song), tierId: song.tierId },
     /** Set when an admin took it off fans' screens */
     hidden: song.hiddenAt ? { at: song.hiddenAt, reason: song.hiddenReason } : null,
     priceBandcoin: listing?.priceBandcoin.toString() ?? "",
