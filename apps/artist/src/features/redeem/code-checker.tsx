@@ -23,7 +23,7 @@ import { api, type RouterOutputs } from "~/trpc/react";
 import { FanAvatar, PlaceLabel, TypeIcon, messageOf } from "./parts";
 
 type Lookup = RouterOutputs["redeem"]["lookup"];
-type Found = Extract<Lookup, { status: "pending" | "already_redeemed" }>["claim"];
+type Found = Extract<Lookup, { status: "pending" | "already_redeemed" | "locked" }>["claim"];
 
 const CODE_LENGTH = 6;
 
@@ -82,7 +82,8 @@ export function CodeChecker() {
           <Ticket className="text-primary-text size-5" /> Redeem a code
         </h2>
         <p className="text-fg-muted mt-1 text-sm">
-          Ask the fan for the {CODE_LENGTH}-character code from their collected pin.
+          Ask the fan for the {CODE_LENGTH}-character code from their collected pin or unlocked NFT
+          content.
         </p>
         <label htmlFor="redeem-code" className="sr-only">
           Redeem code
@@ -151,6 +152,20 @@ export function CodeChecker() {
           >
             <FanAndReward claim={found.claim} />
             <p className="text-fg-muted mt-3 text-xs">Redeemed {format(redeemedNow, "PPp")}</p>
+          </ResultShell>
+        ) : found?.status === "locked" ? (
+          <ResultShell
+            tone="warning"
+            icon={AlertCircle}
+            title="Not unlocked yet"
+            onReset={reset}
+            resetLabel="Check another"
+          >
+            <FanAndReward claim={found.claim} />
+            <p className="text-fg-muted mt-3 text-xs">
+              The owner hasn&apos;t visited every place for this piece yet, so it can&apos;t be
+              redeemed.
+            </p>
           </ResultShell>
         ) : found?.status === "already_redeemed" ? (
           <ResultShell
@@ -234,7 +249,8 @@ function FanAndReward({ claim }: { claim: Found }) {
           <p className="truncate font-medium">{claim.fan.name ?? "Fan"}</p>
           {claim.fan.email && <p className="text-fg-muted truncate text-xs">{claim.fan.email}</p>}
           <p className="text-fg-muted text-xs">
-            Collected {formatDistanceToNow(new Date(claim.collectedAt), { addSuffix: true })}
+            {claim.latitude === null ? "Code made" : "Collected"}{" "}
+            {formatDistanceToNow(new Date(claim.collectedAt), { addSuffix: true })}
           </p>
         </div>
       </div>
@@ -252,7 +268,11 @@ function FanAndReward({ claim }: { claim: Found }) {
         <div className="min-w-0 text-sm">
           <p className="truncate font-medium">{claim.pin.title}</p>
           <div className="text-fg-muted text-xs">
-            <PlaceLabel latitude={claim.latitude} longitude={claim.longitude} />
+            {claim.latitude !== null && claim.longitude !== null ? (
+              <PlaceLabel latitude={claim.latitude} longitude={claim.longitude} />
+            ) : (
+              "NFT locked content"
+            )}
           </div>
         </div>
       </div>

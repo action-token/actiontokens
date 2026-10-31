@@ -42,6 +42,13 @@ function setup({ owned = true, visited = [1, 0] } = {}) {
         .fn()
         .mockResolvedValue(owned ? [{ id: "e1", tokenId: "40", ownerId: "fan" }] : []),
     },
+    lockedContentRedeem: {
+      findUnique: vi.fn().mockResolvedValue(null),
+      create: vi.fn(({ data }: { data: { lockedContentId: string } }) =>
+        Promise.resolve({ code: `CODE-${data.lockedContentId}`, redeemedAt: null }),
+      ),
+    },
+    pinClaim: { findFirst: vi.fn().mockResolvedValue(null) },
     item: {
       findUnique: vi.fn().mockResolvedValue({ title: "VIP", coverUrl: null, artistId: "a1" }),
     },
@@ -82,9 +89,11 @@ describe("locked content for fans", () => {
   it("gives an owner each copy's progress, and a link only once a piece is unlocked", async () => {
     const { copies } = await lockedForOwner(setup(), "fan", "i1");
     expect(copies).toHaveLength(1);
-    expect(copies[0]!.pieces.map((p) => [p.id, p.visited, p.required, p.unlocked, p.url])).toEqual([
-      ["song", 0, 0, true, "https://cdn.example/bonus.mp3"],
-      ["video", 1, 2, false, null],
+    expect(
+      copies[0]!.pieces.map((p) => [p.id, p.visited, p.required, p.unlocked, p.url, p.code?.code]),
+    ).toEqual([
+      ["song", 0, 0, true, "https://cdn.example/bonus.mp3", "CODE-song"],
+      ["video", 1, 2, false, null, undefined],
     ]);
     const done = await lockedForOwner(setup({ visited: [1, 3] }), "fan", "i1");
     expect(done.copies[0]!.pieces[1]).toMatchObject({

@@ -2,6 +2,7 @@ import { Prisma } from "@bandcoin/db";
 
 import type { Context } from "../../context";
 import { invalid } from "./items";
+import { findContentCode, redeemContentCode } from "../catalog/content-codes";
 import { notUnlockPin } from "../catalog/unlock-pins";
 
 /**
@@ -12,9 +13,12 @@ import { notUnlockPin } from "../catalog/unlock-pins";
  *
  * Redeeming is separate from "claim to wallet" (the digital reward); a pin can
  * have both.
+ *
+ * The same page takes the door codes of NFT locked content
+ * (catalog/content-codes): those are refused until the piece is unlocked.
  */
 type ServiceCtx = Pick<Context, "db" | "activity">;
-type ArtistRef = { id: string };
+type ArtistRef = { id: string; userId?: string };
 
 export const REDEEM_CODE_LENGTH = 6;
 export const MAX_FANS_PER_REWARD = 100;
@@ -47,6 +51,11 @@ export function normalizeCode(code: string) {
   return clean;
 }
 
+type Described = Omit<ReturnType<typeof describeClaim>, "latitude" | "longitude"> & {
+  latitude: number | null;
+  longitude: number | null;
+};
+
 const fanOf = (user: FoundClaim["user"]) => ({
   id: user.id,
   name: user.displayName ?? user.username,
@@ -54,7 +63,7 @@ const fanOf = (user: FoundClaim["user"]) => ({
   email: user.email,
 });
 
-function describe(claim: FoundClaim) {
+function describeClaim(claim: FoundClaim) {
   return {
     id: claim.id,
     code: claim.redeemCode,
@@ -80,7 +89,10 @@ const ownClaim = (artist: ArtistRef, code: string) => ({
 
 export type LookupResult =
   | { status: "not_found" }
-  | { status: "pending" | "already_redeemed"; claim: ReturnType<typeof describe> };
+  /** "locked": an NFT content code whose piece isn't unlocked yet */
+  | { status: "pending"; claim: Described }
+  | { status: "already_redeemed"; claim: Described }
+  | { status: "locked"; claim: Described };
 
 /** Looks a code up without changing anything, so the artist can check the fan and reward first. */
 export async function lookupCode(
@@ -88,18 +100,26 @@ export async function lookupCode(
   artist: ArtistRef,
   code: string,
 ): Promise<LookupResult> {
-  const claim = await ctx.db.pinClaim.findFirst({
-    where: ownClaim(artist, normalizeCode(code)),
-    select: found,
-  });
-  if (!claim) return { status: "not_found" };
-  return { status: claim.isRedeemed ? "already_redeemed" : "pending", claim: describe(claim) };
+  const clean = normalizeCode(code);
+  const claim = await ctx.db.pinClaim.findFirst({ where: ownClaim(artist, clean), select: found });
+  if (claim)
+    return {
+      status: claim.isRedeemed ? "already_redeemed" : "pending",
+      claim: describeClaim(claim),
+    };
+  const content = await findContentCode(ctx.db, artist.id, clean);
+  if (!content) return { status: "not_found" };
+  return {
+    status: content.claim.redeemedAt ? "already_redeemed" : content.unlocked ? "pending" : "locked",
+    claim: content.claim,
+  };
 }
 
 export type RedeemResult =
   | { status: "not_found" }
-  | { status: "success"; claim: ReturnType<typeof describe> }
-  | { status: "already_redeemed"; claim: ReturnType<typeof describe> };
+  | { status: "success"; claim: Described }
+  | { status: "already_redeemed"; claim: Described }
+  | { status: "locked"; claim: Described };
 
 /** Marks a code redeemed. The update only matches a code nobody redeemed yet, so two people racing can't both succeed. */
 export async function redeemCode(
@@ -109,9 +129,9 @@ export async function redeemCode(
 ): Promise<RedeemResult> {
   const clean = normalizeCode(code);
   const claim = await ctx.db.pinClaim.findFirst({ where: ownClaim(artist, clean), select: found });
-  if (!claim) return { status: "not_found" };
+  if (!claim) return redeemContent(ctx, artist, clean);
   ctx.activity.set({ targetType: "PinClaim", targetId: claim.id });
-  if (claim.isRedeemed) return { status: "already_redeemed", claim: describe(claim) };
+  if (claim.isRedeemed) return { status: "already_redeemed", claim: describeClaim(claim) };
 
   const redeemedAt = new Date();
   const { count } = await ctx.db.pinClaim.updateMany({
@@ -120,9 +140,28 @@ export async function redeemCode(
   });
   if (count === 0) {
     const current = await ctx.db.pinClaim.findFirst({ where: { id: claim.id }, select: found });
-    return { status: "already_redeemed", claim: describe(current ?? claim) };
+    return { status: "already_redeemed", claim: describeClaim(current ?? claim) };
   }
-  return { status: "success", claim: describe({ ...claim, isRedeemed: true, redeemedAt }) };
+  return { status: "success", claim: describeClaim({ ...claim, isRedeemed: true, redeemedAt }) };
+}
+
+/** An NFT content code: redeemed only once its piece is unlocked, and only once. */
+async function redeemContent(
+  ctx: ServiceCtx,
+  artist: ArtistRef,
+  code: string,
+): Promise<RedeemResult> {
+  const content = await findContentCode(ctx.db, artist.id, code);
+  if (!content) return { status: "not_found" };
+  ctx.activity.set({ targetType: "LockedContentRedeem", targetId: code });
+  if (content.claim.redeemedAt) return { status: "already_redeemed", claim: content.claim };
+  if (!content.unlocked) return { status: "locked", claim: content.claim };
+  const redeemedAt = await redeemContentCode(ctx.db, code, artist.userId ?? null);
+  if (!redeemedAt) {
+    const current = await findContentCode(ctx.db, artist.id, code);
+    return { status: "already_redeemed", claim: current?.claim ?? content.claim };
+  }
+  return { status: "success", claim: { ...content.claim, redeemedAt } };
 }
 
 /** Rewards, waiting and redeemed across all the artist's live pins. */
@@ -263,5 +302,5 @@ export async function redeemHistory(
     }),
   ]);
   const nextCursor = rows.length > limit ? rows[limit - 1]?.id : undefined;
-  return { total, nextCursor, items: rows.slice(0, limit).map(describe) };
+  return { total, nextCursor, items: rows.slice(0, limit).map(describeClaim) };
 }

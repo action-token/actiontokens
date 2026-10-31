@@ -36,8 +36,12 @@ const claim = (over: Record<string, unknown> = {}) => ({
   ...over,
 });
 
-function setup(found: unknown = claim(), updated = 1) {
+function setup(found: unknown = claim(), updated = 1, content: unknown = null) {
   const db = {
+    lockedContentRedeem: {
+      findFirst: vi.fn().mockResolvedValue(content),
+      updateMany: vi.fn().mockResolvedValue({ count: updated }),
+    },
     pinClaim: {
       findFirst: vi.fn().mockResolvedValue(found),
       updateMany: vi.fn().mockResolvedValue({ count: updated }),
@@ -193,6 +197,69 @@ describe("redeemHistory", () => {
         isHidden: false,
         spot: { pin: { artistId: "a1", isHidden: false } },
       },
+    });
+  });
+});
+
+describe("NFT content codes on the Redeem page", () => {
+  const content = (
+    over: { redeemedAt?: Date | null; visited?: number[]; rule?: boolean } = {},
+  ) => ({
+    code: "XYZ789",
+    redeemedAt: over.redeemedAt ?? null,
+    createdAt: new Date("2026-11-01"),
+    edition: {
+      id: "e1",
+      tokenId: "40",
+      owner: { id: "fan", username: "ana", displayName: "Ana", avatarUrl: null, email: null },
+      unlockPins: [
+        {
+          unlockLockedContentId: "lc1",
+          spots: (over.visited ?? [1, 1]).map((claims) => ({ _count: { claims } })),
+        },
+      ],
+    },
+    lockedContent: {
+      id: "lc1",
+      label: "Backstage",
+      type: "OTHER",
+      unlockRule: over.rule === false ? null : { id: "r1" },
+      item: { title: "VIP pass", coverUrl: null, artistId: "a1" },
+    },
+  });
+
+  it("finds the artist's own content codes, with the owner and the piece", async () => {
+    const { ctx, db } = setup(null, 1, content());
+    const result = await lookupCode(ctx, artist, "xyz789");
+    expect(result).toMatchObject({
+      status: "pending",
+      claim: { code: "XYZ789", fan: { name: "Ana" }, pin: { title: "Backstage · VIP pass #40" } },
+    });
+    expect(db.lockedContentRedeem.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { code: "XYZ789", lockedContent: { item: { artistId: "a1" } } },
+      }),
+    );
+  });
+
+  it("won't redeem a piece that isn't unlocked yet", async () => {
+    const { ctx, db } = setup(null, 1, content({ visited: [1, 0] }));
+    await expect(redeemCode(ctx, artist, "XYZ789")).resolves.toMatchObject({ status: "locked" });
+    expect(db.lockedContentRedeem.updateMany).not.toHaveBeenCalled();
+  });
+
+  it("redeems an unlocked piece once, by the artist's user", async () => {
+    const { ctx, db } = setup(null, 1, content());
+    await expect(
+      redeemCode(ctx, { ...artist, userId: "artist-user" }, "XYZ789"),
+    ).resolves.toMatchObject({ status: "success" });
+    expect(db.lockedContentRedeem.updateMany).toHaveBeenCalledWith({
+      where: { code: "XYZ789", redeemedAt: null },
+      data: { redeemedAt: expect.any(Date) as Date, redeemedById: "artist-user" },
+    });
+    const twice = setup(null, 1, content({ redeemedAt: new Date() }));
+    await expect(redeemCode(twice.ctx, artist, "XYZ789")).resolves.toMatchObject({
+      status: "already_redeemed",
     });
   });
 });

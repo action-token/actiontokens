@@ -1,5 +1,6 @@
 import type { Db } from "@bandcoin/db";
 
+import { contentCodeFor } from "./content-codes";
 import { ensureUnlockPins } from "./unlock-pins";
 
 /**
@@ -88,41 +89,43 @@ export async function lockedForOwner(db: Db, userId: string, itemId: string) {
     }),
   ]);
 
+  const copies = editions.map((edition) => ({
+    editionId: edition.id,
+    tokenId: edition.tokenId,
+    pieces: pieces.map((piece) => {
+      const pin = pins.find(
+        (row) => row.unlockEditionId === edition.id && row.unlockLockedContentId === piece.id,
+      );
+      const required = piece.unlockRule ? (pin?.spots.length ?? piece.unlockRule.points.length) : 0;
+      const visited = pin?.spots.filter((spot) => spot._count.claims > 0).length ?? 0;
+      const unlocked = !piece.unlockRule || (required > 0 && visited >= required);
+      return {
+        id: piece.id,
+        type: piece.type,
+        label: piece.label,
+        required,
+        visited,
+        unlocked,
+        url: unlocked ? piece.url : null,
+        /** Recorded on the contract: when and the transaction */
+        onChain: pin?.onChainUnlockedAt
+          ? { at: pin.onChainUnlockedAt, txHash: pin.onChainUnlockTxHash }
+          : null,
+      };
+    }),
+  }));
+  // The door code shows only once a piece is unlocked (made then, kept with the copy).
   return {
-    copies: editions.map((edition) => ({
-      tokenId: edition.tokenId,
-      pieces: pieces.map((piece) => {
-        if (!piece.unlockRule)
-          return {
-            id: piece.id,
-            type: piece.type,
-            label: piece.label,
-            required: 0,
-            visited: 0,
-            unlocked: true,
-            url: piece.url,
-            onChain: null,
-          };
-        const pin = pins.find(
-          (row) => row.unlockEditionId === edition.id && row.unlockLockedContentId === piece.id,
-        );
-        const required = pin?.spots.length ?? piece.unlockRule.points.length;
-        const visited = pin?.spots.filter((spot) => spot._count.claims > 0).length ?? 0;
-        const unlocked = required > 0 && visited >= required;
-        return {
-          id: piece.id,
-          type: piece.type,
-          label: piece.label,
-          required,
-          visited,
-          unlocked,
-          url: unlocked ? piece.url : null,
-          /** Recorded on the contract (step 5): when and the transaction */
-          onChain: pin?.onChainUnlockedAt
-            ? { at: pin.onChainUnlockedAt, txHash: pin.onChainUnlockTxHash }
-            : null,
-        };
-      }),
-    })),
+    copies: await Promise.all(
+      copies.map(async ({ editionId, ...copy }) => ({
+        ...copy,
+        pieces: await Promise.all(
+          copy.pieces.map(async (piece) => ({
+            ...piece,
+            code: piece.unlocked ? await contentCodeFor(db, editionId, piece.id) : null,
+          })),
+        ),
+      })),
+    ),
   };
 }

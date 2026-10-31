@@ -185,6 +185,15 @@ function OwnedRow({
       {piece.unlocked && piece.url ? (
         <>
           <Content type={piece.type} url={piece.url} />
+          {piece.code && (
+            <p className="text-fg-muted text-xs">
+              Door code{" "}
+              <span className="text-fg font-mono font-semibold tracking-widest">
+                {piece.code.code}
+              </span>
+              {piece.code.redeemedAt ? " · redeemed" : " · show it to the artist to redeem"}
+            </p>
+          )}
           {piece.onChain?.txHash && (
             <a
               href={`https://stellar.expert/explorer/${network === "mainnet" ? "public" : "testnet"}/tx/${piece.onChain.txHash}`}
