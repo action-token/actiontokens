@@ -21,6 +21,7 @@ import { timeAgo } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import { PaymentToast } from "../payments/payment-toast";
+import { HiddenNotice } from "../catalog/hidden-notice";
 import { statusLabel, statusTone } from "./bounties-view";
 import { useBountyFunding, useWinnerPick } from "./use-bounty-payments";
 
@@ -79,6 +80,10 @@ function Loaded({ bounty }: { bounty: Bounty }) {
 
   return (
     <PageBody className="grid gap-6">
+      <HiddenNotice
+        hidden={bounty.hiddenAt ? { at: bounty.hiddenAt, reason: bounty.hiddenReason } : null}
+        what="bounty"
+      />
       <PageHeader
         back={{ href: "/bounties", label: "Bounties" }}
         eyebrow="Fans"

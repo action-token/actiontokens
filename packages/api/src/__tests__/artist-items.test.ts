@@ -427,6 +427,27 @@ describe("getItem", () => {
     await expect(getItem(sold.ctx, artist, "i1")).resolves.toMatchObject({ sold: 2, locked: true });
   });
 
+  it("tells the artist when and why an admin hid it", async () => {
+    const at = new Date("2026-10-30T10:00:00Z");
+    const base = {
+      id: "i1",
+      title: "T",
+      coverUrl: "c",
+      type: "IMAGE",
+      supply: 1,
+      visibility: "PUBLIC",
+      chainType: "CLASSIC_TOKEN",
+      listings: [],
+    };
+    await expect(getItem(setup({ item: base }).ctx, artist, "i1")).resolves.toMatchObject({
+      hidden: null,
+    });
+    const hidden = setup({ item: { ...base, hiddenAt: at, hiddenReason: "Copyrighted art" } });
+    await expect(getItem(hidden.ctx, artist, "i1")).resolves.toMatchObject({
+      hidden: { at, reason: "Copyrighted art" },
+    });
+  });
+
   it("only shows the artist's own item", async () => {
     await expect(getItem(setup({ item: null }).ctx, artist, "i1")).rejects.toMatchObject({
       message: "Item not found",

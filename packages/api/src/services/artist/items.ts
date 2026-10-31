@@ -190,6 +190,8 @@ export async function listMyItems(ctx: Pick<ServiceCtx, "db">, artist: Pick<Arti
       type: true,
       coverUrl: true,
       supply: true,
+      hiddenAt: true,
+      hiddenReason: true,
       visibility: true,
       createdAt: true,
       chainType: true,
@@ -220,6 +222,8 @@ export async function listMyItems(ctx: Pick<ServiceCtx, "db">, artist: Pick<Arti
       priceUsd: listing?.priceUsd.toString() ?? null,
       listingStatus: listing?.status ?? null,
       visibility: row.visibility,
+      /** Set when an admin took it off fans' screens */
+      hidden: row.hiddenAt ? { at: row.hiddenAt, reason: row.hiddenReason } : null,
       createdAt: row.createdAt,
     };
   });
@@ -262,6 +266,8 @@ export async function getItem(
       coverUrl: true,
       type: true,
       supply: true,
+      hiddenAt: true,
+      hiddenReason: true,
       visibility: true,
       royaltyPercent: true,
       chainType: true,
@@ -294,6 +300,8 @@ export async function getItem(
     /** After the first sale supply and code are fixed */
     locked: sold > 0,
     visibility: item.visibility,
+    /** Set when an admin took it off fans' screens */
+    hidden: item.hiddenAt ? { at: item.hiddenAt, reason: item.hiddenReason } : null,
     royaltyPercent: item.royaltyPercent?.toString() ?? null,
     priceBandcoin: listing?.priceBandcoin.toString() ?? "",
     priceUsd: listing?.priceUsd.toString() ?? "",

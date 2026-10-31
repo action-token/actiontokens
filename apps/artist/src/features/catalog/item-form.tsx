@@ -35,6 +35,7 @@ import { AiTextButton } from "../ai/ai-text-button";
 
 import { FileField, type PickedFile } from "./file-field";
 import { Note, PriceFields, priceProblems, Toggle } from "./form-parts";
+import { HiddenNotice } from "./hidden-notice";
 import { RegisterNft } from "./register-nft";
 import { StorageStock } from "./storage-stock";
 import { acceptFor, fileRequired, ITEM_TYPES, type ItemKind, mediaTypeFor } from "./item-types";
@@ -257,6 +258,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
         </>
       }
     >
+      <HiddenNotice hidden={existing?.hidden ?? null} what="item" />
       {existing?.chain === "CONTRACT_NFT" && existing.registered === "PENDING" && (
         <RegisterNft itemId={existing.id} />
       )}

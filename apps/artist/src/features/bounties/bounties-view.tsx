@@ -15,16 +15,24 @@ import { api, type RouterOutputs } from "~/trpc/react";
 
 type Row = RouterOutputs["bounties"]["list"][number];
 
-export const statusLabel = (row: Pick<Row, "funded" | "status">) =>
-  !row.funded
-    ? "Not funded"
-    : row.status === "RUNNING"
-      ? "Running"
-      : row.status === "PAUSED"
-        ? "Paused"
-        : "Completed";
-export const statusTone = (row: Pick<Row, "funded" | "status">) =>
-  !row.funded ? "warning" : row.status === "RUNNING" ? "success" : "neutral";
+export const statusLabel = (row: Pick<Row, "funded" | "status" | "hiddenAt">) =>
+  row.hiddenAt
+    ? "Hidden by admin"
+    : !row.funded
+      ? "Not funded"
+      : row.status === "RUNNING"
+        ? "Running"
+        : row.status === "PAUSED"
+          ? "Paused"
+          : "Completed";
+export const statusTone = (row: Pick<Row, "funded" | "status" | "hiddenAt">) =>
+  row.hiddenAt
+    ? "danger"
+    : !row.funded
+      ? "warning"
+      : row.status === "RUNNING"
+        ? "success"
+        : "neutral";
 
 /** Your bounties, newest first. A draft whose funding never finished says so. */
 export function BountiesView() {

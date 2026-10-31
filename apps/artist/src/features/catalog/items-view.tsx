@@ -65,8 +65,9 @@ export function ItemsView() {
 }
 
 function ItemRow({ row }: { row: Row }) {
-  const status =
-    row.registered === "PENDING"
+  const status = row.hidden
+    ? { tone: "danger" as const, label: "Hidden by admin" }
+    : row.registered === "PENDING"
       ? { tone: "warning" as const, label: "Needs registering" }
       : row.visibility === "DRAFT"
         ? { tone: "neutral" as const, label: "Draft" }

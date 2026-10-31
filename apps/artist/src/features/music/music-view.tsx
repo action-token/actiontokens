@@ -102,8 +102,9 @@ function Songs() {
 }
 
 function SongRow({ song }: { song: Song }) {
-  const status =
-    song.visibility === "DRAFT"
+  const status = song.hidden
+    ? { tone: "danger" as const, label: "Hidden by admin" }
+    : song.visibility === "DRAFT"
       ? { tone: "neutral" as const, label: "Draft" }
       : song.listingStatus === "SOLD_OUT"
         ? { tone: "warning" as const, label: "Sold out" }

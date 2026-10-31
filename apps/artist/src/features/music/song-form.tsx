@@ -37,6 +37,7 @@ import { AiImagePanel } from "../ai/ai-image-panel";
 import { AiTextButton } from "../ai/ai-text-button";
 import { FileField, type PickedFile } from "../catalog/file-field";
 import { Note, PriceFields, priceProblems, Toggle } from "../catalog/form-parts";
+import { HiddenNotice } from "../catalog/hidden-notice";
 import { StorageStock } from "../catalog/storage-stock";
 import { usePortal } from "../portal/use-portal";
 import { StemsPanel } from "./stems-panel";
@@ -237,6 +238,7 @@ export function SongForm({
         </>
       }
     >
+      <HiddenNotice hidden={existing?.hidden ?? null} what="song" />
       {!editing && (
         <AiFillCard
           form="song"

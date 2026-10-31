@@ -83,6 +83,8 @@ export async function listSongs(ctx: Pick<ServiceCtx, "db">, artist: Pick<Artist
       slug: true,
       title: true,
       coverUrl: true,
+      hiddenAt: true,
+      hiddenReason: true,
       visibility: true,
       supply: true,
       playCount: true,
@@ -113,6 +115,8 @@ export async function listSongs(ctx: Pick<ServiceCtx, "db">, artist: Pick<Artist
       coverUrl: row.coverUrl,
       code: row.classicToken?.code ?? null,
       visibility: row.visibility,
+      /** Set when an admin took it off fans' screens */
+      hidden: row.hiddenAt ? { at: row.hiddenAt, reason: row.hiddenReason } : null,
       supply: row.supply,
       plays: row.playCount,
       sold: listing?.quantitySold ?? 0,
@@ -144,6 +148,8 @@ export async function getSong(
       description: true,
       coverUrl: true,
       supply: true,
+      hiddenAt: true,
+      hiddenReason: true,
       visibility: true,
       classicToken: { select: { code: true } },
       media: { select: { sourceUrl: true, durationSec: true, previewStartSec: true } },
@@ -169,6 +175,8 @@ export async function getSong(
     /** After the first sale supply and code are fixed */
     locked: sold > 0,
     visibility: song.visibility,
+    /** Set when an admin took it off fans' screens */
+    hidden: song.hiddenAt ? { at: song.hiddenAt, reason: song.hiddenReason } : null,
     priceBandcoin: listing?.priceBandcoin.toString() ?? "",
     priceUsd: listing?.priceUsd.toString() ?? "",
     audioUrl: song.media?.sourceUrl ?? null,

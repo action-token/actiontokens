@@ -368,10 +368,13 @@ describe("listSongs", () => {
           },
         ],
         _count: { stems: 2 },
+        hiddenAt: new Date("2026-10-30T10:00:00Z"),
+        hiddenReason: "Not their song",
       },
     ]);
     await expect(listSongs(ctx, artist)).resolves.toEqual([
       expect.objectContaining({
+        hidden: { at: new Date("2026-10-30T10:00:00Z"), reason: "Not their song" },
         id: "i1",
         title: "Gold Hour",
         albumTitle: "EP",
