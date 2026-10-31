@@ -17,6 +17,7 @@ import { fundsOf } from "@bandcoin/chain/server";
 import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
 
 import { type Context, isCustodial, type SessionUser } from "../../context";
+import { DEFAULT_PLATFORM_FEE_BPS } from "../admin/settings";
 import { transitionOrder } from "../order-state";
 import { loadSale, planDelivery, type Sale } from "./sale";
 
@@ -39,8 +40,6 @@ import { loadSale, planDelivery, type Sale } from "./sale";
 
 type PurchaseInput = { listingId: string; quantity: number; currency: Currency };
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
-
-const DEFAULT_FEE_BPS = 250;
 
 export async function quotePurchase(
   ctx: ServiceCtx,
@@ -132,7 +131,7 @@ async function priceSale(
       usd: sale.listing.priceUsd.toString(),
     },
     rates: needsRate ? await chain.rates() : {},
-    platformFeeBps: settings?.platformFeeBps ?? DEFAULT_FEE_BPS,
+    platformFeeBps: settings?.platformFeeBps ?? DEFAULT_PLATFORM_FEE_BPS,
     royaltyBps: Math.round(royaltyBps),
     newTrustlines: Number(openTrustline),
     networkFeeXlm: networkFeeXlm(operations, chain.config.network.baseFee),

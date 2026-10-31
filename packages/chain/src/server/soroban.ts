@@ -103,22 +103,49 @@ export async function readEditionId(
   reader: string,
   editionRef: string,
 ): Promise<number | null> {
+  const id = await readContract<number | null | undefined>(
+    contract,
+    reader,
+    "edition_by_ref",
+    [nativeToScVal(editionRef, { type: "string" })],
+    "Couldn't read the edition from the contract.",
+  );
+  return id ?? null;
+}
+
+/**
+ * What the nft_oz contract enforces now: the platform fee (basis points), the
+ * account it goes to, and the owner (the only one who may change them).
+ */
+export async function readNftFeeSettings(contract: string | null, reader: string) {
+  const read = <T>(method: string) =>
+    readContract<T>(contract, reader, method, [], "Couldn't read the fee from the contract.");
+  const [feeBps, treasury, owner] = await Promise.all([
+    read<number>("platform_fee_bps"),
+    read<string | null | undefined>("treasury"),
+    read<string | null | undefined>("get_owner"),
+  ]);
+  return { feeBps, treasury: treasury ?? null, owner: owner ?? null };
+}
+
+/** A read-only call: simulated, never signed or sent. `reader` only has to be an account that exists. */
+async function readContract<T>(
+  contract: string | null,
+  reader: string,
+  method: string,
+  args: xdr.ScVal[],
+  failure: string,
+): Promise<T> {
   if (!contract)
     throw new AppError(ErrorCodes.CONFIG_MISSING, { message: "NFT_CONTRACT isn't set." });
   const { passphrase } = chainConfig().network;
   const account = await sorobanRpc().getAccount(reader);
   const tx = new TransactionBuilder(account, { fee: "100", networkPassphrase: passphrase })
-    .addOperation(
-      new Contract(contract).call("edition_by_ref", nativeToScVal(editionRef, { type: "string" })),
-    )
+    .addOperation(new Contract(contract).call(method, ...args))
     .setTimeout(30)
     .build();
   const simulation = await sorobanRpc().simulateTransaction(tx);
-  if (!rpc.Api.isSimulationSuccess(simulation) || !simulation.result) {
-    throw new AppError(ErrorCodes.STELLAR_TX_BUILD_FAILED, {
-      message: "Couldn't read the edition from the contract.",
-    });
-  }
-  const id = scValToNative(simulation.result.retval) as number | null | undefined;
-  return id ?? null;
+  if (!rpc.Api.isSimulationSuccess(simulation) || !simulation.result)
+    throw new AppError(ErrorCodes.STELLAR_TX_BUILD_FAILED, { message: failure });
+  return scValToNative(simulation.result.retval) as T;
 }

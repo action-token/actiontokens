@@ -13,6 +13,7 @@ import {
   loadAssetHolders,
   prepareContractCall,
   readEditionId,
+  readNftFeeSettings,
   type Rates,
   submit,
 } from "@bandcoin/chain/server";
@@ -48,6 +49,8 @@ export type ChainGateway = {
   assetExists(code: string, issuer: string): Promise<boolean>;
   /** The on-chain id of the edition registered under `editionRef`, or null when there is none */
   editionIdByRef(editionRef: string): Promise<number | null>;
+  /** What the NFT contract enforces now: fee (basis points), treasury, owner */
+  nftFeeSettings(): Promise<{ feeBps: number; treasury: string | null; owner: string | null }>;
   submit(xdr: string): Promise<{ hash: string }>;
   findTransaction(hash: string): Promise<{ successful: boolean; envelopeXdr: string } | null>;
   card: {
@@ -125,6 +128,7 @@ export function createChainGateway(db: Db): ChainGateway {
     assetHolders: (code, issuer) => loadAssetHolders(new Asset(code, issuer)),
     editionIdByRef: (editionRef) =>
       readEditionId(chainConfig().nftContract, chainConfig().treasury, editionRef),
+    nftFeeSettings: () => readNftFeeSettings(chainConfig().nftContract, chainConfig().treasury),
     findTransaction,
     card: { charge: chargeCard, refund: refundCard },
   };

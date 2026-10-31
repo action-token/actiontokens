@@ -4,6 +4,7 @@ import {
   FeeBumpTransaction,
   Keypair,
   Networks,
+  scValToNative,
   type Transaction,
   TransactionBuilder,
 } from "@stellar/stellar-sdk";
@@ -15,7 +16,7 @@ import { buildActivation, buildTopUp, buildXlmSwap } from "../classic/recharge";
 import { buildIssueTokens, buildTransfer } from "../classic/transfer";
 import { toStellarError } from "../errors";
 import { buildBountyFund } from "../escrow/calls";
-import { buildNftBuyEdition, buildNftBuyListed } from "../nft/calls";
+import { buildNftBuyEdition, buildNftBuyListed, buildNftSetPlatformFee } from "../nft/calls";
 import { buildPlatformPayment } from "../payments/platform-payment";
 import { buildRoyaltyPayouts } from "../royalty/payout";
 import { memoFor, networkFeeXlm, wrapInFeeBump } from "../transaction";
@@ -402,6 +403,30 @@ describe("other builders", () => {
 
     const batch = buildNftBuyListed({ ...baseNft(contract), tokenIds: [4, 5] });
     expect(parse(batch.xdr).operations).toHaveLength(1);
+  });
+
+  it("encodes set_platform_fee from the owner's wallet, within the contract's 10% cap", () => {
+    const contract = "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC";
+    const owner = key();
+    const built = buildNftSetPlatformFee({
+      source: account(owner),
+      network,
+      contract,
+      feeBps: 250,
+      treasury,
+    });
+    const tx = parse(built.xdr);
+    expect(tx.source).toBe(owner);
+    const op = tx.operations[0];
+    if (op?.type !== "invokeHostFunction" || op.func.type !== "hostFunctionTypeInvokeContract")
+      throw new Error("not a contract call");
+    const call = op.func.invokeContract;
+    expect(String(call.functionName)).toBe("set_platform_fee");
+    expect(call.args.map((value) => scValToNative(value) as unknown)).toEqual([250, treasury]);
+    expect(built.serverSigners).toEqual([]);
+    const base = { source: account(owner), network, contract, treasury };
+    expect(() => buildNftSetPlatformFee({ ...base, feeBps: 1001 })).toThrow(/0 to 10%/);
+    expect(() => buildNftSetPlatformFee({ ...base, feeBps: 2.5 })).toThrow();
   });
 
   it("encodes the bounty escrow deposit", () => {

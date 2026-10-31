@@ -144,6 +144,28 @@ export function buildNftUpdateEdition(
   });
 }
 
+/** The highest platform fee the contract accepts: 10% (MAX_PLATFORM_FEE_BPS). */
+export const NFT_MAX_PLATFORM_FEE_BPS = 1_000;
+
+/**
+ * Changes the fee every future NFT sale pays the platform, and where it goes.
+ * Only the contract's owner may call it (`#[only_owner]`), so the source must
+ * be the owner's wallet; they sign it and pay the network fee.
+ */
+export function buildNftSetPlatformFee(input: Common & { feeBps: number; treasury: string }) {
+  if (
+    !Number.isInteger(input.feeBps) ||
+    input.feeBps < 0 ||
+    input.feeBps > NFT_MAX_PLATFORM_FEE_BPS
+  )
+    throw new RangeError(`The fee is 0 to ${NFT_MAX_PLATFORM_FEE_BPS / 100}%`);
+  return buildContractCall({
+    ...input,
+    method: "set_platform_fee",
+    args: [arg.u32(input.feeBps), arg.address(input.treasury)],
+  });
+}
+
 /** Most copies an edition can ever have (MAX_SUPPLY in the contract). */
 export const NFT_MAX_SUPPLY = 100_000;
 const NFT_MAX_TITLE = 128;

@@ -85,6 +85,8 @@ enum OrderKind {
   STORAGE_WITHDRAW
   /// An artist pays the network fee to register a contract NFT edition on-chain
   NFT_REGISTER
+  /// An admin (the NFT contract's owner) pays the network fee to change its platform fee
+  NFT_PLATFORM_FEE
 }
 
 /// One payment by a buyer. Every money flow with a buyer goes through here,

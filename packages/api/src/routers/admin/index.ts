@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { NFT_MAX_PLATFORM_FEE_BPS } from "@bandcoin/chain";
+
 import { ACTIVITY_KINDS, listActivity } from "../../services/admin/activity";
 import {
   decideMural,
@@ -29,7 +31,15 @@ import {
 } from "../../services/admin/users";
 import { listBounties, setBountyHidden } from "../../services/admin/bounties";
 import { listItems, setItemHidden } from "../../services/admin/items";
+import {
+  quoteContractFee,
+  readContractFee,
+  startContractFee,
+  submitContractFee,
+} from "../../services/admin/contract-fee";
 import { getPerson } from "../../services/admin/person";
+import { getSettings, updateSettings } from "../../services/admin/settings";
+import { cancelPurchase } from "../../services/purchase";
 import { decidePins, deletePins, listPins, pinCounts } from "../../services/admin/pins";
 import { getMuralSettings } from "../../services/ar/murals";
 import { adminProcedure, createRouter } from "../../trpc";
@@ -49,6 +59,19 @@ const hideInput = z.discriminatedUnion("hidden", [
   z.object({ hidden: z.literal(false) }),
 ]);
 const nullableName = z.string().max(120).nullable();
+const stellarAccount = z
+  .string()
+  .trim()
+  .regex(/^G[A-Z2-7]{55}$/, "A Stellar account starts with G");
+const amount = z
+  .string()
+  .trim()
+  .regex(/^\d+(\.\d{1,7})?$/, "A number, up to 7 decimals")
+  .nullable();
+const contractFee = z.object({
+  feeBps: z.number().int().min(0).max(NFT_MAX_PLATFORM_FEE_BPS),
+  treasury: stellarAccount,
+});
 
 /** Admin tools (artist.bandcoin.io/admin). Every procedure here is admin-only. */
 export const adminRouter = createRouter({
@@ -185,6 +208,35 @@ export const adminRouter = createRouter({
       .mutation(({ ctx, input }) =>
         updateMuralSettings({ ...ctx, adminId: ctx.session.user.id }, input),
       ),
+  }),
+  settings: createRouter({
+    get: adminProcedure.query(({ ctx }) => getSettings(ctx)),
+    update: adminProcedure
+      .input(
+        z.object({
+          platformFeeBps: z.number().int().min(0).max(NFT_MAX_PLATFORM_FEE_BPS),
+          platformFeeRecipient: stellarAccount.nullable(),
+          vanityMonthlyBandcoin: amount,
+          vanityMonthlyUsd: amount,
+          vanityNameChangeBandcoin: amount,
+          vanityNameChangeUsd: amount,
+          nearbyPinRadiusMeters: z.number().min(10).max(50_000),
+        }),
+      )
+      .mutation(({ ctx, input }) => updateSettings(ctx, input)),
+    contractFee: adminProcedure.query(({ ctx }) => readContractFee(ctx)),
+    contractFeeQuote: adminProcedure
+      .input(contractFee)
+      .query(({ ctx, input }) => quoteContractFee(ctx, ctx.session.user, input)),
+    contractFeeStart: adminProcedure
+      .input(contractFee)
+      .mutation(({ ctx, input }) => startContractFee(ctx, ctx.session.user, input)),
+    contractFeeSubmit: adminProcedure
+      .input(z.object({ orderId: z.string().min(1), xdr: z.string().min(1).optional() }))
+      .mutation(({ ctx, input }) => submitContractFee(ctx, ctx.session.user, input)),
+    contractFeeCancel: adminProcedure
+      .input(z.object({ orderId: z.string().min(1) }))
+      .mutation(({ ctx, input }) => cancelPurchase(ctx, ctx.session.user, input.orderId)),
   }),
   activity: createRouter({
     list: adminProcedure

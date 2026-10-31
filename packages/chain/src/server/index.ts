@@ -14,4 +14,4 @@ export {
 } from "./horizon";
 export { clearRateCache, liveBandcoinUsd, liveRates, type Rates } from "./rates";
 export { decryptSecret, encryptSecret } from "./secrets";
-export { prepareContractCall, readEditionId } from "./soroban";
+export { prepareContractCall, readEditionId, readNftFeeSettings } from "./soroban";
