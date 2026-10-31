@@ -1,10 +1,12 @@
 import { Account } from "@stellar/stellar-sdk";
 
 import { buildIssuerRefund } from "@bandcoin/chain";
-import type { ArtistStatus } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { type ArtistStatus, Prisma } from "@bandcoin/db";
+import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
 
 import type { Context } from "../../context";
+import { createFanToken } from "../artist/fan-token";
+import type { PendingFanToken } from "../artist/onboarding";
 
 /**
  * What an admin does with artists: review an application (approve or reject),
@@ -72,8 +74,12 @@ async function loadArtist(ctx: Pick<ServiceCtx, "db">, artistId: string) {
     select: {
       id: true,
       userId: true,
+      name: true,
+      slug: true,
       status: true,
       issuerAccountId: true,
+      fanTokenItemId: true,
+      pendingFanToken: true,
       issuerAccount: { select: { id: true, publicKey: true } },
       user: { select: { id: true, role: true, walletAddress: true } },
     },
@@ -107,7 +113,44 @@ export async function approveArtist(ctx: ServiceCtx, artistId: string) {
     if (artist.user.role !== "ADMIN")
       await tx.user.update({ where: { id: artist.userId }, data: { role: "ARTIST" } });
   });
-  return { artistId: artist.id, status: "APPROVED" as const };
+  const fanToken = await createChosenFanToken(ctx, artist);
+  ctx.activity.set({ targetType: "Artist", targetId: artist.id });
+  return { artistId: artist.id, status: "APPROVED" as const, fanToken };
+}
+
+/**
+ * Makes the fan token the artist chose while applying. Approval never fails
+ * because of it: if the token can't be made now (the code was taken
+ * meanwhile, the asset is gone), the artist sets it up in Memberships.
+ */
+async function createChosenFanToken(
+  ctx: ServiceCtx,
+  artist: Awaited<ReturnType<typeof loadArtist>>,
+): Promise<
+  { status: "CREATED"; code: string } | { status: "NONE" } | { status: "FAILED"; message: string }
+> {
+  const chosen = artist.pendingFanToken as PendingFanToken | null;
+  if (!chosen || artist.fanTokenItemId) return { status: "NONE" };
+  try {
+    const { code } = await createFanToken(
+      ctx,
+      artist,
+      { id: artist.userId },
+      chosen.mode === "NEW"
+        ? { mode: "CUSTOM", code: chosen.code, coverUrl: chosen.coverUrl }
+        : { mode: "EXISTING", code: chosen.code, issuer: chosen.issuer, coverUrl: chosen.coverUrl },
+    );
+    await ctx.db.artist.update({
+      where: { id: artist.id },
+      data: { pendingFanToken: Prisma.DbNull },
+    });
+    return { status: "CREATED", code };
+  } catch (error) {
+    return {
+      status: "FAILED",
+      message: isAppError(error) ? error.message : "The fan token couldn't be made.",
+    };
+  }
 }
 
 export async function rejectArtist(ctx: ServiceCtx, input: { artistId: string; reason: string }) {

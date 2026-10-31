@@ -231,6 +231,23 @@ function Details({ artist }: { artist: Artist }) {
                   <p className="text-fg-muted truncate text-xs">{artist.fanToken.title}</p>
                 </div>
               </div>
+            ) : artist.chosenFanToken ? (
+              <div className="mt-3 flex items-center gap-3">
+                {/* eslint-disable-next-line @next/next/no-img-element -- covers come from our storage */}
+                <img
+                  src={artist.chosenFanToken.coverUrl}
+                  alt=""
+                  className="border-border size-11 rounded-lg border object-cover"
+                />
+                <div className="min-w-0 text-sm">
+                  <p className="font-mono font-semibold">{artist.chosenFanToken.code}</p>
+                  <p className="text-fg-muted text-xs">
+                    {artist.chosenFanToken.mode === "EXISTING"
+                      ? `Their own token on Stellar · made when you approve`
+                      : "New token · made when you approve"}
+                  </p>
+                </div>
+              </div>
             ) : (
               <p className="text-fg-muted mt-2 text-sm">
                 No fan token yet. The artist sets one up in Memberships.

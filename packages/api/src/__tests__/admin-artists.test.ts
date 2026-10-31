@@ -22,6 +22,9 @@ import { getArtist } from "../services/admin/artist-detail";
 import type { ChainGateway } from "../services/chain-gateway";
 import { createCallerFactory } from "../trpc";
 
+const createFanToken = vi.hoisted(() => vi.fn());
+vi.mock("../services/artist/fan-token", () => ({ createFanToken }));
+
 const artistWallet = Keypair.random().publicKey();
 const issuerKey = Keypair.random().publicKey();
 const network = { passphrase: Networks.TESTNET, baseFee: "100" };
@@ -94,12 +97,59 @@ function setup(
 describe("approveArtist", () => {
   it("approves a paid application and makes the owner an artist", async () => {
     const { ctx, db, activity } = setup();
-    await expect(approveArtist(ctx, "a1")).resolves.toEqual({ artistId: "a1", status: "APPROVED" });
+    await expect(approveArtist(ctx, "a1")).resolves.toEqual({
+      artistId: "a1",
+      status: "APPROVED",
+      fanToken: { status: "NONE" },
+    });
     expect(db.artist.update).toHaveBeenCalledWith(
       expect.objectContaining({ data: { status: "APPROVED", rejectionReason: null } }),
     );
     expect(db.user.update).toHaveBeenCalledWith({ where: { id: "u1" }, data: { role: "ARTIST" } });
     expect(activity.set).toHaveBeenCalledWith({ targetType: "Artist", targetId: "a1" });
+  });
+
+  it("makes the fan token chosen while applying, then forgets the choice", async () => {
+    createFanToken.mockResolvedValueOnce({ itemId: "i1", code: "LUNA" });
+    const chosen = { mode: "NEW", code: "LUNA", coverUrl: "https://cdn.example/t.png" };
+    const { ctx, db, artist } = setup({
+      artist: { pendingFanToken: chosen, fanTokenItemId: null },
+    });
+    await expect(approveArtist(ctx, "a1")).resolves.toMatchObject({
+      fanToken: { status: "CREATED", code: "LUNA" },
+    });
+    expect(createFanToken).toHaveBeenCalledWith(
+      ctx,
+      expect.objectContaining({ id: "a1", slug: "luna-vale" }),
+      { id: "u1" },
+      { mode: "CUSTOM", code: "LUNA", coverUrl: "https://cdn.example/t.png" },
+    );
+    expect(db.artist.update).toHaveBeenLastCalledWith(
+      expect.objectContaining({ where: { id: "a1" } }),
+    );
+    expect(artist).toMatchObject({ status: "APPROVED" });
+  });
+
+  it("still approves when the chosen token can't be made, and says why", async () => {
+    createFanToken.mockRejectedValueOnce(new Error("boom"));
+    const chosen = {
+      mode: "EXISTING",
+      code: "LUNA",
+      issuer: issuerKey,
+      coverUrl: "https://cdn.example/t.png",
+    };
+    const { ctx, artist } = setup({ artist: { pendingFanToken: chosen, fanTokenItemId: null } });
+    await expect(approveArtist(ctx, "a1")).resolves.toMatchObject({
+      status: "APPROVED",
+      fanToken: { status: "FAILED", message: "The fan token couldn't be made." },
+    });
+    expect(createFanToken.mock.lastCall?.[3]).toEqual({
+      mode: "EXISTING",
+      code: "LUNA",
+      issuer: issuerKey,
+      coverUrl: "https://cdn.example/t.png",
+    });
+    expect(artist).toMatchObject({ status: "APPROVED", pendingFanToken: chosen });
   });
 
   it("never lowers an admin's role", async () => {

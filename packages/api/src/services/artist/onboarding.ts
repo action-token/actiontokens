@@ -9,16 +9,22 @@ import {
 import { QUOTE_TTL_SECONDS } from "@bandcoin/chain/quote";
 import { encryptSecret, fundsOf } from "@bandcoin/chain/server";
 import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
+import { isOwnS3Url } from "@bandcoin/storage";
+import { normalizeAssetCode, validateAssetCode } from "@bandcoin/utils/asset-code";
 import { slugFromName, validateSlug } from "@bandcoin/utils/slug";
 
 import { type Context, isCustodial, type SessionUser } from "../../context";
+import { checkExistingToken, type TokenCheck } from "./fan-token";
+import { checkOwnUrls, invalid } from "./items";
 import { transitionOrder } from "../order-state";
 import { deliverOrder, failOrder, ownOrder, userSignature } from "../purchase";
 
 /**
  * Becoming an artist, in two steps the artist does and one an admin does:
  *
- *   apply   → name and page address; creates the application (PENDING)
+ *   apply   → photos, name, fan token choice and page address (the wizard,
+ *             like Wadzzo's); creates the application (PENDING). The fan
+ *             token is only saved here and created when an admin approves.
  *   pay     → the artist pays 1.5 XLM + the network fee to open their issuer
  *             account (quote → start → submit, like any wallet payment)
  *   approve → an admin reviews it (services/admin/artists)
@@ -29,22 +35,94 @@ import { deliverOrder, failOrder, ownOrder, userSignature } from "../purchase";
  */
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 
-export async function applyAsArtist(
-  ctx: Pick<Context, "db" | "activity">,
+/** The fan token chosen while applying: a new code under their own account, or one already on Stellar. */
+export type PendingFanToken =
+  | { mode: "NEW"; code: string; coverUrl: string }
+  | { mode: "EXISTING"; code: string; issuer: string; coverUrl: string };
+
+export type ApplicationInput = {
+  name: string;
+  slug?: string;
+  bio?: string;
+  avatarUrl?: string;
+  coverUrl?: string;
+  fanToken?: PendingFanToken;
+};
+
+/** Is this page address free for this person? For the live check while they type. */
+export async function checkSlug(
+  ctx: Pick<Context, "db">,
   user: SessionUser,
-  input: { name: string; slug?: string; bio?: string },
+  slug: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const problem = validateSlug(slug);
+  if (problem) return { ok: false, message: problem };
+  const [taken, oldName] = await Promise.all([
+    ctx.db.artist.findUnique({ where: { slug }, select: { userId: true } }),
+    ctx.db.artistSlugHistory.findUnique({ where: { slug }, select: { artistId: true } }),
+  ]);
+  if ((taken && taken.userId !== user.id) || oldName)
+    return { ok: false, message: "That page address is taken" };
+  return { ok: true };
+}
+
+/** Is this existing Stellar asset usable as their fan token? For the live check in the wizard. */
+export async function checkToken(
+  ctx: Pick<Context, "db" | "chain">,
+  user: SessionUser,
+  input: { code: string; issuer: string },
+): Promise<TokenCheck> {
+  const artist = await ctx.db.artist.findUnique({
+    where: { userId: user.id },
+    select: { id: true },
+  });
+  return checkExistingToken(ctx, { id: artist?.id ?? "" }, input);
+}
+
+async function checkFanToken(
+  ctx: Pick<Context, "db" | "chain">,
+  user: SessionUser,
+  token: PendingFanToken,
+) {
+  checkOwnUrls({ cover: token.coverUrl });
+  const code = normalizeAssetCode(token.code);
+  const problem = validateAssetCode(code);
+  if (problem) throw invalid(problem);
+  if (code.length < 4) throw invalid("Use 4 to 12 letters or numbers");
+  if (token.mode === "NEW") return { mode: "NEW" as const, code, coverUrl: token.coverUrl };
+  const check = await checkToken(ctx, user, { code, issuer: token.issuer });
+  if (check.status !== "OK")
+    throw check.status === "USED"
+      ? new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: check.message })
+      : invalid(check.message);
+  return { mode: "EXISTING" as const, code, issuer: token.issuer, coverUrl: token.coverUrl };
+}
+
+export async function applyAsArtist(
+  ctx: Pick<Context, "db" | "chain" | "activity">,
+  user: SessionUser,
+  input: ApplicationInput,
 ) {
   const name = input.name.trim();
   const slug = input.slug ?? slugFromName(name);
   const problem = validateSlug(slug);
   if (problem) throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: problem });
+  if (input.avatarUrl !== undefined && !isOwnS3Url(input.avatarUrl))
+    throw invalid("Upload your profile picture again.");
+  if (input.coverUrl !== undefined && !isOwnS3Url(input.coverUrl))
+    throw invalid("Upload the cover again.");
 
   const existing = await ctx.db.artist.findUnique({
     where: { userId: user.id },
-    select: { id: true, status: true },
+    select: { id: true, status: true, issuerAccountId: true },
   });
-  // A rejected artist applies again on the same row; everyone else has one page.
-  if (existing && existing.status !== "REJECTED") {
+  // A rejected artist applies again on the same row, and so does one who went back
+  // to change something before paying; everyone else has one page.
+  const canChange =
+    existing &&
+    (existing.status === "REJECTED" ||
+      (existing.status === "PENDING" && !existing.issuerAccountId));
+  if (existing && !canChange) {
     throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
       message: "You already have an artist page.",
     });
@@ -53,8 +131,16 @@ export async function applyAsArtist(
   if (taken && taken.id !== existing?.id) {
     throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "That page address is taken" });
   }
+  const fanToken = input.fanToken ? await checkFanToken(ctx, user, input.fanToken) : undefined;
 
-  const details = { name, slug, bio: input.bio?.trim() || null };
+  const details = {
+    name,
+    slug,
+    bio: input.bio?.trim() || null,
+    ...(input.avatarUrl !== undefined ? { avatarUrl: input.avatarUrl } : {}),
+    ...(input.coverUrl !== undefined ? { coverUrl: input.coverUrl } : {}),
+    ...(fanToken ? { pendingFanToken: fanToken } : {}),
+  };
   const artist = existing
     ? await ctx.db.artist.update({
         where: { id: existing.id },

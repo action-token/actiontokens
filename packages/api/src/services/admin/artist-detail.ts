@@ -30,6 +30,7 @@ export async function getArtist(ctx: Pick<Context, "db">, artistId: string) {
       },
       issuerAccount: { select: { publicKey: true } },
       storageAccount: { select: { publicKey: true } },
+      pendingFanToken: true,
       fanTokenItem: {
         select: { title: true, coverUrl: true, classicToken: { select: { code: true } } },
       },
@@ -90,6 +91,13 @@ export async function getArtist(ctx: Pick<Context, "db">, artistId: string) {
           coverUrl: artist.fanTokenItem.coverUrl,
         }
       : null,
+    /** The token chosen while applying, made when approved */
+    chosenFanToken: artist.pendingFanToken as {
+      mode: "NEW" | "EXISTING";
+      code: string;
+      issuer?: string;
+      coverUrl: string;
+    } | null,
     counts: { ...artist._count, collected },
     recentPins: artist.pins.map((pin) => ({
       id: pin.id,

@@ -13,8 +13,13 @@ import { createContext, type SessionUser } from "../context";
 import { portalRouter } from "../root-portal";
 import type { ChainGateway } from "../services/chain-gateway";
 import { createCallerFactory } from "../trpc";
+
+vi.mock("@bandcoin/storage", () => ({
+  isOwnS3Url: (url: string) => url.startsWith("https://cdn.example/"),
+}));
 import {
   applyAsArtist,
+  checkSlug,
   quoteIssuerOpening,
   startIssuerOpening,
   submitIssuerOpening,
@@ -49,6 +54,8 @@ function setup(
   const chainAccounts = new Map<string, Row>();
   const orders = new Map<string, Row>();
   const db = {
+    classicToken: { findUnique: vi.fn().mockResolvedValue(null) },
+    artistSlugHistory: { findUnique: vi.fn().mockResolvedValue(null) },
     artist: {
       findUnique: vi.fn(({ where }: { where: { userId?: string; slug?: string } }) => {
         if (where.slug && where.slug === opts.takenSlug)
@@ -139,6 +146,7 @@ function setup(
       mother: Keypair.random().publicKey(),
     },
     loadAccount: vi.fn().mockResolvedValue(account),
+    assetExists: vi.fn().mockResolvedValue(true),
     signWithServerKeys: vi.fn((xdr: string) => Promise.resolve(xdr)),
     submit: vi.fn(opts.submit ?? ((_xdr: string) => Promise.resolve({ hash: "txhash" }))),
   };
@@ -184,14 +192,73 @@ describe("applyAsArtist", () => {
     });
   });
 
-  it("won't start a second application, or restart an approved or banned artist", async () => {
-    for (const status of ["PENDING", "APPROVED", "BANNED"]) {
+  it("won't change an application once paid, or restart an approved or banned artist", async () => {
+    const paid = { ...pending, issuerAccountId: "chain1" };
+    for (const artist of [
+      paid,
+      { ...pending, status: "APPROVED" },
+      { ...pending, status: "BANNED" },
+    ]) {
       await expect(
-        applyAsArtist(setup({ artist: { ...pending, status } }).ctx, me, { name: "Luna Vale" }),
+        applyAsArtist(setup({ artist }).ctx, me, { name: "Luna Vale" }),
       ).rejects.toMatchObject({
         message: "You already have an artist page.",
       });
     }
+  });
+
+  it("lets an artist go back and change their answers before paying", async () => {
+    const { ctx, artists, db } = setup({ artist: pending });
+    await applyAsArtist(ctx, me, { name: "Luna Vale Trio", slug: "luna-vale-trio" });
+    expect(db.artist.create).not.toHaveBeenCalled();
+    expect(artists.get("a1")).toMatchObject({ name: "Luna Vale Trio", status: "PENDING" });
+  });
+
+  it("saves the photos and the fan token chosen in the wizard, to be made on approval", async () => {
+    const { ctx, artists } = setup();
+    await applyAsArtist(ctx, me, {
+      name: "Luna Vale",
+      avatarUrl: "https://cdn.example/me.jpg",
+      coverUrl: "https://cdn.example/cover.jpg",
+      fanToken: { mode: "NEW", code: " luna ", coverUrl: "https://cdn.example/token.png" },
+    });
+    expect(artists.get("a1")).toMatchObject({
+      avatarUrl: "https://cdn.example/me.jpg",
+      coverUrl: "https://cdn.example/cover.jpg",
+      pendingFanToken: { mode: "NEW", code: "LUNA", coverUrl: "https://cdn.example/token.png" },
+    });
+  });
+
+  it("checks a token already on Stellar, and refuses uploads from elsewhere or a short code", async () => {
+    const issuer = Keypair.random().publicKey();
+    const existing = {
+      mode: "EXISTING" as const,
+      code: "LUNA",
+      issuer,
+      coverUrl: "https://cdn.example/t.png",
+    };
+    const ok = setup();
+    await applyAsArtist(ok.ctx, me, { name: "Luna Vale", fanToken: existing });
+    expect(ok.chain.assetExists).toHaveBeenCalledWith("LUNA", issuer);
+    expect(ok.artists.get("a1")).toMatchObject({ pendingFanToken: existing });
+
+    const missing = setup();
+    missing.chain.assetExists.mockResolvedValue(false);
+    await expect(
+      applyAsArtist(missing.ctx, me, { name: "Luna Vale", fanToken: existing }),
+    ).rejects.toThrow(/couldn't find that asset/);
+    await expect(
+      applyAsArtist(setup().ctx, me, {
+        name: "Luna Vale",
+        avatarUrl: "https://evil.example/x.jpg",
+      }),
+    ).rejects.toThrow(/profile picture again/);
+    await expect(
+      applyAsArtist(setup().ctx, me, {
+        name: "Luna Vale",
+        fanToken: { mode: "NEW", code: "LV", coverUrl: "https://cdn.example/t.png" },
+      }),
+    ).rejects.toThrow(/4 to 12/);
   });
 
   it("lets a rejected artist apply again with the same row, clearing the reason", async () => {
@@ -206,6 +273,16 @@ describe("applyAsArtist", () => {
       status: "PENDING",
       rejectionReason: null,
     });
+  });
+});
+
+describe("checkSlug", () => {
+  it("says whether a page address is free for this person", async () => {
+    await expect(checkSlug(setup().ctx, me, "luna-vale")).resolves.toEqual({ ok: true });
+    await expect(
+      checkSlug(setup({ takenSlug: "luna-vale" }).ctx, me, "luna-vale"),
+    ).resolves.toEqual({ ok: false, message: "That page address is taken" });
+    await expect(checkSlug(setup().ctx, me, "admin")).resolves.toMatchObject({ ok: false });
   });
 });
 

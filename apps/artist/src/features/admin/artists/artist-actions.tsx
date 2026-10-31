@@ -40,7 +40,18 @@ export function useArtistActions() {
   };
   const onError = (error: unknown) => toast.error(messageOf(error));
   const approve = api.admin.artists.approve.useMutation({
-    onSuccess: () => done("Approved: their artist tools are open"),
+    onSuccess: (result) => {
+      done(
+        result.fanToken.status === "CREATED"
+          ? `Approved, with their fan token ${result.fanToken.code}`
+          : "Approved: their artist tools are open",
+      );
+      if (result.fanToken.status === "FAILED")
+        toast.error(
+          `Their fan token couldn't be made (${result.fanToken.message}). They can set it up in Memberships.`,
+          { duration: 8000 },
+        );
+    },
     onError,
   });
   const ban = api.admin.artists.ban.useMutation({ onSuccess: () => done("Banned"), onError });

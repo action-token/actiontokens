@@ -40,6 +40,9 @@ model Artist {
   /// The artist's fan token: an Item of type FAN_TOKEN. Tiers are "hold N of it".
   fanTokenItemId    String?       @unique
   fanTokenItem      Item?         @relation("ArtistFanToken", fields: [fanTokenItemId], references: [id], onDelete: SetNull)
+  /// The fan token chosen while applying ({ mode: NEW | EXISTING, code, issuer?, coverUrl });
+  /// created when an admin approves, then cleared
+  pendingFanToken   Json?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
