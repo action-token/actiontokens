@@ -20,6 +20,7 @@ import {
   unbanArtist,
 } from "../../services/admin/artists";
 import {
+  addAdmin,
   listUsers,
   setAdmin,
   suspendUser,
@@ -97,6 +98,9 @@ export const adminRouter = createRouter({
     setAdmin: adminProcedure
       .input(userId.extend({ admin: z.boolean() }))
       .mutation(({ ctx, input }) => setAdmin(ctx, ctx.session.user, input)),
+    addAdmin: adminProcedure
+      .input(z.object({ who: z.string().trim().min(3).max(200) }))
+      .mutation(({ ctx, input }) => addAdmin(ctx, ctx.session.user, input)),
   }),
   pins: createRouter({
     list: adminProcedure

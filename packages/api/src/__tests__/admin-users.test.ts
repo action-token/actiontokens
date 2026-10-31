@@ -6,6 +6,7 @@ import { createContext, liveSession, type SessionUser } from "../context";
 import { portalRouter } from "../root-portal";
 import type { ChainGateway } from "../services/chain-gateway";
 import {
+  addAdmin,
   listUsers,
   setAdmin,
   suspendUser,
@@ -42,6 +43,15 @@ function setup(people: Row[] = []) {
         Promise.resolve(users.get(where.id) ?? null),
       ),
       findMany: vi.fn(() => Promise.resolve([...users.values()])),
+      findFirst: vi.fn(({ where }: { where: Row }) =>
+        Promise.resolve(
+          [...users.values()].find((user) =>
+            "walletAddress" in where
+              ? user.walletAddress === where.walletAddress
+              : user.email === (where.email as { equals: string }).equals,
+          ) ?? null,
+        ),
+      ),
       update: vi.fn(({ where, data }: { where: { id: string }; data: Row }) => {
         Object.assign(users.get(where.id)!, data);
         return Promise.resolve(users.get(where.id));
@@ -136,6 +146,24 @@ describe("suspending", () => {
 });
 
 describe("admins", () => {
+  it("adds an admin by wallet or email, and says when there's no such account", async () => {
+    const wallet = `G${"A".repeat(55)}`;
+    const { ctx, users, db } = setup([
+      { id: "u1", walletAddress: wallet },
+      { id: "u2", email: "luna@example.com" },
+    ]);
+    await addAdmin(ctx, admin, { who: ` ${wallet.toLowerCase()} ` });
+    expect(db.user.findFirst).toHaveBeenLastCalledWith(
+      expect.objectContaining({ where: { walletAddress: wallet } }),
+    );
+    expect(users.get("u1")).toMatchObject({ role: "ADMIN" });
+    await addAdmin(ctx, admin, { who: "luna@example.com" });
+    expect(users.get("u2")).toMatchObject({ role: "ADMIN" });
+    await expect(addAdmin(ctx, admin, { who: "nobody@example.com" })).rejects.toThrow(
+      /sign in once first/,
+    );
+  });
+
   it("makes an admin, and removing it puts an approved artist back to artist", async () => {
     const { ctx, users } = setup([{ id: "u1", artist: { status: "APPROVED" } }, { id: "u2" }]);
     await setAdmin(ctx, admin, { userId: "u1", admin: true });

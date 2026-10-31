@@ -69,6 +69,7 @@ describe("portal navigation", () => {
       "Royalties",
       "Artists",
       "Users",
+      "Admins",
       "Pin review",
       "Mural review",
       "Bounties",

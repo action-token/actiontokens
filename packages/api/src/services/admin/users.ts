@@ -183,3 +183,23 @@ export async function setAdmin(
   await ctx.db.user.update({ where: { id: user.id }, data: { role } });
   return { userId: user.id, role };
 }
+
+/** Admins › Add admin: finds the account by its Stellar wallet or email, then makes it an admin. */
+export async function addAdmin(
+  ctx: ServiceCtx,
+  admin: Pick<SessionUser, "id">,
+  input: { who: string },
+) {
+  const who = input.who.trim();
+  const user = await ctx.db.user.findFirst({
+    where: /^G[A-Z2-7]{55}$/i.test(who)
+      ? { walletAddress: who.toUpperCase() }
+      : { email: { equals: who, mode: "insensitive" } },
+    select: { id: true },
+  });
+  if (!user)
+    throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, {
+      message: "No account with that wallet or email. Ask them to sign in once first.",
+    });
+  return setAdmin(ctx, admin, { userId: user.id, admin: true });
+}

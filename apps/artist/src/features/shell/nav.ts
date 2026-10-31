@@ -18,6 +18,7 @@ import {
   Rocket,
   TicketCheck,
   Trophy,
+  ShieldCheck,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -58,6 +59,7 @@ const ADMIN: NavGroup = {
   items: [
     { href: "/admin/artists", icon: Mic2, label: "Artists" },
     { href: "/admin/users", icon: Users, label: "Users" },
+    { href: "/admin/admins", icon: ShieldCheck, label: "Admins" },
     { href: "/admin/pins", icon: MapPinned, label: "Pin review" },
     { href: "/admin/murals", icon: Frame, label: "Mural review" },
     { href: "/admin/bounties", icon: Trophy, label: "Bounties" },
