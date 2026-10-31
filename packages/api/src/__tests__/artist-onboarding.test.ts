@@ -411,7 +411,7 @@ describe("opening the issuer", () => {
     ).rejects.toMatchObject({ code: "PRECONDITION_NOT_MET" });
   });
 
-  it("sends the signed payment with the issuer's signature added, then links the issuer to the artist", async () => {
+  it("sends the payment with only the artist's signature (the issuer runs no step; Stellar refuses extra signatures), then links the issuer", async () => {
     const { ctx, chain, artists, chainAccounts, orders } = setup({ artist: pending });
     const { xdr } = await startIssuerOpening(ctx, me);
     const [issuerKey] = [...chainAccounts.keys()];
@@ -420,8 +420,8 @@ describe("opening the issuer", () => {
       orderId: ORDER,
       status: "DELIVERED",
     });
-    expect(chain.signWithServerKeys).toHaveBeenCalledWith(xdr, [issuerKey]);
-    expect(chain.submit).toHaveBeenCalledOnce();
+    expect(chain.signWithServerKeys).not.toHaveBeenCalled();
+    expect(chain.submit).toHaveBeenCalledWith(xdr);
     expect(chainAccounts.get(issuerKey!)!.activatedAt).toBeInstanceOf(Date);
     expect(artists.get("a1")).toMatchObject({ issuerAccountId: "chain1", status: "PENDING" });
     expect(orders.get(ORDER)).toMatchObject({ status: "DELIVERED" });

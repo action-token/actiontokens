@@ -19,7 +19,7 @@ import { buildBountyFund } from "../escrow/calls";
 import { buildNftBuyEdition, buildNftBuyListed, buildNftSetPlatformFee } from "../nft/calls";
 import { buildPlatformPayment } from "../payments/platform-payment";
 import { buildRoyaltyPayouts } from "../royalty/payout";
-import { memoFor, networkFeeXlm, wrapInFeeBump } from "../transaction";
+import { memoFor, networkFeeXlm, signersNeeded, wrapInFeeBump } from "../transaction";
 import { memoText, verifyTransaction } from "../verify";
 
 const network = { passphrase: Networks.TESTNET, baseFee: "100" };
@@ -460,6 +460,27 @@ const baseNft = (contract: string) => ({
   inclusionFee: 0n,
   networkFee: 0n,
   treasury,
+});
+
+describe("signersNeeded", () => {
+  it("is the source and every operation's own source, nobody else", () => {
+    const issuerKey = key();
+    const opening = buildIssuerSetup({ artist: account(creator), network, issuer: issuerKey });
+    expect([...signersNeeded(opening.xdr, Networks.TESTNET)]).toEqual([creator]);
+    const withDomain = buildIssuerSetup({
+      artist: account(creator),
+      network,
+      issuer: issuerKey,
+      homeDomain: "bandcoin.io",
+    });
+    expect([...signersNeeded(withDomain.xdr, Networks.TESTNET)]).toEqual([creator, issuerKey]);
+  });
+
+  it("is the fee payer for a fee bump", () => {
+    const inner = buildIssuerSetup({ artist: account(creator), network, issuer: key() });
+    const bumped = wrapInFeeBump(inner.xdr, treasury, network);
+    expect([...signersNeeded(bumped, Networks.TESTNET)]).toEqual([treasury]);
+  });
 });
 
 describe("toStellarError", () => {

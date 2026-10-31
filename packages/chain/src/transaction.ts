@@ -1,4 +1,10 @@
-import { type Account, Memo, type Transaction, TransactionBuilder } from "@stellar/stellar-sdk";
+import {
+  type Account,
+  FeeBumpTransaction,
+  Memo,
+  type Transaction,
+  TransactionBuilder,
+} from "@stellar/stellar-sdk";
 
 import { toAmount } from "./money";
 import { QUOTE_TTL_SECONDS } from "./quote";
@@ -78,4 +84,16 @@ export function wrapInFeeBump(
     inner,
     network.passphrase,
   ).toXDR();
+}
+
+/**
+ * The accounts whose signature this transaction needs: its source (the fee
+ * payer of a fee bump) and the source of every operation. Stellar refuses a
+ * signature from anyone else (tx_bad_auth_extra), so the server only signs
+ * for keys in here.
+ */
+export function signersNeeded(xdr: string, passphrase: string): Set<string> {
+  const tx = TransactionBuilder.fromXDR(xdr, passphrase);
+  if (tx instanceof FeeBumpTransaction) return new Set([tx.feeSource]);
+  return new Set([tx.source, ...tx.operations.flatMap((op) => (op.source ? [op.source] : []))]);
 }

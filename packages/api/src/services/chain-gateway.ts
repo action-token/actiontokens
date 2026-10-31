@@ -1,5 +1,7 @@
 import { Asset, Keypair, type Horizon } from "@stellar/stellar-sdk";
 
+import { signersNeeded } from "@bandcoin/chain";
+
 import {
   addSignatures,
   chainConfig,
@@ -118,7 +120,12 @@ export function createChainGateway(db: Db): ChainGateway {
       });
     },
     signWithServerKeys: async (xdr, publicKeys) => {
-      const secrets = await serverSecrets(db, publicKeys);
+      // Only keys this transaction needs: Stellar refuses an extra signature (tx_bad_auth_extra).
+      const needed = signersNeeded(xdr, chainConfig().network.passphrase);
+      const secrets = await serverSecrets(
+        db,
+        publicKeys.filter((key) => needed.has(key)),
+      );
       return secrets.length === 0 ? xdr : addSignatures(xdr, secrets);
     },
     async signForCustodialUser(xdr, email) {

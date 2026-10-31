@@ -28,22 +28,22 @@ beforeAll(() => {
   });
 });
 
-function unsigned() {
-  return new TransactionBuilder(new Account(Keypair.random().publicKey(), "1"), {
+/** A payment with one operation run by each of `sources` (so each must sign). */
+function unsigned(sources: string[] = [mother.publicKey()]) {
+  const builder = new TransactionBuilder(new Account(Keypair.random().publicKey(), "1"), {
     fee: "100",
     networkPassphrase: Networks.TESTNET,
-  })
-    .addOperation(
+  });
+  for (const source of sources)
+    builder.addOperation(
       Operation.payment({
-        source: mother.publicKey(),
-        destination: stranger.publicKey(),
+        source,
+        destination: Keypair.random().publicKey(),
         asset: Asset.native(),
         amount: "1",
       }),
-    )
-    .setTimeout(60)
-    .build()
-    .toXDR();
+    );
+  return builder.setTimeout(60).build().toXDR();
 }
 
 describe("signWithServerKeys", () => {
@@ -63,7 +63,10 @@ describe("signWithServerKeys", () => {
     const findMany = vi.fn().mockResolvedValue([]);
     const gateway = createChainGateway({ chainAccount: { findMany } } as unknown as Db);
     const signed = TransactionBuilder.fromXDR(
-      await gateway.signWithServerKeys(unsigned(), [treasury.publicKey(), mother.publicKey()]),
+      await gateway.signWithServerKeys(unsigned([treasury.publicKey(), mother.publicKey()]), [
+        treasury.publicKey(),
+        mother.publicKey(),
+      ]),
       Networks.TESTNET,
     ) as Transaction;
     expect(signed.signatures).toHaveLength(2);
@@ -81,11 +84,27 @@ describe("signWithServerKeys", () => {
         chainAccount: { findMany: vi.fn().mockResolvedValue([]) },
       } as unknown as Db);
       await expect(
-        gateway.signWithServerKeys(unsigned(), [treasury.publicKey()]),
+        gateway.signWithServerKeys(unsigned([treasury.publicKey()]), [treasury.publicKey()]),
       ).rejects.toMatchObject({ details: { missing: [treasury.publicKey()] } });
     } finally {
       process.env.TREASURY_SECRET = saved;
     }
+  });
+
+  it("skips a key the transaction doesn't use, since Stellar refuses extra signatures", async () => {
+    const findMany = vi.fn().mockResolvedValue([]);
+    const gateway = createChainGateway({ chainAccount: { findMany } } as unknown as Db);
+    const signed = TransactionBuilder.fromXDR(
+      await gateway.signWithServerKeys(unsigned([mother.publicKey()]), [
+        mother.publicKey(),
+        treasury.publicKey(),
+        stranger.publicKey(),
+      ]),
+      Networks.TESTNET,
+    ) as Transaction;
+    expect(signed.signatures).toHaveLength(1);
+    expect(mother.verify(signed.hash(), signed.signatures[0]!.signature)).toBe(true);
+    expect(findMany).not.toHaveBeenCalled();
   });
 
   it("still refuses a key it doesn't hold", async () => {
@@ -93,7 +112,10 @@ describe("signWithServerKeys", () => {
       chainAccount: { findMany: vi.fn().mockResolvedValue([]) },
     } as unknown as Db);
     await expect(
-      gateway.signWithServerKeys(unsigned(), [mother.publicKey(), stranger.publicKey()]),
+      gateway.signWithServerKeys(unsigned([mother.publicKey(), stranger.publicKey()]), [
+        mother.publicKey(),
+        stranger.publicKey(),
+      ]),
     ).rejects.toMatchObject({
       details: { missing: [stranger.publicKey()] },
     });

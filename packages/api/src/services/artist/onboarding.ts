@@ -333,8 +333,8 @@ export async function submitIssuerOpening(
 
   let xdr = await userSignature(ctx, user, order.txHash, input.xdr);
   // The hash matched, so the one createAccount in it is the issuer `start` made.
-  const created = (TransactionBuilder.fromXDR(xdr, chain.config.network.passphrase) as Transaction)
-    .operations[0];
+  const tx = TransactionBuilder.fromXDR(xdr, chain.config.network.passphrase) as Transaction;
+  const created = tx.operations[0];
   const issuerKey = created?.type === "createAccount" ? created.destination : null;
   const issuer = issuerKey
     ? await db.chainAccount.findUnique({ where: { publicKey: issuerKey } })
@@ -342,7 +342,11 @@ export async function submitIssuerOpening(
   if (!issuer || issuer.ownerId !== user.id || issuer.kind !== "ISSUER" || issuer.activatedAt) {
     throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Order not found" });
   }
-  xdr = await chain.signWithServerKeys(xdr, [issuer.publicKey]);
+  // The issuer signs only a step it runs itself (setting its home domain). Creating it
+  // needs only the artist's signature, and Stellar refuses one that isn't needed
+  // (tx_bad_auth_extra), with an email or a wallet account alike.
+  if (tx.operations.some((op) => op.source === issuer.publicKey))
+    xdr = await chain.signWithServerKeys(xdr, [issuer.publicKey]);
 
   await transitionOrder(db, order.id, "SUBMITTED");
   try {
