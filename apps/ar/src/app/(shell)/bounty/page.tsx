@@ -6,9 +6,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { cn } from "@bandcoin/ui/lib/cn";
-import { CurrencyIcon } from "@bandcoin/ui/patterns/currency-icon";
 
 import { BountyCard, BountyCardSkeleton } from "~/components/bounty/BountyCard";
+import { PrizeIcon } from "~/components/bounty/PrizeIcon";
 import { AppShell, ScreenHeader } from "~/components/shell/AppShell";
 import { ArButton } from "~/components/ui/ArButton";
 import { Chip } from "~/components/ui/Badges";
@@ -124,7 +124,7 @@ export default function BountyScreen() {
                         {b.title}
                       </p>
                       <p className="font-hud text-ar-accent-hot text-glow-soft mt-1 flex items-center gap-1 text-[15px] leading-none font-bold tabular-nums">
-                        <CurrencyIcon currency={b.prize.currency} className="size-3.5" />
+                        <PrizeIcon prize={b.prize} className="size-3.5" />
                         {formatAmount(b.prize.amount)}
                       </p>
                     </div>

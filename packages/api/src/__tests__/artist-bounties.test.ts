@@ -1,8 +1,9 @@
-import { Account, Keypair, Networks, TransactionBuilder } from "@stellar/stellar-sdk";
+import { Account, Asset, Keypair, Networks, TransactionBuilder } from "@stellar/stellar-sdk";
 import { describe, expect, it, vi } from "vitest";
 
 import {
   assetFor,
+  buildAssetContractSetup,
   buildBountyFund,
   buildBountySelectWinner,
   tokenAddressOf,
@@ -20,8 +21,10 @@ import {
 import {
   fundingSources,
   prepareFunding,
+  prepareTokenSetup,
   prepareWinner,
   submitFunding,
+  submitTokenSetup,
   submitWinner,
 } from "../services/artist/bounty-escrow";
 import type { ChainGateway } from "../services/chain-gateway";
@@ -37,6 +40,7 @@ const assets = {
   bandcoin: { code: "BANDCOIN", issuer: Keypair.random().publicKey() },
   usdc: { code: "USDC", issuer: Keypair.random().publicKey() },
 };
+const fan = { code: "LUNA", issuer: Keypair.random().publicKey() };
 const wallet = Keypair.random().publicKey();
 const storage = Keypair.random().publicKey();
 const fanWallet = Keypair.random().publicKey();
@@ -81,11 +85,24 @@ const account = (address: string, bandcoin = "500") => ({
       balance: bandcoin,
       selling_liabilities: "0",
     },
+    {
+      asset_type: "credit_alphanum4",
+      asset_code: fan.code,
+      asset_issuer: fan.issuer,
+      balance: "1000",
+      selling_liabilities: "100",
+    },
   ],
 });
 
 function setup(
-  opts: { bounty?: Row | null; winners?: Row[]; joined?: Row | null; bandcoin?: string } = {},
+  opts: {
+    bounty?: Row | null;
+    winners?: Row[];
+    joined?: Row | null;
+    bandcoin?: string;
+    tokenLive?: boolean;
+  } = {},
 ) {
   const written: Row[] = [];
   const bounty =
@@ -153,6 +170,8 @@ function setup(
     signWithServerKeys: vi.fn((xdr: string) => Promise.resolve(`${xdr}`)),
     signForCustodialUser: vi.fn((xdr: string) => Promise.resolve(xdr)),
     submit: vi.fn().mockResolvedValue({ hash: "tx1" }),
+    assetExists: vi.fn().mockResolvedValue(true),
+    contractIsLive: vi.fn().mockResolvedValue(opts.tokenLive ?? false),
   };
   const activity = { set: vi.fn(), facts: () => ({}) };
   return {
@@ -202,7 +221,7 @@ describe("creating a bounty", () => {
         eventId: "e1",
         music: { mode: "HYBRID", ruleType: "ANY_N", requiredTracks: 1, tracks: [track] },
       }),
-    ).resolves.toEqual({ bountyId: "b1" });
+    ).resolves.toEqual({ bountyId: "b1", tokenSetup: false });
     expect(written[0]).toMatchObject({
       artistId: "a1",
       title: "Cover my song",
@@ -349,6 +368,7 @@ describe("managing a bounty", () => {
       {
         id: "b1",
         prizeAmount: "250",
+        prize: expect.objectContaining({ amount: "250", code: "BANDCOIN" }) as unknown,
         funded: false,
         hasMusic: false,
         participants: 2,
@@ -366,7 +386,7 @@ describe("funding the prize", () => {
     expect(prepared).toMatchObject({
       signer: "wallet",
       prize: "250.0000000",
-      currency: "BANDCOIN",
+      code: "BANDCOIN",
     });
     expect(decode(prepared.xdr).name).toBe("create_bounty");
     expect(chain.prepareContractCall).toHaveBeenCalledWith(expect.any(String), undefined);
@@ -465,9 +485,103 @@ describe("funding the prize", () => {
     const sources = await fundingSources(ctx, artist, user);
     expect(sources.wallet?.BANDCOIN).toBe("500.0000000");
     expect(sources.storage?.BANDCOIN).toBe("500.0000000");
+    expect(sources.wallet?.others).toEqual([
+      { code: "LUNA", issuer: fan.issuer, amount: "900.0000000" },
+    ]);
     expect(
       (await fundingSources(ctx, { ...artist, storageAccountId: null }, user)).storage,
     ).toBeNull();
+  });
+});
+
+describe("a prize in the artist's own token", () => {
+  const fanBounty = {
+    id: "b1",
+    fundTxHash: null,
+    status: "RUNNING",
+    prizeAmount: "250",
+    prizeCurrency: null,
+    prizeAssetCode: fan.code,
+    prizeAssetIssuer: fan.issuer,
+    maxWinners: 3,
+    fundedFromStorage: false,
+    escrowContractId: escrow,
+  };
+  const setupXdr = (asset = new Asset(fan.code, fan.issuer), source = wallet) =>
+    buildAssetContractSetup({ source: new Account(source, "1"), network, asset }).xdr;
+
+  it("stores the token, or the currency when the token is really BANDCOIN", async () => {
+    const { ctx, written, chain } = setup();
+    const { prizeCurrency: _, ...rest } = base;
+    await expect(createBounty(ctx, artist, { ...rest, prizeAsset: fan })).resolves.toEqual({
+      bountyId: "b1",
+      tokenSetup: true,
+    });
+    expect(written[0]).toMatchObject({
+      prizeCurrency: null,
+      prizeAssetCode: "LUNA",
+      prizeAssetIssuer: fan.issuer,
+    });
+    expect(chain.assetExists).toHaveBeenCalledWith("LUNA", fan.issuer);
+
+    await createBounty(ctx, artist, { ...rest, prizeAsset: assets.bandcoin });
+    expect(written[1]).toMatchObject({ prizeCurrency: "BANDCOIN", prizeAssetCode: null });
+    await expect(
+      createBounty(ctx, artist, { ...base, prizeAsset: fan }),
+    ).rejects.toThrow(/Choose what the prize is paid in/);
+  });
+
+  it("asks for the token's one-time setup before funding", async () => {
+    const { ctx } = setup({ bounty: fanBounty });
+    await expect(prepareFunding(ctx, artist, user, "b1")).rejects.toThrow(
+      /Set up LUNA for escrow first/,
+    );
+  });
+
+  it("builds and submits only the setup for this token, from the funding account", async () => {
+    const { ctx, chain } = setup({ bounty: fanBounty });
+    const prepared = await prepareTokenSetup(ctx, artist, user, "b1");
+    expect(prepared).toMatchObject({ signer: "wallet", code: "LUNA" });
+    const op = TransactionBuilder.fromXDR(prepared.xdr, network.passphrase).operations[0] as {
+      func: { type: string };
+    };
+    expect(op.func.type).toBe("hostFunctionTypeCreateContract");
+
+    const other = new Asset("OTHER", Keypair.random().publicKey());
+    await expect(submitTokenSetup(ctx, artist, user, "b1", setupXdr(other))).rejects.toThrow(
+      /isn't the one we prepared/,
+    );
+    await expect(
+      submitTokenSetup(ctx, artist, user, "b1", setupXdr(undefined, storage)),
+    ).rejects.toThrow(/isn't the one we prepared/);
+    await expect(submitTokenSetup(ctx, artist, user, "b1", fundXdr())).rejects.toThrow(
+      /isn't the one we prepared/,
+    );
+    expect(chain.submit).not.toHaveBeenCalled();
+    await expect(submitTokenSetup(ctx, artist, user, "b1", setupXdr())).resolves.toEqual({
+      txHash: "tx1",
+    });
+  });
+
+  it("once set up, escrows the token through its asset contract", async () => {
+    const { ctx } = setup({ bounty: fanBounty, tokenLive: true });
+    await expect(prepareTokenSetup(ctx, artist, user, "b1")).rejects.toThrow(/already set up/);
+    const prepared = await prepareFunding(ctx, artist, user, "b1");
+    expect(prepared.code).toBe("LUNA");
+    const token = tokenAddressOf(new Asset(fan.code, fan.issuer), network.passphrase);
+    await expect(
+      submitFunding(ctx, artist, user, "b1", fundXdr({ token })),
+    ).resolves.toEqual({ txHash: "tx1" });
+    await expect(submitFunding(ctx, artist, user, "b1", fundXdr())).rejects.toThrow(
+      /isn't the one we prepared/,
+    );
+  });
+
+  it("counts only what isn't locked in offers", async () => {
+    const { ctx } = setup({ bounty: { ...fanBounty, prizeAmount: "950" }, tokenLive: true });
+    await expect(prepareFunding(ctx, artist, user, "b1")).rejects.toThrow(
+      /enough LUNA to fund it. You have 900.0000000/,
+    );
   });
 });
 

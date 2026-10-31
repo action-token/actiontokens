@@ -5,7 +5,9 @@ export {
   assetExists,
   assetTomlUrl,
   findTransaction,
+  availableOf,
   fundsOf,
+  otherAssetsOf,
   horizon,
   loadAccount,
   loadAssetHolders,
@@ -15,4 +17,9 @@ export {
 } from "./horizon";
 export { clearRateCache, liveBandcoinUsd, liveRates, type Rates } from "./rates";
 export { decryptSecret, encryptSecret } from "./secrets";
-export { prepareContractCall, readEditionId, readNftFeeSettings } from "./soroban";
+export {
+  contractIsLive,
+  prepareContractCall,
+  readEditionId,
+  readNftFeeSettings,
+} from "./soroban";

@@ -139,6 +139,7 @@ describe("ar bounty", () => {
         prize: {
           amount: "30000",
           currency: "XLM",
+          code: "XLM",
           explorerUrl: "https://stellar.expert/explorer/testnet/asset/XLM",
         },
       },

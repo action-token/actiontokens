@@ -2,6 +2,13 @@ import { AppError, ErrorCodes } from "@bandcoin/errors";
 import { validatePrice } from "@bandcoin/utils/asset-code";
 
 import type { Context } from "../../context";
+import {
+  needsTokenSetup,
+  PRIZE_CURRENCIES,
+  type PrizeCurrency,
+  prizeFieldsFor,
+  prizeView,
+} from "../bounty/prize";
 import { webLink } from "./events";
 import { invalid } from "./items";
 
@@ -14,8 +21,7 @@ import { invalid } from "./items";
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 type ArtistRef = { id: string; storageAccountId: string | null };
 
-export const PRIZE_CURRENCIES = ["BANDCOIN", "XLM", "USDC"] as const;
-export type PrizeCurrency = (typeof PRIZE_CURRENCIES)[number];
+export { PRIZE_CURRENCIES, type PrizeCurrency } from "../bounty/prize";
 
 const MAX_INSTRUCTIONS = 10;
 const MAX_TRACKS = 5;
@@ -57,7 +63,9 @@ export type BountyText = {
 export type BountyInput = BountyText & {
   /** A decimal amount of whole tokens, like "250" or "12.5" */
   prizeAmount: string;
-  prizeCurrency: PrizeCurrency;
+  /** One of the platform's currencies, or `prizeAsset` for any other asset the artist holds */
+  prizeCurrency?: PrizeCurrency;
+  prizeAsset?: { code: string; issuer: string };
   maxWinners: number;
   /** Fund from the artist's storage account instead of their own wallet */
   fundedFromStorage: boolean;
@@ -161,6 +169,8 @@ export async function ownBounty(
       status: true,
       prizeAmount: true,
       prizeCurrency: true,
+      prizeAssetCode: true,
+      prizeAssetIssuer: true,
       maxWinners: true,
       fundedFromStorage: true,
       escrowContractId: true,
@@ -183,8 +193,14 @@ export async function createBounty(ctx: ServiceCtx, artist: ArtistRef, input: Bo
   checkText(input);
   const problem = validatePrice(input.prizeAmount);
   if (problem) throw invalid(`The prize: ${problem}`);
-  if (!PRIZE_CURRENCIES.includes(input.prizeCurrency))
+  const prize = prizeFieldsFor(
+    { currency: input.prizeCurrency, asset: input.prizeAsset },
+    ctx.chain.config.assets,
+  );
+  if (!prize || (prize.prizeCurrency && !PRIZE_CURRENCIES.includes(prize.prizeCurrency as PrizeCurrency)))
     throw invalid("Choose what the prize is paid in.");
+  if (prize.prizeAssetCode && !(await ctx.chain.assetExists(prize.prizeAssetCode, prize.prizeAssetIssuer!)))
+    throw invalid("That asset isn't on Stellar. Pick one you hold.");
   if (!Number.isInteger(input.maxWinners) || input.maxWinners < 1 || input.maxWinners > MAX_WINNERS)
     throw invalid(`Choose 1 to ${MAX_WINNERS} winners.`);
   checkInstructions(input.instructions, input.music?.mode === "MUSIC_ONLY");
@@ -203,7 +219,7 @@ export async function createBounty(ctx: ServiceCtx, artist: ArtistRef, input: Bo
       description: input.description.trim(),
       instructions:
         input.music?.mode === "MUSIC_ONLY" ? [] : input.instructions.map((line) => line.trim()),
-      prizeCurrency: input.prizeCurrency,
+      ...prize,
       prizeAmount: input.prizeAmount,
       rewardNote: input.rewardNote?.trim() || null,
       maxWinners: input.maxWinners,
@@ -225,7 +241,7 @@ export async function createBounty(ctx: ServiceCtx, artist: ArtistRef, input: Bo
     select: { id: true },
   });
   ctx.activity.set({ targetType: "Bounty", targetId: bounty.id });
-  return { bountyId: bounty.id };
+  return { bountyId: bounty.id, tokenSetup: await needsTokenSetup(ctx.chain, prize) };
 }
 
 /**
@@ -309,7 +325,10 @@ export async function discardUnfunded(ctx: ServiceCtx, artist: ArtistRef, bounty
   return { bountyId: bounty.id };
 }
 
-export async function listBounties(ctx: Pick<ServiceCtx, "db">, artist: Pick<ArtistRef, "id">) {
+export async function listBounties(
+  ctx: Pick<ServiceCtx, "db" | "chain">,
+  artist: Pick<ArtistRef, "id">,
+) {
   const rows = await ctx.db.bounty.findMany({
     where: { artistId: artist.id },
     orderBy: { createdAt: "desc" },
@@ -321,6 +340,7 @@ export async function listBounties(ctx: Pick<ServiceCtx, "db">, artist: Pick<Art
   return rows.map(({ _count, fundTxHash, prizeAmount, musicRule, ...row }) => ({
     ...row,
     prizeAmount: prizeAmount.toString(),
+    prize: prizeView({ ...row, prizeAmount }, ctx.chain.config),
     funded: fundTxHash !== null,
     hasMusic: musicRule !== null,
     participants: _count.participants,
@@ -335,7 +355,7 @@ const person = {
 
 /** One bounty with everything the artist manages it by. */
 export async function getBounty(
-  ctx: Pick<ServiceCtx, "db">,
+  ctx: Pick<ServiceCtx, "db" | "chain">,
   artist: Pick<ArtistRef, "id">,
   bountyId: string,
 ) {
@@ -355,6 +375,9 @@ export async function getBounty(
     funded: fundTxHash !== null,
     fundTxHash,
     prizeAmount: prizeAmount.toString(),
+    prize: prizeView({ ...row, prizeAmount }, ctx.chain.config),
+    /** A prize in a token whose contract isn't deployed yet: set it up before funding */
+    tokenSetup: fundTxHash === null && (await needsTokenSetup(ctx.chain, row)),
     awarded: String(awarded),
     winners: winners.map((winner) => ({ ...winner, prizeAmount: winner.prizeAmount.toString() })),
     participants: _count.participants,

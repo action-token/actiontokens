@@ -9,7 +9,7 @@ import {
   scValToNative,
   type Transaction,
   TransactionBuilder,
-  type xdr,
+  xdr,
 } from "@stellar/stellar-sdk";
 
 import { AppError, ErrorCodes } from "@bandcoin/errors";
@@ -148,4 +148,18 @@ async function readContract<T>(
   if (!rpc.Api.isSimulationSuccess(simulation) || !simulation.result)
     throw new AppError(ErrorCodes.STELLAR_TX_BUILD_FAILED, { message: failure });
   return scValToNative(simulation.result.retval) as T;
+}
+
+/** Whether a contract exists at this address (an asset's contract is only there once set up). */
+export async function contractIsLive(contract: string): Promise<boolean> {
+  try {
+    await sorobanRpc().getContractData(
+      contract,
+      xdr.ScVal.scvLedgerKeyContractInstance(),
+      rpc.Durability.Persistent,
+    );
+    return true;
+  } catch {
+    return false;
+  }
 }

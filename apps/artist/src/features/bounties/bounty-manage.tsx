@@ -26,7 +26,6 @@ import { statusLabel, statusTone } from "./bounties-view";
 import { useBountyFunding, useWinnerPick } from "./use-bounty-payments";
 
 type Bounty = RouterOutputs["bounties"]["get"];
-type Currency = "BANDCOIN" | "XLM" | "USDC";
 type Person = Bounty["winners"][number]["user"];
 
 const nameOf = (user: Pick<Person, "displayName" | "username">) =>
@@ -55,7 +54,7 @@ export function BountyManage({ bountyId }: { bountyId: string }) {
 function Loaded({ bounty }: { bounty: Bounty }) {
   const router = useRouter();
   const utils = api.useUtils();
-  const currency = bounty.prizeCurrency as Currency;
+  const { currency, code } = bounty.prize;
   const [discarding, setDiscarding] = useState(false);
 
   const funding = useBountyFunding(() => undefined);
@@ -136,15 +135,21 @@ function Loaded({ bounty }: { bounty: Bounty }) {
           <h2 className="display text-lg">This bounty isn&apos;t funded yet</h2>
           <p className="text-fg-muted text-sm">
             Fans can&apos;t see it until its prize of{" "}
-            <Money amount={bounty.prizeAmount} currency={currency} /> is in escrow. You pay the
-            prize and the network fee.
+            <Money amount={bounty.prizeAmount} currency={currency} code={code} /> is in escrow. You
+            pay the prize and the network fee.
+            {bounty.tokenSetup &&
+              ` ${code} hasn't been held in escrow before, so it needs a one-time setup first (just a network fee).`}
           </p>
           <div className="flex flex-wrap gap-2">
             <Button
               disabled={funding.busy}
               onClick={() =>
                 void funding
-                  .fund(bounty.id, <Money amount={bounty.prizeAmount} currency={currency} />)
+                  .fund(
+                    bounty.id,
+                    <Money amount={bounty.prizeAmount} currency={currency} code={code} />,
+                    bounty.tokenSetup ? code : undefined,
+                  )
                   .then(() => utils.bounties.get.invalidate({ bountyId: bounty.id }))
               }
             >
@@ -159,10 +164,10 @@ function Loaded({ bounty }: { bounty: Bounty }) {
 
       <dl className="grid max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="Prize">
-          <Money amount={bounty.prizeAmount} currency={currency} />
+          <Money amount={bounty.prizeAmount} currency={currency} code={code} />
         </Stat>
         <Stat label="Still to award">
-          <Money amount={String(Math.max(left, 0))} currency={currency} />
+          <Money amount={String(Math.max(left, 0))} currency={currency} code={code} />
         </Stat>
         <Stat label="Joined">{bounty.participants}</Stat>
         <Stat label="Winners">
@@ -219,7 +224,7 @@ function Stat({ label, children }: { label: string; children: React.ReactNode })
 
 /** Pick someone as a winner: choose their share of the prize, then confirm. The prize moves on the escrow contract. */
 function PickWinner({ bounty, userId, name }: { bounty: Bounty; userId: string; name: string }) {
-  const currency = bounty.prizeCurrency as Currency;
+  const { currency, code } = bounty.prize;
   const left = Math.max(Number(bounty.prizeAmount) - Number(bounty.awarded), 0);
   const slots = Math.max(bounty.maxWinners - bounty.winners.length, 1);
   const [open, setOpen] = useState(false);
@@ -238,8 +243,8 @@ function PickWinner({ bounty, userId, name }: { bounty: Bounty; userId: string; 
     <div className="bg-surface-2 grid gap-2 rounded-lg p-3">
       <label className="grid gap-1 text-xs">
         <span className="text-fg-muted">
-          {name}&apos;s prize ({currency}), up to{" "}
-          <Money amount={String(left)} currency={currency} />
+          {name}&apos;s prize ({code}), up to{" "}
+          <Money amount={String(left)} currency={currency} code={code} />
         </span>
         <Input
           inputMode="decimal"
@@ -254,7 +259,11 @@ function PickWinner({ bounty, userId, name }: { bounty: Bounty; userId: string; 
           size="sm"
           disabled={pick.busy || Number(amount) <= 0}
           onClick={() =>
-            void pick.pickWinner(userId, amount, <Money amount={amount} currency={currency} />)
+            void pick.pickWinner(
+              userId,
+              amount,
+              <Money amount={amount} currency={currency} code={code} />,
+            )
           }
         >
           {pick.busy && <Loader2 className="animate-spin" />} Pick {name}
@@ -361,7 +370,7 @@ function Participants({ bounty, canPick }: { bounty: Bounty; canPick: boolean })
 }
 
 function Winners({ bounty }: { bounty: Bounty }) {
-  const currency = bounty.prizeCurrency as Currency;
+  const { currency, code } = bounty.prize;
   if (bounty.winners.length === 0)
     return <p className="text-fg-muted py-6 text-sm">No winners picked yet.</p>;
   return (
@@ -373,7 +382,7 @@ function Winners({ bounty }: { bounty: Bounty }) {
         >
           <b>{nameOf(winner.user)}</b>
           <span className="flex items-center gap-3">
-            <Money amount={winner.prizeAmount} currency={currency} />
+            <Money amount={winner.prizeAmount} currency={currency} code={code} />
             <StatusPill tone={winner.claimedAt ? "success" : "neutral"}>
               {winner.claimedAt ? "Claimed" : "Not claimed yet"}
             </StatusPill>

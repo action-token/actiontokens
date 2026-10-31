@@ -77,7 +77,7 @@ export function BountiesAdminView() {
       skeleton: "number",
       cell: (row) => (
         <span className="text-sm">
-          <Money amount={row.prize.amount} currency={row.prize.currency} />
+          <Money amount={row.prize.amount} currency={row.prize.currency} code={row.prize.code} />
           {row.maxWinners > 1 && <span className="text-fg-muted"> · {row.maxWinners} winners</span>}
         </span>
       ),

@@ -192,7 +192,7 @@ function History() {
           <StatusPill tone={statusTone(entry.status)}>{statusLabel(entry.status)}</StatusPill>
           <span className="flex w-28 shrink-0 justify-end gap-1 text-sm font-semibold">
             <span aria-hidden>{entry.direction === "received" ? "+" : "−"}</span>
-            <Money amount={entry.amount} currency={entry.currency} />
+            <Money amount={entry.amount} currency={entry.currency} code={entry.code} />
           </span>
           {entry.explorerUrl ? (
             <a

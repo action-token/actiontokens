@@ -23,10 +23,10 @@ import { useEffect, useState } from "react";
 
 import { site } from "@bandcoin/ar-core/site";
 import { cn } from "@bandcoin/ui/lib/cn";
-import { CurrencyIcon } from "@bandcoin/ui/patterns/currency-icon";
 import { TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
 
 import { ArtistAvatar } from "~/components/artist/ArtistAvatar";
+import { PrizeIcon } from "~/components/bounty/PrizeIcon";
 import { Markdown } from "~/components/bounty/Markdown";
 import { MinePanel } from "~/components/bounty/MinePanel";
 import { ReportSheet } from "~/components/bounty/ReportSheet";
@@ -189,7 +189,7 @@ export default function BountyDetailScreen() {
                   Prize pool
                 </p>
                 <p className="font-hud text-glow-soft text-ar-accent-hot mt-1 flex items-center gap-2 text-[30px] leading-none font-bold tabular-nums">
-                  <CurrencyIcon currency={bounty.prize.currency} className="size-[0.8em]" />
+                  <PrizeIcon prize={bounty.prize} className="size-[0.8em]" />
                   {formatAmount(bounty.prize.amount)}
                 </p>
               </div>
@@ -485,7 +485,7 @@ function People({ bounty }: { bounty: BountyDetail }) {
                 <span className="min-w-0 flex-1">
                   <PersonName person={winner.user} />
                   <span className="font-hud text-ar-dim flex items-center gap-1 text-[10.5px] font-semibold tabular-nums">
-                    <CurrencyIcon currency={bounty.prize.currency} className="size-3" />
+                    <PrizeIcon prize={bounty.prize} className="size-3" />
                     {formatAmount(winner.prize)}
                   </span>
                 </span>
@@ -554,7 +554,7 @@ function People({ bounty }: { bounty: BountyDetail }) {
                 )}
                 {row.prize && (
                   <span className="font-hud text-ar-text flex shrink-0 items-center gap-1 text-[11px] font-bold tabular-nums">
-                    <CurrencyIcon currency={bounty.prize.currency} className="size-3" />
+                    <PrizeIcon prize={bounty.prize} className="size-3" />
                     {formatAmount(row.prize)}
                   </span>
                 )}

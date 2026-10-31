@@ -14,12 +14,19 @@ const signerFor = (signer: "server" | "custodial" | "wallet") =>
  * Funding a bounty's prize into escrow (see useWalletPayment for how the payment
  * moves). Cancelling or failing leaves the draft saved; it shows in the list as
  * "Not funded" with a way to finish or discard it.
+ *
+ * A prize in a token the escrow hasn't held before (say the artist's fan token)
+ * first needs that token set up on Stellar, once: its own small transaction,
+ * signed the same way, then funding follows in the same toast.
  */
 export function useBountyFunding(onFunded: (bountyId: string) => void) {
   const utils = api.useUtils();
   const prepare = api.bounties.prepareFunding.useMutation();
   const submit = api.bounties.submitFunding.useMutation();
+  const prepareSetup = api.bounties.prepareTokenSetup.useMutation();
+  const submitSetup = api.bounties.submitTokenSetup.useMutation();
   const target = useRef("");
+  const summary = useRef<React.ReactNode>(null);
 
   const flow = useWalletPayment({
     start: async () => {
@@ -40,11 +47,38 @@ export function useBountyFunding(onFunded: (bountyId: string) => void) {
     },
   });
 
+  const setup = useWalletPayment({
+    start: async () => {
+      const prepared = await prepareSetup.mutateAsync({ bountyId: target.current });
+      return { orderId: target.current, xdr: prepared.xdr, signer: signerFor(prepared.signer) };
+    },
+    submit: ({ orderId, xdr }) => submitSetup.mutateAsync({ bountyId: orderId, xdr }),
+    cancel: () => Promise.resolve(),
+    preparing: "Preparing the token setup…",
+    sending: "Setting up the token for escrow. This takes a few seconds.",
+    success: { title: "Token set up", body: "Now moving the prize into escrow." },
+    onDone: async () => {
+      await utils.bounties.get.invalidate({ bountyId: target.current });
+      setup.close();
+      await flow.run(summary.current);
+    },
+  });
+
+  const active = flow.step || !setup.step ? flow : setup;
   return {
-    ...flow,
-    fund: (bountyId: string, summary: React.ReactNode) => {
+    ...active,
+    busy: flow.busy || setup.busy,
+    /** `setupCode`: the prize token still needs its one-time setup (the server says so) */
+    fund: (bountyId: string, prize: React.ReactNode, setupCode?: string) => {
       target.current = bountyId;
-      return flow.run(summary);
+      summary.current = prize;
+      if (!setupCode) return flow.run(prize);
+      return setup.run(
+        <>
+          One-time setup so the escrow can hold {setupCode}. You pay only the network fee, in XLM.
+          Then you fund {prize}.
+        </>,
+      );
     },
   };
 }

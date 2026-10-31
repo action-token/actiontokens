@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { Db } from "@bandcoin/db";
+import { Keypair } from "@stellar/stellar-sdk";
+
+import type { Context } from "../context";
 
 import { listBounties, setBountyHidden } from "../services/admin/bounties";
 import { listItems, setItemHidden } from "../services/admin/items";
@@ -154,7 +157,16 @@ describe("admin bounties", () => {
           ]),
       },
     });
-    const page = await listBounties(ctx, {});
+    const chain = {
+      config: {
+        name: "testnet",
+        assets: {
+          bandcoin: { code: "BANDCOIN", issuer: Keypair.random().publicKey() },
+          usdc: { code: "USDC", issuer: Keypair.random().publicKey() },
+        },
+      },
+    } as unknown as Context["chain"];
+    const page = await listBounties({ ...ctx, chain }, {});
     expect(page.bounties.map((b) => [b.id, b.escrow])).toEqual([
       ["b1", "held"],
       ["b2", "draft"],

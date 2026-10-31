@@ -2,6 +2,7 @@ import type { Prisma } from "@bandcoin/db";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import type { Context } from "../../context";
+import { prizeView } from "../bounty/prize";
 import { ADMIN_PAGE } from "./pins";
 
 /**
@@ -25,7 +26,7 @@ const STATUS_WHERE: Record<NonNullable<BountyFilter["status"]>, Prisma.BountyWhe
   hidden: { hiddenAt: { not: null } },
 };
 
-export async function listBounties(ctx: Pick<Context, "db">, input: BountyFilter) {
+export async function listBounties(ctx: Pick<Context, "db" | "chain">, input: BountyFilter) {
   const q = input.search?.trim();
   const rows = await ctx.db.bounty.findMany({
     where: {
@@ -48,6 +49,8 @@ export async function listBounties(ctx: Pick<Context, "db">, input: BountyFilter
       title: true,
       prizeAmount: true,
       prizeCurrency: true,
+      prizeAssetCode: true,
+      prizeAssetIssuer: true,
       maxWinners: true,
       status: true,
       fundTxHash: true,
@@ -65,7 +68,7 @@ export async function listBounties(ctx: Pick<Context, "db">, input: BountyFilter
       id: row.id,
       title: row.title,
       artist: row.artist,
-      prize: { amount: row.prizeAmount.toString(), currency: row.prizeCurrency },
+      prize: prizeView(row, ctx.chain.config),
       maxWinners: row.maxWinners,
       /** Where the prize is: not funded yet, held by the escrow, or all paid out */
       escrow: !row.fundTxHash

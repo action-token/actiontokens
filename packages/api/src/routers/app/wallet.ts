@@ -66,7 +66,7 @@ export const walletRouter = createRouter({
           prizeAmount: true,
           txHash: true,
           claimedAt: true,
-          bounty: { select: { title: true, prizeCurrency: true } },
+          bounty: { select: { title: true, prizeCurrency: true, prizeAssetCode: true } },
         },
       }),
     ]);
@@ -78,6 +78,7 @@ export const walletRouter = createRouter({
         direction: "paid" as const,
         amount: amountOf(order.total),
         currency: order.currency,
+        code: order.currency as string,
         status: order.status,
         at: order.createdAt,
         explorerUrl: explorer(order.txHash),
@@ -87,7 +88,9 @@ export const walletRouter = createRouter({
         title: `Bounty prize: ${prize.bounty.title}`,
         direction: "received" as const,
         amount: amountOf(prize.prizeAmount),
+        /** Null for a prize in another token, such as an artist's fan token: show `code` */
         currency: prize.bounty.prizeCurrency,
+        code: prize.bounty.prizeAssetCode ?? prize.bounty.prizeCurrency ?? "",
         status: "DELIVERED" as const,
         at: prize.claimedAt ?? new Date(0),
         explorerUrl: explorer(prize.txHash),

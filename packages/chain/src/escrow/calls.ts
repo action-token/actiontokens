@@ -1,7 +1,7 @@
-import type { Account } from "@stellar/stellar-sdk";
+import { type Account, type Asset, Operation } from "@stellar/stellar-sdk";
 
 import { arg, buildContractCall } from "../soroban";
-import type { NetworkParams } from "../transaction";
+import { finish, type NetworkParams, startTransaction } from "../transaction";
 
 /**
  * Calls on the `bounty_escrow` contract. The escrow holds one asset per
@@ -69,4 +69,21 @@ export function buildBountyCancel(input: Common & { bountyId: string; caller: st
     method: "cancel_bounty",
     args: [arg.address(input.caller), arg.string(input.bountyId)],
   });
+}
+
+/**
+ * Sets up a classic asset's Stellar Asset Contract, so the escrow can hold it
+ * (the artist's fan token, say). Needed once per asset, ever; anyone may do
+ * it. The artist is the source and pays the fee. Prepare it with
+ * `prepareContractCall` like any contract call.
+ */
+export function buildAssetContractSetup(input: {
+  source: Account;
+  network: NetworkParams;
+  asset: Asset;
+}) {
+  const builder = startTransaction(input.source, input.network).addOperation(
+    Operation.createStellarAssetContract({ asset: input.asset }),
+  );
+  return finish(builder);
 }

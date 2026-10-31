@@ -13,12 +13,15 @@ import { cardChargeUsd, type DisplayCurrency, formatAmount } from "~/lib/format"
 export function Money({
   amount,
   currency,
+  code,
   short,
   className,
   onBrand,
 }: {
   amount: string | number;
-  currency: DisplayCurrency;
+  /** Null for any other token (say an artist's fan token): shown as the amount and its `code` */
+  currency: DisplayCurrency | null;
+  code?: string;
   /** 2 decimals, for headlines */
   short?: boolean;
   className?: string;
@@ -27,6 +30,13 @@ export function Money({
 }) {
   // The display face replaces the mono figures (headline prices); both keep equal-width digits.
   const face = className?.includes("display") ? "tabular-nums" : "num";
+  if (currency === null)
+    return (
+      <span className={cn(face, "whitespace-nowrap", className)}>
+        {formatAmount(amount, "XLM", { short })}{" "}
+        <span className="text-[0.85em] font-semibold">{code}</span>
+      </span>
+    );
   if (currency === "USD")
     return <span className={cn(face, className)}>{formatAmount(amount, "USD")}</span>;
   return (

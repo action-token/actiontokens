@@ -371,7 +371,13 @@ function BountyAction({
     onError: (error) => toast.error(error.message),
   });
   const winner = bounty.me?.winner;
-  const prize = <Money amount={winner?.prize ?? "0"} currency={bounty.prize.currency} />;
+  const prize = (
+    <Money
+      amount={winner?.prize ?? "0"}
+      currency={bounty.prize.currency}
+      code={bounty.prize.code}
+    />
+  );
 
   let action: ReactNode = null;
   if (bounty.isCreator) {
@@ -488,6 +494,7 @@ function RewardsCard({ bounty }: { bounty: Bounty }) {
           <Money
             amount={bounty.prize.amount}
             currency={bounty.prize.currency}
+            code={bounty.prize.code}
             className="display text-2xl"
           />
           <a
@@ -504,7 +511,12 @@ function RewardsCard({ bounty }: { bounty: Bounty }) {
       {bounty.maxWinners > 1 && (
         <p className="flex justify-between border-t pt-2 text-xs">
           <span className="text-fg-muted">Per winner</span>
-          <Money amount={perWinner} currency={bounty.prize.currency} className="font-semibold" />
+          <Money
+            amount={perWinner}
+            currency={bounty.prize.currency}
+            code={bounty.prize.code}
+            className="font-semibold"
+          />
         </p>
       )}
     </section>
@@ -553,6 +565,7 @@ function WinnersCard({ bounty }: { bounty: Bounty }) {
             <Money
               amount={winner.prize}
               currency={bounty.prize.currency}
+              code={bounty.prize.code}
               className="text-fg-muted text-[11px]"
             />
           </span>
@@ -621,6 +634,7 @@ function ParticipantsTable({ bounty }: { bounty: Bounty }) {
                   <Money
                     amount={row.prize}
                     currency={bounty.prize.currency}
+                    code={bounty.prize.code}
                     className="font-bold"
                   />
                 ) : (

@@ -40,13 +40,13 @@ export async function assetTomlUrl(code: string, issuer: string): Promise<string
   return href?.startsWith("https://") ? href : null;
 }
 
-const line = (account: Horizon.AccountResponse, asset: Asset) =>
+const lineOf = (account: Horizon.AccountResponse, code: string, issuer: string) =>
   account.balances.find(
     (balance) =>
-      "asset_code" in balance &&
-      balance.asset_code === asset.getCode() &&
-      balance.asset_issuer === asset.getIssuer(),
+      "asset_code" in balance && balance.asset_code === code && balance.asset_issuer === issuer,
   );
+const line = (account: Horizon.AccountResponse, asset: Asset) =>
+  lineOf(account, asset.getCode(), asset.getIssuer() ?? "");
 
 export const trusts = (account: Horizon.AccountResponse, asset: Asset) =>
   asset.isNative() || Boolean(line(account, asset));
@@ -87,30 +87,54 @@ export function spendableXlm(account: Horizon.AccountResponse): string {
   return toAmount(spendable > 0n ? spendable : 0n);
 }
 
+type Line = Horizon.HorizonApi.BalanceLine;
+
+const available = (found: Line) => {
+  const left =
+    toStroops(found.balance) -
+    toStroops("selling_liabilities" in found ? found.selling_liabilities : "0");
+  return toAmount(left > 0n ? left : 0n);
+};
+
+/** How much of an asset the account can spend ("0" without a trustline). */
+export function availableOf(account: Horizon.AccountResponse | null, asset: Asset): string {
+  if (!account) return "0";
+  if (asset.isNative()) return spendableXlm(account);
+  const found = line(account, asset);
+  return found ? available(found) : "0";
+}
+
 /** What a buyer can pay with, per currency (0 for an asset without a trustline). */
 export function fundsOf(
   account: Horizon.AccountResponse | null,
   assets: PaymentAssets,
 ): Record<OnChainCurrency, string> {
-  if (!account) return { BANDCOIN: "0", XLM: "0", USDC: "0" };
-  const balanceOf = (ref: { code: string; issuer: string }) => {
-    const found = account.balances.find(
-      (balance) =>
-        "asset_code" in balance &&
-        balance.asset_code === ref.code &&
-        balance.asset_issuer === ref.issuer,
-    );
-    if (!found) return "0";
-    const available =
-      toStroops(found.balance) -
-      toStroops("selling_liabilities" in found ? found.selling_liabilities : "0");
-    return toAmount(available > 0n ? available : 0n);
+  const of = (ref: { code: string; issuer: string }) => {
+    const found = account && lineOf(account, ref.code, ref.issuer);
+    return found ? available(found) : "0";
   };
   return {
-    BANDCOIN: balanceOf(assets.bandcoin),
-    XLM: spendableXlm(account),
-    USDC: balanceOf(assets.usdc),
+    BANDCOIN: of(assets.bandcoin),
+    XLM: account ? spendableXlm(account) : "0",
+    USDC: of(assets.usdc),
   };
+}
+
+/** Every other classic asset the account holds (not XLM, BANDCOIN or USDC), with what's spendable. */
+export function otherAssetsOf(
+  account: Horizon.AccountResponse | null,
+  assets: PaymentAssets,
+): { code: string; issuer: string; amount: string }[] {
+  if (!account) return [];
+  const known = [assets.bandcoin, assets.usdc];
+  return account.balances.flatMap((balance) => {
+    if (balance.asset_type !== "credit_alphanum4" && balance.asset_type !== "credit_alphanum12")
+      return [];
+    const { asset_code: code, asset_issuer: issuer } = balance;
+    if (known.some((ref) => ref.code === code && ref.issuer === issuer)) return [];
+    const amount = available(balance);
+    return toStroops(amount) > 0n ? [{ code, issuer, amount }] : [];
+  });
 }
 
 /** Adds the server's signatures to a transaction the user already signed. */

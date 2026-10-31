@@ -1,10 +1,11 @@
 import { z } from "zod";
 
 import type { ChainConfig } from "@bandcoin/chain/server";
-import type { Currency, Db, Prisma } from "@bandcoin/db";
+import type { Db, Prisma } from "@bandcoin/db";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import { prepareClaim, submitClaim } from "../../services/bounty/claim";
+import { prizeView } from "../../services/bounty/prize";
 import { countScrobbles } from "../../services/lastfm";
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 
@@ -34,6 +35,8 @@ const cardSelect = {
   description: true,
   prizeAmount: true,
   prizeCurrency: true,
+  prizeAssetCode: true,
+  prizeAssetIssuer: true,
   maxWinners: true,
   status: true,
   createdAt: true,
@@ -52,22 +55,6 @@ const cardSelect = {
 
 type CardRow = Prisma.BountyGetPayload<{ select: typeof cardSelect }>;
 
-/** The prize asset on Stellar Expert, as the old cards linked it. */
-function prizeOf(amount: { toString(): string }, currency: Currency, config: ChainConfig) {
-  const network = config.name === "mainnet" ? "public" : "testnet";
-  const asset =
-    currency === "XLM"
-      ? "XLM"
-      : currency === "USDC"
-        ? `USDC-${config.assets.usdc.issuer}`
-        : `${config.assets.bandcoin.code}-${config.assets.bandcoin.issuer}`;
-  return {
-    amount: amount.toString(),
-    currency,
-    explorerUrl: `https://stellar.expert/explorer/${network}/asset/${asset}`,
-  };
-}
-
 const snippet = (text: string) => (text.length > SNIPPET ? `${text.slice(0, SNIPPET)}…` : text);
 
 function toCard(row: CardRow, config: ChainConfig, viewerId: string | undefined, joined: boolean) {
@@ -76,7 +63,7 @@ function toCard(row: CardRow, config: ChainConfig, viewerId: string | undefined,
     id: row.id,
     title: row.title,
     text: snippet(row.summary.trim() || row.description.trim()),
-    prize: prizeOf(row.prizeAmount, row.prizeCurrency, config),
+    prize: prizeView(row, config),
     maxWinners: row.maxWinners,
     status: row.status,
     artist,
@@ -228,6 +215,8 @@ export const bountyRouter = createRouter({
         title: true,
         prizeAmount: true,
         prizeCurrency: true,
+        prizeAssetCode: true,
+        prizeAssetIssuer: true,
         artist: { select: { name: true, avatarUrl: true } },
       },
     });
@@ -235,7 +224,7 @@ export const bountyRouter = createRouter({
       id: row.id,
       title: row.title,
       artist: row.artist,
-      prize: prizeOf(row.prizeAmount, row.prizeCurrency, ctx.chain.config),
+      prize: prizeView(row, ctx.chain.config),
     }));
   }),
 

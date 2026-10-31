@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useMemo } from "react";
+import { type FormEvent, useEffect, useMemo } from "react";
 import toast from "react-hot-toast";
 
 import { Button } from "@bandcoin/ui/components/button";
@@ -50,11 +50,19 @@ import { AiTextButton } from "../ai/ai-text-button";
 import { Note, Toggle } from "../catalog/form-parts";
 import { PaymentToast } from "../payments/payment-toast";
 import { covers, type RuleType, ruleSummary, sourceOptions } from "./bounty-rules";
+import {
+  heldOf,
+  type PrizeKey,
+  prizeInput,
+  prizeLabel,
+  prizeOptions,
+  shortIssuer,
+  tokenKey,
+} from "./prize-choice";
 import { MAX_TRACKS, type PickedTrack, TrackPicker } from "./track-picker";
 import { useBountyFunding } from "./use-bounty-payments";
 
 type Existing = RouterOutputs["bounties"]["get"];
-type Currency = "BANDCOIN" | "XLM" | "USDC";
 
 type State = {
   title: string;
@@ -70,7 +78,7 @@ type State = {
   totalPlays: number;
   tracks: PickedTrack[];
   prizeAmount: string;
-  currency: Currency;
+  currency: PrizeKey;
   source: "wallet" | "storage";
   maxWinners: string;
   rewardNote: string;
@@ -78,7 +86,6 @@ type State = {
 };
 
 const MAX_INSTRUCTIONS = 10;
-const CURRENCIES: Currency[] = ["BANDCOIN", "XLM", "USDC"];
 const NO_EVENT = "none";
 const messageOf = (error: unknown) =>
   error instanceof Error ? error.message : "Something went wrong.";
@@ -128,7 +135,8 @@ function fromExisting(bounty: Existing): State {
       targetPlays: track.targetPlays,
     })),
     prizeAmount: bounty.prizeAmount,
-    currency: bounty.prizeCurrency as Currency,
+    currency:
+      bounty.prize.currency ?? tokenKey(bounty.prizeAssetCode ?? "", bounty.prizeAssetIssuer ?? ""),
     source: bounty.fundedFromStorage ? "storage" : "wallet",
     maxWinners: String(bounty.maxWinners),
     rewardNote: bounty.rewardNote ?? "",
@@ -163,7 +171,14 @@ function musicOf(state: State) {
  * the text, instructions and listening rules can still change, and changing the
  * tracks starts everyone's listening progress over.
  */
-export function BountyForm({ existing }: { existing?: Existing }) {
+export function BountyForm({
+  existing,
+  kind,
+}: {
+  existing?: Existing;
+  /** Picked in the "New bounty" menu: turns the music challenge on or off. */
+  kind?: "general" | "music";
+}) {
   const router = useRouter();
   const utils = api.useUtils();
   const editing = Boolean(existing);
@@ -174,6 +189,11 @@ export function BountyForm({ existing }: { existing?: Existing }) {
   );
   const set = <K extends keyof State>(key: K, value: State[K]) =>
     setState((current) => ({ ...current, [key]: value }));
+
+  // The menu's choice wins over a draft left from before.
+  useEffect(() => {
+    if (kind) setState((current) => ({ ...current, music: kind === "music" }));
+  }, [kind, setState]);
 
   const sources = api.bounties.fundingSources.useQuery(undefined, { enabled: !editing });
   const lastFm = api.bounties.lastFm.useQuery(undefined, { enabled: state.music });
@@ -210,7 +230,9 @@ export function BountyForm({ existing }: { existing?: Existing }) {
     (state.tracks.length > 0 &&
       (state.ruleType !== "ANY_N" || state.requiredTracks >= 1) &&
       (state.ruleType !== "TOTAL_PLAYS" || state.totalPlays >= 1));
-  const balance = sources.data?.[state.source]?.[state.currency];
+  const holdings = sources.data?.[state.source];
+  const balance = heldOf(holdings, state.currency);
+  const shown = prizeLabel(state.currency);
   const enough = covers(balance, state.prizeAmount);
   const ready =
     state.title.trim().length > 0 &&
@@ -226,7 +248,7 @@ export function BountyForm({ existing }: { existing?: Existing }) {
   const aiContext = {
     title: state.title,
     summary: state.summary,
-    prize: state.prizeAmount ? `${state.prizeAmount} ${state.currency}` : "",
+    prize: state.prizeAmount ? `${state.prizeAmount} ${shown.code}` : "",
     winners: state.maxWinners,
   };
 
@@ -264,15 +286,19 @@ export function BountyForm({ existing }: { existing?: Existing }) {
       });
     }
     try {
-      const { bountyId } = await create.mutateAsync({
+      const { bountyId, tokenSetup } = await create.mutateAsync({
         ...text,
         music,
         prizeAmount: state.prizeAmount,
-        prizeCurrency: state.currency,
+        ...prizeInput(state.currency),
         maxWinners: winners,
         fundedFromStorage: state.source === "storage",
       });
-      await funding.fund(bountyId, <Money amount={state.prizeAmount} currency={state.currency} />);
+      await funding.fund(
+        bountyId,
+        <Money amount={state.prizeAmount} {...shown} />,
+        tokenSetup ? shown.code : undefined,
+      );
     } catch (error) {
       toast.error(messageOf(error));
     }
@@ -320,7 +346,7 @@ export function BountyForm({ existing }: { existing?: Existing }) {
               <p className="flex items-center gap-2 text-sm">
                 <Trophy className="text-primary-text size-4" />
                 {state.prizeAmount && !prizeProblem ? (
-                  <Money amount={state.prizeAmount} currency={state.currency} />
+                  <Money amount={state.prizeAmount} {...shown} />
                 ) : (
                   "Prize"
                 )}
@@ -340,7 +366,7 @@ export function BountyForm({ existing }: { existing?: Existing }) {
                 <p className="flex justify-between gap-3">
                   <span className="text-fg-muted">Prize into escrow</span>
                   {state.prizeAmount && !prizeProblem ? (
-                    <Money amount={state.prizeAmount} currency={state.currency} />
+                    <Money amount={state.prizeAmount} {...shown} />
                   ) : (
                     <span>…</span>
                   )}
@@ -354,13 +380,13 @@ export function BountyForm({ existing }: { existing?: Existing }) {
                     <span className="text-fg-muted">
                       {state.source === "storage" ? "Storage" : "Wallet"} balance
                     </span>
-                    <Money amount={balance} currency={state.currency} />
+                    <Money amount={balance} {...shown} />
                   </p>
                 )}
                 {enough === false && (
                   <p role="alert" className="text-danger text-xs">
-                    Not enough {state.currency} here. Pick another source or currency, or add{" "}
-                    {state.currency} first. We never convert it for you.
+                    Not enough {shown.code} here. Pick another source or currency, or add{" "}
+                    {shown.code} first. We never convert it for you.
                   </p>
                 )}
                 <p className="text-fg-faint text-xs">
@@ -539,20 +565,23 @@ export function BountyForm({ existing }: { existing?: Existing }) {
               <Select
                 value={state.currency}
                 disabled={editing}
-                onValueChange={(value) => set("currency", value as Currency)}
+                onValueChange={(value) => set("currency", value)}
               >
                 <SelectTrigger id="bounty-currency" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {CURRENCIES.map((currency) => (
-                    <SelectItem key={currency} value={currency}>
-                      {currency}
-                      {sources.data?.[state.source]?.[currency] !== undefined && (
+                  {prizeOptions(holdings, state.currency).map((option) => (
+                    <SelectItem key={option.key} value={option.key}>
+                      {option.code}
+                      {option.issuer && (
+                        <span className="text-fg-faint"> · {shortIssuer(option.issuer)}</span>
+                      )}
+                      {option.have !== undefined && (
                         <span className="text-fg-faint">
                           {" "}
                           · you have{" "}
-                          {formatAmount(sources.data[state.source]?.[currency] ?? "0", currency)}
+                          {formatAmount(option.have, prizeLabel(option.key).currency ?? "XLM")}
                         </span>
                       )}
                     </SelectItem>

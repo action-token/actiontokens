@@ -1,9 +1,16 @@
 "use client";
 
-import { Music2, Plus, Trophy, Users } from "lucide-react";
+import { ChevronDown, ListChecks, Music2, Plus, Trophy, Users } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@bandcoin/ui/components/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@bandcoin/ui/components/dropdown-menu";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
 import { ErrorState } from "@bandcoin/ui/patterns/error-state";
@@ -38,12 +45,32 @@ export const statusTone = (row: Pick<Row, "funded" | "status" | "hiddenAt">) =>
 export function BountiesView() {
   const bounties = api.bounties.list.useQuery();
 
+  // Pick the kind first, as in the old app; the form can still switch music on or off.
   const add = (
-    <Button asChild>
-      <Link href="/bounties/new">
-        <Plus /> New bounty
-      </Link>
-    </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button>
+          <Plus /> New bounty <ChevronDown className="opacity-70" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-72">
+        <DropdownMenuLabel className="text-fg-muted text-xs">
+          Choose a bounty type
+        </DropdownMenuLabel>
+        <BountyKind
+          href="/bounties/new?type=general"
+          icon={<ListChecks />}
+          title="General bounty"
+          text="Any task or challenge, with fans' submissions"
+        />
+        <BountyKind
+          href="/bounties/new?type=music"
+          icon={<Music2 />}
+          title="Music bounty"
+          text="Fans listen to your tracks on Last.fm"
+        />
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 
   return (
@@ -86,7 +113,8 @@ export function BountiesView() {
                     <Trophy className="size-4" />{" "}
                     <Money
                       amount={row.prizeAmount}
-                      currency={row.prizeCurrency as "BANDCOIN" | "XLM" | "USDC"}
+                      currency={row.prize.currency}
+                      code={row.prize.code}
                     />
                   </span>
                   <span className="flex items-center gap-1.5">
@@ -106,5 +134,21 @@ export function BountiesView() {
         </ul>
       )}
     </PageBody>
+  );
+}
+
+function BountyKind(props: { href: string; icon: React.ReactNode; title: string; text: string }) {
+  return (
+    <DropdownMenuItem asChild className="py-2.5">
+      <Link href={props.href} className="flex items-center gap-3">
+        <span className="bg-surface-3 grid size-8 shrink-0 place-items-center rounded-lg [&_svg]:size-4">
+          {props.icon}
+        </span>
+        <span className="min-w-0">
+          <b className="block text-sm">{props.title}</b>
+          <span className="text-fg-muted block text-xs">{props.text}</span>
+        </span>
+      </Link>
+    </DropdownMenuItem>
   );
 }

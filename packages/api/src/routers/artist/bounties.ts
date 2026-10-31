@@ -14,8 +14,10 @@ import {
 import {
   fundingSources,
   prepareFunding,
+  prepareTokenSetup,
   prepareWinner,
   submitFunding,
+  submitTokenSetup,
   submitWinner,
 } from "../../services/artist/bounty-escrow";
 import { searchTracks, topTracks } from "../../services/lastfm-search";
@@ -77,7 +79,14 @@ export const bountiesRouter = createRouter({
       z.object({
         ...text,
         prizeAmount: z.string().trim().max(30),
-        prizeCurrency: z.enum(PRIZE_CURRENCIES),
+        prizeCurrency: z.enum(PRIZE_CURRENCIES).optional(),
+        /** Any other classic asset the artist holds, such as their fan token */
+        prizeAsset: z
+          .object({
+            code: z.string().regex(/^[A-Za-z0-9]{1,12}$/),
+            issuer: z.string().regex(/^G[A-Z2-7]{55}$/),
+          })
+          .optional(),
         maxWinners: z.number().int(),
         fundedFromStorage: z.boolean(),
       }),
@@ -101,6 +110,18 @@ export const bountiesRouter = createRouter({
   discard: artistProcedure
     .input(bountyId)
     .mutation(({ ctx, input }) => discardUnfunded(ctx, ctx.artist, input.bountyId)),
+
+  /** One-time: deploy the prize token's Stellar Asset Contract so the escrow can hold it. */
+  prepareTokenSetup: artistProcedure
+    .input(bountyId)
+    .mutation(({ ctx, input }) =>
+      prepareTokenSetup(ctx, ctx.artist, ctx.session.user, input.bountyId),
+    ),
+  submitTokenSetup: artistProcedure
+    .input(bountyId.extend({ xdr: z.string().min(1) }))
+    .mutation(({ ctx, input }) =>
+      submitTokenSetup(ctx, ctx.artist, ctx.session.user, input.bountyId, input.xdr),
+    ),
 
   prepareFunding: artistProcedure
     .input(bountyId)

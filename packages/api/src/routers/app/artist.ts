@@ -6,6 +6,7 @@ import { draftDesign, publishedDesign } from "../../services/artist/page";
 import { currentSlugFor } from "../../services/artist/profile";
 import { resolveVanity } from "../../services/artist/vanity";
 import { publicBountyWhere } from "./bounty";
+import { prizeView } from "../../services/bounty/prize";
 import { itemCardSelect, listedItemWhere, toItemCard } from "../../services/catalog/item-card";
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 
@@ -83,6 +84,8 @@ export const artistRouter = createRouter({
             summary: true,
             prizeAmount: true,
             prizeCurrency: true,
+            prizeAssetCode: true,
+            prizeAssetIssuer: true,
             _count: { select: { participants: true } },
           },
         }),
@@ -146,7 +149,7 @@ export const artistRouter = createRouter({
         id: bounty.id,
         title: bounty.title,
         summary: bounty.summary,
-        prize: { amount: bounty.prizeAmount.toString(), currency: bounty.prizeCurrency },
+        prize: prizeView(bounty, ctx.chain.config),
         participants: bounty._count.participants,
       })),
     };

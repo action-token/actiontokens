@@ -8,7 +8,9 @@ import { api } from "~/trpc/react";
 
 import { BountyForm } from "./bounty-form";
 
-export const NewBountyView = () => <BountyForm />;
+export const NewBountyView = ({ kind }: { kind?: "general" | "music" }) => (
+  <BountyForm kind={kind} />
+);
 
 export function EditBountyView({ bountyId }: { bountyId: string }) {
   const bounty = api.bounties.get.useQuery({ bountyId });

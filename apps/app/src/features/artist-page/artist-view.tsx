@@ -105,6 +105,7 @@ export async function ArtistView({ slug }: { slug: string }) {
                       <Money
                         amount={bounty.prize.amount}
                         currency={bounty.prize.currency}
+                        code={bounty.prize.code}
                         className="font-semibold"
                       />
                       <span className="text-fg-muted">{bounty.participants} joined</span>

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { ItemType, type Prisma } from "@bandcoin/db";
 
 import { publicBountyWhere } from "./bounty";
+import { prizeView } from "../../services/bounty/prize";
 import { itemCardSelect, listedItemWhere, toItemCard } from "../../services/catalog/item-card";
 import { createRouter, publicProcedure } from "../../trpc";
 
@@ -61,6 +62,8 @@ export const catalogRouter = createRouter({
           summary: true,
           prizeAmount: true,
           prizeCurrency: true,
+          prizeAssetCode: true,
+          prizeAssetIssuer: true,
           artist: { select: { name: true, slug: true, avatarUrl: true } },
           _count: { select: { participants: true } },
         },
@@ -90,7 +93,7 @@ export const catalogRouter = createRouter({
         id: bounty.id,
         title: bounty.title,
         summary: bounty.summary,
-        prize: { amount: bounty.prizeAmount.toString(), currency: bounty.prizeCurrency },
+        prize: prizeView(bounty, ctx.chain.config),
         artist: bounty.artist,
         participants: bounty._count.participants,
       })),

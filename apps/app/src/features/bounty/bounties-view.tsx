@@ -192,6 +192,7 @@ function TopBounties() {
               <Money
                 amount={bounty.prize.amount}
                 currency={bounty.prize.currency}
+                code={bounty.prize.code}
                 short
                 className="text-fg-muted text-xs"
               />

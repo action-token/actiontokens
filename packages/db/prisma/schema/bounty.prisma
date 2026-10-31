@@ -15,8 +15,12 @@ model Bounty {
   summary           String
   description       String
   instructions      String[]
-  /// The escrow holds one asset per bounty: BANDCOIN, XLM or USDC
-  prizeCurrency     Currency
+  /// The escrow holds one asset per bounty: BANDCOIN, XLM or USDC here, or
+  /// null when the prize is another classic asset (prizeAssetCode/Issuer)
+  prizeCurrency     Currency?
+  /// Any other classic asset the artist holds, such as their fan token
+  prizeAssetCode    String?
+  prizeAssetIssuer  String?
   prizeAmount       Decimal      @db.Decimal(20, 7)
   rewardNote        String?
   maxWinners        Int          @default(1)

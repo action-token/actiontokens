@@ -1,23 +1,24 @@
 import {
   Account,
   Address,
+  Asset,
   scValToNative,
   type Transaction,
   TransactionBuilder,
 } from "@stellar/stellar-sdk";
 
 import {
-  assetFor,
+  buildAssetContractSetup,
   buildBountyFund,
   buildBountySelectWinner,
   toAmount,
   toStroops,
-  tokenAddressOf,
 } from "@bandcoin/chain";
-import { fundsOf } from "@bandcoin/chain/server";
+import { availableOf, fundsOf, otherAssetsOf } from "@bandcoin/chain/server";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import { type Context, isCustodial, type SessionUser } from "../../context";
+import { needsTokenSetup, prizeToken } from "../bounty/prize";
 import { ownBounty } from "./bounties";
 import { invalid } from "./items";
 
@@ -33,6 +34,11 @@ import { invalid } from "./items";
  * which the platform signs for. Each step is prepare (build + simulate, the
  * wallet signs it) then submit (check it is the same single call, sign for
  * custodial users or the storage account, send it).
+ *
+ * A prize in another classic asset (say the artist's fan token) goes through
+ * that asset's Stellar Asset Contract. If nobody has deployed it yet, the
+ * artist does that first in its own transaction (`createStellarAssetContract`,
+ * a standard network operation, once per asset; no contract of ours changes).
  */
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 type ArtistRef = { id: string; storageAccountId: string | null };
@@ -127,7 +133,11 @@ export async function fundingSources(
 ) {
   const read = async (address: string | null | undefined) => {
     if (!address) return null;
-    return fundsOf(await ctx.chain.loadAccount(address), ctx.chain.config.assets);
+    const account = await ctx.chain.loadAccount(address);
+    return {
+      ...fundsOf(account, ctx.chain.config.assets),
+      others: otherAssetsOf(account, ctx.chain.config.assets),
+    };
   };
   const storage = artist.storageAccountId
     ? await ctx.db.chainAccount.findUnique({
@@ -150,27 +160,27 @@ export async function prepareFunding(
   const creator = await creatorOf(ctx, artist, user, bounty.fundedFromStorage);
   const account = await sourceAccount(ctx, creator.address);
 
-  const { assets, network } = ctx.chain.config;
+  const token = prizeToken(ctx.chain.config, bounty);
+  const code = token.asset.getCode();
+  if (await needsTokenSetup(ctx.chain, bounty))
+    throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, {
+      message: `Set up ${code} for escrow first.`,
+    });
   const amount = toStroops(bounty.prizeAmount.toString());
-  const have = toStroops(
-    fundsOf(account, assets)[bounty.prizeCurrency as "BANDCOIN" | "XLM" | "USDC"],
-  );
+  const have = toStroops(availableOf(account, token.asset));
   if (have < amount) {
     throw invalid(
-      `There isn't enough ${bounty.prizeCurrency} to fund it. You have ${toAmount(have)} and the prize is ${toAmount(amount)}.`,
+      `There isn't enough ${code} to fund it. You have ${toAmount(have)} and the prize is ${toAmount(amount)}.`,
     );
   }
 
   const built = buildBountyFund({
     source: new Account(account.accountId(), account.sequenceNumber()),
-    network,
+    network: ctx.chain.config.network,
     contract: bounty.escrowContractId,
     bountyId: bounty.id,
     creator: creator.address,
-    token: tokenAddressOf(
-      assetFor(bounty.prizeCurrency as "BANDCOIN" | "XLM" | "USDC", assets),
-      network.passphrase,
-    ),
+    token: token.address,
     amount,
     maxWinners: bounty.maxWinners,
   });
@@ -178,7 +188,7 @@ export async function prepareFunding(
     built.xdr,
     creator.signer === "server" ? [creator.address] : undefined,
   );
-  return { xdr, signer: creator.signer, prize: toAmount(amount), currency: bounty.prizeCurrency };
+  return { xdr, signer: creator.signer, prize: toAmount(amount), code };
 }
 
 export async function submitFunding(
@@ -192,16 +202,14 @@ export async function submitFunding(
   if (bounty.fundTxHash)
     throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "This bounty is already funded." });
   const creator = await creatorOf(ctx, artist, user, bounty.fundedFromStorage);
-  const { assets, network } = ctx.chain.config;
-  const currency = bounty.prizeCurrency as "BANDCOIN" | "XLM" | "USDC";
-  assertIsCall(xdr, network.passphrase, {
+  assertIsCall(xdr, ctx.chain.config.network.passphrase, {
     source: creator.address,
     contract: bounty.escrowContractId,
     method: "create_bounty",
     args: [
       bounty.id,
       creator.address,
-      tokenAddressOf(assetFor(currency, assets), network.passphrase),
+      prizeToken(ctx.chain.config, bounty).address,
       toStroops(bounty.prizeAmount.toString()),
       bounty.maxWinners,
     ],
@@ -209,6 +217,76 @@ export async function submitFunding(
 
   const { hash } = await ctx.chain.submit(await signed(ctx, user, creator, xdr));
   await ctx.db.bounty.update({ where: { id: bounty.id }, data: { fundTxHash: hash } });
+  return { txHash: hash };
+}
+
+/** Deploys the prize asset's contract (once per asset), paid by whoever funds the bounty. */
+export async function prepareTokenSetup(
+  ctx: ServiceCtx,
+  artist: ArtistRef,
+  user: SessionUser,
+  bountyId: string,
+) {
+  const bounty = await ownBounty(ctx, artist, bountyId);
+  if (bounty.fundTxHash)
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "This bounty is already funded." });
+  if (!(await needsTokenSetup(ctx.chain, bounty)))
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "This token is already set up." });
+  const creator = await creatorOf(ctx, artist, user, bounty.fundedFromStorage);
+  const account = await sourceAccount(ctx, creator.address);
+  const { asset } = prizeToken(ctx.chain.config, bounty);
+  const built = buildAssetContractSetup({
+    source: new Account(account.accountId(), account.sequenceNumber()),
+    network: ctx.chain.config.network,
+    asset,
+  });
+  const xdr = await ctx.chain.prepareContractCall(
+    built.xdr,
+    creator.signer === "server" ? [creator.address] : undefined,
+  );
+  return { xdr, signer: creator.signer, code: asset.getCode() };
+}
+
+/** The transaction must deploy exactly this asset's contract, from this account, and nothing else. */
+function assertIsSetup(xdr: string, passphrase: string, source: string, asset: Asset) {
+  let tx: Transaction;
+  try {
+    tx = TransactionBuilder.fromXDR(xdr, passphrase) as Transaction;
+  } catch {
+    throw new AppError(ErrorCodes.STELLAR_TX_REJECTED, {
+      message: "That isn't a valid transaction.",
+    });
+  }
+  const op = tx.operations[0];
+  const func = op?.type === "invokeHostFunction" ? op.func : null;
+  const create = func?.type === "hostFunctionTypeCreateContract" ? func.createContract : null;
+  const preimage = create?.contractIdPreimage;
+  const ok =
+    tx.source === source &&
+    tx.operations.length === 1 &&
+    create?.executable.type === "contractExecutableStellarAsset" &&
+    preimage?.type === "contractIdPreimageFromAsset" &&
+    Asset.fromOperation(preimage.fromAsset).equals(asset);
+  if (!ok)
+    throw new AppError(ErrorCodes.STELLAR_TX_REJECTED, {
+      message: "That transaction isn't the one we prepared.",
+    });
+}
+
+export async function submitTokenSetup(
+  ctx: ServiceCtx,
+  artist: ArtistRef,
+  user: SessionUser,
+  bountyId: string,
+  xdr: string,
+) {
+  const bounty = await ownBounty(ctx, artist, bountyId);
+  if (bounty.fundTxHash)
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "This bounty is already funded." });
+  const creator = await creatorOf(ctx, artist, user, bounty.fundedFromStorage);
+  const { asset } = prizeToken(ctx.chain.config, bounty);
+  assertIsSetup(xdr, ctx.chain.config.network.passphrase, creator.address, asset);
+  const { hash } = await ctx.chain.submit(await signed(ctx, user, creator, xdr));
   return { txHash: hash };
 }
 
@@ -286,7 +364,7 @@ export async function prepareWinner(
     built.xdr,
     caller.signer === "server" ? [caller.address] : undefined,
   );
-  return { xdr, signer: caller.signer, amount: toAmount(amount), currency: bounty.prizeCurrency };
+  return { xdr, signer: caller.signer, amount: toAmount(amount) };
 }
 
 export async function submitWinner(

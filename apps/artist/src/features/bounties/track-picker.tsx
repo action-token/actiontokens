@@ -18,6 +18,8 @@ type Found = RouterOutputs["bounties"]["searchTracks"][number];
 export type PickedTrack = Omit<Found, "id"> & { id: string; targetPlays: number };
 
 export const MAX_TRACKS = 5;
+/** The longest target duration a track can have (the API allows up to 2 hours). */
+const MAX_TRACK_SECONDS = 7200;
 const DEFAULT_PLAYS = 3;
 
 /**
@@ -127,7 +129,7 @@ export function TrackPicker({
           {tracks.map((track) => (
             <li
               key={track.id}
-              className="grid gap-3 p-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center"
+              className="grid gap-3 p-3 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto] sm:items-center"
             >
               <div className="flex min-w-0 items-center gap-3">
                 <Art url={track.albumArtUrl} />
@@ -151,6 +153,23 @@ export function TrackPicker({
                     })
                   }
                   className="h-8 w-16"
+                />
+              </label>
+              <label className="flex items-center gap-2 text-xs">
+                <span className="text-fg-muted">Target duration (s)</span>
+                <Input
+                  inputMode="numeric"
+                  aria-label={`Target duration in seconds for ${track.title}`}
+                  value={track.durationSec}
+                  onChange={(event) =>
+                    change(track.id, {
+                      durationSec: Math.min(
+                        MAX_TRACK_SECONDS,
+                        Number(event.target.value.replace(/\D/g, "")) || 1,
+                      ),
+                    })
+                  }
+                  className="h-8 w-20"
                 />
               </label>
               <Button

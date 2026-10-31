@@ -2,9 +2,9 @@ import { FileText, Music, Trophy, Users } from "lucide-react";
 import Link from "next/link";
 
 import { cn } from "@bandcoin/ui/lib/cn";
-import { CurrencyIcon } from "@bandcoin/ui/patterns/currency-icon";
 
 import { ArtistAvatar } from "~/components/artist/ArtistAvatar";
+import { PrizeIcon } from "~/components/bounty/PrizeIcon";
 import { Skeleton } from "~/components/ui/Skeleton";
 import {
   type BountyCard as BountyCardData,
@@ -80,7 +80,7 @@ export function BountyCard({ bounty }: { bounty: BountyCardData }) {
         <div className="mt-2.5 flex items-end justify-between gap-3">
           <div>
             <p className="font-hud text-glow-soft text-ar-accent-hot flex items-center gap-1.5 text-[20px] leading-none font-bold tabular-nums">
-              <CurrencyIcon currency={bounty.prize.currency} className="size-[0.85em]" />
+              <PrizeIcon prize={bounty.prize} className="size-[0.85em]" />
               {formatAmount(bounty.prize.amount)}
             </p>
             <p className="font-hud text-ar-faint mt-1 text-[10px] font-semibold tabular-nums">

@@ -14,6 +14,7 @@ import {
   liveRates,
   loadAccount,
   loadAssetHolders,
+  contractIsLive,
   prepareContractCall,
   readEditionId,
   readNftFeeSettings,
@@ -48,6 +49,8 @@ export type ChainGateway = {
     code: string,
     issuer: string,
   ): Promise<{ holders: { address: string; balance: string }[]; complete: boolean }>;
+  /** Whether a contract exists at this address (an asset's contract only once it's set up) */
+  contractIsLive(contract: string): Promise<boolean>;
   /** Whether an asset (code + issuer) exists on the network */
   assetExists(code: string, issuer: string): Promise<boolean>;
   /** The issuer's stellar.toml address for an asset, or null */
@@ -134,6 +137,7 @@ export function createChainGateway(db: Db): ChainGateway {
     prepareContractCall: async (xdr, signers = []) =>
       prepareContractCall(xdr, await serverSecrets(db, signers)),
     submit,
+    contractIsLive,
     assetExists,
     assetTomlUrl,
     assetHolders: (code, issuer) => loadAssetHolders(new Asset(code, issuer)),

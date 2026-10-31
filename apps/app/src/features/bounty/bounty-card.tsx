@@ -68,6 +68,7 @@ export function BountyCard({ bounty }: { bounty: BountyCardData }) {
           <Money
             amount={bounty.prize.amount}
             currency={bounty.prize.currency}
+            code={bounty.prize.code}
             short
             onBrand
             className="display text-lg leading-none"
