@@ -57,7 +57,14 @@ export async function loadSale(db: Db, listingId: string) {
     });
   }
   const { item } = listing;
-  if (item.chainType !== "CLASSIC_TOKEN" || !item.classicToken) {
+  // A Non Stellar item: sold by the artist only, nothing delivered on Stellar.
+  const offChain = item.chainType === "OFF_CHAIN";
+  if (offChain && listing.kind !== "PRIMARY") {
+    throw new AppError(ErrorCodes.ITEM_NOT_AVAILABLE, {
+      message: "This item isn't for sale right now.",
+    });
+  }
+  if (!offChain && (item.chainType !== "CLASSIC_TOKEN" || !item.classicToken)) {
     throw new AppError(ErrorCodes.ITEM_NOT_AVAILABLE, {
       message: "Checkout for contract NFTs isn't open yet.",
       details: { chainType: item.chainType },
@@ -73,15 +80,17 @@ export async function loadSale(db: Db, listingId: string) {
   return {
     listing,
     item,
-    asset: new Asset(token.code, token.issuer),
+    /** null for a Non Stellar item */
+    asset: token && !offChain ? new Asset(token.code, token.issuer) : null,
     seller: listing.seller.walletAddress,
     /** The artist's wallet, paid the royalty on resales */
     creator: item.artist?.user.walletAddress ?? null,
     /** The key that can mint more copies: the artist's one issuer, or the token's own legacy issuer */
-    minter: minterOf(token, item.artist?.issuerAccount ?? null),
+    minter: token && !offChain ? minterOf(token, item.artist?.issuerAccount ?? null) : null,
     /** Copies already minted and waiting: the artist's storage (primary) or the seller's (resale) */
-    stockAccount:
-      listing.kind === "PRIMARY"
+    stockAccount: offChain
+      ? null
+      : listing.kind === "PRIMARY"
         ? (item.artist?.storageAccount?.publicKey ?? null)
         : (listing.seller.chainAccounts[0]?.publicKey ?? null),
     remaining: remainingCopies(listing, item.supply),

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { signCreatorUpload } from "@bandcoin/storage";
 
 import { createNft } from "../../services/artist/nft";
+import { createOffChainItem } from "../../services/artist/off-chain";
 import {
   createItem,
   getItem,
@@ -62,6 +63,29 @@ export const catalogRouter = createRouter({
       }),
     )
     .mutation(({ ctx, input }) => createItem(ctx, ctx.artist, ctx.session.user, input)),
+
+  /** A Non Stellar item: nothing on Stellar, bought with a plain payment (services/artist/off-chain). */
+  createOffChain: artistProcedure
+    .input(
+      z.object({
+        type: z.enum(["IMAGE", "VIDEO", "MODEL_3D", "DOCUMENT", "TICKET", "MERCH"]),
+        title: z.string().trim().min(1, "Give it a title").max(120),
+        description: z.string().trim().max(2000).optional(),
+        coverUrl: z.string().url(),
+        media: z
+          .object({
+            url: z.string().url(),
+            mediaType: z.enum(["AUDIO", "VIDEO", "IMAGE", "MODEL_3D", "DOCUMENT"]),
+          })
+          .optional(),
+        supply: z.number().int(),
+        priceBandcoin: price,
+        priceUsd: price,
+        visibility,
+        access: itemAccess.optional(),
+      }),
+    )
+    .mutation(({ ctx, input }) => createOffChainItem(ctx, ctx.artist, ctx.session.user, input)),
 
   update: artistProcedure
     .input(

@@ -103,20 +103,23 @@ async function priceSale(
     });
   }
 
-  const openTrustline = !(buyerAccount && holdsLine(buyerAccount, sale.asset));
+  const openTrustline = sale.asset ? !(buyerAccount && holdsLine(buyerAccount, sale.asset)) : false;
   const royaltyBps =
     sale.listing.kind === "RESALE" && sale.creator
       ? Number(sale.item.royaltyPercent ?? 0) * 100
       : 0;
   let delivery: ReturnType<typeof planDelivery> | null = null;
   try {
-    delivery = planDelivery({
-      kind: sale.listing.kind,
-      quantity: input.quantity,
-      stockAccount: sale.stockAccount,
-      stockBalance: stockAccount ? balanceOf(stockAccount, sale.asset) : "0",
-      minter: sale.minter,
-    });
+    // A Non Stellar item delivers nothing on Stellar: the order records the ownership.
+    delivery = sale.asset
+      ? planDelivery({
+          kind: sale.listing.kind,
+          quantity: input.quantity,
+          stockAccount: sale.stockAccount,
+          stockBalance: stockAccount ? balanceOf(stockAccount, sale.asset) : "0",
+          minter: sale.minter,
+        })
+      : {};
   } catch (error) {
     if (!isAppError(error)) throw error;
     extraProblems.push({ code: "UNAVAILABLE", message: error.message });

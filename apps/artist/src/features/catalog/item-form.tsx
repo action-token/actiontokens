@@ -67,6 +67,11 @@ export function ItemForm({ existing }: { existing?: Existing }) {
   const frozen = existing?.registered === "MINTED";
 
   const [nft, setNft] = useState(existing?.chain === "CONTRACT_NFT");
+  /** A Non Stellar item: no code, nothing on Stellar, a fixed number for sale */
+  const [offChain, setOffChain] = useState(existing?.chain === "OFF_CHAIN");
+  const classic = !nft && !offChain;
+  /** NFTs and Non Stellar items always have a fixed number of copies */
+  const fixed = nft || offChain;
   const [type, setType] = useState<ItemKind>((existing?.type as ItemKind | undefined) ?? "IMAGE");
   const [title, setTitle] = useState(existing?.title ?? "");
   const [description, setDescription] = useState(existing?.description ?? "");
@@ -89,15 +94,15 @@ export function ItemForm({ existing }: { existing?: Existing }) {
   const [imageBrief, setImageBrief] = useState("");
   const [lockedContents, setLockedContents] = useState<LockedDraft[]>(() => [newLocked()]);
 
-  const kinds = nft ? ITEM_TYPES.filter((entry) => entry.value !== "ROYALTY") : ITEM_TYPES;
+  const kinds = classic ? ITEM_TYPES : ITEM_TYPES.filter((entry) => entry.value !== "ROYALTY");
   const shownCode = customCode ? code : assetCodeFrom(title);
   const problems = {
-    code: !nft && shownCode ? validateAssetCode(shownCode) : null,
+    code: classic && shownCode ? validateAssetCode(shownCode) : null,
     ...priceProblems(priceBandcoin, priceUsd),
   };
   const supplyNumber = Number(supply);
   const supplyOk =
-    (!limited && !nft) ||
+    (!limited && !fixed) ||
     (Number.isInteger(supplyNumber) &&
       supplyNumber >= 1 &&
       supplyNumber <= (nft ? 100_000 : Infinity));
@@ -107,7 +112,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
     title.trim().length > 0 &&
     cover !== null &&
     (!fileRequired(type) || file !== null) &&
-    (nft || (shownCode.length > 0 && !problems.code)) &&
+    (!classic || (shownCode.length > 0 && !problems.code)) &&
     priceBandcoin !== "" &&
     !problems.bandcoin &&
     priceUsd !== "" &&
@@ -131,6 +136,10 @@ export function ItemForm({ existing }: { existing?: Existing }) {
     onSuccess: () => done(publish ? "Your NFT is on sale" : "Draft saved"),
     onError: (error) => toast.error(messageOf(error)),
   });
+  const createOffChain = api.catalog.createOffChain.useMutation({
+    onSuccess: () => done("Item created"),
+    onError: (error) => toast.error(messageOf(error)),
+  });
   const update = api.catalog.update.useMutation({
     onSuccess: () => {
       void utils.catalog.get.invalidate();
@@ -142,9 +151,10 @@ export function ItemForm({ existing }: { existing?: Existing }) {
     onSuccess: () => done("Item deleted"),
     onError: (error) => toast.error(messageOf(error)),
   });
-  const saving = create.isPending || createNft.isPending || update.isPending;
+  const saving =
+    create.isPending || createNft.isPending || createOffChain.isPending || update.isPending;
   const kindLabel = ITEM_TYPES.find((entry) => entry.value === type)?.label ?? type;
-  const aiContext = { kind: kindLabel, title, description, code: nft ? "" : shownCode };
+  const aiContext = { kind: kindLabel, title, description, code: classic ? shownCode : "" };
   const imagePrompt = imageBrief || [title, description.slice(0, 400)].filter(Boolean).join(". ");
 
   function submit(event: FormEvent) {
@@ -168,7 +178,10 @@ export function ItemForm({ existing }: { existing?: Existing }) {
         ...(nft ? {} : { access: accessInput(access) }),
         ...(locked
           ? {}
-          : { supply: limited || nft ? supplyNumber : null, ...(nft ? {} : { code: shownCode }) }),
+          : {
+              supply: limited || fixed ? supplyNumber : null,
+              ...(classic ? { code: shownCode } : {}),
+            }),
       });
     } else if (nft) {
       createNft.mutate({
@@ -183,6 +196,19 @@ export function ItemForm({ existing }: { existing?: Existing }) {
         resaleRoyaltyPercent: resale,
         visibility,
         lockedContents: toLockedInput(lockedContents),
+      });
+    } else if (offChain) {
+      createOffChain.mutate({
+        type: type as Exclude<ItemKind, "ROYALTY">,
+        title,
+        description: description || undefined,
+        coverUrl: cover.url,
+        media,
+        supply: supplyNumber,
+        priceBandcoin,
+        priceUsd,
+        visibility,
+        access: accessInput(access),
       });
     } else {
       create.mutate({
@@ -247,7 +273,12 @@ export function ItemForm({ existing }: { existing?: Existing }) {
               </p>
               <p className="display text-xl leading-snug">{title || "Untitled item"}</p>
               <p className="text-fg-muted text-sm">
-                {kindLabel} · {nft ? "Contract NFT" : shownCode || "Classic token"}
+                {kindLabel} ·{" "}
+                {nft
+                  ? "Contract NFT"
+                  : offChain
+                    ? "Non Stellar item"
+                    : shownCode || "Classic token"}
               </p>
               <p className="num text-sm">
                 {priceBandcoin || "…"} BANDCOIN · ${priceUsd || "…"}
@@ -303,14 +334,14 @@ export function ItemForm({ existing }: { existing?: Existing }) {
               };
               setTitle(result.title);
               setDescription(result.description);
-              if (!nft) {
+              if (classic) {
                 setCode(normalizeAssetCode(result.code));
                 setCustomCode(true);
               }
               if (result.supply) {
                 setLimited(true);
                 setSupply(String(result.supply));
-              } else if (!nft) setLimited(false);
+              } else if (!fixed) setLimited(false);
               if (result.priceBandcoin !== null) setPriceBandcoin(String(result.priceBandcoin));
               if (result.priceUsd !== null) setPriceUsd(String(result.priceUsd));
               setImageBrief(result.imagePrompt);
@@ -471,21 +502,27 @@ export function ItemForm({ existing }: { existing?: Existing }) {
                   ? `${existing?.sold} sold, so the number of copies is fixed.`
                   : nft
                     ? "An NFT edition has a fixed number of copies, up to 100,000."
-                    : type === "ROYALTY"
-                      ? "Holders get their share of all the copies, so the number is fixed."
-                      : undefined
+                    : offChain
+                      ? "How many you sell. Stock is this number minus the copies sold."
+                      : type === "ROYALTY"
+                        ? "Holders get their share of all the copies, so the number is fixed."
+                        : undefined
               }
             >
               <div className="flex items-center gap-2">
-                <Toggle pressed={limited || nft} disabled={locked} onClick={() => setLimited(true)}>
-                  {nft ? "Fixed" : "Limited"}
+                <Toggle
+                  pressed={limited || fixed}
+                  disabled={locked}
+                  onClick={() => setLimited(true)}
+                >
+                  {fixed ? "Fixed" : "Limited"}
                 </Toggle>
-                {!nft && type !== "ROYALTY" && (
+                {!fixed && type !== "ROYALTY" && (
                   <Toggle pressed={!limited} disabled={locked} onClick={() => setLimited(false)}>
                     Unlimited
                   </Toggle>
                 )}
-                {(limited || nft) && (
+                {(limited || fixed) && (
                   <Input
                     id="item-supply"
                     inputMode="numeric"
@@ -509,24 +546,44 @@ export function ItemForm({ existing }: { existing?: Existing }) {
           {!editing && (
             <Field label="What kind of token?" htmlFor="item-chain">
               <div className="flex flex-wrap gap-2" id="item-chain">
-                <Toggle pressed={!nft} onClick={() => setNft(false)}>
+                <Toggle
+                  pressed={classic}
+                  onClick={() => {
+                    setNft(false);
+                    setOffChain(false);
+                  }}
+                >
                   Classic token
                 </Toggle>
                 <Toggle
                   pressed={nft}
                   onClick={() => {
                     setNft(true);
+                    setOffChain(false);
                     setLimited(true);
                     if (type === "ROYALTY") setType("IMAGE");
                   }}
                 >
                   Contract NFT
                 </Toggle>
+                <Toggle
+                  pressed={offChain}
+                  onClick={() => {
+                    setOffChain(true);
+                    setNft(false);
+                    setLimited(true);
+                    if (type === "ROYALTY") setType("IMAGE");
+                  }}
+                >
+                  Non Stellar item
+                </Toggle>
               </div>
               <Note>
                 {nft
                   ? "Numbered copies on a Soroban contract, with locked content and a royalty on every resale. Bandcoin puts it on Stellar at its first sale; you pay nothing."
-                  : "A simple Stellar token under your own account. Free to create, and you can publish it right away."}
+                  : offChain
+                    ? "Nothing on Stellar: fans pay you and Bandcoin keeps track of who owns it. Good for merch and tickets. It can't be resold."
+                    : "A simple Stellar token under your own account. Free to create, and you can publish it right away."}
               </Note>
             </Field>
           )}
@@ -547,7 +604,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
                   className="max-w-32"
                 />
               </Field>
-            ) : (
+            ) : offChain ? null : (
               <Field
                 label="Asset code"
                 htmlFor="item-code"

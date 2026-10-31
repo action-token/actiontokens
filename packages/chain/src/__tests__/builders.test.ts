@@ -158,6 +158,50 @@ describe("buildClassicPurchase", () => {
   });
 });
 
+describe("Non Stellar item purchase", () => {
+  it("is just the payment: no trustline, nothing delivered", () => {
+    const built = buildClassicPurchase({
+      buyer: account(),
+      network,
+      orderId,
+      item: null,
+      payment: {
+        asset: bandcoin,
+        seller: { to: seller, amount: "10" },
+        platformFee: { to: treasury, amount: "0.5" },
+      },
+      delivery: {},
+      openTrustline: false,
+    });
+    const tx = parse(built.xdr);
+    expect(
+      tx.operations.map((op) => [op.type, "destination" in op ? op.destination : null]),
+    ).toEqual([
+      ["payment", seller],
+      ["payment", treasury],
+    ]);
+    expect(built.serverSigners).toEqual([]);
+  });
+
+  it("refuses to deliver anything or open a trustline", () => {
+    const base = {
+      buyer: account(),
+      network,
+      orderId,
+      item: null,
+      payment: { asset: bandcoin, seller: { to: seller, amount: "10" } },
+    };
+    expect(() =>
+      buildClassicPurchase({
+        ...base,
+        delivery: { mint: { issuer, amount: "1" } },
+        openTrustline: false,
+      }),
+    ).toThrow(/nothing to deliver/);
+    expect(() => buildClassicPurchase({ ...base, delivery: {}, openTrustline: true })).toThrow();
+  });
+});
+
 describe("recharge builders", () => {
   const mother = key();
 

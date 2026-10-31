@@ -19,6 +19,8 @@ enum ChainType {
   CLASSIC_TOKEN
   /// Soroban nft_oz contract; each copy is a numbered NftEdition
   CONTRACT_NFT
+  /// A Non Stellar item (old main): nothing on Stellar; bought with a plain payment, owned in the database
+  OFF_CHAIN
 }
 
 model Item {

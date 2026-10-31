@@ -29,7 +29,7 @@ const MAX_SUPPLY = 100_000;
 
 export const invalid = (message: string) => new AppError(ErrorCodes.VALIDATION_FAILED, { message });
 
-function checkSupply(supply: number | null) {
+export function checkSupply(supply: number | null) {
   if (supply !== null && (!Number.isInteger(supply) || supply < 1 || supply > MAX_SUPPLY)) {
     throw invalid(
       `Use a whole number from 1 to ${MAX_SUPPLY.toLocaleString("en-US")}, or leave it unlimited.`,
@@ -375,6 +375,10 @@ export async function updateItem(
 
   const isNft = item.chainType === "CONTRACT_NFT";
   if (isNft) checkNftEdit(item.contractNft?.status, input);
+  if (item.chainType === "OFF_CHAIN") {
+    if (input.code !== undefined) throw invalid("Non Stellar items don't have a code.");
+    if (input.supply === null) throw invalid("Set how many can be sold.");
+  }
   checkPrices(input);
   checkOwnUrls({ cover: input.coverUrl });
   if (input.supply !== undefined) {

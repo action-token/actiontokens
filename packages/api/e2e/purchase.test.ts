@@ -422,3 +422,63 @@ describe("a members-only or tier item", () => {
     await db.membershipTier.deleteMany({ where: { id: { in: [low.id, gold.id] } } });
   });
 });
+
+describe("a Non Stellar item", () => {
+  let offChainListing = "";
+  let offChainItem = "";
+
+  beforeAll(async () => {
+    const item = await db.item.create({
+      data: {
+        type: "MERCH",
+        chainType: "OFF_CHAIN",
+        title: "E2E tote bag",
+        slug: `${run}-tote`,
+        coverUrl: "https://picsum.photos/seed/e2e-tote/400",
+        supply: 3,
+        artistId: ids.artist,
+        createdById: ids.users[0] ?? "",
+      },
+    });
+    offChainItem = item.id;
+    const listing = await db.listing.create({
+      data: { itemId: item.id, sellerId: ids.users[0] ?? "", priceBandcoin: "10", priceUsd: "2.5" },
+    });
+    offChainListing = listing.id;
+    wallets.set(keys.buyer.publicKey(), { xlm: "10", lines: [{ ...BANDCOIN, balance: "100" }] });
+  });
+
+  afterAll(async () => {
+    await db.order.deleteMany({ where: { itemId: offChainItem } });
+    await db.ownership.deleteMany({ where: { itemId: offChainItem } });
+    await db.listing.deleteMany({ where: { itemId: offChainItem } });
+  });
+
+  it("is a plain payment to the artist: no trustline, nothing on Stellar, owned in the database", async () => {
+    const caller = callerFor(buyer);
+    const input = { listingId: offChainListing, quantity: 2, currency: "BANDCOIN" as const };
+    const quote = await caller.order.quote(input);
+    // 2 × 10 + 2.5 %, and only the network fee in XLM: no trustline reserve.
+    expect(quote.totals).toEqual([
+      { currency: "BANDCOIN", amount: "20.5000000" },
+      { currency: "XLM", amount: "0.0000200" },
+    ]);
+    expect(quote.lines.map((line) => line.key)).not.toContain("reserve");
+
+    const started = await caller.order.start(input);
+    const tx = TransactionBuilder.fromXDR(started.xdr, Networks.TESTNET) as Transaction;
+    expect(tx.operations.map((op) => op.type)).toEqual(["payment", "payment"]);
+    expect(tx.operations.every((op) => !op.source)).toBe(true);
+
+    const done = await caller.order.submit({ orderId: started.orderId, xdr: started.xdr });
+    expect(done.status).toBe("DELIVERED");
+    const owned = await db.ownership.findUniqueOrThrow({
+      where: { userId_itemId: { userId: buyer.id, itemId: offChainItem } },
+    });
+    expect(owned.quantity.toString()).toBe("2");
+
+    // Stock is the limit minus copies sold.
+    const more = await caller.order.quote({ ...input, quantity: 2 });
+    expect(more.problems.map((problem) => problem.message)).toContain("Only 1 left.");
+  });
+});

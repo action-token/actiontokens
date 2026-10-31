@@ -10,7 +10,8 @@ export type ClassicPurchaseInput = {
   network: NetworkParams;
   /** Order id, written to the memo */
   orderId: string;
-  item: Asset;
+  /** null: a Non Stellar item, a plain payment with nothing delivered on Stellar */
+  item: Asset | null;
   /**
    * The payouts. Wallet orders: the buyer pays seller, fee and royalty.
    * Card orders: `from` is the treasury, paying the seller (and royalty) in
@@ -46,7 +47,11 @@ export type ClassicPurchaseInput = {
 export function buildClassicPurchase(input: ClassicPurchaseInput) {
   const buyer = input.buyer.accountId();
   const { fromStock, mint } = input.delivery;
-  if (!fromStock && !mint) throw new RangeError("A purchase must deliver something");
+  const item = input.item;
+  if (item && !fromStock && !mint) throw new RangeError("A purchase must deliver something");
+  if (!item && (fromStock || mint || input.openTrustline))
+    throw new RangeError("A Non Stellar item has nothing to deliver on Stellar");
+  if (!item && !input.payment) throw new RangeError("A Non Stellar item needs a payment");
 
   const builder = startTransaction(input.buyer, input.network, { memo: input.orderId });
   const serverSigners: string[] = [];
@@ -63,7 +68,7 @@ export function buildClassicPurchase(input: ClassicPurchaseInput) {
     serverSigners.push(input.topUp.from);
   }
 
-  if (input.openTrustline) builder.addOperation(Operation.changeTrust({ asset: input.item }));
+  if (item && input.openTrustline) builder.addOperation(Operation.changeTrust({ asset: item }));
 
   if (input.payment) {
     const { asset, from, seller, platformFee, royalty } = input.payment;
@@ -81,23 +86,23 @@ export function buildClassicPurchase(input: ClassicPurchaseInput) {
     }
   }
 
-  if (fromStock && !isZero(fromStock.amount)) {
+  if (item && fromStock && !isZero(fromStock.amount)) {
     builder.addOperation(
       Operation.payment({
         source: fromStock.account,
         destination: buyer,
-        asset: input.item,
+        asset: item,
         amount: fromStock.amount,
       }),
     );
     serverSigners.push(fromStock.account);
   }
-  if (mint && !isZero(mint.amount)) {
+  if (item && mint && !isZero(mint.amount)) {
     builder.addOperation(
       Operation.payment({
         source: mint.issuer,
         destination: buyer,
-        asset: input.item,
+        asset: item,
         amount: mint.amount,
       }),
     );

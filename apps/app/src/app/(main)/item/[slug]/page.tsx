@@ -115,7 +115,14 @@ export default async function ItemPage({ params }: Props) {
           ],
         ] as [string, string][])
       : []),
-    ["Network", item.network === "mainnet" ? "Stellar" : "Stellar testnet"],
+    [
+      "Network",
+      item.chainType === "OFF_CHAIN"
+        ? "Not on Stellar (Bandcoin keeps track of owners)"
+        : item.network === "mainnet"
+          ? "Stellar"
+          : "Stellar testnet",
+    ],
   ];
 
   return (

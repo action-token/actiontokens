@@ -7,6 +7,7 @@ import { portalRouter } from "../root-portal";
 import type { ChainGateway } from "../services/chain-gateway";
 import { createCallerFactory } from "../trpc";
 import { createItem, getItem, listMyItems, removeItem, updateItem } from "../services/artist/items";
+import { createOffChainItem } from "../services/artist/off-chain";
 
 vi.mock("@bandcoin/storage", () => ({
   isOwnS3Url: (url: string) => url.startsWith("https://cdn.example/"),
@@ -596,5 +597,42 @@ describe("catalog router", () => {
         { ...input, title: " " },
       ),
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+});
+
+describe("Non Stellar items", () => {
+  const { code: _code, ...base } = input;
+
+  it("saves the item with no code and nothing on Stellar, even without an artist account", async () => {
+    const { ctx, created } = setup({ issuer: null });
+    await createOffChainItem(ctx, artist, user, { ...base, supply: 25 });
+    expect(created[0]).toMatchObject({
+      chainType: "OFF_CHAIN",
+      supply: 25,
+      listings: { create: { kind: "PRIMARY", status: "ACTIVE", priceBandcoin: "25" } },
+    });
+    expect(created[0]!.classicToken).toBeUndefined();
+  });
+
+  it("needs a supply limit, the file for art, and real prices", async () => {
+    await expect(
+      createOffChainItem(setup().ctx, artist, user, { ...base, supply: 0 }),
+    ).rejects.toThrow();
+    await expect(
+      createOffChainItem(setup().ctx, artist, user, { ...base, supply: 5, media: undefined }),
+    ).rejects.toMatchObject({ message: "Add the file people will get." });
+    await expect(
+      createOffChainItem(setup().ctx, artist, user, { ...base, supply: 5, priceUsd: "0" }),
+    ).rejects.toThrow();
+  });
+
+  it("can't take a code or lose its limit when edited", async () => {
+    const item = owned({ chainType: "OFF_CHAIN", classicToken: null });
+    await expect(
+      updateItem(setup({ item }).ctx, artist, { itemId: "i1", code: "ABC" }),
+    ).rejects.toMatchObject({ message: "Non Stellar items don't have a code." });
+    await expect(
+      updateItem(setup({ item }).ctx, artist, { itemId: "i1", supply: null }),
+    ).rejects.toMatchObject({ message: "Set how many can be sold." });
   });
 });
