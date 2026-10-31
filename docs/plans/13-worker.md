@@ -33,6 +33,10 @@ XLM swap, activation, issuer setup, storage setup, storage stock, storage
 withdraw, NFT register. Each is tested both ways (app submit, worker finish),
 and running a finish twice does nothing the second time.
 
+**No retries for payments** (decided 2026-10-31): `order.reconcile` runs once
+per minute and is never retried on failure; the payment toasts don't wait or
+offer "try again" on an order, and Admin › Jobs has no Retry for payment jobs.
+
 Every change is in the activity log as the system (`app: "worker"`), so it
 shows on the person's timeline. The Alerts page's "stuck payment" alert then
 only shows what the worker couldn't settle.
@@ -43,7 +47,10 @@ New and replaced recordings are saved `PENDING` and get a job. The worker:
 
 1. Downloads the upload, reads its length (`ffprobe`).
 2. Makes the **stream** (AAC 256 kbps `.m4a`), the **30 s preview** cut from
-   the artist's preview start, and a **waveform** (peaks as JSON).
+   the artist's preview start, and a **waveform** (peaks as JSON). The ffmpeg
+   recipes are ported from the old bandfan worker (`package/express-wadzzo`):
+   loudness normalised to −14 LUFS, a 128 kbps preview with fades in and out,
+   and stems left un-normalised.
 3. Stores them in the bucket under private keys (owners get signed links, as
    `playbackFor` already expects) and marks the media `READY`.
 
@@ -62,7 +69,8 @@ when you want.
   minute (one at a time).
 - **Health:** `GET /health` (last tick, queue size) for the host's checks;
   graceful stop finishes the running job.
-- **Admin › Jobs:** recent and failed jobs with their error and a Retry button.
+- **Admin › Jobs:** recent and failed jobs with their error, and a Retry
+  button on music jobs only (none on payment jobs).
 - **Ships as** a Dockerfile (Node 24 + ffmpeg) and `apps/worker/.env.example`.
   Picking the host and deploying is a separate step with you; nothing is
   deployed by this plan.
