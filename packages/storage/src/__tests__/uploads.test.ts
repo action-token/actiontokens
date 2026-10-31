@@ -34,6 +34,16 @@ describe("signed uploads", () => {
     expect(result.fileName).toBe("a.png");
   });
 
+  it("signs the checksum and type as headers, so S3 accepts the browser's PUT and checks the file", async () => {
+    await signImageUpload(file());
+    const options = presigner.getSignedUrl.mock.calls[0]?.[2] as {
+      unhoistableHeaders?: Set<string>;
+      signableHeaders?: Set<string>;
+    };
+    expect(options.unhoistableHeaders).toContain("x-amz-checksum-sha256");
+    expect(options.signableHeaders).toContain("content-type");
+  });
+
   it("refuses too-large and not-allowed files with a validation error", async () => {
     await expect(
       signCreatorUpload(file({ fileSize: MAX_CREATOR_FILE_BYTES + 1 })),

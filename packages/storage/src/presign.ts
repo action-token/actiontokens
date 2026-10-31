@@ -41,7 +41,13 @@ export async function presignUpload(file: DeclaredFile) {
       ContentLength: file.fileSize,
       ChecksumSHA256: file.checksum,
     }),
-    { expiresIn: UPLOAD_URL_TTL_SECONDS },
+    {
+      expiresIn: UPLOAD_URL_TTL_SECONDS,
+      // Keep the checksum a signed header (the SDK would move it into the URL),
+      // so S3 checks the browser's file against it and the browser's header matches.
+      unhoistableHeaders: new Set(["x-amz-checksum-sha256"]),
+      signableHeaders: new Set(["content-type"]),
+    },
   );
   return { uploadUrl, fileUrl: publicS3Url(key), fileName: file.fileName };
 }
