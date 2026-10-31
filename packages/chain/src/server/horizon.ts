@@ -127,7 +127,10 @@ export async function submit(xdr: string): Promise<{ hash: string }> {
     const result = await horizon().submitTransaction(tx);
     return { hash: result.hash };
   } catch (error) {
-    throw toStellarError(error);
+    const failure = toStellarError(error);
+    // The exact codes are what tell a rejection apart; keep them in the server log.
+    console.warn("[stellar] submit failed", failure.code, JSON.stringify(failure.details ?? null));
+    throw failure;
   }
 }
 

@@ -25,6 +25,16 @@ const CODE_MAP: [RegExp, ErrorCode, string][] = [
     "That price expired. Review the new price and try again.",
   ],
   [
+    /tx_insufficient_fee/,
+    ErrorCodes.STELLAR_TX_REJECTED,
+    "The Stellar network is busy and wanted a higher fee. Wait a moment and try again.",
+  ],
+  [
+    /tx_bad_auth/,
+    ErrorCodes.STELLAR_TX_REJECTED,
+    "The transaction wasn't signed by the right wallet. Sign in again and retry.",
+  ],
+  [
     /tx_bad_seq/,
     ErrorCodes.RESOURCE_CONFLICT,
     "Your wallet sent another transaction at the same time. Try again.",
@@ -62,7 +72,9 @@ export function toStellarError(error: unknown): AppError {
       return new AppError(code, { message, details: { resultCodes: codes }, cause: error });
     }
   }
+  // Not one we explain: name Stellar's own code so it can be looked up.
   return new AppError(ErrorCodes.STELLAR_TX_REJECTED, {
+    message: `The Stellar network rejected that transaction (${all.join(", ") || "no code"}).`,
     details: { resultCodes: codes },
     cause: error,
   });

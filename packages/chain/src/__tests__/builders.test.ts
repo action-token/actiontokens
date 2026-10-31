@@ -476,4 +476,12 @@ describe("toStellarError", () => {
     expect(toStellarError(horizonFailure(["op_weird"])).code).toBe("STELLAR_TX_REJECTED");
     expect(toStellarError(new Error("socket hang up")).code).toBe("STELLAR_TX_SUBMIT_FAILED");
   });
+
+  it("explains a busy network and a wrong signer, and names any other code", () => {
+    expect(toStellarError(horizonFailure([], "tx_insufficient_fee")).message).toMatch(/busy/);
+    expect(toStellarError(horizonFailure([], "tx_bad_auth")).message).toMatch(/right wallet/);
+    expect(toStellarError(horizonFailure(["op_weird"])).message).toBe(
+      "The Stellar network rejected that transaction (tx_failed, op_weird).",
+    );
+  });
 });
