@@ -188,8 +188,41 @@ export const CHECKS: TableCheck[] = [
   { domain: "Catalog", oldTable: "Collection", newTable: "item_collections" },
   { domain: "Catalog", oldTable: "NftLike", newTable: "item_likes" },
   { domain: "Catalog", oldTable: "CollectionLike", newTable: "collection_likes" },
-  { domain: "Catalog", oldTable: "NftLockedMedia", newTable: "locked_contents" },
-  { domain: "Catalog", oldTable: "NftUnlockLocationRule", newTable: "unlock_rules" },
+  {
+    domain: "Catalog",
+    oldTable: "NftLockedMedia",
+    newTable: "locked_contents",
+    note: "nftId → the NFT's item; chainIndex copied unchanged (the contract's unlock records use it). OTHER stays OTHER (shown as Link).",
+    breakdown: {
+      label: "Type",
+      sql: `SELECT type::text AS k, count(*) AS n FROM "NftLockedMedia" GROUP BY 1`,
+    },
+    issues: [
+      {
+        label: "Locked media without a web link",
+        sql: n(t("NftLockedMedia"), `url !~* '^https?://'`),
+        action: "Copied as is and flagged: owners couldn't open them on the old app either.",
+      },
+      {
+        label: "Two pieces of one NFT with the same chain index",
+        sql: `SELECT count(*) AS n FROM (SELECT "nftId", "chainIndex" FROM "NftLockedMedia" GROUP BY 1, 2 HAVING count(*) > 1) d`,
+        action: "Copied; flagged for review (the contract can't tell them apart).",
+      },
+    ],
+  },
+  {
+    domain: "Catalog",
+    oldTable: "NftUnlockLocationRule",
+    newTable: "unlock_rules",
+    note: "radius (m) → radiusMeters, rounded.",
+    issues: [
+      {
+        label: "Rules with no places",
+        sql: `SELECT count(*) AS n FROM "NftUnlockLocationRule" r WHERE NOT EXISTS (SELECT 1 FROM "NftUnlockLocationPoint" p WHERE p."ruleId" = r.id)`,
+        action: "Copied; the piece can't be unlocked until the artist re-creates it.",
+      },
+    ],
+  },
   { domain: "Catalog", oldTable: "NftUnlockLocationPoint", newTable: "unlock_points" },
 
   // ── Market ─────────────────────────────────────────────────────────────
@@ -270,7 +303,24 @@ export const CHECKS: TableCheck[] = [
   },
   { domain: "Market", oldTable: "Redeem", newTable: "redeem_codes" },
   { domain: "Market", oldTable: "RedeemConsumer", newTable: "redeem_claims" },
-  { domain: "Market", oldTable: "NftContentRedeem", newTable: "locked_content_redeems" },
+  {
+    domain: "Market",
+    oldTable: "NftContentRedeem",
+    newTable: "locked_content_redeems",
+    note: "nftTokenId → the copy (nft_editions by tokenId); mediaIndex → the piece with that chainIndex; isRedeemed dropped (redeemedAt says it).",
+    issues: [
+      {
+        label: "Codes whose piece doesn't exist (no locked media with that index)",
+        sql: `SELECT count(*) AS n FROM "NftContentRedeem" c JOIN "NftToken" k ON k."tokenId" = c."nftTokenId" WHERE NOT EXISTS (SELECT 1 FROM "NftLockedMedia" m WHERE m."nftId" = k."nftId" AND m."chainIndex" = c."mediaIndex")`,
+        action: "Skipped (orphans).",
+      },
+      {
+        label: "Codes marked redeemed without a date",
+        sql: n(t("NftContentRedeem"), `"isRedeemed" AND "redeemedAt" IS NULL`),
+        action: "redeemedAt set to createdAt so they stay redeemed.",
+      },
+    ],
+  },
   { domain: "Market", oldTable: "RoyaltyReport", newTable: "royalty_reports" },
   { domain: "Market", oldTable: "RoyaltyPayout", newTable: "royalty_payouts" },
   { domain: "Market", oldTable: "RoyaltyPayoutLine", newTable: "royalty_payout_lines" },
@@ -341,6 +391,14 @@ export const CHECKS: TableCheck[] = [
     domain: "AR",
     oldTable: "LocationGroup",
     newTable: "pins",
+    note: "Unlock groups (unlockForTokenId set) → unlock pins: restrictedToUserId, unlockEditionId (the copy), unlockLockedContentId, unlockItemId and the on-chain unlock fields carried over, so owners keep their progress; claimLimit 0.",
+    issues: [
+      {
+        label: "Unlock groups whose copy or locked media is gone",
+        sql: `SELECT count(*) AS n FROM "LocationGroup" g WHERE g."unlockForTokenId" IS NOT NULL AND (NOT EXISTS (SELECT 1 FROM "NftToken" k WHERE k.id = g."unlockForTokenId") OR NOT EXISTS (SELECT 1 FROM "NftLockedMedia" m WHERE m.id = g."unlockForLockedMediaId"))`,
+        action: "Skipped (orphans); the new app makes them again when the owner opens the NFT.",
+      },
+    ],
     breakdown: {
       label: "Approval",
       sql: `SELECT CASE WHEN approved IS TRUE THEN 'APPROVED' WHEN approved IS FALSE THEN 'REJECTED' ELSE 'PENDING' END AS k, count(*) AS n FROM "LocationGroup" GROUP BY 1`,

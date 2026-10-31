@@ -1,6 +1,6 @@
 # Legacy migration: dry-run report
 
-Generated 2026-10-28T10:52:06.710Z from the old dev database (read only). Nothing was written.
+Generated 2026-10-31T17:46:53.631Z from the old dev database (read only). Nothing was written.
 
 **4,268 rows** in 91 old tables.
 
@@ -42,47 +42,47 @@ None.
 
 ### Catalog
 
-| Old table              | Rows | New table                                                                                                                                                                | Note                                                   |
-| ---------------------- | ---: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------ |
-| Asset                  |   85 | items (CLASSIC_TOKEN) + classic_tokens + item_media                                                                                                                      |                                                        |
-| ↳ Type × visibility    |      | MUSIC / PUBLIC: 50, IMAGE / PUBLIC: 14, MUSIC / TIER: 6, VIDEO / PUBLIC: 5, MUSIC / PRIVATE: 5, IMAGE / TIER: 2, IMAGE / PRIVATE: 1, VIDEO / PRIVATE: 1, VIDEO / TIER: 1 |                                                        |
-| Song                   |   45 | tracks                                                                                                                                                                   | Song price/priceUSD become the item's primary listing. |
-| Album                  |   20 | albums                                                                                                                                                                   |                                                        |
-| Stem                   |    3 | item_stems                                                                                                                                                               |                                                        |
-| Nft                    |   20 | items (CONTRACT_NFT) + contract_nfts                                                                                                                                     |                                                        |
-| ↳ Status               |      | PENDING: 8, MINTED: 12                                                                                                                                                   |                                                        |
-| NftToken               |   12 | nft_editions                                                                                                                                                             |                                                        |
-| Collection             |    6 | item_collections                                                                                                                                                         |                                                        |
-| NftLike                |    0 | item_likes                                                                                                                                                               |                                                        |
-| CollectionLike         |    0 | collection_likes                                                                                                                                                         |                                                        |
-| NftLockedMedia         |    0 | locked_contents                                                                                                                                                          |                                                        |
-| NftUnlockLocationRule  |    0 | unlock_rules                                                                                                                                                             |                                                        |
-| NftUnlockLocationPoint |    0 | unlock_points                                                                                                                                                            |                                                        |
+| Old table              | Rows | New table                                                                                                                                                                | Note                                                                                                                           |
+| ---------------------- | ---: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| Asset                  |   85 | items (CLASSIC_TOKEN) + classic_tokens + item_media                                                                                                                      |                                                                                                                                |
+| ↳ Type × visibility    |      | MUSIC / PUBLIC: 50, IMAGE / PUBLIC: 14, MUSIC / TIER: 6, VIDEO / PUBLIC: 5, MUSIC / PRIVATE: 5, IMAGE / TIER: 2, IMAGE / PRIVATE: 1, VIDEO / PRIVATE: 1, VIDEO / TIER: 1 |                                                                                                                                |
+| Song                   |   45 | tracks                                                                                                                                                                   | Song price/priceUSD become the item's primary listing.                                                                         |
+| Album                  |   20 | albums                                                                                                                                                                   |                                                                                                                                |
+| Stem                   |    3 | item_stems                                                                                                                                                               |                                                                                                                                |
+| Nft                    |   20 | items (CONTRACT_NFT) + contract_nfts                                                                                                                                     |                                                                                                                                |
+| ↳ Status               |      | PENDING: 8, MINTED: 12                                                                                                                                                   |                                                                                                                                |
+| NftToken               |   12 | nft_editions                                                                                                                                                             |                                                                                                                                |
+| Collection             |    6 | item_collections                                                                                                                                                         |                                                                                                                                |
+| NftLike                |    0 | item_likes                                                                                                                                                               |                                                                                                                                |
+| CollectionLike         |    0 | collection_likes                                                                                                                                                         |                                                                                                                                |
+| NftLockedMedia         |    0 | locked_contents                                                                                                                                                          | nftId → the NFT's item; chainIndex copied unchanged (the contract's unlock records use it). OTHER stays OTHER (shown as Link). |
+| NftUnlockLocationRule  |    0 | unlock_rules                                                                                                                                                             | radius (m) → radiusMeters, rounded.                                                                                            |
+| NftUnlockLocationPoint |    0 | unlock_points                                                                                                                                                            |                                                                                                                                |
 
 ### Market
 
-| Old table         | Rows | New table                                 | Note                                                          |
-| ----------------- | ---: | ----------------------------------------- | ------------------------------------------------------------- |
-| MarketAsset       |   85 | listings (PRIMARY)                        | price → priceBandcoin, priceUSD → priceUsd.                   |
-| ↳ Type            |      | ROYALTY: 20, SONG: 25, ADMIN: 20, FAN: 20 |                                                               |
-| SellPageAsset     |    0 | listings (fan token)                      |                                                               |
-| NftPrice          |   40 | listings (PRIMARY, NFT)                   |                                                               |
-| ↳ Payment token   |      | asset: 20, usd: 20                        |                                                               |
-| NftListing        |    0 | listings (RESALE)                         |                                                               |
-| NftListingPrice   |    0 | listings.priceBandcoin / priceUsd         |                                                               |
-| User_Asset        |   26 | ownerships (PURCHASE)                     | Merged with Ownership; the chain sync job re-checks balances. |
-| User_Song         |    0 | ownerships                                | Folded into the song item's ownership.                        |
-| Ownership         |   26 | ownerships                                |                                                               |
-| Order             |   26 | orders                                    |                                                               |
-| NftPurchase       |   12 | orders                                    |                                                               |
-| ↳ Status          |      | CONFIRMED: 12                             |                                                               |
-| Redeem            |   20 | redeem_codes                              |                                                               |
-| RedeemConsumer    |    0 | redeem_claims                             |                                                               |
-| NftContentRedeem  |    0 | locked_content_redeems                    |                                                               |
-| RoyaltyReport     |    0 | royalty_reports                           |                                                               |
-| RoyaltyPayout     |    0 | royalty_payouts                           |                                                               |
-| RoyaltyPayoutLine |    0 | royalty_payout_lines                      |                                                               |
-| AdminAsset        |    0 | (waiting for your decision)               | Admin token directory: not in the new schema yet.             |
+| Old table         | Rows | New table                                 | Note                                                                                                                                   |
+| ----------------- | ---: | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| MarketAsset       |   85 | listings (PRIMARY)                        | price → priceBandcoin, priceUSD → priceUsd.                                                                                            |
+| ↳ Type            |      | ROYALTY: 20, SONG: 25, ADMIN: 20, FAN: 20 |                                                                                                                                        |
+| SellPageAsset     |    0 | listings (fan token)                      |                                                                                                                                        |
+| NftPrice          |   40 | listings (PRIMARY, NFT)                   |                                                                                                                                        |
+| ↳ Payment token   |      | asset: 20, usd: 20                        |                                                                                                                                        |
+| NftListing        |    0 | listings (RESALE)                         |                                                                                                                                        |
+| NftListingPrice   |    0 | listings.priceBandcoin / priceUsd         |                                                                                                                                        |
+| User_Asset        |   26 | ownerships (PURCHASE)                     | Merged with Ownership; the chain sync job re-checks balances.                                                                          |
+| User_Song         |    0 | ownerships                                | Folded into the song item's ownership.                                                                                                 |
+| Ownership         |   26 | ownerships                                |                                                                                                                                        |
+| Order             |   26 | orders                                    |                                                                                                                                        |
+| NftPurchase       |   12 | orders                                    |                                                                                                                                        |
+| ↳ Status          |      | CONFIRMED: 12                             |                                                                                                                                        |
+| Redeem            |   20 | redeem_codes                              |                                                                                                                                        |
+| RedeemConsumer    |    0 | redeem_claims                             |                                                                                                                                        |
+| NftContentRedeem  |    0 | locked_content_redeems                    | nftTokenId → the copy (nft_editions by tokenId); mediaIndex → the piece with that chainIndex; isRedeemed dropped (redeemedAt says it). |
+| RoyaltyReport     |    0 | royalty_reports                           |                                                                                                                                        |
+| RoyaltyPayout     |    0 | royalty_payouts                           |                                                                                                                                        |
+| RoyaltyPayoutLine |    0 | royalty_payout_lines                      |                                                                                                                                        |
+| AdminAsset        |    0 | (waiting for your decision)               | Admin token directory: not in the new schema yet.                                                                                      |
 
 ### Music
 
@@ -110,18 +110,18 @@ None.
 
 ### AR
 
-| Old table        | Rows | New table      | Note                                                     |
-| ---------------- | ---: | -------------- | -------------------------------------------------------- |
-| LocationGroup    |   20 | pins           |                                                          |
-| ↳ Approval       |      | PENDING: 20    |                                                          |
-| Location         |   39 | pin_spots      |                                                          |
-| LocationConsumer |    0 | pin_claims     |                                                          |
-| Hotspot          |    0 | hotspots       | QStash schedule ids dropped; the worker schedules drops. |
-| LocationTag      |    0 | pin_tags       |                                                          |
-| LocationGroupTag |    0 | pin_tag_links  |                                                          |
-| LocationTagCache |    0 | pin_tag_cache  |                                                          |
-| GeoCache         |    7 | geo_cache      |                                                          |
-| LocationGroupJob |    0 | pin_batch_jobs |                                                          |
+| Old table        | Rows | New table      | Note                                                                                                                                                                                                                              |
+| ---------------- | ---: | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| LocationGroup    |   20 | pins           | Unlock groups (unlockForTokenId set) → unlock pins: restrictedToUserId, unlockEditionId (the copy), unlockLockedContentId, unlockItemId and the on-chain unlock fields carried over, so owners keep their progress; claimLimit 0. |
+| ↳ Approval       |      | PENDING: 20    |                                                                                                                                                                                                                                   |
+| Location         |   39 | pin_spots      |                                                                                                                                                                                                                                   |
+| LocationConsumer |    0 | pin_claims     |                                                                                                                                                                                                                                   |
+| Hotspot          |    0 | hotspots       | QStash schedule ids dropped; the worker schedules drops.                                                                                                                                                                          |
+| LocationTag      |    0 | pin_tags       |                                                                                                                                                                                                                                   |
+| LocationGroupTag |    0 | pin_tag_links  |                                                                                                                                                                                                                                   |
+| LocationTagCache |    0 | pin_tag_cache  |                                                                                                                                                                                                                                   |
+| GeoCache         |    7 | geo_cache      |                                                                                                                                                                                                                                   |
+| LocationGroupJob |    0 | pin_batch_jobs |                                                                                                                                                                                                                                   |
 
 ### Bounty
 

@@ -92,6 +92,10 @@ full locked content feature (main: `artist/smart-contract/create`,
 
 - The legacy migration copies locked media, unlock rules and places, content
   codes and the unlock pin groups, so existing owners keep their progress.
+- Done so far: the dry run checks every locked-content table and the unlock
+  pin groups, with the mapping written beside each (docs/migration-report.md).
+  The old dev database has no locked content yet. The copy itself is written
+  with plan 03's run step, which waits for its own approval.
 
 ## Order of work
 
