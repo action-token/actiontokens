@@ -118,13 +118,14 @@ export const catalogRouter = createRouter({
       return { artist: item.artist, items: rows.map(toItemCard) };
     }),
 
-  /** The marketplace grid: everything for sale, by type, search and sort, a page at a time. */
+  /** The marketplace grid: everything for sale, by type, search and sort, a page at a time. `locked`: only NFTs with locked content (the old Bandcoin's gated list). */
   browse: publicProcedure
     .input(
       z.object({
         type: z.enum(ItemType).optional(),
         search: z.string().trim().max(80).optional(),
         sort: z.enum(["newest", "popular", "title"]).default("newest"),
+        locked: z.boolean().optional(),
         cursor: z.string().optional(),
       }),
     )
@@ -133,6 +134,7 @@ export const catalogRouter = createRouter({
         ...listedItemWhere,
         listings: { some: { status: "ACTIVE" } },
         ...(input.type ? { type: input.type } : {}),
+        ...(input.locked ? { lockedContents: { some: {} } } : {}),
         ...(input.search
           ? {
               OR: [

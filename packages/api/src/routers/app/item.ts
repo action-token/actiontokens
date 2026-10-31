@@ -4,8 +4,9 @@ import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import { accessOf, accessSelect, checkAccess } from "../../services/catalog/access";
 import { listedItemWhere } from "../../services/catalog/item-card";
+import { lockedForOwner, lockedPreview } from "../../services/catalog/locked-view";
 import { remainingCopies } from "../../services/purchase/sale";
-import { createRouter, publicProcedure } from "../../trpc";
+import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 
 export const itemRouter = createRouter({
   /**
@@ -69,7 +70,7 @@ export const itemRouter = createRouter({
 
       const gate = accessOf(item);
       const user = ctx.session?.user;
-      const [owned, recentSales, account] = await Promise.all([
+      const [owned, recentSales, account, locked] = await Promise.all([
         viewerId
           ? ctx.db.ownership.findUnique({
               where: { userId_itemId: { userId: viewerId, itemId: item.id } },
@@ -93,6 +94,7 @@ export const itemRouter = createRouter({
         gate && user?.walletAddress
           ? ctx.chain.loadAccount(user.walletAddress).catch(() => null)
           : null,
+        item.chainType === "CONTRACT_NFT" ? lockedPreview(ctx.db, item.id) : [],
       ]);
 
       const { listings, _count, membersOnly: _, tier, artist, ...rest } = item;
@@ -126,6 +128,8 @@ export const itemRouter = createRouter({
           .filter((listing) => listing.kind === "PRIMARY")
           .reduce((sum, listing) => sum + listing.quantitySold, 0),
         network: ctx.chain.config.name,
+        /** Contract NFTs: what's locked and where its places are (never the links) */
+        lockedContent: locked,
         recentSales: recentSales.map((sale) => ({
           id: sale.id,
           quantity: sale.quantity,
@@ -146,4 +150,9 @@ export const itemRouter = createRouter({
         })),
       };
     }),
+
+  /** The viewer's copies of a contract NFT: progress per locked piece, and its link once unlocked. */
+  lockedForMe: authedProcedure
+    .input(z.object({ itemId: z.string().min(1) }))
+    .query(({ ctx, input }) => lockedForOwner(ctx.db, ctx.session.user.id, input.itemId)),
 });

@@ -9,6 +9,7 @@ import { PageBody } from "@bandcoin/ui/patterns/page-header";
 
 import { Money } from "~/components/money";
 import { ItemPurchase } from "~/features/buy/item-purchase";
+import { LockedContent } from "~/features/nft/locked-content";
 import { ReactionButtons } from "~/features/reactions/reaction-buttons";
 import { playsLabel } from "~/lib/format";
 import { ItemCard } from "~/features/catalog/item-card";
@@ -317,6 +318,12 @@ export default async function ItemPage({ params }: Props) {
             nft={item.chainType === "CONTRACT_NFT"}
           />
         </section>
+
+        <LockedContent
+          itemId={item.id}
+          pieces={item.lockedContent}
+          owned={item.ownedQuantity > 0}
+        />
 
         <div className="grid gap-3">
           <Fold title="Details" open>

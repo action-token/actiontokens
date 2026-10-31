@@ -14,7 +14,7 @@ import { api, type RouterInputs } from "~/trpc/react";
 import { ItemCard } from "../catalog/item-card";
 
 type Browse = RouterInputs["catalog"]["browse"];
-type TypeFilter = NonNullable<Browse["type"]> | "ALL";
+type TypeFilter = NonNullable<Browse["type"]> | "ALL" | "LOCKED";
 type Sort = NonNullable<Browse["sort"]>;
 
 const TYPES: { value: TypeFilter; label: string }[] = [
@@ -26,6 +26,7 @@ const TYPES: { value: TypeFilter; label: string }[] = [
   { value: "FAN_TOKEN", label: "Fan tokens" },
   { value: "MERCH", label: "Merch" },
   { value: "ROYALTY", label: "Royalties" },
+  { value: "LOCKED", label: "Locked content" },
 ];
 const SORTS: { value: Sort; label: string }[] = [
   { value: "newest", label: "Newest" },
@@ -55,7 +56,12 @@ export function MarketplaceView() {
   const onSearch = useCallback((value: string) => setParam("search", value, ""), [setParam]);
 
   const browse = api.catalog.browse.useInfiniteQuery(
-    { type: type === "ALL" ? undefined : type, sort, search: search || undefined },
+    {
+      type: type === "ALL" || type === "LOCKED" ? undefined : type,
+      locked: type === "LOCKED" || undefined,
+      sort,
+      search: search || undefined,
+    },
     { getNextPageParam: (page) => page.nextCursor },
   );
   const items = browse.data?.pages.flatMap((page) => page.items) ?? [];
