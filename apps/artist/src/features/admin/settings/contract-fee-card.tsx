@@ -1,71 +1,64 @@
 "use client";
 
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 import { abbreviateAddress } from "@bandcoin/utils/address";
+import { stellarExpertTxUrl } from "@bandcoin/wallet/config";
 import { Button } from "@bandcoin/ui/components/button";
 import { Input } from "@bandcoin/ui/components/input";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
+import { ConfirmDialog } from "@bandcoin/ui/patterns/confirm-dialog";
 import { Field } from "@bandcoin/ui/patterns/form-page";
 
-import { Money } from "~/components/money";
 import { api } from "~/trpc/react";
 
-import { PaymentToast } from "../../payments/payment-toast";
-import { QuoteBreakdown } from "../../payments/quote-breakdown";
-import { useWalletPayment } from "../../payments/use-wallet-payment";
+import { messageOf } from "../murals/model";
 import { SettingsSection } from "../../settings/settings-section";
 
 const MAX_PERCENT = 10;
 const ACCOUNT = /^G[A-Z2-7]{55}$/;
+const short = (account: string | null) => (account ? abbreviateAddress(account, 5) : "not set");
 
 /**
  * The fee the shared NFT contract charges on every NFT sale. It lives on the
- * contract, so changing it is a transaction from the contract owner's wallet:
- * the network fee shows first, then the admin signs.
+ * contract, whose owner is the platform treasury: an admin confirms, the
+ * server signs as the treasury and the treasury pays the network fee.
  */
 export function ContractFeeCard() {
   const current = api.admin.settings.contractFee.useQuery(undefined, {
     refetchOnWindowFocus: false,
   });
-  const me = api.account.me.useQuery();
-  const onChain = current.data?.onChain;
+  const data = current.data;
+  const onChain = data?.onChain;
 
   return (
     <SettingsSection
       title="Contract-NFT fee"
-      description="What the NFT contract takes from every NFT sale. Only the contract's owner can change it, from their own wallet."
+      description="What the NFT contract takes from every NFT sale. Changing it is a transaction the platform treasury signs and pays for."
     >
       <div className="bg-surface border-border grid gap-4 rounded-xl border p-4 sm:p-5">
         {current.isPending ? (
           <Skeleton className="h-16 w-full rounded-lg" />
         ) : !onChain ? (
-          <p className="text-fg-muted text-sm">
-            {current.data?.error ?? "Couldn't read the contract."}
-          </p>
+          <p className="text-fg-muted text-sm">{data?.error ?? "Couldn't read the contract."}</p>
         ) : (
           <>
             <dl className="grid gap-2 text-sm sm:grid-cols-3">
               <Fact label="Now on the contract" value={`${onChain.feeBps / 100}%`} />
-              <Fact
-                label="Goes to"
-                value={onChain.treasury ? abbreviateAddress(onChain.treasury, 5) : "Not set"}
-              />
-              <Fact
-                label="Owner"
-                value={onChain.owner ? abbreviateAddress(onChain.owner, 5) : "Unknown"}
-              />
+              <Fact label="Goes to" value={short(onChain.treasury)} />
+              <Fact label="Owner" value={short(onChain.owner)} />
             </dl>
-            {onChain.owner && me.data?.walletAddress === onChain.owner ? (
+            {data.canChange ? (
               <ChangeFee
                 key={`${onChain.feeBps}-${onChain.treasury}`}
                 feeBps={onChain.feeBps}
                 treasury={onChain.treasury ?? ""}
-                balance={me.data.balances.XLM}
               />
             ) : (
               <p className="text-fg-muted text-sm">
-                Sign in with the owner&apos;s wallet to change it.
+                The contract&apos;s owner isn&apos;t the platform treasury, so it can&apos;t be
+                changed from here.
               </p>
             )}
           </>
@@ -84,18 +77,11 @@ function Fact({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ChangeFee({
-  feeBps,
-  treasury,
-  balance,
-}: {
-  feeBps: number;
-  treasury: string;
-  balance?: string;
-}) {
+function ChangeFee({ feeBps, treasury }: { feeBps: number; treasury: string }) {
   const utils = api.useUtils();
   const [percent, setPercent] = useState(String(feeBps / 100));
   const [account, setAccount] = useState(treasury);
+  const [confirming, setConfirming] = useState(false);
   const bps = Math.round(Number(percent) * 100);
   const percentError =
     percent.trim() === "" || Number.isNaN(bps) || bps < 0 || bps > MAX_PERCENT * 100
@@ -103,29 +89,31 @@ function ChangeFee({
       : null;
   const accountError = ACCOUNT.test(account.trim()) ? null : "A Stellar account starts with G";
   const input = { feeBps: bps, treasury: account.trim() };
-  const valid = !percentError && !accountError;
-  const changed = valid && (bps !== feeBps || input.treasury !== treasury);
+  const changed = !percentError && !accountError && (bps !== feeBps || input.treasury !== treasury);
 
-  const quote = api.admin.settings.contractFeeQuote.useQuery(input, {
-    enabled: changed,
-    refetchInterval: 30_000,
-  });
-  const start = api.admin.settings.contractFeeStart.useMutation();
-  const submit = api.admin.settings.contractFeeSubmit.useMutation();
-  const cancel = api.admin.settings.contractFeeCancel.useMutation();
-  const flow = useWalletPayment({
-    start: () => start.mutateAsync(input),
-    submit: (step) => submit.mutateAsync(step),
-    cancel: (step) => cancel.mutateAsync(step),
-    preparing: "Preparing the fee change…",
-    sending: "Changing the contract's fee. This takes a few seconds.",
-    success: {
-      title: "The contract's fee is changed",
-      body: "Every NFT sale from now on pays the new fee.",
+  const change = api.admin.settings.changeContractFee.useMutation({
+    onSuccess: (result) => {
+      setConfirming(false);
+      toast.success(
+        <span>
+          The contract now charges {result.after.feeBps / 100}%.{" "}
+          <a
+            href={stellarExpertTxUrl(result.txHash)}
+            target="_blank"
+            rel="noreferrer"
+            className="underline"
+          >
+            View on Stellar
+          </a>
+        </span>,
+      );
+      void utils.admin.settings.contractFee.invalidate();
     },
-    onDone: () => utils.admin.settings.contractFee.invalidate(),
+    onError: (error) => {
+      setConfirming(false);
+      toast.error(messageOf(error));
+    },
   });
-  const total = quote.data?.total;
 
   return (
     <div className="border-border grid gap-4 border-t pt-4">
@@ -148,23 +136,29 @@ function ChangeFee({
           />
         </Field>
       </div>
-      {changed && <QuoteBreakdown quote={quote.data} balance={balance} loading={quote.isPending} />}
       <Button
         className="justify-self-start"
-        disabled={!changed || !quote.data?.ok || flow.busy}
-        onClick={() => void flow.run(total ? <Money amount={total} currency="XLM" /> : null)}
+        disabled={!changed || change.isPending}
+        onClick={() => setConfirming(true)}
       >
-        {flow.busy ? (
-          "Working…"
-        ) : total && changed ? (
-          <>
-            Pay <Money amount={total} currency="XLM" /> and change the fee
-          </>
-        ) : (
-          "Change the fee"
-        )}
+        Change the fee
       </Button>
-      <PaymentToast flow={flow} />
+      <ConfirmDialog
+        open={confirming}
+        onOpenChange={(open) => !change.isPending && setConfirming(open)}
+        title={`Change the NFT fee to ${bps / 100}%?`}
+        description={
+          <>
+            Every NFT sale from now on pays {bps / 100}% (now {feeBps / 100}%) to{" "}
+            <span className="font-mono">{short(input.treasury)}</span>. The platform treasury signs
+            and pays the small network fee. You can change it again later.
+          </>
+        }
+        confirmLabel="Change the fee"
+        destructive={false}
+        busy={change.isPending}
+        onConfirm={() => change.mutate(input)}
+      />
     </div>
   );
 }

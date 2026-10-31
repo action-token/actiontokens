@@ -31,15 +31,9 @@ import {
 } from "../../services/admin/users";
 import { listBounties, setBountyHidden } from "../../services/admin/bounties";
 import { listItems, setItemHidden } from "../../services/admin/items";
-import {
-  quoteContractFee,
-  readContractFee,
-  startContractFee,
-  submitContractFee,
-} from "../../services/admin/contract-fee";
+import { changeContractFee, readContractFee } from "../../services/admin/contract-fee";
 import { getPerson } from "../../services/admin/person";
 import { getSettings, updateSettings } from "../../services/admin/settings";
-import { cancelPurchase } from "../../services/purchase";
 import { decidePins, deletePins, listPins, pinCounts } from "../../services/admin/pins";
 import { getMuralSettings } from "../../services/ar/murals";
 import { adminProcedure, createRouter } from "../../trpc";
@@ -225,18 +219,9 @@ export const adminRouter = createRouter({
       )
       .mutation(({ ctx, input }) => updateSettings(ctx, input)),
     contractFee: adminProcedure.query(({ ctx }) => readContractFee(ctx)),
-    contractFeeQuote: adminProcedure
+    changeContractFee: adminProcedure
       .input(contractFee)
-      .query(({ ctx, input }) => quoteContractFee(ctx, ctx.session.user, input)),
-    contractFeeStart: adminProcedure
-      .input(contractFee)
-      .mutation(({ ctx, input }) => startContractFee(ctx, ctx.session.user, input)),
-    contractFeeSubmit: adminProcedure
-      .input(z.object({ orderId: z.string().min(1), xdr: z.string().min(1).optional() }))
-      .mutation(({ ctx, input }) => submitContractFee(ctx, ctx.session.user, input)),
-    contractFeeCancel: adminProcedure
-      .input(z.object({ orderId: z.string().min(1) }))
-      .mutation(({ ctx, input }) => cancelPurchase(ctx, ctx.session.user, input.orderId)),
+      .mutation(({ ctx, input }) => changeContractFee(ctx, input)),
   }),
   activity: createRouter({
     list: adminProcedure

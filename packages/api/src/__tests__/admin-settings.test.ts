@@ -9,13 +9,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { Db } from "@bandcoin/db";
 
-import type { SessionUser } from "../context";
-import {
-  quoteContractFee,
-  readContractFee,
-  startContractFee,
-  submitContractFee,
-} from "../services/admin/contract-fee";
+import { changeContractFee, readContractFee } from "../services/admin/contract-fee";
 import { getSettings, updateSettings } from "../services/admin/settings";
 import type { ChainGateway } from "../services/chain-gateway";
 
@@ -24,13 +18,6 @@ const treasury = Keypair.random().publicKey();
 const newTreasury = Keypair.random().publicKey();
 const contract = "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC";
 const network = { passphrase: Networks.TESTNET, baseFee: "100" };
-const ORDER = "cmvorder0000000000000009";
-const admin: SessionUser = {
-  id: "admin1",
-  role: "ADMIN",
-  walletAddress: owner.publicKey(),
-  walletType: "freighter",
-};
 
 type Row = Record<string, unknown>;
 
@@ -39,44 +26,20 @@ function setup(
     row?: Row | null;
     contract?: string | null;
     onChain?: { feeBps: number; treasury: string | null; owner: string | null } | Error;
-    xlm?: string;
   } = {},
 ) {
-  const orders = new Map<string, Row>();
   const db = {
     appSetting: {
       findUnique: vi.fn().mockResolvedValue(opts.row ?? null),
       upsert: vi.fn().mockResolvedValue({}),
     },
-    order: {
-      create: vi.fn(({ data }: { data: Row }) => {
-        const row = { id: ORDER, status: "QUOTED", buyerId: admin.id, ...data };
-        orders.set(ORDER, row);
-        return Promise.resolve(row);
-      }),
-      findUnique: vi.fn(({ where }: { where: { id: string } }) =>
-        Promise.resolve(orders.get(where.id) ?? null),
-      ),
-      findUniqueOrThrow: vi.fn(({ where }: { where: { id: string } }) =>
-        Promise.resolve(orders.get(where.id)),
-      ),
-      updateMany: vi.fn(
-        ({ where, data }: { where: { id: string; status: { in: string[] } }; data: Row }) => {
-          const row = orders.get(where.id);
-          if (!row || !where.status.in.includes(row.status as string))
-            return Promise.resolve({ count: 0 });
-          Object.assign(row, data);
-          return Promise.resolve({ count: 1 });
-        },
-      ),
-    },
     $transaction: (run: (tx: unknown) => unknown) => run(db),
   };
-  const account = Object.assign(new Account(owner.publicKey(), "5"), {
+  const account = Object.assign(new Account(treasury, "5"), {
     subentry_count: 0,
-    balances: [{ asset_type: "native", balance: opts.xlm ?? "10", selling_liabilities: "0" }],
+    balances: [{ asset_type: "native", balance: "10", selling_liabilities: "0" }],
   });
-  const onChain = opts.onChain ?? { feeBps: 250, treasury, owner: owner.publicKey() };
+  const onChain = opts.onChain ?? { feeBps: 250, treasury, owner: treasury };
   const chain = {
     config: {
       network,
@@ -92,6 +55,7 @@ function setup(
     ),
     loadAccount: vi.fn().mockResolvedValue(account),
     prepareContractCall: vi.fn((xdr: string) => Promise.resolve(xdr)),
+    signWithServerKeys: vi.fn((xdr: string) => Promise.resolve(`signed:${xdr}`)),
     submit: vi.fn().mockResolvedValue({ hash: "txhash" }),
   };
   const activity = { set: vi.fn(), facts: () => ({}) };
@@ -99,7 +63,6 @@ function setup(
     ctx: { db: db as unknown as Db, chain: chain as unknown as ChainGateway, activity },
     db,
     chain,
-    orders,
     activity,
   };
 }
@@ -143,6 +106,7 @@ describe("contract-NFT fee", () => {
     await expect(readContractFee(setup().ctx)).resolves.toMatchObject({
       configured: true,
       onChain: { feeBps: 250, treasury },
+      canChange: true,
     });
     await expect(readContractFee(setup({ contract: null }).ctx)).resolves.toMatchObject({
       configured: false,
@@ -151,58 +115,35 @@ describe("contract-NFT fee", () => {
     await expect(
       readContractFee(setup({ onChain: new Error("rpc down") }).ctx),
     ).resolves.toMatchObject({
-      configured: true,
       onChain: null,
       error: "Couldn't read the contract.",
     });
   });
 
-  it("shows the network fee before anything is signed", async () => {
-    const quote = await quoteContractFee(setup().ctx, admin, { feeBps: 300, treasury });
-    expect(quote.ok).toBe(true);
-    expect(quote.lines.map((line) => line.key)).toEqual(["networkFee", "total"]);
-  });
-
-  it("only lets the contract's owner change it, and only to something new", async () => {
-    const stranger = { ...admin, walletAddress: Keypair.random().publicKey() };
-    const notOwner = await quoteContractFee(setup().ctx, stranger, { feeBps: 300, treasury });
-    expect(notOwner.problems[0]?.message).toMatch(/Only the contract's owner/);
-    const same = await quoteContractFee(setup().ctx, admin, { feeBps: 250, treasury });
-    expect(same.problems[0]?.message).toMatch(/already uses/);
-  });
-
-  it("says when the wallet can't pay the network fee", async () => {
-    const quote = await quoteContractFee(setup({ xlm: "0" }).ctx, admin, {
-      feeBps: 300,
-      treasury,
+  it("builds set_platform_fee from the treasury, signs it as the treasury and sends it", async () => {
+    const { ctx, chain, activity } = setup();
+    const result = await changeContractFee(ctx, { feeBps: 300, treasury: newTreasury });
+    expect(result).toEqual({
+      txHash: "txhash",
+      before: { feeBps: 250, treasury },
+      after: { feeBps: 300, treasury: newTreasury },
     });
-    expect(quote.problems[0]?.code).toBe("INSUFFICIENT_FUNDS");
+    const built = chain.prepareContractCall.mock.calls[0]![0];
+    const tx = TransactionBuilder.fromXDR(built, Networks.TESTNET) as Transaction;
+    expect(tx.source).toBe(treasury);
+    expect(chain.signWithServerKeys).toHaveBeenCalledWith(built, [treasury]);
+    expect(chain.submit).toHaveBeenCalledWith(`signed:${built}`);
+    expect(activity.set).toHaveBeenCalledWith({ txHash: "txhash" });
   });
 
-  it("builds set_platform_fee from the owner's wallet as an order, then sends the signed call", async () => {
-    const { ctx, chain, orders } = setup();
-    const started = await startContractFee(ctx, admin, { feeBps: 300, treasury: newTreasury });
-    expect(started).toMatchObject({ orderId: ORDER, signer: "wallet" });
-    const tx = TransactionBuilder.fromXDR(started.xdr, Networks.TESTNET) as Transaction;
-    expect(tx.source).toBe(owner.publicKey());
-    expect(orders.get(ORDER)).toMatchObject({
-      kind: "NFT_PLATFORM_FEE",
-      currency: "XLM",
-      status: "AWAITING_SIGNATURE",
-      breakdown: expect.objectContaining({ feeBps: 300, treasury: newTreasury }) as unknown,
-    });
-    expect(chain.submit).not.toHaveBeenCalled();
-
-    await expect(
-      submitContractFee(ctx, admin, { orderId: ORDER, xdr: started.xdr }),
-    ).resolves.toEqual({ orderId: ORDER, status: "DELIVERED" });
-    expect(chain.submit).toHaveBeenCalledWith(started.xdr);
-    expect(orders.get(ORDER)).toMatchObject({ status: "DELIVERED" });
-  });
-
-  it("refuses to start when the quote has a problem", async () => {
-    await expect(startContractFee(setup().ctx, admin, { feeBps: 250, treasury })).rejects.toThrow(
+  it("refuses when nothing changes, or when the treasury isn't the owner", async () => {
+    await expect(changeContractFee(setup().ctx, { feeBps: 250, treasury })).rejects.toThrow(
       /already uses/,
     );
+    const other = setup({ onChain: { feeBps: 250, treasury, owner: owner.publicKey() } });
+    await expect(changeContractFee(other.ctx, { feeBps: 300, treasury })).rejects.toThrow(
+      /owner isn't the platform treasury/,
+    );
+    expect(other.chain.submit).not.toHaveBeenCalled();
   });
 });
