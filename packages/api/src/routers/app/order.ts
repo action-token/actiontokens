@@ -8,6 +8,12 @@ import {
   startPurchase,
   submitPurchase,
 } from "../../services/purchase";
+import {
+  isNftListing,
+  quoteNftPurchase,
+  startNftPurchase,
+  submitNftPurchase,
+} from "../../services/purchase/nft";
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 
 /** Most copies one purchase can include. */
@@ -22,13 +28,20 @@ const purchaseInput = z.object({
 export const orderRouter = createRouter({
   /** The price breakdown for the buy panel. Works signed out (shows "Sign in to pay"). */
   quote: publicProcedure.input(purchaseInput).query(async ({ ctx, input }) => {
-    const { quote } = await quotePurchase(ctx, ctx.session?.user ?? null, input);
+    const user = ctx.session?.user ?? null;
+    // Contract NFTs are bought from the contract (services/purchase/nft); everything else is classic.
+    if (await isNftListing(ctx.db, input.listingId)) return quoteNftPurchase(ctx, user, input);
+    const { quote } = await quotePurchase(ctx, user, input);
     return quote;
   }),
 
   start: authedProcedure
     .input(purchaseInput)
-    .mutation(({ ctx, input }) => startPurchase(ctx, ctx.session.user, input)),
+    .mutation(async ({ ctx, input }) =>
+      (await isNftListing(ctx.db, input.listingId))
+        ? startNftPurchase(ctx, ctx.session.user, input)
+        : startPurchase(ctx, ctx.session.user, input),
+    ),
 
   submit: authedProcedure
     .input(
@@ -40,7 +53,15 @@ export const orderRouter = createRouter({
           .optional(),
       }),
     )
-    .mutation(({ ctx, input }) => submitPurchase(ctx, ctx.session.user, input)),
+    .mutation(async ({ ctx, input }) => {
+      const order = await ctx.db.order.findFirst({
+        where: { id: input.orderId, buyerId: ctx.session.user.id },
+        select: { kind: true },
+      });
+      return order?.kind === "NFT_PURCHASE"
+        ? submitNftPurchase(ctx, ctx.session.user, input)
+        : submitPurchase(ctx, ctx.session.user, input);
+    }),
 
   cancel: authedProcedure
     .input(z.object({ orderId: z.string().min(1) }))

@@ -396,14 +396,12 @@ describe("contract NFT items", () => {
     expect(db.item.update).not.toHaveBeenCalled();
   });
 
-  it("can't be published while fan checkout for NFTs is closed", async () => {
+  it("can be published or unpublished, even after its first sale", async () => {
     const { ctx, db } = setup({ item: nft("MINTED") });
-    await expect(
-      updateItem(ctx, artist, { itemId: "i1", visibility: "PUBLIC" }),
-    ).rejects.toMatchObject({
-      message: "Selling contract NFTs opens soon. Yours stays a draft until then.",
-    });
-    expect(db.item.update).not.toHaveBeenCalled();
+    await updateItem(ctx, artist, { itemId: "i1", visibility: "PUBLIC" });
+    expect(db.item.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ visibility: "PUBLIC" }) }),
+    );
   });
 
   it("can't take a classic code", async () => {

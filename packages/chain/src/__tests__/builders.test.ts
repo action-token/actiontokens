@@ -190,6 +190,28 @@ describe("recharge builders", () => {
     ).toHaveLength(1);
   });
 
+  it("top-up: sends the trustline reserve in XLM first when the card pays for it", () => {
+    const tx = parse(
+      buildTopUp({
+        buyer: account(),
+        network,
+        orderId,
+        asset: bandcoin,
+        from: mother,
+        amount: "12",
+        openTrustline: true,
+        reserveXlm: "0.5",
+      }).xdr,
+    );
+    expect(tx.operations.map((op) => op.type)).toEqual(["payment", "changeTrust", "payment"]);
+    expect(tx.operations[0]).toMatchObject({
+      source: mother,
+      destination: buyerKey,
+      asset: Asset.native(),
+      amount: "0.5000000",
+    });
+  });
+
   it("swap: the buyer pays BANDCOIN to the platform and gets exactly the XLM, in one transaction", () => {
     const built = buildXlmSwap({
       buyer: account(),

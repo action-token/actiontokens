@@ -25,8 +25,9 @@ import { usePurchase } from "./use-purchase";
 type Listing = RouterOutputs["item"]["bySlug"]["listings"][number];
 type Quote = RouterOutputs["order"]["quote"];
 
-/** Most copies one order can include (the API allows 50). */
+/** Most copies one order can include (the API allows 50; the NFT contract mints up to 20 at once). */
 const MAX_PER_ORDER = 50;
+const MAX_NFT_PER_ORDER = 20;
 
 const CURRENCIES: { value: DisplayCurrency; label: string }[] = [
   { value: "BANDCOIN", label: "BANDCOIN" },
@@ -40,7 +41,16 @@ const CURRENCIES: { value: DisplayCurrency; label: string }[] = [
  * breakdown from the server quote, pay. Nothing is ever converted: if the
  * balance is short, it says how much and the Pay button becomes Add funds.
  */
-export function BuyPanel({ itemTitle, listing }: { itemTitle: string; listing: Listing }) {
+export function BuyPanel({
+  itemTitle,
+  listing,
+  nft = false,
+}: {
+  itemTitle: string;
+  listing: Listing;
+  /** Contract NFTs are paid in BANDCOIN or by card */
+  nft?: boolean;
+}) {
   const { status } = useSession();
   const openSignIn = useConnectWalletDialogStore((state) => state.setIsOpen);
   const [currency, setCurrency] = useState<DisplayCurrency>("BANDCOIN");
@@ -51,7 +61,11 @@ export function BuyPanel({ itemTitle, listing }: { itemTitle: string; listing: L
     currency === "USD" && status === "authenticated",
   );
 
-  const maxQuantity = Math.max(1, Math.min(MAX_PER_ORDER, listing.remaining ?? MAX_PER_ORDER));
+  const perOrder = nft ? MAX_NFT_PER_ORDER : MAX_PER_ORDER;
+  const maxQuantity = Math.max(1, Math.min(perOrder, listing.remaining ?? perOrder));
+  const currencies = nft
+    ? CURRENCIES.filter((option) => option.value === "BANDCOIN" || option.value === "USD")
+    : CURRENCIES;
   const quote = api.order.quote.useQuery(
     { listingId: listing.id, quantity, currency },
     {
@@ -107,7 +121,7 @@ export function BuyPanel({ itemTitle, listing }: { itemTitle: string; listing: L
         <div className="grid gap-1.5">
           <span className="eyebrow">Pay with</span>
           <div role="group" aria-label="Currency" className="grid grid-cols-2 gap-2">
-            {CURRENCIES.map((option) => (
+            {currencies.map((option) => (
               <button
                 key={option.value}
                 type="button"

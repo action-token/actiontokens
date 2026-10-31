@@ -6,12 +6,6 @@ import { toAmount, toStroops } from "@bandcoin/chain";
 
 import { accessSelect } from "../catalog/access";
 
-/**
- * Contract NFTs can be created and registered, but fan checkout for them isn't
- * built yet, so they can't be published. Flip this when `loadSale` can deliver them.
- */
-export const NFT_CHECKOUT_OPEN = false;
-
 /** A listing with everything a purchase needs to price, build and deliver it. */
 export async function loadSale(db: Db, listingId: string) {
   const listing = await db.listing.findUnique({

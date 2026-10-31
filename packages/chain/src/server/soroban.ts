@@ -113,6 +113,52 @@ export async function readEditionId(
   return id ?? null;
 }
 
+/** What one `buy_edition` minted, as the contract recorded it under its purchase ref. */
+export type NftPurchaseReceipt = {
+  editionId: number;
+  buyer: string;
+  firstTokenId: number;
+  lastTokenId: number;
+  quantity: number;
+};
+
+/**
+ * The receipt of the purchase made under `purchaseRef` (the order id), or null
+ * when the contract has none: the proof a buy landed, whatever happened to the
+ * answer. Read-only; costs nothing.
+ */
+export async function readPurchaseReceipt(
+  contract: string | null,
+  reader: string,
+  purchaseRef: string,
+): Promise<NftPurchaseReceipt | null> {
+  const receipt = await readContract<
+    | {
+        edition_id: number;
+        buyer: string;
+        first_token_id: number;
+        last_token_id: number;
+        quantity: number;
+      }
+    | null
+    | undefined
+  >(
+    contract,
+    reader,
+    "purchase_by_ref",
+    [nativeToScVal(purchaseRef, { type: "string" })],
+    "Couldn't read the purchase from the contract.",
+  );
+  if (!receipt) return null;
+  return {
+    editionId: Number(receipt.edition_id),
+    buyer: receipt.buyer,
+    firstTokenId: Number(receipt.first_token_id),
+    lastTokenId: Number(receipt.last_token_id),
+    quantity: Number(receipt.quantity),
+  };
+}
+
 /**
  * What the nft_oz contract enforces now: the platform fee (basis points), the
  * account it goes to, and the owner (the only one who may change them).

@@ -67,13 +67,11 @@ export function ItemsView() {
 function ItemRow({ row }: { row: Row }) {
   const status = row.hidden
     ? { tone: "danger" as const, label: "Hidden by admin" }
-    : row.registered === "PENDING"
-      ? { tone: "warning" as const, label: "Needs registering" }
-      : row.visibility === "DRAFT"
-        ? { tone: "neutral" as const, label: "Draft" }
-        : row.listingStatus === "SOLD_OUT"
-          ? { tone: "warning" as const, label: "Sold out" }
-          : { tone: "success" as const, label: "For sale" };
+    : row.visibility === "DRAFT"
+      ? { tone: "neutral" as const, label: "Draft" }
+      : row.listingStatus === "SOLD_OUT"
+        ? { tone: "warning" as const, label: "Sold out" }
+        : { tone: "success" as const, label: "For sale" };
   return (
     <li>
       <Link

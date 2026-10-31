@@ -2,13 +2,7 @@ import { z } from "zod";
 
 import { signCreatorUpload } from "@bandcoin/storage";
 
-import { cancelPurchase } from "../../services/purchase";
-import {
-  createNftDraft,
-  quoteNftRegistration,
-  startNftRegistration,
-  submitNftRegistration,
-} from "../../services/artist/nft";
+import { createNft } from "../../services/artist/nft";
 import {
   createItem,
   getItem,
@@ -90,7 +84,7 @@ export const catalogRouter = createRouter({
     .input(z.object({ itemId: z.string().min(1) }))
     .mutation(({ ctx, input }) => removeItem(ctx, ctx.artist, input.itemId)),
 
-  /** A contract NFT, saved as a draft. Registering it on the contract is the next step (nftQuote, nftStart, nftSubmit). */
+  /** A contract NFT: a database save, on sale at once when published. The first sale registers it on the contract. */
   createNft: artistProcedure
     .input(
       z.object({
@@ -108,6 +102,7 @@ export const catalogRouter = createRouter({
         priceBandcoin: price,
         priceUsd: price,
         resaleRoyaltyPercent: z.string().trim().max(6),
+        visibility: z.enum(["DRAFT", "PUBLIC"]),
         lockedContents: z
           .array(
             z.object({
@@ -133,26 +128,5 @@ export const catalogRouter = createRouter({
           .max(20),
       }),
     )
-    .mutation(({ ctx, input }) => createNftDraft(ctx, ctx.artist, ctx.session.user, input)),
-
-  /** What registering costs, and whether it can go through. Refreshes while the artist looks at it. */
-  nftQuote: artistProcedure
-    .input(z.object({ itemId: z.string().min(1) }))
-    .query(({ ctx, input }) =>
-      quoteNftRegistration(ctx, ctx.session.user, ctx.artist, input.itemId),
-    ),
-
-  nftStart: artistProcedure
-    .input(z.object({ itemId: z.string().min(1) }))
-    .mutation(({ ctx, input }) =>
-      startNftRegistration(ctx, ctx.session.user, ctx.artist, input.itemId),
-    ),
-
-  nftSubmit: artistProcedure
-    .input(z.object({ orderId: z.string().min(1), xdr: z.string().min(1) }))
-    .mutation(({ ctx, input }) => submitNftRegistration(ctx, ctx.session.user, input)),
-
-  nftCancel: artistProcedure
-    .input(z.object({ orderId: z.string().min(1) }))
-    .mutation(({ ctx, input }) => cancelPurchase(ctx, ctx.session.user, input.orderId)),
+    .mutation(({ ctx, input }) => createNft(ctx, ctx.artist, ctx.session.user, input)),
 });

@@ -19,6 +19,8 @@ import {
   contractIsLive,
   prepareContractCall,
   readEditionId,
+  readPurchaseReceipt,
+  type NftPurchaseReceipt,
   readNftFeeSettings,
   type Rates,
   submit,
@@ -61,6 +63,8 @@ export type ChainGateway = {
   assetTomlUrl(code: string, issuer: string): Promise<string | null>;
   /** The on-chain id of the edition registered under `editionRef`, or null when there is none */
   editionIdByRef(editionRef: string): Promise<number | null>;
+  /** What `buy_edition` minted under this purchase ref (the order id), or null when nothing landed */
+  nftPurchaseByRef(purchaseRef: string): Promise<NftPurchaseReceipt | null>;
   /** What the NFT contract enforces now: fee (basis points), treasury, owner */
   nftFeeSettings(): Promise<{ feeBps: number; treasury: string | null; owner: string | null }>;
   submit(xdr: string): Promise<{ hash: string }>;
@@ -148,6 +152,8 @@ export function createChainGateway(db: Db): ChainGateway {
     assetHolders: (code, issuer) => loadAssetHolders(new Asset(code, issuer)),
     editionIdByRef: (editionRef) =>
       readEditionId(chainConfig().nftContract, chainConfig().treasury, editionRef),
+    nftPurchaseByRef: (purchaseRef) =>
+      readPurchaseReceipt(chainConfig().nftContract, chainConfig().treasury, purchaseRef),
     nftFeeSettings: () => readNftFeeSettings(chainConfig().nftContract, chainConfig().treasury),
     findTransaction,
     card: { charge: chargeCard, refund: refundCard },

@@ -7,7 +7,6 @@ import { normalizeAssetCode, validateAssetCode, validatePrice } from "@bandcoin/
 import { slugFromName } from "@bandcoin/utils/slug";
 
 import type { Context } from "../../context";
-import { NFT_CHECKOUT_OPEN } from "../purchase/sale";
 import { accessKindOf, type ItemAccessInput, resolveItemAccess } from "./item-access";
 import { lockedContentsFor } from "./locked-content";
 
@@ -334,8 +333,6 @@ export async function getItem(
 /** What a contract NFT's owner may change, given whether it is on the contract yet. */
 function checkNftEdit(status: "PENDING" | "MINTED" | undefined, input: UpdateItemInput) {
   if (input.code !== undefined) throw invalid("Contract NFTs don't have a code.");
-  if (input.visibility === "PUBLIC" && !NFT_CHECKOUT_OPEN)
-    throw invalid("Selling contract NFTs opens soon. Yours stays a draft until then.");
   const content = [
     input.title,
     input.description,

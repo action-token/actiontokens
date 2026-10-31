@@ -36,7 +36,6 @@ import { AiTextButton } from "../ai/ai-text-button";
 import { FileField, type PickedFile } from "./file-field";
 import { Note, PriceFields, priceProblems, Toggle } from "./form-parts";
 import { HiddenNotice } from "./hidden-notice";
-import { RegisterNft } from "./register-nft";
 import { StorageStock } from "./storage-stock";
 import { acceptFor, fileRequired, ITEM_TYPES, type ItemKind, mediaTypeFor } from "./item-types";
 import { type AccessChoice, AccessField, accessChoiceOf, accessInput } from "./access-field";
@@ -57,14 +56,14 @@ const messageOf = (error: unknown) =>
  *
  * Two kinds of token: a classic Stellar token (a code, any number of copies, can
  * be published right away) and a contract NFT (a fixed number of numbered
- * copies, saved as a draft and registered on the contract in a second step).
+ * copies with locked content; Bandcoin puts it on the contract at its first sale).
  */
 export function ItemForm({ existing }: { existing?: Existing }) {
   const router = useRouter();
   const utils = api.useUtils();
   const editing = Boolean(existing);
   const locked = existing?.locked ?? false;
-  /** A registered NFT lives on the contract; changing it takes an on-chain update that isn't built yet */
+  /** A sold NFT lives on the contract; changing its details takes an on-chain update that isn't built yet. Publishing still works. */
   const frozen = existing?.registered === "MINTED";
 
   const [nft, setNft] = useState(existing?.chain === "CONTRACT_NFT");
@@ -129,7 +128,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
     onError: (error) => toast.error(messageOf(error)),
   });
   const createNft = api.catalog.createNft.useMutation({
-    onSuccess: ({ itemId }) => done("Draft saved. One more step: register it.", `/items/${itemId}`),
+    onSuccess: () => done(publish ? "Your NFT is on sale" : "Draft saved"),
     onError: (error) => toast.error(messageOf(error)),
   });
   const update = api.catalog.update.useMutation({
@@ -150,8 +149,12 @@ export function ItemForm({ existing }: { existing?: Existing }) {
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    if (!ready || !cover || frozen) return;
-    const visibility = publish && !nft ? ("PUBLIC" as const) : ("DRAFT" as const);
+    const visibility = publish ? ("PUBLIC" as const) : ("DRAFT" as const);
+    if (frozen && existing) {
+      update.mutate({ itemId: existing.id, visibility });
+      return;
+    }
+    if (!ready || !cover) return;
     const media = file ? { url: file.url, mediaType: mediaTypeFor(file.mime, type) } : undefined;
     if (existing) {
       update.mutate({
@@ -161,7 +164,8 @@ export function ItemForm({ existing }: { existing?: Existing }) {
         coverUrl: cover.url,
         priceBandcoin,
         priceUsd,
-        ...(nft ? {} : { visibility, access: accessInput(access) }),
+        visibility,
+        ...(nft ? {} : { access: accessInput(access) }),
         ...(locked
           ? {}
           : { supply: limited || nft ? supplyNumber : null, ...(nft ? {} : { code: shownCode }) }),
@@ -177,6 +181,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
         priceBandcoin,
         priceUsd,
         resaleRoyaltyPercent: resale,
+        visibility,
         lockedContents: toLockedInput(lockedContents),
       });
     } else {
@@ -197,25 +202,21 @@ export function ItemForm({ existing }: { existing?: Existing }) {
     }
   }
 
-  const actions = frozen ? (
-    <Button asChild type="button" variant="ghost">
-      <Link href="/items">Back to items</Link>
-    </Button>
-  ) : (
+  const actions = (
     <>
       <Button asChild type="button" variant="ghost">
         <Link href="/items">Cancel</Link>
       </Button>
-      <Button type="submit" disabled={!ready || saving}>
+      <Button type="submit" disabled={(!ready && !frozen) || saving}>
         {saving && <Loader2 className="animate-spin" />}
-        {editing ? "Save changes" : nft ? "Save draft" : "Create item"}
+        {editing ? "Save changes" : "Create item"}
       </Button>
     </>
   );
 
   const deleteDescription = existing
     ? existing.registered === "MINTED"
-      ? "A registered NFT is on the contract, so it can't be deleted."
+      ? "This NFT has sold on the contract, so it can't be deleted. Unpublish it instead."
       : existing.locked
         ? "This item has sales, so it can't be deleted. Hide it by unpublishing instead."
         : "It disappears from your page. This can't be undone."
@@ -267,17 +268,14 @@ export function ItemForm({ existing }: { existing?: Existing }) {
       }
     >
       <HiddenNotice hidden={existing?.hidden ?? null} what="item" />
-      {existing?.chain === "CONTRACT_NFT" && existing.registered === "PENDING" && (
-        <RegisterNft itemId={existing.id} />
-      )}
 
       {frozen && (
         <p
           role="note"
           className="bg-surface border-fg/10 text-fg-muted rounded-[1.4rem] border-2 p-4 text-sm"
         >
-          This NFT is registered on the contract, so its details are fixed for now. Editing
-          registered NFTs is coming.
+          This NFT has sold, so its details are fixed on the contract for now. You can still publish
+          or unpublish it below.
         </p>
       )}
 
@@ -527,7 +525,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
               </div>
               <Note>
                 {nft
-                  ? "Numbered copies on a Soroban contract, with a royalty on every resale. Saved as a draft, then registered for a small network fee."
+                  ? "Numbered copies on a Soroban contract, with locked content and a royalty on every resale. Bandcoin puts it on Stellar at its first sale; you pay nothing."
                   : "A simple Stellar token under your own account. Free to create, and you can publish it right away."}
               </Note>
             </Field>
@@ -582,27 +580,20 @@ export function ItemForm({ existing }: { existing?: Existing }) {
           <LockedContentField value={lockedContents} onChange={setLockedContents} />
         )}
         {existing && <LockedContentView items={existing.lockedContents} />}
-
-        <FormSection title="Visibility" icon={Eye}>
-          {nft ? (
-            <p role="note" className="bg-surface-2 text-fg-muted rounded-md p-3 text-[13px]">
-              <b>Draft for now.</b> After you register it, selling contract NFTs to fans opens soon,
-              and then you can publish.
-            </p>
-          ) : (
-            <OptionList>
-              <SwitchRow
-                icon={Eye}
-                title={publish ? "Published" : "Draft"}
-                hint={publish ? "Fans can buy it." : "Only you can see it."}
-                checked={publish}
-                onChange={setPublish}
-              />
-            </OptionList>
-          )}
-          {!nft && <AccessField id="item-access" value={access} onChange={setAccess} />}
-        </FormSection>
       </fieldset>
+
+      <FormSection title="Visibility" icon={Eye}>
+        <OptionList>
+          <SwitchRow
+            icon={Eye}
+            title={publish ? "Published" : "Draft"}
+            hint={publish ? "Fans can buy it." : "Only you can see it."}
+            checked={publish}
+            onChange={setPublish}
+          />
+        </OptionList>
+        {!nft && <AccessField id="item-access" value={access} onChange={setAccess} />}
+      </FormSection>
     </FormPage>
   );
 }

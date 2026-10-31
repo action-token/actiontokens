@@ -311,7 +311,11 @@ export default async function ItemPage({ params }: Props) {
           {item.access && !item.access.ok && (
             <AccessNotice access={item.access} artist={item.artist} />
           )}
-          <ItemPurchase itemTitle={item.title} listings={item.listings} />
+          <ItemPurchase
+            itemTitle={item.title}
+            listings={item.listings}
+            nft={item.chainType === "CONTRACT_NFT"}
+          />
         </section>
 
         <div className="grid gap-3">

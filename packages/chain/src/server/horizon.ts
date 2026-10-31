@@ -138,7 +138,13 @@ export function otherAssetsOf(
 }
 
 /** A token waiting to be claimed by an account (a gift), as Horizon lists it. */
-export type ClaimableToken = { id: string; code: string; issuer: string; amount: string; sponsor: string };
+export type ClaimableToken = {
+  id: string;
+  code: string;
+  issuer: string;
+  amount: string;
+  sponsor: string;
+};
 
 /** Claimable balances the account can accept now: tokens only (not XLM), up to 50. */
 export async function claimableFor(address: string): Promise<ClaimableToken[]> {

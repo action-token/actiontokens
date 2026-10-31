@@ -7,6 +7,8 @@ import { finish, type NetworkParams, startTransaction } from "../transaction";
  * Card top-up: the platform sends BANDCOIN to the buyer, who opens the
  * trustline first if needed. The buyer is the source, so the same signing
  * flow as a purchase applies; the platform account fee-bumps it on submit.
+ * `reserveXlm`: XLM the platform sends first so a new trustline can be opened
+ * (paid for by the card).
  */
 export function buildTopUp(input: {
   buyer: Account;
@@ -17,9 +19,19 @@ export function buildTopUp(input: {
   from: string;
   amount: string;
   openTrustline: boolean;
+  reserveXlm?: string;
 }) {
   if (isZero(input.amount)) throw new RangeError("A top-up must deliver something");
   const builder = startTransaction(input.buyer, input.network, { memo: input.orderId });
+  if (input.reserveXlm && !isZero(input.reserveXlm))
+    builder.addOperation(
+      Operation.payment({
+        source: input.from,
+        destination: input.buyer.accountId(),
+        asset: Asset.native(),
+        amount: input.reserveXlm,
+      }),
+    );
   if (input.openTrustline) builder.addOperation(Operation.changeTrust({ asset: input.asset }));
   builder.addOperation(
     Operation.payment({

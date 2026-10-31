@@ -12,7 +12,16 @@ import { BuyPanel } from "./buy-panel";
 type Listing = RouterOutputs["item"]["bySlug"]["listings"][number];
 
 /** The buy panel, plus a seller picker when fans are reselling copies too. */
-export function ItemPurchase({ itemTitle, listings }: { itemTitle: string; listings: Listing[] }) {
+export function ItemPurchase({
+  itemTitle,
+  listings,
+  nft = false,
+}: {
+  itemTitle: string;
+  listings: Listing[];
+  /** A contract NFT: paid in BANDCOIN or by card, up to 20 copies at a time */
+  nft?: boolean;
+}) {
   const buyable = listings.filter((listing) => !listing.isOwn);
   const [selectedId, setSelectedId] = useState(buyable[0]?.id);
   const selected = buyable.find((listing) => listing.id === selectedId) ?? buyable[0];
@@ -29,7 +38,7 @@ export function ItemPurchase({ itemTitle, listings }: { itemTitle: string; listi
 
   return (
     <div className="grid content-start gap-4">
-      <BuyPanel key={selected.id} itemTitle={itemTitle} listing={selected} />
+      <BuyPanel key={selected.id} itemTitle={itemTitle} listing={selected} nft={nft} />
       {buyable.length > 1 && (
         <section aria-label="Sellers" className="bg-surface grid gap-1 rounded-xl border p-3">
           <h2 className="eyebrow px-2 pt-1 pb-2">Choose a seller</h2>

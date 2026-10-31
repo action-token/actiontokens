@@ -14,11 +14,10 @@ export type XlmQuote =
   | RouterOutputs["onboarding"]["issuerQuote"]
   | RouterOutputs["profile"]["stockQuote"]
   | RouterOutputs["profile"]["withdrawQuote"]
-  | RouterOutputs["catalog"]["nftQuote"]
   | RouterOutputs["gifts"]["quote"];
 
 /**
- * The server's price for a payment in XLM (opening the artist account, registering an NFT, sending a gift):
+ * The server's price for a payment in XLM (opening the artist account, sending a gift):
  * each cost, what you pay, your XLM, and why it can't go through yet. It does no money math.
  */
 export function QuoteBreakdown({

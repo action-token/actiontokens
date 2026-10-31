@@ -2,7 +2,9 @@ import type { Order } from "@bandcoin/db";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import type { Context } from "../../context";
+import { transitionOrder } from "../order-state";
 import { failOrder } from "../purchase";
+import { finishNftPurchase } from "../purchase/nft";
 import { alreadyFinished, finishOrder } from "./finish";
 
 /**
@@ -13,6 +15,12 @@ import { alreadyFinished, finishOrder } from "./finish";
  *   landed, failed     → FAILED with the code; a card charge is refunded
  *   not found, too old → FAILED (past its time limit it can never land)
  *   not found yet      → left for the next run
+ *
+ * Contract NFT purchases are settled by the contract's receipt for the order
+ * (its purchase ref) first: whatever happened to the answer, a receipt means
+ * the copies were minted. A card order whose BANDCOIN went in (step 1 landed)
+ * but has no receipt by the lost time failed in step 2: the buyer keeps the
+ * BANDCOIN, so the card isn't refunded.
  */
 type ReconcileCtx = Pick<Context, "db" | "chain" | "activity">;
 
@@ -40,8 +48,18 @@ export async function settleOrder(
     ? { paymentId: order.cardPaymentId, total: order.total.toString() }
     : null;
   const found = order.txHash ? await ctx.chain.findTransaction(order.txHash) : null;
+  const lostAt = order.quoteExpiresAt
+    ? order.quoteExpiresAt.getTime() + LOST_AFTER_MS
+    : order.updatedAt.getTime() + FALLBACK_LOST_MS;
 
-  if (found?.successful) {
+  if (order.kind === "NFT_PURCHASE") {
+    if ((await finishNftPurchase(ctx, order.id)).status === "DELIVERED") return "DELIVERED";
+    if (found?.successful) {
+      if (now.getTime() < lostAt || !card) return "WAITING";
+      await transitionOrder(ctx.db, order.id, "FAILED", { failureCode: "NFT_BUY_FAILED_FUNDED" });
+      return "FAILED";
+    }
+  } else if (found?.successful) {
     try {
       const finished = await finishOrder(ctx, order, found.envelopeXdr);
       return finished.status === "DELIVERED" ? "DELIVERED" : "WAITING";
@@ -58,9 +76,6 @@ export async function settleOrder(
 
   // Not on the network. Past its time limit (the quote's expiry, which the
   // transaction's maxTime matches) it never will be.
-  const lostAt = order.quoteExpiresAt
-    ? order.quoteExpiresAt.getTime() + LOST_AFTER_MS
-    : order.updatedAt.getTime() + FALLBACK_LOST_MS;
   if (now.getTime() < lostAt) return "WAITING";
   await failOrder(ctx, order.id, new AppError(ErrorCodes.STELLAR_TX_SUBMIT_FAILED), card);
   return "FAILED";

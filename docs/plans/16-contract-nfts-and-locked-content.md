@@ -14,6 +14,9 @@ full locked content feature (main: `artist/smart-contract/create`,
 | Editing locked content | As bandfan: fixed once created; the edit page shows it read-only. |
 | On-chain unlock fee | The platform (treasury, the contract's unlock authority) signs and pays, as before. The fan signs nothing. |
 | Unlock radius | The artist chooses per locked item, 10–1000 m, 50 m by default. |
+| NFT network fee | The fan pays it in BANDCOIN (bandfan's way): the platform fee-bumps the buy and the contract charges the fan the same cost in BANDCOIN. Shown as a fixed estimate with a margin; checkout stops if the real fee is higher. |
+| Card fails after the BANDCOIN went in | The fan keeps the BANDCOIN, told plainly; no refund, no retry. If the BANDCOIN step fails, the card is refunded. |
+| Who can pay by card | Email/Google/Apple accounts only; wallet users pay in BANDCOIN. |
 
 ## What bandcoin has today
 

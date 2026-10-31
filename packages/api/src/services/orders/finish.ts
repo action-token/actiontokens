@@ -7,6 +7,7 @@ import type { Context } from "../../context";
 import { deliverVanity } from "../artist/vanity";
 import { transitionOrder } from "../order-state";
 import { deliverOrder } from "../purchase";
+import { finishNftPurchase } from "../purchase/nft";
 
 /**
  * What happens once Stellar has accepted an order's transaction, one function
@@ -159,6 +160,8 @@ export async function finishOrder(
       return finishAccountOpening(ctx, order.id, envelopeXdr, "STORAGE");
     case "NFT_REGISTER":
       return finishNftRegistration(ctx, order.id);
+    case "NFT_PURCHASE":
+      return finishNftPurchase(ctx, order.id);
   }
 }
 
