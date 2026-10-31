@@ -11,7 +11,7 @@ import { Button } from "@bandcoin/ui/components/button";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { cn } from "@bandcoin/ui/lib/cn";
 
-import { api, type RouterOutputs } from "~/trpc/react";
+import { api } from "~/trpc/react";
 
 import { PayToOpen } from "../../payments/pay-to-open";
 import { useIssuerOpening } from "../use-issuer-opening";
@@ -19,8 +19,8 @@ import {
   clearDraft,
   codeProblem,
   type Draft,
-  EMPTY_DRAFT,
   fanTokenOf,
+  fromApplication,
   issuerProblem,
   readDraft,
   saveDraft,
@@ -30,7 +30,6 @@ import {
 } from "./model";
 import { AddressStep, type LiveCheck, ProfileStep, ReviewSummary, TokenStep } from "./steps";
 
-type Application = RouterOutputs["onboarding"]["application"];
 const PAY = STEPS.length - 1;
 
 /** Waits until a value stops changing for `ms`, so live checks don't run on every key. */
@@ -42,25 +41,6 @@ function useSettled<T>(value: T, ms = 400) {
   }, [value, ms]);
   return settled;
 }
-
-const fromApplication = (application: Application): Draft => {
-  if (!application) return EMPTY_DRAFT;
-  const token = application.pendingFanToken;
-  return {
-    ...EMPTY_DRAFT,
-    avatarUrl: application.avatarUrl ?? "",
-    coverUrl: application.coverUrl ?? "",
-    name: application.name,
-    bio: application.bio ?? "",
-    slug: application.slug,
-    slugTouched: true,
-    ...(token?.mode === "NEW" ? { code: token.code, codeTouched: true } : {}),
-    ...(token?.mode === "EXISTING"
-      ? { tokenMode: "EXISTING", existingCode: token.code, issuer: token.issuer }
-      : {}),
-    tokenImage: token?.coverUrl ?? "",
-  };
-};
 
 /**
  * Becoming an artist, laid out like Wadzzo's brand onboarding: photos,

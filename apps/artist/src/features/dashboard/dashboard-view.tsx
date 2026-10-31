@@ -1,15 +1,16 @@
 "use client";
 
-import { Ban, Hourglass, Mic2 } from "lucide-react";
+import { Ban, Mic2 } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
 import { ErrorState } from "@bandcoin/ui/patterns/error-state";
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
+import { PageBody } from "@bandcoin/ui/patterns/page-header";
 import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
+import { WaitingView } from "~/features/onboarding/waiting-view";
 import { OnboardingWizard } from "~/features/onboarding/wizard/onboarding-wizard";
 import { usePortal } from "~/features/portal/use-portal";
 
@@ -65,18 +66,7 @@ export function DashboardView() {
     case "WAITING_FOR_APPROVAL":
       return (
         <PageBody>
-          <PageHeader
-            eyebrow={portal.artist?.name}
-            title="Waiting for approval"
-            description="Your artist account is open. An admin is reviewing your page."
-          />
-          <div className="mt-8">
-            <EmptyState
-              icon={Hourglass}
-              title="You're in the queue"
-              description="Nothing else to do. Your tools unlock here and your fan token is made as soon as you're approved."
-            />
-          </div>
+          <WaitingView />
         </PageBody>
       );
     case "BANNED":

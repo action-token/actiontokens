@@ -125,10 +125,19 @@ export async function getApplication(ctx: Pick<Context, "db">, user: SessionUser
       coverUrl: true,
       pendingFanToken: true,
       rejectionReason: true,
+      issuerAccount: { select: { publicKey: true, activatedAt: true } },
     },
   });
   if (!artist) return null;
-  return { ...artist, pendingFanToken: artist.pendingFanToken as PendingFanToken | null };
+  const { issuerAccount, ...rest } = artist;
+  return {
+    ...rest,
+    pendingFanToken: artist.pendingFanToken as PendingFanToken | null,
+    /** Their artist account, once paid for: when it opened is when the application went in */
+    issuer: issuerAccount
+      ? { publicKey: issuerAccount.publicKey, openedAt: issuerAccount.activatedAt }
+      : null,
+  };
 }
 
 export async function applyAsArtist(

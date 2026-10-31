@@ -489,7 +489,6 @@ function CheckLine({ check, ok }: { check: LiveCheck; ok: string }) {
 
 /** 4 · Everything in one card, each part with Edit, and what happens after paying. */
 export function ReviewSummary({ draft, onEdit }: { draft: Draft; onEdit: (step: number) => void }) {
-  const code = draft.tokenMode === "NEW" ? draft.code : draft.existingCode;
   return (
     <div className="grid gap-6">
       <StepHeading title="Check and send">
@@ -497,52 +496,7 @@ export function ReviewSummary({ draft, onEdit }: { draft: Draft; onEdit: (step: 
         admin.
       </StepHeading>
 
-      <div className="border-border overflow-hidden rounded-2xl border">
-        <div className="from-primary/25 via-surface-2 to-primary/5 relative aspect-[4/1] bg-gradient-to-br">
-          {draft.coverUrl && (
-            // eslint-disable-next-line @next/next/no-img-element -- images come from our storage
-            <img src={draft.coverUrl} alt="" className="size-full object-cover" />
-          )}
-          <EditButton onClick={() => onEdit(0)} className="absolute top-2 right-2" />
-        </div>
-        <div className="flex items-start gap-3 px-4 pb-4">
-          {/* Above the cover (which is positioned for its Edit button), not under it. */}
-          <span className="bg-surface-2 relative z-10 -mt-10 size-20 shrink-0 overflow-hidden rounded-full border-4 border-[var(--color-surface)] shadow-sm">
-            {draft.avatarUrl && (
-              // eslint-disable-next-line @next/next/no-img-element -- images come from our storage
-              <img src={draft.avatarUrl} alt="" className="size-full object-cover" />
-            )}
-          </span>
-          <div className="min-w-0 flex-1 pt-3">
-            <p className="display truncate text-lg">{draft.name}</p>
-            <p className="text-fg-muted line-clamp-2 text-sm">
-              {draft.bio || "No line about you yet."}
-            </p>
-          </div>
-          <EditButton onClick={() => onEdit(0)} className="mt-2" />
-        </div>
-        <dl className="border-border divide-border divide-y border-t text-sm">
-          <Row label="Fan token" onEdit={() => onEdit(1)}>
-            <span className="flex items-center gap-2">
-              {tokenPicture(draft) && (
-                // eslint-disable-next-line @next/next/no-img-element -- ours, or the issuer's published image
-                <img
-                  src={tokenPicture(draft)}
-                  alt=""
-                  className="size-6 rounded-full object-cover"
-                />
-              )}
-              <span className="font-mono font-semibold tracking-wider">{code}</span>
-              <span className="text-fg-muted">
-                {draft.tokenMode === "NEW" ? "new" : "your own, on Stellar"}
-              </span>
-            </span>
-          </Row>
-          <Row label="Page" onEdit={() => onEdit(2)}>
-            <span className="font-medium">bandcoin.io/artist/{draft.slug}</span>
-          </Row>
-        </dl>
-      </div>
+      <PageCard draft={draft} onEdit={onEdit} />
 
       <ol className="grid gap-2 text-sm sm:grid-cols-3">
         {[
@@ -576,14 +530,63 @@ function Row({
   children,
 }: {
   label: string;
-  onEdit: () => void;
+  onEdit?: () => void;
   children: ReactNode;
 }) {
   return (
     <div className="flex items-center gap-3 px-4 py-3">
       <dt className="text-fg-muted w-20 shrink-0">{label}</dt>
       <dd className="min-w-0 flex-1 truncate">{children}</dd>
-      <EditButton onClick={onEdit} />
+      {onEdit && <EditButton onClick={onEdit} />}
+    </div>
+  );
+}
+
+/** Their page as they set it up: cover, photo, name, bio, fan token and address. Edit buttons when `onEdit` is given. */
+export function PageCard({ draft, onEdit }: { draft: Draft; onEdit?: (step: number) => void }) {
+  const code = draft.tokenMode === "NEW" ? draft.code : draft.existingCode;
+  return (
+    <div className="border-border overflow-hidden rounded-2xl border">
+      <div className="from-primary/25 via-surface-2 to-primary/5 relative aspect-[4/1] bg-gradient-to-br">
+        {draft.coverUrl && (
+          // eslint-disable-next-line @next/next/no-img-element -- images come from our storage
+          <img src={draft.coverUrl} alt="" className="size-full object-cover" />
+        )}
+        {onEdit && <EditButton onClick={() => onEdit(0)} className="absolute top-2 right-2" />}
+      </div>
+      <div className="flex items-start gap-3 px-4 pb-4">
+        {/* Above the cover (which is positioned for its Edit button), not under it. */}
+        <span className="bg-surface-2 relative z-10 -mt-10 size-20 shrink-0 overflow-hidden rounded-full border-4 border-[var(--color-surface)] shadow-sm">
+          {draft.avatarUrl && (
+            // eslint-disable-next-line @next/next/no-img-element -- images come from our storage
+            <img src={draft.avatarUrl} alt="" className="size-full object-cover" />
+          )}
+        </span>
+        <div className="min-w-0 flex-1 pt-3">
+          <p className="display truncate text-lg">{draft.name}</p>
+          <p className="text-fg-muted line-clamp-2 text-sm">
+            {draft.bio || "No line about you yet."}
+          </p>
+        </div>
+        {onEdit && <EditButton onClick={() => onEdit(0)} className="mt-2" />}
+      </div>
+      <dl className="border-border divide-border divide-y border-t text-sm">
+        <Row label="Fan token" onEdit={onEdit && (() => onEdit(1))}>
+          <span className="flex items-center gap-2">
+            {tokenPicture(draft) && (
+              // eslint-disable-next-line @next/next/no-img-element -- ours, or the issuer's published image
+              <img src={tokenPicture(draft)} alt="" className="size-6 rounded-full object-cover" />
+            )}
+            <span className="font-mono font-semibold tracking-wider">{code}</span>
+            <span className="text-fg-muted">
+              {draft.tokenMode === "NEW" ? "new" : "your own, on Stellar"}
+            </span>
+          </span>
+        </Row>
+        <Row label="Page" onEdit={onEdit && (() => onEdit(2))}>
+          <span className="font-medium">bandcoin.io/artist/{draft.slug}</span>
+        </Row>
+      </dl>
     </div>
   );
 }

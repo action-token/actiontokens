@@ -308,11 +308,20 @@ describe("getApplication", () => {
   it("gives back what they sent, or null before they apply", async () => {
     await expect(getApplication(setup().ctx, me)).resolves.toBeNull();
     const token = { mode: "NEW", code: "LUNA", coverUrl: "https://cdn.example/t.png" };
-    const { ctx } = setup({ artist: { ...pending, bio: "hi", pendingFanToken: token } });
+    const openedAt = new Date("2026-10-31T10:00:00Z");
+    const { ctx } = setup({
+      artist: {
+        ...pending,
+        bio: "hi",
+        pendingFanToken: token,
+        issuerAccount: { publicKey: "GISSUER", activatedAt: openedAt },
+      },
+    });
     await expect(getApplication(ctx, me)).resolves.toMatchObject({
       name: "Luna Vale",
       slug: "luna-vale",
       pendingFanToken: token,
+      issuer: { publicKey: "GISSUER", openedAt },
     });
   });
 });

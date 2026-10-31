@@ -1,6 +1,10 @@
 import { normalizeAssetCode, validateAssetCode } from "@bandcoin/utils/asset-code";
 import { validateSlug } from "@bandcoin/utils/slug";
 
+import type { RouterOutputs } from "~/trpc/react";
+
+type Application = RouterOutputs["onboarding"]["application"];
+
 /** What the artist has typed so far, kept in the browser between visits. */
 export type Draft = {
   avatarUrl: string;
@@ -119,3 +123,29 @@ export function clearDraft(userId: string) {
     // Nothing to clear.
   }
 }
+
+/** The wizard filled in from what they last sent (a rejected artist, or one back before paying). */
+export const fromApplication = (application: Application): Draft => {
+  if (!application) return EMPTY_DRAFT;
+  const token = application.pendingFanToken;
+  return {
+    ...EMPTY_DRAFT,
+    avatarUrl: application.avatarUrl ?? "",
+    coverUrl: application.coverUrl ?? "",
+    name: application.name,
+    bio: application.bio ?? "",
+    slug: application.slug,
+    slugTouched: true,
+    ...(token?.mode === "NEW" ? { code: token.code, codeTouched: true } : {}),
+    ...(token?.mode === "EXISTING"
+      ? {
+          tokenMode: "EXISTING",
+          existingCode: token.code,
+          issuer: token.issuer,
+          // What was saved is the image it has on Stellar, copied in.
+          stellarImage: token.coverUrl,
+        }
+      : {}),
+    tokenImage: token?.coverUrl ?? "",
+  };
+};
