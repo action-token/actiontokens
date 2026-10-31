@@ -6,12 +6,16 @@ import { statusOf } from "./pins";
 
 /**
  * Collection reports: how an artist's pins are collected, by whom and when.
- * Read-only, and always scoped to the signed-in artist's own pins. Counting
- * happens in SQL so long histories stay fast; hidden claims, hidden spots and
- * hidden pins never count.
+ * Read-only. Scoped to one artist (the signed-in artist's own pins), or to
+ * every artist when `artist` is null (admins only, via the admin router).
+ * Counting happens in SQL so long histories stay fast; hidden claims, hidden
+ * spots and hidden pins never count.
  */
 type ReportCtx = Pick<Context, "db">;
-type ArtistRef = { id: string };
+type ArtistRef = { id: string } | null;
+
+/** The most pins the all-artists report lists; the numbers above it count every pin. */
+export const MAX_REPORT_PINS = 500;
 
 /** The most collectors one report lists; the CSV export has them all. */
 export const MAX_COLLECTORS = 1000;
@@ -25,8 +29,9 @@ export async function pinReport(
   now = new Date(),
 ) {
   const pin = await ctx.db.pin.findFirst({
-    where: { id: pinId, artistId: artist.id },
+    where: { id: pinId, ...(artist ? { artistId: artist.id } : {}) },
     select: {
+      artistId: true,
       id: true,
       title: true,
       description: true,
@@ -109,7 +114,8 @@ export type ReportPeriod = { from?: Date; to?: Date };
 /** Claims of the artist's live (not hidden) pins in a period. */
 const claimsFrom = Prisma.sql`pin_claims c JOIN pin_spots s ON s.id = c."spotId" JOIN pins p ON p.id = s."pinId"`;
 function claimsWhere(artist: ArtistRef, { from, to }: ReportPeriod, pinId?: string) {
-  return Prisma.sql`c."isHidden" = false AND s."isHidden" = false AND p."isHidden" = false AND p."artistId" = ${artist.id}
+  return Prisma.sql`c."isHidden" = false AND s."isHidden" = false AND p."isHidden" = false
+    ${artist ? Prisma.sql`AND p."artistId" = ${artist.id}` : Prisma.empty}
     ${from ? Prisma.sql`AND c."createdAt" >= ${from}` : Prisma.empty}
     ${to ? Prisma.sql`AND c."createdAt" <= ${to}` : Prisma.empty}
     ${pinId ? Prisma.sql`AND p.id = ${pinId}` : Prisma.empty}`;
@@ -161,9 +167,11 @@ export async function collectionSummary(
       FROM ${claimsFrom} JOIN users u ON u.id = c."userId"
       WHERE ${where} GROUP BY u.id ORDER BY n DESC, MAX(c."createdAt") DESC LIMIT 10`,
     ctx.db.pin.findMany({
-      where: { artistId: artist.id, isHidden: false },
+      where: { ...(artist ? { artistId: artist.id } : {}), isHidden: false },
       orderBy: { createdAt: "desc" },
+      ...(artist ? {} : { take: MAX_REPORT_PINS }),
       select: {
+        artist: { select: { id: true, name: true } },
         id: true,
         title: true,
         imageUrl: true,
@@ -211,6 +219,7 @@ export async function exportCollections(
 ) {
   return ctx.db.$queryRaw<
     {
+      artist: string;
       pin: string;
       pinId: string;
       lat: number;
@@ -222,10 +231,10 @@ export async function exportCollections(
       redeemed: boolean;
     }[]
   >`
-    SELECT p.title AS pin, p.id AS "pinId", s.latitude AS lat, s.longitude AS lng,
+    SELECT a.name AS artist, p.title AS pin, p.id AS "pinId", s.latitude AS lat, s.longitude AS lng,
            u."walletAddress" AS wallet, COALESCE(u."displayName", u.username) AS name, u.email,
            c."createdAt" AS "collectedAt", c."isRedeemed" AS redeemed
-    FROM ${claimsFrom} JOIN users u ON u.id = c."userId"
+    FROM ${claimsFrom} JOIN users u ON u.id = c."userId" JOIN artists a ON a.id = p."artistId"
     WHERE ${claimsWhere(artist, period, pinId)}
     ORDER BY c."createdAt" DESC LIMIT ${MAX_EXPORT_ROWS}`;
 }

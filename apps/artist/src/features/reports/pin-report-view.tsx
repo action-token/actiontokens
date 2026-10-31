@@ -2,6 +2,7 @@
 
 import { format, formatDistanceToNow } from "date-fns";
 import {
+  ExternalLink,
   CalendarDays,
   Copy,
   Download,
@@ -40,12 +41,15 @@ type Report = RouterOutputs["reports"]["pin"];
 type Collector = Report["collectors"][number];
 
 /** One pin's report: where its spots are, how it's been collected, and by whom. */
-export function PinReportView({ pinId }: { pinId: string }) {
-  const report = api.reports.pin.useQuery({ pinId }, { retry: false, refetchOnWindowFocus: false });
+export function PinReportView({ pinId, admin = false }: { pinId: string; admin?: boolean }) {
+  const options = { retry: false, refetchOnWindowFocus: false } as const;
+  const own = api.reports.pin.useQuery({ pinId }, { ...options, enabled: !admin });
+  const any = api.admin.reports.pin.useQuery({ pinId }, { ...options, enabled: admin });
+  const report = admin ? any : own;
   return (
     <PageBody wide className="grid gap-4">
       <Link
-        href="/reports"
+        href={admin ? "/admin/reports" : "/reports"}
         className="text-fg-muted hover:text-fg inline-flex items-center gap-1 text-xs font-semibold tracking-wider uppercase"
       >
         ‹ Reports
@@ -59,13 +63,13 @@ export function PinReportView({ pinId }: { pinId: string }) {
           <ErrorState message="Couldn't load this report." onRetry={() => void report.refetch()} />
         )
       ) : (
-        <Body report={report.data} />
+        <Body report={report.data} admin={admin} />
       )}
     </PageBody>
   );
 }
 
-function Body({ report: r }: { report: Report }) {
+function Body({ report: r, admin }: { report: Report; admin: boolean }) {
   const [now] = useState(() => Date.now());
   const [query, setQuery] = useState("");
   const [selectedSpot, setSelectedSpot] = useState<string | null>(null);
@@ -238,9 +242,15 @@ function Body({ report: r }: { report: Report }) {
         </div>
         <div className="flex shrink-0 gap-2">
           <Button variant="outline" asChild>
-            <Link href={`/pins/${r.id}`}>
-              <Pencil /> Edit pin
-            </Link>
+            {admin ? (
+              <Link href={`/admin/artists/${r.artistId}`}>
+                <ExternalLink /> View artist
+              </Link>
+            ) : (
+              <Link href={`/pins/${r.id}`}>
+                <Pencil /> Edit pin
+              </Link>
+            )}
           </Button>
           <Button variant="outline" onClick={exportCsv} disabled={r.collectors.length === 0}>
             <Download /> Export CSV

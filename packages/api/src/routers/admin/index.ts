@@ -35,6 +35,7 @@ import { listItems, setItemHidden } from "../../services/admin/items";
 import { changeContractFee, readContractFee } from "../../services/admin/contract-fee";
 import { getPerson } from "../../services/admin/person";
 import { getSettings, updateSettings } from "../../services/admin/settings";
+import { collectionSummary, exportCollections, pinReport } from "../../services/artist/reports";
 import { decidePins, deletePins, listPins, pinCounts, pinsForMap } from "../../services/admin/pins";
 import { getMuralSettings } from "../../services/ar/murals";
 import { adminProcedure, createRouter } from "../../trpc";
@@ -63,6 +64,12 @@ const amount = z
   .trim()
   .regex(/^\d+(\.\d{1,7})?$/, "A number, up to 7 decimals")
   .nullable();
+const reportScope = z.object({
+  artistId: z.string().min(1).optional(),
+  from: z.coerce.date().optional(),
+  to: z.coerce.date().optional(),
+});
+const scopeOf = (input: { artistId?: string }) => (input.artistId ? { id: input.artistId } : null);
 const contractFee = z.object({
   feeBps: z.number().int().min(0).max(NFT_MAX_PLATFORM_FEE_BPS),
   treasury: stellarAccount,
@@ -208,6 +215,18 @@ export const adminRouter = createRouter({
       .mutation(({ ctx, input }) =>
         updateMuralSettings({ ...ctx, adminId: ctx.session.user.id }, input),
       ),
+  }),
+  /** The collection report over every artist, or one picked (artistId). */
+  reports: createRouter({
+    summary: adminProcedure
+      .input(reportScope)
+      .query(({ ctx, input }) => collectionSummary(ctx, scopeOf(input), input)),
+    exportCollections: adminProcedure
+      .input(reportScope.extend({ pinId: z.string().min(1).optional() }))
+      .mutation(({ ctx, input }) => exportCollections(ctx, scopeOf(input), input, input.pinId)),
+    pin: adminProcedure
+      .input(z.object({ pinId: z.string().min(1) }))
+      .query(({ ctx, input }) => pinReport(ctx, null, input.pinId)),
   }),
   alerts: createRouter({
     list: adminProcedure.query(({ ctx }) => listAlerts(ctx)),

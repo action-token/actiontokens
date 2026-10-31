@@ -17,6 +17,13 @@ import toast from "react-hot-toast";
 
 import { abbreviateAddress } from "@bandcoin/utils/address";
 import { Button } from "@bandcoin/ui/components/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@bandcoin/ui/components/select";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { Switch } from "@bandcoin/ui/components/switch";
 import { cn } from "@bandcoin/ui/lib/cn";
@@ -47,17 +54,32 @@ type PinRow = Summary["pins"][number];
 const messageOf = (error: unknown) =>
   error instanceof Error ? error.message : "Something went wrong.";
 
-/** Reports: how your pins are collected, by whom, where and when. */
-export function CollectionReportView() {
+const EVERYONE = "__all";
+
+/**
+ * Reports: how pins are collected, by whom, where and when. An artist sees
+ * their own; `admin` reads every artist's (or one picked) from the admin routes.
+ */
+export function CollectionReportView({ admin = false }: { admin?: boolean }) {
   const [period, setPeriod] = useState<Period>(() => periodRange("30d"));
   const [query, setQuery] = useState("");
   const [onlyCollected, setOnlyCollected] = useState(false);
+  const [artistId, setArtistId] = useState(EVERYONE);
+  const scope = { from: period.from, to: period.to };
+  const adminScope = { ...scope, artistId: artistId === EVERYONE ? undefined : artistId };
 
-  const report = api.reports.summary.useQuery(
-    { from: period.from, to: period.to },
-    { refetchOnWindowFocus: false, placeholderData: (previous) => previous },
+  const options = { refetchOnWindowFocus: false, placeholderData: <T,>(previous: T) => previous };
+  const own = api.reports.summary.useQuery(scope, { ...options, enabled: !admin });
+  const all = api.admin.reports.summary.useQuery(adminScope, { ...options, enabled: admin });
+  const report = admin ? all : own;
+  const artists = api.admin.artists.list.useQuery(
+    {},
+    { enabled: admin, refetchOnWindowFocus: false },
   );
-  const exporting = api.reports.exportCollections.useMutation();
+  const exportOwn = api.reports.exportCollections.useMutation();
+  const exportAll = api.admin.reports.exportCollections.useMutation();
+  const exporting = admin ? exportAll : exportOwn;
+  const reportHref = (pinId: string) => (admin ? `/admin/reports/${pinId}` : `/reports/${pinId}`);
 
   const data = report.data;
   const loading = report.isPending;
@@ -69,12 +91,14 @@ export function CollectionReportView() {
         .filter(
           (pin) =>
             (!onlyCollected || pin.collected > 0) &&
-            (!query || pin.title.toLowerCase().includes(query)),
+            (!query ||
+              pin.title.toLowerCase().includes(query) ||
+              (admin && pin.artist.name.toLowerCase().includes(query))),
         )
         .sort(
           (a, b) => b.collected - a.collected || +new Date(b.createdAt) - +new Date(a.createdAt),
         ),
-    [data, onlyCollected, query],
+    [data, onlyCollected, query, admin],
   );
   const top = useMemo(
     () =>
@@ -86,31 +110,32 @@ export function CollectionReportView() {
   );
   const activePins = data?.pins.filter((pin) => pin.collected > 0).length ?? 0;
 
-  const exportCsv = () =>
-    exporting.mutate(
-      { from: period.from, to: period.to },
-      {
-        onSuccess: (rows) => {
-          if (rows.length === 0) return toast("Nothing to export for this period");
-          downloadCsv(
-            `bandcoin-collections-${new Date().toISOString().slice(0, 10)}.csv`,
-            rows.map((row) => ({
-              Pin: row.pin,
-              "Pin ID": row.pinId,
-              Latitude: row.lat,
-              Longitude: row.lng,
-              Collector: row.name ?? "",
-              Email: row.email ?? "",
-              Wallet: row.wallet ?? "",
-              "Collected at": new Date(row.collectedAt).toISOString(),
-              Redeemed: row.redeemed ? "yes" : "no",
-            })),
-          );
-          toast.success(`Exported ${rows.length.toLocaleString()} collections`);
-        },
-        onError: (error) => toast.error(messageOf(error)),
-      },
-    );
+  const exportCsv = async () => {
+    try {
+      const rows = admin
+        ? await exportAll.mutateAsync(adminScope)
+        : await exportOwn.mutateAsync(scope);
+      if (rows.length === 0) return toast("Nothing to export for this period");
+      downloadCsv(
+        `bandcoin-collections-${new Date().toISOString().slice(0, 10)}.csv`,
+        rows.map((row) => ({
+          ...(admin ? { Artist: row.artist } : {}),
+          Pin: row.pin,
+          "Pin ID": row.pinId,
+          Latitude: row.lat,
+          Longitude: row.lng,
+          Collector: row.name ?? "",
+          Email: row.email ?? "",
+          Wallet: row.wallet ?? "",
+          "Collected at": new Date(row.collectedAt).toISOString(),
+          Redeemed: row.redeemed ? "yes" : "no",
+        })),
+      );
+      toast.success(`Exported ${rows.length.toLocaleString()} collections`);
+    } catch (error) {
+      toast.error(messageOf(error));
+    }
+  };
 
   const columns: Column<PinRow>[] = [
     {
@@ -135,6 +160,7 @@ export function CollectionReportView() {
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{pin.title}</p>
             <p className="text-fg-muted truncate text-xs">
+              {admin && `${pin.artist.name} · `}
               {pin.spots.toLocaleString()} spot{pin.spots === 1 ? "" : "s"}
             </p>
           </div>
@@ -198,11 +224,19 @@ export function CollectionReportView() {
   return (
     <PageBody wide className="grid gap-4">
       <PageHeader
-        eyebrow="Drops"
-        title="Pin reports"
-        description="How your pins are collected: by whom, where and when."
+        eyebrow={admin ? "Admin" : "Drops"}
+        title={admin ? "Collection reports" : "Pin reports"}
+        description={
+          admin
+            ? "How every artist's pins are collected: by whom, where and when."
+            : "How your pins are collected: by whom, where and when."
+        }
         actions={
-          <Button variant="outline" onClick={exportCsv} disabled={exporting.isPending || loading}>
+          <Button
+            variant="outline"
+            onClick={() => void exportCsv()}
+            disabled={exporting.isPending || loading}
+          >
             {exporting.isPending ? <Loader2 className="animate-spin" /> : <Download />} Export CSV
           </Button>
         }
@@ -210,6 +244,23 @@ export function CollectionReportView() {
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
         <PeriodPicker value={period} onChange={setPeriod} />
+        {admin && (
+          <Select value={artistId} onValueChange={setArtistId}>
+            <SelectTrigger className="w-full lg:w-60" aria-label="Artist">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={EVERYONE}>Every artist</SelectItem>
+              {artists.data
+                ?.filter((artist) => artist.pins > 0)
+                .map((artist) => (
+                  <SelectItem key={artist.id} value={artist.id}>
+                    {artist.name}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        )}
         {refetching && (
           <Loader2 className="text-fg-muted size-4 animate-spin" aria-label="Updating" />
         )}
@@ -296,7 +347,7 @@ export function CollectionReportView() {
             <Leaders title="Most collected pins" icon={TrendingUp} loading={false} empty="">
               {top.map((pin) => (
                 <li key={pin.id}>
-                  <Link href={`/reports/${pin.id}`} className="group flex items-center gap-3 py-2">
+                  <Link href={reportHref(pin.id)} className="group flex items-center gap-3 py-2">
                     {pin.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -360,9 +411,9 @@ export function CollectionReportView() {
               rowKey={(pin) => pin.id}
               loading={loading}
               skeletonRows={6}
-              rowHref={(pin) => `/reports/${pin.id}`}
+              rowHref={(pin) => reportHref(pin.id)}
               actions={(pin) => [
-                { label: "Open report", icon: ExternalLink, href: `/reports/${pin.id}` },
+                { label: "Open report", icon: ExternalLink, href: reportHref(pin.id) },
               ]}
               empty={{
                 icon: MapPin,

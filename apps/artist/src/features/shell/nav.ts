@@ -66,6 +66,7 @@ const ADMIN: NavGroup = {
     { href: "/admin/murals", icon: Frame, label: "Mural review" },
     { href: "/admin/bounties", icon: Trophy, label: "Bounties" },
     { href: "/admin/items", icon: Package, label: "Items" },
+    { href: "/admin/reports", icon: BarChart3, label: "Collection reports" },
     { href: "/admin/alerts", icon: BellRing, label: "Alerts" },
     { href: "/admin/settings", icon: SlidersHorizontal, label: "Settings" },
     { href: "/admin/activity", icon: ListChecks, label: "Activity" },

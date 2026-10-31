@@ -195,6 +195,43 @@ describe("collectionSummary", () => {
   });
 });
 
+describe("every artist (admins)", () => {
+  /** The SQL text of a Prisma.sql template, to see what it filters on. */
+  const sqlOf = (call: unknown[]) =>
+    (call[0] as TemplateStringsArray).join("?") +
+    call
+      .slice(1)
+      .map((value) => (value && typeof value === "object" && "sql" in value ? value.sql : ""))
+      .join(" ");
+
+  it("counts every artist's pins: no artist filter, the newest 500 pins listed", async () => {
+    const db = {
+      $queryRaw: vi.fn().mockResolvedValue([]),
+      pin: { findMany: vi.fn().mockResolvedValue([]) },
+    };
+    await collectionSummary({ db: db as unknown as Db }, null, {}, now);
+    expect(db.pin.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { isHidden: false }, take: 500 }),
+    );
+    for (const call of db.$queryRaw.mock.calls) expect(sqlOf(call)).not.toContain('"artistId"');
+  });
+
+  it("still filters by the artist when one is picked", async () => {
+    const db = {
+      $queryRaw: vi.fn().mockResolvedValue([]),
+      pin: { findMany: vi.fn().mockResolvedValue([]) },
+    };
+    await collectionSummary({ db: db as unknown as Db }, artist, {}, now);
+    expect(db.$queryRaw.mock.calls.some((call) => sqlOf(call).includes('"artistId"'))).toBe(true);
+  });
+
+  it("opens any artist's pin report", async () => {
+    const { ctx, db } = setup();
+    await pinReport(ctx, null, "p1", now);
+    expect(db.pin.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { id: "p1" } }));
+  });
+});
+
 describe("exportCollections", () => {
   it("returns the rows from one scoped query", async () => {
     const rows = [
