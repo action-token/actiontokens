@@ -4,6 +4,7 @@ import {
   applyAsArtist,
   checkSlug,
   checkToken,
+  getApplication,
   quoteIssuerOpening,
   startIssuerOpening,
   submitIssuerOpening,
@@ -43,6 +44,9 @@ export const onboardingRouter = createRouter({
       }),
     )
     .mutation(({ ctx, input }) => applyAsArtist(ctx, ctx.session.user, input)),
+
+  /** What they last sent, to fill the wizard back in. */
+  application: authedProcedure.query(({ ctx }) => getApplication(ctx, ctx.session.user)),
 
   /** Is this page address free? Live while the artist types. */
   checkSlug: authedProcedure

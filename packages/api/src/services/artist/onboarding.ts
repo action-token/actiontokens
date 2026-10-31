@@ -98,6 +98,24 @@ async function checkFanToken(
   return { mode: "EXISTING" as const, code, issuer: token.issuer, coverUrl: token.coverUrl };
 }
 
+/** The person's own application as they last sent it, to fill the wizard back in (null before they apply). */
+export async function getApplication(ctx: Pick<Context, "db">, user: SessionUser) {
+  const artist = await ctx.db.artist.findUnique({
+    where: { userId: user.id },
+    select: {
+      name: true,
+      slug: true,
+      bio: true,
+      avatarUrl: true,
+      coverUrl: true,
+      pendingFanToken: true,
+      rejectionReason: true,
+    },
+  });
+  if (!artist) return null;
+  return { ...artist, pendingFanToken: artist.pendingFanToken as PendingFanToken | null };
+}
+
 export async function applyAsArtist(
   ctx: Pick<Context, "db" | "chain" | "activity">,
   user: SessionUser,

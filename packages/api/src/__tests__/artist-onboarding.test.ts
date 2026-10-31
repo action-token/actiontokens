@@ -20,6 +20,7 @@ vi.mock("@bandcoin/storage", () => ({
 import {
   applyAsArtist,
   checkSlug,
+  getApplication,
   quoteIssuerOpening,
   startIssuerOpening,
   submitIssuerOpening,
@@ -272,6 +273,19 @@ describe("applyAsArtist", () => {
       slug: "luna-vale-band",
       status: "PENDING",
       rejectionReason: null,
+    });
+  });
+});
+
+describe("getApplication", () => {
+  it("gives back what they sent, or null before they apply", async () => {
+    await expect(getApplication(setup().ctx, me)).resolves.toBeNull();
+    const token = { mode: "NEW", code: "LUNA", coverUrl: "https://cdn.example/t.png" };
+    const { ctx } = setup({ artist: { ...pending, bio: "hi", pendingFanToken: token } });
+    await expect(getApplication(ctx, me)).resolves.toMatchObject({
+      name: "Luna Vale",
+      slug: "luna-vale",
+      pendingFanToken: token,
     });
   });
 });

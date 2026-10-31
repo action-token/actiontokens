@@ -10,9 +10,7 @@ import { ErrorState } from "@bandcoin/ui/patterns/error-state";
 import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
 import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
-import { ApplyForm } from "~/features/onboarding/apply-form";
-import { OpenIssuer } from "~/features/onboarding/open-issuer";
-import { OnboardingProgress } from "~/features/onboarding/progress";
+import { OnboardingWizard } from "~/features/onboarding/wizard/onboarding-wizard";
 import { usePortal } from "~/features/portal/use-portal";
 
 /** The portal's home, for everyone who isn't an approved artist yet (see portal.status). Approved artists land on the pins map. */
@@ -44,50 +42,24 @@ export function DashboardView() {
 
   switch (portal.step) {
     case null:
+    case "OPEN_ISSUER":
       return (
-        <PageBody className="grid gap-6">
-          <PageHeader
-            eyebrow="Artists"
-            title="Become an artist"
-            description="Tell us who you are, open your own account on Stellar, and an admin reviews your page."
-          />
-          <OnboardingProgress step={null} />
-          <ApplyForm />
+        <PageBody>
+          <OnboardingWizard paying={portal.step === "OPEN_ISSUER"} />
         </PageBody>
       );
     case "REJECTED":
       return (
         <PageBody className="grid gap-6">
-          <PageHeader
-            eyebrow={portal.artist?.name}
-            title="Your application wasn't approved"
-            description="Your 1.5 XLM was returned to your wallet. Update your details and apply again."
-          />
-          <OnboardingProgress step="REJECTED" />
-          {portal.artist?.rejectionReason && (
-            <div role="note" className="bg-danger-soft max-w-xl rounded-md p-3 text-[13px]">
-              <b>Why:</b> {portal.artist.rejectionReason}
-            </div>
-          )}
-          <ApplyForm
-            initial={{
-              name: portal.artist?.name ?? "",
-              slug: portal.artist?.slug ?? "",
-              bio: null,
-            }}
-          />
-        </PageBody>
-      );
-    case "OPEN_ISSUER":
-      return (
-        <PageBody className="grid gap-6">
-          <PageHeader
-            eyebrow={portal.artist?.name}
-            title="Open your artist account"
-            description="One payment opens the Stellar account your music is issued from."
-          />
-          <OnboardingProgress step="OPEN_ISSUER" />
-          <OpenIssuer />
+          <div
+            role="note"
+            className="bg-danger-soft mx-auto w-full max-w-5xl rounded-xl p-4 text-sm"
+          >
+            <b>Your application wasn&apos;t approved.</b> Your 1.5 XLM was returned to your wallet.
+            {portal.artist?.rejectionReason && <> Why: {portal.artist.rejectionReason}</>} Change
+            what you need and send it again.
+          </div>
+          <OnboardingWizard paying={false} />
         </PageBody>
       );
     case "WAITING_FOR_APPROVAL":
@@ -98,14 +70,11 @@ export function DashboardView() {
             title="Waiting for approval"
             description="Your artist account is open. An admin is reviewing your page."
           />
-          <div className="mt-4">
-            <OnboardingProgress step="WAITING_FOR_APPROVAL" />
-          </div>
           <div className="mt-8">
             <EmptyState
               icon={Hourglass}
               title="You're in the queue"
-              description="Nothing else to do. Your tools unlock here as soon as you're approved."
+              description="Nothing else to do. Your tools unlock here and your fan token is made as soon as you're approved."
             />
           </div>
         </PageBody>
