@@ -1,36 +1,37 @@
-import type { Prisma } from "@bandcoin/db";
+import type { ApprovalStatus, Prisma } from "@bandcoin/db";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import type { Context } from "../../context";
 
 /**
- * Every artist's pins for /admin/pins. Pins go live without review, so the
- * admin's tool is to hide one (approval REJECTED: off the map for fans; the
- * artist can't undo it), show it again, or delete one nobody collected.
+ * Admin › Pin review, as in Wadzzo: an artist's new pin waits (PENDING) until
+ * an admin approves it; fans never see it before. Admins approve or reject in
+ * bulk, move a decision back to review (the undo), and delete pins nobody collected.
  */
 type ServiceCtx = Pick<Context, "db" | "activity">;
 
+export const REVIEW_PAGE = 100;
+/** Rows per page on the other admin lists (bounties, items). */
 export const ADMIN_PAGE = 50;
-export type PinFilter = {
-  search?: string;
-  status?: "live" | "hidden" | "ended" | "upcoming";
-  cursor?: string;
+export type PinView = "pending" | "approved" | "rejected";
+export type PinFilter = { view: PinView; search?: string; cursor?: string };
+
+const APPROVAL_OF: Record<PinView, ApprovalStatus> = {
+  pending: "PENDING",
+  approved: "APPROVED",
+  rejected: "REJECTED",
 };
 
-function whereOf(input: PinFilter, now: Date): Prisma.PinWhereInput {
+function whereOf(input: PinFilter): Prisma.PinWhereInput {
   const q = input.search?.trim();
   return {
-    ...(input.status === "hidden" ? { approval: "REJECTED" } : {}),
-    ...(input.status === "live"
-      ? { approval: "APPROVED", startsAt: { lte: now }, endsAt: { gte: now } }
-      : {}),
-    ...(input.status === "ended" ? { endsAt: { lt: now } } : {}),
-    ...(input.status === "upcoming" ? { startsAt: { gt: now } } : {}),
+    approval: APPROVAL_OF[input.view],
     ...(q
       ? {
           OR: [
             { id: q },
             { title: { contains: q, mode: "insensitive" } },
+            { description: { contains: q, mode: "insensitive" } },
             { artist: { name: { contains: q, mode: "insensitive" } } },
           ],
         }
@@ -38,18 +39,20 @@ function whereOf(input: PinFilter, now: Date): Prisma.PinWhereInput {
   };
 }
 
+/** Oldest first while waiting (first come, first reviewed); newest first once decided. */
 export async function listPins(ctx: Pick<Context, "db">, input: PinFilter, now = new Date()) {
+  const order = input.view === "pending" ? "asc" : "desc";
   const rows = await ctx.db.pin.findMany({
-    where: whereOf(input, now),
-    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-    take: ADMIN_PAGE + 1,
+    where: whereOf(input),
+    orderBy: [{ createdAt: order }, { id: order }],
+    take: REVIEW_PAGE + 1,
     ...(input.cursor ? { cursor: { id: input.cursor }, skip: 1 } : {}),
     select: {
       id: true,
       title: true,
+      description: true,
       type: true,
       imageUrl: true,
-      approval: true,
       isHidden: true,
       startsAt: true,
       endsAt: true,
@@ -57,16 +60,18 @@ export async function listPins(ctx: Pick<Context, "db">, input: PinFilter, now =
       claimsLeft: true,
       latitude: true,
       longitude: true,
+      radiusMeters: true,
       createdAt: true,
-      artist: { select: { id: true, name: true, userId: true } },
+      artist: { select: { id: true, name: true, userId: true, avatarUrl: true } },
       _count: { select: { spots: true } },
     },
   });
-  const page = rows.slice(0, ADMIN_PAGE);
+  const page = rows.slice(0, REVIEW_PAGE);
   return {
     pins: page.map((pin) => ({
       id: pin.id,
       title: pin.title,
+      description: pin.description,
       type: pin.type,
       imageUrl: pin.imageUrl,
       artist: pin.artist,
@@ -77,49 +82,59 @@ export async function listPins(ctx: Pick<Context, "db">, input: PinFilter, now =
       endsAt: pin.endsAt,
       latitude: pin.latitude,
       longitude: pin.longitude,
+      radiusMeters: pin.radiusMeters,
       createdAt: pin.createdAt,
-      status:
-        pin.approval === "REJECTED"
-          ? ("hidden" as const)
-          : pin.endsAt < now
-            ? ("ended" as const)
-            : pin.startsAt > now
-              ? ("upcoming" as const)
-              : pin.isHidden
-                ? ("paused" as const)
-                : ("live" as const),
+      timing:
+        pin.endsAt < now
+          ? ("ended" as const)
+          : pin.startsAt > now
+            ? ("upcoming" as const)
+            : pin.isHidden
+              ? ("paused" as const)
+              : ("running" as const),
     })),
-    nextCursor: rows.length > ADMIN_PAGE ? (page.at(-1)?.id ?? null) : null,
+    nextCursor: rows.length > REVIEW_PAGE ? (page.at(-1)?.id ?? null) : null,
   };
 }
 
-async function loadPin(ctx: ServiceCtx, pinId: string) {
-  const pin = await ctx.db.pin.findUnique({
-    where: { id: pinId },
-    select: { id: true, approval: true },
-  });
-  if (!pin) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Pin not found" });
-  ctx.activity.set({ targetType: "Pin", targetId: pin.id });
-  return pin;
+/** How many pins are in each list, for the view chips. */
+export async function pinCounts(ctx: Pick<Context, "db">) {
+  const groups = await ctx.db.pin.groupBy({ by: ["approval"], _count: { _all: true } });
+  const of = (approval: ApprovalStatus) =>
+    groups.find((group) => group.approval === approval)?._count._all ?? 0;
+  return { pending: of("PENDING"), approved: of("APPROVED"), rejected: of("REJECTED") };
 }
 
-export async function setPinHidden(ctx: ServiceCtx, input: { pinId: string; hidden: boolean }) {
-  const pin = await loadPin(ctx, input.pinId);
-  await ctx.db.pin.update({
-    where: { id: pin.id },
-    data: { approval: input.hidden ? "REJECTED" : "APPROVED" },
+const logTargets = (ctx: ServiceCtx, pinIds: string[]) =>
+  ctx.activity.set({ targetType: "Pin", targetId: pinIds.join(",").slice(0, 500) });
+
+/** Approve, reject, or move back to review (PENDING, which is also the undo). */
+export async function decidePins(
+  ctx: ServiceCtx,
+  input: { pinIds: string[]; approval: ApprovalStatus },
+) {
+  logTargets(ctx, input.pinIds);
+  const { count } = await ctx.db.pin.updateMany({
+    where: { id: { in: input.pinIds } },
+    data: { approval: input.approval },
   });
-  return { pinId: pin.id, hidden: input.hidden };
+  if (count === 0) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Pin not found" });
+  return { count, approval: input.approval };
 }
 
-/** Deletes a pin nobody collected; one with claims can only be hidden, so fans keep their history. */
-export async function deletePin(ctx: ServiceCtx, input: { pinId: string }) {
-  const pin = await loadPin(ctx, input.pinId);
-  const claims = await ctx.db.pinClaim.count({ where: { spot: { pinId: pin.id } } });
-  if (claims > 0)
+/** Deletes pins nobody collected; a collected pin can only be rejected, so fans keep their history. */
+export async function deletePins(ctx: ServiceCtx, input: { pinIds: string[] }) {
+  logTargets(ctx, input.pinIds);
+  const collected = await ctx.db.pin.count({
+    where: { id: { in: input.pinIds }, spots: { some: { claims: { some: {} } } } },
+  });
+  if (collected > 0)
     throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
-      message: `Fans collected this pin ${claims} ${claims === 1 ? "time" : "times"}, so it can only be hidden.`,
+      message:
+        input.pinIds.length === 1
+          ? "Fans collected this pin, so it can only be rejected."
+          : `Fans collected ${collected} of these pins, so they can only be rejected.`,
     });
-  await ctx.db.pin.delete({ where: { id: pin.id } });
-  return { pinId: pin.id, deleted: true };
+  const { count } = await ctx.db.pin.deleteMany({ where: { id: { in: input.pinIds } } });
+  return { count };
 }

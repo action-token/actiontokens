@@ -69,10 +69,10 @@ describe("portal navigation", () => {
       "Royalties",
       "Artists",
       "Users",
-      "Pins",
+      "Pin review",
+      "Mural review",
       "Bounties",
       "Items",
-      "Mural review",
       "Activity",
     ]);
   });

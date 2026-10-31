@@ -1,7 +1,13 @@
-import { PinsAdminView } from "~/features/admin/pins-admin-view";
+import { Suspense } from "react";
 
-export const metadata = { title: "Pins" };
+import { PinReviewView } from "~/features/admin/pin-review/pin-review-view";
+
+export const metadata = { title: "Pin review" };
 
 export default function AdminPinsPage() {
-  return <PinsAdminView />;
+  return (
+    <Suspense>
+      <PinReviewView />
+    </Suspense>
+  );
 }

@@ -27,14 +27,14 @@ import {
 import { listBounties, setBountyHidden } from "../../services/admin/bounties";
 import { listItems, setItemHidden } from "../../services/admin/items";
 import { getPerson } from "../../services/admin/person";
-import { deletePin, listPins, setPinHidden } from "../../services/admin/pins";
+import { decidePins, deletePins, listPins, pinCounts } from "../../services/admin/pins";
 import { getMuralSettings } from "../../services/ar/murals";
 import { adminProcedure, createRouter } from "../../trpc";
 
 const artistId = z.object({ artistId: z.string().min(1) });
 const muralId = z.object({ muralId: z.string().min(1) });
 const userId = z.object({ userId: z.string().min(1) });
-const pinId = z.object({ pinId: z.string().min(1) });
+const pinIds = z.object({ pinIds: z.array(z.string().min(1)).min(1).max(500) });
 const search = z.string().max(120).optional();
 const cursor = z.string().nullish();
 /** Hiding needs a reason the log (and later the artist) can read; showing again doesn't. */
@@ -95,17 +95,14 @@ export const adminRouter = createRouter({
   pins: createRouter({
     list: adminProcedure
       .input(
-        z.object({
-          search,
-          status: z.enum(["live", "hidden", "ended", "upcoming"]).optional(),
-          cursor,
-        }),
+        z.object({ view: z.enum(["pending", "approved", "rejected"]), search, cursor }),
       )
       .query(({ ctx, input }) => listPins(ctx, { ...input, cursor: input.cursor ?? undefined })),
-    setHidden: adminProcedure
-      .input(pinId.extend({ hidden: z.boolean() }))
-      .mutation(({ ctx, input }) => setPinHidden(ctx, input)),
-    remove: adminProcedure.input(pinId).mutation(({ ctx, input }) => deletePin(ctx, input)),
+    counts: adminProcedure.query(({ ctx }) => pinCounts(ctx)),
+    decide: adminProcedure
+      .input(pinIds.extend({ approval: z.enum(["PENDING", "APPROVED", "REJECTED"]) }))
+      .mutation(({ ctx, input }) => decidePins(ctx, input)),
+    remove: adminProcedure.input(pinIds).mutation(({ ctx, input }) => deletePins(ctx, input)),
   }),
   bounties: createRouter({
     list: adminProcedure

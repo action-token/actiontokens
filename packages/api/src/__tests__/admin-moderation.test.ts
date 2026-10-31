@@ -4,7 +4,7 @@ import type { Db } from "@bandcoin/db";
 
 import { listBounties, setBountyHidden } from "../services/admin/bounties";
 import { listItems, setItemHidden } from "../services/admin/items";
-import { deletePin, listPins, setPinHidden } from "../services/admin/pins";
+import { decidePins, deletePins, listPins, pinCounts } from "../services/admin/pins";
 
 const now = new Date("2026-10-30T12:00:00Z");
 const day = 24 * 60 * 60 * 1000;
@@ -18,8 +18,8 @@ const pinRow = (extra: Record<string, unknown>) => ({
   id: "p1",
   title: "Rooftop",
   type: "OTHER",
+  description: null,
   imageUrl: null,
-  approval: "APPROVED",
   isHidden: false,
   startsAt: new Date(now.getTime() - day),
   endsAt: new Date(now.getTime() + day),
@@ -27,64 +27,75 @@ const pinRow = (extra: Record<string, unknown>) => ({
   claimsLeft: 7,
   latitude: 0,
   longitude: 0,
+  radiusMeters: 50,
   createdAt: now,
-  artist: { id: "a1", name: "Luna", userId: "u1" },
+  artist: { id: "a1", name: "Luna", userId: "u1", avatarUrl: null },
   _count: { spots: 1 },
   ...extra,
 });
 
-describe("admin pins", () => {
-  it("lists pins with their state and how many were collected", async () => {
+describe("admin pin review", () => {
+  it("lists the waiting pins oldest first, with timing and how many were collected", async () => {
     const findMany = vi
       .fn()
-      .mockResolvedValue([
-        pinRow({}),
-        pinRow({ id: "p2", approval: "REJECTED" }),
-        pinRow({ id: "p3", endsAt: new Date(now.getTime() - 1) }),
-      ]);
+      .mockResolvedValue([pinRow({}), pinRow({ id: "p3", endsAt: new Date(now.getTime() - 1) })]);
     const { ctx } = ctxWith({ pin: { findMany } });
-    const page = await listPins(ctx, { status: "live" }, now);
-    expect(page.pins.map((pin) => [pin.id, pin.status, pin.claimed])).toEqual([
-      ["p1", "live", 3],
-      ["p2", "hidden", 3],
+    const page = await listPins(ctx, { view: "pending", search: "luna" }, now);
+    expect(page.pins.map((pin) => [pin.id, pin.timing, pin.claimed])).toEqual([
+      ["p1", "running", 3],
       ["p3", "ended", 3],
     ]);
-    expect(findMany.mock.calls[0]?.[0].where).toMatchObject({
-      approval: "APPROVED",
-      startsAt: { lte: now },
-      endsAt: { gte: now },
-    });
+    const query = findMany.mock.calls[0]?.[0];
+    expect(query.where).toMatchObject({ approval: "PENDING" });
+    expect(query.where.OR).toHaveLength(4);
+    expect(query.orderBy).toEqual([{ createdAt: "asc" }, { id: "asc" }]);
+    await listPins(ctx, { view: "approved" }, now);
+    expect(findMany.mock.calls[1]?.[0].where).toEqual({ approval: "APPROVED" });
+    expect(findMany.mock.calls[1]?.[0].orderBy).toEqual([{ createdAt: "desc" }, { id: "desc" }]);
   });
 
-  it("hides and shows a pin through approval, which artists can't change", async () => {
-    const update = vi.fn().mockResolvedValue({});
-    const { ctx, activity } = ctxWith({
-      pin: { findUnique: vi.fn().mockResolvedValue({ id: "p1" }), update },
-    });
-    await setPinHidden(ctx, { pinId: "p1", hidden: true });
-    expect(update).toHaveBeenLastCalledWith({
-      where: { id: "p1" },
-      data: { approval: "REJECTED" },
-    });
-    await setPinHidden(ctx, { pinId: "p1", hidden: false });
-    expect(update).toHaveBeenLastCalledWith({
-      where: { id: "p1" },
+  it("counts each list", async () => {
+    const groupBy = vi.fn().mockResolvedValue([
+      { approval: "PENDING", _count: { _all: 4 } },
+      { approval: "APPROVED", _count: { _all: 9 } },
+    ]);
+    const { ctx } = ctxWith({ pin: { groupBy } });
+    expect(await pinCounts(ctx)).toEqual({ pending: 4, approved: 9, rejected: 0 });
+  });
+
+  it("approves, rejects and moves pins back to review in bulk, logging them", async () => {
+    const updateMany = vi.fn().mockResolvedValue({ count: 2 });
+    const { ctx, activity } = ctxWith({ pin: { updateMany } });
+    await decidePins(ctx, { pinIds: ["p1", "p2"], approval: "APPROVED" });
+    expect(updateMany).toHaveBeenLastCalledWith({
+      where: { id: { in: ["p1", "p2"] } },
       data: { approval: "APPROVED" },
     });
-    expect(activity.set).toHaveBeenCalledWith({ targetType: "Pin", targetId: "p1" });
+    expect(activity.set).toHaveBeenCalledWith({ targetType: "Pin", targetId: "p1,p2" });
+    await decidePins(ctx, { pinIds: ["p1"], approval: "PENDING" });
+    expect(updateMany).toHaveBeenLastCalledWith({
+      where: { id: { in: ["p1"] } },
+      data: { approval: "PENDING" },
+    });
   });
 
-  it("deletes only a pin nobody collected", async () => {
-    const remove = vi.fn().mockResolvedValue({});
-    const count = vi.fn().mockResolvedValueOnce(2).mockResolvedValueOnce(0);
-    const { ctx } = ctxWith({
-      pin: { findUnique: vi.fn().mockResolvedValue({ id: "p1" }), delete: remove },
-      pinClaim: { count },
-    });
-    await expect(deletePin(ctx, { pinId: "p1" })).rejects.toThrow(/collected this pin 2 times/);
-    expect(remove).not.toHaveBeenCalled();
-    await deletePin(ctx, { pinId: "p1" });
-    expect(remove).toHaveBeenCalledWith({ where: { id: "p1" } });
+  it("says so when none of the pins exist", async () => {
+    const { ctx } = ctxWith({ pin: { updateMany: vi.fn().mockResolvedValue({ count: 0 }) } });
+    await expect(decidePins(ctx, { pinIds: ["gone"], approval: "REJECTED" })).rejects.toThrow(
+      /Pin not found/,
+    );
+  });
+
+  it("deletes only pins nobody collected", async () => {
+    const deleteMany = vi.fn().mockResolvedValue({ count: 2 });
+    const count = vi.fn().mockResolvedValueOnce(1).mockResolvedValueOnce(0);
+    const { ctx } = ctxWith({ pin: { count, deleteMany } });
+    await expect(deletePins(ctx, { pinIds: ["p1", "p2"] })).rejects.toThrow(
+      /collected 1 of these pins/,
+    );
+    expect(deleteMany).not.toHaveBeenCalled();
+    expect(await deletePins(ctx, { pinIds: ["p1", "p2"] })).toEqual({ count: 2 });
+    expect(deleteMany).toHaveBeenCalledWith({ where: { id: { in: ["p1", "p2"] } } });
   });
 });
 
