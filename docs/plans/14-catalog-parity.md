@@ -47,6 +47,9 @@ database and stock is the limit minus copies sold, as in main.
 
 ## 4. Contract NFTs, main's way
 
+> Moved to [plan 16](16-contract-nfts-and-locked-content.md), with the full
+> locked content feature.
+
 - **Create** is a database save: nothing to sign or pay, live at once. Fields
   as main: name (≤128), description (≤2,000), thumbnail, creator royalty
   (0–90%), supply (1–100,000), price in BANDCOIN and USD (both required).
