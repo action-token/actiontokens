@@ -1,42 +1,42 @@
-import { Account, Keypair, type Transaction, TransactionBuilder } from "@stellar/stellar-sdk";
+import { Account, Keypair } from "@stellar/stellar-sdk";
 
 import {
   type AssetRef,
   buildStorageSetup,
   networkFeeXlm,
-  quoteStorageSetup,
-  type RechargeProblem,
   storageStartingXlm,
+  toStroops,
 } from "@bandcoin/chain";
-import { QUOTE_TTL_SECONDS } from "@bandcoin/chain/quote";
 import { encryptSecret, fundsOf } from "@bandcoin/chain/server";
 import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
 
-import { type Context, isCustodial, type SessionUser } from "../../context";
-import { transitionOrder } from "../order-state";
-import { finishAccountOpening } from "../orders/finish";
-import { failOrder, ownOrder, userSignature } from "../purchase";
+import type { Context } from "../../context";
 
 /**
- * Opening an artist's storage account, as in bandfan: the account where their
- * copies wait. Sales, pin claims and gifts take from it before minting more,
- * and it can fund bounties. Here it is optional (copies are minted on demand
- * without it) and the artist pays the XLM it starts with and the network fee
- * (quote → start → submit, like the issuer). The key is made here and kept
- * encrypted by the platform. The artist is linked to it only once the payment
- * is on the network. A user has at most one storage account, which also holds
- * what they list for resale.
+ * An artist's storage account: where their fan tokens and copies wait. Sales,
+ * pin claims and gifts take from it before minting more, and it can fund
+ * bounties. As on the old Bandcoin, the platform opens it when an admin
+ * approves the artist, and pays for it: the mother account creates it, it
+ * trusts BANDCOIN, USDC and the fan token, and the artist's issuer pays the
+ * starting supply of fan tokens (Admin › Settings) into it, all in one
+ * transaction. Artists approved before this open it from Settings, on the
+ * platform too. The key is made here and kept encrypted.
+ *
+ * Opening twice never pays twice: an account already on the network is only
+ * linked, and a second createAccount for the same key fails on the network.
  */
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
-type ArtistRef = {
+export type StorageArtist = {
   id: string;
+  userId: string;
   status: string;
   storageAccountId: string | null;
   fanTokenItemId: string | null;
+  issuerAccountId: string | null;
 };
 
 /** What storage trusts from the start: the payment assets and the artist's fan token. */
-async function assetsToTrust(ctx: ServiceCtx, artist: ArtistRef): Promise<AssetRef[]> {
+async function assetsToTrust(ctx: ServiceCtx, artist: StorageArtist) {
   const { bandcoin, usdc } = ctx.chain.config.assets;
   const fanToken = artist.fanTokenItemId
     ? await ctx.db.classicToken.findUnique({
@@ -44,168 +44,112 @@ async function assetsToTrust(ctx: ServiceCtx, artist: ArtistRef): Promise<AssetR
         select: { code: true, issuer: true },
       })
     : null;
-  return fanToken ? [bandcoin, usdc, fanToken] : [bandcoin, usdc];
+  const trust: AssetRef[] = fanToken ? [bandcoin, usdc, fanToken] : [bandcoin, usdc];
+  return { trust, fanToken };
 }
 
-async function priceStorage(ctx: ServiceCtx, user: SessionUser, artist: ArtistRef) {
-  const [account, trust, existing] = await Promise.all([
-    ctx.chain.loadAccount(user.walletAddress),
-    assetsToTrust(ctx, artist),
-    ctx.db.chainAccount.findFirst({
-      where: { ownerId: user.id, kind: "STORAGE", activatedAt: { not: null } },
-      select: { id: true },
-    }),
-  ]);
-  const quote = quoteStorageSetup({
-    xlmFunds: fundsOf(account, ctx.chain.config.assets).XLM,
-    // createAccount, then one changeTrust per asset
-    networkFeeXlm: networkFeeXlm(1 + trust.length, ctx.chain.config.network.baseFee),
-    startingXlm: storageStartingXlm(trust.length),
-  });
-
-  const extra: RechargeProblem[] = [];
-  if (artist.storageAccountId || existing)
-    extra.push({ code: "UNAVAILABLE", message: "Your storage account is already open." });
-  else if (artist.status !== "APPROVED")
-    extra.push({
-      code: "UNAVAILABLE",
-      message: "You can open storage once your artist page is approved.",
-    });
-  else if (!account)
-    extra.push({
-      code: "UNAVAILABLE",
-      message: "Your wallet needs its first XLM before it can pay.",
-    });
-  const problems = extra.length > 0 ? extra : quote.problems;
+/** What opening costs the platform: the XLM storage starts with, plus the network fee. */
+export function storageCost(trustlines: number, baseFee: string) {
+  // createAccount, one changeTrust per asset, and the supply payment
   return {
-    quote: {
-      ...quote,
-      problems,
-      ok: problems.length === 0,
-      expiresAt: new Date(Date.now() + QUOTE_TTL_SECONDS * 1000).toISOString(),
-    },
-    account,
-    trust,
+    startingXlm: storageStartingXlm(trustlines),
+    networkFeeXlm: networkFeeXlm(trustlines + 2, baseFee),
   };
 }
 
-export async function quoteStorageOpening(ctx: ServiceCtx, user: SessionUser, artist: ArtistRef) {
-  return (await priceStorage(ctx, user, artist)).quote;
-}
-
-/** Creates the order and the unsigned payment; reuses a key from a payment that never went through. */
-export async function startStorageOpening(ctx: ServiceCtx, user: SessionUser, artist: ArtistRef) {
-  const { quote, account, trust } = await priceStorage(ctx, user, artist);
-  if (!quote.ok || !account) {
-    throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, {
-      message: quote.problems[0]?.message ?? "This can't go through right now.",
-      details: { problems: quote.problems },
+export async function openStorage(ctx: ServiceCtx, artist: StorageArtist) {
+  const { db, chain } = ctx;
+  if (artist.storageAccountId)
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
+      message: "The storage account is already open.",
     });
-  }
+  if (artist.status !== "APPROVED")
+    throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, {
+      message: "Storage opens once the artist page is approved.",
+    });
 
   const storage =
-    (await ctx.db.chainAccount.findFirst({
-      where: { ownerId: user.id, kind: "STORAGE", activatedAt: null },
+    (await db.chainAccount.findFirst({
+      where: { ownerId: artist.userId, kind: "STORAGE" },
+      orderBy: { createdAt: "asc" },
     })) ??
-    (await (async () => {
-      const keys = Keypair.random();
-      return ctx.db.chainAccount.create({
-        data: {
-          kind: "STORAGE",
+    (await db.chainAccount.create({
+      data: (() => {
+        const keys = Keypair.random();
+        return {
+          kind: "STORAGE" as const,
           publicKey: keys.publicKey(),
           secretEncrypted: encryptSecret(keys.secret()),
-          ownerId: user.id,
-        },
-      });
-    })());
+          ownerId: artist.userId,
+        };
+      })(),
+    }));
+  ctx.activity.set({ targetType: "ChainAccount", targetId: storage.id });
 
-  const order = await ctx.db.order.create({
-    data: {
-      kind: "STORAGE_SETUP",
-      buyerId: user.id,
-      currency: "XLM",
-      unitPrice: quote.total,
-      platformFee: "0",
-      total: quote.total,
-      method: "WALLET",
-      quoteExpiresAt: new Date(quote.expiresAt),
-      breakdown: quote,
-    },
+  // Opened by an earlier try whose answer was lost: just link it.
+  if (storage.activatedAt || (await chain.loadAccount(storage.publicKey))) {
+    await link(ctx, artist, storage.id);
+    return { publicKey: storage.publicKey, supply: null };
+  }
+
+  const { trust, fanToken } = await assetsToTrust(ctx, artist);
+  const issuer = artist.issuerAccountId
+    ? await db.chainAccount.findUnique({
+        where: { id: artist.issuerAccountId },
+        select: { publicKey: true, activatedAt: true },
+      })
+    : null;
+  const settings = await db.appSetting.findUnique({
+    where: { id: 1 },
+    select: { fanTokenStartSupply: true },
   });
-  ctx.activity.set({
-    targetType: "Order",
-    targetId: order.id,
-    amount: quote.total,
-    currency: "XLM",
-  });
+  const amount = settings?.fanTokenStartSupply.toString() ?? "1000000";
+  // Only a token the artist's own issuer makes can be issued; one from elsewhere is just trusted.
+  const supply =
+    fanToken &&
+    issuer?.activatedAt &&
+    fanToken.issuer === issuer.publicKey &&
+    toStroops(amount) > 0n
+      ? { asset: fanToken, amount }
+      : undefined;
+
+  const { mother, network } = chain.config;
+  const payer = mother ? await chain.loadAccount(mother) : null;
+  if (!mother || !payer)
+    throw new AppError(ErrorCodes.CONFIG_MISSING, {
+      message: "The platform account isn't set up to open storage.",
+    });
+  const cost = storageCost(trust.length, network.baseFee);
+  const need = toStroops(cost.startingXlm) + toStroops(cost.networkFeeXlm);
+  if (toStroops(fundsOf(payer, chain.config.assets).XLM) < need)
+    throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, {
+      message: "The platform account is short of XLM to open storage. Top it up and try again.",
+    });
 
   const built = buildStorageSetup({
-    artist: new Account(account.accountId(), account.sequenceNumber()),
-    network: ctx.chain.config.network,
+    payer: new Account(payer.accountId(), payer.sequenceNumber()),
+    network,
     storage: storage.publicKey,
+    startingXlm: cost.startingXlm,
     trust,
+    supply,
   });
-  // The hash doesn't change when signatures are added, so it pins the exact transaction.
-  await transitionOrder(ctx.db, order.id, "AWAITING_SIGNATURE", { txHash: built.hash });
-  return {
-    orderId: order.id,
-    quote,
-    xdr: built.xdr,
-    signer: isCustodial(user) ? ("custodial" as const) : ("wallet" as const),
-  };
+  const signed = await chain.signWithServerKeys(built.xdr, [mother, ...built.serverSigners]);
+  try {
+    const { hash } = await chain.submit(signed);
+    ctx.activity.set({ txHash: hash, amount: cost.startingXlm, currency: "XLM" });
+  } catch (error) {
+    // A lost answer may still have landed: the next try finds the account and links it.
+    if (isAppError(error)) throw error;
+    throw new AppError(ErrorCodes.STELLAR_TX_SUBMIT_FAILED);
+  }
+  await link(ctx, artist, storage.id);
+  return { publicKey: storage.publicKey, supply: supply ? supply.amount : null };
 }
 
-/**
- * Sends the payment: the artist's signature (or the server's, for a custodial
- * account after the countdown), then storage's own, which its trustlines need.
- */
-export async function submitStorageOpening(
-  ctx: ServiceCtx,
-  user: SessionUser,
-  artist: ArtistRef,
-  input: { orderId: string; xdr: string },
-) {
-  const { chain, db } = ctx;
-  const order = await ownOrder(ctx, user, input.orderId);
-  if (order.kind !== "STORAGE_SETUP")
-    throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Order not found" });
-  ctx.activity.set({
-    targetType: "Order",
-    targetId: order.id,
-    amount: order.total.toString(),
-    currency: order.currency,
+async function link(ctx: ServiceCtx, artist: StorageArtist, storageId: string) {
+  await ctx.db.$transaction(async (tx) => {
+    await tx.chainAccount.update({ where: { id: storageId }, data: { activatedAt: new Date() } });
+    await tx.artist.update({ where: { id: artist.id }, data: { storageAccountId: storageId } });
   });
-  if (order.status !== "AWAITING_SIGNATURE" || !order.txHash)
-    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
-      message: `This order is already ${order.status.toLowerCase()}.`,
-    });
-  if (order.quoteExpiresAt && order.quoteExpiresAt < new Date()) {
-    await transitionOrder(db, order.id, "FAILED", {
-      failureCode: ErrorCodes.STELLAR_QUOTE_EXPIRED,
-    });
-    throw new AppError(ErrorCodes.STELLAR_QUOTE_EXPIRED);
-  }
-
-  let xdr = await userSignature(ctx, user, order.txHash, input.xdr);
-  // The hash matched, so the one createAccount in it is the storage `start` made.
-  const created = (TransactionBuilder.fromXDR(xdr, chain.config.network.passphrase) as Transaction)
-    .operations[0];
-  const key = created?.type === "createAccount" ? created.destination : null;
-  const storage = key ? await db.chainAccount.findUnique({ where: { publicKey: key } }) : null;
-  if (!storage || storage.ownerId !== user.id || storage.kind !== "STORAGE" || storage.activatedAt)
-    throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Order not found" });
-  xdr = await chain.signWithServerKeys(xdr, [storage.publicKey]);
-
-  await transitionOrder(db, order.id, "SUBMITTED");
-  try {
-    const { hash } = await chain.submit(xdr);
-    ctx.activity.set({ txHash: hash });
-  } catch (error) {
-    // A lost response may still have landed: leave it SUBMITTED for the worker to re-check.
-    if (isAppError(error) && error.code === ErrorCodes.STELLAR_TX_SUBMIT_FAILED) throw error;
-    await failOrder(ctx, order.id, error, null);
-    throw error;
-  }
-
-  return finishAccountOpening(ctx, order.id, xdr, "STORAGE");
 }

@@ -1,37 +1,23 @@
-import {
-  Account,
-  Keypair,
-  Networks,
-  type Transaction,
-  TransactionBuilder,
-} from "@stellar/stellar-sdk";
+import { Keypair, Networks, type Transaction, TransactionBuilder } from "@stellar/stellar-sdk";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { Db } from "@bandcoin/db";
+import { AppError } from "@bandcoin/errors";
 
-import type { SessionUser } from "../context";
 import type { ChainGateway } from "../services/chain-gateway";
-import {
-  quoteStorageOpening,
-  startStorageOpening,
-  submitStorageOpening,
-} from "../services/artist/storage-account";
+import { openStorage, type StorageArtist } from "../services/artist/storage-account";
 
-const wallet = Keypair.random();
 const network = { passphrase: Networks.TESTNET, baseFee: "100" };
-const ORDER = "cmvorder0000000000000011";
-const me: SessionUser = {
-  id: "me",
-  role: "ARTIST",
-  walletAddress: wallet.publicKey(),
-  walletType: "freighter",
-};
-const approved = {
+const mother = Keypair.random().publicKey();
+const issuerKey = Keypair.random().publicKey();
+const fanToken = { code: "FYRON", issuer: issuerKey };
+const approved: StorageArtist = {
   id: "a1",
   userId: "me",
   status: "APPROVED",
   storageAccountId: null,
-  fanTokenItemId: null,
+  fanTokenItemId: "fan",
+  issuerAccountId: "issuer1",
 };
 
 beforeAll(() => {
@@ -40,36 +26,28 @@ beforeAll(() => {
 
 type Row = Record<string, unknown>;
 
-const fanToken = { code: "FYRON", issuer: Keypair.random().publicKey() };
-
-function setup(opts: { xlm?: string } = {}) {
-  const artists = new Map<string, Row>([["a1", { ...approved }]]);
+function setup(opts: { motherXlm?: string; onChain?: string[]; supply?: string } = {}) {
   const chainAccounts = new Map<string, Row>();
-  const orders = new Map<string, Row>();
+  const artistUpdates: Row[] = [];
   const db = {
     artist: {
-      update: vi.fn(({ where, data }: { where: { id?: string; userId?: string }; data: Row }) => {
-        const row = where.id
-          ? artists.get(where.id)!
-          : [...artists.values()].find((entry) => entry.userId === where.userId)!;
-        Object.assign(row, data);
-        return Promise.resolve(row);
+      update: vi.fn(({ data }: { data: Row }) => {
+        artistUpdates.push(data);
+        return Promise.resolve({});
       }),
     },
     chainAccount: {
-      findFirst: vi.fn(
-        ({ where }: { where: { ownerId: string; kind: string; activatedAt: null | object } }) =>
-          Promise.resolve(
-            [...chainAccounts.values()].find(
-              (row) =>
-                row.ownerId === where.ownerId &&
-                row.kind === where.kind &&
-                (where.activatedAt === null ? row.activatedAt === null : row.activatedAt !== null),
-            ) ?? null,
-          ),
+      findFirst: vi.fn(({ where }: { where: { ownerId: string; kind: string } }) =>
+        Promise.resolve(
+          [...chainAccounts.values()].find(
+            (row) => row.ownerId === where.ownerId && row.kind === where.kind,
+          ) ?? null,
+        ),
       ),
-      findUnique: vi.fn(({ where }: { where: { publicKey: string } }) =>
-        Promise.resolve(chainAccounts.get(where.publicKey) ?? null),
+      findUnique: vi.fn(({ where }: { where: { id: string } }) =>
+        Promise.resolve(
+          where.id === "issuer1" ? { publicKey: issuerKey, activatedAt: new Date() } : null,
+        ),
       ),
       create: vi.fn(({ data }: { data: Row }) => {
         const row = { id: `chain${chainAccounts.size + 1}`, activatedAt: null, ...data };
@@ -87,147 +65,101 @@ function setup(opts: { xlm?: string } = {}) {
         Promise.resolve(where.itemId === "fan" ? fanToken : null),
       ),
     },
-    order: {
-      create: vi.fn(({ data }: { data: Row }) => {
-        const row = { id: ORDER, status: "QUOTED", buyerId: "me", ...data };
-        orders.set(ORDER, row);
-        return Promise.resolve(row);
+    appSetting: {
+      findUnique: vi.fn().mockResolvedValue({
+        fanTokenStartSupply: { toString: () => opts.supply ?? "1000000" },
       }),
-      findUnique: vi.fn(({ where }: { where: { id: string } }) =>
-        Promise.resolve(orders.get(where.id) ?? null),
-      ),
-      findUniqueOrThrow: vi.fn(({ where }: { where: { id: string } }) =>
-        Promise.resolve(orders.get(where.id)),
-      ),
-      updateMany: vi.fn(
-        ({ where, data }: { where: { id: string; status: { in: string[] } }; data: Row }) => {
-          const row = orders.get(where.id);
-          if (!row || !where.status.in.includes(row.status as string))
-            return Promise.resolve({ count: 0 });
-          Object.assign(row, data);
-          return Promise.resolve({ count: 1 });
-        },
-      ),
     },
     $transaction: (run: (tx: unknown) => unknown) => run(db),
   };
-  const account = Object.assign(new Account(wallet.publicKey(), "5"), {
+  const motherAccount = {
+    accountId: () => mother,
+    sequenceNumber: () => "5",
     subentry_count: 0,
-    balances: [{ asset_type: "native", balance: opts.xlm ?? "10", selling_liabilities: "0" }],
-  });
+    balances: [
+      { asset_type: "native", balance: opts.motherXlm ?? "100", selling_liabilities: "0" },
+    ],
+  };
   const bandcoin = { code: "BANDCOIN", issuer: Keypair.random().publicKey() };
   const usdc = { code: "USDC", issuer: Keypair.random().publicKey() };
   const chain = {
-    config: { name: "testnet", network, assets: { bandcoin, usdc } },
-    loadAccount: vi.fn().mockResolvedValue(account),
+    config: { name: "testnet", network, mother, assets: { bandcoin, usdc } },
+    loadAccount: vi.fn((id: string) =>
+      Promise.resolve(id === mother ? motherAccount : opts.onChain?.includes(id) ? {} : null),
+    ),
     signWithServerKeys: vi.fn((xdr: string) => Promise.resolve(xdr)),
-    submit: vi.fn(() => Promise.resolve({ hash: "txhash" })),
+    submit: vi.fn((_xdr: string) => Promise.resolve({ hash: "txhash" })),
   };
   const activity = { set: vi.fn(), facts: () => ({}) };
   const ctx = { db: db as unknown as Db, chain: chain as unknown as ChainGateway, activity };
-  return { ctx, chain, artists, chainAccounts, orders, bandcoin, usdc };
+  return { ctx, chain, chainAccounts, artistUpdates, activity };
 }
 
-describe("opening the storage account", () => {
-  it("prices 2.5 XLM and the fee for an approved artist", async () => {
-    await expect(quoteStorageOpening(setup().ctx, me, approved)).resolves.toMatchObject({
-      ok: true,
-      total: "2.5000300",
-    });
+const parse = (xdr: string) => TransactionBuilder.fromXDR(xdr, Networks.TESTNET) as Transaction;
+
+describe("opening the storage account (the platform pays)", () => {
+  it("creates it from the mother account, trusts three tokens and issues the starting supply", async () => {
+    const { ctx, chain, chainAccounts, artistUpdates, activity } = setup();
+    const opened = await openStorage(ctx, approved);
+    expect(opened.supply).toBe("1000000");
+    const storage = [...chainAccounts.values()][0]!;
+    expect(storage).toMatchObject({ kind: "STORAGE", ownerId: "me" });
+
+    const xdr = chain.submit.mock.calls[0]![0] as string;
+    const tx = parse(xdr);
+    expect(tx.source).toBe(mother);
+    expect(tx.operations).toMatchObject([
+      { type: "createAccount", destination: storage.publicKey, startingBalance: "3.0000000" },
+      { type: "changeTrust", source: storage.publicKey },
+      { type: "changeTrust", source: storage.publicKey },
+      { type: "changeTrust", source: storage.publicKey },
+      { type: "payment", source: issuerKey, destination: storage.publicKey },
+    ]);
+    expect(chain.signWithServerKeys).toHaveBeenCalledWith(expect.any(String), [
+      mother,
+      storage.publicKey,
+      issuerKey,
+    ]);
+    expect(artistUpdates).toEqual([{ storageAccountId: storage.id }]);
+    expect(storage.activatedAt).toBeInstanceOf(Date);
+    expect(activity.set).toHaveBeenCalledWith(
+      expect.objectContaining({ amount: "3", currency: "XLM", txHash: "txhash" }),
+    );
   });
 
-  it("says why it can't open: already open, not approved yet, or not enough XLM", async () => {
-    const { ctx } = setup();
-    await expect(
-      quoteStorageOpening(ctx, me, { ...approved, storageAccountId: "chain9" }),
-    ).resolves.toMatchObject({
-      ok: false,
-      problems: [{ message: "Your storage account is already open." }],
-    });
-    await expect(
-      quoteStorageOpening(ctx, me, { ...approved, status: "PENDING" }),
-    ).resolves.toMatchObject({
-      problems: [{ message: "You can open storage once your artist page is approved." }],
-    });
-    await expect(quoteStorageOpening(setup({ xlm: "2" }).ctx, me, approved)).resolves.toMatchObject(
-      { problems: [{ code: "INSUFFICIENT_FUNDS" }] },
+  it("only trusts a fan token made elsewhere, and issues nothing", async () => {
+    const { ctx, chain } = setup();
+    const outside = { ...approved, issuerAccountId: null };
+    await expect(openStorage(ctx, outside)).resolves.toMatchObject({ supply: null });
+    const ops = parse(chain.submit.mock.calls[0]![0] as string).operations;
+    expect(ops.map((op) => op.type)).not.toContain("payment");
+  });
+
+  it("refuses when already open, not approved, or the platform is short of XLM", async () => {
+    await expect(openStorage(setup().ctx, { ...approved, storageAccountId: "s1" })).rejects.toThrow(
+      /already open/,
     );
-    await expect(startStorageOpening(ctx, me, { ...approved, status: "PENDING" })).rejects.toThrow(
+    await expect(openStorage(setup().ctx, { ...approved, status: "PENDING" })).rejects.toThrow(
       /approved/,
     );
+    const short = setup({ motherXlm: "2" });
+    await expect(openStorage(short.ctx, approved)).rejects.toThrow(/short of XLM/);
+    expect(short.chain.submit).not.toHaveBeenCalled();
   });
 
-  it("pays from the artist's wallet into a new storage account that trusts BANDCOIN and USDC", async () => {
-    const { ctx, chainAccounts, orders, bandcoin, usdc } = setup();
-    const started = await startStorageOpening(ctx, me, approved);
-    expect(started).toMatchObject({ orderId: ORDER, signer: "wallet" });
-    expect(orders.get(ORDER)).toMatchObject({
-      kind: "STORAGE_SETUP",
-      status: "AWAITING_SIGNATURE",
-      total: "2.5000300",
-    });
+  it("never pays twice: an account that already landed is only linked", async () => {
+    const first = setup();
+    first.chain.submit.mockRejectedValueOnce(new AppError("STELLAR_TX_SUBMIT_FAILED"));
+    await expect(openStorage(first.ctx, approved)).rejects.toThrow();
+    expect(first.artistUpdates).toEqual([]);
 
-    const [storage] = [...chainAccounts.values()];
-    expect(storage).toMatchObject({ kind: "STORAGE", ownerId: "me", activatedAt: null });
-    const tx = TransactionBuilder.fromXDR(started.xdr, Networks.TESTNET) as Transaction;
-    expect(tx.source).toBe(wallet.publicKey());
-    expect(tx.operations).toMatchObject([
-      { type: "createAccount", destination: storage!.publicKey, startingBalance: "2.5000000" },
-      { type: "changeTrust", source: storage!.publicKey, line: { code: bandcoin.code } },
-      { type: "changeTrust", source: storage!.publicKey, line: { code: usdc.code } },
-    ]);
-    expect(tx.signatures).toHaveLength(0);
-  });
-
-  it("links the account only after the payment lands, with storage co-signing", async () => {
-    const { ctx, chain, artists, chainAccounts, orders } = setup();
-    const started = await startStorageOpening(ctx, me, approved);
-    const tx = TransactionBuilder.fromXDR(started.xdr, Networks.TESTNET) as Transaction;
-    tx.sign(wallet);
-
-    await submitStorageOpening(ctx, me, approved, { orderId: ORDER, xdr: tx.toXDR() });
-    const [storage] = [...chainAccounts.values()];
-    expect(chain.signWithServerKeys).toHaveBeenCalledWith(expect.any(String), [storage!.publicKey]);
-    expect(storage!.activatedAt).toBeInstanceOf(Date);
-    expect(artists.get("a1")?.storageAccountId).toBe(storage!.id);
-    expect(orders.get(ORDER)?.status).toBe("DELIVERED");
-  });
-
-  it("leaves the artist unlinked when the network refuses the payment", async () => {
-    const { ctx, chain, artists } = setup();
-    chain.submit.mockRejectedValueOnce(new Error("tx_bad_seq"));
-    const started = await startStorageOpening(ctx, me, approved);
-    const tx = TransactionBuilder.fromXDR(started.xdr, Networks.TESTNET) as Transaction;
-    tx.sign(wallet);
-    await expect(
-      submitStorageOpening(ctx, me, approved, { orderId: ORDER, xdr: tx.toXDR() }),
-    ).rejects.toThrow();
-    expect(artists.get("a1")?.storageAccountId).toBeNull();
-  });
-
-  it("also trusts the fan token when there is one, with its reserve in the price", async () => {
-    const { ctx } = setup();
-    const withToken = { ...approved, fanTokenItemId: "fan" };
-    await expect(quoteStorageOpening(ctx, me, withToken)).resolves.toMatchObject({
-      total: "3.0000400",
-    });
-    const started = await startStorageOpening(ctx, me, withToken);
-    const tx = TransactionBuilder.fromXDR(started.xdr, Networks.TESTNET) as Transaction;
-    expect(tx.operations).toHaveLength(4);
-    expect(tx.operations[3]).toMatchObject({ type: "changeTrust", line: { code: "FYRON" } });
-  });
-
-  it("won't open a second storage account for the same person", async () => {
-    const { ctx, chainAccounts } = setup();
-    chainAccounts.set("GOLD", {
-      id: "old",
-      ownerId: "me",
-      kind: "STORAGE",
-      activatedAt: new Date(),
-    });
-    await expect(quoteStorageOpening(ctx, me, approved)).resolves.toMatchObject({
-      ok: false,
-      problems: [{ message: "Your storage account is already open." }],
-    });
+    // The answer was lost but the account is on the network now.
+    const key = [...first.chainAccounts.values()][0]!.publicKey as string;
+    first.chain.loadAccount.mockImplementation((id: string) =>
+      Promise.resolve(id === key ? ({} as never) : null),
+    );
+    await expect(openStorage(first.ctx, approved)).resolves.toMatchObject({ publicKey: key });
+    expect(first.chain.submit).toHaveBeenCalledTimes(1);
+    expect(first.artistUpdates).toHaveLength(1);
   });
 });

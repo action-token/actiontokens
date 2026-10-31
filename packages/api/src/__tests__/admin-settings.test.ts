@@ -76,6 +76,7 @@ const saved = {
   vanityNameChangeBandcoin: null,
   vanityNameChangeUsd: null,
   nearbyPinRadiusMeters: 500,
+  fanTokenStartSupply: "1000000",
   alertRules: DEFAULT_ALERT_RULES,
 };
 

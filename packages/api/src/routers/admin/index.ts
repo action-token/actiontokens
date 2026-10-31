@@ -254,6 +254,7 @@ export const adminRouter = createRouter({
           vanityNameChangeBandcoin: amount,
           vanityNameChangeUsd: amount,
           nearbyPinRadiusMeters: z.number().min(10).max(50_000),
+          fanTokenStartSupply: z.string().regex(/^\d{1,12}$/, "A whole number"),
           alertRules: z.object({
             failedPayments: z.number().int().min(1).max(1000),
             signInFailures: z.number().int().min(1).max(10_000),

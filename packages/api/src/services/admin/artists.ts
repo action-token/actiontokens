@@ -7,6 +7,7 @@ import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
 import type { Context } from "../../context";
 import { createFanToken } from "../artist/fan-token";
 import type { PendingFanToken } from "../artist/onboarding";
+import { openStorage } from "../artist/storage-account";
 
 /**
  * What an admin does with artists: review an application (approve or reject),
@@ -114,8 +115,41 @@ export async function approveArtist(ctx: ServiceCtx, artistId: string) {
       await tx.user.update({ where: { id: artist.userId }, data: { role: "ARTIST" } });
   });
   const fanToken = await createChosenFanToken(ctx, artist);
+  const storage = await openStorageOnApproval(ctx, artist.id);
   ctx.activity.set({ targetType: "Artist", targetId: artist.id });
-  return { artistId: artist.id, status: "APPROVED" as const, fanToken };
+  return { artistId: artist.id, status: "APPROVED" as const, fanToken, storage };
+}
+
+/**
+ * The platform opens the artist's storage account and issues their starting
+ * fan tokens into it. Like the fan token, approval never fails because of it:
+ * the artist can open it from Settings later.
+ */
+async function openStorageOnApproval(
+  ctx: ServiceCtx,
+  artistId: string,
+): Promise<{ status: "OPENED"; supply: string | null } | { status: "FAILED"; message: string }> {
+  try {
+    // Read again: the fan token was just made.
+    const artist = await ctx.db.artist.findUniqueOrThrow({
+      where: { id: artistId },
+      select: {
+        id: true,
+        userId: true,
+        status: true,
+        storageAccountId: true,
+        fanTokenItemId: true,
+        issuerAccountId: true,
+      },
+    });
+    const { supply } = await openStorage(ctx, artist);
+    return { status: "OPENED", supply };
+  } catch (error) {
+    return {
+      status: "FAILED",
+      message: isAppError(error) ? error.message : "The storage account couldn't be opened.",
+    };
+  }
 }
 
 /**

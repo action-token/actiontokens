@@ -48,6 +48,7 @@ const toForm = (saved: Saved): Form => ({
   vanityNameChangeBandcoin: saved.vanityNameChangeBandcoin ?? "",
   vanityNameChangeUsd: saved.vanityNameChangeUsd ?? "",
   nearbyPinRadiusMeters: String(saved.nearbyPinRadiusMeters),
+  fanTokenStartSupply: String(Number(saved.fanTokenStartSupply)),
   ...(Object.fromEntries(
     RULES.map((rule) => [rule.key, String(saved.alertRules[rule.key])]),
   ) as Record<RuleKey, string>),
@@ -65,6 +66,8 @@ function errorsOf(form: Form) {
     if (form[key].trim() && !AMOUNT.test(form[key].trim())) errors[key] = "A number";
   if (Number.isNaN(radius) || radius < 10 || radius > 50_000)
     errors.nearbyPinRadiusMeters = "10 to 50,000 m";
+  if (!/^\d{1,12}$/.test(form.fanTokenStartSupply.trim()))
+    errors.fanTokenStartSupply = "A whole number (0 issues none)";
   for (const rule of RULES) {
     const value = Number(form[rule.key]);
     if (form[rule.key].trim() === "" || Number.isNaN(value) || value < rule.min || value > rule.max)
@@ -133,6 +136,7 @@ function SavedForm({ saved, treasury }: { saved: Saved; treasury: string }) {
           vanityNameChangeBandcoin: money("vanityNameChangeBandcoin"),
           vanityNameChangeUsd: money("vanityNameChangeUsd"),
           nearbyPinRadiusMeters: Number(form.nearbyPinRadiusMeters),
+          fanTokenStartSupply: form.fanTokenStartSupply.trim(),
           alertRules: Object.fromEntries(
             RULES.map((rule) => [rule.key, Number(form[rule.key])]),
           ) as Rules,
@@ -230,6 +234,25 @@ function SavedForm({ saved, treasury }: { saved: Saved; treasury: string }) {
             className="sm:w-40"
             value={form.nearbyPinRadiusMeters}
             onChange={set("nearbyPinRadiusMeters")}
+          />
+        </Field>
+      </SettingsSection>
+
+      <SettingsSection
+        title="New artists"
+        description="When you approve an artist, Bandcoin opens their storage account (about 3 XLM from the platform) and issues this many of their fan token into it."
+      >
+        <Field
+          label="Starting fan tokens"
+          htmlFor="start-supply"
+          error={errors.fanTokenStartSupply}
+        >
+          <Input
+            id="start-supply"
+            inputMode="numeric"
+            className="sm:w-48"
+            value={form.fanTokenStartSupply}
+            onChange={set("fanTokenStartSupply")}
           />
         </Field>
       </SettingsSection>

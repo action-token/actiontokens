@@ -7,11 +7,7 @@ import {
   setProfileImage,
   updateProfile,
 } from "../../services/artist/profile";
-import {
-  quoteStorageOpening,
-  startStorageOpening,
-  submitStorageOpening,
-} from "../../services/artist/storage-account";
+import { openStorage } from "../../services/artist/storage-account";
 import {
   MAX_STOCK,
   quoteStock,
@@ -60,19 +56,8 @@ export const profileRouter = createRouter({
     )
     .mutation(({ ctx, input }) => setProfileImage(ctx, ctx.artist, input)),
 
-  /** Opening the storage account, where copies wait (see services/artist/storage-account). */
-  storageQuote: artistProcedure.query(({ ctx }) =>
-    quoteStorageOpening(ctx, ctx.session.user, ctx.artist),
-  ),
-  storageStart: artistProcedure.mutation(({ ctx }) =>
-    startStorageOpening(ctx, ctx.session.user, ctx.artist),
-  ),
-  storageSubmit: artistProcedure
-    .input(z.object({ orderId: z.string().min(1), xdr: z.string().min(1) }))
-    .mutation(({ ctx, input }) => submitStorageOpening(ctx, ctx.session.user, ctx.artist, input)),
-  storageCancel: artistProcedure
-    .input(z.object({ orderId: z.string().min(1) }))
-    .mutation(({ ctx, input }) => cancelPurchase(ctx, ctx.session.user, input.orderId)),
+  /** Opening the storage account, paid by the platform (see services/artist/storage-account). */
+  openStorage: artistProcedure.mutation(({ ctx }) => openStorage(ctx, ctx.artist)),
 
   /** Adding copies of an item to storage (see services/artist/storage-stock). */
   stockQuote: artistProcedure

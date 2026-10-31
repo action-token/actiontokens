@@ -50,19 +50,23 @@ export function storageStartingXlm(trustlines: number) {
 export const STORAGE_STARTING_XLM = storageStartingXlm(2);
 
 /**
- * Opens an artist's storage account, paid by the artist. Storage is where the
- * artist's copies wait (stock): sales, pin claims and gifts take from it
- * before minting more, and it can fund bounties. It trusts the assets it will
- * hold (`trust`); those operations come from storage, so its key signs too.
+ * Opens an artist's storage account. Storage is where the artist's copies
+ * wait (stock): sales, pin claims and gifts take from it before minting more,
+ * and it can fund bounties. `payer` is the transaction source and pays the
+ * starting XLM and the fee: the platform's mother account at approval, as on
+ * the old Bandcoin. Storage trusts the assets it will hold (`trust`), and the
+ * artist's issuer can pay a starting supply of their fan token into it
+ * (`supply`) in the same transaction; storage and the issuer co-sign.
  */
 export function buildStorageSetup(input: {
-  artist: Account;
+  payer: Account;
   network: NetworkParams;
   storage: string;
   startingXlm?: string;
   trust?: AssetRef[];
+  supply?: { asset: AssetRef; amount: string };
 }) {
-  const builder = startTransaction(input.artist, input.network).addOperation(
+  const builder = startTransaction(input.payer, input.network).addOperation(
     Operation.createAccount({
       destination: input.storage,
       startingBalance: input.startingXlm ?? storageStartingXlm(input.trust?.length ?? 0),
@@ -75,7 +79,20 @@ export function buildStorageSetup(input: {
         asset: new Asset(asset.code, asset.issuer),
       }),
     );
-  return input.trust?.length ? finish(builder, [input.storage]) : finish(builder);
+  if (input.supply)
+    builder.addOperation(
+      Operation.payment({
+        source: input.supply.asset.issuer,
+        destination: input.storage,
+        asset: new Asset(input.supply.asset.code, input.supply.asset.issuer),
+        amount: input.supply.amount,
+      }),
+    );
+  const signers = [
+    ...(input.trust?.length ? [input.storage] : []),
+    ...(input.supply ? [input.supply.asset.issuer] : []),
+  ];
+  return signers.length ? finish(builder, signers) : finish(builder);
 }
 
 /**

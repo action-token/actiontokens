@@ -21,6 +21,8 @@ export type SettingsInput = {
   vanityNameChangeBandcoin: string | null;
   vanityNameChangeUsd: string | null;
   nearbyPinRadiusMeters: number;
+  /** Fan tokens issued into a new artist's storage at approval */
+  fanTokenStartSupply: string;
   alertRules: AlertRules;
 };
 
@@ -32,6 +34,7 @@ const LABELS: Record<keyof SettingsInput, string> = {
   vanityNameChangeBandcoin: "Short link name change (BANDCOIN)",
   vanityNameChangeUsd: "Short link name change (USD)",
   nearbyPinRadiusMeters: "Nearby pin radius",
+  fanTokenStartSupply: "Starting fan tokens",
   alertRules: "Alert thresholds",
 };
 
@@ -47,6 +50,7 @@ async function savedSettings(ctx: Pick<Context, "db">): Promise<SettingsInput> {
     vanityNameChangeBandcoin: money(row?.vanityNameChangeBandcoin),
     vanityNameChangeUsd: money(row?.vanityNameChangeUsd),
     nearbyPinRadiusMeters: row?.nearbyPinRadiusMeters ?? 500,
+    fanTokenStartSupply: row?.fanTokenStartSupply.toString() ?? "1000000",
     alertRules: rulesOf(row?.alertRules),
   };
 }

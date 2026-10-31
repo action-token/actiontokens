@@ -3,6 +3,7 @@
 import { Check, Coins, Copy, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
@@ -15,7 +16,6 @@ import { OpenIssuer } from "../onboarding/open-issuer";
 import { PayToOpen } from "../payments/pay-to-open";
 
 import { StorageContents } from "./storage-contents";
-import { useStorageOpening } from "./use-storage-opening";
 
 type Profile = RouterOutputs["profile"]["overview"];
 
@@ -59,8 +59,9 @@ export function FanTokenTab({ profile, onAccounts }: { profile: Profile; onAccou
 /**
  * The Stellar accounts Bandcoin keeps for the artist, each with the way to
  * open it when it's missing: the issuer (needed: every token comes from it)
- * and storage (optional: where copies wait, as in bandfan).
- * The artist pays for both; the price shows in full first.
+ * and storage (where fan tokens and copies wait, as in bandfan). The artist
+ * pays for the issuer when applying; the platform opens storage at approval,
+ * or here for artists approved before that.
  */
 export function AccountsTab({ profile }: { profile: Profile }) {
   return (
@@ -74,8 +75,8 @@ export function AccountsTab({ profile }: { profile: Profile }) {
       />
       <AccountCard
         label="Storage"
-        tag="Optional"
-        note="Holds your copies. Sales, pin claims and gifts take from it first."
+        tag="Free"
+        note="Holds your fan tokens and copies. Sales, pin claims and gifts take from it first."
         account={profile.storageAccount}
         open={<OpenStorage />}
       >
@@ -138,16 +139,33 @@ function AccountCard({
 }
 
 function OpenStorage() {
-  const quote = api.profile.storageQuote.useQuery(undefined, { refetchInterval: 30_000 });
-  const flow = useStorageOpening();
+  const utils = api.useUtils();
+  const open = api.profile.openStorage.useMutation({
+    onSuccess: (opened) => {
+      toast.success(
+        opened.supply
+          ? `Storage is open, holding ${Number(opened.supply).toLocaleString("en-US")} of your fan token`
+          : "Storage is open",
+      );
+      void utils.profile.overview.invalidate();
+    },
+    onError: (error) => toast.error(error.message),
+  });
   return (
-    <PayToOpen
-      intro="Storage is a Stellar account of your own, apart from your wallet, where your copies wait. Sales, pin claims and gifts take from it before making new ones, and it can fund bounty prizes. Without it, copies are made when they're needed. You pay what it starts with; Bandcoin never covers the cost."
-      quote={quote.data}
-      loading={quote.isPending}
-      flow={flow}
-      action="open storage"
-    />
+    <div className="grid gap-3 text-sm">
+      <p className="text-fg-muted">
+        Storage is a Stellar account of your own, apart from your wallet. It holds your fan tokens
+        and copies, and gifts, pin rewards and bounty prizes can come from it. Bandcoin pays to open
+        it and adds your starting fan tokens. It costs you nothing.
+      </p>
+      <Button
+        className="justify-self-start"
+        disabled={open.isPending}
+        onClick={() => open.mutate()}
+      >
+        {open.isPending ? "Opening…" : "Open my storage account"}
+      </Button>
+    </div>
   );
 }
 

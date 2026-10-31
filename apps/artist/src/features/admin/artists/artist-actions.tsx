@@ -22,7 +22,7 @@ import { messageOf } from "../murals/model";
 
 /** What the actions need to know about an artist (a list row or the detail page). */
 export type ArtistRef = { id: string; name: string; paid: boolean };
-type Pending = { artist: ArtistRef; action: "ban" | "unban" | "reject" };
+type Pending = { artist: ArtistRef; action: "approve" | "ban" | "unban" | "reject" };
 
 /**
  * Approve, reject, ban and unban for the Artists list and the artist page,
@@ -51,6 +51,11 @@ export function useArtistActions() {
           `Their fan token couldn't be made (${result.fanToken.message}). They can set it up in Memberships.`,
           { duration: 8000 },
         );
+      if (result.storage.status === "FAILED")
+        toast.error(
+          `Their storage account couldn't be opened (${result.storage.message}). They can open it in Settings.`,
+          { duration: 8000 },
+        );
     },
     onError,
   });
@@ -67,8 +72,30 @@ export function useArtistActions() {
   const busy = approve.isPending || ban.isPending || unban.isPending || reject.isPending;
 
   const name = pending?.artist.name ?? "";
+  const settings = api.admin.settings.get.useQuery(undefined, {
+    enabled: pending?.action === "approve",
+  });
+  const supply = Number(settings.data?.saved.fanTokenStartSupply ?? 0);
   const dialogs = (
     <>
+      <ConfirmDialog
+        open={pending?.action === "approve"}
+        onOpenChange={(open) => !open && !busy && setPending(null)}
+        title={`Approve ${name}?`}
+        description={
+          <>
+            Their artist tools open and they appear on Bandcoin. Bandcoin also opens their storage
+            account and pays for it: about 3 XLM from the platform account, which trusts BANDCOIN,
+            USDC and their fan token
+            {supply > 0
+              ? `, and ${supply.toLocaleString("en-US")} of their fan token are issued into it.`
+              : "."}
+          </>
+        }
+        confirmLabel="Approve"
+        busy={busy}
+        onConfirm={() => pending && approve.mutate({ artistId: pending.artist.id })}
+      />
       <ConfirmDialog
         open={pending?.action === "ban" || pending?.action === "unban"}
         onOpenChange={(open) => !open && !busy && setPending(null)}
@@ -100,7 +127,7 @@ export function useArtistActions() {
 
   return {
     busy,
-    approve: (artist: ArtistRef) => approve.mutate({ artistId: artist.id }),
+    approve: (artist: ArtistRef) => setPending({ artist, action: "approve" }),
     askReject: (artist: ArtistRef) => setPending({ artist, action: "reject" }),
     askBan: (artist: ArtistRef) => setPending({ artist, action: "ban" }),
     askUnban: (artist: ArtistRef) => setPending({ artist, action: "unban" }),

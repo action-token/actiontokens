@@ -5,6 +5,8 @@
 model AppSetting {
   id                       Int      @id @default(1)
   nearbyPinRadiusMeters    Float    @default(500)
+  /// Fan tokens issued into a new artist's storage account when an admin approves them
+  fanTokenStartSupply      Decimal  @default(1000000) @db.Decimal(20, 7)
   platformFeeBps           Int      @default(250)
   platformFeeRecipient     String?
   vanityMonthlyBandcoin    Decimal? @db.Decimal(20, 7)

@@ -12,7 +12,6 @@ import { FAN_APP_URL } from "../shell/links";
 
 export type XlmQuote =
   | RouterOutputs["onboarding"]["issuerQuote"]
-  | RouterOutputs["profile"]["storageQuote"]
   | RouterOutputs["profile"]["stockQuote"]
   | RouterOutputs["profile"]["withdrawQuote"]
   | RouterOutputs["catalog"]["nftQuote"]

@@ -83,7 +83,7 @@ describe("storage account", () => {
     const storage = Keypair.random().publicKey();
     const issuer = Keypair.random().publicKey();
     const built = buildStorageSetup({
-      artist: new Account(artist, "3"),
+      payer: new Account(artist, "3"),
       network,
       storage,
       trust: [
@@ -99,6 +99,28 @@ describe("storage account", () => {
       { type: "changeTrust", source: storage },
     ]);
     expect(built.serverSigners).toEqual([storage]);
+  });
+
+  it("at approval: the mother pays, storage trusts the fan token and the issuer pays the supply in", () => {
+    const mother = Keypair.random().publicKey();
+    const storage = Keypair.random().publicKey();
+    const issuer = Keypair.random().publicKey();
+    const fan = { code: "LUNA", issuer };
+    const built = buildStorageSetup({
+      payer: new Account(mother, "7"),
+      network,
+      storage,
+      trust: [fan],
+      supply: { asset: fan, amount: "1000000" },
+    });
+    const tx = parse(built.xdr);
+    expect(tx.source).toBe(mother);
+    expect(tx.operations).toMatchObject([
+      { type: "createAccount", destination: storage, startingBalance: "2.0000000" },
+      { type: "changeTrust", source: storage },
+      { type: "payment", source: issuer, destination: storage, amount: "1000000.0000000" },
+    ]);
+    expect(built.serverSigners).toEqual([storage, issuer]);
   });
 
   it("starts with room for every trustline it opens with", () => {

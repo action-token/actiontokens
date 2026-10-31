@@ -5,6 +5,7 @@ import {
   type Transaction,
   TransactionBuilder,
 } from "@stellar/stellar-sdk";
+import { AppError } from "@bandcoin/errors";
 import { describe, expect, it, vi } from "vitest";
 
 import type { Db } from "@bandcoin/db";
@@ -24,6 +25,10 @@ import { createCallerFactory } from "../trpc";
 
 const createFanToken = vi.hoisted(() => vi.fn());
 vi.mock("../services/artist/fan-token", () => ({ createFanToken }));
+const openStorage = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({ publicKey: "GS", supply: "1000000" }),
+);
+vi.mock("../services/artist/storage-account", () => ({ openStorage }));
 
 const artistWallet = Keypair.random().publicKey();
 const issuerKey = Keypair.random().publicKey();
@@ -69,6 +74,7 @@ function setup(
   const db = {
     artist: {
       findUnique: vi.fn().mockResolvedValue(artist),
+      findUniqueOrThrow: vi.fn(() => Promise.resolve(artist)),
       findMany: vi.fn().mockResolvedValue(artist ? [artist] : []),
       update: vi.fn(({ data }: { data: Row }) => Promise.resolve(Object.assign(artist!, data))),
     },
@@ -101,12 +107,26 @@ describe("approveArtist", () => {
       artistId: "a1",
       status: "APPROVED",
       fanToken: { status: "NONE" },
+      storage: { status: "OPENED", supply: "1000000" },
     });
     expect(db.artist.update).toHaveBeenCalledWith(
       expect.objectContaining({ data: { status: "APPROVED", rejectionReason: null } }),
     );
     expect(db.user.update).toHaveBeenCalledWith({ where: { id: "u1" }, data: { role: "ARTIST" } });
     expect(activity.set).toHaveBeenCalledWith({ targetType: "Artist", targetId: "a1" });
+  });
+
+  it("opens storage on the platform, and still approves when that fails", async () => {
+    const { ctx } = setup();
+    await approveArtist(ctx, "a1");
+    expect(openStorage).toHaveBeenLastCalledWith(ctx, expect.objectContaining({ id: "a1" }));
+    openStorage.mockRejectedValueOnce(
+      new AppError("PRECONDITION_NOT_MET", { message: "Short of XLM" }),
+    );
+    await expect(approveArtist(setup().ctx, "a1")).resolves.toMatchObject({
+      status: "APPROVED",
+      storage: { status: "FAILED", message: "Short of XLM" },
+    });
   });
 
   it("makes the fan token chosen while applying, then forgets the choice", async () => {
