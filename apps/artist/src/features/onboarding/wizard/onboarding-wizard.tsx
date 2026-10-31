@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { assetCodeFrom } from "@bandcoin/utils/asset-code";
 import { slugFromName } from "@bandcoin/utils/slug";
 import { Button } from "@bandcoin/ui/components/button";
+import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { cn } from "@bandcoin/ui/lib/cn";
 
 import { api, type RouterOutputs } from "~/trpc/react";
@@ -27,14 +28,7 @@ import {
   stepReady,
   STEPS,
 } from "./model";
-import {
-  AddressStep,
-  DetailsStep,
-  type LiveCheck,
-  PhotosStep,
-  ReviewSummary,
-  TokenStep,
-} from "./steps";
+import { AddressStep, type LiveCheck, ProfileStep, ReviewSummary, TokenStep } from "./steps";
 
 type Application = RouterOutputs["onboarding"]["application"];
 const PAY = STEPS.length - 1;
@@ -79,12 +73,7 @@ export function OnboardingWizard({ paying }: { paying: boolean }) {
   const application = api.onboarding.application.useQuery(undefined, {
     refetchOnWindowFocus: false,
   });
-  if (!userId || application.isPending)
-    return (
-      <div className="text-fg-muted flex min-h-60 items-center justify-center">
-        <Loader2 className="size-6 animate-spin" />
-      </div>
-    );
+  if (!userId || application.isPending) return <WizardSkeleton />;
   return (
     <Wizard
       userId={userId}
@@ -118,7 +107,7 @@ function Wizard({ userId, initial, startAt }: { userId: string; initial: Draft; 
   const slugValid = Boolean(slug) && !slugProblem(slug);
   const slugCheck = api.onboarding.checkSlug.useQuery(
     { slug },
-    { enabled: slugValid && step === 3 },
+    { enabled: slugValid && step === 2 },
   );
   const existing = useSettled({ code: draft.existingCode, issuer: draft.issuer });
   const existingValid =
@@ -126,7 +115,7 @@ function Wizard({ userId, initial, startAt }: { userId: string; initial: Draft; 
     !codeProblem(existing.code) &&
     !issuerProblem(existing.issuer);
   const tokenCheck = api.onboarding.checkToken.useQuery(existing, {
-    enabled: existingValid && step === 2,
+    enabled: existingValid && step === 1,
   });
   const live = {
     slug: liveOf(
@@ -192,7 +181,7 @@ function Wizard({ userId, initial, startAt }: { userId: string; initial: Draft; 
           <p className="marker text-primary-text text-sm">artist portal</p>
           <h1 className="display text-3xl sm:text-4xl">Set up your artist page</h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="hidden items-center gap-2 lg:flex">
           <span className="text-fg-muted text-xs font-medium">
             Step {step + 1} of {STEPS.length}
           </span>
@@ -252,23 +241,30 @@ function Wizard({ userId, initial, startAt }: { userId: string; initial: Draft; 
         </nav>
 
         <section className="bg-surface border-fg/10 grid gap-6 rounded-[1.4rem] border-2 p-5 sm:p-7">
-          <header>
-            <p className="text-fg-faint text-xs font-semibold tracking-wide uppercase lg:hidden">
-              Step {step + 1} of {STEPS.length}
-            </p>
-            <h2 className="display text-2xl">{STEPS[step]!.title}</h2>
-            <p className="text-fg-muted text-sm">{STEPS[step]!.desc}</p>
-          </header>
+          {/* Phones have no rail: the steps as dots, the current one named. */}
+          <div className="flex items-center gap-2 lg:hidden">
+            {STEPS.map((entry, index) => (
+              <span
+                key={entry.title}
+                className={cn(
+                  "h-1.5 flex-1 rounded-full",
+                  index <= step ? "bg-primary" : "bg-surface-2",
+                )}
+              />
+            ))}
+            <span className="text-fg-muted ml-1 shrink-0 text-xs font-medium">
+              {step + 1}/{STEPS.length} · {STEPS[step]!.title}
+            </span>
+          </div>
 
-          {step === 0 && <PhotosStep draft={draft} set={set} />}
-          {step === 1 && <DetailsStep draft={draft} set={set} />}
-          {step === 2 && <TokenStep draft={draft} set={set} check={live.token} />}
-          {step === 3 && <AddressStep draft={draft} set={set} check={live.slug} />}
+          {step === 0 && <ProfileStep draft={draft} set={set} />}
+          {step === 1 && <TokenStep draft={draft} set={set} check={live.token} />}
+          {step === 2 && <AddressStep draft={draft} set={set} check={live.slug} />}
           {step === PAY && (
             <div className="grid gap-6">
               <ReviewSummary draft={draft} onEdit={go} />
               <PayToOpen
-                intro="Last step: this opens the Stellar account your fan token and everything you sell are issued from. You pay for it yourself, and an admin reviews your page once it's open."
+                intro="This opens the Stellar account your fan token and everything you sell come from. You pay for it yourself; this is the whole price."
                 quote={quote.data}
                 loading={quote.isPending}
                 flow={flow}
@@ -281,7 +277,7 @@ function Wizard({ userId, initial, startAt }: { userId: string; initial: Draft; 
             <div className="border-border flex items-center justify-between gap-2 border-t pt-5">
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 disabled={step === 0}
                 onClick={() => go(step - 1)}
               >
@@ -313,4 +309,34 @@ function liveOf(
   if (!valid) return { state: "idle" };
   if (!settled || fetching || result === undefined) return { state: "checking" };
   return result === null ? { state: "ok" } : { state: "bad", message: result };
+}
+
+/** The wizard's shape while the saved answers load. */
+function WizardSkeleton() {
+  return (
+    <div className="mx-auto w-full max-w-5xl" aria-busy aria-label="Loading">
+      <Skeleton className="mb-2 h-4 w-24" />
+      <Skeleton className="mb-6 h-10 w-80 max-w-full" />
+      <div className="grid gap-6 lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8">
+        <div className="hidden gap-2 rounded-[1.4rem] border-2 p-2 lg:grid">
+          {STEPS.map((entry) => (
+            <div key={entry.title} className="flex items-center gap-3 p-2.5">
+              <Skeleton className="size-8 rounded-lg" />
+              <div className="grid flex-1 gap-1.5">
+                <Skeleton className="h-3.5 w-24" />
+                <Skeleton className="h-3 w-32" />
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="grid gap-5 rounded-[1.4rem] border-2 p-5 sm:p-7">
+          <Skeleton className="h-8 w-64 max-w-full" />
+          <Skeleton className="h-4 w-full max-w-md" />
+          <Skeleton className="aspect-[3/1] w-full rounded-2xl" />
+          <Skeleton className="h-10 w-full rounded-lg" />
+          <Skeleton className="h-20 w-full rounded-lg" />
+        </div>
+      </div>
+    </div>
+  );
 }

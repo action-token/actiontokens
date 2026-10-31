@@ -34,8 +34,7 @@ export const EMPTY_DRAFT: Draft = {
 };
 
 export const STEPS = [
-  { title: "Photos", desc: "Profile and cover" },
-  { title: "Details", desc: "Name and a line about you" },
+  { title: "Profile", desc: "Photo, name and bio" },
   { title: "Fan token", desc: "What fans hold" },
   { title: "Page address", desc: "Where your page lives" },
   { title: "Review & pay", desc: "Check, pay, done" },
@@ -60,17 +59,19 @@ export const slugProblem = (slug: string) => validateSlug(slug);
 export function stepReady(step: number, draft: Draft, live: { slugOk: boolean; tokenOk: boolean }) {
   switch (step) {
     case 0:
-      return Boolean(draft.avatarUrl);
+      return (
+        Boolean(draft.avatarUrl) &&
+        draft.name.trim().length >= 2 &&
+        draft.name.trim().length <= NAME_MAX
+      );
     case 1:
-      return draft.name.trim().length >= 2 && draft.name.trim().length <= NAME_MAX;
-    case 2:
       return draft.tokenMode === "NEW"
         ? !codeProblem(draft.code) && Boolean(draft.tokenImage)
         : !codeProblem(draft.existingCode) &&
             !issuerProblem(draft.issuer) &&
             live.tokenOk &&
             Boolean(draft.tokenImage);
-    case 3:
+    case 2:
       return !slugProblem(draft.slug) && live.slugOk;
     default:
       return true;

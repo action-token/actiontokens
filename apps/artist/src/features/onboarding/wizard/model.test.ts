@@ -6,11 +6,13 @@ const issuer = `G${"A".repeat(55)}`;
 const live = { slugOk: true, tokenOk: true };
 
 describe("onboarding wizard", () => {
-  it("needs a profile picture, then a name", () => {
+  it("needs a profile picture and a name on the first step", () => {
+    const photo = { ...EMPTY_DRAFT, avatarUrl: "https://cdn/x.jpg" };
     expect(stepReady(0, EMPTY_DRAFT, live)).toBe(false);
-    expect(stepReady(0, { ...EMPTY_DRAFT, avatarUrl: "https://cdn/x.jpg" }, live)).toBe(true);
-    expect(stepReady(1, { ...EMPTY_DRAFT, name: " L " }, live)).toBe(false);
-    expect(stepReady(1, { ...EMPTY_DRAFT, name: "Luna" }, live)).toBe(true);
+    expect(stepReady(0, photo, live)).toBe(false);
+    expect(stepReady(0, { ...photo, name: " L " }, live)).toBe(false);
+    expect(stepReady(0, { ...photo, name: "Luna" }, live)).toBe(true);
+    expect(stepReady(0, { ...EMPTY_DRAFT, name: "Luna" }, live)).toBe(false);
   });
 
   it("takes a 4 to 12 character code for a new token, with an image", () => {
@@ -19,8 +21,8 @@ describe("onboarding wizard", () => {
     expect(codeProblem("XLM")).toBeTruthy();
     expect(codeProblem("luna")).toBeNull();
     const token = { ...EMPTY_DRAFT, code: "LUNA", tokenImage: "https://cdn/t.png" };
-    expect(stepReady(2, token, live)).toBe(true);
-    expect(stepReady(2, { ...token, tokenImage: "" }, live)).toBe(false);
+    expect(stepReady(1, token, live)).toBe(true);
+    expect(stepReady(1, { ...token, tokenImage: "" }, live)).toBe(false);
   });
 
   it("only goes on with an existing token once Stellar confirms it", () => {
@@ -31,17 +33,17 @@ describe("onboarding wizard", () => {
       issuer,
       tokenImage: "https://cdn/t.png",
     };
-    expect(stepReady(2, draft, live)).toBe(true);
-    expect(stepReady(2, draft, { ...live, tokenOk: false })).toBe(false);
-    expect(stepReady(2, { ...draft, issuer: "GBAD" }, live)).toBe(false);
+    expect(stepReady(1, draft, live)).toBe(true);
+    expect(stepReady(1, draft, { ...live, tokenOk: false })).toBe(false);
+    expect(stepReady(1, { ...draft, issuer: "GBAD" }, live)).toBe(false);
   });
 
   it("needs a free, well-formed page address", () => {
-    expect(stepReady(3, { ...EMPTY_DRAFT, slug: "luna-vale" }, live)).toBe(true);
-    expect(stepReady(3, { ...EMPTY_DRAFT, slug: "luna-vale" }, { ...live, slugOk: false })).toBe(
+    expect(stepReady(2, { ...EMPTY_DRAFT, slug: "luna-vale" }, live)).toBe(true);
+    expect(stepReady(2, { ...EMPTY_DRAFT, slug: "luna-vale" }, { ...live, slugOk: false })).toBe(
       false,
     );
-    expect(stepReady(3, { ...EMPTY_DRAFT, slug: "Luna Vale" }, live)).toBe(false);
+    expect(stepReady(2, { ...EMPTY_DRAFT, slug: "Luna Vale" }, live)).toBe(false);
   });
 
   it("sends the token the way the server takes it", () => {

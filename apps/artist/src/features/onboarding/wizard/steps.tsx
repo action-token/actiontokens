@@ -1,151 +1,215 @@
 "use client";
 
-import { CheckCircle2, Loader2, Pencil, XCircle } from "lucide-react";
+import {
+  CheckCircle2,
+  Coins,
+  ImagePlus,
+  Link2,
+  Loader2,
+  Pencil,
+  Plus,
+  Sparkles,
+  XCircle,
+  type LucideIcon,
+} from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Input } from "@bandcoin/ui/components/input";
-import { Tabs, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
 import { Textarea } from "@bandcoin/ui/components/textarea";
+import { cn } from "@bandcoin/ui/lib/cn";
 import { Field } from "@bandcoin/ui/patterns/form-page";
-import { Avatar } from "@bandcoin/ui/patterns/person";
 
+import { ChangeBadge, UploadArea } from "./image-picker";
 import { BIO_MAX, codeProblem, type Draft, issuerProblem, NAME_MAX, slugProblem } from "./model";
-import { ImagePicker } from "./image-picker";
 
 type Set = (patch: Partial<Draft>) => void;
 export type LiveCheck = { state: "idle" | "checking" | "ok" | "bad"; message?: string };
 
-/** 1 · Profile picture (needed) and cover (optional), with the page header previewed. */
-export function PhotosStep({ draft, set }: { draft: Draft; set: Set }) {
+/** What this step asks, in a sentence or two. */
+function StepHeading({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <header className="grid gap-1">
+      <h2 className="display text-2xl sm:text-3xl">{title}</h2>
+      <p className="text-fg-muted max-w-prose text-sm text-pretty">{children}</p>
+    </header>
+  );
+}
+
+/** 1 · The top of their page, editable in place (click the cover or the photo), then name and bio. */
+export function ProfileStep({ draft, set }: { draft: Draft; set: Set }) {
   return (
     <div className="grid gap-6">
-      <div className="grid gap-6 sm:grid-cols-[auto_minmax(0,1fr)]">
-        <Field label="Profile picture" required>
-          <ImagePicker
-            value={draft.avatarUrl}
+      <StepHeading title="Show fans who you are">
+        This is the top of your page. Add your photo (click the circle) and, if you like, a cover
+        (click the banner). Then tell fans your name.
+      </StepHeading>
+
+      <div>
+        <UploadArea
+          label={draft.coverUrl ? "Change the cover" : "Add a cover"}
+          onChange={(coverUrl) => set({ coverUrl })}
+          className="from-primary/25 via-surface-2 to-primary/5 aspect-[3/1] rounded-2xl bg-gradient-to-br"
+        >
+          {draft.coverUrl ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element -- images come from our storage */}
+              <img src={draft.coverUrl} alt="" className="size-full object-cover" />
+              <ChangeBadge className="top-3 right-3" />
+            </>
+          ) : (
+            <span className="text-fg-muted group-hover:text-fg absolute inset-0 flex flex-col items-center justify-center gap-1 text-sm font-medium transition-colors">
+              <ImagePlus className="size-6" />
+              Add a cover
+              <span className="text-fg-faint text-xs font-normal">Optional · wide, 1500 × 500</span>
+            </span>
+          )}
+        </UploadArea>
+
+        <div className="-mt-12 flex items-end gap-4 px-4 sm:-mt-14 sm:px-6">
+          <UploadArea
+            label={draft.avatarUrl ? "Change your photo" : "Add your photo"}
             onChange={(avatarUrl) => set({ avatarUrl })}
-            label="Add a photo"
-            hint="Square works best"
-            shape="round"
+            className="bg-surface size-24 shrink-0 overflow-visible rounded-full sm:size-28"
+          >
+            <span
+              className={cn(
+                "flex size-full items-center justify-center overflow-hidden rounded-full border-4 border-[var(--color-surface)]",
+                !draft.avatarUrl &&
+                  "bg-surface-2 outline-primary text-fg-muted group-hover:text-fg outline-2 -outline-offset-6 outline-dashed",
+              )}
+            >
+              {draft.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- images come from our storage
+                <img src={draft.avatarUrl} alt="" className="size-full object-cover" />
+              ) : (
+                <span className="grid justify-items-center gap-0.5 text-xs font-semibold">
+                  <ImagePlus className="size-5" />
+                  Your photo
+                </span>
+              )}
+            </span>
+            {draft.avatarUrl && <ChangeBadge className="right-0 bottom-0" />}
+          </UploadArea>
+          <div className="min-w-0 pb-2">
+            <p className="display truncate text-xl">{draft.name || "Your name"}</p>
+            <p className="text-fg-faint text-xs">
+              {draft.avatarUrl ? "Looking good." : "Add a photo to go on."}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-5">
+        <Field
+          label="Artist or band name"
+          htmlFor="ob-name"
+          required
+          hint={`${draft.name.length} / ${NAME_MAX}`}
+        >
+          <Input
+            id="ob-name"
+            value={draft.name}
+            maxLength={NAME_MAX}
+            autoComplete="off"
+            placeholder="e.g. Luna Vale"
+            onChange={(event) => set({ name: event.target.value })}
           />
         </Field>
-        <Field label="Cover (optional)">
-          <ImagePicker
-            value={draft.coverUrl}
-            onChange={(coverUrl) => set({ coverUrl })}
-            label="Add a cover"
-            hint="Wide, at least 1500 × 500"
-            shape="wide"
+        <Field
+          label="About you (optional)"
+          htmlFor="ob-bio"
+          hint={`${draft.bio.length} / ${BIO_MAX}`}
+        >
+          <Textarea
+            id="ob-bio"
+            value={draft.bio}
+            maxLength={BIO_MAX}
+            rows={3}
+            placeholder="What you make, where you play, what fans get"
+            onChange={(event) => set({ bio: event.target.value })}
           />
         </Field>
       </div>
-      <PagePreview draft={draft} />
     </div>
   );
 }
 
-/** How the top of their page will look. */
-export function PagePreview({ draft }: { draft: Draft }) {
-  return (
-    <div className="border-border overflow-hidden rounded-2xl border">
-      <div className="from-primary/25 via-surface-2 to-primary/5 aspect-[4/1] bg-gradient-to-br">
-        {draft.coverUrl && (
-          // eslint-disable-next-line @next/next/no-img-element -- images come from our storage
-          <img src={draft.coverUrl} alt="" className="size-full object-cover" />
-        )}
-      </div>
-      <div className="bg-surface flex items-end gap-3 px-4 pb-3">
-        <Avatar
-          src={draft.avatarUrl || null}
-          name={draft.name || "?"}
-          className="border-surface -mt-8 size-16 border-4 text-xl"
-        />
-        <p className="display min-w-0 truncate pb-1 text-lg">{draft.name || "Your name"}</p>
-      </div>
-    </div>
-  );
-}
-
-/** 2 · Name and a line about them. */
-export function DetailsStep({ draft, set }: { draft: Draft; set: Set }) {
-  return (
-    <div className="grid gap-5">
-      <Field
-        label="Artist or band name"
-        htmlFor="ob-name"
-        required
-        hint={`${draft.name.length} / ${NAME_MAX}`}
-      >
-        <Input
-          id="ob-name"
-          value={draft.name}
-          maxLength={NAME_MAX}
-          autoComplete="off"
-          autoFocus
-          onChange={(event) => set({ name: event.target.value })}
-        />
-      </Field>
-      <Field
-        label="A line about you (optional)"
-        htmlFor="ob-bio"
-        hint={`${draft.bio.length} / ${BIO_MAX}`}
-      >
-        <Textarea
-          id="ob-bio"
-          value={draft.bio}
-          maxLength={BIO_MAX}
-          rows={4}
-          placeholder="What you make, where you play, what fans get"
-          onChange={(event) => set({ bio: event.target.value })}
-        />
-      </Field>
-    </div>
-  );
-}
-
-/** 3 · The fan token: a new one from their own account, or one they already have on Stellar. */
+/** 2 · The fan token: a new one from their own account, or one they already have on Stellar. */
 export function TokenStep({ draft, set, check }: { draft: Draft; set: Set; check: LiveCheck }) {
-  const code = draft.tokenMode === "NEW" ? draft.code : draft.existingCode;
+  const isNew = draft.tokenMode === "NEW";
+  const code = isNew ? draft.code : draft.existingCode;
   const problem = code ? codeProblem(code) : null;
   return (
-    <div className="grid gap-5">
-      <p className="text-fg-muted text-sm">
-        Fans hold your fan token to join your memberships, and you can give it out on pins and as
-        gifts. It&apos;s made when an admin approves you.
-      </p>
-      <Tabs
-        value={draft.tokenMode}
-        onValueChange={(mode) => set({ tokenMode: mode as Draft["tokenMode"] })}
-      >
-        <TabsList>
-          <TabsTrigger value="NEW">New token</TabsTrigger>
-          <TabsTrigger value="EXISTING">Already on Stellar</TabsTrigger>
-        </TabsList>
-      </Tabs>
+    <div className="grid gap-6">
+      <StepHeading title="Choose your fan token">
+        Fans hold it to join your memberships, and you can hand it out on pins and as gifts.
+        It&apos;s made when an admin approves you.
+      </StepHeading>
 
-      <div className="grid gap-5 sm:grid-cols-[auto_minmax(0,1fr)]">
-        <Field label="Token image" required>
-          <ImagePicker
-            value={draft.tokenImage}
+      <div role="radiogroup" aria-label="Fan token" className="grid gap-3 sm:grid-cols-2">
+        <Choice
+          on={isNew}
+          icon={Plus}
+          title="Make a new token"
+          onSelect={() => set({ tokenMode: "NEW" })}
+        >
+          Pick a code and an image. It&apos;s issued from your own Bandcoin account.
+        </Choice>
+        <Choice
+          on={!isNew}
+          icon={Coins}
+          title="Use a token I already have"
+          onSelect={() => set({ tokenMode: "EXISTING" })}
+        >
+          A token you issued on Stellar before. We check it on the network.
+        </Choice>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-start">
+        <div className="grid justify-items-center gap-2">
+          <UploadArea
+            label={draft.tokenImage ? "Change the token image" : "Add a token image"}
             onChange={(tokenImage) => set({ tokenImage })}
-            label="Add an image"
-            shape="round"
-          />
-        </Field>
-        {draft.tokenMode === "NEW" ? (
+            className="size-28 overflow-visible rounded-full"
+          >
+            <span
+              className={cn(
+                "flex size-full items-center justify-center overflow-hidden rounded-full",
+                draft.tokenImage
+                  ? "border-border border"
+                  : "bg-surface-2 outline-primary text-fg-muted group-hover:text-fg outline-2 -outline-offset-4 outline-dashed",
+              )}
+            >
+              {draft.tokenImage ? (
+                // eslint-disable-next-line @next/next/no-img-element -- images come from our storage
+                <img src={draft.tokenImage} alt="" className="size-full object-cover" />
+              ) : (
+                <span className="grid justify-items-center gap-0.5 text-xs font-semibold">
+                  <ImagePlus className="size-5" />
+                  Image
+                </span>
+              )}
+            </span>
+            {draft.tokenImage && <ChangeBadge className="right-0 bottom-0" />}
+          </UploadArea>
+          <p className="text-fg-faint text-xs">Square, round crop</p>
+        </div>
+
+        {isNew ? (
           <Field
-            label="Code"
+            label="Token code"
             htmlFor="ob-code"
             required
             error={problem}
-            hint="4 to 12 letters or numbers. It's the token's name on Stellar and can't change."
+            hint="4 to 12 letters or numbers. It's the token's name on Stellar and can't change later."
           >
             <Input
               id="ob-code"
               value={draft.code}
               maxLength={12}
-              className="font-mono uppercase"
+              placeholder="e.g. LUNA"
+              className="font-mono text-base tracking-wider uppercase"
               onChange={(event) =>
                 set({ code: event.target.value.toUpperCase(), codeTouched: true })
               }
@@ -153,17 +217,18 @@ export function TokenStep({ draft, set, check }: { draft: Draft; set: Set; check
           </Field>
         ) : (
           <div className="grid content-start gap-4">
-            <Field label="Code" htmlFor="ob-existing-code" required error={problem}>
+            <Field label="Token code" htmlFor="ob-existing-code" required error={problem}>
               <Input
                 id="ob-existing-code"
                 value={draft.existingCode}
                 maxLength={12}
-                className="font-mono uppercase"
+                placeholder="e.g. LUNA"
+                className="font-mono text-base tracking-wider uppercase"
                 onChange={(event) => set({ existingCode: event.target.value.toUpperCase() })}
               />
             </Field>
             <Field
-              label="Issuer"
+              label="Issuer account"
               htmlFor="ob-issuer"
               required
               error={draft.issuer ? issuerProblem(draft.issuer) : null}
@@ -177,34 +242,113 @@ export function TokenStep({ draft, set, check }: { draft: Draft; set: Set; check
                 onChange={(event) => set({ issuer: event.target.value.toUpperCase().trim() })}
               />
             </Field>
-            <CheckLine check={check} ok="Found on Stellar" />
+            <CheckLine check={check} ok="Found on Stellar and free to use" />
           </div>
         )}
       </div>
+
+      {code && !problem && draft.tokenImage && (
+        <TokenChip image={draft.tokenImage} code={code} note={isNew ? "New" : "Your own"} />
+      )}
     </div>
   );
 }
 
-/** 4 · The free page address, checked as they type. */
+function Choice({
+  on,
+  icon: Icon,
+  title,
+  onSelect,
+  children,
+}: {
+  on: boolean;
+  icon: LucideIcon;
+  title: string;
+  onSelect: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={on}
+      onClick={onSelect}
+      className={cn(
+        "flex items-start gap-3 rounded-2xl border-2 p-4 text-left transition-colors",
+        on ? "border-fg bg-primary/12" : "border-border hover:border-fg/30",
+      )}
+    >
+      <span
+        className={cn(
+          "flex size-9 shrink-0 items-center justify-center rounded-xl",
+          on ? "bg-primary text-primary-foreground" : "bg-surface-2 text-fg-muted",
+        )}
+      >
+        <Icon className="size-4" />
+      </span>
+      <span>
+        <span className="block text-sm font-semibold">{title}</span>
+        <span className="text-fg-muted mt-0.5 block text-xs">{children}</span>
+      </span>
+    </button>
+  );
+}
+
+/** The token as fans will see it. */
+function TokenChip({ image, code, note }: { image: string; code: string; note: string }) {
+  return (
+    <div className="bg-surface-2/60 border-border flex items-center gap-3 justify-self-start rounded-full border py-1.5 pr-4 pl-1.5">
+      {/* eslint-disable-next-line @next/next/no-img-element -- images come from our storage */}
+      <img src={image} alt="" className="size-8 rounded-full object-cover" />
+      <span className="font-mono text-sm font-bold tracking-wider">{code.toUpperCase()}</span>
+      <span className="text-fg-muted flex items-center gap-1 text-xs">
+        <Sparkles className="size-3.5" /> {note} · made when you&apos;re approved
+      </span>
+    </div>
+  );
+}
+
+/** 3 · The free page address, checked as they type. */
 export function AddressStep({ draft, set, check }: { draft: Draft; set: Set; check: LiveCheck }) {
   const problem = draft.slug ? slugProblem(draft.slug) : null;
   return (
-    <div className="grid gap-3">
-      <Field label="Page address" htmlFor="ob-slug" required error={problem}>
-        <div className="flex items-center gap-2">
-          <span className="text-fg-muted shrink-0 text-sm">bandcoin.io/artist/</span>
-          <Input
+    <div className="grid gap-6">
+      <StepHeading title="Pick your page address">
+        Where fans find you. It&apos;s free, and you can rename it later.
+      </StepHeading>
+      <div className="grid gap-2">
+        <label htmlFor="ob-slug" className="text-sm font-medium">
+          Page address <span className="text-danger">*</span>
+        </label>
+        <div
+          className={cn(
+            "bg-surface focus-within:ring-ring flex h-12 items-center overflow-hidden rounded-xl border focus-within:ring-2",
+            problem || check.state === "bad" ? "border-danger" : "border-border",
+          )}
+        >
+          <span className="bg-surface-2 text-fg-muted flex h-full items-center gap-1.5 border-r px-3 text-sm">
+            <Link2 className="size-4" /> bandcoin.io/artist/
+          </span>
+          <input
             id="ob-slug"
             value={draft.slug}
             maxLength={40}
             autoComplete="off"
+            spellCheck={false}
+            className="h-full min-w-0 flex-1 bg-transparent px-3 font-medium outline-none"
             onChange={(event) => set({ slug: event.target.value.toLowerCase(), slugTouched: true })}
           />
         </div>
-      </Field>
-      {!problem && <CheckLine check={check} ok="It's free" />}
+        {problem ? (
+          <p role="alert" className="text-danger text-xs font-medium">
+            {problem}
+          </p>
+        ) : (
+          <CheckLine check={check} ok="It's free" />
+        )}
+      </div>
       <p className="text-fg-faint text-xs">
-        You can rename it later. A short bandcoin.io/name link is a separate option in Settings.
+        Want a short bandcoin.io/name link too? You can add one in Settings once you&apos;re in.
       </p>
     </div>
   );
@@ -229,57 +373,98 @@ function CheckLine({ check, ok }: { check: LiveCheck; ok: string }) {
   );
 }
 
-/** 5 · Everything in one card, each part with Edit. The payment sits under it. */
+/** 4 · Everything in one card, each part with Edit, and what happens after paying. */
 export function ReviewSummary({ draft, onEdit }: { draft: Draft; onEdit: (step: number) => void }) {
   const code = draft.tokenMode === "NEW" ? draft.code : draft.existingCode;
   return (
-    <div className="grid gap-4">
-      <PagePreview draft={draft} />
-      <dl className="border-border divide-border divide-y rounded-2xl border text-sm">
-        <Row label="Name" step={1} onEdit={onEdit}>
-          {draft.name}
-        </Row>
-        <Row label="About" step={1} onEdit={onEdit}>
-          {draft.bio || <span className="text-fg-faint">Nothing yet</span>}
-        </Row>
-        <Row label="Fan token" step={2} onEdit={onEdit}>
-          <span className="flex items-center gap-2">
-            {draft.tokenImage && (
+    <div className="grid gap-6">
+      <StepHeading title="Check and send">
+        Make sure it all looks right. Paying opens your artist account and sends your page to an
+        admin.
+      </StepHeading>
+
+      <div className="border-border overflow-hidden rounded-2xl border">
+        <div className="from-primary/25 via-surface-2 to-primary/5 relative aspect-[4/1] bg-gradient-to-br">
+          {draft.coverUrl && (
+            // eslint-disable-next-line @next/next/no-img-element -- images come from our storage
+            <img src={draft.coverUrl} alt="" className="size-full object-cover" />
+          )}
+          <EditButton onClick={() => onEdit(0)} className="absolute top-2 right-2" />
+        </div>
+        <div className="flex items-start gap-3 px-4 pb-4">
+          <span className="border-surface bg-surface-2 -mt-8 size-16 shrink-0 overflow-hidden rounded-full border-4">
+            {draft.avatarUrl && (
               // eslint-disable-next-line @next/next/no-img-element -- images come from our storage
-              <img src={draft.tokenImage} alt="" className="size-6 rounded-full object-cover" />
+              <img src={draft.avatarUrl} alt="" className="size-full object-cover" />
             )}
-            <span className="font-mono font-semibold">{code}</span>
-            <span className="text-fg-muted">
-              {draft.tokenMode === "NEW" ? "· new" : "· already on Stellar"}
-            </span>
           </span>
-        </Row>
-        <Row label="Page" step={3} onEdit={onEdit}>
-          bandcoin.io/artist/{draft.slug}
-        </Row>
-      </dl>
+          <div className="min-w-0 flex-1 pt-2">
+            <p className="display truncate text-lg">{draft.name}</p>
+            <p className="text-fg-muted line-clamp-2 text-sm">
+              {draft.bio || "No line about you yet."}
+            </p>
+          </div>
+          <EditButton onClick={() => onEdit(0)} className="mt-2" />
+        </div>
+        <dl className="border-border divide-border divide-y border-t text-sm">
+          <Row label="Fan token" onEdit={() => onEdit(1)}>
+            <span className="flex items-center gap-2">
+              {draft.tokenImage && (
+                // eslint-disable-next-line @next/next/no-img-element -- images come from our storage
+                <img src={draft.tokenImage} alt="" className="size-6 rounded-full object-cover" />
+              )}
+              <span className="font-mono font-semibold tracking-wider">{code}</span>
+              <span className="text-fg-muted">
+                {draft.tokenMode === "NEW" ? "new" : "your own, on Stellar"}
+              </span>
+            </span>
+          </Row>
+          <Row label="Page" onEdit={() => onEdit(2)}>
+            <span className="font-medium">bandcoin.io/artist/{draft.slug}</span>
+          </Row>
+        </dl>
+      </div>
+
+      <ol className="grid gap-2 text-sm sm:grid-cols-3">
+        {[
+          "You pay 1.5 XLM to open your artist account",
+          "An admin reviews your page",
+          "Your fan token is made and your tools unlock",
+        ].map((text, index) => (
+          <li key={text} className="bg-surface-2/60 flex items-start gap-2 rounded-xl p-3">
+            <span className="bg-fg text-bg flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold">
+              {index + 1}
+            </span>
+            <span className="text-fg-muted">{text}</span>
+          </li>
+        ))}
+      </ol>
     </div>
+  );
+}
+
+function EditButton({ onClick, className }: { onClick: () => void; className?: string }) {
+  return (
+    <Button type="button" variant="secondary" size="xs" onClick={onClick} className={className}>
+      <Pencil /> Edit
+    </Button>
   );
 }
 
 function Row({
   label,
-  step,
   onEdit,
   children,
 }: {
   label: string;
-  step: number;
-  onEdit: (step: number) => void;
+  onEdit: () => void;
   children: ReactNode;
 }) {
   return (
-    <div className="flex items-start gap-3 px-4 py-3">
+    <div className="flex items-center gap-3 px-4 py-3">
       <dt className="text-fg-muted w-20 shrink-0">{label}</dt>
-      <dd className="min-w-0 flex-1 break-words">{children}</dd>
-      <Button type="button" variant="ghost" size="xs" onClick={() => onEdit(step)}>
-        <Pencil /> Edit
-      </Button>
+      <dd className="min-w-0 flex-1 truncate">{children}</dd>
+      <EditButton onClick={onEdit} />
     </div>
   );
 }
