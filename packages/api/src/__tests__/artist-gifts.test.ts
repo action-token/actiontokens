@@ -438,31 +438,49 @@ describe("submitGift", () => {
 });
 
 describe("lists", () => {
-  it("shows delivered gifts with who got them", async () => {
+  it("shows delivered token and NFT gifts with who got them", async () => {
     const { ctx, db } = setup();
+    const at = new Date("2026-11-01T00:00:00Z");
     db.order.findMany.mockResolvedValue([
       {
         id: "o1",
-        createdAt: new Date("2026-11-01T00:00:00Z"),
+        createdAt: at,
         txHash: "h1",
+        item: null,
         breakdown: { giftDetails: { recipientId: "u-fan", amount: 10, code: "LUNA" } },
       },
-      { id: "o2", createdAt: new Date(), txHash: "h2", breakdown: null },
+      {
+        id: "o3",
+        createdAt: at,
+        txHash: "h3",
+        item: { title: "Night Drive" },
+        breakdown: { nftGift: { recipientId: "u-fan", tokenId: "12" } },
+      },
+      { id: "o2", createdAt: new Date(), txHash: "h2", item: null, breakdown: null },
     ]);
     const sent = await listSentGifts(ctx, me);
+    const recipient = { id: "u-fan", name: "Ana B", image: null };
     expect(sent).toEqual([
       {
         id: "o1",
-        createdAt: new Date("2026-11-01T00:00:00Z"),
+        createdAt: at,
         txHash: "h1",
-        amount: 10,
-        code: "LUNA",
-        recipient: { id: "u-fan", name: "Ana B", image: null },
+        tokens: { amount: 10, code: "LUNA" },
+        copy: null,
+        recipient,
+      },
+      {
+        id: "o3",
+        createdAt: at,
+        txHash: "h3",
+        tokens: null,
+        copy: { title: "Night Drive", tokenId: "12" },
+        recipient,
       },
     ]);
     expect(db.order.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { kind: "GIFT", buyerId: "u-artist", status: "DELIVERED" },
+        where: { kind: { in: ["GIFT", "NFT_GIFT"] }, buyerId: "u-artist", status: "DELIVERED" },
       }),
     );
   });

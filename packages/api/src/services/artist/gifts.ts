@@ -17,7 +17,7 @@ import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
 
 import { type Context, type SessionUser, isCustodial } from "../../context";
 import { transitionOrder } from "../order-state";
-import { finishGift } from "../orders/finish";
+import { finishGift, type NftGiftDetails } from "../orders/finish";
 import { failOrder, ownOrder, userSignature } from "../purchase";
 import { creditLines, freeOf, openedStorage } from "./storage-withdraw";
 
@@ -381,37 +381,57 @@ export async function submitGift(
   return finishGift(ctx, order.id);
 }
 
-/** Gifts the artist has sent, newest first. */
+/** Gifts the artist has sent (tokens and NFT copies), newest first. */
 export async function listSentGifts(ctx: Pick<ServiceCtx, "db">, user: Pick<SessionUser, "id">) {
   const orders = await ctx.db.order.findMany({
-    where: { kind: "GIFT", buyerId: user.id, status: "DELIVERED" },
+    where: { kind: { in: ["GIFT", "NFT_GIFT"] }, buyerId: user.id, status: "DELIVERED" },
     orderBy: { createdAt: "desc" },
     take: 50,
-    select: { id: true, createdAt: true, txHash: true, breakdown: true },
+    select: {
+      id: true,
+      createdAt: true,
+      txHash: true,
+      breakdown: true,
+      item: { select: { title: true } },
+    },
   });
-  const details = orders
-    .map((order) => ({
-      order,
-      gift: (order.breakdown as { giftDetails?: GiftBreakdown } | null)?.giftDetails,
-    }))
-    .filter((entry): entry is { order: (typeof orders)[number]; gift: GiftBreakdown } =>
-      Boolean(entry.gift),
-    );
+  const details = orders.flatMap((order) => {
+    const breakdown = order.breakdown as {
+      giftDetails?: GiftBreakdown;
+      nftGift?: NftGiftDetails;
+    } | null;
+    const recipientId = breakdown?.giftDetails?.recipientId ?? breakdown?.nftGift?.recipientId;
+    if (!recipientId) return [];
+    return [
+      {
+        order,
+        recipientId,
+        tokens: breakdown?.giftDetails
+          ? { amount: breakdown.giftDetails.amount, code: breakdown.giftDetails.code }
+          : null,
+        copy: breakdown?.nftGift
+          ? { title: order.item?.title ?? "NFT", tokenId: breakdown.nftGift.tokenId }
+          : null,
+      },
+    ];
+  });
   const people = await ctx.db.user.findMany({
-    where: { id: { in: [...new Set(details.map((entry) => entry.gift.recipientId))] } },
+    where: { id: { in: [...new Set(details.map((entry) => entry.recipientId))] } },
     select: { id: true, username: true, displayName: true, avatarUrl: true },
   });
   const byId = new Map(people.map((person) => [person.id, person]));
-  return details.map(({ order, gift }) => {
-    const person = byId.get(gift.recipientId);
+  return details.map(({ order, recipientId, tokens, copy }) => {
+    const person = byId.get(recipientId);
     return {
       id: order.id,
       createdAt: order.createdAt,
       txHash: order.txHash,
-      amount: gift.amount,
-      code: gift.code,
+      /** A token gift: how many of which token */
+      tokens,
+      /** An NFT gift: which copy */
+      copy,
       recipient: {
-        id: gift.recipientId,
+        id: recipientId,
         name: person ? nameOf(person) : null,
         image: person?.avatarUrl ?? null,
       },

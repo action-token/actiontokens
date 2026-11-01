@@ -14,7 +14,8 @@ export type XlmQuote =
   | RouterOutputs["onboarding"]["issuerQuote"]
   | RouterOutputs["profile"]["stockQuote"]
   | RouterOutputs["profile"]["withdrawQuote"]
-  | RouterOutputs["gifts"]["quote"];
+  | RouterOutputs["gifts"]["quote"]
+  | RouterOutputs["gifts"]["quoteCollectible"];
 
 /**
  * The server's price for a payment in XLM (opening the artist account, sending a gift):
