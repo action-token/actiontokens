@@ -1,13 +1,15 @@
 "use client";
 
-import { Archive, Check, Crown, Package, Plus, Star } from "lucide-react";
+import { Check, Crown, Plus, Star } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import toast from "react-hot-toast";
 
 import { abbreviateAddress } from "@bandcoin/utils/address";
 import { Button } from "@bandcoin/ui/components/button";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
 import { cn } from "@bandcoin/ui/lib/cn";
 import { ConfirmDialog } from "@bandcoin/ui/patterns/confirm-dialog";
 import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
@@ -22,19 +24,31 @@ import { PageAssets } from "./page-assets";
 
 type Tier = RouterOutputs["memberships"]["tiers"][number];
 type FanToken = NonNullable<RouterOutputs["memberships"]["fanToken"]>;
+type Tab = "tiers" | "bundles" | "storage";
 
 const amount = (value: string) =>
   Number(value).toLocaleString("en-US", { maximumFractionDigits: 7 });
-const scrollTo = (id: string) =>
-  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+export function MembershipsView() {
+  // useSearchParams needs a boundary; the page renders right away and the tab follows
+  return (
+    <Suspense>
+      <MembershipTabs />
+    </Suspense>
+  );
+}
 
 /**
- * Your fan token and what it does: a sidebar with the token, what storage
- * holds and quick actions; beside it the tiers fans unlock by holding it,
- * then bundles of it for sale, then copies kept in storage.
+ * Your fan token and what it does: a strip with the token and its numbers,
+ * then tabs: the tiers fans unlock by holding it, bundles of it for sale, and
+ * copies kept in storage.
  */
-export function MembershipsView() {
+function MembershipTabs() {
+  const router = useRouter();
+  const asked = useSearchParams().get("tab");
   const token = api.memberships.fanToken.useQuery();
+  const storage = token.data && !token.data.external;
+  const tab: Tab = asked === "bundles" || (asked === "storage" && storage) ? asked : "tiers";
 
   return (
     <PageBody wide className="grid gap-6">
@@ -42,38 +56,52 @@ export function MembershipsView() {
         eyebrow="Fans"
         title="Memberships"
         description="Fans unlock tiers by holding your fan token. There's nothing to bill: the amount they hold decides their tier."
+        actions={
+          token.data ? (
+            <Button asChild>
+              <Link href="/memberships/tiers/new">
+                <Plus /> New tier
+              </Link>
+            </Button>
+          ) : undefined
+        }
       />
       {token.isPending ? (
-        <div className="grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)]">
-          <Skeleton className="h-80 rounded-[1.4rem]" />
-          <Skeleton className="h-80 rounded-[1.4rem]" />
-        </div>
+        <Skeleton className="h-24 w-full rounded-[1.4rem]" />
       ) : token.isError ? (
         <ErrorState message="Couldn't load your fan token." onRetry={() => void token.refetch()} />
       ) : token.data === null ? (
         <FanTokenSetup />
       ) : (
-        <div className="grid items-start gap-6 lg:grid-cols-[18rem_minmax(0,1fr)]">
-          <TokenSidebar token={token.data} />
-          <div className="grid min-w-0 gap-10">
-            <Tiers tokenCode={token.data.code} />
-            <div id="bundles" className="scroll-mt-6">
-              <PageAssets />
+        <>
+          <TokenStrip token={token.data} />
+          <Tabs
+            value={tab}
+            onValueChange={(value) =>
+              router.replace(value === "tiers" ? "/memberships" : `/memberships?tab=${value}`)
+            }
+          >
+            <TabsList>
+              <TabsTrigger value="tiers">Tiers</TabsTrigger>
+              <TabsTrigger value="bundles">Sell bundles</TabsTrigger>
+              {storage && <TabsTrigger value="storage">Storage</TabsTrigger>}
+            </TabsList>
+          </Tabs>
+          {tab === "tiers" && <Tiers tokenCode={token.data.code} />}
+          {tab === "bundles" && <PageAssets />}
+          {tab === "storage" && (
+            <div className="max-w-2xl">
+              <StorageStock itemId={token.data.itemId} />
             </div>
-            {!token.data.external && (
-              <section id="stock" className="grid scroll-mt-6 gap-3">
-                <h2 className="display text-xl">Storage</h2>
-                <StorageStock itemId={token.data.itemId} />
-              </section>
-            )}
-          </div>
-        </div>
+          )}
+        </>
       )}
     </PageBody>
   );
 }
 
-function TokenSidebar({ token }: { token: FanToken }) {
+/** The token and its numbers in one line: what storage holds, what's free to offer, tiers, bundles. */
+function TokenStrip({ token }: { token: FanToken }) {
   const tiers = api.memberships.tiers.useQuery();
   const assets = api.catalog.pageAssets.useQuery();
   const openBundles = assets.data?.offers.filter((offer) => !offer.sold).length;
@@ -95,13 +123,13 @@ function TokenSidebar({ token }: { token: FanToken }) {
   ];
 
   return (
-    <aside className="bg-surface border-fg/10 grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5 rounded-[1.4rem] border-2 p-5 lg:sticky lg:top-6">
-      <div className="flex items-center gap-3">
+    <section className="bg-surface border-fg/10 flex flex-wrap items-center gap-x-8 gap-y-4 rounded-[1.4rem] border-2 p-5">
+      <div className="flex min-w-0 items-center gap-3">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={token.coverUrl}
           alt=""
-          className="bg-surface-2 size-14 shrink-0 rounded-xl object-cover"
+          className="bg-surface-2 size-12 shrink-0 rounded-xl object-cover"
         />
         <div className="min-w-0">
           <p className="display truncate text-xl">{token.code}</p>
@@ -111,34 +139,17 @@ function TokenSidebar({ token }: { token: FanToken }) {
           </p>
         </div>
       </div>
-
-      <dl className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-2">
+      <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
         {stats.map((stat) => (
-          <div key={stat.label} className="bg-surface-2 rounded-xl p-3">
-            <dt className="text-fg-muted text-[11px] leading-tight">{stat.label}</dt>
-            <dd className="num mt-1 text-lg font-semibold">
+          <div key={stat.label} className="min-w-0">
+            <dt className="text-fg-muted truncate text-xs">{stat.label}</dt>
+            <dd className="num mt-0.5 text-lg font-semibold">
               {stat.value === undefined ? <Skeleton className="h-6 w-12" /> : (stat.value ?? "—")}
             </dd>
           </div>
         ))}
       </dl>
-
-      <div className="grid gap-2">
-        <Button asChild>
-          <Link href="/memberships/tiers/new">
-            <Plus /> New tier
-          </Link>
-        </Button>
-        <Button variant="secondary" onClick={() => scrollTo("bundles")}>
-          <Package /> Sell a bundle
-        </Button>
-        {!token.external && (
-          <Button variant="outline" onClick={() => scrollTo("stock")}>
-            <Archive /> Storage
-          </Button>
-        )}
-      </div>
-    </aside>
+    </section>
   );
 }
 
@@ -146,8 +157,7 @@ function Tiers({ tokenCode }: { tokenCode: string }) {
   const tiers = api.memberships.tiers.useQuery();
 
   return (
-    <section className="grid gap-4">
-      <h2 className="display text-xl">Tiers</h2>
+    <section className="grid gap-4" aria-label="Tiers">
       {tiers.isPending ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <Skeleton className="h-56 rounded-[1.4rem]" />

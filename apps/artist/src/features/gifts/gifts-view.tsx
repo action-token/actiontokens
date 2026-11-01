@@ -1,10 +1,12 @@
 "use client";
 
 import { ArrowLeft, ArrowRight, Check, CircleAlert, Gift, Search, Send } from "lucide-react";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Input } from "@bandcoin/ui/components/input";
+import { Tabs, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
 import { cn } from "@bandcoin/ui/lib/cn";
 import { Field } from "@bandcoin/ui/patterns/form-page";
 import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
@@ -28,11 +30,45 @@ const STEPS = [
 ] as const;
 
 /**
- * Gifts, one step at a time: what (your fan token or an NFT copy you own),
+ * Sending a gift, one step at a time: what (your fan token or an NFT copy you own),
  * who, then the price and Send. You pay only the network fee (plus 1 XLM that
  * holds a token gift a fan still has to claim), shown before anything is signed.
  */
 export function GiftsView() {
+  // useSearchParams needs a boundary; the page renders right away and the tab follows
+  return (
+    <Suspense>
+      <GiftTabs />
+    </Suspense>
+  );
+}
+
+/** Two tabs: Send (the three steps) and Sent (gifts you've sent). */
+function GiftTabs() {
+  const router = useRouter();
+  const tab = useSearchParams().get("tab") === "sent" ? "sent" : "send";
+  return (
+    <PageBody className="grid gap-6">
+      <PageHeader
+        eyebrow="Sell"
+        title="Gifts"
+        description="Send a fan some of your fan token, or an NFT copy you own, as a thank-you."
+      />
+      <Tabs
+        value={tab}
+        onValueChange={(value) => router.replace(value === "sent" ? "/gifts?tab=sent" : "/gifts")}
+      >
+        <TabsList>
+          <TabsTrigger value="send">Send</TabsTrigger>
+          <TabsTrigger value="sent">Sent</TabsTrigger>
+        </TabsList>
+      </Tabs>
+      {tab === "send" ? <SendGift /> : <SentGifts />}
+    </PageBody>
+  );
+}
+
+function SendGift() {
   const [step, setStep] = useState(0);
   const [choice, setChoice] = useState<Choice | null>(null);
   const [amountText, setAmountText] = useState("1");
@@ -99,14 +135,8 @@ export function GiftsView() {
         : "";
 
   return (
-    <PageBody className="grid gap-8">
-      <PageHeader
-        eyebrow="Sell"
-        title="Gifts"
-        description="Send a fan some of your fan token, or an NFT copy you own, as a thank-you."
-      />
-
-      <section className="bg-surface border-fg/10 mx-auto grid w-full max-w-3xl gap-6 rounded-[1.4rem] border-2 p-5 sm:p-7">
+    <>
+      <section className="bg-surface border-fg/10 grid w-full max-w-3xl gap-6 rounded-[1.4rem] border-2 p-5 sm:p-7">
         <ol aria-label="Steps" className="grid grid-cols-3 gap-2">
           {STEPS.map((entry, index) => {
             const current = index === step;
@@ -300,10 +330,6 @@ export function GiftsView() {
         </div>
       </section>
 
-      <div className="mx-auto w-full max-w-3xl">
-        <SentGifts />
-      </div>
-
       {flow.step && (
         <ToastViewport>
           <TransactionToast
@@ -324,6 +350,6 @@ export function GiftsView() {
           />
         </ToastViewport>
       )}
-    </PageBody>
+    </>
   );
 }

@@ -14,8 +14,7 @@ import { api } from "~/trpc/react";
 export function SentGifts() {
   const sent = api.gifts.sent.useQuery();
   return (
-    <section className="grid gap-3">
-      <h2 className="display text-lg">Sent gifts</h2>
+    <section className="grid max-w-3xl gap-3" aria-label="Sent gifts">
       {sent.isPending ? (
         <Skeleton className="h-24 w-full rounded-xl" />
       ) : sent.isError ? (
