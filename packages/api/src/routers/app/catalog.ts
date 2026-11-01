@@ -20,7 +20,7 @@ export const catalogRouter = createRouter({
   home: publicProcedure.query(async ({ ctx }) => {
     const forSale = {
       ...listedItemWhere,
-      listings: { some: { status: "ACTIVE" } },
+      listings: { some: { status: "ACTIVE", kind: { not: "BUNDLE" } } },
     } satisfies Prisma.ItemWhereInput;
     const [featured, trending, newMusic, artists, bounties] = await Promise.all([
       ctx.db.item.findMany({
@@ -132,7 +132,7 @@ export const catalogRouter = createRouter({
     .query(async ({ ctx, input }) => {
       const where: Prisma.ItemWhereInput = {
         ...listedItemWhere,
-        listings: { some: { status: "ACTIVE" } },
+        listings: { some: { status: "ACTIVE", kind: { not: "BUNDLE" } } },
         ...(input.type ? { type: input.type } : {}),
         ...(input.locked ? { lockedContents: { some: {} } } : {}),
         ...(input.search

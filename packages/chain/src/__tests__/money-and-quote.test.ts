@@ -79,6 +79,20 @@ describe("buildQuote", () => {
     expect(quote.rateUsd).toBe("0.2500000");
   });
 
+  it("uses a fixed XLM price when the artist set one, instead of the USD rate", () => {
+    const quote = buildQuote({
+      ...base,
+      currency: "XLM",
+      unitPrice: { ...base.unitPrice, xlm: "7" },
+      funds: { ...base.funds!, XLM: "100" },
+    });
+    expect(quote.lines[0]).toMatchObject({ amount: "14.0000000", detail: "2 × 7 XLM" });
+    // The BANDCOIN and card prices are untouched by it.
+    expect(
+      buildQuote({ ...base, unitPrice: { ...base.unitPrice, xlm: "7" } }).lines[0]?.amount,
+    ).toBe("20.0000000");
+  });
+
   it("prices USDC from USD, with the XLM costs paid in XLM", () => {
     const usdc = buildQuote({ ...base, currency: "USDC", funds: { ...base.funds!, USDC: "10" } });
     expect(total(usdc, "USDC")).toBe("5.1250000");

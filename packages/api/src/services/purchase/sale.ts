@@ -77,6 +77,13 @@ export async function loadSale(db: Db, listingId: string) {
   }
 
   const token = item.classicToken;
+  // Sell Page Assets: a bundle of the fan token, delivered from the artist's storage only.
+  const bundle = listing.kind === "BUNDLE";
+  if (bundle && (!listing.bundleAmount || item.type !== "FAN_TOKEN")) {
+    throw new AppError(ErrorCodes.ITEM_NOT_AVAILABLE, {
+      message: "This offer isn't for sale right now.",
+    });
+  }
   return {
     listing,
     item,
@@ -86,11 +93,14 @@ export async function loadSale(db: Db, listingId: string) {
     /** The artist's wallet, paid the royalty on resales */
     creator: item.artist?.user.walletAddress ?? null,
     /** The key that can mint more copies: the artist's one issuer, or the token's own legacy issuer */
-    minter: token && !offChain ? minterOf(token, item.artist?.issuerAccount ?? null) : null,
+    minter:
+      token && !offChain && !bundle ? minterOf(token, item.artist?.issuerAccount ?? null) : null,
+    /** Fan tokens one bundle delivers; null for every other listing */
+    bundleAmount: bundle ? listing.bundleAmount!.toString() : null,
     /** Copies already minted and waiting: the artist's storage (primary) or the seller's (resale) */
     stockAccount: offChain
       ? null
-      : listing.kind === "PRIMARY"
+      : listing.kind === "PRIMARY" || bundle
         ? (item.artist?.storageAccount?.publicKey ?? null)
         : (listing.seller.chainAccounts[0]?.publicKey ?? null),
     remaining: remainingCopies(listing, item.supply),

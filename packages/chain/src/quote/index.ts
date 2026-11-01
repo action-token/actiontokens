@@ -25,8 +25,8 @@ export const QUOTE_TTL_SECONDS = 60;
 export type QuoteInput = {
   currency: Currency;
   quantity: number;
-  /** Price of one copy, as the artist set it */
-  unitPrice: { bandcoin: string; usd: string };
+  /** Price of one copy, as the artist set it. `xlm`: a fixed XLM price (page asset bundles, as old main), used instead of working XLM out from USD */
+  unitPrice: { bandcoin: string; usd: string; xlm?: string };
   /** USD per XLM and per USDC, from the live feed (the one being paid in; XLM for card) */
   rates: { xlmUsd?: string; usdcUsd?: string };
   platformFeeBps: number;
@@ -95,9 +95,10 @@ export function buildQuote(input: QuoteInput): Quote {
   const { currency, quantity } = input;
   const rateUsd = rateFor(currency, input.rates);
   const unit = unitPriceIn(currency, input.unitPrice, rateUsd);
+  const fixedXlm = currency === "XLM" && input.unitPrice.xlm !== undefined;
   // Convert the whole line, not one copy, so rounding happens once.
   const price =
-    rateUsd === null || currency === "USD"
+    rateUsd === null || currency === "USD" || fixedXlm
       ? unit * BigInt(quantity)
       : usdTo(toStroops(input.unitPrice.usd) * BigInt(quantity), rateUsd);
   const platformFee = applyBps(price, input.platformFeeBps);
@@ -203,6 +204,7 @@ function unitPriceIn(
 ) {
   if (currency === "BANDCOIN") return toStroops(unitPrice.bandcoin);
   if (currency === "USD") return toStroops(unitPrice.usd);
+  if (currency === "XLM" && unitPrice.xlm !== undefined) return toStroops(unitPrice.xlm);
   return usdTo(toStroops(unitPrice.usd), rateUsd!);
 }
 

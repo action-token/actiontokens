@@ -482,3 +482,110 @@ describe("a Non Stellar item", () => {
     expect(more.problems.map((problem) => problem.message)).toContain("Only 1 left.");
   });
 });
+
+describe("a page asset bundle", () => {
+  const storage = Keypair.random();
+  const tokenCode = `P${code.slice(1)}`;
+  let bundleListing = "";
+  let tokenItem = "";
+  let storageId = "";
+
+  beforeAll(async () => {
+    const account = await db.chainAccount.create({
+      data: {
+        kind: "STORAGE",
+        publicKey: storage.publicKey(),
+        secretEncrypted: "e2e:no-secret",
+        ownerId: ids.users[0] ?? "",
+        activatedAt: new Date(),
+      },
+    });
+    storageId = account.id;
+    await db.artist.update({ where: { id: ids.artist }, data: { storageAccountId: account.id } });
+    const token = await db.item.create({
+      data: {
+        type: "FAN_TOKEN",
+        chainType: "CLASSIC_TOKEN",
+        title: "E2E page asset",
+        slug: `${run}-page`,
+        coverUrl: "https://picsum.photos/seed/e2e-page/400",
+        artistId: ids.artist,
+        createdById: ids.users[0] ?? "",
+        classicToken: { create: { code: tokenCode, issuer: keys.issuer.publicKey() } },
+      },
+    });
+    tokenItem = token.id;
+    const listing = await db.listing.create({
+      data: {
+        itemId: token.id,
+        sellerId: ids.users[0] ?? "",
+        kind: "BUNDLE",
+        quantity: 1,
+        bundleAmount: "1000",
+        priceBandcoin: "50",
+        priceUsd: "5",
+        priceXlm: "8",
+      },
+    });
+    bundleListing = listing.id;
+    wallets.set(storage.publicKey(), {
+      xlm: "5",
+      lines: [{ code: tokenCode, issuer: keys.issuer.publicKey(), balance: "1500" }],
+    });
+    wallets.set(keys.buyer.publicKey(), { xlm: "10", lines: [{ ...BANDCOIN, balance: "100" }] });
+  });
+
+  afterAll(async () => {
+    await db.order.deleteMany({ where: { itemId: tokenItem } });
+    await db.ownership.deleteMany({ where: { itemId: tokenItem } });
+    await db.listing.deleteMany({ where: { itemId: tokenItem } });
+    await db.artist.update({ where: { id: ids.artist }, data: { storageAccountId: null } });
+    await db.chainAccount.deleteMany({ where: { id: storageId } });
+  });
+
+  it("sells the whole bundle once, from storage, with the artist's own XLM price", async () => {
+    const caller = callerFor(buyer);
+    const input = { listingId: bundleListing, quantity: 1, currency: "BANDCOIN" as const };
+    const xlm = await caller.order.quote({ ...input, currency: "XLM" });
+    expect(xlm.lines[0]).toMatchObject({ key: "price", amount: "8.0000000" });
+
+    const started = await caller.order.start(input);
+    const tx = TransactionBuilder.fromXDR(started.xdr, Networks.TESTNET) as Transaction;
+    const delivery = tx.operations.find((op) => op.source === storage.publicKey());
+    expect(delivery).toMatchObject({ type: "payment", amount: "1000.0000000" });
+    // Never issued fresh: storage is the only source.
+    expect(tx.operations.some((op) => op.source === keys.issuer.publicKey())).toBe(false);
+
+    await caller.order.submit({ orderId: started.orderId, xdr: started.xdr });
+    const owned = await db.ownership.findUniqueOrThrow({
+      where: { userId_itemId: { userId: buyer.id, itemId: tokenItem } },
+    });
+    expect(owned.quantity.toString()).toBe("1000");
+    const listing = await db.listing.findUniqueOrThrow({ where: { id: bundleListing } });
+    expect(listing.status).toBe("SOLD_OUT");
+    await expect(caller.order.quote(input)).rejects.toThrow(/isn't for sale/);
+  });
+
+  it("can't be bought when storage holds too little", async () => {
+    const short = await db.listing.create({
+      data: {
+        itemId: tokenItem,
+        sellerId: ids.users[0] ?? "",
+        kind: "BUNDLE",
+        quantity: 1,
+        bundleAmount: "5000",
+        priceBandcoin: "50",
+        priceUsd: "5",
+        priceXlm: "8",
+      },
+    });
+    const quote = await callerFor(buyer).order.quote({
+      listingId: short.id,
+      quantity: 1,
+      currency: "BANDCOIN",
+    });
+    expect(quote.problems.map((problem) => problem.message)).toContain(
+      "The artist's storage doesn't hold enough tokens for this offer right now.",
+    );
+  });
+});

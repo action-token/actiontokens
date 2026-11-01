@@ -115,7 +115,13 @@ export function BuyPanel({
               <Money amount={unitPrice} currency={currency} short className="display" />
             )}
           </div>
-          <Badge>{listing.kind === "PRIMARY" ? "per copy" : "resale"}</Badge>
+          <Badge>
+            {listing.kind === "PRIMARY"
+              ? "per copy"
+              : listing.kind === "BUNDLE"
+                ? "whole bundle"
+                : "resale"}
+          </Badge>
         </div>
 
         <div className="grid gap-1.5">

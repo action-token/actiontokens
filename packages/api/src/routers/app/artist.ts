@@ -155,6 +155,58 @@ export const artistRouter = createRouter({
     };
   }),
 
+  /**
+   * Sell Page Assets: the artist's open bundles of their fan token, each
+   * bought whole by one fan through the usual buy panel (services/purchase).
+   */
+  pageAssets: publicProcedure.input(slugInput).query(async ({ ctx, input }) => {
+    const viewerId = ctx.session?.user.id;
+    const artist = await ctx.db.artist.findFirst({
+      where: { slug: input.slug, status: "APPROVED" },
+      select: {
+        fanTokenItem: {
+          select: { id: true, coverUrl: true, classicToken: { select: { code: true } } },
+        },
+      },
+    });
+    const token = artist?.fanTokenItem;
+    if (!token?.classicToken) return { code: null, coverUrl: null, offers: [] };
+    const offers = await ctx.db.listing.findMany({
+      where: { itemId: token.id, kind: "BUNDLE", status: "ACTIVE" },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        kind: true,
+        bundleAmount: true,
+        note: true,
+        priceBandcoin: true,
+        priceUsd: true,
+        priceXlm: true,
+        seller: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
+      },
+    });
+    return {
+      code: token.classicToken.code,
+      coverUrl: token.coverUrl,
+      offers: offers.map((offer) => ({
+        id: offer.id,
+        amount: offer.bundleAmount?.toString() ?? "0",
+        note: offer.note,
+        priceXlm: offer.priceXlm?.toString() ?? null,
+        /** Shaped like an item page listing, for the buy panel */
+        listing: {
+          id: offer.id,
+          kind: offer.kind,
+          priceBandcoin: offer.priceBandcoin.toString(),
+          priceUsd: offer.priceUsd.toString(),
+          remaining: 1,
+          seller: offer.seller,
+          isOwn: offer.seller.id === viewerId,
+        },
+      })),
+    };
+  }),
+
   /** The unpublished design, for the artist's own live preview in the page builder. */
   draftDesign: authedProcedure.input(slugInput).query(async ({ ctx, input }) => {
     const artist = await ctx.db.artist.findFirst({

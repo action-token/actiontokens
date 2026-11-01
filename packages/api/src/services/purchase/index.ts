@@ -113,8 +113,9 @@ async function priceSale(
     // A Non Stellar item delivers nothing on Stellar: the order records the ownership.
     delivery = sale.asset
       ? planDelivery({
-          kind: sale.listing.kind,
-          quantity: input.quantity,
+          kind: sale.listing.kind === "RESALE" ? "RESALE" : "PRIMARY",
+          // A bundle delivers its whole amount of fan tokens per sale.
+          quantity: sale.bundleAmount ? Number(sale.bundleAmount) * input.quantity : input.quantity,
           stockAccount: sale.stockAccount,
           stockBalance: stockAccount ? balanceOf(stockAccount, sale.asset) : "0",
           minter: sale.minter,
@@ -122,7 +123,12 @@ async function priceSale(
       : {};
   } catch (error) {
     if (!isAppError(error)) throw error;
-    extraProblems.push({ code: "UNAVAILABLE", message: error.message });
+    extraProblems.push({
+      code: "UNAVAILABLE",
+      message: sale.bundleAmount
+        ? "The artist's storage doesn't hold enough tokens for this offer right now."
+        : error.message,
+    });
   }
 
   const operations = classicPurchaseOperations({
@@ -139,6 +145,7 @@ async function priceSale(
     unitPrice: {
       bandcoin: sale.listing.priceBandcoin.toString(),
       usd: sale.listing.priceUsd.toString(),
+      ...(sale.listing.priceXlm ? { xlm: sale.listing.priceXlm.toString() } : {}),
     },
     rates: needsRate ? await chain.rates() : {},
     platformFeeBps: settings?.platformFeeBps ?? DEFAULT_PLATFORM_FEE_BPS,
@@ -343,16 +350,26 @@ export async function deliverOrder(ctx: ServiceCtx, orderId: string) {
   await ctx.db.$transaction(async (tx) => {
     await transitionOrder(tx, orderId, "CONFIRMED");
     const order = await tx.order.findUniqueOrThrow({ where: { id: orderId } });
+    // A page asset bundle delivers its whole amount of fan tokens per sale.
+    const bundle = order.listingId
+      ? (
+          await tx.listing.findUnique({
+            where: { id: order.listingId },
+            select: { bundleAmount: true },
+          })
+        )?.bundleAmount
+      : null;
+    const received = bundle ? bundle.mul(order.quantity) : order.quantity;
     if (order.buyerId && order.itemId) {
       await tx.ownership.upsert({
         where: { userId_itemId: { userId: order.buyerId, itemId: order.itemId } },
         create: {
           userId: order.buyerId,
           itemId: order.itemId,
-          quantity: order.quantity,
+          quantity: received,
           source: "PURCHASE",
         },
-        update: { quantity: { increment: order.quantity } },
+        update: { quantity: { increment: received } },
       });
     }
     if (order.listingId) {

@@ -15,6 +15,7 @@ import { AlbumCard } from "~/features/catalog/album-card";
 import { ItemCard } from "~/features/catalog/item-card";
 import { TrackList } from "~/features/music/track-list";
 import { serverApi } from "~/server/api";
+import { PageAssetOffers } from "./page-assets";
 
 export const loadArtist = cache(async (slug: string) => {
   const api = await serverApi();
@@ -55,7 +56,12 @@ export async function ArtistView({ slug }: { slug: string }) {
   // The artist designed their own page in the page builder: show that.
   if (artist.design)
     return (
-      <PageRenderer blocks={artist.design.blocks} theme={artist.design.theme} artist={artist} />
+      <>
+        <PageRenderer blocks={artist.design.blocks} theme={artist.design.theme} artist={artist} />
+        <PageBody wide>
+          <PageAssetOffers slug={artist.slug} />
+        </PageBody>
+      </>
     );
 
   return (
@@ -86,6 +92,8 @@ export async function ArtistView({ slug }: { slug: string }) {
             </div>
           </Section>
         )}
+
+        <PageAssetOffers slug={artist.slug} />
 
         {artist.bounties.length > 0 && (
           <Section title="Live bounties" note="make something, win the prize">

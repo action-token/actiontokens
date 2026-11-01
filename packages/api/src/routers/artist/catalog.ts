@@ -5,6 +5,11 @@ import { signCreatorUpload } from "@bandcoin/storage";
 import { createNft } from "../../services/artist/nft";
 import { createOffChainItem } from "../../services/artist/off-chain";
 import {
+  closePageAssetOffer,
+  createPageAssetOffer,
+  pageAssetOverview,
+} from "../../services/artist/page-assets";
+import {
   createItem,
   getItem,
   listMyItems,
@@ -86,6 +91,25 @@ export const catalogRouter = createRouter({
       }),
     )
     .mutation(({ ctx, input }) => createOffChainItem(ctx, ctx.artist, ctx.session.user, input)),
+
+  /** Sell Page Assets: the artist's fan-token bundles from storage (services/artist/page-assets). */
+  pageAssets: artistProcedure.query(({ ctx }) => pageAssetOverview(ctx, ctx.artist)),
+
+  createPageAsset: artistProcedure
+    .input(
+      z.object({
+        amount: z.string().trim().max(24),
+        priceBandcoin: price,
+        priceUsd: price,
+        priceXlm: price,
+        note: z.string().trim().max(500).optional(),
+      }),
+    )
+    .mutation(({ ctx, input }) => createPageAssetOffer(ctx, ctx.artist, ctx.session.user, input)),
+
+  closePageAsset: artistProcedure
+    .input(z.object({ offerId: z.string().min(1) }))
+    .mutation(({ ctx, input }) => closePageAssetOffer(ctx, ctx.artist, input.offerId)),
 
   update: artistProcedure
     .input(

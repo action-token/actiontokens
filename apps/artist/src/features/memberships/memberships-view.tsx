@@ -19,6 +19,7 @@ import { api, type RouterOutputs } from "~/trpc/react";
 
 import { StorageStock } from "../catalog/storage-stock";
 import { FanTokenSetup } from "./fan-token-setup";
+import { PageAssets } from "./page-assets";
 
 type Tier = RouterOutputs["memberships"]["tiers"][number];
 
@@ -63,6 +64,7 @@ export function MembershipsView() {
               <StorageStock itemId={token.data.itemId} />
             </div>
           )}
+          <PageAssets />
           <Tiers tokenCode={token.data.code} />
         </>
       )}

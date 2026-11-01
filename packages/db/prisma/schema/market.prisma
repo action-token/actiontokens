@@ -5,6 +5,8 @@ enum ListingKind {
   PRIMARY
   /// A fan reselling an edition they own
   RESALE
+  /// Sell Page Assets: a bundle of the artist's fan token from storage, sold once
+  BUNDLE
 }
 
 enum ListingStatus {
@@ -35,6 +37,12 @@ model Listing {
   quantitySold  Int           @default(0)
   /// Placed on the marketplace by an admin (platform pick)
   isFeatured    Boolean       @default(false)
+  /// BUNDLE: how many fan tokens the one sale delivers
+  bundleAmount  Decimal?      @db.Decimal(20, 7)
+  /// BUNDLE: a fixed XLM price (as old main); other listings work XLM out from USD
+  priceXlm      Decimal?      @db.Decimal(20, 7)
+  /// BUNDLE: the artist's description of the offer
+  note          String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 

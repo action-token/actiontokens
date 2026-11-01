@@ -50,7 +50,8 @@ export const itemRouter = createRouter({
           media: { select: { mediaType: true, previewStartSec: true, durationSec: true } },
           tier: accessSelect.tier,
           listings: {
-            where: { status: "ACTIVE" },
+            // Page asset bundles are sold from the artist's page, not here.
+            where: { status: "ACTIVE", kind: { not: "BUNDLE" } },
             orderBy: [{ kind: "asc" }, { priceBandcoin: "asc" }],
             select: {
               id: true,
