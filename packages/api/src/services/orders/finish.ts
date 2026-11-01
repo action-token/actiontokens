@@ -6,6 +6,7 @@ import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
 import type { Context } from "../../context";
 import { deliverVanity } from "../artist/vanity";
 import { moveUnlockPins } from "../catalog/unlock-pins";
+import { notifyNftGift } from "../email/gift-email";
 import { transitionOrder } from "../order-state";
 import { deliverOrder } from "../purchase";
 import { finishNftPurchase } from "../purchase/nft";
@@ -87,10 +88,10 @@ export type NftGiftDetails = {
  * copy, so they need nothing.
  */
 export async function finishNftGift(
-  ctx: Pick<Context, "db">,
+  ctx: Pick<Context, "db" | "chain">,
   orderId: string,
 ): Promise<FinishResult> {
-  await ctx.db.$transaction(async (tx) => {
+  const gift = await ctx.db.$transaction(async (tx) => {
     await transitionOrder(tx, orderId, "CONFIRMED");
     const order = await tx.order.findUniqueOrThrow({
       where: { id: orderId },
@@ -122,7 +123,10 @@ export async function finishNftGift(
     });
     await moveUnlockPins(tx, gift.editionId, gift.recipientId);
     await transitionOrder(tx, orderId, "DELIVERED");
+    return gift;
   });
+  // Once only (the CONFIRMED move above guards it), whether the app or the worker finished it.
+  await notifyNftGift(ctx, gift);
   return { orderId, status: "DELIVERED" };
 }
 

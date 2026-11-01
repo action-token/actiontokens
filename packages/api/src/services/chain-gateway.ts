@@ -31,6 +31,7 @@ import { AppError, ErrorCodes } from "@bandcoin/errors";
 import { fetchCustodialAccountSecret } from "@bandcoin/wallet/server";
 
 import { chargeCard, refundCard } from "../payments/square";
+import { type EmailMessage, sendEmail } from "./email/mailer";
 
 /**
  * Everything services need from the outside world: Stellar, keys and the
@@ -76,6 +77,8 @@ export type ChainGateway = {
    * card was charged; quotes use `lookupAccountForEmail` (database only).
    */
   accountForEmail(email: string): Promise<EmailAccount>;
+  /** Sends an email; false when email (SMTP) isn't set up here, so nothing went */
+  sendEmail(message: EmailMessage): Promise<boolean>;
   card: {
     charge(input: {
       orderId: string;
@@ -168,6 +171,7 @@ export function createChainGateway(db: Db): ChainGateway {
       const { resolveAccountForEmail } = await import("@bandcoin/auth/email-account");
       return resolveAccountForEmail(db, email);
     },
+    sendEmail,
     card: { charge: chargeCard, refund: refundCard },
   };
 }

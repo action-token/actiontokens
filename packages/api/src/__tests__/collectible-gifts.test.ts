@@ -140,6 +140,7 @@ function setup(
       created: true,
     }),
     submit: vi.fn(opts.submit ?? (() => Promise.resolve({ hash: "txhash" }))),
+    sendEmail: vi.fn().mockResolvedValue(true),
   };
   const activity = { set: vi.fn(), facts: () => ({}) };
   return {

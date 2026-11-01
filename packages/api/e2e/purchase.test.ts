@@ -108,6 +108,7 @@ const chain: ChainGateway = {
   },
   findTransaction: async () => null,
   accountForEmail: () => Promise.reject(new Error("accountForEmail is not faked here")),
+  sendEmail: () => Promise.resolve(false),
   card: {
     charge: async ({ orderId, cents }) => {
       charges.push({ orderId, cents });
