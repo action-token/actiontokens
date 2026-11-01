@@ -5,7 +5,9 @@
   "type": "module",
   "description": "Sign-in for every web app: turns a credential (wallet signature, Firebase token, email + password) into a user, logs the attempt, and the NextAuth options built on it.",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./email-account": "./src/email-account.ts",
+    "./email-lookup": "./src/email-lookup.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

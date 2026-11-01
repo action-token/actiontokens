@@ -878,6 +878,9 @@ importers:
       '@bandcoin/ar-core':
         specifier: workspace:*
         version: link:../ar-core
+      '@bandcoin/auth':
+        specifier: workspace:*
+        version: link:../auth
       '@bandcoin/chain':
         specifier: workspace:*
         version: link:../chain

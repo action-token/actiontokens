@@ -35,6 +35,22 @@ export async function findEmailByFirebaseUid(uid: string): Promise<string | unde
 }
 
 /**
+ * The Firebase user for an email, created (unverified, no password) when there
+ * is none. For gifts and guest card orders: the person signs in later with
+ * Google/Apple on that email, or sets a password through "Forgot password".
+ * Any Firebase error other than "not found" is thrown, never treated as new.
+ */
+export async function findOrCreateFirebaseUserByEmail(email: string) {
+  const auth = adminAuth();
+  try {
+    return { user: await auth.getUserByEmail(email), created: false };
+  } catch (error) {
+    if (!isUserNotFound(error)) throw error;
+  }
+  return { user: await auth.createUser({ email }), created: true };
+}
+
+/**
  * The Firebase user behind a "Sign in with Apple" identity token.
  *
  * Which account you get is decided only by what Apple vouches for in the

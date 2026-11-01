@@ -12,6 +12,7 @@ export {
   deleteFirebaseUserByEmail,
   findEmailByFirebaseUid,
   findFirebaseUserByEmail,
+  findOrCreateFirebaseUserByEmail,
   getOrCreateFirebaseUserFromApple,
   verifyFirebaseIdToken,
 } from "./firebase/admin-users";

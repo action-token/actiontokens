@@ -25,6 +25,7 @@ import {
   type Rates,
   submit,
 } from "@bandcoin/chain/server";
+import type { EmailAccount } from "@bandcoin/auth/email-account";
 import type { Db } from "@bandcoin/db";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 import { fetchCustodialAccountSecret } from "@bandcoin/wallet/server";
@@ -69,6 +70,12 @@ export type ChainGateway = {
   nftFeeSettings(): Promise<{ feeBps: number; treasury: string | null; owner: string | null }>;
   submit(xdr: string): Promise<{ hash: string }>;
   findTransaction(hash: string): Promise<{ successful: boolean; envelopeXdr: string } | null>;
+  /**
+   * The account for an email, made (Firebase user, custodial key, user row)
+   * when there is none. Only for a gift being sent or a guest order whose
+   * card was charged; quotes use `lookupAccountForEmail` (database only).
+   */
+  accountForEmail(email: string): Promise<EmailAccount>;
   card: {
     charge(input: {
       orderId: string;
@@ -156,6 +163,11 @@ export function createChainGateway(db: Db): ChainGateway {
       readPurchaseReceipt(chainConfig().nftContract, chainConfig().treasury, purchaseRef),
     nftFeeSettings: () => readNftFeeSettings(chainConfig().nftContract, chainConfig().treasury),
     findTransaction,
+    async accountForEmail(email) {
+      // Loaded on use: it pulls in Firebase, which the worker never needs.
+      const { resolveAccountForEmail } = await import("@bandcoin/auth/email-account");
+      return resolveAccountForEmail(db, email);
+    },
     card: { charge: chargeCard, refund: refundCard },
   };
 }

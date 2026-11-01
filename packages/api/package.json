@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@bandcoin/ar-core": "workspace:*",
+    "@bandcoin/auth": "workspace:*",
     "@bandcoin/chain": "workspace:*",
     "@bandcoin/db": "workspace:*",
     "@bandcoin/errors": "workspace:*",

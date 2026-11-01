@@ -176,25 +176,33 @@ function signedIn(user: UserRow, walletType: WalletType): AuthenticatedUser {
 }
 
 /** The user for a wallet: created on first sign-in, email and sign-up method filled in later if missing. */
-async function findOrCreateUser(
+export async function findOrCreateUser(
   db: Db,
-  input: { publicKey: string; email?: string; fromAppSign?: string; method: WalletType },
+  input: {
+    publicKey: string;
+    email?: string;
+    fromAppSign?: string;
+    method: WalletType;
+    /** False for an account made for someone else (a gift, a guest order): nobody proved the email yet */
+    emailVerified?: boolean;
+  },
 ) {
   const { publicKey, email, method } = input;
+  const verifiedAt = input.emailVerified === false ? null : new Date();
   const existing = await db.user.findUnique({ where: { walletAddress: publicKey } });
   if (!existing) {
     return db.user.create({
       data: {
         walletAddress: publicKey,
         email,
-        emailVerifiedAt: email ? new Date() : null,
+        emailVerifiedAt: email ? verifiedAt : null,
         signUpMethod: method,
         signedUpFromApp: input.fromAppSign === "true",
       },
     });
   }
   const missing = {
-    ...(!existing.email && email ? { email, emailVerifiedAt: new Date() } : {}),
+    ...(!existing.email && email ? { email, emailVerifiedAt: verifiedAt } : {}),
     ...(!existing.signUpMethod ? { signUpMethod: method } : {}),
   };
   return Object.keys(missing).length > 0
@@ -203,7 +211,7 @@ async function findOrCreateUser(
 }
 
 /** Asks the accounts service for (and, the first time, creates) a Firebase user's Stellar account. */
-async function custodialPublicKey(input: {
+export async function custodialPublicKey(input: {
   uid: string;
   email: string;
   fromAppSign: string | undefined;
