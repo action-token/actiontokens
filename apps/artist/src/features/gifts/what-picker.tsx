@@ -9,7 +9,7 @@ import { api } from "~/trpc/react";
 
 export type Choice =
   | { kind: "tokens"; code: string }
-  | { kind: "copy"; editionId: string; title: string; tokenId: string };
+  | { kind: "copy"; editionId: string; title: string; tokenId: string; coverUrl: string };
 
 const tokens = (amount: string) =>
   Number(amount).toLocaleString("en-US", { maximumFractionDigits: 7 });
@@ -78,6 +78,7 @@ export function WhatPicker({
                 editionId: copy.editionId,
                 title: copy.title,
                 tokenId: copy.tokenId,
+                coverUrl: copy.coverUrl,
               })
             }
             badge={

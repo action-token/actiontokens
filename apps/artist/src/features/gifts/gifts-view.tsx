@@ -1,11 +1,12 @@
 "use client";
 
-import { Gift, Send, Users } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CircleAlert, Gift, Search, Send } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Input } from "@bandcoin/ui/components/input";
-import { Field, FormSection } from "@bandcoin/ui/patterns/form-page";
+import { cn } from "@bandcoin/ui/lib/cn";
+import { Field } from "@bandcoin/ui/patterns/form-page";
 import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
 import { ToastViewport, TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
 
@@ -15,22 +16,29 @@ import { api } from "~/trpc/react";
 
 import { QuoteBreakdown } from "../payments/quote-breakdown";
 
-import { type Follower, FollowersPanel } from "./followers-panel";
+import { type Follower, FollowerList } from "./followers-panel";
 import { SentGifts } from "./sent-gifts";
 import { useCollectibleGift, useGift } from "./use-gift";
 import { type Choice, WhatPicker } from "./what-picker";
 
+const STEPS = [
+  { title: "What", desc: "Your token or an NFT" },
+  { title: "Who", desc: "A fan to give it to" },
+  { title: "Send", desc: "Check the price" },
+] as const;
+
 /**
- * Gifts, laid out like Wadzzo's: who gets it, what (your fan token or an NFT
- * copy you own), the price, one Send button; your followers alongside. You
- * pay only the network fee (plus 1 XLM that holds a token gift a fan still has
- * to claim), shown before anything is signed.
+ * Gifts, one step at a time: what (your fan token or an NFT copy you own),
+ * who, then the price and Send. You pay only the network fee (plus 1 XLM that
+ * holds a token gift a fan still has to claim), shown before anything is signed.
  */
 export function GiftsView() {
-  const [recipient, setRecipient] = useState("");
-  const [picked, setPicked] = useState<Follower | null>(null);
+  const [step, setStep] = useState(0);
   const [choice, setChoice] = useState<Choice | null>(null);
   const [amountText, setAmountText] = useState("1");
+  const [recipient, setRecipient] = useState("");
+  const [picked, setPicked] = useState<Follower | null>(null);
+
   const amount = Number(amountText);
   const validAmount = Number.isInteger(amount) && amount >= 1;
   const typed = useDebounced(recipient.trim());
@@ -40,7 +48,7 @@ export function GiftsView() {
   const tokenQuote = api.gifts.quote.useQuery(
     { recipient: typed, amount: validAmount ? amount : 1 },
     {
-      enabled: isTokens && typed.length > 0 && validAmount,
+      enabled: isTokens && typed.length > 0 && validAmount && step > 0,
       refetchInterval: 30_000,
       placeholderData: (previous) => previous,
     },
@@ -48,84 +56,109 @@ export function GiftsView() {
   const copyQuote = api.gifts.quoteCollectible.useQuery(
     { editionId, recipient: typed },
     {
-      enabled: Boolean(editionId) && typed.length > 0,
+      enabled: Boolean(editionId) && typed.length > 0 && step > 0,
       refetchInterval: 30_000,
       placeholderData: (previous) => previous,
     },
   );
+  const quote = isTokens ? tokenQuote : copyQuote;
   const me = api.account.me.useQuery();
 
   const reset = () => {
-    setRecipient("");
-    setPicked(null);
+    setStep(0);
     setChoice(null);
     setAmountText("1");
+    setRecipient("");
+    setPicked(null);
   };
   const tokenFlow = useGift({ recipient: recipient.trim(), amount }, reset);
   const copyFlow = useCollectibleGift({ editionId, recipient: recipient.trim() }, reset);
   const flow = isTokens ? tokenFlow : copyFlow;
   const busy = tokenFlow.busy || copyFlow.busy;
 
-  const quote = isTokens ? tokenQuote : copyQuote;
-  const priced = Boolean(choice) && typed.length > 0 && (!isTokens || validAmount);
-  const total = priced ? quote.data?.total : undefined;
-  const ready = priced && Boolean(quote.data?.ok) && recipient.trim() === typed && !busy;
-  const who =
-    picked?.name ??
-    (isTokens ? tokenQuote.data?.gift.recipient?.name : copyQuote.data?.gift.recipient?.name);
-  const newEmail = !isTokens ? copyQuote.data?.gift.newAccountEmail : null;
+  // A fresh answer for exactly what's typed; an old one while it loads doesn't count.
+  const settled =
+    typed.length > 0 && recipient.trim() === typed && quote.data && !quote.isPlaceholderData;
+  const blockers = settled
+    ? quote.data.problems.filter((problem) => problem.code === "UNAVAILABLE")
+    : [];
+  const recipientName = picked?.name ?? (settled ? quote.data.gift.recipient?.name : null);
+  const newEmail = settled && !isTokens ? copyQuote.data?.gift.newAccountEmail : null;
+  const canNext =
+    step === 0
+      ? Boolean(choice) && (!isTokens || validAmount)
+      : Boolean(settled) && blockers.length === 0;
+  const total = settled ? quote.data.total : undefined;
+  const ready = step === 2 && Boolean(settled) && Boolean(quote.data?.ok) && !busy;
+
+  const what =
+    choice?.kind === "tokens"
+      ? `${validAmount ? amount.toLocaleString() : "?"} ${choice.code}`
+      : choice
+        ? `${choice.title} #${choice.tokenId}`
+        : "";
 
   return (
-    <PageBody wide className="grid gap-8">
+    <PageBody className="grid gap-8">
       <PageHeader
         eyebrow="Sell"
         title="Gifts"
         description="Send a fan some of your fan token, or an NFT copy you own, as a thank-you."
       />
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="grid content-start gap-5">
-          <FormSection
-            title="Who"
-            icon={Users}
-            description="Pick a follower, or type their username, email or wallet."
-          >
-            <Field
-              label="Recipient"
-              htmlFor="gift-to"
-              hint={
-                newEmail
-                  ? `Nobody uses ${newEmail} yet. We'll make a Bandcoin account for it when you send.`
-                  : who
-                    ? `Sending to ${who}`
-                    : undefined
-              }
-            >
-              <Input
-                id="gift-to"
-                value={recipient}
-                autoComplete="off"
-                placeholder="username, fan@email.com or G…"
-                onChange={(event) => {
-                  setRecipient(event.target.value);
-                  setPicked(null);
-                }}
-              />
-            </Field>
-          </FormSection>
+      <section className="bg-surface border-fg/10 mx-auto grid w-full max-w-3xl gap-6 rounded-[1.4rem] border-2 p-5 sm:p-7">
+        <ol aria-label="Steps" className="grid grid-cols-3 gap-2">
+          {STEPS.map((entry, index) => {
+            const current = index === step;
+            const done = index < step;
+            return (
+              <li key={entry.title}>
+                <button
+                  type="button"
+                  disabled={!done || busy}
+                  onClick={() => setStep(index)}
+                  aria-current={current ? "step" : undefined}
+                  className={cn(
+                    "flex w-full items-center gap-2.5 rounded-xl p-2 text-left transition-colors",
+                    current && "bg-primary/15",
+                    done && "hover:bg-surface-2",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "flex size-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold",
+                      current
+                        ? "bg-primary text-primary-foreground"
+                        : done
+                          ? "bg-success/15 text-success"
+                          : "bg-surface-2 text-fg-muted",
+                    )}
+                  >
+                    {done ? <Check className="size-4" strokeWidth={3} /> : index + 1}
+                  </span>
+                  <span className="min-w-0">
+                    <span className={cn("block truncate text-sm", current && "font-semibold")}>
+                      {entry.title}
+                    </span>
+                    <span className="text-fg-muted hidden truncate text-xs sm:block">
+                      {entry.desc}
+                    </span>
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ol>
 
-          <FormSection title="What" icon={Gift}>
+        {step === 0 && (
+          <div className="grid gap-5">
+            <h2 className="display text-xl">What do you want to give?</h2>
             <WhatPicker choice={choice} onChoose={setChoice} disabled={busy} />
             {isTokens && (
               <Field
                 label={`How many ${choice.code}`}
                 htmlFor="gift-amount"
                 error={validAmount ? null : "Use a whole number from 1."}
-                hint={
-                  tokenQuote.data?.gift.claimable
-                    ? "They haven't added your token yet, so they'll claim it in the Bandcoin app."
-                    : undefined
-                }
               >
                 <Input
                   id="gift-amount"
@@ -139,27 +172,116 @@ export function GiftsView() {
                 />
               </Field>
             )}
-          </FormSection>
+          </div>
+        )}
 
-          <section className="bg-surface border-fg/10 grid gap-3 rounded-[1.4rem] border-2 p-5">
-            <h2 className="eyebrow">Price</h2>
-            {priced ? (
-              <QuoteBreakdown
-                quote={quote.data}
-                balance={me.data?.balances.XLM}
-                // A new recipient or copy: show loading, not the last answer.
-                loading={quote.isPending || quote.isPlaceholderData}
-              />
-            ) : (
-              <p className="text-fg-muted text-sm">
-                Choose who gets it and what, and the price shows here before anything is signed.
+        {step === 1 && (
+          <div className="grid gap-4">
+            <h2 className="display text-xl">Who gets {what}?</h2>
+            <Field
+              label="Recipient"
+              htmlFor="gift-to"
+              hint={
+                newEmail
+                  ? `Nobody uses ${newEmail} yet. We'll make a Bandcoin account for it when you send.`
+                  : recipientName
+                    ? `Sending to ${recipientName}`
+                    : "Pick a follower below, or type their username, email or wallet."
+              }
+            >
+              <div className="relative">
+                <Search className="text-fg-muted absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                <Input
+                  id="gift-to"
+                  value={recipient}
+                  autoComplete="off"
+                  placeholder="username, fan@email.com or G…"
+                  className="pl-9"
+                  onChange={(event) => {
+                    setRecipient(event.target.value);
+                    setPicked(null);
+                  }}
+                />
+              </div>
+            </Field>
+            {blockers.map((problem) => (
+              <p
+                key={problem.message}
+                className="bg-surface-2 flex items-start gap-2 rounded-lg px-3 py-2 text-sm"
+              >
+                <CircleAlert className="text-warning mt-0.5 size-4 shrink-0" /> {problem.message}
+              </p>
+            ))}
+            <FollowerList
+              search={picked ? "" : typed}
+              selected={picked?.wallet ?? null}
+              onPick={(follower) => {
+                setRecipient(follower.wallet);
+                setPicked(follower);
+              }}
+            />
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="grid gap-5">
+            <h2 className="display text-xl">Check and send</h2>
+            <div className="bg-surface-2 flex items-center gap-3 rounded-xl p-4">
+              {choice?.kind === "copy" ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={choice.coverUrl}
+                  alt=""
+                  className="size-12 shrink-0 rounded-lg object-cover"
+                />
+              ) : (
+                <span className="bg-surface flex size-12 shrink-0 items-center justify-center rounded-full">
+                  <Gift className="text-primary-text size-5" />
+                </span>
+              )}
+              <p className="min-w-0 text-sm">
+                <b>{what}</b> to <b>{recipientName ?? newEmail ?? recipient.trim()}</b>
+                {isTokens && tokenQuote.data?.gift.from === "STORAGE" && (
+                  <span className="text-fg-muted block text-xs">From your storage</span>
+                )}
+              </p>
+            </div>
+            {isTokens && tokenQuote.data?.gift.claimable && (
+              <p className="text-fg-muted text-xs">
+                They haven&apos;t added your token yet, so they&apos;ll claim it in the Bandcoin
+                app.
               </p>
             )}
-          </section>
+            {newEmail && (
+              <p className="text-fg-muted text-xs">
+                We&apos;ll make a Bandcoin account for {newEmail} and email them how to sign in.
+              </p>
+            )}
+            <QuoteBreakdown
+              quote={settled ? quote.data : undefined}
+              balance={me.data?.balances.XLM}
+              loading={!settled}
+            />
+          </div>
+        )}
 
-          <div className="flex flex-wrap items-center justify-end gap-3">
-            <p className="text-fg-faint text-xs">You pay only the network fee.</p>
+        <div className="flex items-center justify-between gap-2 border-t pt-5">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={step === 0 || busy}
+            onClick={() => setStep(step - 1)}
+          >
+            <ArrowLeft /> Back
+          </Button>
+          {step < 2 ? (
+            <Button key="next" type="button" disabled={!canNext} onClick={() => setStep(step + 1)}>
+              Next <ArrowRight />
+            </Button>
+          ) : (
             <Button
+              // Its own element, so a quick double-click on Next can't land on Send.
+              key="send"
               disabled={!ready}
               onClick={() => void flow.run(total ? <Money amount={total} currency="XLM" /> : null)}
             >
@@ -174,19 +296,13 @@ export function GiftsView() {
                 "Send gift"
               )}
             </Button>
-          </div>
+          )}
         </div>
+      </section>
 
-        <FollowersPanel
-          selected={picked?.wallet ?? null}
-          onPick={(follower) => {
-            setRecipient(follower.wallet);
-            setPicked(follower);
-          }}
-        />
+      <div className="mx-auto w-full max-w-3xl">
+        <SentGifts />
       </div>
-
-      <SentGifts />
 
       {flow.step && (
         <ToastViewport>
