@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Crown, Plus, Star } from "lucide-react";
+import { Archive, Check, Crown, Package, Plus, Star } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
@@ -81,10 +81,18 @@ function MembershipTabs() {
               router.replace(value === "tiers" ? "/memberships" : `/memberships?tab=${value}`)
             }
           >
-            <TabsList>
-              <TabsTrigger value="tiers">Tiers</TabsTrigger>
-              <TabsTrigger value="bundles">Sell bundles</TabsTrigger>
-              {storage && <TabsTrigger value="storage">Storage</TabsTrigger>}
+            <TabsList variant="line" className="w-full justify-start overflow-x-auto border-b">
+              <TabsTrigger value="tiers" className="flex-none">
+                <Crown /> Tiers
+              </TabsTrigger>
+              <TabsTrigger value="bundles" className="flex-none">
+                <Package /> Sell bundles
+              </TabsTrigger>
+              {storage && (
+                <TabsTrigger value="storage" className="flex-none">
+                  <Archive /> Storage
+                </TabsTrigger>
+              )}
             </TabsList>
           </Tabs>
           {tab === "tiers" && <Tiers tokenCode={token.data.code} />}

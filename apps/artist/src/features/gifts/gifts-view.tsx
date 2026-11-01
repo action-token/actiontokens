@@ -1,6 +1,15 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Check, CircleAlert, Gift, Search, Send } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  CircleAlert,
+  Gift,
+  History,
+  Search,
+  Send,
+} from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 
@@ -58,9 +67,13 @@ function GiftTabs() {
         value={tab}
         onValueChange={(value) => router.replace(value === "sent" ? "/gifts?tab=sent" : "/gifts")}
       >
-        <TabsList>
-          <TabsTrigger value="send">Send</TabsTrigger>
-          <TabsTrigger value="sent">Sent</TabsTrigger>
+        <TabsList variant="line" className="w-full justify-start overflow-x-auto border-b">
+          <TabsTrigger value="send" className="flex-none">
+            <Send /> Send
+          </TabsTrigger>
+          <TabsTrigger value="sent" className="flex-none">
+            <History /> Sent
+          </TabsTrigger>
         </TabsList>
       </Tabs>
       {tab === "send" ? <SendGift /> : <SentGifts />}
@@ -183,25 +196,13 @@ function SendGift() {
         {step === 0 && (
           <div className="grid gap-5">
             <h2 className="display text-xl">What do you want to give?</h2>
-            <WhatPicker choice={choice} onChoose={setChoice} disabled={busy} />
-            {isTokens && (
-              <Field
-                label={`How many ${choice.code}`}
-                htmlFor="gift-amount"
-                error={validAmount ? null : "Use a whole number from 1."}
-              >
-                <Input
-                  id="gift-amount"
-                  type="number"
-                  inputMode="numeric"
-                  min={1}
-                  step={1}
-                  value={amountText}
-                  className="num max-w-48"
-                  onChange={(event) => setAmountText(event.target.value)}
-                />
-              </Field>
-            )}
+            <WhatPicker
+              choice={choice}
+              onChoose={setChoice}
+              amountText={amountText}
+              onAmount={setAmountText}
+              disabled={busy}
+            />
           </div>
         )}
 
