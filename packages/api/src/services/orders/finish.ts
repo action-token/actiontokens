@@ -5,6 +5,7 @@ import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
 
 import type { Context } from "../../context";
 import { deliverVanity } from "../artist/vanity";
+import { moveUnlockPins } from "../catalog/unlock-pins";
 import { transitionOrder } from "../order-state";
 import { deliverOrder } from "../purchase";
 import { finishNftPurchase } from "../purchase/nft";
@@ -64,6 +65,62 @@ export async function finishGift(ctx: Pick<Context, "db">, orderId: string): Pro
         },
         update: { quantity: { increment: gift.amount } },
       });
+    await transitionOrder(tx, orderId, "DELIVERED");
+  });
+  return { orderId, status: "DELIVERED" };
+}
+
+export type NftGiftDetails = {
+  editionId: string;
+  tokenId: string;
+  itemId: string;
+  senderId: string;
+  recipientId: string;
+  recipientWallet: string;
+  /** The recipient's account was made for this gift (from their email) */
+  newAccount: boolean;
+};
+
+/**
+ * An NFT copy given: the recipient owns it now, with its unlock pins (the
+ * places only its owner can collect). Door codes and unlocks belong to the
+ * copy, so they need nothing.
+ */
+export async function finishNftGift(
+  ctx: Pick<Context, "db">,
+  orderId: string,
+): Promise<FinishResult> {
+  await ctx.db.$transaction(async (tx) => {
+    await transitionOrder(tx, orderId, "CONFIRMED");
+    const order = await tx.order.findUniqueOrThrow({
+      where: { id: orderId },
+      select: { breakdown: true },
+    });
+    const gift = (order.breakdown as { nftGift?: NftGiftDetails } | null)?.nftGift;
+    if (!gift) throw new AppError(ErrorCodes.INTERNAL, { message: "This order has no gift." });
+    await tx.nftEdition.update({
+      where: { id: gift.editionId },
+      data: { ownerId: gift.recipientId },
+    });
+    const sender = await tx.ownership.findUnique({
+      where: { userId_itemId: { userId: gift.senderId, itemId: gift.itemId } },
+      select: { quantity: true },
+    });
+    if (sender && sender.quantity.lte(1))
+      await tx.ownership.delete({
+        where: { userId_itemId: { userId: gift.senderId, itemId: gift.itemId } },
+      });
+    else if (sender)
+      await tx.ownership.update({
+        where: { userId_itemId: { userId: gift.senderId, itemId: gift.itemId } },
+        data: { quantity: { decrement: 1 } },
+      });
+    await tx.ownership.upsert({
+      where: { userId_itemId: { userId: gift.recipientId, itemId: gift.itemId } },
+      create: { userId: gift.recipientId, itemId: gift.itemId, quantity: 1, source: "GIFT" },
+      update: { quantity: { increment: 1 } },
+    });
+    await moveUnlockPins(tx, gift.editionId, gift.recipientId);
     await transitionOrder(tx, orderId, "DELIVERED");
   });
   return { orderId, status: "DELIVERED" };
@@ -162,6 +219,8 @@ export async function finishOrder(
       return finishNftRegistration(ctx, order.id);
     case "NFT_PURCHASE":
       return finishNftPurchase(ctx, order.id);
+    case "NFT_GIFT":
+      return finishNftGift(ctx, order.id);
   }
 }
 

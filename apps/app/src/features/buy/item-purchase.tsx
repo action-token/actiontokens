@@ -22,7 +22,10 @@ export function ItemPurchase({
   /** A contract NFT: paid in BANDCOIN or by card, up to 20 copies at a time */
   nft?: boolean;
 }) {
-  const buyable = listings.filter((listing) => !listing.isOwn);
+  // An artist may buy their own contract NFT (to gift a copy); other own listings aren't buyable.
+  const buyable = listings.filter(
+    (listing) => !listing.isOwn || (nft && listing.kind === "PRIMARY"),
+  );
   const [selectedId, setSelectedId] = useState(buyable[0]?.id);
   const selected = buyable.find((listing) => listing.id === selectedId) ?? buyable[0];
 

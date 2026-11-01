@@ -249,6 +249,12 @@ describe("contract NFT quote", () => {
     expect(await codes(null)).toEqual(["Sign in to pay."]);
   });
 
+  it("lets the artist buy their own NFT (to gift a copy)", async () => {
+    const quote = await quoteNftPurchase(setup().ctx, { ...wallet, id: "artist-user" }, buy);
+    expect(quote.problems).toEqual([]);
+    expect(quote.ok).toBe(true);
+  });
+
   it("charges a card the USD price plus the XLM costs in dollars, with the trustline when needed", async () => {
     const quote = await quoteNftPurchase(setup({ buyer: horizon(fan) }).ctx, custodial, {
       ...buy,

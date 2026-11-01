@@ -8,8 +8,19 @@ import {
   startGift,
   submitGift,
 } from "../../services/artist/gifts";
+import {
+  giftableCopies,
+  quoteCollectibleGift,
+  startCollectibleGift,
+  submitCollectibleGift,
+} from "../../services/artist/collectible-gifts";
 import { cancelPurchase } from "../../services/purchase";
 import { artistProcedure, createRouter } from "../../trpc";
+
+const collectibleInput = z.object({
+  editionId: z.string().min(1),
+  recipient: z.string().max(120),
+});
 
 const giftInput = z.object({
   recipient: z.string().max(120),
@@ -34,6 +45,21 @@ export const giftsRouter = createRouter({
   cancel: artistProcedure
     .input(z.object({ orderId: z.string().min(1) }))
     .mutation(({ ctx, input }) => cancelPurchase(ctx, ctx.session.user, input.orderId)),
+
+  /** NFT copies the artist owns and can give (see services/artist/collectible-gifts) */
+  copies: artistProcedure.query(({ ctx }) => giftableCopies(ctx, ctx.session.user)),
+
+  quoteCollectible: artistProcedure
+    .input(collectibleInput)
+    .query(({ ctx, input }) => quoteCollectibleGift(ctx, ctx.session.user, input)),
+
+  startCollectible: artistProcedure
+    .input(collectibleInput)
+    .mutation(({ ctx, input }) => startCollectibleGift(ctx, ctx.session.user, input)),
+
+  submitCollectible: artistProcedure
+    .input(z.object({ orderId: z.string().min(1), xdr: z.string().min(1) }))
+    .mutation(({ ctx, input }) => submitCollectibleGift(ctx, ctx.session.user, input)),
 
   sent: artistProcedure.query(({ ctx }) => listSentGifts(ctx, ctx.session.user)),
 

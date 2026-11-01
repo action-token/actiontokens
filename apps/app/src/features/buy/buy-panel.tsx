@@ -165,6 +165,13 @@ export function BuyPanel({
           </div>
         </div>
 
+        {nft && listing.isOwn && (
+          <p className="bg-surface-2 text-fg-muted rounded-md p-3 text-xs">
+            This is your NFT. The price comes back to you in BANDCOIN, so what it really costs you
+            is the fees. Copies you own can be gifted from Gifts in the artist portal.
+          </p>
+        )}
+
         <div className="flex items-center justify-between gap-3">
           <div>
             <b className="text-sm">Quantity</b>

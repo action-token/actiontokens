@@ -115,6 +115,20 @@ export function buildNftCancelListing(input: Common & { tokenId: number }) {
 }
 
 /**
+ * Gives one copy to someone (the standard NFT `transfer`; only the owner can
+ * sign it). The copy's unlocks stay with it. A listed copy must be taken off
+ * sale first: its old listing would fail as stale (`ListingStale`).
+ */
+export function buildNftTransfer(input: Common & { to: string; tokenId: number }) {
+  if (input.to === input.source.accountId()) throw new RangeError("You already own this copy");
+  return buildContractCall({
+    ...input,
+    method: "transfer",
+    args: [arg.address(input.source.accountId()), arg.address(input.to), arg.u32(input.tokenId)],
+  });
+}
+
+/**
  * The price authority (server) sets an edition's prices per payment token.
  * The artist sets BANDCOIN and USD; the server refreshes the XLM and USDC
  * entries from the live rate before a buy.

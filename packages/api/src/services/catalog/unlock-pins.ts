@@ -110,7 +110,7 @@ export async function ensureUnlockPins(
 }
 
 /** A copy changed hands: its unlock pins (and the progress on them) follow it to the new owner. */
-export async function moveUnlockPins(db: Db, editionId: string, ownerId: string) {
+export async function moveUnlockPins(db: Pick<Db, "pin">, editionId: string, ownerId: string) {
   const { count } = await db.pin.updateMany({
     where: { unlockEditionId: editionId },
     data: { restrictedToUserId: ownerId },

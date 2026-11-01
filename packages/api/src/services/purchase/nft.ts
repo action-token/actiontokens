@@ -148,7 +148,7 @@ async function priceNft(
     unavailable(`Up to ${NFT_MAX_PER_BUY} copies in one purchase.`);
   if (sale.remaining !== null && input.quantity > sale.remaining)
     unavailable(sale.remaining === 0 ? "Sold out." : `Only ${sale.remaining} left.`);
-  if (user?.id === sale.listing.sellerId) unavailable("This is your own listing.");
+  // The artist may buy their own NFT (to gift it): the contract pays the price back to them.
   if (!chain.config.nftContract) unavailable("Contract NFTs aren't set up on this server yet.");
 
   const [buyer, settings, rates, bandcoinUsd] = await Promise.all([

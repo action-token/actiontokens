@@ -99,6 +99,8 @@ enum OrderKind {
   NFT_REGISTER
   /// Unused: the NFT contract's fee is changed server-signed by the treasury (admin/contract-fee.ts)
   NFT_PLATFORM_FEE
+  /// An artist gives one NFT copy they own (nft_oz transfer); they pay the network fee
+  NFT_GIFT
 }
 
 /// One payment by a buyer. Every money flow with a buyer goes through here,
