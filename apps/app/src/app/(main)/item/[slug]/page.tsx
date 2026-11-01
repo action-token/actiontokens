@@ -10,6 +10,7 @@ import { PageBody } from "@bandcoin/ui/patterns/page-header";
 import { Money } from "~/components/money";
 import { ItemPurchase } from "~/features/buy/item-purchase";
 import { LockedContent } from "~/features/nft/locked-content";
+import { CoverBadges, RewardsLine, UnlockNotice } from "~/features/nft/locked-preview";
 import { ReactionButtons } from "~/features/reactions/reaction-buttons";
 import { playsLabel } from "~/lib/format";
 import { ItemCard } from "~/features/catalog/item-card";
@@ -206,6 +207,7 @@ export default async function ItemPage({ params }: Props) {
                 <h1 className="display text-4xl break-words sm:text-5xl xl:text-6xl">
                   {item.title}
                 </h1>
+                <RewardsLine pieces={item.lockedContent} />
                 {item.track?.album && (
                   <p className="text-sm text-white/65">
                     From{" "}
@@ -285,6 +287,7 @@ export default async function ItemPage({ params }: Props) {
                     alt={item.title}
                     className="aspect-square w-full object-cover"
                   />
+                  <CoverBadges pieces={item.lockedContent} />
                 </div>
                 {item.media?.mediaType === "AUDIO" && (
                   <PlayButton
@@ -318,6 +321,11 @@ export default async function ItemPage({ params }: Props) {
         >
           {item.access && !item.access.ok && (
             <AccessNotice access={item.access} artist={item.artist} />
+          )}
+          {item.ownedQuantity === 0 && item.lockedContent.length > 0 && (
+            <div className="mb-5">
+              <UnlockNotice pieces={item.lockedContent} />
+            </div>
           )}
           <ItemPurchase
             itemTitle={item.title}

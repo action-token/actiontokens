@@ -1,16 +1,8 @@
 "use client";
 
-import {
-  CheckCircle2,
-  ExternalLink,
-  Image as ImageIcon,
-  Link2,
-  Lock,
-  MapPin,
-  Music,
-  Video,
-} from "lucide-react";
+import { ExternalLink, Gift, Link2, Lock, MapPin, Play, Sparkles } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
@@ -18,19 +10,24 @@ import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import { AR_URL } from "../shell/nav";
+import {
+  KIND,
+  labelOf,
+  type Preview,
+  radiusOf,
+  RewardTiles,
+  summaryOf,
+  travelOf,
+  UnlockPlaces,
+} from "./locked-preview";
 
-type Preview = RouterOutputs["item"]["bySlug"]["lockedContent"][number];
 type OwnedPiece = RouterOutputs["item"]["lockedForMe"]["copies"][number]["pieces"][number];
 
-const ICON = { SONG: Music, IMAGE: ImageIcon, VIDEO: Video, OTHER: Link2 } as const;
-const KIND = { SONG: "Song", IMAGE: "Image", VIDEO: "Video", OTHER: "Link" } as const;
-const mapsLink = (place: { lat: number; lng: number }) =>
-  `https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lng}`;
-
 /**
- * A contract NFT's locked content on its page. Everyone sees what's locked and
- * where its places are; owners see each copy's progress and, once a piece is
- * unlocked, the piece itself. Links only ever come from the owner query.
+ * A contract NFT's locked content on its page, in the old Bandcoin's style.
+ * Everyone sees what they get and where it unlocks; owners see each copy's
+ * rewards, locked with their progress or open to play. Links only ever come
+ * from the owner query.
  */
 export function LockedContent({
   itemId,
@@ -50,189 +47,169 @@ export function LockedContent({
     { enabled: owned && status === "authenticated" },
   );
   if (pieces.length === 0) return null;
-  const gated = pieces.some((piece) => piece.unlock);
+  const { places } = travelOf(pieces);
+  const radius = radiusOf(pieces);
 
   return (
-    <section className="bg-surface grid gap-4 rounded-[1.2rem] border-2 px-5 py-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="display flex items-center gap-2 text-xl">
-          <Lock className="text-primary-text size-5" /> Locked content
-        </h2>
-        {owned && gated && (
-          <Button asChild size="sm" variant="outline">
+    <div className="grid gap-4 lg:grid-cols-2">
+      <section className="bg-surface grid content-start gap-3 rounded-[1.2rem] border-2 p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-fg-muted flex items-center gap-2 text-xs font-semibold tracking-wider uppercase">
+            {owned ? <Gift className="size-3.5" /> : <Sparkles className="size-3.5" />}
+            {owned ? "Your rewards" : "What you get"}
+          </h2>
+          <span className="text-fg-muted text-xs">{summaryOf(pieces)}</span>
+        </div>
+
+        {!owned ? (
+          <RewardTiles pieces={pieces} />
+        ) : mine.isPending ? (
+          <div className="grid gap-2">
+            <Skeleton className="h-12 w-full rounded-lg" />
+            <Skeleton className="h-12 w-full rounded-lg" />
+          </div>
+        ) : mine.data && mine.data.copies.length > 0 ? (
+          mine.data.copies.map((copy) => (
+            <div key={copy.tokenId} className="grid gap-2">
+              {mine.data.copies.length > 1 && (
+                <p className="text-fg-muted text-xs font-semibold">Copy #{copy.tokenId}</p>
+              )}
+              {copy.pieces.map((piece, index) => (
+                <RewardRow key={piece.id} piece={piece} index={index} network={network} />
+              ))}
+            </div>
+          ))
+        ) : (
+          <RewardTiles pieces={pieces} />
+        )}
+
+        {owned && places > 0 && (
+          <Button asChild size="sm" variant="outline" className="justify-self-start">
             <a href={AR_URL} target="_blank" rel="noreferrer">
-              <MapPin /> Visit places in the AR app
+              <MapPin /> Collect places in the AR app
             </a>
           </Button>
         )}
-      </div>
+      </section>
 
-      {owned && mine.isPending ? (
-        <div className="grid gap-2">
-          <Skeleton className="h-16 w-full" />
-          <Skeleton className="h-16 w-full" />
-        </div>
-      ) : owned && mine.data && mine.data.copies.length > 0 ? (
-        mine.data.copies.map((copy) => (
-          <div key={copy.tokenId} className="grid gap-2">
-            {mine.data.copies.length > 1 && (
-              <p className="text-fg-muted text-xs font-semibold">Copy #{copy.tokenId}</p>
-            )}
-            <ul className="divide-y rounded-xl border">
-              {copy.pieces.map((piece) => (
-                <OwnedRow
-                  key={piece.id}
-                  piece={piece}
-                  network={network}
-                  places={pieces.find((entry) => entry.id === piece.id)?.unlock?.places ?? []}
-                />
-              ))}
-            </ul>
-          </div>
-        ))
-      ) : (
-        <>
-          <p className="text-fg-muted text-sm">
-            Owners open these.{" "}
-            {gated && "Some unlock only after visiting places, collected in the AR app."}
-          </p>
-          <ul className="divide-y rounded-xl border">
-            {pieces.map((piece) => (
-              <PreviewRow key={piece.id} piece={piece} />
-            ))}
-          </ul>
-        </>
+      {places > 0 && (
+        <section
+          id="unlock-places"
+          className="bg-surface grid scroll-mt-24 content-start gap-3 rounded-[1.2rem] border-2 p-4 sm:p-5"
+        >
+          <h2 className="text-fg-muted flex items-center gap-2 text-xs font-semibold tracking-wider uppercase">
+            <MapPin className="size-3.5" /> Where to unlock
+          </h2>
+          <UnlockPlaces pieces={pieces} radius={radius} />
+        </section>
       )}
-    </section>
+    </div>
   );
 }
 
-function Title({ type, label }: { type: Preview["type"]; label: string | null }) {
-  const Icon = ICON[type];
-  return (
-    <span className="flex min-w-0 items-center gap-2">
-      <Icon className="text-primary-text size-4 shrink-0" />
-      <span className="truncate font-medium">{label || KIND[type]}</span>
-      <span className="text-fg-faint text-xs">{KIND[type]}</span>
-    </span>
-  );
-}
-
-function Places({ places }: { places: { lat: number; lng: number; label: string | null }[] }) {
-  return (
-    <ol className="text-fg-muted grid gap-1 text-xs">
-      {places.map((place, index) => (
-        <li key={index}>
-          <a
-            href={mapsLink(place)}
-            target="_blank"
-            rel="noreferrer"
-            className="hover:text-fg inline-flex items-center gap-1 underline-offset-2 hover:underline"
-          >
-            {index + 1}. {place.label || `${place.lat.toFixed(4)}, ${place.lng.toFixed(4)}`}
-            <ExternalLink className="size-3" />
-          </a>
-        </li>
-      ))}
-    </ol>
-  );
-}
-
-function PreviewRow({ piece }: { piece: Preview }) {
-  return (
-    <li className="grid gap-2 p-3">
-      <Title type={piece.type} label={piece.label} />
-      {piece.unlock ? (
-        <>
-          <p className="text-fg-muted text-xs">
-            Visit {piece.unlock.places.length}{" "}
-            {piece.unlock.places.length === 1 ? "place" : "places"} (within{" "}
-            {piece.unlock.radiusMeters} m) to unlock.
-          </p>
-          <Places places={piece.unlock.places} />
-        </>
-      ) : (
-        <p className="text-fg-muted text-xs">Opens as soon as you own a copy.</p>
-      )}
-    </li>
-  );
-}
-
-function OwnedRow({
+/**
+ * One reward on a copy you own. Locked: a dashed row with its progress, nothing
+ * to open. Unlocked: a green row that opens it (and its door code, if any).
+ */
+function RewardRow({
   piece,
-  places,
+  index,
   network,
 }: {
   piece: OwnedPiece;
-  places: { lat: number; lng: number; label: string | null }[];
+  index: number;
   network: string;
 }) {
-  const progress = piece.required > 0 ? Math.round((piece.visited / piece.required) * 100) : 100;
-  return (
-    <li className="grid gap-3 p-3">
-      <div className="flex items-center justify-between gap-3">
-        <Title type={piece.type} label={piece.label} />
-        {piece.unlocked ? (
-          <span className="text-success inline-flex shrink-0 items-center gap-1 text-xs font-semibold">
-            <CheckCircle2 className="size-3.5" /> Unlocked
-          </span>
-        ) : (
-          <span className="text-fg-muted num shrink-0 text-xs">
-            {piece.visited} of {piece.required} places
-          </span>
+  const [open, setOpen] = useState(false);
+  const kind = KIND[piece.type];
+  const label = labelOf(piece.type, piece.label, index);
+
+  if (!piece.unlocked || !piece.url) {
+    const progress = piece.required > 0 ? Math.round((piece.visited / piece.required) * 100) : 0;
+    return (
+      <div className="text-fg-muted bg-surface-2/40 grid gap-2 rounded-lg border border-dashed px-4 py-3">
+        <div className="flex items-center gap-3">
+          <kind.icon className="size-4 shrink-0" />
+          <span className="min-w-0 flex-1 truncate text-sm">{label}</span>
+          {piece.required > 0 && (
+            <span className="num shrink-0 text-xs">
+              {piece.visited} of {piece.required} places
+            </span>
+          )}
+          <Lock className="size-4 shrink-0" />
+        </div>
+        {piece.required > 0 && (
+          <div className="bg-surface-2 h-1.5 overflow-hidden rounded-full" aria-hidden>
+            <div className="h-full bg-amber-500" style={{ width: `${progress}%` }} />
+          </div>
         )}
       </div>
-      {piece.unlocked && piece.url ? (
-        <>
-          <Content type={piece.type} url={piece.url} />
+    );
+  }
+
+  const url = piece.url;
+  return (
+    <div className="grid gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-4 py-3">
+      {piece.type === "OTHER" ? (
+        <a
+          href={url}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-3 text-left"
+        >
+          <kind.icon className="size-4 shrink-0 text-emerald-500" />
+          <span className="min-w-0 flex-1 truncate text-sm font-medium">{label}</span>
+          <Link2 className="size-4 shrink-0 text-emerald-500" />
+        </a>
+      ) : (
+        <button
+          type="button"
+          aria-expanded={open}
+          onClick={() => setOpen((value) => !value)}
+          className="flex items-center gap-3 text-left"
+        >
+          <kind.icon className="size-4 shrink-0 text-emerald-500" />
+          <span className="min-w-0 flex-1 truncate text-sm font-medium">{label}</span>
+          <Play className="size-4 shrink-0 text-emerald-500" />
+        </button>
+      )}
+      {open && <Content type={piece.type} url={url} />}
+      {(piece.code || piece.onChain?.txHash) && (
+        <div className="text-fg-muted flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
           {piece.code && (
-            <p className="text-fg-muted text-xs">
+            <span>
               Door code{" "}
               <span className="text-fg font-mono font-semibold tracking-widest">
                 {piece.code.code}
               </span>
               {piece.code.redeemedAt ? " · redeemed" : " · show it to the artist to redeem"}
-            </p>
+            </span>
           )}
           {piece.onChain?.txHash && (
             <a
               href={`https://stellar.expert/explorer/${network === "mainnet" ? "public" : "testnet"}/tx/${piece.onChain.txHash}`}
               target="_blank"
               rel="noreferrer"
-              className="text-fg-muted hover:text-fg inline-flex items-center gap-1 text-xs"
+              className="hover:text-fg inline-flex items-center gap-1"
             >
               Recorded on Stellar <ExternalLink className="size-3" />
             </a>
           )}
-        </>
-      ) : (
-        <>
-          <div className="bg-surface-2 h-2 overflow-hidden rounded-full" aria-hidden>
-            <div className="bg-primary h-full" style={{ width: `${progress}%` }} />
-          </div>
-          <Places places={places} />
-        </>
+        </div>
       )}
-    </li>
+    </div>
   );
 }
 
 function Content({ type, url }: { type: OwnedPiece["type"]; url: string }) {
-  if (type === "SONG") return <audio controls preload="none" src={url} className="w-full" />;
+  if (type === "SONG")
+    return <audio controls autoPlay preload="none" src={url} className="w-full" />;
   if (type === "VIDEO")
-    return <video controls preload="metadata" src={url} className="w-full rounded-lg" />;
-  if (type === "IMAGE")
-    return (
-      <a href={url} target="_blank" rel="noreferrer">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={url} alt="" className="max-h-80 rounded-lg object-contain" />
-      </a>
-    );
+    return <video controls autoPlay preload="metadata" src={url} className="w-full rounded-lg" />;
   return (
-    <Button asChild size="sm" variant="secondary" className="justify-self-start">
-      <a href={url} target="_blank" rel="noreferrer">
-        Open link <ExternalLink />
-      </a>
-    </Button>
+    <a href={url} target="_blank" rel="noreferrer">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={url} alt="" className="max-h-80 rounded-lg object-contain" />
+    </a>
   );
 }
