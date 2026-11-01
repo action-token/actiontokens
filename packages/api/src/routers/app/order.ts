@@ -9,6 +9,11 @@ import {
   submitPurchase,
 } from "../../services/purchase";
 import {
+  payGuestPurchase,
+  quoteGuestPurchase,
+  startGuestPurchase,
+} from "../../services/purchase/guest";
+import {
   isNftListing,
   quoteNftPurchase,
   startNftPurchase,
@@ -25,7 +30,38 @@ const purchaseInput = z.object({
   currency: z.enum(CURRENCIES),
 });
 
+const guestInput = z.object({
+  listingId: z.string().min(1),
+  quantity: z.number().int().min(1).max(MAX_QUANTITY),
+  email: z.string().trim().email().max(254),
+});
+const cardInput = z.object({
+  sourceId: z.string().min(1),
+  verificationToken: z.string().optional(),
+});
+
 export const orderRouter = createRouter({
+  /** Guest card checkout (no sign-in): the price for this email, read from the database only. */
+  guestQuote: publicProcedure
+    .input(guestInput)
+    .query(({ ctx, input }) => quoteGuestPurchase(ctx, input)),
+
+  /** Guest checkout: the order, before the card. Limited per email and per IP. */
+  guestStart: publicProcedure
+    .input(guestInput)
+    .mutation(({ ctx, input }) => startGuestPurchase(ctx, input)),
+
+  /** Guest checkout: charge the card, then the account and the purchase (services/purchase/guest). */
+  guestPay: publicProcedure
+    .input(
+      z.object({
+        orderId: z.string().min(1),
+        email: z.string().trim().email().max(254),
+        card: cardInput,
+      }),
+    )
+    .mutation(({ ctx, input }) => payGuestPurchase(ctx, input)),
+
   /** The price breakdown for the buy panel. Works signed out (shows "Sign in to pay"). */
   quote: publicProcedure.input(purchaseInput).query(async ({ ctx, input }) => {
     const user = ctx.session?.user ?? null;

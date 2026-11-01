@@ -78,7 +78,7 @@ export async function isNftListing(db: Db, listingId: string) {
   return row?.item.chainType === "CONTRACT_NFT";
 }
 
-async function loadNftSale(db: Db, listingId: string) {
+export async function loadNftSale(db: Db, listingId: string) {
   const listing = await db.listing.findUnique({
     where: { id: listingId },
     include: {
@@ -124,18 +124,20 @@ async function loadNftSale(db: Db, listingId: string) {
   };
 }
 
-type NftSale = Awaited<ReturnType<typeof loadNftSale>>;
+export type NftSale = Awaited<ReturnType<typeof loadNftSale>>;
 
 /** The platform's XLM cost for this buy (the estimate shown), in stroops. */
 export const feeEstimateStroops = (quantity: number) =>
   toStroops(NFT_FEE_ESTIMATE.baseXlm) + toStroops(NFT_FEE_ESTIMATE.perCopyXlm) * BigInt(quantity);
 
 /** Everything quote and start agree on: the lines, what the platform sends and what stands in the way. */
-async function priceNft(
+export async function priceNft(
   ctx: ServiceCtx,
   user: SessionUser | null,
   sale: NftSale,
   input: PurchaseInput,
+  /** A guest card order: their account as it is now (null when it isn't open yet; it opens first) */
+  guest?: { account: Horizon.AccountResponse | null },
 ) {
   const { chain } = ctx;
   const card = input.currency === "USD";
@@ -152,7 +154,7 @@ async function priceNft(
   if (!chain.config.nftContract) unavailable("Contract NFTs aren't set up on this server yet.");
 
   const [buyer, settings, rates, bandcoinUsd] = await Promise.all([
-    user ? chain.loadAccount(user.walletAddress) : null,
+    guest ? guest.account : user ? chain.loadAccount(user.walletAddress) : null,
     ctx.db.appSetting.findUnique({ where: { id: 1 }, select: { platformFeeBps: true } }),
     chain.rates(),
     chain.bandcoinUsd(),
@@ -160,7 +162,7 @@ async function priceNft(
   const access = accessOf(sale.item);
   const allowed = access && checkAccess(access, user ? { account: buyer } : null);
   if (allowed && !allowed.ok) unavailable(allowed.reason ?? "Not available.");
-  if (user && !buyer) unavailable("Your wallet isn't active yet. Add funds first.");
+  if (user && !buyer && !guest) unavailable("Your wallet isn't active yet. Add funds first.");
   if (card && user && !isCustodial(user))
     unavailable(
       "Card works for email, Google and Apple accounts. Pay with BANDCOIN from your wallet.",
@@ -369,6 +371,29 @@ async function prepareBuy(
   return { xdr: prepared, hash: Buffer.from(tx.hash()).toString("hex") };
 }
 
+/** Card, step 1's transaction: the treasury sends the BANDCOIN (and any trustline reserve) to the buyer. */
+export function buildNftTopUp(
+  ctx: Pick<ServiceCtx, "chain">,
+  priced: Pick<
+    Awaited<ReturnType<typeof priceNft>>,
+    "bandcoin" | "price" | "openTrustline" | "reserveXlm"
+  >,
+  buyer: Horizon.AccountResponse,
+  orderId: string,
+) {
+  const topUp = buildTopUp({
+    buyer: new Account(buyer.accountId(), buyer.sequenceNumber()),
+    network: ctx.chain.config.network,
+    orderId,
+    asset: priced.bandcoin,
+    from: ctx.chain.config.treasury,
+    amount: toAmount(priced.price.bandcoin),
+    openTrustline: priced.openTrustline,
+    reserveXlm: priced.reserveXlm > 0n ? toAmount(priced.reserveXlm) : undefined,
+  });
+  return { xdr: topUp.xdr, hash: topUp.hash };
+}
+
 /** Creates the order and the transaction the buyer signs. Nothing is signed, sent or charged yet. */
 export async function startNftPurchase(ctx: ServiceCtx, user: SessionUser, input: PurchaseInput) {
   const sale = await loadNftSale(ctx.db, input.listingId);
@@ -420,19 +445,7 @@ export async function startNftPurchase(ctx: ServiceCtx, user: SessionUser, input
   let built: { xdr: string; hash: string };
   try {
     built = card
-      ? (() => {
-          const topUp = buildTopUp({
-            buyer: new Account(buyer.accountId(), buyer.sequenceNumber()),
-            network: ctx.chain.config.network,
-            orderId: order.id,
-            asset: priced.bandcoin,
-            from: ctx.chain.config.treasury,
-            amount: toAmount(priced.price.bandcoin),
-            openTrustline: priced.openTrustline,
-            reserveXlm: priced.reserveXlm > 0n ? toAmount(priced.reserveXlm) : undefined,
-          });
-          return { xdr: topUp.xdr, hash: topUp.hash };
-        })()
+      ? buildNftTopUp(ctx, priced, buyer, order.id)
       : await prepareBuy(
           ctx,
           buyer,
@@ -505,7 +518,7 @@ export async function submitNftPurchase(
   // Card, step 1: charge, then the BANDCOIN goes in. A failure here refunds the card.
   if (!input.card)
     throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "Add a card to pay." });
-  const topUp = await bumped(await chain.signWithServerKeys(signed, [treasury]));
+  if (!user.email) throw new AppError(ErrorCodes.WALLET_NOT_CONNECTED);
   const { paymentId } = await chain.card.charge({
     orderId: order.id,
     sourceId: input.card.sourceId,
@@ -513,23 +526,51 @@ export async function submitNftPurchase(
     cents: toCents(toStroops(order.total.toString())),
   });
   await transitionOrder(db, order.id, "SUBMITTED", { cardPaymentId: paymentId });
+  return runCardNftSteps(ctx, order, signed, paymentId, {
+    email: user.email,
+    walletAddress: user.walletAddress,
+  });
+}
+
+/**
+ * A card NFT order after the charge: the BANDCOIN goes in (`signedTopUp`, the
+ * buyer's signature on it; a failure refunds the card), then the buy (a
+ * failure keeps the BANDCOIN with the buyer, no refund, no retry).
+ */
+export async function runCardNftSteps(
+  ctx: ServiceCtx,
+  order: {
+    id: string;
+    itemId: string | null;
+    quantity: number;
+    breakdown: unknown;
+    total: { toString(): string };
+  },
+  signedTopUp: string,
+  paymentId: string,
+  buyer: { email: string; walletAddress: string },
+) {
+  const { chain, db } = ctx;
+  const { treasury, network } = chain.config;
+  const bumped = async (xdr: string) =>
+    chain.signWithServerKeys(wrapInFeeBump(xdr, treasury, network), [treasury]);
+  const topUp = await bumped(await chain.signWithServerKeys(signedTopUp, [treasury]));
   await send(ctx, order.id, topUp, { paymentId, total: order.total.toString() });
 
   // Step 2: the buy. The BANDCOIN is already the buyer's, so a failure keeps it there.
   const details = (order.breakdown as NftBreakdown).nft;
   try {
-    if (!user.email) throw new AppError(ErrorCodes.WALLET_NOT_CONNECTED);
-    const buyer = await chain.loadAccount(user.walletAddress);
-    if (!buyer) throw new AppError(ErrorCodes.STELLAR_TX_BUILD_FAILED);
+    const account = await chain.loadAccount(buyer.walletAddress);
+    if (!account) throw new AppError(ErrorCodes.STELLAR_TX_BUILD_FAILED);
     const buy = await prepareBuy(
       ctx,
-      buyer,
+      account,
       { id: order.id, itemId: order.itemId! },
       order.quantity,
       0n,
       toStroops(details.budgetXlm),
     );
-    await chain.submit(await bumped(await chain.signForCustodialUser(buy.xdr, user.email)));
+    await chain.submit(await bumped(await chain.signForCustodialUser(buy.xdr, buyer.email)));
   } catch (error) {
     // A lost answer may still have landed: the worker reads the contract's receipt.
     if (isAppError(error) && error.code === ErrorCodes.STELLAR_TX_SUBMIT_FAILED) throw error;

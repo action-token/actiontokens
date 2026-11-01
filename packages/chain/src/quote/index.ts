@@ -41,7 +41,8 @@ export type QuoteInput = {
   now: Date;
 };
 
-export type QuoteLineKey = "price" | "platformFee" | "reserve" | "networkFee";
+/** `account`: a guest card order opening the buyer's Stellar account (services/purchase/guest) */
+export type QuoteLineKey = "price" | "platformFee" | "reserve" | "networkFee" | "account";
 
 export type QuoteLine = {
   key: QuoteLineKey;

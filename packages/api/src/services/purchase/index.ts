@@ -56,7 +56,7 @@ export async function quotePurchase(
   return priceSale(ctx, user, sale, input, { buyerAccount, settings });
 }
 
-async function priceSale(
+export async function priceSale(
   ctx: ServiceCtx,
   user: SessionUser | null,
   sale: Sale,
@@ -206,20 +206,7 @@ export async function startPurchase(ctx: ServiceCtx, user: SessionUser, input: P
     currency: input.currency,
   });
 
-  const built = buildClassicPurchase({
-    buyer: new Account(buyerAccount.accountId(), buyerAccount.sequenceNumber()),
-    network: ctx.chain.config.network,
-    orderId: order.id,
-    item: sale.asset,
-    openTrustline: priced.openTrustline,
-    ...payoutsFor(
-      quote,
-      sale,
-      { treasury: ctx.chain.config.treasury, feeRecipient: priced.feeRecipient },
-      ctx.chain.config.assets,
-    ),
-    delivery,
-  });
+  const built = buildItemTransaction(ctx, priced, buyerAccount, delivery, order.id);
 
   // The hash doesn't change when signatures are added, so it pins the exact transaction.
   await transitionOrder(ctx.db, order.id, "AWAITING_SIGNATURE", { txHash: built.hash });
@@ -230,6 +217,54 @@ export async function startPurchase(ctx: ServiceCtx, user: SessionUser, input: P
     /** Custodial buyers get the cancellable countdown; wallet users sign in their wallet */
     signer: isCustodial(user) ? ("custodial" as const) : ("wallet" as const),
   };
+}
+
+/** The purchase transaction for this price: the buyer is its source; platform keys co-sign later. */
+export function buildItemTransaction(
+  ctx: Pick<ServiceCtx, "chain">,
+  priced: Pick<
+    Awaited<ReturnType<typeof priceSale>>,
+    "quote" | "sale" | "openTrustline" | "feeRecipient"
+  >,
+  buyerAccount: Horizon.AccountResponse,
+  delivery: NonNullable<Awaited<ReturnType<typeof priceSale>>["delivery"]>,
+  orderId: string,
+) {
+  return buildClassicPurchase({
+    buyer: new Account(buyerAccount.accountId(), buyerAccount.sequenceNumber()),
+    network: ctx.chain.config.network,
+    orderId,
+    item: priced.sale.asset,
+    openTrustline: priced.openTrustline,
+    ...payoutsFor(
+      priced.quote,
+      priced.sale,
+      { treasury: ctx.chain.config.treasury, feeRecipient: priced.feeRecipient },
+      ctx.chain.config.assets,
+    ),
+    delivery,
+  });
+}
+
+/** Adds the platform's signatures (storage, minter; the treasury for cards) and, for cards, the treasury's fee bump. */
+export async function cosignPurchase(
+  ctx: Pick<ServiceCtx, "chain">,
+  xdr: string,
+  sale: Sale,
+  buyerWallet: string,
+  card: boolean,
+) {
+  const { chain } = ctx;
+  const platformKeys = [sale.stockAccount, sale.minter, card ? chain.config.treasury : null];
+  const signed = await chain.signWithServerKeys(
+    xdr,
+    serverSignersOf(xdr, chain.config.network.passphrase, buyerWallet, platformKeys),
+  );
+  if (!card) return signed;
+  return chain.signWithServerKeys(
+    wrapInFeeBump(signed, chain.config.treasury, chain.config.network),
+    [chain.config.treasury],
+  );
 }
 
 export async function cancelPurchase(ctx: ServiceCtx, user: SessionUser, orderId: string) {
@@ -271,20 +306,15 @@ export async function submitPurchase(
     throw new AppError(ErrorCodes.STELLAR_QUOTE_EXPIRED);
   }
 
-  let xdr = await userSignature(ctx, user, order.txHash, input.xdr);
   const sale = await loadSale(db, order.listingId!);
   const card = order.method === "CARD";
-  const platformKeys = [sale.stockAccount, sale.minter, card ? chain.config.treasury : null];
-  xdr = await chain.signWithServerKeys(
-    xdr,
-    serverSignersOf(xdr, chain.config.network.passphrase, user.walletAddress, platformKeys),
+  const xdr = await cosignPurchase(
+    ctx,
+    await userSignature(ctx, user, order.txHash, input.xdr),
+    sale,
+    user.walletAddress,
+    card,
   );
-  if (card) {
-    xdr = await chain.signWithServerKeys(
-      wrapInFeeBump(xdr, chain.config.treasury, chain.config.network),
-      [chain.config.treasury],
-    );
-  }
 
   let cardPaymentId: string | null = null;
   if (card) {
@@ -388,6 +418,18 @@ export async function deliverOrder(ctx: ServiceCtx, orderId: string) {
   return { orderId, status: "DELIVERED" as const };
 }
 
+/**
+ * The part of a guest order a failure no longer refunds (USD stroops): the
+ * account-opening part once it's settled, either kept (the XLM is in their
+ * new account) or already refunded (the account turned out to be open).
+ */
+export function keptByGuest(breakdown: unknown): bigint {
+  const guest = (
+    breakdown as { guest?: { openingSettled?: boolean; accountUsd?: string | null } } | null
+  )?.guest;
+  return guest?.openingSettled && guest.accountUsd ? toStroops(guest.accountUsd) : 0n;
+}
+
 export async function failOrder(
   ctx: ServiceCtx,
   orderId: string,
@@ -397,11 +439,19 @@ export async function failOrder(
   const failureCode = isAppError(error) ? error.code : ErrorCodes.INTERNAL;
   await transitionOrder(ctx.db, orderId, "FAILED", { failureCode });
   if (!card) return;
+  // A guest's account-opening part, once settled, isn't refunded (again).
+  const order = await ctx.db.order.findUnique({
+    where: { id: orderId },
+    select: { breakdown: true },
+  });
+  const kept = keptByGuest(order?.breakdown);
+  const refund = toStroops(card.total) - kept;
+  if (refund <= 0n) return;
   try {
     await ctx.chain.card.refund({
       orderId,
       paymentId: card.paymentId,
-      cents: toCents(toStroops(card.total)),
+      cents: toCents(refund),
     });
     await transitionOrder(ctx.db, orderId, "REFUNDED");
   } catch (refundError) {
