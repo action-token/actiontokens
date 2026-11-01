@@ -1,6 +1,5 @@
 "use client";
 
-import { CircleAlert } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
@@ -10,7 +9,6 @@ import { Button } from "@bandcoin/ui/components/button";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { cn } from "@bandcoin/ui/lib/cn";
 import { CurrencyIcon } from "@bandcoin/ui/patterns/currency-icon";
-import { PriceBreakdown, ShortfallNotice } from "@bandcoin/ui/patterns/price-breakdown";
 import { QuantityStepper } from "@bandcoin/ui/patterns/quantity-stepper";
 import { ToastViewport, TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
 import { useConnectWalletDialogStore } from "@bandcoin/wallet";
@@ -19,6 +17,7 @@ import { Money, MoneyTotals } from "~/components/money";
 import type { DisplayCurrency } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";
 
+import { Breakdown, Problem } from "./breakdown";
 import { useSquareCard } from "./square-card";
 import { usePurchase } from "./use-purchase";
 
@@ -273,73 +272,6 @@ export function BuyPanel({
         </ToastViewport>
       )}
     </section>
-  );
-}
-
-function Breakdown({
-  quote,
-  balances,
-}: {
-  quote: Quote;
-  balances?: Record<"BANDCOIN" | "XLM" | "USDC", string>;
-}) {
-  const shortfalls = quote.problems.flatMap((problem) =>
-    problem.code === "INSUFFICIENT_FUNDS" ? [problem.shortfall] : [],
-  );
-  const unavailable = quote.problems.filter((problem) => problem.code === "UNAVAILABLE");
-  const paying = quote.currency === "USD" ? null : quote.currency;
-  const short = shortfalls.find((shortfall) => shortfall.currency === paying);
-
-  return (
-    <>
-      <PriceBreakdown
-        lines={quote.lines.map((line) => ({
-          label: line.label,
-          detail:
-            line.key === "price" ? (
-              <span className="inline-flex items-center gap-1">
-                {quote.quantity} × <Money amount={quote.unitPrice} currency={quote.currency} />
-              </span>
-            ) : (
-              line.detail
-            ),
-          value: <Money amount={line.amount} currency={line.currency} />,
-        }))}
-        total={<MoneyTotals totals={quote.totals} stacked />}
-        balance={
-          paying && balances
-            ? {
-                value: <Money amount={balances[paying]} currency={paying} />,
-                shortBy: short ? (
-                  <Money amount={short.short} currency={short.currency} />
-                ) : undefined,
-              }
-            : undefined
-        }
-      />
-      {shortfalls.map((shortfall) => (
-        <ShortfallNotice
-          key={shortfall.currency}
-          currency={shortfall.currency}
-          shortBy={<Money amount={shortfall.short} currency={shortfall.currency} />}
-        />
-      ))}
-      {unavailable.map((problem) => (
-        <Problem key={problem.message} message={problem.message} />
-      ))}
-    </>
-  );
-}
-
-function Problem({ message }: { message: string }) {
-  return (
-    <div
-      role="alert"
-      className="bg-surface-2 text-fg-muted flex gap-2.5 rounded-md p-3 text-[13px]"
-    >
-      <CircleAlert className="text-warning mt-px size-4 shrink-0" />
-      {message}
-    </div>
   );
 }
 
