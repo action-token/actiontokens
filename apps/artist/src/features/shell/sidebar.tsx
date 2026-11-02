@@ -26,6 +26,7 @@ import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
 import { api } from "~/trpc/react";
 
+import { WalletSidebarCard } from "../wallet/wallet-view";
 import { AR_URL, FAN_APP_URL } from "./links";
 import { isActive, type NavGroup, type NavItem } from "./nav";
 
@@ -86,6 +87,8 @@ export function Sidebar({
             </ul>
           </div>
         ))}
+
+        <WalletSidebarCard />
 
         <div className="grid gap-1.5">
           <LaunchTile

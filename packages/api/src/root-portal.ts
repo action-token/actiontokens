@@ -1,4 +1,6 @@
 import { accountRouter } from "./routers/app/account";
+import { activationRouter } from "./routers/app/activation";
+import { rechargeRouter } from "./routers/app/recharge";
 import { adminRouter } from "./routers/admin";
 import { aiRouter } from "./routers/artist/ai";
 import { bountiesRouter } from "./routers/artist/bounties";
@@ -23,6 +25,9 @@ import { createRouter } from "./trpc";
 /** The artist portal's API (artist.bandcoin.io, including /admin). */
 export const portalRouter = createRouter({
   account: accountRouter,
+  /** Recharge and wallet activation, the same as the fan app's (one account, one flow) */
+  recharge: rechargeRouter,
+  activation: activationRouter,
   portal: portalStatusRouter,
   onboarding: onboardingRouter,
   admin: adminRouter,
