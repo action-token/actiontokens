@@ -89,7 +89,7 @@ function Field({
         <input
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          placeholder="Search songs, artists, items"
+          placeholder="Search"
           aria-label="Search"
           className="text-fg placeholder:text-fg-faint min-w-0 flex-1 bg-transparent outline-none"
         />

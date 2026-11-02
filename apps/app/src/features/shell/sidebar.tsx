@@ -8,31 +8,26 @@ import { useSession } from "next-auth/react";
 import { Fragment, Suspense } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@bandcoin/ui/components/dropdown-menu";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { cn } from "@bandcoin/ui/lib/cn";
 import { copyrightLine, INFO_LINKS, SOCIALS } from "@bandcoin/ui/patterns/site-links";
 import { abbreviateAddress } from "@bandcoin/utils/address";
 import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
-import { Money } from "~/components/money";
-import { AccountMenuItems } from "~/features/account/account-button";
 import { api } from "~/trpc/react";
 
 import { Avatar } from "./context-panel";
 import { AR_URL, ARTIST_URL, artistEntry, GROUPS, isActive, type NavItem } from "./nav";
 import { ResizeHandle } from "./resize-handle";
 import { SearchBox } from "./search-box";
+import { BalanceCard, SidebarTools } from "./sidebar-tools";
 import { SidebarTheme } from "./sidebar-theme";
 
 /**
- * The desktop sidebar: search, links in groups (the page you're on is filled in
- * the brand yellow), and your account at the bottom with your balance, which
- * opens the account menu, and a Recharge button, then the theme, socials, info pages and copyright. Below the xl breakpoint it is an icon rail.
+ * The desktop sidebar: search with notifications, settings and log out beside
+ * it, links in groups (the page you're on is filled in the brand yellow), your
+ * balances, then your account at the bottom (opens the wallet dialog) with a
+ * Recharge button, then the theme, socials, info pages and copyright. Below the xl breakpoint it is an icon rail.
  */
 export function Sidebar() {
   return (
@@ -40,7 +35,7 @@ export function Sidebar() {
       aria-label="Main"
       className="bg-surface relative sticky top-0 hidden h-dvh min-w-0 grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-2 border-r px-3 py-3 sm:grid"
     >
-      <div className="grid min-w-0 gap-3 pb-3">
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3 pb-3">
         <Link
           href="/"
           aria-label="Bandcoin marketplace home"
@@ -61,7 +56,10 @@ export function Sidebar() {
             <span className="marker text-primary-text mt-0.5 block text-[11px]">marketplace</span>
           </span>
         </Link>
-        <SearchBox className="hidden xl:block" />
+        <div className="hidden items-center gap-1.5 xl:flex">
+          <SearchBox className="min-w-0 flex-1" />
+          <SidebarTools />
+        </div>
         <Link
           href="/marketplace"
           aria-label="Search"
@@ -70,6 +68,7 @@ export function Sidebar() {
         >
           <Search className="size-4" />
         </Link>
+        <SidebarTools className="flex-col xl:hidden" />
       </div>
 
       <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-0.5 overflow-y-auto">
@@ -77,6 +76,7 @@ export function Sidebar() {
         <Suspense fallback={<Links tab={null} />}>
           <LinksWithTab />
         </Suspense>
+        <BalanceCard />
       </div>
 
       <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2">
@@ -214,7 +214,7 @@ function LaunchTile({
 /** Who you are and what you have, always in view. Signed out it's a sign-in prompt in the header instead. */
 function AccountCard() {
   const { status } = useSession();
-  const openSignIn = useConnectWalletDialogStore((state) => state.setIsOpen);
+  const openWallet = useConnectWalletDialogStore((state) => state.setIsOpen);
   const me = api.account.me.useQuery(undefined, { enabled: status === "authenticated" });
 
   if (status === "loading" || (status === "authenticated" && me.isPending))
@@ -225,7 +225,7 @@ function AccountCard() {
         className="w-full"
         title="Sign in"
         aria-label="Sign in"
-        onClick={() => openSignIn(true)}
+        onClick={() => openWallet(true)}
       >
         <LogIn />
         <span className="hidden xl:inline">Sign in</span>
@@ -238,34 +238,27 @@ function AccountCard() {
 
   return (
     <div className="border-fg bg-bg flex min-w-0 items-center justify-center gap-2 rounded-xl border-[3px] p-2 shadow-[3px_4px_0_0_var(--color-primary)] xl:justify-between">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            aria-label="Account menu"
-            title={name}
-            className="flex min-w-0 flex-1 items-center justify-center gap-2.5 rounded-lg text-left xl:justify-start"
-          >
-            <Avatar
-              name={name}
-              url={me.data.avatarUrl}
-              className="bg-surface-3 grid size-9 shrink-0 place-items-center rounded-full object-cover text-xs font-bold"
-            />
-            <span className="hidden min-w-0 xl:grid">
-              <b className="truncate text-sm leading-tight">{name}</b>
-              <Money
-                amount={me.data.balances.BANDCOIN}
-                currency="BANDCOIN"
-                short
-                className="text-fg-muted text-xs"
-              />
+      <button
+        type="button"
+        title="Your wallet"
+        aria-label={`${name}: open your wallet`}
+        onClick={() => openWallet(true)}
+        className="flex min-w-0 flex-1 items-center justify-center gap-2.5 rounded-lg text-left xl:justify-start"
+      >
+        <Avatar
+          name={name}
+          url={me.data.avatarUrl}
+          className="bg-surface-3 grid size-9 shrink-0 place-items-center rounded-full object-cover text-xs font-bold"
+        />
+        <span className="hidden min-w-0 xl:grid">
+          <b className="truncate text-sm leading-tight">{name}</b>
+          {me.data.walletAddress && (
+            <span className="text-fg-muted truncate font-mono text-[11px]">
+              {abbreviateAddress(me.data.walletAddress, 5)}
             </span>
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent side="top" align="start" sideOffset={10} className="w-72">
-          <AccountMenuItems me={me.data} name={name} />
-        </DropdownMenuContent>
-      </DropdownMenu>
+          )}
+        </span>
+      </button>
       <Link
         href="/recharge"
         title="Recharge"
