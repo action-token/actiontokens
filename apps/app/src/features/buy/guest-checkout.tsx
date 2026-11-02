@@ -195,9 +195,9 @@ function GuestSuccess({
           : `Payment received. ${itemTitle} is on its way and will show up shortly.`}
       </p>
       <p className="text-fg-muted text-sm">
-        It&apos;s in the Bandcoin account for <b className="text-fg break-all">{email}</b>. To open
-        it, sign in with Google or Apple using that email, or use &quot;Forgot password?&quot; to
-        set a password.
+        It&apos;s in the Bandcoin account for{" "}
+        <b className="text-fg [overflow-wrap:anywhere]">{email}</b>. To open it, sign in with Google
+        or Apple using that email, or use &quot;Forgot password?&quot; to set a password.
       </p>
       <Button size="sm" className="justify-self-start" onClick={() => openSignIn(true)}>
         Sign in
