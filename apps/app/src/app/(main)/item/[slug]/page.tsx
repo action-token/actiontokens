@@ -2,13 +2,11 @@ import { ChevronRight, Lock } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { cache, type ReactNode } from "react";
+import { cache } from "react";
 
 import { isAppError } from "@bandcoin/errors";
 
-import { Money } from "~/components/money";
 import { ItemBody } from "~/features/catalog/item-body";
-import { royaltyOf } from "~/features/catalog/item-parts";
 import { CoverBadges, RewardsLine } from "~/features/nft/locked-preview";
 import { ReactionButtons } from "~/features/reactions/reaction-buttons";
 import { playsLabel } from "~/lib/format";
@@ -56,8 +54,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 /**
  * One item, laid out like Wadzzo's: a full-width hero with the cover behind a
- * dark fade, price and edition stickers and the framed cover; then buying
- * beside everything else about the item (see ItemBody).
+ * dark fade, title and framed cover; then the price and buying beside
+ * everything else about the item (see ItemBody).
  */
 export default async function ItemPage({ params }: Props) {
   const { slug } = await params;
@@ -69,7 +67,6 @@ export default async function ItemPage({ params }: Props) {
   const label = TYPE_LABEL[item.type] ?? item.type;
   const primary = item.listings.find((listing) => listing.kind === "PRIMARY") ?? item.listings[0];
   const left = primary?.remaining ?? null;
-  const royalty = royaltyOf(item);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -182,43 +179,6 @@ export default async function ItemPage({ params }: Props) {
                 )}
               </div>
 
-              <div className="flex flex-wrap items-stretch gap-3">
-                {primary && (
-                  <Sticker
-                    className="bg-primary text-primary-foreground -rotate-2"
-                    label="Price"
-                    note={
-                      <>
-                        ≈ <Money amount={primary.priceUsd} currency="USD" />
-                      </>
-                    }
-                  >
-                    <Money amount={primary.priceBandcoin} currency="BANDCOIN" onBrand />
-                  </Sticker>
-                )}
-                {left !== null ? (
-                  <Sticker
-                    className="-rotate-1 bg-white/15"
-                    label="Left"
-                    note={item.supply ? `of ${item.supply.toLocaleString()}` : undefined}
-                  >
-                    {left === 0 ? "Sold out" : left.toLocaleString()}
-                  </Sticker>
-                ) : (
-                  <Sticker
-                    className="-rotate-1 bg-white/15"
-                    label="Edition"
-                    note={`${item.sold.toLocaleString()} sold`}
-                  >
-                    Open
-                  </Sticker>
-                )}
-                {royalty > 0 && (
-                  <Sticker className="rotate-2 bg-white/15" label="Royalty" note="on every resale">
-                    {royalty}%
-                  </Sticker>
-                )}
-              </div>
               <div className="flex flex-wrap items-center gap-3">
                 {item.media?.mediaType === "AUDIO" && (
                   <AddToPlaylist
@@ -277,26 +237,5 @@ export default async function ItemPage({ params }: Props) {
 
       <ItemBody item={item} more={more} artistName={artistName} />
     </>
-  );
-}
-
-/** A price or count on a slightly tilted coloured block, as on Wadzzo's item page. */
-function Sticker({
-  label,
-  note,
-  className,
-  children,
-}: {
-  label: string;
-  note?: ReactNode;
-  className: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className={`rounded-xl px-4 py-2 ${className}`}>
-      <p className="text-[10px] font-bold tracking-wider uppercase opacity-75">{label}</p>
-      <p className="display text-3xl leading-tight lg:text-4xl">{children}</p>
-      {note && <p className="text-xs font-bold opacity-75">{note}</p>}
-    </div>
   );
 }
