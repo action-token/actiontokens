@@ -81,9 +81,23 @@ const typeChecked = (tsconfigRootDir) => ({
   rules: typedRules,
 });
 
+/**
+ * Vitest's matchers (`expect.objectContaining`, `expect.any`) and `mock.calls`
+ * are typed `any`, so the unsafe-any rules only make noise in tests.
+ */
+const testFiles = {
+  files: ["**/__tests__/**", "**/*.test.ts", "**/*.test.tsx"],
+  rules: {
+    "@typescript-eslint/no-unsafe-assignment": "off",
+    "@typescript-eslint/no-unsafe-member-access": "off",
+    "@typescript-eslint/no-unsafe-argument": "off",
+    "@typescript-eslint/unbound-method": "off",
+  },
+};
+
 /** @param {{ tsconfigRootDir: string }} options */
 export function baseConfig({ tsconfigRootDir }) {
-  return tseslint.config({ ignores: IGNORES }, typeChecked(tsconfigRootDir));
+  return tseslint.config({ ignores: IGNORES }, typeChecked(tsconfigRootDir), testFiles);
 }
 
 /** @param {{ tsconfigRootDir: string }} options */
@@ -93,6 +107,7 @@ export function nextConfig({ tsconfigRootDir }) {
     ...nextCoreWebVitals,
     ...nextTypescript,
     typeChecked(tsconfigRootDir),
+    testFiles,
     { files: ["**/*.{js,jsx,mjs,ts,tsx}"], rules: reactCompilerRules },
   );
 }

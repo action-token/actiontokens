@@ -10,6 +10,7 @@ import {
   Wallet,
 } from "lucide-react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { type ReactNode, useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
@@ -35,8 +36,8 @@ type Holding = {
 type Row = { key: string; label: string; note?: string; value: ReactNode };
 
 /** The main wallet's three balances (the account you sign in with). */
-function useMainWallet() {
-  return api.account.me.useQuery();
+function useMainWallet(enabled = true) {
+  return api.account.me.useQuery(undefined, { enabled });
 }
 
 /** Everything in the main wallet; null when you aren't an approved artist yet. */
@@ -46,8 +47,8 @@ function useMainHoldings() {
 }
 
 /** What the creator storage account holds; null when it isn't open (or you aren't an approved artist). */
-function useStorage() {
-  const storage = api.profile.storageContents.useQuery(undefined, { retry: false });
+function useStorage(enabled = true) {
+  const storage = api.profile.storageContents.useQuery(undefined, { retry: false, enabled });
   return { ...storage, data: storage.isError ? null : storage.data };
 }
 
@@ -205,9 +206,11 @@ function StorageCard() {
 
 /** The sidebar's summary of both accounts; the whole card opens Wallet. */
 export function WalletSidebarCard() {
-  const me = useMainWallet();
-  const storage = useStorage();
+  const signedIn = useSession().status === "authenticated";
+  const me = useMainWallet(signedIn);
+  const storage = useStorage(signedIn);
   const { shown, more } = storagePreview(storage.data?.holdings ?? []);
+  if (!signedIn) return null;
 
   return (
     <Link
