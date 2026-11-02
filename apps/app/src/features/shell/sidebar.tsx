@@ -17,12 +17,12 @@ import { api } from "~/trpc/react";
 import { Avatar } from "./context-panel";
 import { AR_URL, ARTIST_URL, artistEntry, GROUPS, isActive, type NavItem } from "./nav";
 import { ResizeHandle } from "./resize-handle";
+import { SidebarTheme } from "./sidebar-theme";
 
 /**
  * The desktop sidebar: links in groups (the page you're on is filled in the
  * brand yellow), and your account at the bottom with your balance and a
- * Recharge button, then the socials, info pages and copyright (as bandfan
- * had). Below the xl breakpoint it is an icon rail.
+ * Recharge button, then the theme, socials, info pages and copyright. Below the xl breakpoint it is an icon rail.
  */
 export function Sidebar() {
   return (
@@ -219,24 +219,27 @@ function AccountCard() {
   );
 }
 
-/** Bandcoin's socials, then the info pages and the copyright on one small row; wide sidebar only. */
+/** The theme and Bandcoin's socials, then the info pages and the copyright on one small row; wide sidebar only. */
 function SiteFooter() {
   return (
     <div className="border-fg/15 hidden gap-2 border-t pt-2 xl:grid">
-      <div className="flex gap-1.5">
-        {SOCIALS.map((social) => (
-          <a
-            key={social.href}
-            href={social.href}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={social.label}
-            title={social.label}
-            className="bg-surface-2 text-fg-muted hover:text-fg flex size-7 items-center justify-center rounded-full transition-colors"
-          >
-            <social.icon className="size-3.5" />
-          </a>
-        ))}
+      <div className="flex items-center justify-between gap-2">
+        <SidebarTheme />
+        <div className="flex gap-1.5">
+          {SOCIALS.map((social) => (
+            <a
+              key={social.href}
+              href={social.href}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={social.label}
+              title={social.label}
+              className="bg-surface-2 text-fg-muted hover:text-fg flex size-7 items-center justify-center rounded-full transition-colors"
+            >
+              <social.icon className="size-3.5" />
+            </a>
+          ))}
+        </div>
       </div>
       <div className="flex items-center justify-between gap-2 text-[10px] leading-none whitespace-nowrap">
         <div className="text-fg-muted flex gap-1.5 font-medium">
