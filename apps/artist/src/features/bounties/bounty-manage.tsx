@@ -177,10 +177,16 @@ function Loaded({ bounty }: { bounty: Bounty }) {
 
       {bounty.funded && (
         <Tabs defaultValue="reports" className="max-w-3xl">
-          <TabsList>
-            <TabsTrigger value="reports">Reports ({bounty.submissions})</TabsTrigger>
-            <TabsTrigger value="people">Participants ({bounty.participants})</TabsTrigger>
-            <TabsTrigger value="winners">Winners ({bounty.winners.length})</TabsTrigger>
+          <TabsList variant="line" className="w-full justify-start overflow-x-auto border-b">
+            <TabsTrigger value="reports" className="flex-none">
+              Reports ({bounty.submissions})
+            </TabsTrigger>
+            <TabsTrigger value="people" className="flex-none">
+              Participants ({bounty.participants})
+            </TabsTrigger>
+            <TabsTrigger value="winners" className="flex-none">
+              Winners ({bounty.winners.length})
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="reports">
             <Reports bounty={bounty} canPick={!full && left > 0} />

@@ -187,9 +187,9 @@ export function MuralsView() {
           onValueChange={(value) => setView(value as View)}
           className="overflow-x-auto"
         >
-          <TabsList>
+          <TabsList variant="line" className="w-full justify-start overflow-x-auto border-b">
             {VIEWS.map((entry) => (
-              <TabsTrigger key={entry.value} value={entry.value}>
+              <TabsTrigger key={entry.value} value={entry.value} className="flex-none">
                 {entry.label}
                 {entry.value !== "settings" && counts.data && (
                   <span className="num ml-1.5 opacity-70">

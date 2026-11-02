@@ -117,9 +117,9 @@ export function JobsAdminView() {
       />
       <Toolbar>
         <Tabs value={filter} onValueChange={(value) => setFilter(value as Filter)}>
-          <TabsList className="max-w-full overflow-x-auto">
+          <TabsList variant="line" className="w-full justify-start overflow-x-auto border-b">
             {FILTERS.map((entry) => (
-              <TabsTrigger key={entry.value} value={entry.value}>
+              <TabsTrigger key={entry.value} value={entry.value} className="flex-none">
                 {entry.label}
               </TabsTrigger>
             ))}

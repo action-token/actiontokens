@@ -181,10 +181,14 @@ export function BountyView({ initial }: { initial: Bounty }) {
             <Requirements bounty={bounty} />
 
             <Tabs value={tab} onValueChange={setTab} className="min-w-0">
-              <TabsList>
-                <TabsTrigger value="description">Description</TabsTrigger>
-                <TabsTrigger value="participants">Participants</TabsTrigger>
-                <TabsTrigger value="reports">
+              <TabsList variant="line" className="w-full justify-start overflow-x-auto border-b">
+                <TabsTrigger value="description" className="flex-none">
+                  Description
+                </TabsTrigger>
+                <TabsTrigger value="participants" className="flex-none">
+                  Participants
+                </TabsTrigger>
+                <TabsTrigger value="reports" className="flex-none">
                   {bounty.isCreator ? "Submissions" : "My reports"}
                 </TabsTrigger>
               </TabsList>

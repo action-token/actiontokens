@@ -22,14 +22,14 @@ export function CollectionTabs() {
       }
       className="gap-6"
     >
-      <TabsList className="w-fit">
-        <TabsTrigger value="all" className="font-hud">
+      <TabsList variant="line" className="w-full justify-start overflow-x-auto border-b">
+        <TabsTrigger value="all" className="font-hud flex-none">
           Everything
         </TabsTrigger>
-        <TabsTrigger value="songs" className="font-hud">
+        <TabsTrigger value="songs" className="font-hud flex-none">
           Songs
         </TabsTrigger>
-        <TabsTrigger value="favorites" className="font-hud">
+        <TabsTrigger value="favorites" className="font-hud flex-none">
           Favourites
         </TabsTrigger>
       </TabsList>

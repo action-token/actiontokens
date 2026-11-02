@@ -260,9 +260,9 @@ function Details({ person }: { person: Person }) {
         </TabsContent>
         <TabsContent value="activity" className="mt-4 grid gap-3">
           <Tabs value={kind} onValueChange={(value) => setKind(value as Kind)}>
-            <TabsList className="max-w-full overflow-x-auto">
+            <TabsList variant="line" className="w-full justify-start overflow-x-auto border-b">
               {KINDS.map((entry) => (
-                <TabsTrigger key={entry.value} value={entry.value}>
+                <TabsTrigger key={entry.value} value={entry.value} className="flex-none">
                   {entry.label}
                 </TabsTrigger>
               ))}

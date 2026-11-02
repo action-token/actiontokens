@@ -136,19 +136,25 @@ export function ItemsAdminView() {
           className="sm:w-72"
         />
         <Tabs value={filter} onValueChange={(value) => setFilter(value as Filter)}>
-          <TabsList>
+          <TabsList variant="line" className="w-full justify-start overflow-x-auto border-b">
             {FILTERS.map((entry) => (
-              <TabsTrigger key={entry.value} value={entry.value}>
+              <TabsTrigger key={entry.value} value={entry.value} className="flex-none">
                 {entry.label}
               </TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
         <Tabs value={chain} onValueChange={(value) => setChain(value as typeof chain)}>
-          <TabsList>
-            <TabsTrigger value="all">Any</TabsTrigger>
-            <TabsTrigger value="CLASSIC_TOKEN">Tokens</TabsTrigger>
-            <TabsTrigger value="CONTRACT_NFT">Contract NFTs</TabsTrigger>
+          <TabsList variant="line" className="w-full justify-start overflow-x-auto border-b">
+            <TabsTrigger value="all" className="flex-none">
+              Any
+            </TabsTrigger>
+            <TabsTrigger value="CLASSIC_TOKEN" className="flex-none">
+              Tokens
+            </TabsTrigger>
+            <TabsTrigger value="CONTRACT_NFT" className="flex-none">
+              Contract NFTs
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       </Toolbar>

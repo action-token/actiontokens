@@ -61,9 +61,13 @@ function MusicTabs() {
           router.replace(value === "albums" ? "/music?tab=albums" : "/music")
         }
       >
-        <TabsList>
-          <TabsTrigger value="songs">Songs</TabsTrigger>
-          <TabsTrigger value="albums">Albums</TabsTrigger>
+        <TabsList variant="line" className="w-full justify-start overflow-x-auto border-b">
+          <TabsTrigger value="songs" className="flex-none">
+            Songs
+          </TabsTrigger>
+          <TabsTrigger value="albums" className="flex-none">
+            Albums
+          </TabsTrigger>
         </TabsList>
       </Tabs>
       {tab === "songs" ? <Songs /> : <Albums />}

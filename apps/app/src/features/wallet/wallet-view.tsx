@@ -71,9 +71,13 @@ export function WalletView() {
       )}
       <GiftsToClaim />
       <Tabs defaultValue="history">
-        <TabsList className="grid w-full max-w-sm grid-cols-2">
-          <TabsTrigger value="history">History</TabsTrigger>
-          <TabsTrigger value="assets">Assets</TabsTrigger>
+        <TabsList variant="line" className="w-full justify-start overflow-x-auto border-b">
+          <TabsTrigger value="history" className="flex-none">
+            History
+          </TabsTrigger>
+          <TabsTrigger value="assets" className="flex-none">
+            Assets
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="history" className="pt-5">
           <History />

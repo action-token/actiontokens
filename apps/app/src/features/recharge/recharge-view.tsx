@@ -40,11 +40,11 @@ export function RechargeView() {
   return (
     <section aria-label="Recharge" className="grid gap-6">
       <Tabs value={tab} onValueChange={(value) => setTab(value as Tab)}>
-        <TabsList className="grid w-full max-w-sm grid-cols-2">
-          <TabsTrigger value="top-up" disabled={flow.busy}>
+        <TabsList variant="line" className="w-full justify-start overflow-x-auto border-b">
+          <TabsTrigger value="top-up" disabled={flow.busy} className="flex-none">
             Add BANDCOIN
           </TabsTrigger>
-          <TabsTrigger value="xlm" disabled={flow.busy}>
+          <TabsTrigger value="xlm" disabled={flow.busy} className="flex-none">
             Get XLM
           </TabsTrigger>
         </TabsList>
