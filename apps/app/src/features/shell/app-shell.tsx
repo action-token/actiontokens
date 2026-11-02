@@ -1,11 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type CSSProperties, type ReactNode, useEffect } from "react";
 
 import { cn } from "@bandcoin/ui/lib/cn";
-import { BrandMark } from "@bandcoin/ui/patterns/boot-screen";
 
 import { AccountButton } from "~/features/account/account-button";
 import { BountiesPanel } from "~/features/bounty/bounties-panel";
@@ -54,7 +54,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Phones have no sidebar, so search and the account stay in a small bar. */}
         <header className="bg-bg/85 sticky top-0 z-30 flex h-16 items-center gap-3 border-b px-4 backdrop-blur sm:hidden">
           <Link href="/" aria-label="Home">
-            <BrandMark className="size-7" />
+            <Image src="/images/logo.png" alt="" width={313} height={364} className="h-8 w-auto" />
           </Link>
           <SearchBox className="flex-1" />
           <AccountButton />

@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowUpRight, LogIn, Mic2, Plus, ScanLine, Search } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -14,7 +15,6 @@ import {
 } from "@bandcoin/ui/components/dropdown-menu";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { cn } from "@bandcoin/ui/lib/cn";
-import { BrandMark } from "@bandcoin/ui/patterns/boot-screen";
 import { copyrightLine, INFO_LINKS, SOCIALS } from "@bandcoin/ui/patterns/site-links";
 import { abbreviateAddress } from "@bandcoin/utils/address";
 import { useConnectWalletDialogStore } from "@bandcoin/wallet";
@@ -41,10 +41,24 @@ export function Sidebar() {
       className="bg-surface relative sticky top-0 hidden h-dvh min-w-0 grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-2 border-r px-3 py-3 sm:grid"
     >
       <div className="grid min-w-0 gap-3 pb-3">
-        <Link href="/" className="flex items-center justify-center gap-2 xl:justify-start xl:px-2">
-          <BrandMark className="size-[28px]" />
-          <span className="font-display hidden text-[15px] font-extrabold tracking-tight xl:inline">
-            Bandcoin
+        <Link
+          href="/"
+          aria-label="Bandcoin marketplace home"
+          className="flex items-center justify-center gap-2 xl:justify-start xl:px-2"
+        >
+          <Image
+            src="/images/logo.png"
+            alt=""
+            width={313}
+            height={364}
+            priority
+            className="h-9 w-auto shrink-0"
+          />
+          <span className="hidden min-w-0 leading-none xl:block">
+            <span className="font-display block truncate text-[15px] font-extrabold tracking-tight">
+              Bandcoin
+            </span>
+            <span className="marker text-primary-text mt-0.5 block text-[11px]">marketplace</span>
           </span>
         </Link>
         <SearchBox className="hidden xl:block" />
