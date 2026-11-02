@@ -1,7 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { httpBatchStreamLink, loggerLink } from "@trpc/client";
+import { httpBatchStreamLink, loggerLink, splitLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import { type ReactNode, useState } from "react";
@@ -31,7 +31,16 @@ export function TRPCReactProvider({ children }: { children: ReactNode }) {
             op.direction === "down" &&
             op.result instanceof Error,
         }),
-        httpBatchStreamLink({ url: "/api/trpc", transformer: superjson }),
+        // The guest quote carries an email, which must stay out of URLs and access logs.
+        splitLink({
+          condition: (op) => op.path === "order.guestQuote",
+          true: httpBatchStreamLink({
+            url: "/api/trpc",
+            transformer: superjson,
+            methodOverride: "POST",
+          }),
+          false: httpBatchStreamLink({ url: "/api/trpc", transformer: superjson }),
+        }),
       ],
     }),
   );

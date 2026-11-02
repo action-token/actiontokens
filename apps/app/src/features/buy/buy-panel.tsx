@@ -18,6 +18,7 @@ import type { DisplayCurrency } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import { Breakdown, Problem } from "./breakdown";
+import { GuestCheckout } from "./guest-checkout";
 import { useSquareCard } from "./square-card";
 import { usePurchase } from "./use-purchase";
 
@@ -56,6 +57,10 @@ export function BuyPanel({
   const [quantity, setQuantity] = useState(1);
   const me = api.account.me.useQuery(undefined, { enabled: status === "authenticated" });
   const purchase = usePurchase({ itemTitle });
+  const [guestBusy, setGuestBusy] = useState(false);
+  const signedOut = status === "unauthenticated";
+  const guest = signedOut && currency === "USD";
+  const busy = purchase.busy || guestBusy;
   const { container: cardField, ...card } = useSquareCard(
     currency === "USD" && status === "authenticated",
   );
@@ -130,7 +135,7 @@ export function BuyPanel({
               <button
                 key={option.value}
                 type="button"
-                disabled={purchase.busy}
+                disabled={busy}
                 aria-pressed={option.value === currency}
                 onClick={() => setCurrency(option.value)}
                 className={cn(
@@ -184,47 +189,62 @@ export function BuyPanel({
             value={quantity}
             onChange={setQuantity}
             max={maxQuantity}
-            disabled={purchase.busy || soldOut}
+            disabled={busy || soldOut}
           />
         </div>
       </div>
 
-      <div className="grid content-start gap-5">
-        {quote.isPending ? (
-          <div className="grid gap-2 border-t pt-3">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-5 w-full" />
-          </div>
-        ) : quote.error ? (
-          <Problem message={quote.error.message} />
-        ) : (
-          <Breakdown quote={quote.data} balances={me.data?.balances} />
-        )}
-
-        {currency === "USD" && status === "authenticated" && (
-          <div className="grid gap-1.5">
-            <div
-              ref={cardField}
-              className={cn(
-                "min-h-[90px]",
-                card.loading && "bg-surface-2 animate-pulse rounded-md",
-              )}
-            />
-            {card.error && <p className="text-danger text-xs">{card.error}</p>}
-          </div>
-        )}
-
-        <PayButton
-          quote={quote.data}
-          signedOut={status === "unauthenticated"}
+      {guest ? (
+        <GuestCheckout
+          itemTitle={itemTitle}
+          listingId={listing.id}
+          quantity={quantity}
           soldOut={soldOut}
-          busy={purchase.busy || quote.isFetching}
-          cardNotReady={currency === "USD" && !card.ready}
-          onSignIn={() => openSignIn(true)}
-          onPay={() => void pay()}
+          onBusyChange={setGuestBusy}
         />
-      </div>
+      ) : (
+        <div className="grid content-start gap-5">
+          {quote.isPending ? (
+            <div className="grid gap-2 border-t pt-3">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-5 w-full" />
+            </div>
+          ) : quote.error ? (
+            <Problem message={quote.error.message} />
+          ) : (
+            <Breakdown quote={quote.data} balances={me.data?.balances} />
+          )}
+
+          {currency === "USD" && status === "authenticated" && (
+            <div className="grid gap-1.5">
+              <div
+                ref={cardField}
+                className={cn(
+                  "min-h-[90px]",
+                  card.loading && "bg-surface-2 animate-pulse rounded-md",
+                )}
+              />
+              {card.error && <p className="text-danger text-xs">{card.error}</p>}
+            </div>
+          )}
+
+          <PayButton
+            quote={quote.data}
+            signedOut={signedOut}
+            soldOut={soldOut}
+            busy={purchase.busy || quote.isFetching}
+            cardNotReady={currency === "USD" && !card.ready}
+            onSignIn={() => openSignIn(true)}
+            onPay={() => void pay()}
+          />
+          {signedOut && !soldOut && (
+            <Button variant="ghost" size="sm" onClick={() => setCurrency("USD")}>
+              Or pay by card with just your email
+            </Button>
+          )}
+        </div>
+      )}
 
       {purchase.step && (
         <ToastViewport>

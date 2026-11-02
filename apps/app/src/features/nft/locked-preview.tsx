@@ -108,8 +108,8 @@ export function UnlockNotice({ pieces }: { pieces: Preview[] }) {
             ) : (
               <>
                 {pieces.length - gated} of {pieces.length} rewards open as soon as you own a copy.
-                The other {gated} stay locked until you visit{" "}
-                <b className="text-fg">{plural(places, "place")}</b> in person.
+                {gated === 1 ? " The other one stays" : ` The other ${gated} stay`} locked until you
+                visit <b className="text-fg">{plural(places, "place")}</b> in person.
               </>
             )}{" "}
             Be within {radius} meters of each place, with your phone, to collect it. Every copy you
