@@ -22,6 +22,7 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   Users,
+  Wallet,
   Workflow,
   type LucideIcon,
 } from "lucide-react";
@@ -106,6 +107,7 @@ const READY_TOOLS: NavGroup[] = [
       { href: "/memberships", icon: Crown, label: "Memberships" },
       { href: "/gifts", icon: Gift, label: "Gifts" },
       { href: "/royalty", icon: Coins, label: "Royalties" },
+      { href: "/wallet", icon: Wallet, label: "Wallet" },
     ],
   },
 ];

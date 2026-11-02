@@ -116,9 +116,9 @@ describe("the wallet next to storage", () => {
   it("lists spendable XLM, then the fan token, then other tokens", async () => {
     const contents = await walletContents(setup().ctx, me, artist);
     expect(contents?.holdings).toMatchObject([
-      { code: "XLM", issuer: null, amount: "8.0000000" },
-      { code: "LUNA", amount: "300.0000000", fanToken: true },
-      { code: "OTHER", amount: "40.0000000", fanToken: false },
+      { code: "XLM", issuer: null, amount: "8.0000000", kind: "xlm" },
+      { code: "LUNA", amount: "300.0000000", fanToken: true, kind: "fanToken" },
+      { code: "OTHER", amount: "40.0000000", fanToken: false, kind: "other" },
     ]);
   });
 });

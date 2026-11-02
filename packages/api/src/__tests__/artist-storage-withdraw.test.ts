@@ -124,12 +124,17 @@ describe("what's in storage", () => {
   it("lists spare XLM, then payment assets, then copies with their titles", async () => {
     const contents = await storageContents(setup().ctx, artist);
     expect(contents?.holdings).toMatchObject([
-      { code: "XLM", issuer: null, amount: "1.5000000" },
-      { code: "BANDCOIN", amount: "20.0000000", title: null },
-      { code: "USDC", amount: "0.0000000" },
-      { code: "SONG1", amount: "7.0000000", title: "First single", itemId: "song1" },
+      { code: "XLM", issuer: null, amount: "1.5000000", kind: "xlm" },
+      { code: "BANDCOIN", amount: "20.0000000", title: null, kind: "bandcoin" },
+      { code: "USDC", amount: "0.0000000", kind: "usdc" },
+      { code: "SONG1", amount: "7.0000000", title: "First single", itemId: "song1", kind: "other" },
     ]);
     await expect(storageContents(setup().ctx, { storageAccountId: null })).resolves.toBeNull();
+  });
+
+  it("marks the artist's own fan token", async () => {
+    const contents = await storageContents(setup().ctx, { ...artist, fanTokenItemId: "song1" });
+    expect(contents?.holdings.find((holding) => holding.code === "SONG1")?.kind).toBe("fanToken");
   });
 });
 

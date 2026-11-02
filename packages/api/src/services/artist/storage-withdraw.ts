@@ -24,8 +24,9 @@ import { failOrder, ownOrder, userSignature } from "../purchase";
  * the trustline (0.5 XLM locked in their own wallet). Storage co-signs.
  */
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
-type ArtistRef = { storageAccountId: string | null };
+type ArtistRef = { storageAccountId: string | null; fanTokenItemId?: string | null };
 /** XLM has no issuer */
+export type HoldingKind = "xlm" | "bandcoin" | "usdc" | "fanToken" | "other";
 type WithdrawInput = { code: string; issuer: string | null; amount: string };
 export type WithdrawBreakdown = { code: string; issuer: string | null; amount: string };
 
@@ -54,7 +55,10 @@ export async function openedStorage(
   return storage?.activatedAt ? storage : null;
 }
 
-/** Everything in storage that can be taken out: spare XLM first, then payment assets, then copies. */
+/**
+ * Everything in storage that can be taken out: spare XLM first, then payment
+ * assets, then copies. `kind` says which is BANDCOIN, USDC or your fan token.
+ */
 export async function storageContents(ctx: ServiceCtx, artist: ArtistRef) {
   const storage = await openedStorage(ctx, artist);
   if (!storage) return null;
@@ -70,6 +74,16 @@ export async function storageContents(ctx: ServiceCtx, artist: ArtistRef) {
   const titleOf = (line: CreditLine) =>
     tokens.find((token) => token.code === line.asset_code && token.issuer === line.asset_issuer)
       ?.item ?? null;
+  const is = (asset: { code: string; issuer: string }, line: CreditLine) =>
+    asset.code === line.asset_code && asset.issuer === line.asset_issuer;
+  const kindOf = (line: CreditLine): HoldingKind =>
+    is(bandcoin, line)
+      ? "bandcoin"
+      : is(usdc, line)
+        ? "usdc"
+        : artist.fanTokenItemId && titleOf(line)?.id === artist.fanTokenItemId
+          ? "fanToken"
+          : "other";
   const isPayment = (line: CreditLine) =>
     [bandcoin, usdc].some(
       (asset) => asset.code === line.asset_code && asset.issuer === line.asset_issuer,
@@ -84,6 +98,7 @@ export async function storageContents(ctx: ServiceCtx, artist: ArtistRef) {
         amount: account ? spendableXlm(account) : "0",
         title: "XLM you can take out",
         itemId: null,
+        kind: "xlm" as HoldingKind,
       },
       ...[...lines]
         .sort((a, b) => Number(isPayment(b)) - Number(isPayment(a)))
@@ -93,6 +108,7 @@ export async function storageContents(ctx: ServiceCtx, artist: ArtistRef) {
           amount: toAmount(freeOf(line)),
           title: titleOf(line)?.title ?? null,
           itemId: titleOf(line)?.id ?? null,
+          kind: kindOf(line),
         })),
     ],
   };

@@ -16,7 +16,7 @@ import { type Context, isCustodial, type SessionUser } from "../../context";
 import { transitionOrder } from "../order-state";
 import { finishPlain } from "../orders/finish";
 import { failOrder, ownOrder, userSignature } from "../purchase";
-import { creditLines, freeOf, openedStorage } from "./storage-withdraw";
+import { creditLines, freeOf, type HoldingKind, openedStorage } from "./storage-withdraw";
 
 /**
  * The artist's wallet next to their storage (Settings › Balances), and moving
@@ -49,12 +49,22 @@ export async function walletContents(
     : null;
   const isFan = (code: string, issuer: string) =>
     fanToken?.code === code && fanToken.issuer === issuer;
+  const { bandcoin, usdc } = ctx.chain.config.assets;
+  const kindOf = (code: string, issuer: string): HoldingKind =>
+    bandcoin.code === code && bandcoin.issuer === issuer
+      ? "bandcoin"
+      : usdc.code === code && usdc.issuer === issuer
+        ? "usdc"
+        : isFan(code, issuer)
+          ? "fanToken"
+          : "other";
   const lines = creditLines(account)
     .map((line) => ({
       code: line.asset_code,
       issuer: line.asset_issuer,
       amount: toAmount(freeOf(line)),
       fanToken: isFan(line.asset_code, line.asset_issuer),
+      kind: kindOf(line.asset_code, line.asset_issuer),
     }))
     .sort((a, b) => Number(b.fanToken) - Number(a.fanToken));
   return {
@@ -65,6 +75,7 @@ export async function walletContents(
         issuer: null,
         amount: account ? spendableXlm(account) : "0",
         fanToken: false,
+        kind: "xlm" as HoldingKind,
       },
       ...lines,
     ],

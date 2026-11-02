@@ -1,8 +1,16 @@
 "use client";
 
-import { ArrowRight, Archive, ChevronRight, Plus, Wallet } from "lucide-react";
+import {
+  Archive,
+  ArrowRight,
+  ChevronDown,
+  ChevronRight,
+  ChevronUp,
+  Plus,
+  Wallet,
+} from "lucide-react";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
@@ -12,13 +20,29 @@ import { Money } from "~/components/money";
 import { api } from "~/trpc/react";
 
 import { RechargeView } from "../recharge/recharge-view";
-import { storagePreview } from "./storage-preview";
+import { orderMain, orderStorage, pageList, storagePreview } from "./holdings-order";
 
 const MAIN = ["BANDCOIN", "XLM", "USDC"] as const;
 
-/** The main wallet's balances (the account you sign in with). */
+type Kind = "xlm" | "bandcoin" | "usdc" | "fanToken" | "other";
+type Holding = {
+  code: string;
+  issuer: string | null;
+  amount: string;
+  kind?: Kind;
+  title?: string | null;
+};
+type Row = { key: string; label: string; note?: string; value: ReactNode };
+
+/** The main wallet's three balances (the account you sign in with). */
 function useMainWallet() {
   return api.account.me.useQuery();
+}
+
+/** Everything in the main wallet; null when you aren't an approved artist yet. */
+function useMainHoldings() {
+  const contents = api.profile.walletContents.useQuery(undefined, { retry: false });
+  return { ...contents, data: contents.isError ? null : contents.data };
 }
 
 /** What the creator storage account holds; null when it isn't open (or you aren't an approved artist). */
@@ -27,15 +51,21 @@ function useStorage() {
   return { ...storage, data: storage.isError ? null : storage.data };
 }
 
-type Holding = { code: string; issuer: string | null; amount: string; title?: string | null };
+const keyOf = (holding: Holding) => `${holding.code}:${holding.issuer ?? ""}`;
 
 function HoldingAmount({ holding }: { holding: Holding }) {
-  return holding.issuer === null ? (
-    <Money amount={holding.amount} currency="XLM" />
-  ) : (
-    <>{Number(holding.amount).toLocaleString("en-US", { maximumFractionDigits: 7 })}</>
-  );
+  if (holding.kind === "bandcoin") return <Money amount={holding.amount} currency="BANDCOIN" />;
+  if (holding.kind === "usdc") return <Money amount={holding.amount} currency="USDC" />;
+  if (holding.issuer === null) return <Money amount={holding.amount} currency="XLM" />;
+  return <>{Number(holding.amount).toLocaleString("en-US", { maximumFractionDigits: 7 })}</>;
 }
+
+const rowOf = (holding: Holding): Row => ({
+  key: keyOf(holding),
+  label: holding.title ?? holding.code,
+  note: holding.kind === "fanToken" ? "Your fan token" : undefined,
+  value: <HoldingAmount holding={holding} />,
+});
 
 /**
  * Wallet: the main wallet and the creator storage account side by side, then
@@ -86,34 +116,58 @@ function Card({
   );
 }
 
-function Rows({ rows }: { rows: { key: string; label: string; value: ReactNode }[] }) {
+/** The first 10 rows, with "Show all" for the rest. */
+function Rows({ rows }: { rows: Row[] }) {
+  const [all, setAll] = useState(false);
+  const { shown, hidden } = pageList(rows, all);
   return (
-    <dl className="divide-y rounded-xl border">
-      {rows.map((row) => (
-        <div key={row.key} className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm">
-          <dt className="text-fg-muted min-w-0 truncate">{row.label}</dt>
-          <dd className="num font-semibold">{row.value}</dd>
-        </div>
-      ))}
-    </dl>
+    <div className="grid gap-2">
+      <dl className="divide-y rounded-xl border">
+        {shown.map((row) => (
+          <div
+            key={row.key}
+            className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm"
+          >
+            <dt className="min-w-0">
+              <span className="text-fg-muted block truncate">{row.label}</span>
+              {row.note && <span className="text-fg-faint block text-[11px]">{row.note}</span>}
+            </dt>
+            <dd className="num shrink-0 font-semibold">{row.value}</dd>
+          </div>
+        ))}
+      </dl>
+      {hidden > 0 && (
+        <button
+          type="button"
+          aria-expanded={all}
+          onClick={() => setAll(!all)}
+          className="text-fg-muted hover:text-fg flex items-center gap-1 justify-self-start text-xs font-semibold"
+        >
+          {all ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+          {all ? "Show fewer" : `Show all (${rows.length})`}
+        </button>
+      )}
+    </div>
   );
 }
 
 function MainWalletCard() {
   const me = useMainWallet();
+  const holdings = useMainHoldings();
+  // Approved artists see everything the wallet holds; anyone else the three balances.
+  const rows: Row[] | null = holdings.data
+    ? orderMain(holdings.data.holdings).map(rowOf)
+    : me.data && !holdings.isPending
+      ? MAIN.map((currency) => ({
+          key: currency,
+          label: currency,
+          value: <Money amount={me.data!.balances[currency]} currency={currency} />,
+        }))
+      : null;
+
   return (
     <Card icon={Wallet} title="Main wallet" note="The account you sign in with. You pay from here.">
-      {!me.data ? (
-        <Skeleton className="h-28 w-full" />
-      ) : (
-        <Rows
-          rows={MAIN.map((currency) => ({
-            key: currency,
-            label: currency,
-            value: <Money amount={me.data!.balances[currency]} currency={currency} />,
-          }))}
-        />
-      )}
+      {rows ? <Rows rows={rows} /> : <Skeleton className="h-28 w-full" />}
       <Button asChild size="sm" className="justify-self-start">
         <a href="#recharge">
           <Plus /> Recharge
@@ -138,13 +192,7 @@ function StorageCard() {
           Storage isn&apos;t open yet. Open it under Settings › Accounts.
         </p>
       ) : (
-        <Rows
-          rows={storage.data.holdings.map((holding) => ({
-            key: `${holding.code}:${holding.issuer ?? ""}`,
-            label: holding.title ?? holding.code,
-            value: <HoldingAmount holding={holding} />,
-          }))}
-        />
+        <Rows rows={orderStorage(storage.data.holdings).map(rowOf)} />
       )}
       <Button asChild size="sm" variant="outline" className="justify-self-start">
         <Link href="/settings?tab=balances">
@@ -201,7 +249,7 @@ export function WalletSidebarCard() {
             <dl className="grid gap-0.5">
               {shown.map((holding) => (
                 <div
-                  key={`${holding.code}:${holding.issuer ?? ""}`}
+                  key={keyOf(holding)}
                   className="flex items-center justify-between gap-2 text-[12px]"
                 >
                   <dt className="text-fg-muted min-w-0 truncate">{holding.code}</dt>

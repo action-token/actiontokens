@@ -44,6 +44,7 @@ describe("portal navigation", () => {
       "Memberships",
       "Gifts",
       "Royalties",
+      "Wallet",
     ]);
   });
 
@@ -69,6 +70,7 @@ describe("portal navigation", () => {
       "Memberships",
       "Gifts",
       "Royalties",
+      "Wallet",
       "Artists",
       "Users",
       "Admins",
@@ -105,7 +107,7 @@ describe("portal navigation", () => {
     );
     const lit = (pathname: string) =>
       entries.filter((entry) => isActive(entry, pathname)).map((entry) => entry.label);
-    expect(entries.length).toBeLessThanOrEqual(13);
+    expect(entries.length).toBeLessThanOrEqual(14);
     expect(lit("/pins")).toEqual(["Map & pins"]);
     expect(lit("/pins/manage")).toEqual(["Map & pins"]);
     expect(lit("/announcements/new")).toEqual(["Posts"]);
