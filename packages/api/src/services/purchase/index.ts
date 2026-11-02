@@ -18,6 +18,7 @@ import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
 
 import { type Context, isCustodial, type SessionUser } from "../../context";
 import { DEFAULT_PLATFORM_FEE_BPS } from "../admin/settings";
+import { notifyGuestPurchase } from "../email/guest-email";
 import { accessOf, checkAccess } from "../catalog/access";
 import { transitionOrder } from "../order-state";
 import { loadSale, planDelivery, type Sale } from "./sale";
@@ -377,7 +378,7 @@ export async function confirmPurchase(ctx: ServiceCtx, orderId: string) {
 
 /** Records what the buyer now owns. Runs once: the CONFIRMED transition guards it. */
 export async function deliverOrder(ctx: ServiceCtx, orderId: string) {
-  await ctx.db.$transaction(async (tx) => {
+  const delivered = await ctx.db.$transaction(async (tx) => {
     await transitionOrder(tx, orderId, "CONFIRMED");
     const order = await tx.order.findUniqueOrThrow({ where: { id: orderId } });
     // A page asset bundle delivers its whole amount of fan tokens per sale.
@@ -414,7 +415,10 @@ export async function deliverOrder(ctx: ServiceCtx, orderId: string) {
       }
     }
     await transitionOrder(tx, orderId, "DELIVERED");
+    return order;
   });
+  if (delivered.guestEmail)
+    await notifyGuestPurchase(ctx, { ...delivered, guestEmail: delivered.guestEmail });
   return { orderId, status: "DELIVERED" as const };
 }
 

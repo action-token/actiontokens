@@ -33,6 +33,7 @@ import type { Db } from "@bandcoin/db";
 import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
 
 import { type Context, isCustodial, type SessionUser } from "../../context";
+import { notifyGuestPurchase } from "../email/guest-email";
 import { DEFAULT_PLATFORM_FEE_BPS } from "../admin/settings";
 import { accessOf, accessSelect, checkAccess } from "../catalog/access";
 import { ensureUnlockPins } from "../catalog/unlock-pins";
@@ -673,5 +674,11 @@ export async function finishNftPurchase(ctx: Pick<Context, "db" | "chain">, orde
   } catch (error) {
     console.error("[nft] unlock pins not made yet", { orderId, error });
   }
+  if (order.guestEmail)
+    await notifyGuestPurchase(ctx, {
+      guestEmail: order.guestEmail,
+      itemId: order.itemId,
+      quantity: tokenIds.length,
+    });
   return { orderId, status: "DELIVERED" as const };
 }

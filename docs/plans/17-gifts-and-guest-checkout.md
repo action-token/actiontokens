@@ -102,6 +102,9 @@ These come from the old app's `main` branch: the artist "Collectible" gift
     with Google or Apple using that email, or use 'Forgot password' to set a
     password."
   - Pages that show the buy panel: item, NFT, music and artist page bundles.
+  - Added after approval: a confirmation email once a guest order is delivered
+    (`services/email/guest-email.ts`). A failed email never undoes the purchase
+    and isn't retried.
 
 ## Steps
 

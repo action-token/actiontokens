@@ -24,7 +24,8 @@ export type GiftEmailInput = {
   codes: { label: string; code: string }[];
 };
 
-const escape = (value: string) => value.replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`);
+export const escape = (value: string) =>
+  value.replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`);
 
 export function giftEmail(input: GiftEmailInput): EmailMessage {
   const hello = input.recipientName ? `Hi ${input.recipientName},` : "Hi,";
