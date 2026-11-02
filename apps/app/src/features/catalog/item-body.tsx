@@ -36,7 +36,7 @@ export function ItemBody({
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(23rem,1fr)] xl:items-start">
         <StickyPanel
           id="buy"
-          className="border-fg bg-surface grid scroll-mt-24 content-start gap-4 rounded-[1.6rem] border-[3px] p-5 shadow-[8px_9px_0_0_var(--color-primary)] sm:p-6 xl:sticky xl:col-start-2 xl:row-start-1 xl:self-start"
+          className="gloss border-fg bg-surface grid scroll-mt-24 content-start gap-4 rounded-[1.6rem] border-[3px] p-5 shadow-[8px_9px_0_0_var(--color-primary)] sm:p-6 xl:sticky xl:col-start-2 xl:row-start-1 xl:self-start"
         >
           <p className="text-fg-muted flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[13px]">
             {primary && (

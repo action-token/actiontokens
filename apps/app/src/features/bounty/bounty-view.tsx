@@ -8,7 +8,6 @@ import {
   Crown,
   ExternalLink,
   FileText,
-  Music,
   Trophy,
   Users,
 } from "lucide-react";
@@ -32,6 +31,7 @@ import { StickyPanel } from "../nft/sticky-panel";
 import { Avatar } from "../shell/context-panel";
 import { nameOf, PersonAvatar, PersonLink } from "./bounty-people";
 import { BountyReports } from "./bounty-reports";
+import { BountyRequirements } from "./bounty-requirements";
 import { BountySide, canSubmitReport, useBountyTab } from "./bounty-side";
 
 type Bounty = RouterOutputs["bounty"]["byId"];
@@ -159,27 +159,20 @@ export function BountyView({ initial }: { initial: Bounty }) {
               </div>
             </div>
 
-            {cover && (
-              <div className="mx-auto hidden w-full max-w-[18rem] md:block">
-                <div className="bg-surface overflow-hidden rounded-[1.4rem] border-[3px] border-white shadow-[10px_12px_0_0_var(--color-primary)] lg:rotate-2">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- images come from many hosts */}
-                  <img src={cover} alt="" className="aspect-square w-full object-cover" />
-                </div>
-              </div>
-            )}
+            <div className="mx-auto w-full max-w-md md:mx-0 md:justify-self-end">
+              <BountyRequirements bounty={bounty} />
+            </div>
           </div>
         </div>
       </section>
 
       <PageBody wide>
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(23rem,1fr)] xl:items-start">
-          <StickyPanel className="border-fg bg-surface rounded-[1.6rem] border-[3px] p-5 shadow-[8px_9px_0_0_var(--color-primary)] sm:p-6 xl:sticky xl:col-start-2 xl:row-start-1 xl:self-start">
+          <StickyPanel className="gloss border-fg bg-surface rounded-[1.6rem] border-[3px] p-5 shadow-[8px_9px_0_0_var(--color-primary)] sm:p-6 xl:sticky xl:col-start-2 xl:row-start-1 xl:self-start">
             <BountySide bounty={bounty} />
           </StickyPanel>
 
           <div className="grid min-w-0 gap-6 xl:col-start-1 xl:row-start-1">
-            <Requirements bounty={bounty} />
-
             <Tabs value={tab} onValueChange={setTab} className="min-w-0">
               <TabsList variant="line" className="w-full justify-start overflow-x-auto border-b">
                 <TabsTrigger value="description" className="flex-none">
@@ -223,69 +216,6 @@ export function BountyView({ initial }: { initial: Bounty }) {
         </div>
       </PageBody>
     </>
-  );
-}
-
-/** What to do: the songs, the steps, or both. */
-function Requirements({ bounty }: { bounty: Bounty }) {
-  const isMusicOnly = bounty.music?.mode === "MUSIC_ONLY";
-  const tracks = bounty.music?.tracks ?? [];
-
-  return (
-    <section className="bg-surface grid content-start gap-4 rounded-[1.4rem] border-2 p-5">
-      <h2 className="display text-lg">{isMusicOnly ? "Listening challenge" : "Requirements"}</h2>
-
-      {tracks.length > 0 && bounty.music && (
-        <div className="grid gap-3">
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {tracks.map((track) => (
-              <li
-                key={track.id}
-                className="bg-surface-2/60 flex items-center gap-3 rounded-xl border p-2.5"
-              >
-                {track.albumArtUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts
-                  <img
-                    src={track.albumArtUrl}
-                    alt=""
-                    className="size-10 shrink-0 rounded-lg border object-cover"
-                  />
-                ) : (
-                  <span className="bg-surface-2 grid size-10 shrink-0 place-items-center rounded-lg border">
-                    <Music className="text-fg-muted size-4" />
-                  </span>
-                )}
-                <span className="min-w-0 flex-1">
-                  <b className="block truncate text-[13px] font-semibold">{track.title}</b>
-                  <span className="text-fg-muted block truncate text-xs">{track.artistName}</span>
-                </span>
-                <span className="font-mono text-xs font-semibold">{track.targetPlays}×</span>
-              </li>
-            ))}
-          </ul>
-          <p className="text-fg-muted text-xs">
-            {bounty.music.ruleType === "ALL"
-              ? `All ${tracks.length} tracks required`
-              : bounty.music.ruleType === "ANY_N"
-                ? `${Math.min(bounty.music.requiredTracks ?? 1, tracks.length)} of ${tracks.length} tracks`
-                : "Total plays across all tracks"}
-          </p>
-        </div>
-      )}
-
-      {!isMusicOnly && bounty.instructions.length > 0 && (
-        <ol className="grid gap-2.5">
-          {bounty.instructions.map((step, index) => (
-            <li key={index} className="text-fg-muted flex items-start gap-2.5 text-sm leading-snug">
-              <CheckCircle2 className="text-primary-text mt-0.5 size-4 shrink-0" /> {step}
-            </li>
-          ))}
-        </ol>
-      )}
-      {!isMusicOnly && bounty.instructions.length === 0 && tracks.length === 0 && (
-        <p className="text-fg-muted text-sm italic">No specific requirements listed.</p>
-      )}
-    </section>
   );
 }
 
