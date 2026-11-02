@@ -12,10 +12,9 @@ import { Money } from "~/components/money";
 import { api } from "~/trpc/react";
 
 import { RechargeView } from "../recharge/recharge-view";
+import { storagePreview } from "./storage-preview";
 
 const MAIN = ["BANDCOIN", "XLM", "USDC"] as const;
-/** How many storage holdings the sidebar card lists before "and n more". */
-const STORAGE_PREVIEW = 3;
 
 /** The main wallet's balances (the account you sign in with). */
 function useMainWallet() {
@@ -160,7 +159,7 @@ function StorageCard() {
 export function WalletSidebarCard() {
   const me = useMainWallet();
   const storage = useStorage();
-  const held = storage.data?.holdings.filter((holding) => Number(holding.amount) > 0) ?? [];
+  const { shown, more } = storagePreview(storage.data?.holdings ?? []);
 
   return (
     <Link
@@ -196,11 +195,11 @@ export function WalletSidebarCard() {
           <span className="text-fg-faint text-[11px] font-semibold tracking-wider uppercase">
             Creator storage
           </span>
-          {held.length === 0 ? (
+          {shown.length === 0 ? (
             <span className="text-fg-muted text-[12px]">Empty</span>
           ) : (
             <dl className="grid gap-0.5">
-              {held.slice(0, STORAGE_PREVIEW).map((holding) => (
+              {shown.map((holding) => (
                 <div
                   key={`${holding.code}:${holding.issuer ?? ""}`}
                   className="flex items-center justify-between gap-2 text-[12px]"
@@ -211,11 +210,7 @@ export function WalletSidebarCard() {
                   </dd>
                 </div>
               ))}
-              {held.length > STORAGE_PREVIEW && (
-                <span className="text-fg-faint text-[11px]">
-                  and {held.length - STORAGE_PREVIEW} more
-                </span>
-              )}
+              {more > 0 && <span className="text-fg-faint text-[11px]">and {more} more</span>}
             </dl>
           )}
         </div>
