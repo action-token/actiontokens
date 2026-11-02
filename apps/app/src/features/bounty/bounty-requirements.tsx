@@ -105,19 +105,19 @@ export function BountyRequirements({ bounty }: { bounty: Bounty }) {
 
   return (
     <div
-      className="text-fg relative"
+      className="relative text-white"
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
     >
       {twoSided && (
         <div
           aria-hidden
-          className="bg-surface-2 absolute inset-0 translate-x-2 translate-y-2 rotate-2 rounded-[1.4rem] border-2"
+          className="absolute inset-0 translate-x-2 translate-y-2 rotate-2 rounded-[1.4rem] border border-white/15 bg-white/[0.04]"
         />
       )}
       <div
         ref={card}
-        className="gloss bg-surface relative grid gap-3 overflow-hidden rounded-[1.4rem] border-2 p-5"
+        className="gloss relative grid gap-3 overflow-hidden rounded-[1.4rem] border border-white/20 bg-neutral-900/70 p-5"
       >
         <header className="flex items-center justify-between gap-2">
           <h2 className="display text-lg">
@@ -128,7 +128,7 @@ export function BountyRequirements({ bounty }: { bounty: Bounty }) {
               <TurnButton label="Previous requirements" onClick={() => turn(-1)}>
                 <ChevronLeft className="size-4" />
               </TurnButton>
-              <span className="text-fg-muted num w-8 text-center text-xs font-semibold">
+              <span className="num w-8 text-center text-xs font-semibold text-white/70">
                 {index + 1}/{sides.length}
               </span>
               <TurnButton label="Next requirements" onClick={() => turn(1)}>
@@ -153,7 +153,7 @@ export function BountyRequirements({ bounty }: { bounty: Bounty }) {
                       "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold transition-colors",
                       position === index
                         ? "bg-primary text-primary-foreground border-transparent"
-                        : "text-fg-muted hover:text-fg",
+                        : "border-white/20 text-white/70 hover:text-white",
                     )}
                   >
                     <Icon className="size-3" /> {label}
@@ -161,7 +161,7 @@ export function BountyRequirements({ bounty }: { bounty: Bounty }) {
                 );
               })}
             </div>
-            <div aria-hidden className="bg-surface-2 h-1 overflow-hidden rounded-full">
+            <div aria-hidden className="h-1 overflow-hidden rounded-full bg-white/15">
               <div ref={bar} className="bg-primary h-full origin-left" />
             </div>
           </div>
@@ -190,7 +190,7 @@ export function BountyRequirements({ bounty }: { bounty: Bounty }) {
           })}
         </div>
         {!side && bounty.music?.mode !== "MUSIC_ONLY" && (
-          <p className="text-fg-muted text-sm italic">No specific requirements listed.</p>
+          <p className="text-sm text-white/70 italic">No specific requirements listed.</p>
         )}
       </div>
     </div>
@@ -212,7 +212,7 @@ function TurnButton({
       aria-label={label}
       title={label}
       onClick={onClick}
-      className="bg-surface-2 hover:bg-surface-3 grid size-7 place-items-center rounded-full transition-colors"
+      className="grid size-7 place-items-center rounded-full bg-white/10 transition-colors hover:bg-white/20"
     >
       {children}
     </button>
@@ -225,7 +225,7 @@ function MusicSide({ bounty, expanded }: { bounty: Bounty; expanded: boolean }) 
   const { shown } = visibleEntries(music.tracks, expanded);
   return (
     <div className="grid gap-2">
-      <ul className="grid gap-2">
+      <ul className="grid gap-1.5">
         {shown.map((track) => (
           <li key={track.id} className="flex items-center gap-3">
             {track.albumArtUrl ? (
@@ -233,22 +233,22 @@ function MusicSide({ bounty, expanded }: { bounty: Bounty; expanded: boolean }) 
               <img
                 src={track.albumArtUrl}
                 alt=""
-                className="size-9 shrink-0 rounded-lg border object-cover"
+                className="size-8 shrink-0 rounded-lg border border-white/15 object-cover"
               />
             ) : (
-              <span className="bg-surface-2 grid size-9 shrink-0 place-items-center rounded-lg border">
-                <Music className="text-fg-muted size-4" />
+              <span className="grid size-8 shrink-0 place-items-center rounded-lg border border-white/15 bg-white/10">
+                <Music className="size-4 text-white/70" />
               </span>
             )}
             <span className="min-w-0 flex-1">
               <b className="block truncate text-[13px] font-semibold">{track.title}</b>
-              <span className="text-fg-muted block truncate text-xs">{track.artistName}</span>
+              <span className="block truncate text-xs text-white/65">{track.artistName}</span>
             </span>
             <span className="font-mono text-xs font-semibold">{track.targetPlays}×</span>
           </li>
         ))}
       </ul>
-      <p className="text-fg-muted border-t pt-2 text-xs">
+      <p className="border-t border-white/15 pt-2 text-xs text-white/65">
         {music.ruleType === "ALL"
           ? `All ${music.tracks.length} tracks required`
           : music.ruleType === "ANY_N"
@@ -262,10 +262,10 @@ function MusicSide({ bounty, expanded }: { bounty: Bounty; expanded: boolean }) 
 function GeneralSide({ steps, expanded }: { steps: string[]; expanded: boolean }) {
   const { shown } = visibleEntries(steps, expanded);
   return (
-    <ol className="grid gap-2.5">
+    <ol className="grid gap-3.5">
       {shown.map((step, position) => (
-        <li key={position} className="text-fg-muted flex items-start gap-2.5 text-sm leading-snug">
-          <CheckCircle2 className="text-primary-text mt-0.5 size-4 shrink-0" /> {step}
+        <li key={position} className="flex items-start gap-2.5 text-sm leading-snug text-white/80">
+          <CheckCircle2 className="text-primary mt-0.5 size-4 shrink-0" /> {step}
         </li>
       ))}
     </ol>
@@ -291,7 +291,7 @@ function MoreButton({
       type="button"
       aria-expanded={expanded}
       onClick={() => onToggle(!expanded)}
-      className="flex items-center gap-1 justify-self-start text-xs font-semibold"
+      className="flex items-center gap-1 justify-self-start text-xs font-semibold text-white/85 hover:text-white"
     >
       {expanded ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
       {expanded ? "Show less" : `+${extra} more`}
