@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, LogIn, Mic2, Plus, ScanLine, Search } from "lucide-react";
+import { ArrowUpRight, LogIn, Mic2, Plus, ScanLine } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -19,13 +19,13 @@ import { api } from "~/trpc/react";
 import { Avatar } from "./context-panel";
 import { AR_URL, ARTIST_URL, artistEntry, GROUPS, isActive, type NavItem } from "./nav";
 import { ResizeHandle } from "./resize-handle";
-import { SearchBox } from "./search-box";
-import { BalanceCard, SidebarTools } from "./sidebar-tools";
+import { RailTools, SidebarSearchRow } from "./sidebar-search";
+import { BalanceCard } from "./sidebar-tools";
 import { SidebarTheme } from "./sidebar-theme";
 
 /**
- * The desktop sidebar: search with notifications, settings and log out beside
- * it, links in groups (the page you're on is filled in the brand yellow), your
+ * The desktop sidebar: a row of Search, notifications, settings and log out
+ * (Search opens the search field there), links in groups (the page you're on is filled in the brand yellow), your
  * balances, then your account at the bottom (opens the wallet dialog) with a
  * Recharge button, then the theme, socials, info pages and copyright. Below the xl breakpoint it is an icon rail.
  */
@@ -35,11 +35,11 @@ export function Sidebar() {
       aria-label="Main"
       className="bg-surface relative sticky top-0 hidden h-dvh min-w-0 grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-2 border-r px-3 py-3 sm:grid"
     >
-      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3 pb-3">
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4 pb-2">
         <Link
           href="/"
           aria-label="Bandcoin marketplace home"
-          className="flex items-center justify-center gap-2 xl:justify-start xl:px-2"
+          className="flex items-center justify-center gap-2.5 xl:justify-start xl:px-1.5"
         >
           <Image
             src="/images/logo.png"
@@ -56,22 +56,15 @@ export function Sidebar() {
             <span className="marker text-primary-text mt-0.5 block text-[11px]">marketplace</span>
           </span>
         </Link>
-        <div className="hidden items-center gap-1.5 xl:flex">
-          <SearchBox className="min-w-0 flex-1" />
-          <SidebarTools />
+        <div className="hidden min-w-0 xl:grid">
+          <SidebarSearchRow />
         </div>
-        <Link
-          href="/marketplace"
-          aria-label="Search"
-          title="Search"
-          className="bg-surface-2 text-fg-muted hover:text-fg mx-auto flex size-9 items-center justify-center rounded-full xl:hidden"
-        >
-          <Search className="size-4" />
-        </Link>
-        <SidebarTools className="flex-col xl:hidden" />
+        <div className="grid xl:hidden">
+          <RailTools />
+        </div>
       </div>
 
-      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-0.5 overflow-y-auto">
+      <div className="-mx-1 grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-1 overflow-y-auto px-1 pt-0.5 pb-2">
         {/* useSearchParams needs a boundary; links render right away, the highlight follows */}
         <Suspense fallback={<Links tab={null} />}>
           <LinksWithTab />
@@ -100,7 +93,12 @@ function Links({ tab }: { tab: string | null }) {
       {GROUPS.map((group, index) => (
         <Fragment key={group.title}>
           {index > 0 && <div className="bg-border mx-2 my-2 h-px xl:hidden" />}
-          <span className="text-fg-faint hidden px-3 pt-2.5 pb-0.5 text-[11px] font-semibold tracking-wider uppercase xl:block">
+          <span
+            className={cn(
+              "text-fg-faint hidden px-3 pb-1 text-[11px] font-semibold tracking-[0.12em] uppercase xl:block",
+              index === 0 ? "pt-1" : "pt-4",
+            )}
+          >
             {group.title}
           </span>
           {group.items.map((entry) => (
@@ -115,7 +113,7 @@ function Links({ tab }: { tab: string | null }) {
 function NavLink({ entry, active }: { entry: NavItem; active: boolean }) {
   const { icon: Icon, href, label } = entry;
   const className = cn(
-    "text-fg-muted hover:bg-surface-2 hover:text-fg flex h-9 w-full items-center justify-center gap-3 rounded-lg border-2 border-transparent text-sm font-medium transition-colors xl:justify-start xl:px-3",
+    "text-fg-muted hover:bg-surface-2 hover:text-fg flex h-10 w-full items-center justify-center gap-3 rounded-xl border-2 border-transparent text-sm font-medium transition-colors xl:justify-start xl:px-3",
     active &&
       "bg-primary text-primary-foreground border-fg hover:bg-primary hover:text-primary-foreground font-semibold shadow-[2px_3px_0_0_var(--color-fg)]",
   );

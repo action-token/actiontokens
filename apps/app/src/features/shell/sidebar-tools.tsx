@@ -15,8 +15,9 @@ import { api } from "~/trpc/react";
 
 import { Avatar } from "./context-panel";
 
-const toolClass =
-  "bg-surface-2 text-fg-muted hover:text-fg relative flex size-9 shrink-0 items-center justify-center rounded-full transition-colors";
+/** A cell of the sidebar toolbar. */
+export const toolClass =
+  "text-fg-muted hover:text-fg hover:bg-surface data-[state=open]:bg-surface data-[state=open]:text-fg relative flex h-8 w-full min-w-8 items-center justify-center rounded-full transition-colors";
 
 /** Notifications, Settings and Log out, beside the search. Signed-in only. */
 export function SidebarTools({ className }: { className?: string }) {
