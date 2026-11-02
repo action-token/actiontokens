@@ -9,13 +9,14 @@ import { cn } from "@bandcoin/ui/lib/cn";
 import { BrandMark } from "@bandcoin/ui/patterns/boot-screen";
 
 import { AccountButton } from "~/features/account/account-button";
+import { BountiesPanel } from "~/features/bounty/bounties-panel";
 import { PlayerBar } from "~/features/player/player-bar";
 import { usePlayer } from "~/features/player/player-store";
 
 import { ContextPanel } from "./context-panel";
 import { isActive, MOBILE_TABS } from "./nav";
 import { usePanelWidths } from "./panel-widths";
-import { hasContextPanel } from "./panel-rule";
+import { contextPanelFor } from "./panel-rule";
 import { ResizeHandle } from "./resize-handle";
 import { Sidebar } from "./sidebar";
 
@@ -27,7 +28,7 @@ import { Sidebar } from "./sidebar";
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const hasTrack = usePlayer((state) => state.queue.length > 0);
-  const panel = hasContextPanel(pathname, hasTrack);
+  const panel = contextPanelFor(pathname, hasTrack);
   const { widths, load } = usePanelWidths();
   // Saved widths are read after the first render, so the server and the browser agree.
   useEffect(load, [load]);
@@ -63,12 +64,12 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {panel && (
         <aside
-          aria-label="Now playing"
+          aria-label={panel === "music" ? "Now playing" : "Top bounties and recent activity"}
           className="bg-surface sticky top-0 hidden h-dvh border-l xl:block"
         >
-          <ResizeHandle side="right" label="Resize the now playing panel" />
+          <ResizeHandle side="right" label="Resize the right panel" />
           <div className="h-full overflow-y-auto p-4">
-            <ContextPanel />
+            {panel === "music" ? <ContextPanel /> : <BountiesPanel />}
           </div>
         </aside>
       )}
