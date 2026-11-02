@@ -13,6 +13,7 @@ import { Money } from "~/components/money";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import { Avatar } from "../shell/context-panel";
+import { cardImages } from "./card-images";
 
 export type BountyCardData = RouterOutputs["bounty"]["list"]["items"][number];
 
@@ -26,8 +27,8 @@ export function slotLabel(bounty: Pick<BountyCardData, "status" | "maxWinners" |
 /**
  * A bounty in the grid (same content as the old Bandcoin card): the prize
  * (linked to the asset on Stellar Expert) and how many winners share it,
- * slots left, title, a 250-character brief and who posted it. Music bounties
- * show their album art behind. Join right from the card, or View once you're in.
+ * slots left, title, a 250-character brief and who posted it, over its images
+ * (see cardImages). Join right from the card, or View once you're in.
  */
 export function BountyCard({ bounty }: { bounty: BountyCardData }) {
   const router = useRouter();
@@ -42,21 +43,21 @@ export function BountyCard({ bounty }: { bounty: BountyCardData }) {
     onError: (error) => toast.error(error.message),
   });
 
-  const art = bounty.musicArt.filter((track) => track.albumArtUrl);
+  const images = cardImages(bounty);
   const canJoin = !bounty.joined && !bounty.isCreator && bounty.status === "RUNNING";
   const href = `/bounty/${bounty.id}`;
 
   return (
     <article className="group bg-surface hover:border-fg relative isolate flex min-h-64 flex-col overflow-hidden rounded-[1.4rem] border-2 p-5 transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-[6px_7px_0_0_var(--color-primary)]">
-      {art.length > 0 && (
+      {images.length > 0 && (
         <div aria-hidden className="absolute inset-0 -z-10 flex">
-          {art.map((track) => (
-            // eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts
+          {images.map((url, index) => (
+            // eslint-disable-next-line @next/next/no-img-element -- images come from many hosts
             <img
-              key={track.title}
-              src={track.albumArtUrl ?? ""}
+              key={`${url}-${index}`}
+              src={url}
               alt=""
-              className="h-full min-w-0 flex-1 scale-105 object-cover opacity-60 transition-transform duration-700 group-hover:scale-110"
+              className="h-full min-w-0 flex-1 object-cover opacity-60"
             />
           ))}
           <div className="from-surface/85 via-surface/75 to-surface/95 absolute inset-0 bg-gradient-to-b" />
