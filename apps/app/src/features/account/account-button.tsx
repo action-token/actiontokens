@@ -24,7 +24,7 @@ import { api, type RouterOutputs } from "~/trpc/react";
 
 type Me = NonNullable<RouterOutputs["account"]["me"]>;
 
-/** The header's sign-in button, or, when signed in, the account menu with balances. */
+/** The phone top bar's sign-in button, or, when signed in, the account menu with balances. */
 export function AccountButton() {
   const { status } = useSession();
   const openDialog = useConnectWalletDialogStore((state) => state.setIsOpen);
@@ -61,54 +61,63 @@ function AccountMenu({ me }: { me: Me }) {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-72">
-        <DropdownMenuLabel className="grid gap-1 font-normal">
-          <span className="text-fg truncate text-sm font-semibold">{name}</span>
-          {me.walletAddress && <CopyAddress address={me.walletAddress} />}
-        </DropdownMenuLabel>
-        <dl className="grid grid-cols-3 gap-2 px-2 pb-2">
-          {(["BANDCOIN", "XLM", "USDC"] as const).map((currency) => (
-            <div key={currency} className="bg-surface-2 grid gap-0.5 rounded-sm px-2 py-1.5">
-              <dt className="text-fg-faint text-[11px] font-medium">{currency}</dt>
-              <dd className="truncate text-sm font-semibold">
-                <Money amount={me.balances[currency]} currency={currency} short />
-              </dd>
-            </div>
-          ))}
-        </dl>
-        {!me.activated && (
-          <p className="text-warning px-2 pb-2 text-xs">
-            Your wallet isn&apos;t active yet. Add XLM to start.
-          </p>
-        )}
-        <DropdownMenuSeparator />
-        {me.username && (
-          <DropdownMenuItem asChild>
-            <Link href={`/u/${me.username}`}>
-              <UserRound /> Your profile
-            </Link>
-          </DropdownMenuItem>
-        )}
-        <DropdownMenuItem asChild>
-          <Link href="/collection">
-            <Layers /> My collection
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/wallet">
-            <Wallet /> Wallet
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/settings">
-            <Settings /> Settings
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => void signOut({ redirect: false })}>
-          <LogOut /> Sign out
-        </DropdownMenuItem>
+        <AccountMenuItems me={me} name={name} />
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+/** Who you are, your balances and the account links; goes inside a DropdownMenuContent. */
+export function AccountMenuItems({ me, name }: { me: Me; name: string }) {
+  return (
+    <>
+      <DropdownMenuLabel className="grid gap-1 font-normal">
+        <span className="text-fg truncate text-sm font-semibold">{name}</span>
+        {me.walletAddress && <CopyAddress address={me.walletAddress} />}
+      </DropdownMenuLabel>
+      <dl className="grid grid-cols-3 gap-2 px-2 pb-2">
+        {(["BANDCOIN", "XLM", "USDC"] as const).map((currency) => (
+          <div key={currency} className="bg-surface-2 grid gap-0.5 rounded-sm px-2 py-1.5">
+            <dt className="text-fg-faint text-[11px] font-medium">{currency}</dt>
+            <dd className="truncate text-sm font-semibold">
+              <Money amount={me.balances[currency]} currency={currency} short />
+            </dd>
+          </div>
+        ))}
+      </dl>
+      {!me.activated && (
+        <p className="text-warning px-2 pb-2 text-xs">
+          Your wallet isn&apos;t active yet. Add XLM to start.
+        </p>
+      )}
+      <DropdownMenuSeparator />
+      {me.username && (
+        <DropdownMenuItem asChild>
+          <Link href={`/u/${me.username}`}>
+            <UserRound /> Your profile
+          </Link>
+        </DropdownMenuItem>
+      )}
+      <DropdownMenuItem asChild>
+        <Link href="/collection">
+          <Layers /> My collection
+        </Link>
+      </DropdownMenuItem>
+      <DropdownMenuItem asChild>
+        <Link href="/wallet">
+          <Wallet /> Wallet
+        </Link>
+      </DropdownMenuItem>
+      <DropdownMenuItem asChild>
+        <Link href="/settings">
+          <Settings /> Settings
+        </Link>
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem onSelect={() => void signOut({ redirect: false })}>
+        <LogOut /> Sign out
+      </DropdownMenuItem>
+    </>
   );
 }
 

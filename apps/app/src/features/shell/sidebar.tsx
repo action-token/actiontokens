@@ -1,44 +1,68 @@
 "use client";
 
-import { ArrowUpRight, Mic2, Plus, ScanLine } from "lucide-react";
+import { ArrowUpRight, LogIn, Mic2, Plus, ScanLine, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Fragment, Suspense } from "react";
 
+import { Button } from "@bandcoin/ui/components/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@bandcoin/ui/components/dropdown-menu";
+import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { cn } from "@bandcoin/ui/lib/cn";
 import { BrandMark } from "@bandcoin/ui/patterns/boot-screen";
 import { copyrightLine, INFO_LINKS, SOCIALS } from "@bandcoin/ui/patterns/site-links";
 import { abbreviateAddress } from "@bandcoin/utils/address";
+import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
 import { Money } from "~/components/money";
+import { AccountMenuItems } from "~/features/account/account-button";
 import { api } from "~/trpc/react";
 
 import { Avatar } from "./context-panel";
 import { AR_URL, ARTIST_URL, artistEntry, GROUPS, isActive, type NavItem } from "./nav";
 import { ResizeHandle } from "./resize-handle";
+import { SearchBox } from "./search-box";
 import { SidebarTheme } from "./sidebar-theme";
 
 /**
- * The desktop sidebar: links in groups (the page you're on is filled in the
- * brand yellow), and your account at the bottom with your balance and a
- * Recharge button, then the theme, socials, info pages and copyright. Below the xl breakpoint it is an icon rail.
+ * The desktop sidebar: search, links in groups (the page you're on is filled in
+ * the brand yellow), and your account at the bottom with your balance, which
+ * opens the account menu, and a Recharge button, then the theme, socials, info pages and copyright. Below the xl breakpoint it is an icon rail.
  */
 export function Sidebar() {
+  const pathname = usePathname();
   return (
     <nav
       aria-label="Main"
       className="bg-surface relative sticky top-0 hidden h-dvh min-w-0 grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-2 border-r px-3 py-3 sm:grid"
     >
-      <Link
-        href="/"
-        className="flex items-center justify-center gap-2 pb-3 xl:justify-start xl:px-2"
-      >
-        <BrandMark className="size-[28px]" />
-        <span className="font-display hidden text-[15px] font-extrabold tracking-tight xl:inline">
-          Bandcoin
-        </span>
-      </Link>
+      <div className="grid min-w-0 gap-3 pb-3">
+        <Link href="/" className="flex items-center justify-center gap-2 xl:justify-start xl:px-2">
+          <BrandMark className="size-[28px]" />
+          <span className="font-display hidden text-[15px] font-extrabold tracking-tight xl:inline">
+            Bandcoin
+          </span>
+        </Link>
+        {/* The marketplace has its own search beside the filters; one box is enough. */}
+        {pathname !== "/marketplace" && (
+          <>
+            <SearchBox className="hidden xl:block" />
+            <Link
+              href="/marketplace"
+              aria-label="Search"
+              title="Search"
+              className="bg-surface-2 text-fg-muted hover:text-fg mx-auto flex size-9 items-center justify-center rounded-full xl:hidden"
+            >
+              <Search className="size-4" />
+            </Link>
+          </>
+        )}
+      </div>
 
       <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-0.5 overflow-y-auto">
         {/* useSearchParams needs a boundary; links render right away, the highlight follows */}
@@ -182,8 +206,23 @@ function LaunchTile({
 /** Who you are and what you have, always in view. Signed out it's a sign-in prompt in the header instead. */
 function AccountCard() {
   const { status } = useSession();
+  const openSignIn = useConnectWalletDialogStore((state) => state.setIsOpen);
   const me = api.account.me.useQuery(undefined, { enabled: status === "authenticated" });
-  if (!me.data) return null;
+
+  if (status === "loading" || (status === "authenticated" && me.isPending))
+    return <Skeleton className="h-14 w-full rounded-xl" />;
+  if (!me.data)
+    return (
+      <Button
+        className="w-full"
+        title="Sign in"
+        aria-label="Sign in"
+        onClick={() => openSignIn(true)}
+      >
+        <LogIn />
+        <span className="hidden xl:inline">Sign in</span>
+      </Button>
+    );
   const name =
     me.data.displayName ??
     me.data.username ??
@@ -191,22 +230,34 @@ function AccountCard() {
 
   return (
     <div className="border-fg bg-bg flex min-w-0 items-center justify-center gap-2 rounded-xl border-[3px] p-2 shadow-[3px_4px_0_0_var(--color-primary)] xl:justify-between">
-      <Link href="/settings" className="flex min-w-0 items-center gap-2.5" title={name}>
-        <Avatar
-          name={name}
-          url={me.data.avatarUrl}
-          className="bg-surface-3 grid size-9 shrink-0 place-items-center rounded-full object-cover text-xs font-bold"
-        />
-        <span className="hidden min-w-0 xl:grid">
-          <b className="truncate text-sm leading-tight">{name}</b>
-          <Money
-            amount={me.data.balances.BANDCOIN}
-            currency="BANDCOIN"
-            short
-            className="text-fg-muted text-xs"
-          />
-        </span>
-      </Link>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            aria-label="Account menu"
+            title={name}
+            className="flex min-w-0 flex-1 items-center justify-center gap-2.5 rounded-lg text-left xl:justify-start"
+          >
+            <Avatar
+              name={name}
+              url={me.data.avatarUrl}
+              className="bg-surface-3 grid size-9 shrink-0 place-items-center rounded-full object-cover text-xs font-bold"
+            />
+            <span className="hidden min-w-0 xl:grid">
+              <b className="truncate text-sm leading-tight">{name}</b>
+              <Money
+                amount={me.data.balances.BANDCOIN}
+                currency="BANDCOIN"
+                short
+                className="text-fg-muted text-xs"
+              />
+            </span>
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent side="top" align="start" sideOffset={10} className="w-72">
+          <AccountMenuItems me={me.data} name={name} />
+        </DropdownMenuContent>
+      </DropdownMenu>
       <Link
         href="/recharge"
         title="Recharge"

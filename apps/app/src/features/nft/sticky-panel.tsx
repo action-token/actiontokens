@@ -2,17 +2,17 @@
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
-/** Just under the page header. */
-const HEADER_GAP = 80;
+/** Just under the top of the screen. */
+const TOP_GAP = 16;
 const BOTTOM_GAP = 24;
 
 /**
- * Where a side panel sticks. One that fits stays under the header; a taller
+ * Where a side panel sticks. One that fits stays near the top; a taller
  * one scrolls with the page until its bottom shows, then stays, so nothing in
  * it is ever out of reach.
  */
 export const stickyTop = (panelHeight: number, viewportHeight: number) =>
-  Math.min(HEADER_GAP, viewportHeight - panelHeight - BOTTOM_GAP);
+  Math.min(TOP_GAP, viewportHeight - panelHeight - BOTTOM_GAP);
 
 export function StickyPanel({
   id,
@@ -24,7 +24,7 @@ export function StickyPanel({
   children: ReactNode;
 }) {
   const panel = useRef<HTMLElement>(null);
-  const [top, setTop] = useState(HEADER_GAP);
+  const [top, setTop] = useState(TOP_GAP);
 
   useEffect(() => {
     const element = panel.current;

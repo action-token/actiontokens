@@ -1,9 +1,8 @@
 "use client";
 
-import { Search } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { type CSSProperties, type FormEvent, type ReactNode, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { type CSSProperties, type ReactNode, useEffect } from "react";
 
 import { cn } from "@bandcoin/ui/lib/cn";
 import { BrandMark } from "@bandcoin/ui/patterns/boot-screen";
@@ -18,12 +17,13 @@ import { isActive, MOBILE_TABS } from "./nav";
 import { usePanelWidths } from "./panel-widths";
 import { contextPanelFor } from "./panel-rule";
 import { ResizeHandle } from "./resize-handle";
+import { SearchBox } from "./search-box";
 import { Sidebar } from "./sidebar";
 
 /**
- * The frame around every fan page: sidebar, top bar with search and account,
- * a right panel that changes with the page, and the player at the bottom.
- * On phones the sidebar becomes a bottom tab bar under the player.
+ * The frame around every fan page: sidebar with search and account, a right
+ * panel that changes with the page, and the player at the bottom. On phones the
+ * sidebar becomes a small top bar and a bottom tab bar under the player.
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -51,12 +51,16 @@ export function AppShell({ children }: { children: ReactNode }) {
       <Sidebar />
 
       <div className="flex min-w-0 flex-col">
-        <header className="bg-bg/85 sticky top-0 z-30 flex h-16 items-center gap-3 border-b px-4 backdrop-blur sm:px-6">
-          <Link href="/" className="sm:hidden" aria-label="Home">
+        {/* Phones have no sidebar, so search and the account stay in a small bar. */}
+        <header className="bg-bg/85 sticky top-0 z-30 flex h-16 items-center gap-3 border-b px-4 backdrop-blur sm:hidden">
+          <Link href="/" aria-label="Home">
             <BrandMark className="size-7" />
           </Link>
-          {/* The marketplace has its own search beside the filters; one box is enough. */}
-          {pathname === "/marketplace" ? <div className="flex-1" /> : <SearchBox />}
+          {pathname === "/marketplace" ? (
+            <div className="flex-1" />
+          ) : (
+            <SearchBox className="flex-1" />
+          )}
           <AccountButton />
         </header>
         <main className="flex-1 pb-32 sm:pb-20">{children}</main>
@@ -99,30 +103,5 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
       </div>
     </div>
-  );
-}
-
-/** Searches the marketplace (songs, artists, items). */
-function SearchBox() {
-  const router = useRouter();
-  const [text, setText] = useState("");
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    const query = text.trim();
-    router.push(query ? `/marketplace?search=${encodeURIComponent(query)}` : "/marketplace");
-  };
-  return (
-    <form role="search" onSubmit={submit} className="min-w-0 flex-1">
-      <label className="bg-surface text-fg-faint focus-within:border-primary-text flex h-10 max-w-md items-center gap-2 rounded-full border px-4 text-sm">
-        <Search className="size-4 shrink-0" />
-        <input
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          placeholder="Search songs, artists, items"
-          aria-label="Search"
-          className="text-fg placeholder:text-fg-faint min-w-0 flex-1 bg-transparent outline-none"
-        />
-      </label>
-    </form>
   );
 }
