@@ -56,11 +56,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link href="/" aria-label="Home">
             <BrandMark className="size-7" />
           </Link>
-          {pathname === "/marketplace" ? (
-            <div className="flex-1" />
-          ) : (
-            <SearchBox className="flex-1" />
-          )}
+          <SearchBox className="flex-1" />
           <AccountButton />
         </header>
         <main className="flex-1 pb-32 sm:pb-20">{children}</main>

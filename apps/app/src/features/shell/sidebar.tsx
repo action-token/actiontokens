@@ -35,7 +35,6 @@ import { SidebarTheme } from "./sidebar-theme";
  * opens the account menu, and a Recharge button, then the theme, socials, info pages and copyright. Below the xl breakpoint it is an icon rail.
  */
 export function Sidebar() {
-  const pathname = usePathname();
   return (
     <nav
       aria-label="Main"
@@ -48,20 +47,15 @@ export function Sidebar() {
             Bandcoin
           </span>
         </Link>
-        {/* The marketplace has its own search beside the filters; one box is enough. */}
-        {pathname !== "/marketplace" && (
-          <>
-            <SearchBox className="hidden xl:block" />
-            <Link
-              href="/marketplace"
-              aria-label="Search"
-              title="Search"
-              className="bg-surface-2 text-fg-muted hover:text-fg mx-auto flex size-9 items-center justify-center rounded-full xl:hidden"
-            >
-              <Search className="size-4" />
-            </Link>
-          </>
-        )}
+        <SearchBox className="hidden xl:block" />
+        <Link
+          href="/marketplace"
+          aria-label="Search"
+          title="Search"
+          className="bg-surface-2 text-fg-muted hover:text-fg mx-auto flex size-9 items-center justify-center rounded-full xl:hidden"
+        >
+          <Search className="size-4" />
+        </Link>
       </div>
 
       <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-0.5 overflow-y-auto">

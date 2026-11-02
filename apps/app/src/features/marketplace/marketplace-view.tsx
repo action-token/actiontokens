@@ -7,7 +7,7 @@ import { useCallback } from "react";
 import { Button } from "@bandcoin/ui/components/button";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { FilterChips, SearchInput, Toolbar } from "@bandcoin/ui/patterns/toolbar";
+import { FilterChips, Toolbar } from "@bandcoin/ui/patterns/toolbar";
 
 import { api, type RouterInputs } from "~/trpc/react";
 
@@ -53,7 +53,6 @@ export function MarketplaceView() {
     },
     [params, pathname, router],
   );
-  const onSearch = useCallback((value: string) => setParam("search", value, ""), [setParam]);
 
   const browse = api.catalog.browse.useInfiniteQuery(
     {
@@ -69,12 +68,6 @@ export function MarketplaceView() {
   return (
     <div className="grid gap-6">
       <Toolbar>
-        <SearchInput
-          key={search}
-          value={search}
-          onSearch={onSearch}
-          placeholder="Search items or artists"
-        />
         <label className="text-fg-muted flex items-center gap-2 text-sm sm:ml-auto">
           Sort
           <select
