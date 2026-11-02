@@ -51,7 +51,7 @@ export function LockedContent({
   const radius = radiusOf(pieces);
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid items-start gap-4 lg:grid-cols-2">
       <section className="bg-surface grid content-start gap-3 rounded-[1.2rem] border-2 p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-fg-muted flex items-center gap-2 text-xs font-semibold tracking-wider uppercase">

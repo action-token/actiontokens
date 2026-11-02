@@ -13,11 +13,22 @@ import {
   Unlock,
   Video,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useState } from "react";
 
+import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { cn } from "@bandcoin/ui/lib/cn";
 
 import type { RouterOutputs } from "~/trpc/react";
+
+import { directionsLink } from "./map-view";
+
+/** Mapbox is heavy, so it only loads for items that have places. */
+const PlacesMap = dynamic(() => import("./places-map"), {
+  ssr: false,
+  loading: () => <Skeleton className="h-72 w-full rounded-lg" />,
+});
+const MAP_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_API;
 
 export type Preview = RouterOutputs["item"]["bySlug"]["lockedContent"][number];
 type Kind = Preview["type"];
@@ -225,29 +236,42 @@ export function UnlockPlaces({ pieces, radius }: { pieces: Preview[]; radius: nu
           Owning a copy opens its rewards right away. No places to visit.
         </p>
       )}
-      {gated.map((piece, index) => (
-        <div key={piece.id} className="grid gap-2 border-t pt-4">
-          <p className="text-xs font-semibold">
-            {labelOf(piece.type, piece.label, index)} ·{" "}
-            {plural(piece.unlock!.places.length, "place")}
-          </p>
-          <Places places={piece.unlock!.places} />
+      {gated.length > 0 && MAP_TOKEN ? (
+        <div className="grid gap-2 border-t pt-4">
+          <PlacesMap
+            token={MAP_TOKEN}
+            places={gated.flatMap((piece, index) =>
+              piece.unlock!.places.map((place) => ({
+                ...place,
+                reward: labelOf(piece.type, piece.label, index),
+              })),
+            )}
+          />
+          <p className="text-fg-muted text-xs">Tap a pin to see the place and get directions.</p>
         </div>
-      ))}
+      ) : (
+        gated.map((piece, index) => (
+          <div key={piece.id} className="grid gap-2 border-t pt-4">
+            <p className="text-xs font-semibold">
+              {labelOf(piece.type, piece.label, index)} ·{" "}
+              {plural(piece.unlock!.places.length, "place")}
+            </p>
+            <Places places={piece.unlock!.places} />
+          </div>
+        ))
+      )}
     </div>
   );
 }
 
-const mapsLink = (place: Place) =>
-  `https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lng}`;
-
-export function Places({ places }: { places: Place[] }) {
+/** The plain list, for when the map isn't set up. */
+function Places({ places }: { places: Place[] }) {
   return (
     <ol className="grid gap-1.5 sm:grid-cols-2">
       {places.map((place, index) => (
         <li key={index}>
           <a
-            href={mapsLink(place)}
+            href={directionsLink(place)}
             target="_blank"
             rel="noreferrer"
             className="bg-surface-2/60 hover:border-border-strong flex items-center gap-2 rounded-lg border p-2 text-xs"
