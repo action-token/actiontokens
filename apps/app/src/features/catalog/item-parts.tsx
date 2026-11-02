@@ -2,6 +2,8 @@ import { ChevronDown, ChevronRight, ExternalLink, Lock } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { cn } from "@bandcoin/ui/lib/cn";
+
 import { Money } from "~/components/money";
 import { ItemCard } from "~/features/catalog/item-card";
 import { Avatar } from "~/features/shell/context-panel";
@@ -44,7 +46,7 @@ function Fold({ title, open, children }: { title: string; open?: boolean; childr
 }
 
 /** The description, the numbers the hero doesn't show, the artist and (folded) the blockchain facts. */
-export function ItemDetails({ item }: { item: Item }) {
+export function ItemDetails({ item, single = false }: { item: Item; single?: boolean }) {
   const facts: [string, string][] = [
     ["Type", TYPE_LABEL[item.type] ?? item.type],
     ["Sold", item.sold.toLocaleString()],
@@ -79,7 +81,7 @@ export function ItemDetails({ item }: { item: Item }) {
       <p className="text-fg-muted text-[15px] leading-relaxed whitespace-pre-line">
         {item.description?.trim() ? item.description : "No description yet."}
       </p>
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className={cn("grid gap-5", !single && "lg:grid-cols-2")}>
         <div className="grid content-start gap-3">
           <Facts rows={facts} />
           <details>
@@ -130,9 +132,9 @@ export function ItemDetails({ item }: { item: Item }) {
   );
 }
 
-export function ItemActivity({ sales }: { sales: Item["recentSales"] }) {
+export function ItemActivity({ sales, open }: { sales: Item["recentSales"]; open?: boolean }) {
   return (
-    <Fold title="Activity">
+    <Fold title="Activity" open={open}>
       {sales.length === 0 ? (
         <p className="text-fg-muted text-sm">No sales yet. Be the first.</p>
       ) : (
@@ -156,8 +158,18 @@ export function ItemActivity({ sales }: { sales: Item["recentSales"] }) {
   );
 }
 
-export function MoreFromArtist({ more, artistName }: { more: More; artistName: string }) {
+export function MoreFromArtist({
+  more,
+  artistName,
+  compact = false,
+}: {
+  more: More;
+  artistName: string;
+  /** One row of three, for a narrow column */
+  compact?: boolean;
+}) {
   if (!more || more.items.length === 0) return null;
+  const items = compact ? more.items.slice(0, 3) : more.items;
   return (
     <section
       className="grid gap-4 pt-4"
@@ -177,9 +189,14 @@ export function MoreFromArtist({ more, artistName }: { more: More; artistName: s
           </Link>
         )}
       </div>
-      <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-5">
-        {more.items.map((entry) => (
-          <ItemCard key={entry.id} item={entry} queue={more.items} />
+      <div
+        className={cn(
+          "grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3",
+          !compact && "lg:grid-cols-5",
+        )}
+      >
+        {items.map((entry) => (
+          <ItemCard key={entry.id} item={entry} queue={items} />
         ))}
       </div>
     </section>

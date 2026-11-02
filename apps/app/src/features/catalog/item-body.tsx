@@ -1,3 +1,4 @@
+import { cn } from "@bandcoin/ui/lib/cn";
 import { PageBody } from "@bandcoin/ui/patterns/page-header";
 
 import { Money } from "~/components/money";
@@ -28,6 +29,7 @@ export function ItemBody({
   const primary = item.listings.find((listing) => listing.kind === "PRIMARY") ?? item.listings[0];
   const left = primary?.remaining ?? null;
   const royalty = royaltyOf(item);
+  const hasLocked = item.lockedContent.length > 0;
 
   return (
     <PageBody wide className="grid gap-8">
@@ -71,19 +73,26 @@ export function ItemBody({
           />
         </StickyPanel>
 
-        <div className="grid min-w-0 gap-4 xl:col-start-1 xl:row-start-1">
+        {/* Without locked content the left is short: more from the artist fills it, and Details takes up any rest so both sides end level. */}
+        <div
+          className={cn(
+            "grid min-w-0 gap-4 xl:col-start-1 xl:row-start-1",
+            !hasLocked && "xl:grid-rows-[1fr_auto_auto] xl:self-stretch",
+          )}
+        >
           <LockedContent
             itemId={item.id}
             pieces={item.lockedContent}
             owned={item.ownedQuantity > 0}
             network={item.network}
           />
-          <ItemDetails item={item} />
-          <ItemActivity sales={item.recentSales} />
+          <ItemDetails item={item} single={!hasLocked} />
+          <ItemActivity sales={item.recentSales} open={!hasLocked} />
+          {!hasLocked && <MoreFromArtist more={more} artistName={artistName} compact />}
         </div>
       </div>
 
-      <MoreFromArtist more={more} artistName={artistName} />
+      {hasLocked && <MoreFromArtist more={more} artistName={artistName} />}
     </PageBody>
   );
 }
