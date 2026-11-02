@@ -1,6 +1,7 @@
 "use client";
 
 import { CircleCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useId, useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
@@ -39,6 +40,7 @@ export function GuestCheckout({
   soldOut: boolean;
   onBusyChange: (busy: boolean) => void;
 }) {
+  const router = useRouter();
   const emailId = useId();
   const [typed, setTyped] = useState("");
   const [email, setEmail] = useState("");
@@ -84,6 +86,8 @@ export function GuestCheckout({
       }
       const paid = await charge.mutateAsync({ orderId: order.orderId, email, card: token });
       setDone({ email, delivered: paid.status === "DELIVERED" });
+      // The copies left, sold and owners on this page come from the server.
+      router.refresh();
     } catch (error) {
       const appCode = (error as { data?: { appCode?: string | null } }).data?.appCode;
       const final = mustNotPayAgain(appCode);
@@ -168,6 +172,11 @@ export function GuestCheckout({
             "Pay by card"
           )}
         </Button>
+      )}
+      {paying && (
+        <p role="status" className="text-fg-muted -mt-2 text-center text-xs">
+          This can take up to a minute. Please keep this page open.
+        </p>
       )}
     </div>
   );
