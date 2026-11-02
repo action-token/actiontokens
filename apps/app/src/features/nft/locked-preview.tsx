@@ -22,11 +22,12 @@ import { cn } from "@bandcoin/ui/lib/cn";
 import type { RouterOutputs } from "~/trpc/react";
 
 import { directionsLink } from "./map-view";
+import { travelLine } from "./travel-line";
 
 /** Mapbox is heavy, so it only loads for items that have places. */
 const PlacesMap = dynamic(() => import("./places-map"), {
   ssr: false,
-  loading: () => <Skeleton className="h-72 w-full rounded-lg" />,
+  loading: () => <Skeleton className="h-80 w-full rounded-xl" />,
 });
 const MAP_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_API;
 
@@ -86,55 +87,38 @@ export const scrollToPlaces = () =>
 
 /**
  * Before buying: will the rewards come with the copy, or only after a trip?
- * Amber when some need travel, green when everything opens right away.
+ * Amber when some need travel, green when everything opens right away. The
+ * rules for collecting a place are under "Where to unlock".
  */
 export function UnlockNotice({ pieces }: { pieces: Preview[] }) {
   if (pieces.length === 0) return null;
-  const radius = radiusOf(pieces);
   const { places, gated } = travelOf(pieces);
 
   if (places === 0)
     return (
-      <div className="flex items-start gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
+      <div className="flex items-start gap-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3">
         <Unlock className="mt-0.5 size-4 shrink-0 text-emerald-600" />
-        <p className="text-fg-muted text-sm">
+        <p className="text-fg-muted text-[13px]">
           <span className="text-fg font-semibold">Unlocks right away. </span>
-          All {plural(pieces.length, "reward")} open as soon as you own a copy. No travel needed.
+          {travelLine(pieces.length, 0, 0)}
         </p>
       </div>
     );
 
   return (
-    <div className="grid gap-2.5 rounded-xl border border-amber-500/40 bg-amber-500/5 p-4">
-      <div className="flex items-start gap-3">
-        <Footprints className="mt-0.5 size-4 shrink-0 text-amber-600" />
-        <div className="grid gap-1">
-          <p className="text-sm font-semibold">Requires travel to unlock</p>
-          <p className="text-fg-muted text-sm">
-            {gated >= pieces.length ? (
-              <>
-                This item&apos;s rewards stay locked until you visit{" "}
-                <b className="text-fg">{plural(places, "place")}</b> in person.
-              </>
-            ) : (
-              <>
-                {pieces.length - gated} of {pieces.length} rewards open as soon as you own a copy.
-                {gated === 1 ? " The other one stays" : ` The other ${gated} stay`} locked until you
-                visit <b className="text-fg">{plural(places, "place")}</b> in person.
-              </>
-            )}{" "}
-            Be within {radius} meters of each place, with your phone, to collect it. Every copy you
-            buy unlocks on its own.
-          </p>
-        </div>
+    <div className="flex items-start gap-2.5 rounded-xl border border-amber-500/40 bg-amber-500/5 p-3">
+      <Footprints className="mt-0.5 size-4 shrink-0 text-amber-600" />
+      <div className="grid gap-1 text-[13px]">
+        <p className="font-semibold">Requires travel to unlock</p>
+        <p className="text-fg-muted">{travelLine(pieces.length, gated, places)}</p>
+        <button
+          type="button"
+          onClick={scrollToPlaces}
+          className="justify-self-start text-xs font-semibold text-amber-700 hover:underline dark:text-amber-500"
+        >
+          Check where before you buy →
+        </button>
       </div>
-      <button
-        type="button"
-        onClick={scrollToPlaces}
-        className="ml-7 justify-self-start text-xs font-semibold text-amber-700 hover:underline dark:text-amber-500"
-      >
-        Check where before you buy →
-      </button>
     </div>
   );
 }
@@ -214,44 +198,47 @@ export function RewardTiles({
   );
 }
 
-/** Where each reward unlocks, and how collecting a place works. */
+const STEPS = (radius: number) => [
+  ["Go there", `Within ${radius} meters of the place, in person, with your phone.`],
+  ["Open the AR app", "Open the Bandcoin AR app once you're there."],
+  ["Collect the pin", "The reward unlocks on its own from there."],
+];
+
+/** The rules as three steps, then the places on one big map. */
 export function UnlockPlaces({ pieces, radius }: { pieces: Preview[]; radius: number }) {
   const gated = pieces.filter((piece) => (piece.unlock?.places.length ?? 0) > 0);
+  if (gated.length === 0) return null;
   return (
     <div className="grid gap-4">
-      {gated.length > 0 ? (
-        <div className="grid gap-2">
-          <p className="text-sm font-semibold">How to unlock after buying</p>
-          <ol className="text-fg-muted list-decimal space-y-1 pl-5 text-sm">
-            <li>
-              Go to the place: within <b className="text-fg">{radius} meters</b>, in person, with
-              your phone.
-            </li>
-            <li>Open the Bandcoin AR app once you&apos;re there.</li>
-            <li>Collect the pin. The reward unlocks on its own from there.</li>
-          </ol>
-        </div>
-      ) : (
-        <p className="text-fg-muted text-sm">
-          Owning a copy opens its rewards right away. No places to visit.
-        </p>
-      )}
-      {gated.length > 0 && MAP_TOKEN ? (
-        <div className="grid gap-2 border-t pt-4">
-          <PlacesMap
-            token={MAP_TOKEN}
-            places={gated.flatMap((piece, index) =>
-              piece.unlock!.places.map((place) => ({
-                ...place,
-                reward: labelOf(piece.type, piece.label, index),
-              })),
-            )}
-          />
-          <p className="text-fg-muted text-xs">Tap a pin to see the place and get directions.</p>
-        </div>
+      <ol className="grid gap-2 sm:grid-cols-3">
+        {STEPS(radius).map(([title, body], index) => (
+          <li
+            key={title}
+            className="bg-surface-2/60 flex items-start gap-2.5 rounded-xl border p-3 sm:grid sm:content-start sm:gap-1.5"
+          >
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-white">
+              {index + 1}
+            </span>
+            <span className="grid gap-0.5">
+              <b className="text-sm">{title}</b>
+              <span className="text-fg-muted text-xs">{body}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+      {MAP_TOKEN ? (
+        <PlacesMap
+          token={MAP_TOKEN}
+          places={gated.flatMap((piece, index) =>
+            piece.unlock!.places.map((place) => ({
+              ...place,
+              reward: labelOf(piece.type, piece.label, index),
+            })),
+          )}
+        />
       ) : (
         gated.map((piece, index) => (
-          <div key={piece.id} className="grid gap-2 border-t pt-4">
+          <div key={piece.id} className="grid gap-2">
             <p className="text-xs font-semibold">
               {labelOf(piece.type, piece.label, index)} ·{" "}
               {plural(piece.unlock!.places.length, "place")}
@@ -260,6 +247,10 @@ export function UnlockPlaces({ pieces, radius }: { pieces: Preview[]; radius: nu
           </div>
         ))
       )}
+      <p className="text-fg-muted text-xs">
+        {MAP_TOKEN && "Tap a pin to see the place and get directions. "}Every copy you buy unlocks
+        on its own.
+      </p>
     </div>
   );
 }

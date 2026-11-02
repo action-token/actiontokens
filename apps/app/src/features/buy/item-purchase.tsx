@@ -16,11 +16,14 @@ export function ItemPurchase({
   itemTitle,
   listings,
   nft = false,
+  stacked = false,
 }: {
   itemTitle: string;
   listings: Listing[];
   /** A contract NFT: paid in BANDCOIN or by card, up to 20 copies at a time */
   nft?: boolean;
+  /** One column on wide screens, for a narrow side panel */
+  stacked?: boolean;
 }) {
   // An artist may buy their own contract NFT (to gift a copy); other own listings aren't buyable.
   const buyable = listings.filter(
@@ -41,7 +44,13 @@ export function ItemPurchase({
 
   return (
     <div className="grid content-start gap-4">
-      <BuyPanel key={selected.id} itemTitle={itemTitle} listing={selected} nft={nft} />
+      <BuyPanel
+        key={selected.id}
+        itemTitle={itemTitle}
+        listing={selected}
+        nft={nft}
+        stacked={stacked}
+      />
       {buyable.length > 1 && (
         <section aria-label="Sellers" className="bg-surface grid gap-1 rounded-xl border p-3">
           <h2 className="eyebrow px-2 pt-1 pb-2">Choose a seller</h2>

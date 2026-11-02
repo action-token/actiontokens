@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, Gift, Link2, Lock, MapPin, Play, Sparkles } from "lucide-react";
+import { ExternalLink, Gift, Link2, Lock, MapPin, Play } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
@@ -51,11 +51,11 @@ export function LockedContent({
   const radius = radiusOf(pieces);
 
   return (
-    <div className="grid items-start gap-4 lg:grid-cols-2">
+    <div className="grid gap-4">
       <section className="bg-surface grid content-start gap-3 rounded-[1.2rem] border-2 p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-fg-muted flex items-center gap-2 text-xs font-semibold tracking-wider uppercase">
-            {owned ? <Gift className="size-3.5" /> : <Sparkles className="size-3.5" />}
+            <Gift className="size-3.5" />
             {owned ? "Your rewards" : "What you get"}
           </h2>
           <span className="text-fg-muted text-xs">{summaryOf(pieces)}</span>

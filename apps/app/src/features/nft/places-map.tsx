@@ -4,8 +4,8 @@ import "mapbox-gl/dist/mapbox-gl.css";
 
 import { ExternalLink, MapPin } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useState } from "react";
-import MapGL, { Marker, NavigationControl, Popup } from "react-map-gl/mapbox";
+import { useEffect, useState } from "react";
+import MapGL, { Marker, NavigationControl, Popup, useMap } from "react-map-gl/mapbox";
 
 import { directionsLink, placesView } from "./map-view";
 
@@ -22,6 +22,22 @@ const POPUP_OFFSET = {
   center: [0, 0],
 } satisfies Record<string, [number, number]>;
 
+/**
+ * Mapbox only resizes its canvas with the window. Keep it filling its box when
+ * the box changes size (layout settling), or part of the map stays blank.
+ */
+function FollowContainerSize() {
+  const { current } = useMap();
+  useEffect(() => {
+    const map = current?.getMap();
+    if (!map) return;
+    const observer = new ResizeObserver(() => map.resize());
+    observer.observe(map.getContainer());
+    return () => observer.disconnect();
+  }, [current]);
+  return null;
+}
+
 export type MapPlace = { lat: number; lng: number; label: string | null; reward: string };
 
 /**
@@ -35,7 +51,7 @@ export default function PlacesMap({ places, token }: { places: MapPlace[]; token
   const open = openIndex === null ? null : places[openIndex];
 
   return (
-    <div className="h-72 overflow-hidden rounded-lg border">
+    <div className="h-80 overflow-hidden rounded-xl border">
       <MapGL
         mapboxAccessToken={token}
         mapStyle={`mapbox://styles/mapbox/${resolvedTheme === "dark" ? "dark" : "light"}-v11`}
@@ -44,6 +60,7 @@ export default function PlacesMap({ places, token }: { places: MapPlace[]; token
         cooperativeGestures
         maxPitch={0}
       >
+        <FollowContainerSize />
         <NavigationControl position="bottom-right" showCompass={false} />
         {places.map((place, index) => (
           <Marker key={index} latitude={place.lat} longitude={place.lng} anchor="bottom">

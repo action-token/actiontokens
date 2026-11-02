@@ -45,11 +45,14 @@ export function BuyPanel({
   itemTitle,
   listing,
   nft = false,
+  stacked = false,
 }: {
   itemTitle: string;
   listing: Listing;
   /** Contract NFTs are paid in BANDCOIN or by card */
   nft?: boolean;
+  /** One column on wide screens, for a narrow side panel */
+  stacked?: boolean;
 }) {
   const { status } = useSession();
   const openSignIn = useConnectWalletDialogStore((state) => state.setIsOpen);
@@ -109,7 +112,10 @@ export function BuyPanel({
           : null;
 
   return (
-    <section aria-label="Buy" className="grid gap-6 md:grid-cols-2 md:gap-x-10">
+    <section
+      aria-label="Buy"
+      className={cn("grid gap-6 md:grid-cols-2 md:gap-x-10", stacked && "xl:grid-cols-1")}
+    >
       <div className="grid content-start gap-5">
         <div className="flex items-baseline justify-between gap-3">
           <div className="text-[30px] leading-none font-semibold tracking-tight">
