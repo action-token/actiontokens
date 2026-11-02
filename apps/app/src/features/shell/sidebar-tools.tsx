@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, LogOut, Settings } from "lucide-react";
+import { Bell, ChevronRight, LogOut, Settings } from "lucide-react";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import type { ReactNode } from "react";
@@ -128,14 +128,19 @@ export function BalanceCard() {
   if (status !== "authenticated") return null;
   const balances = me.data?.balances;
   return (
-    <section className="bg-surface-2/60 mx-1 mt-3 hidden gap-1.5 rounded-xl border p-3 xl:grid">
+    <Link
+      href="/wallet"
+      aria-label="Balance: open your wallet"
+      className="group bg-surface-2/60 hover:border-border-strong hover:bg-surface-2 mx-1 mt-3 hidden gap-1.5 rounded-xl border p-3 transition-colors xl:grid"
+    >
       <div className="flex items-center justify-between">
         <h2 className="text-fg-faint text-[11px] font-semibold tracking-wider uppercase">
           Balance
         </h2>
-        <Link href="/wallet" className="text-fg-muted hover:text-fg text-[11px] font-semibold">
-          Wallet
-        </Link>
+        <span className="bg-surface text-fg-muted group-hover:text-fg flex items-center gap-0.5 rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors">
+          Wallet{" "}
+          <ChevronRight className="size-3 transition-transform group-hover:translate-x-0.5" />
+        </span>
       </div>
       {!balances ? (
         <Skeleton className="h-16 w-full" />
@@ -151,6 +156,6 @@ export function BalanceCard() {
           ))}
         </dl>
       )}
-    </section>
+    </Link>
   );
 }

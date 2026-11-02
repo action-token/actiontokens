@@ -2,7 +2,7 @@
 
 import type { LucideIcon } from "lucide-react";
 import { Search, X } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { Input } from "../components/input";
 import { cn } from "../lib/cn";
@@ -31,10 +31,22 @@ export function SearchInput({
   className?: string;
 }) {
   const [text, setText] = useState(value ?? "");
+  // Only typing searches: a new onSearch (the page re-rendering, or navigating
+  // away) must not send the same text again, or it would undo the navigation.
+  const sent = useRef((value ?? "").trim());
+  const latest = useRef(onSearch);
   useEffect(() => {
-    const t = setTimeout(() => onSearch(text.trim()), delay);
+    latest.current = onSearch;
+  }, [onSearch]);
+  useEffect(() => {
+    const next = text.trim();
+    if (next === sent.current) return;
+    const t = setTimeout(() => {
+      sent.current = next;
+      latest.current(next);
+    }, delay);
     return () => clearTimeout(t);
-  }, [text, delay, onSearch]);
+  }, [text, delay]);
 
   return (
     <div className={cn("relative min-w-0 flex-1 sm:w-72 sm:flex-none", className)}>
