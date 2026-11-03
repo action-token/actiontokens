@@ -14,6 +14,7 @@ import { MuralSheet } from "~/components/map/MuralSheet";
 import { NearbyStrip } from "~/components/map/NearbyStrip";
 import { PinSheet } from "~/components/map/PinSheet";
 import { AppShell } from "~/components/shell/AppShell";
+import { NotificationsButton } from "~/components/shell/NotificationsButton";
 import { ProfileButton } from "~/components/shell/ProfileButton";
 import { ArIconButton } from "~/components/ui/ArButton";
 import { CollectCelebration } from "~/components/fx/CollectCelebration";
@@ -432,6 +433,7 @@ export default function MapScreen() {
             className="pointer-events-auto mr-auto"
           />
 
+          <NotificationsButton className="pointer-events-auto" />
           {/* Events sits just under the avatar, centred on it. */}
           <div className="relative">
             <ProfileButton className="pointer-events-auto" />

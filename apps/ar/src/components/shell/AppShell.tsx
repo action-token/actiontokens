@@ -4,6 +4,7 @@ import { type ReactNode } from "react";
 
 import { cn } from "@bandcoin/ui/lib/cn";
 import { BottomTabBar } from "./BottomTabBar";
+import { NotificationsButton } from "./NotificationsButton";
 import { ProfileButton } from "./ProfileButton";
 import { StatusBar } from "./StatusBar";
 
@@ -83,6 +84,7 @@ export function ScreenHeader({
       {(trailing ?? !back) && (
         <div className="flex shrink-0 items-center gap-2">
           {trailing}
+          {!back && <NotificationsButton />}
           {!back && <ProfileButton />}
         </div>
       )}

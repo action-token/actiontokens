@@ -12,8 +12,13 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@bandcoin/ui/components/sheet";
+import { cn } from "@bandcoin/ui/lib/cn";
 
 import { AccountButton } from "~/features/account/account-button";
+import {
+  NotificationsMenuLink,
+  useUnreadNotifications,
+} from "~/features/notifications/notifications-link";
 import { type PortalStatus, usePortal } from "~/features/portal/use-portal";
 
 import { isActive, type NavGroup, navFor, phoneTabs } from "./nav";
@@ -68,6 +73,7 @@ function MobileTabs({
   signedIn: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const unread = useUnreadNotifications();
   const { tabs, more } = phoneTabs(groups, signedIn);
   if (tabs.length === 0 && !more) return null;
   const tabClass =
@@ -95,9 +101,15 @@ function MobileTabs({
             type="button"
             aria-current={hiddenActive ? "page" : undefined}
             onClick={() => setOpen(true)}
-            className={tabClass}
+            className={cn(tabClass, "relative")}
           >
             <Menu className="size-5" />
+            {unread > 0 && (
+              <span
+                aria-label={`${unread} new notifications`}
+                className="bg-danger ring-surface absolute top-1.5 left-[calc(50%+6px)] size-2 rounded-full ring-2"
+              />
+            )}
             More
           </button>
         )}
@@ -110,6 +122,12 @@ function MobileTabs({
           </SheetHeader>
           <div className="grid gap-4 px-4 pb-6">
             <AccountButton />
+            {signedIn && (
+              <NotificationsMenuLink
+                active={pathname.startsWith("/notifications")}
+                onNavigate={() => setOpen(false)}
+              />
+            )}
             <Link
               href="/settings"
               onClick={() => setOpen(false)}

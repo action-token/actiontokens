@@ -26,6 +26,7 @@ import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
 import { api } from "~/trpc/react";
 
+import { NotificationsSideLink } from "../notifications/notifications-link";
 import { WalletSidebarCard } from "../wallet/wallet-view";
 import { AR_URL, FAN_APP_URL } from "./links";
 import { isActive, type NavGroup, type NavItem } from "./nav";
@@ -70,6 +71,9 @@ export function Sidebar({
       </Link>
 
       <div className="border-fg/25 relative min-h-0 [scrollbar-width:none] space-y-3 overflow-y-auto overscroll-contain border-y-2 border-dashed p-2 xl:p-3">
+        <SignedInOnly>
+          <NotificationsSideLink active={pathname.startsWith("/notifications")} />
+        </SignedInOnly>
         {groups.map((group, index) => (
           <div key={group.title}>
             {index > 0 && (
@@ -328,4 +332,10 @@ function ThemeSwitch() {
       ))}
     </div>
   );
+}
+
+/** Renders its children only for a signed-in person (the bell has nothing to show otherwise). */
+function SignedInOnly({ children }: { children: React.ReactNode }) {
+  const { status } = useSession();
+  return status === "authenticated" ? children : null;
 }

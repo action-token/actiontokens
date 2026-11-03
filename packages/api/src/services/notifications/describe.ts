@@ -65,3 +65,73 @@ export function describeNotification(
       return { text: `${name} bought something.`, href: item ? `/item/${item.slug}` : actorPage };
   }
 }
+
+/** What the artist reads in the portal's bell, and the portal page it opens. */
+export function describeForArtist(
+  type: NotificationType,
+  {
+    actor,
+    bounty,
+    item,
+    post,
+  }: Omit<NotificationSubject, "item"> & {
+    item?: { id: string; slug: string; title: string; type: string } | null;
+    post?: { id: string; title: string } | null;
+  },
+): { text: string; href: string | null } {
+  const name = actor.name;
+  const postPage = post ? `/posts/${post.id}` : "/posts";
+  const bountyPage = bounty ? `/bounties/${bounty.id}` : "/bounties";
+  const itemPage = item
+    ? item.type === "TRACK"
+      ? `/music/${item.id}`
+      : `/items/${item.id}`
+    : null;
+
+  switch (type) {
+    case "LIKE":
+      return {
+        text: post ? `${name} liked your post “${post.title}”.` : `${name} liked your post.`,
+        href: postPage,
+      };
+    case "COMMENT":
+      return {
+        text: post
+          ? `${name} commented on your post “${post.title}”.`
+          : `${name} commented on your post.`,
+        href: postPage,
+      };
+    case "FOLLOW":
+      return { text: `${name} started following you.`, href: null };
+    case "PURCHASE":
+      return {
+        text: item ? `${name} bought ${item.title}.` : `${name} bought one of your items.`,
+        href: itemPage ?? "/items",
+      };
+    case "MEMBERSHIP":
+      return {
+        text: item
+          ? `${name} bought your fan token ${item.title}.`
+          : `${name} joined your membership.`,
+        href: "/memberships",
+      };
+    case "BOUNTY_JOINED":
+      return {
+        text: bounty
+          ? `${name} joined your bounty ${bounty.title}.`
+          : `${name} joined your bounty.`,
+        href: bountyPage,
+      };
+    case "BOUNTY_SUBMISSION":
+      return {
+        text: bounty
+          ? `${name} sent a submission to ${bounty.title}.`
+          : `${name} sent a bounty submission.`,
+        href: bountyPage,
+      };
+    case "BOUNTY_COMMENT":
+      return { text: `${name} commented on your bounty.`, href: bountyPage };
+    default:
+      return { ...describeNotification(type, { actor, bounty, item }), href: null };
+  }
+}

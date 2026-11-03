@@ -1,5 +1,6 @@
 import { accountRouter } from "./routers/app/account";
 import { bountyRouter } from "./routers/app/bounty";
+import { notificationRouter } from "./routers/app/notification";
 import { artistRouter } from "./routers/ar/artist";
 import { claimRouter } from "./routers/ar/claim";
 import { coinRouter } from "./routers/ar/coin";
@@ -18,6 +19,7 @@ export const arRouter = createRouter({
   coin: coinRouter,
   event: eventRouter,
   mural: muralRouter,
+  notification: notificationRouter,
   pin: pinRouter,
   post: arPostRouter,
 });
