@@ -8,7 +8,7 @@ import {
   removeOwnComment,
   setPostLike,
 } from "../../services/feed/actions";
-import { feedPage } from "../../services/feed/feed";
+import { feedPage, viewPost } from "../../services/feed/feed";
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 
 const postId = z.string().min(1);
@@ -18,6 +18,13 @@ export const postRouter = createRouter({
   feed: authedProcedure
     .input(z.object({ cursor: z.string().min(1).nullish() }))
     .query(({ ctx, input }) => feedPage(ctx, ctx.session.user, input.cursor ?? null)),
+
+  /** One post on its own page; anyone can open it, locked parts stay hidden. */
+  byId: publicProcedure
+    .input(z.object({ postId }))
+    .query(
+      async ({ ctx, input }) => (await viewPost(ctx, ctx.session?.user ?? null, input.postId)).card,
+    ),
 
   comments: publicProcedure
     .input(z.object({ postId }))

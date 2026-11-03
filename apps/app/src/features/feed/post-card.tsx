@@ -1,86 +1,170 @@
 "use client";
 
-import { Gem, Heart, Lock, MessageCircle } from "lucide-react";
+import { Gem, Globe2, Heart, Lock, MessageCircle, Share2 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRef, useState } from "react";
+import toast from "react-hot-toast";
 
 import { Badge } from "@bandcoin/ui/components/badge";
 import { cn } from "@bandcoin/ui/lib/cn";
+import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
 import { timeAgo } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import { Avatar } from "../shell/context-panel";
-import { PostComments } from "./post-comments";
+import { CommentBox, CommentBubble, PostComments } from "./post-comments";
 import { PostMedia } from "./post-media";
 
 export type FeedPost = RouterOutputs["post"]["feed"]["posts"][number];
 
-/** Long posts start folded at this many characters. */
+/** Long posts start folded at this many characters in the feed. */
 const FOLD_AT = 420;
 
-/** One artist post: who and when, the text and media (or what opens them), then like, comment, collect. */
-export function PostCard({ post }: { post: FeedPost }) {
-  const [showComments, setShowComments] = useState(false);
+/**
+ * One artist post, laid out like a social feed: who and when, the words, the
+ * media edge to edge, the counts, then Like · Comment · Collect · Share and
+ * the newest comment. `full` is the post's own page: every comment, nothing folded.
+ */
+export function PostCard({ post, full = false }: { post: FeedPost; full?: boolean }) {
+  const input = useRef<HTMLTextAreaElement>(null);
+  const href = `/feed/${post.id}`;
   const artistHref = `/artist/${post.artist.slug}`;
 
   return (
-    <article id={`post-${post.id}`} className="bg-surface grid gap-4 rounded-[1.2rem] border p-5">
+    <article
+      id={`post-${post.id}`}
+      className="bg-surface grid gap-3 rounded-[1.2rem] border px-5 pt-4 pb-3"
+    >
       <header className="flex items-center gap-3">
         <Link href={artistHref} className="shrink-0">
           <Avatar name={post.artist.name} url={post.artist.avatarUrl} />
         </Link>
         <div className="min-w-0 flex-1">
-          <Link href={artistHref} className="block truncate text-sm font-semibold hover:underline">
+          <Link
+            href={artistHref}
+            className="block truncate text-[15px] font-semibold hover:underline"
+          >
             {post.artist.name}
           </Link>
-          <p className="text-fg-faint text-xs">{timeAgo(post.createdAt)}</p>
+          <p className="text-fg-muted flex items-center gap-1 text-xs">
+            <Link href={href} className="hover:underline">
+              {timeAgo(post.createdAt)}
+            </Link>
+            <span aria-hidden>·</span>
+            {post.tierName ? (
+              <Lock className="size-3" aria-label="Members only" />
+            ) : (
+              <Globe2 className="size-3" aria-label="Public" />
+            )}
+          </p>
         </div>
         {post.tierName && <Badge variant="secondary">{post.tierName}</Badge>}
       </header>
 
-      <h2 className="display text-lg leading-snug">{post.title}</h2>
-      {post.lock ? <LockedNote post={post} artistHref={artistHref} /> : <PostBody post={post} />}
+      <div className="grid gap-1">
+        <h2 className="text-[15px] leading-snug font-semibold">
+          {full ? post.title : <Link href={href}>{post.title}</Link>}
+        </h2>
+        {!post.lock && <PostText body={post.body ?? ""} full={full} />}
+      </div>
+      {post.lock ? (
+        <LockedNote post={post} artistHref={artistHref} />
+      ) : (
+        post.media.length > 0 && <PostMedia post={post} />
+      )}
 
-      <footer className="flex flex-wrap items-center gap-2 border-t pt-3">
+      <Counts post={post} href={href} />
+      <div className="-mx-2 grid auto-cols-fr grid-flow-col border-y py-1">
         <LikeButton post={post} />
-        <ActionButton
-          active={showComments}
-          onClick={() => setShowComments(!showComments)}
-          aria-expanded={showComments}
-        >
-          <MessageCircle className="size-4" />
-          {post.comments > 0 ? post.comments : "Comment"}
+        <ActionButton disabled={Boolean(post.lock)} onClick={() => input.current?.focus()}>
+          <MessageCircle className="size-[18px]" /> Comment
         </ActionButton>
         <CollectButton post={post} />
-      </footer>
+        <ShareButton post={post} href={href} />
+      </div>
 
-      {showComments && <PostComments postId={post.id} canWrite={!post.lock} />}
+      {post.lock ? null : full ? (
+        <PostComments postId={post.id} canWrite inputRef={input} />
+      ) : (
+        <LatestComment post={post} href={href} inputRef={input} />
+      )}
     </article>
   );
 }
 
-function PostBody({ post }: { post: FeedPost }) {
-  const body = post.body ?? "";
-  const [open, setOpen] = useState(body.length <= FOLD_AT);
+function PostText({ body, full }: { body: string; full: boolean }) {
+  const [open, setOpen] = useState(full || body.length <= FOLD_AT);
+  if (!body) return null;
   return (
-    <>
-      {body && (
-        <div className="text-fg-muted text-sm leading-relaxed whitespace-pre-line">
-          {open ? body : `${body.slice(0, FOLD_AT).trimEnd()}…`}
-          {!open && (
-            <button
-              type="button"
-              onClick={() => setOpen(true)}
-              className="text-fg ml-1 font-semibold hover:underline"
-            >
-              Read more
-            </button>
-          )}
-        </div>
+    <p className="text-[15px] leading-relaxed whitespace-pre-line">
+      {open ? body : `${body.slice(0, FOLD_AT).trimEnd()}…`}
+      {!open && (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="text-fg-muted ml-1 font-semibold hover:underline"
+        >
+          See more
+        </button>
       )}
-      {post.media.length > 0 && <PostMedia post={post} />}
-    </>
+    </p>
+  );
+}
+
+/** ♥ 12 on the left; "3 comments · 4 of 100 collected" on the right. */
+function Counts({ post, href }: { post: FeedPost; href: string }) {
+  const { total, collected } = post.copies;
+  if (post.likes === 0 && post.comments === 0 && collected === 0) return null;
+  return (
+    <div className="text-fg-muted flex items-center gap-3 text-sm">
+      {post.likes > 0 && (
+        <span className="flex items-center gap-1.5">
+          <span className="bg-danger grid size-[18px] place-items-center rounded-full text-white">
+            <Heart className="size-2.5 fill-current" />
+          </span>
+          {post.likes}
+        </span>
+      )}
+      <span className="ml-auto flex gap-3">
+        {post.comments > 0 && (
+          <Link href={href} className="hover:underline">
+            {post.comments} comment{post.comments === 1 ? "" : "s"}
+          </Link>
+        )}
+        {total > 0 && collected > 0 && (
+          <span>
+            {collected} of {total} collected
+          </span>
+        )}
+      </span>
+    </div>
+  );
+}
+
+/** The newest comment under the post, a link to the rest, and a box to add yours. */
+function LatestComment({
+  post,
+  href,
+  inputRef,
+}: {
+  post: FeedPost;
+  href: string;
+  inputRef: React.RefObject<HTMLTextAreaElement | null>;
+}) {
+  return (
+    <div className="grid gap-2.5">
+      {post.comments > 1 && (
+        <Link href={href} className="text-fg-muted text-sm font-semibold hover:underline">
+          View all {post.comments} comments
+        </Link>
+      )}
+      {post.latestComment && (
+        <CommentBubble postId={post.id} comment={post.latestComment} onReply={null} />
+      )}
+      <CommentBox postId={post.id} canWrite inputRef={inputRef} />
+    </div>
   );
 }
 
@@ -109,17 +193,12 @@ function LockedNote({ post, artistHref }: { post: FeedPost; artistHref: string }
   );
 }
 
-function ActionButton({
-  active,
-  className,
-  ...props
-}: React.ComponentProps<"button"> & { active?: boolean }) {
+function ActionButton({ className, ...props }: React.ComponentProps<"button">) {
   return (
     <button
       type="button"
       className={cn(
-        "text-fg-muted hover:bg-surface-2 hover:text-fg flex h-9 items-center gap-1.5 rounded-full px-3 text-sm font-semibold transition-colors disabled:opacity-50",
-        active && "bg-surface-2 text-fg",
+        "text-fg-muted hover:bg-surface-2 flex h-9 items-center justify-center gap-1.5 rounded-lg px-2 text-sm font-semibold transition-colors disabled:opacity-40 disabled:hover:bg-transparent",
         className,
       )}
       {...props}
@@ -127,40 +206,76 @@ function ActionButton({
   );
 }
 
-function LikeButton({ post }: { post: FeedPost }) {
+/** Signed out, an action opens sign-in instead. */
+function useSignedInAction() {
+  const { status } = useSession();
+  const openSignIn = useConnectWalletDialogStore((state) => state.setIsOpen);
+  return (action: () => void) => () => (status === "authenticated" ? action() : openSignIn(true));
+}
+
+function useRefreshCard(postId: string) {
   const utils = api.useUtils();
-  const like = api.post.setLike.useMutation({ onSettled: () => utils.post.feed.invalidate() });
-  // Shows the new state at once; the feed catches up when it refetches.
-  const wanted = like.isPending ? like.variables.on : null;
-  const liked = wanted ?? post.liked;
-  const count = post.likes + (wanted === null || wanted === post.liked ? 0 : wanted ? 1 : -1);
+  return () => Promise.all([utils.post.feed.invalidate(), utils.post.byId.invalidate({ postId })]);
+}
+
+function LikeButton({ post }: { post: FeedPost }) {
+  const signedIn = useSignedInAction();
+  const like = api.post.setLike.useMutation({ onSettled: useRefreshCard(post.id) });
+  // Shows the new state at once; the card catches up when it refetches.
+  const liked = (like.isPending ? like.variables.on : null) ?? post.liked;
   return (
     <ActionButton
       aria-pressed={liked}
-      onClick={() => like.mutate({ postId: post.id, on: !liked })}
+      onClick={signedIn(() => like.mutate({ postId: post.id, on: !liked }))}
       className={cn(liked && "text-danger hover:text-danger")}
     >
-      <Heart className={cn("size-4", liked && "fill-current")} />
-      {count > 0 ? count : "Like"}
+      <Heart className={cn("size-[18px]", liked && "fill-current")} /> Like
     </ActionButton>
   );
 }
 
+/**
+ * Free copies: every post comes with a fixed number, and each fan can keep
+ * one while they last. Hidden on posts without copies.
+ */
 function CollectButton({ post }: { post: FeedPost }) {
-  const utils = api.useUtils();
-  const collect = api.post.collect.useMutation({ onSettled: () => utils.post.feed.invalidate() });
+  const signedIn = useSignedInAction();
+  const collect = api.post.collect.useMutation({
+    onSuccess: () => toast.success("Collected. It's yours to keep."),
+    onError: (error) => toast.error(error.message),
+    onSettled: useRefreshCard(post.id),
+  });
   const { total, collected, mine } = post.copies;
   if (total === 0) return null;
   const left = total - collected;
   return (
     <ActionButton
       disabled={mine || left === 0 || Boolean(post.lock) || collect.isPending}
-      onClick={() => collect.mutate({ postId: post.id })}
-      className={cn("ml-auto", mine && "text-primary-text disabled:opacity-100")}
-      title={collect.error?.message}
+      onClick={signedIn(() => collect.mutate({ postId: post.id }))}
+      className={cn(mine && "text-primary-text disabled:opacity-100")}
+      title={mine ? "You have a copy" : `${left} of ${total} free copies left`}
     >
-      <Gem className="size-4" />
-      {mine ? "Collected" : left === 0 ? "All collected" : `Collect · ${left} of ${total} left`}
+      <Gem className="size-[18px]" />
+      {mine ? "Collected" : left === 0 ? "All gone" : "Collect"}
+    </ActionButton>
+  );
+}
+
+function ShareButton({ post, href }: { post: FeedPost; href: string }) {
+  async function share() {
+    const url = `${window.location.origin}${href}`;
+    try {
+      if (typeof navigator.share === "function")
+        return await navigator.share({ title: post.title, url });
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied");
+    } catch {
+      // Closing the share sheet isn't an error.
+    }
+  }
+  return (
+    <ActionButton onClick={() => void share()}>
+      <Share2 className="size-[18px]" /> Share
     </ActionButton>
   );
 }

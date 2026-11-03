@@ -3,6 +3,7 @@ import { AppError, ErrorCodes } from "@bandcoin/errors";
 import type { Context, SessionUser } from "../../context";
 import { viewPost } from "./feed";
 import { notifyAboutPost } from "./notify";
+import { commentAuthor, commentAuthorSelect } from "./authors";
 
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 
@@ -51,30 +52,10 @@ export async function postComments(ctx: Pick<Context, "db">, postId: string) {
       parentId: true,
       body: true,
       createdAt: true,
-      author: {
-        select: {
-          id: true,
-          username: true,
-          displayName: true,
-          avatarUrl: true,
-          artist: { select: { name: true, slug: true } },
-        },
-      },
+      author: { select: commentAuthorSelect },
     },
   });
-  return rows.map(({ author, ...row }) => ({
-    ...row,
-    author: {
-      id: author.id,
-      name: author.artist?.name ?? author.displayName ?? author.username ?? "Fan",
-      avatarUrl: author.avatarUrl,
-      href: author.artist
-        ? `/artist/${author.artist.slug}`
-        : author.username
-          ? `/u/${author.username}`
-          : null,
-    },
-  }));
+  return rows.map(({ author, ...row }) => ({ ...row, author: commentAuthor(author) }));
 }
 
 /**

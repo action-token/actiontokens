@@ -33,6 +33,11 @@ describe("describeNotification", () => {
     expect(describeNotification("REPLY", { actor: fan }).href).toBe("/feed");
   });
 
+  it("opens the post itself when it knows which one", () => {
+    expect(describeNotification("POST", { actor: artist, postId: "p1" }).href).toBe("/feed/p1");
+    expect(describeNotification("REPLY", { actor: fan, postId: "p1" }).href).toBe("/feed/p1");
+  });
+
   it("links a release to its item, and a fan to their profile", () => {
     expect(
       describeNotification("NEW_ITEM", { actor: artist, item: { slug: "vip", title: "VIP pass" } })

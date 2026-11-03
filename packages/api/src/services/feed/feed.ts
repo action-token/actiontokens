@@ -3,6 +3,7 @@ import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import type { Context, SessionUser } from "../../context";
 import { tokenHeld } from "../catalog/access";
+import { commentAuthor, commentAuthorSelect } from "./authors";
 import { postLock } from "./gate";
 
 type ServiceCtx = Pick<Context, "db" | "chain">;
@@ -31,6 +32,18 @@ const postSelect = (viewerId: string | null) =>
       select: { id: true, type: true, url: true, title: true, thumbnailUrl: true },
     },
     _count: { select: { likes: true, comments: true } },
+    /** The newest comment, shown under the post in the feed. */
+    comments: {
+      orderBy: { createdAt: "desc" },
+      take: 1,
+      select: {
+        id: true,
+        parentId: true,
+        body: true,
+        createdAt: true,
+        author: { select: commentAuthorSelect },
+      },
+    },
     likes: { where: { userId: viewerId ?? "" }, select: { userId: true } },
     collectibles: {
       where: { collectorId: viewerId ?? "" },
@@ -109,6 +122,12 @@ async function toCards(ctx: ServiceCtx, viewer: SessionUser | null, rows: PostRo
       likes: row._count.likes,
       liked: row.likes.length > 0,
       comments: row._count.comments,
+      latestComment: lock
+        ? null
+        : (row.comments.map(({ author, ...comment }) => ({
+            ...comment,
+            author: commentAuthor(author),
+          }))[0] ?? null),
       copies: { ...copy, mine: row.collectibles.length > 0 },
     };
   });

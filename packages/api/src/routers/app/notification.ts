@@ -67,6 +67,7 @@ async function loadNotifications(
         actor: { name, username: actor.username, artistSlug: actor.artist?.slug ?? null },
         bounty: entityId ? bountyById.get(entityId) : null,
         item: entityId ? itemById.get(entityId) : null,
+        postId: type === "POST" || type === "REPLY" ? entityId : null,
       });
       return {
         id: row.id,

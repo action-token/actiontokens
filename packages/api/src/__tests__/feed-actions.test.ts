@@ -25,6 +25,21 @@ function postRow(over: { tier?: boolean; id?: string } = {}) {
     _count: { likes: 2, comments: 1 },
     likes: [],
     collectibles: [],
+    comments: [
+      {
+        id: "c9",
+        parentId: null,
+        body: "Love it",
+        createdAt: new Date("2026-11-01T11:00:00Z"),
+        author: {
+          id: "ana",
+          username: "ana",
+          displayName: "Ana",
+          avatarUrl: null,
+          artist: null,
+        },
+      },
+    ],
   };
 }
 
@@ -124,13 +139,22 @@ describe("feed", () => {
     expect(page.posts).toHaveLength(10);
     expect(page.next).toBe("p9");
     expect(page.posts[0]).toMatchObject({ body: "New song soon", likes: 2, lock: null });
+    expect(page.posts[0]!.latestComment).toMatchObject({
+      body: "Love it",
+      author: { name: "Ana", href: "/u/ana" },
+    });
   });
 
   it("hides a tier post's text and media from fans holding too few tokens", async () => {
     const { ctx, db } = setup({ held: "10" });
     db.post.findMany.mockResolvedValue([postRow({ tier: true })]);
     const [post] = (await feedPage(ctx, fan, null)).posts;
-    expect(post).toMatchObject({ body: null, media: [], lock: { needed: "50", have: "10" } });
+    expect(post).toMatchObject({
+      body: null,
+      media: [],
+      latestComment: null,
+      lock: { needed: "50", have: "10" },
+    });
   });
 });
 
