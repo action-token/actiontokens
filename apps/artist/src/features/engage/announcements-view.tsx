@@ -1,6 +1,6 @@
 "use client";
 
-import { Megaphone, Pin, Plus } from "lucide-react";
+import { Loader2, Megaphone, Pin, Plus } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -123,7 +123,14 @@ function AnnouncementCard({ announcement }: { announcement: Announcement }) {
             pin.mutate({ announcementId: announcement.id, isPinned: !announcement.isPinned })
           }
         >
-          {announcement.isPinned ? "Unpin" : "Pin"}
+          {pin.isPending && <Loader2 className="animate-spin" />}
+          {pin.isPending
+            ? announcement.isPinned
+              ? "Unpinning…"
+              : "Pinning…"
+            : announcement.isPinned
+              ? "Unpin"
+              : "Pin"}
         </Button>
       </div>
     </li>

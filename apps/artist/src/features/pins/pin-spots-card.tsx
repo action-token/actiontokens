@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Trash2 } from "lucide-react";
+import { MapPin, Loader2, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Button } from "@bandcoin/ui/components/button";
@@ -44,7 +44,11 @@ export function PinSpotsCard({ pin }: { pin: RouterOutputs["pins"]["pin"] }) {
               disabled={visible.length <= 1 || remove.isPending}
               onClick={() => remove.mutate({ spotId: spot.id })}
             >
-              <Trash2 />
+              {remove.isPending && remove.variables.spotId === spot.id ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                <Trash2 />
+              )}
             </Button>
           </li>
         ))}

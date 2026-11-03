@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ExternalLink, List, MapPinOff, RotateCcw, X } from "lucide-react";
+import { Check, ExternalLink, List, Loader2, MapPinOff, RotateCcw, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
@@ -173,6 +173,7 @@ function PinCard({ pin, onClose }: { pin: Pin; onClose: () => void }) {
   });
   const set = (approval: "APPROVED" | "REJECTED" | "PENDING") =>
     decide.mutate({ pinIds: [pin.id], approval });
+  const deciding = (approval: string) => decide.isPending && decide.variables.approval === approval;
   const status = STATUS[pin.status];
   const decided = pin.status !== "IN_REVIEW";
 
@@ -208,17 +209,18 @@ function PinCard({ pin, onClose }: { pin: Pin; onClose: () => void }) {
             disabled={decide.isPending}
             onClick={() => set("REJECTED")}
           >
-            <X /> Reject
+            {deciding("REJECTED") ? <Loader2 className="animate-spin" /> : <X />} Reject
           </Button>
         )}
         {(pin.status === "IN_REVIEW" || pin.status === "NOT_APPROVED") && (
           <Button disabled={decide.isPending} onClick={() => set("APPROVED")}>
-            <Check /> Approve
+            {deciding("APPROVED") ? <Loader2 className="animate-spin" /> : <Check />} Approve
           </Button>
         )}
         {decided && (
           <Button variant="ghost" disabled={decide.isPending} onClick={() => set("PENDING")}>
-            <RotateCcw /> Back to review
+            {deciding("PENDING") ? <Loader2 className="animate-spin" /> : <RotateCcw />} Back to
+            review
           </Button>
         )}
         <Button variant="ghost" onClick={onClose}>

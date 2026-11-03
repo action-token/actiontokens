@@ -1,6 +1,6 @@
 "use client";
 
-import { ListMusic, Lock, MoreHorizontal, Pencil, Trash2, X } from "lucide-react";
+import { ListMusic, Lock, MoreHorizontal, Pencil, Trash2, X, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -194,7 +194,11 @@ export function PlaylistView({ playlistId }: { playlistId: string }) {
                       disabled={remove.isPending}
                       onClick={() => remove.mutate({ playlistId, itemId: track.id })}
                     >
-                      <X />
+                      {remove.isPending && remove.variables.itemId === track.id ? (
+                        <Loader2 className="animate-spin" />
+                      ) : (
+                        <X />
+                      )}
                     </Button>
                   )
                 : undefined
@@ -222,6 +226,7 @@ export function PlaylistView({ playlistId }: { playlistId: string }) {
         description="The playlist goes away for good. The songs stay where they are."
         confirmLabel="Delete"
         destructive
+        busy={destroy.isPending}
         onConfirm={() => destroy.mutate({ playlistId })}
       />
     </>

@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageSquare, Trash2 } from "lucide-react";
+import { MessageSquare, Loader2, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Button } from "@bandcoin/ui/components/button";
@@ -60,7 +60,11 @@ export function PostComments({ postId }: { postId: string }) {
                 disabled={remove.isPending}
                 onClick={() => remove.mutate({ commentId: comment.id })}
               >
-                <Trash2 />
+                {remove.isPending && remove.variables.commentId === comment.id ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <Trash2 />
+                )}
               </Button>
             </li>
           ))}

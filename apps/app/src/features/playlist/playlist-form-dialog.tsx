@@ -1,5 +1,7 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
+
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import toast from "react-hot-toast";
@@ -126,6 +128,7 @@ export function PlaylistFormDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={busy || !name.trim()}>
+              {busy && <Loader2 className="animate-spin" />}
               {playlist ? "Save" : "Create"}
             </Button>
           </DialogFooter>
