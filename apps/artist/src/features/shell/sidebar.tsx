@@ -26,7 +26,7 @@ import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
 import { api } from "~/trpc/react";
 
-import { NotificationsSideLink } from "../notifications/notifications-link";
+import { NotificationBell } from "../notifications/notification-bell";
 import { WalletSidebarCard } from "../wallet/wallet-view";
 import { AR_URL, FAN_APP_URL } from "./links";
 import { isActive, type NavGroup, type NavItem } from "./nav";
@@ -56,24 +56,32 @@ export function Sidebar({
       aria-label="Main"
       className="bg-surface sticky top-0 hidden h-dvh grid-rows-[auto_minmax(0,1fr)_auto] border-r sm:grid"
     >
-      <Link
-        href="/"
-        aria-label="Portal home"
-        className="flex h-16 min-w-0 items-center justify-center gap-2 px-3 xl:justify-start xl:px-4"
-      >
-        <span className="bg-fg text-bg flex size-9 shrink-0 -rotate-3 items-center justify-center rounded-lg">
-          <BrandMark className="size-5" />
-        </span>
-        <span className="hidden min-w-0 leading-none xl:block">
-          <span className="display block truncate text-lg">Bandcoin</span>
-          <span className="marker text-primary-text mt-0.5 block text-[11px]">{portalName}</span>
-        </span>
-      </Link>
+      <div>
+        <div className="flex h-16 min-w-0 items-center justify-center gap-2 px-3 xl:justify-between xl:px-4">
+          <Link href="/" aria-label="Portal home" className="flex min-w-0 items-center gap-2">
+            <span className="bg-fg text-bg flex size-9 shrink-0 -rotate-3 items-center justify-center rounded-lg">
+              <BrandMark className="size-5" />
+            </span>
+            <span className="hidden min-w-0 leading-none xl:block">
+              <span className="display block truncate text-lg">Bandcoin</span>
+              <span className="marker text-primary-text mt-0.5 block text-[11px]">
+                {portalName}
+              </span>
+            </span>
+          </Link>
+          <SignedInOnly>
+            <NotificationBell side="right" align="start" className="hidden xl:flex" />
+          </SignedInOnly>
+        </div>
+        {/* On the icon rail the bell sits under the logo. */}
+        <SignedInOnly>
+          <div className="flex justify-center pb-2 xl:hidden">
+            <NotificationBell side="right" align="start" />
+          </div>
+        </SignedInOnly>
+      </div>
 
       <div className="border-fg/25 relative min-h-0 [scrollbar-width:none] space-y-3 overflow-y-auto overscroll-contain border-y-2 border-dashed p-2 xl:p-3">
-        <SignedInOnly>
-          <NotificationsSideLink active={pathname.startsWith("/notifications")} />
-        </SignedInOnly>
         {groups.map((group, index) => (
           <div key={group.title}>
             {index > 0 && (
