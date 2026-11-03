@@ -45,7 +45,7 @@ export function PortalShell({
   const signedOut = !loading && !signedIn;
 
   return (
-    <div className="grid min-h-dvh grid-cols-1 sm:grid-cols-[72px_minmax(0,1fr)] xl:grid-cols-[264px_minmax(0,1fr)]">
+    <div className="grid min-h-dvh grid-cols-1 sm:grid-cols-[72px_minmax(0,1fr)] xl:grid-cols-[288px_minmax(0,1fr)]">
       <Sidebar
         groups={groups}
         pathname={pathname}
