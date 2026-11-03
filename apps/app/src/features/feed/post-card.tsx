@@ -12,6 +12,7 @@ import { api, type RouterOutputs } from "~/trpc/react";
 
 import { Avatar } from "../shell/context-panel";
 import { PostComments } from "./post-comments";
+import { PostMedia } from "./post-media";
 
 export type FeedPost = RouterOutputs["post"]["feed"]["posts"][number];
 
@@ -78,48 +79,8 @@ function PostBody({ post }: { post: FeedPost }) {
           )}
         </div>
       )}
-      {post.media.length > 0 && <PostMedia media={post.media} />}
+      {post.media.length > 0 && <PostMedia post={post} />}
     </>
-  );
-}
-
-function PostMedia({ media }: { media: FeedPost["media"] }) {
-  const images = media.filter((file) => file.type === "IMAGE");
-  const others = media.filter((file) => file.type !== "IMAGE");
-  return (
-    <div className="grid gap-2">
-      {images.length > 0 && (
-        <div className={cn("grid gap-2", images.length > 1 && "grid-cols-2")}>
-          {images.map((file) => (
-            // eslint-disable-next-line @next/next/no-img-element -- uploads come from the bucket
-            <img
-              key={file.id}
-              src={file.url}
-              alt={file.title ?? ""}
-              loading="lazy"
-              className="bg-surface-2 aspect-[4/3] w-full rounded-xl object-cover"
-            />
-          ))}
-        </div>
-      )}
-      {others.map((file) =>
-        file.type === "VIDEO" ? (
-          <video
-            key={file.id}
-            src={file.url}
-            poster={file.thumbnailUrl ?? undefined}
-            controls
-            preload="metadata"
-            className="aspect-video w-full rounded-xl bg-black"
-          />
-        ) : (
-          <div key={file.id} className="bg-surface-2 grid gap-1.5 rounded-xl p-3">
-            {file.title && <b className="text-sm">{file.title}</b>}
-            <audio src={file.url} controls preload="none" className="w-full" />
-          </div>
-        ),
-      )}
-    </div>
   );
 }
 
