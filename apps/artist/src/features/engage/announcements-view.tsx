@@ -13,7 +13,7 @@ import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
 import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
 
 import { SectionTabs } from "~/components/section-tabs";
-import { POSTS_TABS } from "~/features/shell/nav";
+import { EVENTS_TABS } from "~/features/shell/nav";
 import { formatWhen } from "~/lib/datetime";
 import { api, type RouterOutputs } from "~/trpc/react";
 
@@ -25,7 +25,7 @@ export function AnnouncementsView() {
 
   const add = (
     <Button asChild>
-      <Link href="/announcements/new">
+      <Link href="/events/announcements/new">
         <Plus /> New announcement
       </Link>
     </Button>
@@ -34,12 +34,12 @@ export function AnnouncementsView() {
   return (
     <PageBody className="grid max-w-3xl gap-6">
       <PageHeader
-        eyebrow="Content"
-        title="Announcements"
-        description="Short news for fans in the AR app."
+        eyebrow="Drops"
+        title="Events & announcements"
+        description="Both go live straight away for fans in the app and on the map."
         actions={announcements.data && announcements.data.length > 0 ? add : undefined}
       />
-      <SectionTabs tabs={POSTS_TABS} label="Posts" />
+      <SectionTabs tabs={EVENTS_TABS} label="Events and announcements" />
       {announcements.isPending ? (
         <Skeleton className="h-40 w-full rounded-xl" />
       ) : announcements.isError ? (
@@ -77,7 +77,7 @@ function AnnouncementCard({ announcement }: { announcement: Announcement }) {
 
   return (
     <li className="bg-surface grid gap-3 rounded-xl border p-4 sm:p-5">
-      <Link href={`/announcements/${announcement.id}`} className="grid gap-3">
+      <Link href={`/events/announcements/${announcement.id}`} className="grid gap-3">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <h3 className="display min-w-0 text-lg">{announcement.title}</h3>
           <div className="flex items-center gap-2">
@@ -113,7 +113,7 @@ function AnnouncementCard({ announcement }: { announcement: Announcement }) {
       </Link>
       <div className="flex flex-wrap gap-2 border-t pt-3">
         <Button asChild size="sm" variant="secondary">
-          <Link href={`/announcements/${announcement.id}`}>Edit</Link>
+          <Link href={`/events/announcements/${announcement.id}`}>Edit</Link>
         </Button>
         <Button
           size="sm"

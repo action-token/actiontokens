@@ -17,8 +17,8 @@ export function EditAnnouncementView({ announcementId }: { announcementId: strin
   return (
     <PageBody className="grid gap-6">
       <PageHeader
-        back={{ href: "/announcements", label: "Announcements" }}
-        eyebrow="Fans"
+        back={{ href: "/events/announcements", label: "Announcements" }}
+        eyebrow="Drops"
         title="Edit announcement"
       />
       {announcements.isPending ? (

@@ -117,7 +117,7 @@ export function EventForm({ existing }: { existing?: Existing }) {
   return (
     <FormPage
       title={existing ? existing.title : "New event"}
-      eyebrow="Fans"
+      eyebrow="Drops"
       description="A gig, signing or listening party. Fans see it in the AR app and can RSVP."
       back={{ href: "/events", label: "Events" }}
       onSubmit={submit}

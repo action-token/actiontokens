@@ -36,20 +36,19 @@ export type NavItem = {
   /** What the phone tab bar says when the label is too long for it. */
   shortLabel?: string;
   exact?: boolean;
-  /** Other pages this entry covers, reached from tabs or links on its page (e.g. /announcements under Posts). */
+  /** Other pages this entry covers, reached from tabs or links on its page. */
   also?: string[];
   /** One of the four tabs on a phone's bottom bar. */
   tab?: boolean;
 };
 export type NavGroup = { title: string; items: NavItem[] };
-export type SectionTab = Pick<NavItem, "href" | "label">;
+export type SectionTab = Pick<NavItem, "href" | "label" | "exact">;
 
-/** Pages that share one menu entry and switch with tabs at the top. */
-export const POSTS_TABS: SectionTab[] = [
-  { href: "/posts", label: "Posts" },
-  { href: "/announcements", label: "Announcements" },
+/** Events and announcements share one entry and switch with tabs, as in Wadzzo. */
+export const EVENTS_TABS: SectionTab[] = [
+  { href: "/events", label: "Events", exact: true },
+  { href: "/events/announcements", label: "Announcements" },
 ];
-const pathsOf = (tabs: SectionTab[]) => tabs.slice(1).map((tab) => tab.href);
 
 export type PortalNavInput = {
   signedIn: boolean;
@@ -95,7 +94,7 @@ const READY_TOOLS: NavGroup[] = [
     title: "Content",
     items: [
       { href: "/page", icon: LayoutTemplate, label: "My page" },
-      { href: "/posts", icon: FileText, label: "Posts", also: pathsOf(POSTS_TABS), tab: true },
+      { href: "/posts", icon: FileText, label: "Posts", tab: true },
       { href: "/bounties", icon: Trophy, label: "Bounties", tab: true },
     ],
   },

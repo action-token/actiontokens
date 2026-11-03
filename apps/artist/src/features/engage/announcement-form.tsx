@@ -69,7 +69,7 @@ export function AnnouncementForm({ existing }: { existing?: Existing }) {
   const done = (message: string) => {
     toast.success(message);
     void utils.engage.announcements.invalidate();
-    router.push("/announcements");
+    router.push("/events/announcements");
   };
   const create = api.engage.createAnnouncement.useMutation({
     onSuccess: () => done("Announcement posted"),
@@ -118,7 +118,7 @@ export function AnnouncementForm({ existing }: { existing?: Existing }) {
   const actions = (
     <>
       <Button asChild type="button" variant="ghost">
-        <Link href="/announcements">Cancel</Link>
+        <Link href="/events/announcements">Cancel</Link>
       </Button>
       <Button type="submit" disabled={!ready || saving}>
         {saving && <Loader2 className="animate-spin" />}
@@ -130,9 +130,9 @@ export function AnnouncementForm({ existing }: { existing?: Existing }) {
   return (
     <FormPage
       title={existing ? existing.title : "New announcement"}
-      eyebrow="Fans"
+      eyebrow="Drops"
       description="Short news fans see in the AR app. Pinned ones stay on top."
-      back={{ href: "/announcements", label: "Announcements" }}
+      back={{ href: "/events/announcements", label: "Announcements" }}
       onSubmit={submit}
       actions={actions}
       aside={

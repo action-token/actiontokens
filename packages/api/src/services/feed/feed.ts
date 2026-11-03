@@ -117,18 +117,22 @@ async function toCards(ctx: ServiceCtx, viewer: SessionUser | null, rows: PostRo
 export type PostCard = Awaited<ReturnType<typeof toCards>>[number];
 
 /**
- * Posts from the artists the fan follows, newest first, a page at a time.
- * `following` lets the page tell "follow someone" from "nothing new yet".
+ * Posts from the artists the fan follows, plus their own if they are an
+ * artist, newest first, a page at a time. `following` lets the page tell
+ * "follow someone" from "nothing new yet".
  */
 export async function feedPage(ctx: ServiceCtx, viewer: SessionUser, cursor: string | null) {
-  const follows = await ctx.db.follow.findMany({
-    where: { userId: viewer.id },
-    select: { artistId: true },
-  });
-  if (follows.length === 0) return { posts: [], next: null, following: 0 };
+  const [follows, own] = await Promise.all([
+    ctx.db.follow.findMany({ where: { userId: viewer.id }, select: { artistId: true } }),
+    ctx.db.artist.findFirst({ where: { userId: viewer.id }, select: { id: true } }),
+  ]);
+  const artistIds = [
+    ...new Set([...follows.map((follow) => follow.artistId), ...(own ? [own.id] : [])]),
+  ];
+  if (artistIds.length === 0) return { posts: [], next: null, following: 0 };
 
   const rows = await ctx.db.post.findMany({
-    where: { artistId: { in: follows.map((follow) => follow.artistId) }, isImportOnly: false },
+    where: { artistId: { in: artistIds }, isImportOnly: false },
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     take: FEED_PAGE + 1,
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),

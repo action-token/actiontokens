@@ -7,7 +7,7 @@ import { cn } from "@bandcoin/ui/lib/cn";
 
 import { isActive, type SectionTab } from "~/features/shell/nav";
 
-/** Switches between the pages that share one menu entry (e.g. Posts and Announcements). */
+/** Switches between the pages that share one menu entry (e.g. Events and Announcements). */
 export function SectionTabs({ tabs, label }: { tabs: SectionTab[]; label: string }) {
   const pathname = usePathname();
   return (

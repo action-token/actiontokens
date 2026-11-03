@@ -11,6 +11,8 @@ import { ErrorState } from "@bandcoin/ui/patterns/error-state";
 import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
 import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
 
+import { SectionTabs } from "~/components/section-tabs";
+import { EVENTS_TABS } from "~/features/shell/nav";
 import { formatWhen } from "~/lib/datetime";
 import { api, type RouterOutputs } from "~/trpc/react";
 
@@ -29,15 +31,16 @@ export function EventsView() {
   );
 
   return (
-    <PageBody className="grid gap-6">
+    <PageBody className="grid max-w-3xl gap-6">
       <PageHeader
-        eyebrow="Fans"
-        title="Events"
-        description="Fans find your events in the AR app and RSVP. Link a pin or a bounty to an event when you create it."
+        eyebrow="Drops"
+        title="Events & announcements"
+        description="Both go live straight away for fans in the app and on the map."
         actions={events.data && events.data.length > 0 ? add : undefined}
       />
+      <SectionTabs tabs={EVENTS_TABS} label="Events and announcements" />
       {events.isPending ? (
-        <Skeleton className="h-40 w-full max-w-3xl rounded-xl" />
+        <Skeleton className="h-40 w-full rounded-xl" />
       ) : events.isError ? (
         <ErrorState message="Couldn't load your events." onRetry={() => void events.refetch()} />
       ) : events.data.length === 0 ? (
@@ -48,7 +51,7 @@ export function EventsView() {
           action={add}
         />
       ) : (
-        <ul className="grid max-w-3xl gap-3">
+        <ul className="grid gap-3">
           {events.data.map((event) => (
             <EventCard key={event.id} event={event} />
           ))}

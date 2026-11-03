@@ -16,7 +16,7 @@ export function EditEventView({ eventId }: { eventId: string }) {
   if (event) return <EventForm existing={event} />;
   return (
     <PageBody className="grid gap-6">
-      <PageHeader back={{ href: "/events", label: "Events" }} eyebrow="Fans" title="Edit event" />
+      <PageHeader back={{ href: "/events", label: "Events" }} eyebrow="Drops" title="Edit event" />
       {events.isPending ? (
         <Skeleton className="h-96 w-full max-w-2xl rounded-xl" />
       ) : events.isError ? (

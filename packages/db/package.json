@@ -20,7 +20,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "seed": "tsx scripts/seed/index.ts",
-    "seed:reset": "tsx scripts/seed/index.ts --reset"
+    "seed:reset": "tsx scripts/seed/index.ts --reset",
+    "seed:posts": "tsx scripts/seed/posts.ts"
   },
   "dependencies": {
     "@bandcoin/errors": "workspace:*",

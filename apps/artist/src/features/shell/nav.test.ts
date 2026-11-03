@@ -110,7 +110,8 @@ describe("portal navigation", () => {
     expect(entries.length).toBeLessThanOrEqual(14);
     expect(lit("/pins")).toEqual(["Map & pins"]);
     expect(lit("/pins/manage")).toEqual(["Map & pins"]);
-    expect(lit("/announcements/new")).toEqual(["Posts"]);
+    expect(lit("/events/announcements/new")).toEqual(["Events"]);
+    expect(lit("/events/e1")).toEqual(["Events"]);
     expect(lit("/reports")).toEqual(["Pin reports"]);
     expect(lit("/reports/pin1")).toEqual(["Pin reports"]);
     expect(lit("/redeem")).toEqual(["Redeem"]);

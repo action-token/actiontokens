@@ -28,10 +28,21 @@ function postRow(over: { tier?: boolean; id?: string } = {}) {
   };
 }
 
-function setup(opts: { tier?: boolean; held?: string; follows?: number; parent?: object } = {}) {
+function setup(
+  opts: {
+    tier?: boolean;
+    held?: string;
+    follows?: number;
+    parent?: object;
+    ownArtist?: string;
+  } = {},
+) {
   const events: { type: string; recipients: { recipientId: string; isForArtist: boolean }[] }[] =
     [];
   const db = {
+    artist: {
+      findFirst: vi.fn().mockResolvedValue(opts.ownArtist ? { id: opts.ownArtist } : null),
+    },
     follow: {
       findMany: vi
         .fn()
@@ -85,6 +96,23 @@ describe("feed", () => {
     const { ctx, db } = setup({ follows: 0 });
     expect(await feedPage(ctx, fan, null)).toEqual({ posts: [], next: null, following: 0 });
     expect(db.post.findMany).not.toHaveBeenCalled();
+  });
+
+  it("shows an artist their own posts, even before they follow anyone", async () => {
+    const { ctx, db } = setup({ follows: 1, ownArtist: "mine" });
+    db.post.findMany.mockResolvedValue([postRow()]);
+    const page = await feedPage(ctx, fan, null);
+    expect(db.post.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { artistId: { in: ["a0", "mine"] }, isImportOnly: false },
+      }),
+    );
+    expect(page).toMatchObject({ following: 1 });
+
+    const alone = setup({ follows: 0, ownArtist: "mine" });
+    alone.db.post.findMany.mockResolvedValue([postRow()]);
+    expect(await feedPage(alone.ctx, fan, null)).toMatchObject({ following: 0 });
+    expect(alone.db.post.findMany).toHaveBeenCalled();
   });
 
   it("pages newest first and hands back where the next page starts", async () => {
