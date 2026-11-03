@@ -285,10 +285,12 @@ export const adminRouter = createRouter({
           apiCostUsd: z.object({
             TEXT: z.number().min(0).max(100),
             IMAGE: z.number().min(0).max(100),
-            MUSIC: z.number().min(0).max(100),
             VIDEO: z.number().min(0).max(100),
             SEO: z.number().min(0).max(100),
             SOCIAL: z.number().min(0).max(100),
+            MUSIC_CLIP: z.number().min(0).max(100),
+            MUSIC_SONG: z.number().min(0).max(100),
+            MUSIC_LIVE: z.number().min(0).max(100),
           }),
         }),
       )

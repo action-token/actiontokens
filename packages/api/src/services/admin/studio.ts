@@ -4,9 +4,9 @@ import { AppError, ErrorCodes } from "@bandcoin/errors";
 import type { Context } from "../../context";
 import {
   coinsForUsd,
-  GENERATION_TYPES,
   loadPricing,
   priceList,
+  STUDIO_TOOLS,
   type StudioPricing,
 } from "../studio/pricing";
 
@@ -40,7 +40,7 @@ export async function getStudioSettings(ctx: Pick<Context, "db">) {
 }
 
 export async function updateStudioPricing(ctx: ServiceCtx, input: StudioPricing) {
-  for (const type of GENERATION_TYPES)
+  for (const type of STUDIO_TOOLS)
     if (!(input.apiCostUsd[type] >= 0 && input.apiCostUsd[type] <= 100))
       throw new AppError(ErrorCodes.VALIDATION_FAILED, {
         message: "Each API cost must be between $0 and $100.",

@@ -2,6 +2,9 @@ import {
   createContext,
   dropDueHotspots,
   expireVanityLinks,
+  lyriaProvider,
+  runMusic,
+  sweepStuckRuns,
   keepUnlocksAlive,
   reconcileOrders,
   syncUnlocks,
@@ -27,6 +30,18 @@ export function handlersFor(deps: WorkerDeps): Record<string, JobHandler> {
 
     // Record NFT unlocks the app couldn't (see catalog/unlock-chain); not a payment, so it retries.
     "nft.unlocks": async () => ({ result: await syncUnlocks(context()) }),
+    // A Studio music run: Lyria, then storage; coins kept or refunded (see studio/music). Never retried.
+    "studio.music": async (job) => {
+      const { generationId } = job.payload as { generationId?: unknown };
+      if (typeof generationId !== "string")
+        throw new AppError(ErrorCodes.VALIDATION_FAILED, {
+          message: "studio.music needs a generationId",
+        });
+      const result = await runMusic(deps, generationId, { provider: lyriaProvider() });
+      return { result, target: { type: "Generation", id: generationId } };
+    },
+    // Refund Studio runs that a stopped worker never finished.
+    "studio.sweep": async () => ({ result: await sweepStuckRuns(deps) }),
     // Short-link reminders and freed names (see artist/vanity-expire); not a payment.
     "vanity.expire": async () => ({ result: await expireVanityLinks(context()) }),
     // Drop pins in hotspots whose next drop is due; a failed drop is reported, the rest carry on.

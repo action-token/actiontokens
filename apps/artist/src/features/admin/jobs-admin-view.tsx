@@ -32,6 +32,8 @@ const KIND: Record<string, string> = {
   "nft.keep-alive": "NFT records kept alive",
   "hotspot.drop": "Hotspot drops",
   "vanity.expire": "Short links",
+  "studio.music": "Studio music",
+  "studio.sweep": "Studio clean-up",
 };
 
 const STATUS: Record<Row["status"], { tone: Tone; label: string }> = {

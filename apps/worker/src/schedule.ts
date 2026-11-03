@@ -7,6 +7,8 @@ export const SCHEDULES: { type: JobType; everyMs: number }[] = [
   { type: "order.reconcile", everyMs: 60_000 },
   // Record NFT unlocks a collect couldn't record right away.
   { type: "nft.unlocks", everyMs: 5 * 60_000 },
+  // Studio runs a stopped worker left behind: failed and their coins refunded.
+  { type: "studio.sweep", everyMs: 10 * 60_000 },
   // Short links: reminders, stored status, and names past their reserved days set free.
   { type: "vanity.expire", everyMs: 60 * 60_000 },
   // Drop pins in hotspots whose next drop is due (see services/artist/hotspots).

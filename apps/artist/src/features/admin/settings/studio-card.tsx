@@ -23,10 +23,13 @@ type Tool = keyof Studio["pricing"]["apiCostUsd"];
 const TOOLS: { type: Tool; label: string }[] = [
   { type: "TEXT", label: "Writing" },
   { type: "IMAGE", label: "Image" },
-  { type: "MUSIC", label: "Music" },
+
   { type: "VIDEO", label: "Video" },
   { type: "SEO", label: "SEO" },
   { type: "SOCIAL", label: "Social post" },
+  { type: "MUSIC_CLIP", label: "Music clip (~30 s)" },
+  { type: "MUSIC_SONG", label: "Full song" },
+  { type: "MUSIC_LIVE", label: "Live music, per minute" },
 ];
 
 /**

@@ -8,7 +8,12 @@ export const TOOLS = [
     hint: "Covers, posters and art from a sentence.",
     icon: ImageIcon,
   },
-  { type: "MUSIC", label: "Music", hint: "Beats, loops and short tracks.", icon: AudioLines },
+  {
+    type: "MUSIC_CLIP",
+    label: "Music",
+    hint: "Clips, full songs and live jams with Google's Lyria, then mix them.",
+    icon: AudioLines,
+  },
   { type: "VIDEO", label: "Video", hint: "Short clips for posts and promos.", icon: Video },
   { type: "TEXT", label: "Writing", hint: "Bios, descriptions and lyrics drafts.", icon: FileText },
   {

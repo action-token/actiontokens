@@ -34,6 +34,7 @@
     "@trpc/server": "catalog:",
     "google-auth-library": "catalog:",
     "nodemailer": "catalog:",
+    "@google/genai": "catalog:",
     "openai": "catalog:",
     "superjson": "catalog:",
     "zod": "catalog:"

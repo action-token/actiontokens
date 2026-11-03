@@ -1,5 +1,3 @@
-import type { GenerationType } from "@bandcoin/db";
-
 import type { Context } from "../../context";
 
 /**
@@ -13,28 +11,42 @@ export const MIN_TOP_UP_USD = 1;
 export const MAX_TOP_UP_USD = 500;
 export const DEFAULT_FEE_PERCENT = 30;
 
-export const GENERATION_TYPES: GenerationType[] = [
+/**
+ * What Studio sells, each with its own provider cost. Music has three: a ~30 s
+ * clip (Lyria 3 Clip), a full song (Lyria 3 Pro) and live streaming (Lyria
+ * RealTime), which is priced per started minute.
+ */
+export const STUDIO_TOOLS = [
   "TEXT",
   "IMAGE",
-  "MUSIC",
   "VIDEO",
   "SEO",
   "SOCIAL",
-];
+  "MUSIC_CLIP",
+  "MUSIC_SONG",
+  "MUSIC_LIVE",
+] as const;
+export type StudioTool = (typeof STUDIO_TOOLS)[number];
 
-/** What one run costs at the provider, in USD, until an admin sets real figures. */
-export const DEFAULT_API_COST_USD: Record<GenerationType, number> = {
+/**
+ * What one run costs at the provider, in USD, until an admin sets real figures.
+ * Lyria: $0.04 a clip and $0.08 a song (Gemini API price list, Nov 2026);
+ * RealTime has no published price yet, so its minute is a placeholder.
+ */
+export const DEFAULT_API_COST_USD: Record<StudioTool, number> = {
   TEXT: 0.003,
   IMAGE: 0.04,
-  MUSIC: 0.2,
   VIDEO: 0.5,
   SEO: 0.003,
   SOCIAL: 0.003,
+  MUSIC_CLIP: 0.04,
+  MUSIC_SONG: 0.08,
+  MUSIC_LIVE: 0.05,
 };
 
 export type StudioPricing = {
   feePercent: number;
-  apiCostUsd: Record<GenerationType, number>;
+  apiCostUsd: Record<StudioTool, number>;
 };
 
 /** Saved settings over the defaults; anything missing or odd falls back. */
@@ -42,7 +54,7 @@ export function pricingOf(saved: unknown): StudioPricing {
   const raw = (saved ?? {}) as { feePercent?: unknown; apiCostUsd?: Record<string, unknown> };
   const fee = Number(raw.feePercent);
   const apiCostUsd = { ...DEFAULT_API_COST_USD };
-  for (const type of GENERATION_TYPES) {
+  for (const type of STUDIO_TOOLS) {
     const cost = Number(raw.apiCostUsd?.[type]);
     if (Number.isFinite(cost) && cost >= 0) apiCostUsd[type] = cost;
   }
@@ -62,11 +74,11 @@ export function generationCoins(apiCostUsd: number, feePercent: number) {
 /** Every tool's price in coins, as the Generate buttons show it. */
 export function priceList(pricing: StudioPricing) {
   return Object.fromEntries(
-    GENERATION_TYPES.map((type) => [
-      type,
-      generationCoins(pricing.apiCostUsd[type], pricing.feePercent),
+    STUDIO_TOOLS.map((tool) => [
+      tool,
+      generationCoins(pricing.apiCostUsd[tool], pricing.feePercent),
     ]),
-  ) as Record<GenerationType, number>;
+  ) as Record<StudioTool, number>;
 }
 
 export const coinsForUsd = (usd: number) => Math.round(usd / COIN_USD);

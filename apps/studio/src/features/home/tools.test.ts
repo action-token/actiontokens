@@ -3,10 +3,10 @@ import { describe, expect, it } from "vitest";
 import { priceLabel, TOOLS } from "./tools";
 
 describe("Studio tools", () => {
-  it("covers every generation type once", () => {
+  it("lists each kind of tool once, music priced from a clip", () => {
     expect(TOOLS.map((tool) => tool.type).sort()).toEqual([
       "IMAGE",
-      "MUSIC",
+      "MUSIC_CLIP",
       "SEO",
       "SOCIAL",
       "TEXT",

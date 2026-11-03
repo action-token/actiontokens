@@ -31,10 +31,12 @@ describe("Studio pricing", () => {
     expect(priceList(pricingOf(null))).toEqual({
       TEXT: 1,
       IMAGE: 6,
-      MUSIC: 26,
       VIDEO: 65,
       SEO: 1,
       SOCIAL: 1,
+      MUSIC_CLIP: 6,
+      MUSIC_SONG: 11,
+      MUSIC_LIVE: 7,
     });
     expect(coinsForUsd(9)).toBe(900);
     expect(coinsForUsd(0.29)).toBe(29);

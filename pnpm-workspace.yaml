@@ -104,6 +104,7 @@ catalog:
   next-themes: "^0.4.6"
   nodemailer: "^10.1.0"
   "pg": "^8.23.1"
+  "@google/genai": "2.30.0"
   openai: "^7.32.0"
   qrcode: "^1.5.4"
   plaiceholder: "^3.0.0"
@@ -137,6 +138,7 @@ catalog:
   "zustand": "^5.0.15"
 
 allowBuilds:
+  "@google/genai": false
   "@firebase/util": true
   "@parcel/watcher": true
   "@prisma/client": true
