@@ -60,6 +60,8 @@ export type QuoteProblem =
   | { code: "SIGN_IN"; message: string }
   /** Added by services: sold out, seller can't receive this currency… */
   | { code: "UNAVAILABLE"; message: string }
+  /** The artist's side isn't on Stellar yet: the only problem shown, and no Pay */
+  | { code: "NOT_SET_UP"; message: string }
   | { code: "INSUFFICIENT_FUNDS"; message: string; shortfall: Shortfall };
 
 export type Quote = {

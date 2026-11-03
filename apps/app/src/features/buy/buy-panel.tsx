@@ -1,5 +1,6 @@
 "use client";
 
+import { Clock } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
@@ -83,6 +84,7 @@ export function BuyPanel({
     },
   );
   const soldOut = listing.remaining === 0;
+  const notSetUp = quote.data?.problems.find((problem) => problem.code === "NOT_SET_UP");
 
   async function pay() {
     if (!quote.data) return;
@@ -200,7 +202,9 @@ export function BuyPanel({
         </div>
       </div>
 
-      {guest ? (
+      {notSetUp ? (
+        <NotSetUp message={notSetUp.message} />
+      ) : guest ? (
         <GuestCheckout
           itemTitle={itemTitle}
           listingId={listing.id}
@@ -298,6 +302,20 @@ export function BuyPanel({
         </ToastViewport>
       )}
     </section>
+  );
+}
+
+/** In place of Pay: the artist's side isn't on Stellar yet, so nothing can be bought. */
+function NotSetUp({ message }: { message: string }) {
+  return (
+    <div role="status" className="bg-surface-2 grid gap-1 rounded-xl border p-4">
+      <b className="flex items-center gap-2 text-sm">
+        <Clock className="text-fg-muted size-4 shrink-0" /> {message}
+      </b>
+      <p className="text-fg-muted text-xs">
+        You can still listen and follow them. Buying opens once they&apos;re ready.
+      </p>
+    </div>
   );
 }
 

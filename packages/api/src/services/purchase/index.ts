@@ -21,6 +21,7 @@ import { DEFAULT_PLATFORM_FEE_BPS } from "../admin/settings";
 import { notifyGuestPurchase } from "../email/guest-email";
 import { accessOf, checkAccess } from "../catalog/access";
 import { transitionOrder } from "../order-state";
+import { notSetUpProblems, salesNotSetUp } from "./not-set-up";
 import { loadSale, planDelivery, type Sale } from "./sale";
 
 /**
@@ -157,7 +158,14 @@ export async function priceSale(
     now: new Date(),
   });
 
-  const problems = [...extraProblems, ...quote.problems];
+  const stocked =
+    stockAccount && sale.asset ? toStroops(balanceOf(stockAccount, sale.asset)) > 0n : false;
+  const notSetUp = salesNotSetUp({
+    primary: sale.listing.kind === "PRIMARY" && !sale.bundleAmount,
+    sellerOnChain: Boolean(sellerAccount),
+    canDeliver: !sale.asset || Boolean(sale.minter) || stocked,
+  });
+  const problems = notSetUp ? notSetUpProblems() : [...extraProblems, ...quote.problems];
   return {
     quote: { ...quote, problems, ok: problems.length === 0 } satisfies Quote,
     sale,

@@ -39,6 +39,7 @@ import { accessOf, accessSelect, checkAccess } from "../catalog/access";
 import { ensureUnlockPins } from "../catalog/unlock-pins";
 import { transitionOrder } from "../order-state";
 import { failOrder, holdsLine, ownOrder, userSignature } from "./index";
+import { notSetUpProblems } from "./not-set-up";
 
 /**
  * Buying copies of a contract NFT, as on the old Bandcoin: the nft_oz
@@ -154,11 +155,13 @@ export async function priceNft(
   // The artist may buy their own NFT (to gift it): the contract pays the price back to them.
   if (!chain.config.nftContract) unavailable("Contract NFTs aren't set up on this server yet.");
 
-  const [buyer, settings, rates, bandcoinUsd] = await Promise.all([
+  const [buyer, settings, rates, bandcoinUsd, creatorAccount] = await Promise.all([
     guest ? guest.account : user ? chain.loadAccount(user.walletAddress) : null,
     ctx.db.appSetting.findUnique({ where: { id: 1 }, select: { platformFeeBps: true } }),
     chain.rates(),
     chain.bandcoinUsd(),
+    // The contract pays the artist in the same call: their wallet has to exist.
+    chain.loadAccount(sale.creator),
   ]);
   const access = accessOf(sale.item);
   const allowed = access && checkAccess(access, user ? { account: buyer } : null);
@@ -232,6 +235,7 @@ export async function priceNft(
       });
   }
 
+  const shown = creatorAccount ? problems : notSetUpProblems();
   const feeBps = settings?.platformFeeBps ?? DEFAULT_PLATFORM_FEE_BPS;
   const platform = (price.bandcoin * BigInt(feeBps) + 9_999n) / 10_000n;
   const quote: Quote = {
@@ -248,8 +252,8 @@ export async function priceNft(
       platform: toAmount(platform),
     },
     cardSettlement: null,
-    ok: problems.length === 0,
-    problems,
+    ok: shown.length === 0,
+    problems: shown,
     expiresAt: new Date(Date.now() + QUOTE_TTL_SECONDS * 1000).toISOString(),
   };
   return { quote, buyer, bandcoin, price, feeBandcoin, buyFeeXlm, openTrustline, reserveXlm };

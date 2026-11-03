@@ -56,6 +56,8 @@ function setup(
     buyer?: ReturnType<typeof horizon> | null;
     registered?: boolean;
     receipt?: boolean;
+    /** The artist's wallet isn't on Stellar */
+    creatorMissing?: boolean;
     prepareFee?: string;
     submit?: (xdr: string, call: number) => Promise<{ hash: string }>;
   } = {},
@@ -164,7 +166,9 @@ function setup(
           ? opts.buyer === undefined
             ? horizon(fan, { bandcoin: opts.held ?? "100" })
             : opts.buyer
-          : horizon(id),
+          : id === creator && opts.creatorMissing
+            ? null
+            : horizon(id),
       ),
     ),
     rates: vi.fn().mockResolvedValue({ xlmUsd: "0.1", usdcUsd: "1" }),
@@ -247,6 +251,18 @@ describe("contract NFT quote", () => {
       "Card works for email, Google and Apple accounts. Pay with BANDCOIN from your wallet.",
     );
     expect(await codes(null)).toEqual(["Sign in to pay."]);
+  });
+
+  it("says only that the artist isn't set up when their wallet isn't on Stellar", async () => {
+    const quote = await quoteNftPurchase(
+      setup({ creatorMissing: true, held: "10" }).ctx,
+      wallet,
+      buy,
+    );
+    expect(quote.problems).toEqual([
+      { code: "NOT_SET_UP", message: "This artist hasn't finished setting up sales yet." },
+    ]);
+    expect(quote.ok).toBe(false);
   });
 
   it("lets the artist buy their own NFT (to gift a copy)", async () => {
