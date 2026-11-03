@@ -25,11 +25,12 @@ describe("describeNotification", () => {
     });
   });
 
-  it("sends a new post to the artist's page", () => {
+  it("sends a new post, and a reply to your comment, to the feed", () => {
     expect(describeNotification("POST", { actor: artist })).toEqual({
       text: "DJ Tamsin shared a new post.",
-      href: "/artist/dj-tamsin",
+      href: "/feed",
     });
+    expect(describeNotification("REPLY", { actor: fan }).href).toBe("/feed");
   });
 
   it("links a release to its item, and a fan to their profile", () => {

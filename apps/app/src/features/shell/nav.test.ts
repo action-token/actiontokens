@@ -30,6 +30,7 @@ describe("sidebar", () => {
   it("keeps AR and the artist portal out of the link list: they are launch tiles", () => {
     expect(GROUPS[0]!.items.map((entry) => entry.label)).toEqual([
       "Home",
+      "Feed",
       "Marketplace",
       "Bounties",
     ]);

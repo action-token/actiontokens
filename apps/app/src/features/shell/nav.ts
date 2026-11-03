@@ -1,4 +1,4 @@
-import { Home, Layers, ListMusic, Star, Store, Trophy } from "lucide-react";
+import { Home, Layers, ListMusic, Newspaper, Star, Store, Trophy } from "lucide-react";
 
 export const AR_URL = process.env.NEXT_PUBLIC_AR_URL ?? "https://ar.bandcoin.io";
 export const ARTIST_URL = process.env.NEXT_PUBLIC_ARTIST_URL ?? "https://artist.bandcoin.io";
@@ -19,6 +19,7 @@ export const GROUPS: { title: string; items: NavItem[] }[] = [
     title: "Browse",
     items: [
       { href: "/", icon: Home, label: "Home" },
+      { href: "/feed", icon: Newspaper, label: "Feed" },
       { href: "/marketplace", icon: Store, label: "Marketplace", also: ["/item", "/album"] },
       { href: "/bounties", icon: Trophy, label: "Bounties", also: ["/bounty"] },
     ],

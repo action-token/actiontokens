@@ -3,7 +3,7 @@
 import { Bell, ChevronRight, LogOut, Settings } from "lucide-react";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@bandcoin/ui/components/popover";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
@@ -50,11 +50,14 @@ function NotificationsBell() {
     onSuccess: () => utils.notification.latest.invalidate(),
   });
   const unread = latest.data?.unread ?? 0;
+  const [open, setOpen] = useState(false);
 
   return (
     <Popover
-      onOpenChange={(open) => {
-        if (!open && unread > 0 && !markSeen.isPending) markSeen.mutate();
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next && unread > 0 && !markSeen.isPending) markSeen.mutate();
       }}
     >
       <PopoverTrigger asChild>
@@ -106,6 +109,13 @@ function NotificationsBell() {
             ))
           )}
         </div>
+        <Link
+          href="/notifications"
+          onClick={() => setOpen(false)}
+          className="text-fg-muted hover:text-fg hover:bg-surface-2 block border-t px-4 py-2.5 text-center text-xs font-semibold"
+        >
+          See all
+        </Link>
       </PopoverContent>
     </Popover>
   );

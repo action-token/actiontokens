@@ -42,7 +42,7 @@ export function describeNotification(
     case "BOUNTY_COMMENT":
       return { text: `${name} commented on a bounty.`, href: bountyPage };
     case "POST":
-      return { text: `${name} shared a new post.`, href: actorPage };
+      return { text: `${name} shared a new post.`, href: "/feed" };
     case "NEW_ITEM":
       return {
         text: item ? `${name} released ${item.title}.` : `${name} released something new.`,
@@ -55,7 +55,7 @@ export function describeNotification(
     case "COMMENT":
       return { text: `${name} commented on your post.`, href: actorPage };
     case "REPLY":
-      return { text: `${name} replied to your comment.`, href: actorPage };
+      return { text: `${name} replied to your comment.`, href: "/feed" };
     case "MEMBERSHIP":
       return { text: `${name} joined a membership.`, href: actorPage };
     case "PURCHASE":

@@ -12,6 +12,7 @@ import { orderRouter } from "./routers/app/order";
 import { rechargeRouter } from "./routers/app/recharge";
 import { walletRouter } from "./routers/app/wallet";
 import { playlistRouter } from "./routers/app/playlist";
+import { postRouter } from "./routers/app/post";
 import { profileRouter } from "./routers/app/profile";
 import { reactionRouter } from "./routers/app/reaction";
 import { createRouter } from "./trpc";
@@ -32,6 +33,7 @@ export const appRouter = createRouter({
   recharge: rechargeRouter,
   wallet: walletRouter,
   playlist: playlistRouter,
+  post: postRouter,
   profile: profileRouter,
   reaction: reactionRouter,
 });
