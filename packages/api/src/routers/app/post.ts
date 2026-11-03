@@ -2,7 +2,6 @@ import { z } from "zod";
 
 import {
   addPostComment,
-  collectPost,
   MAX_COMMENT,
   postComments,
   removeOwnComment,
@@ -13,7 +12,7 @@ import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 
 const postId = z.string().min(1);
 
-/** Artists' posts as fans see them: the feed, likes, comments and free copies. */
+/** Artists' posts as fans see them: the feed, likes and comments. Copies are collected in the AR app. */
 export const postRouter = createRouter({
   feed: authedProcedure
     .input(z.object({ cursor: z.string().min(1).nullish() }))
@@ -47,8 +46,4 @@ export const postRouter = createRouter({
   removeComment: authedProcedure
     .input(z.object({ commentId: z.string().min(1) }))
     .mutation(({ ctx, input }) => removeOwnComment(ctx, ctx.session.user, input.commentId)),
-
-  collect: authedProcedure
-    .input(z.object({ postId }))
-    .mutation(({ ctx, input }) => collectPost(ctx, ctx.session.user, input.postId)),
 });

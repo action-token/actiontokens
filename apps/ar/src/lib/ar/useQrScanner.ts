@@ -181,3 +181,17 @@ export function pinIdFromScan(text: string): string | null {
     return /^[a-z0-9]{16,40}$/i.test(trimmed) ? trimmed : null;
   }
 }
+
+/**
+ * Pull a post id out of a "Scan to collect" code from the feed
+ * (`https://…/scan?post=<id>`). Null for anything else, pins included.
+ */
+export function postIdFromScan(text: string): string | null {
+  try {
+    const url = new URL(text.trim());
+    const id = url.searchParams.get("post");
+    return id && /^[a-z0-9]{16,40}$/i.test(id) ? id : null;
+  } catch {
+    return null;
+  }
+}

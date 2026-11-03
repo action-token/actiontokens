@@ -1,6 +1,6 @@
 "use client";
 
-import { Gem, Globe2, Heart, Lock, MessageCircle, Share2 } from "lucide-react";
+import { Globe2, Heart, Lock, MessageCircle, Share2 } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRef, useState } from "react";
@@ -14,6 +14,7 @@ import { timeAgo } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import { Avatar } from "../shell/context-panel";
+import { CollectQr } from "./collect-qr";
 import { CommentBox, CommentBubble, PostComments } from "./post-comments";
 import { PostMedia } from "./post-media";
 
@@ -24,8 +25,8 @@ const FOLD_AT = 420;
 
 /**
  * One artist post, laid out like a social feed: who and when, the words, the
- * media edge to edge, the counts, then Like · Comment · Collect · Share and
- * the newest comment. `full` is the post's own page: every comment, nothing folded.
+ * media edge to edge, the counts, then Like · Comment · Share and the newest
+ * comment. Fans collect a post by scanning its QR with the AR app. `full` is the post's own page: every comment, nothing folded.
  */
 export function PostCard({ post, full = false }: { post: FeedPost; full?: boolean }) {
   const input = useRef<HTMLTextAreaElement>(null);
@@ -61,6 +62,7 @@ export function PostCard({ post, full = false }: { post: FeedPost; full?: boolea
           </p>
         </div>
         {post.tierName && <Badge variant="secondary">{post.tierName}</Badge>}
+        <CollectQr post={post} />
       </header>
 
       <div className="grid gap-1">
@@ -81,7 +83,6 @@ export function PostCard({ post, full = false }: { post: FeedPost; full?: boolea
         <ActionButton disabled={Boolean(post.lock)} onClick={() => input.current?.focus()}>
           <MessageCircle className="size-[18px]" /> Comment
         </ActionButton>
-        <CollectButton post={post} />
         <ShareButton post={post} href={href} />
       </div>
 
@@ -230,33 +231,6 @@ function LikeButton({ post }: { post: FeedPost }) {
       className={cn(liked && "text-danger hover:text-danger")}
     >
       <Heart className={cn("size-[18px]", liked && "fill-current")} /> Like
-    </ActionButton>
-  );
-}
-
-/**
- * Free copies: every post comes with a fixed number, and each fan can keep
- * one while they last. Hidden on posts without copies.
- */
-function CollectButton({ post }: { post: FeedPost }) {
-  const signedIn = useSignedInAction();
-  const collect = api.post.collect.useMutation({
-    onSuccess: () => toast.success("Collected. It's yours to keep."),
-    onError: (error) => toast.error(error.message),
-    onSettled: useRefreshCard(post.id),
-  });
-  const { total, collected, mine } = post.copies;
-  if (total === 0) return null;
-  const left = total - collected;
-  return (
-    <ActionButton
-      disabled={mine || left === 0 || Boolean(post.lock) || collect.isPending}
-      onClick={signedIn(() => collect.mutate({ postId: post.id }))}
-      className={cn(mine && "text-primary-text disabled:opacity-100")}
-      title={mine ? "You have a copy" : `${left} of ${total} free copies left`}
-    >
-      <Gem className="size-[18px]" />
-      {mine ? "Collected" : left === 0 ? "All gone" : "Collect"}
     </ActionButton>
   );
 }

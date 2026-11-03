@@ -10,9 +10,10 @@ import { AppShell } from "~/components/shell/AppShell";
 import { ArButton, ArLinkButton } from "~/components/ui/ArButton";
 import { useAuth } from "~/lib/ar/store";
 import { useCamera } from "~/lib/ar/useCamera";
-import { pinIdFromScan, useQrScanner } from "~/lib/ar/useQrScanner";
+import { pinIdFromScan, postIdFromScan, useQrScanner } from "~/lib/ar/useQrScanner";
 import { useCollectPinByQr } from "~/lib/ar/usePins";
 import { site } from "@bandcoin/ar-core/site";
+import { api } from "~/trpc/react";
 
 /**
  * ── /scan ──────────────────────────────────────────────────────────────────
@@ -31,6 +32,8 @@ import { site } from "@bandcoin/ar-core/site";
  *   /scan?pin=<id>   the deep link a printed code actually encodes, opened by
  *                    the phone's own camera app. No camera needed on this
  *                    screen at all; it claims straight away.
+ *   /scan?post=<id>  the "Scan to collect" code on a feed post: takes one free
+ *                    copy of the post into the collection's Posts tab.
  */
 type Phase = "scanning" | "claiming" | "done" | "failed";
 
@@ -38,14 +41,20 @@ export default function ScanScreen() {
   const router = useRouter();
   const { query: urlQuery, ready: urlReady } = useQueryParams();
   const deepLinkPin = typeof urlQuery.pin === "string" ? urlQuery.pin : null;
+  const deepLinkPost = typeof urlQuery.post === "string" ? urlQuery.post : null;
+  const deepLink = deepLinkPin ?? deepLinkPost;
 
   // A deep link carries its own pin, so the camera would be a permission
   // prompt for nothing.
-  const camera = useCamera({ enabled: !deepLinkPin });
+  const camera = useCamera({ enabled: !deepLink });
   const [asked, setAsked] = useState(false);
 
   const requireAuth = useAuth((s) => s.requireAuth);
   const collectByQr = useCollectPinByQr();
+  const utils = api.useUtils();
+  const collectPost = api.post.collect.useMutation({
+    onSuccess: () => void utils.post.collected.invalidate(),
+  });
 
   const [phase, setPhase] = useState<Phase>("scanning");
   const [message, setMessage] = useState<string | null>(null);
@@ -93,21 +102,65 @@ export default function ScanScreen() {
     [collectByQr, requireAuth, router],
   );
 
+  /** A feed post's code: one free copy each, then its page in the collection. */
+  const claimPost = useCallback(
+    (postId: string) => {
+      const key = `post:${postId}`;
+      if (handledRef.current === key) return;
+      handledRef.current = key;
+
+      if (!requireAuth("collect")) {
+        handledRef.current = null;
+        return;
+      }
+
+      setPhase("claiming");
+      setMessage(null);
+      collectPost.mutate(
+        { postId },
+        {
+          onSuccess: (result) => {
+            setPhase("done");
+            setMessage(result.already ? "You already have this one. Opening it…" : null);
+            setTimeout(() => {
+              void router.replace(`/collection/post/${postId}`);
+            }, 1100);
+          },
+          onError: (err) => {
+            setPhase("failed");
+            setMessage(err.message);
+            setTimeout(() => {
+              handledRef.current = null;
+              setPhase("scanning");
+              setMessage(null);
+            }, 3200);
+          },
+        },
+      );
+    },
+    [collectPost, requireAuth, router],
+  );
+
   // Deep link: claim as soon as the route is ready, no camera involved.
   useEffect(() => {
     if (deepLinkPin) claim(deepLinkPin);
   }, [deepLinkPin, claim]);
+  useEffect(() => {
+    if (deepLinkPost) claimPost(deepLinkPost);
+  }, [deepLinkPost, claimPost]);
 
   useEffect(() => {
-    if (deepLinkPin !== null || asked) return;
+    if (deepLink !== null || asked) return;
     setAsked(true);
     void camera.start();
-  }, [asked, camera, deepLinkPin]);
+  }, [asked, camera, deepLink]);
 
   useQrScanner({
     video: camera.videoNode,
-    enabled: !deepLinkPin && phase === "scanning" && camera.isPlaying,
+    enabled: !deepLink && phase === "scanning" && camera.isPlaying,
     onResult: (text) => {
+      const postId = postIdFromScan(text);
+      if (postId) return claimPost(postId);
       const id = pinIdFromScan(text);
       if (!id) {
         setMessage(`That isn't a ${site.name} code.`);
@@ -178,7 +231,7 @@ export default function ScanScreen() {
         {/* ── Chrome ────────────────────────────────────────────────── */}
         {/* No switch on a deep link: that path never opens the camera, it
             just claims the code the phone's own camera already read. */}
-        {!deepLinkPin && (
+        {!deepLink && (
           <div
             className="absolute left-1/2 z-20 -translate-x-1/2"
             style={{ top: "calc(var(--ar-top-inset) + 14px)" }}
@@ -236,7 +289,9 @@ export default function ScanScreen() {
                     <p className="font-hud text-ar-accent-hot mt-3 text-[13px] font-bold tracking-[0.12em] uppercase">
                       Collected
                     </p>
-                    <p className="text-ar-dim mt-1.5 text-[11.5px]">Opening your collectible…</p>
+                    <p className="text-ar-dim mt-1.5 text-[11.5px]">
+                      {message ?? "Opening your collectible…"}
+                    </p>
                   </>
                 )}
 

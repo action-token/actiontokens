@@ -1,11 +1,12 @@
 "use client";
 
-import { ArrowUpDown, Frame, Search, Sparkles, X } from "lucide-react";
+import { ArrowUpDown, Frame, Newspaper, Search, Sparkles, X } from "lucide-react";
 import { useQueryParams, useRouter } from "~/lib/navigation";
 import { useEffect, useState } from "react";
 
 import { HoloCard } from "~/components/cards/HoloCard";
 import { MuralCollection } from "~/components/murals/MuralCollection";
+import { PostCollection } from "~/components/posts/PostCollection";
 import { SegmentedTabs } from "~/components/ui/SegmentedTabs";
 import { CardSkeleton, StatRowSkeleton } from "~/components/ui/Skeleton";
 import { AppShell, ScreenHeader } from "~/components/shell/AppShell";
@@ -22,7 +23,7 @@ import { cn } from "@bandcoin/ui/lib/cn";
 const PAGE_SIZE = 24;
 
 type Sort = "newest" | "rarest" | "artist";
-type CollectionTab = "drops" | "murals";
+type CollectionTab = "drops" | "posts" | "murals";
 
 const SORTS: { id: Sort; label: string }[] = [
   { id: "newest", label: "Newest" },
@@ -48,11 +49,12 @@ export default function CollectionScreen() {
   const router = useRouter();
   const { query: urlQuery, ready: urlReady } = useQueryParams();
   const signedIn = useAuth((s) => Boolean(s.user));
-  // Drops | Murals — in the URL so the camera's coin pill and back-navigation land on the right one.
-  const tab: CollectionTab = urlQuery.tab === "murals" ? "murals" : "drops";
+  // Drops | Posts | Murals — in the URL so the camera's coin pill and back-navigation land on the right one.
+  const tab: CollectionTab =
+    urlQuery.tab === "murals" ? "murals" : urlQuery.tab === "posts" ? "posts" : "drops";
   const setTab = (t: CollectionTab) =>
     void router.replace(
-      { pathname: router.pathname, query: t === "murals" ? { tab: t } : {} },
+      { pathname: router.pathname, query: t === "drops" ? {} : { tab: t } },
       undefined,
       { shallow: true },
     );
@@ -117,6 +119,7 @@ export default function CollectionScreen() {
         <SegmentedTabs
           tabs={[
             { id: "drops", label: "Drops", icon: Sparkles },
+            { id: "posts", label: "Posts", icon: Newspaper },
             { id: "murals", label: "Murals", icon: Frame },
           ]}
           value={tab}
@@ -127,6 +130,8 @@ export default function CollectionScreen() {
 
         {tab === "murals" ? (
           <MuralCollection signedIn={signedIn} />
+        ) : tab === "posts" ? (
+          <PostCollection signedIn={signedIn} />
         ) : (
           <>
             {/* ── Stats ────────────────────────────────────────────────── */}

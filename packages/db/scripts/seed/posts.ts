@@ -1,7 +1,7 @@
 /**
  * Adds sample feed posts to every approved artist in the dev database, so the
  * feed has text, photo sets, videos, songs, mixed posts, members-only posts
- * and free collectibles to show. Safe to run again: a post whose title the
+ * and collectible copies to show. Safe to run again: a post whose title the
  * artist already has is skipped.
  *
  *   pnpm --filter @bandcoin/db seed:posts
@@ -15,6 +15,8 @@ import { audio, cover } from "./demo-data";
 const DEV_HOST_PREFIX = "ep-shy-leaf-";
 const HOUR = 3_600_000;
 const VIDEO = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
+/** Free copies fans collect by scanning the post's QR, as for posts made in the portal. */
+const COPIES = 100;
 
 type Media = { type: "IMAGE" | "VIDEO" | "AUDIO"; url: string; title?: string };
 type Sample = {
@@ -138,9 +140,11 @@ async function main() {
               sortOrder,
             })),
           },
-          collectibles: sample.collectibles
-            ? { createMany: { data: Array.from({ length: sample.collectibles }, () => ({})) } }
-            : undefined,
+          collectibles: {
+            createMany: {
+              data: Array.from({ length: sample.collectibles ?? COPIES }, () => ({})),
+            },
+          },
         },
       });
       const reactors = fans.filter((fan) => fan.id !== artist.userId);
@@ -164,6 +168,17 @@ async function main() {
     console.log(`${artist.name}: ${artist.posts.length} before, now has the samples`);
   }
   console.log(`Added ${made} posts to ${artists.length} artists`);
+
+  // Every post can be collected: give older posts without copies their 100.
+  const bare = await db.post.findMany({
+    where: { artistId: { in: artists.map((artist) => artist.id) }, collectibles: { none: {} } },
+    select: { id: true },
+  });
+  for (const post of bare)
+    await db.postCollectible.createMany({
+      data: Array.from({ length: COPIES }, () => ({ postId: post.id })),
+    });
+  if (bare.length > 0) console.log(`Gave ${bare.length} older posts ${COPIES} copies each`);
 
   const follower = followArg();
   if (follower) {

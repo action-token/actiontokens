@@ -319,6 +319,7 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
       title: `${demo.album.title} is out`,
       body: `Thank you for listening. Holders of ${demo.album.title} get the stems this week.`,
       media: { create: { type: "IMAGE", url: cover(`${demo.slug}-post`) } },
+      collectibles: { createMany: { data: Array.from({ length: 100 }, () => ({})) } },
     },
   });
   await db.post.create({
@@ -327,6 +328,7 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
       title: "Members only: studio notes",
       body: "How we recorded the last track.",
       tierId: insider.id,
+      collectibles: { createMany: { data: Array.from({ length: 100 }, () => ({})) } },
     },
   });
   for (const fan of fans.slice(0, 3))

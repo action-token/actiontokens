@@ -127,11 +127,14 @@ export async function removeOwnComment(ctx: ServiceCtx, user: SessionUser, comme
 /** How many times to try for a free copy when other fans take one at the same moment. */
 const COLLECT_TRIES = 3;
 
-/** Takes one of the post's free copies for the fan: one each, while they last. */
+/**
+ * Takes one of the post's free copies for the fan: one each, while they last.
+ * `already` tells the scanner the fan had one, so it can say so and open it.
+ */
 export async function collectPost(ctx: ServiceCtx, user: SessionUser, postId: string) {
   const { card } = await viewPost(ctx, user, postId);
   if (card.lock) throw locked();
-  if (card.copies.mine) return { collected: true };
+  if (card.copies.mine) return { collected: true, already: true };
   ctx.activity.set({ targetType: "Post", targetId: postId });
 
   for (let attempt = 0; attempt < COLLECT_TRIES; attempt++) {
@@ -145,7 +148,7 @@ export async function collectPost(ctx: ServiceCtx, user: SessionUser, postId: st
       where: { id: free.id, collectorId: null },
       data: { collectorId: user.id, collectedAt: new Date() },
     });
-    if (count === 1) return { collected: true };
+    if (count === 1) return { collected: true, already: false };
   }
   throw new AppError(ErrorCodes.ITEM_NOT_AVAILABLE, {
     message: "Every copy of this post has been collected.",

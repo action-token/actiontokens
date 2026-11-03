@@ -200,7 +200,7 @@ describe("post actions", () => {
     db.postCollectible.updateMany.mockResolvedValueOnce({ count: 0 }).mockResolvedValueOnce({
       count: 1,
     });
-    expect(await collectPost(ctx, fan, "p1")).toEqual({ collected: true });
+    expect(await collectPost(ctx, fan, "p1")).toEqual({ collected: true, already: false });
     expect(db.postCollectible.updateMany).toHaveBeenLastCalledWith({
       where: { id: "k2", collectorId: null },
       data: { collectorId: "fan", collectedAt: expect.any(Date) },
