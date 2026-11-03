@@ -102,9 +102,11 @@ model MembershipTier {
   sortOrder      Int      @default(0)
   createdAt      DateTime @default(now())
 
-  items Item[]
-  posts Post[]
-  pins  Pin[]
+  items        Item[]
+  posts        Post[] @relation("PostTier")
+  commentPosts Post[] @relation("PostCommentTier")
+  collectPosts Post[] @relation("PostCollectTier")
+  pins         Pin[]
 
   @@unique([artistId, name])
   @@map("membership_tiers")

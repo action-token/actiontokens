@@ -7,13 +7,23 @@ import { feedPage } from "../services/feed/feed";
 const fan: SessionUser = { id: "fan", role: "FAN", walletAddress: "GFAN", walletType: "email" };
 const ARTIST_USER = "artist-user";
 
-function postRow(over: { tier?: boolean; id?: string } = {}) {
+type Access = "VIEWERS" | "FOLLOWERS" | "MEMBERS" | "NOBODY";
+
+function postRow(
+  over: { tier?: boolean; id?: string; commentAccess?: Access; collectAccess?: Access } = {},
+) {
   return {
     id: over.id ?? "p1",
     title: "Studio day",
     body: "New song soon",
     createdAt: new Date("2026-11-01T10:00:00Z"),
+    audience: over.tier ? "MEMBERS" : "EVERYONE",
+    commentAccess: over.commentAccess ?? "VIEWERS",
+    collectAccess: over.collectAccess ?? "VIEWERS",
+    commentTier: null,
+    collectTier: null,
     artist: {
+      id: "a0",
       name: "DJ Tamsin",
       slug: "dj-tamsin",
       avatarUrl: null,
@@ -50,6 +60,7 @@ function setup(
     follows?: number;
     parent?: object;
     ownArtist?: string;
+    row?: Parameters<typeof postRow>[0];
   } = {},
 ) {
   const events: { type: string; recipients: { recipientId: string; isForArtist: boolean }[] }[] =
@@ -66,7 +77,7 @@ function setup(
         ),
     },
     post: {
-      findFirst: vi.fn().mockResolvedValue(postRow({ tier: opts.tier })),
+      findFirst: vi.fn().mockResolvedValue(postRow({ tier: opts.tier, ...opts.row })),
       findMany: vi.fn(),
     },
     postCollectible: {
@@ -172,8 +183,27 @@ describe("post actions", () => {
   it("refuses comments on a post locked to the fan", async () => {
     const { ctx } = setup({ tier: true, held: "0" });
     await expect(addPostComment(ctx, fan, { postId: "p1", body: "Hi" })).rejects.toMatchObject({
-      message: expect.stringMatching(/fan tokens/),
+      message: "Open this post first to comment.",
     });
+  });
+
+  it("refuses comments when the artist turned them off", async () => {
+    const { ctx } = setup({ row: { commentAccess: "NOBODY" } });
+    await expect(addPostComment(ctx, fan, { postId: "p1", body: "Hi" })).rejects.toMatchObject({
+      message: "Comments are off for this post.",
+    });
+  });
+
+  it("lets only followers collect a followers-only post", async () => {
+    const stranger = setup({ follows: 0, row: { collectAccess: "FOLLOWERS" } });
+    await expect(collectPost(stranger.ctx, fan, "p1")).rejects.toMatchObject({
+      message: "Follow DJ Tamsin to collect this post.",
+    });
+
+    const follower = setup({ follows: 1, row: { collectAccess: "FOLLOWERS" } });
+    follower.db.postCollectible.findFirst.mockResolvedValue({ id: "k1" });
+    follower.db.postCollectible.updateMany.mockResolvedValue({ count: 1 });
+    expect(await collectPost(follower.ctx, fan, "p1")).toEqual({ collected: true, already: false });
   });
 
   it("puts a reply to a reply in the same thread, and tells both the artist and the fan replied to", async () => {

@@ -73,6 +73,22 @@ model StemMix {
 }
 
 /// An artist post (was PostGroup).
+/// Who can open a post.
+enum PostAudience {
+  EVERYONE
+  FOLLOWERS
+  MEMBERS
+}
+
+/// Who can comment on, or collect, a post.
+enum PostAccess {
+  /// Everyone who can open it
+  VIEWERS
+  FOLLOWERS
+  MEMBERS
+  NOBODY
+}
+
 model Post {
   id             String          @id @default(cuid())
   artistId       String
@@ -80,9 +96,19 @@ model Post {
   title          String
   body           String
   summary        String?
-  /// Members of this tier only; null = public
+  /// Who can open it; MEMBERS uses `tier`
+  audience       PostAudience    @default(EVERYONE)
+  /// The tier MEMBERS posts need; null = public
   tierId         String?
-  tier           MembershipTier? @relation(fields: [tierId], references: [id], onDelete: SetNull)
+  tier           MembershipTier? @relation("PostTier", fields: [tierId], references: [id], onDelete: SetNull)
+  /// Who can comment; MEMBERS uses `commentTier`
+  commentAccess  PostAccess      @default(VIEWERS)
+  commentTierId  String?
+  commentTier    MembershipTier? @relation("PostCommentTier", fields: [commentTierId], references: [id], onDelete: SetNull)
+  /// Who can collect a copy by scanning the post's QR; MEMBERS uses `collectTier`
+  collectAccess  PostAccess      @default(VIEWERS)
+  collectTierId  String?
+  collectTier    MembershipTier? @relation("PostCollectTier", fields: [collectTierId], references: [id], onDelete: SetNull)
   facebookPostId String?         @unique
   /// Imported from Facebook and not shown in the feed
   isImportOnly   Boolean         @default(false)

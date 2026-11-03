@@ -1,6 +1,6 @@
 "use client";
 
-import { SendHorizontal } from "lucide-react";
+import { Loader2, SendHorizontal } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { type FormEvent, type RefObject, useState } from "react";
@@ -36,10 +36,13 @@ function useRefreshPost(postId: string) {
 export function PostComments({
   postId,
   canWrite,
+  closedNote,
   inputRef,
 }: {
   postId: string;
   canWrite: boolean;
+  /** Why the viewer can't comment, e.g. "Comments are off for this post." */
+  closedNote?: string | null;
   inputRef?: RefObject<HTMLTextAreaElement | null>;
 }) {
   const comments = api.post.comments.useQuery({ postId });
@@ -67,7 +70,9 @@ export function PostComments({
   return (
     <section aria-label="Comments" className="grid gap-3">
       {threads.length === 0 ? (
-        <p className="text-fg-muted text-sm">No comments yet. Be the first.</p>
+        <p className="text-fg-muted text-sm">
+          {canWrite ? "No comments yet. Be the first." : "No comments yet."}
+        </p>
       ) : (
         <ul className="grid gap-3">
           {threads.map((comment) => (
@@ -97,6 +102,7 @@ export function PostComments({
       <CommentBox
         postId={postId}
         canWrite={canWrite}
+        closedNote={closedNote}
         replyTo={replyTo}
         onDone={() => setReplyTo(null)}
         inputRef={inputRef}
@@ -147,9 +153,9 @@ export function CommentBubble({
               type="button"
               disabled={remove.isPending}
               onClick={() => remove.mutate({ commentId: comment.id })}
-              className="hover:text-danger font-semibold"
+              className="hover:text-danger font-semibold disabled:opacity-60"
             >
-              Remove
+              {remove.isPending ? "Removing…" : "Remove"}
             </button>
           )}
         </div>
@@ -162,12 +168,14 @@ export function CommentBubble({
 export function CommentBox({
   postId,
   canWrite,
+  closedNote,
   replyTo,
   onDone,
   inputRef,
 }: {
   postId: string;
   canWrite: boolean;
+  closedNote?: string | null;
   replyTo?: Comment | null;
   onDone?: () => void;
   inputRef?: RefObject<HTMLTextAreaElement | null>;
@@ -186,7 +194,7 @@ export function CommentBox({
     },
   });
 
-  if (!canWrite) return null;
+  if (!canWrite) return closedNote ? <p className="text-fg-muted text-sm">{closedNote}</p> : null;
   if (status === "unauthenticated")
     return (
       <button
@@ -244,10 +252,14 @@ export function CommentBox({
             disabled={!text.trim() || add.isPending}
             className={cn(
               "text-primary-text mb-1 grid size-8 shrink-0 place-items-center rounded-full transition-opacity disabled:opacity-30",
-              add.isPending && "animate-pulse",
+              add.isPending && "disabled:opacity-100",
             )}
           >
-            <SendHorizontal className="size-4" />
+            {add.isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <SendHorizontal className="size-4" />
+            )}
           </button>
         </div>
       </div>

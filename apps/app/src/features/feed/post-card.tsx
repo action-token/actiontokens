@@ -1,6 +1,6 @@
 "use client";
 
-import { Globe2, Heart, Lock, MessageCircle, Share2 } from "lucide-react";
+import { Globe2, Heart, Loader2, Lock, MessageCircle, Share2, UserPlus, Users } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRef, useState } from "react";
@@ -31,6 +31,7 @@ const FOLD_AT = 420;
 export function PostCard({ post, full = false }: { post: FeedPost; full?: boolean }) {
   const input = useRef<HTMLTextAreaElement>(null);
   const href = `/feed/${post.id}`;
+  const commentsOff = !post.comment.open && post.comment.reason === "OFF";
   const artistHref = `/artist/${post.artist.slug}`;
 
   return (
@@ -54,8 +55,10 @@ export function PostCard({ post, full = false }: { post: FeedPost; full?: boolea
               {timeAgo(post.createdAt)}
             </Link>
             <span aria-hidden>·</span>
-            {post.tierName ? (
+            {post.audience === "MEMBERS" ? (
               <Lock className="size-3" aria-label="Members only" />
+            ) : post.audience === "FOLLOWERS" ? (
+              <Users className="size-3" aria-label="Followers only" />
             ) : (
               <Globe2 className="size-3" aria-label="Public" />
             )}
@@ -80,14 +83,21 @@ export function PostCard({ post, full = false }: { post: FeedPost; full?: boolea
       <Counts post={post} href={href} />
       <div className="-mx-2 grid auto-cols-fr grid-flow-col border-y py-1">
         <LikeButton post={post} />
-        <ActionButton disabled={Boolean(post.lock)} onClick={() => input.current?.focus()}>
-          <MessageCircle className="size-[18px]" /> Comment
-        </ActionButton>
+        {!commentsOff && (
+          <ActionButton disabled={!post.comment.open} onClick={() => input.current?.focus()}>
+            <MessageCircle className="size-[18px]" /> Comment
+          </ActionButton>
+        )}
         <ShareButton post={post} href={href} />
       </div>
 
       {post.lock ? null : full ? (
-        <PostComments postId={post.id} canWrite inputRef={input} />
+        <PostComments
+          postId={post.id}
+          canWrite={post.comment.open}
+          closedNote={post.comment.message}
+          inputRef={input}
+        />
       ) : (
         <LatestComment post={post} href={href} inputRef={input} />
       )}
@@ -164,13 +174,33 @@ function LatestComment({
       {post.latestComment && (
         <CommentBubble postId={post.id} comment={post.latestComment} onReply={null} />
       )}
-      <CommentBox postId={post.id} canWrite inputRef={inputRef} />
+      <CommentBox
+        postId={post.id}
+        canWrite={post.comment.open}
+        closedNote={post.comment.message}
+        inputRef={inputRef}
+      />
     </div>
   );
 }
 
 function LockedNote({ post, artistHref }: { post: FeedPost; artistHref: string }) {
   const lock = post.lock!;
+  if (lock.kind === "FOLLOW")
+    return (
+      <div className="bg-surface-2 grid gap-2 rounded-xl border border-dashed p-4">
+        <p className="flex items-center gap-2 text-sm font-semibold">
+          <Users className="text-fg-muted size-4 shrink-0" /> For followers
+        </p>
+        <p className="text-fg-muted text-sm">Follow {post.artist.name} to open it.</p>
+        <Link
+          href={artistHref}
+          className="text-primary-text flex items-center gap-1.5 justify-self-start text-sm font-semibold hover:underline"
+        >
+          <UserPlus className="size-4" /> Follow on {post.artist.name}&apos;s page
+        </Link>
+      </div>
+    );
   const needed = Number(lock.needed).toLocaleString("en-US");
   return (
     <div className="bg-surface-2 grid gap-2 rounded-xl border border-dashed p-4">
@@ -227,10 +257,17 @@ function LikeButton({ post }: { post: FeedPost }) {
   return (
     <ActionButton
       aria-pressed={liked}
+      aria-busy={like.isPending}
+      disabled={like.isPending}
       onClick={signedIn(() => like.mutate({ postId: post.id, on: !liked }))}
-      className={cn(liked && "text-danger hover:text-danger")}
+      className={cn(liked && "text-danger hover:text-danger disabled:opacity-100")}
     >
-      <Heart className={cn("size-[18px]", liked && "fill-current")} /> Like
+      {like.isPending ? (
+        <Loader2 className="size-[18px] animate-spin" />
+      ) : (
+        <Heart className={cn("size-[18px]", liked && "fill-current")} />
+      )}{" "}
+      Like
     </ActionButton>
   );
 }

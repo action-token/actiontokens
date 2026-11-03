@@ -1,4 +1,4 @@
-import type { MediaType } from "@bandcoin/db";
+import type { MediaType, PostAccess, PostAudience } from "@bandcoin/db";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 import { isOwnS3Url } from "@bandcoin/storage";
 
@@ -6,14 +6,17 @@ import type { Context } from "../../context";
 import { invalid } from "./items";
 
 /**
- * Posts: news, media and perks an artist shares with followers, public or for
- * one membership tier. Each post has 100 collectible copies fans can pick up
- * (one per fan). Followers get a notification when a post goes up.
+ * Posts: news, media and perks an artist shares with followers. The artist
+ * picks who can see, comment on and collect each post (everyone, followers,
+ * members of a tier, or nobody for comments and collecting) and how many free
+ * copies fans can collect by scanning its QR, one each. Followers get a
+ * notification when a post goes up.
  */
 type ServiceCtx = Pick<Context, "db" | "activity">;
 type ArtistRef = { id: string; userId: string };
 
 export const COLLECTIBLE_COPIES = 100;
+export const MAX_COPIES = 10_000;
 export const MAX_MEDIA = 10;
 const MEDIA_TYPES: MediaType[] = ["IMAGE", "VIDEO", "AUDIO"];
 
@@ -23,8 +26,15 @@ export type PostMediaInput = { type: MediaType; url: string; title?: string | nu
 export type PostInput = {
   title: string;
   body?: string;
-  /** Members of this tier only; null = public */
+  /** Who can open it; MEMBERS needs `tierId`. Left out: MEMBERS when a tier is given. */
+  audience?: PostAudience;
   tierId?: string | null;
+  commentAccess?: PostAccess;
+  commentTierId?: string | null;
+  collectAccess?: PostAccess;
+  collectTierId?: string | null;
+  /** Free copies fans can collect, 1 to 10,000 */
+  copies?: number;
   media?: PostMediaInput[];
 };
 
@@ -41,6 +51,77 @@ function check(input: Partial<PostInput>) {
     if (input.media.some((file) => !MEDIA_TYPES.includes(file.type)))
       throw invalid("Posts can have images, video and audio.");
     if (input.media.some((file) => !isOwnS3Url(file.url))) throw invalid("Upload the files again.");
+  }
+  if (
+    input.copies !== undefined &&
+    (!Number.isInteger(input.copies) || input.copies < 1 || input.copies > MAX_COPIES)
+  )
+    throw invalid(`Pick between 1 and ${MAX_COPIES.toLocaleString("en-US")} copies.`);
+}
+
+/**
+ * The settings as saved: each "members" rule keeps its tier, every other
+ * choice clears it. Only the settings the input names are returned.
+ */
+async function resolveSettings(ctx: ServiceCtx, artist: ArtistRef, input: Partial<PostInput>) {
+  const out: {
+    audience?: PostAudience;
+    tierId?: string | null;
+    commentAccess?: PostAccess;
+    commentTierId?: string | null;
+    collectAccess?: PostAccess;
+    collectTierId?: string | null;
+  } = {};
+  const audience =
+    input.audience ??
+    (input.tierId === undefined ? undefined : input.tierId ? "MEMBERS" : "EVERYONE");
+  if (audience !== undefined) {
+    out.audience = audience;
+    out.tierId = audience === "MEMBERS" ? await needTier(ctx, artist, input.tierId) : null;
+  }
+  if (input.commentAccess !== undefined) {
+    out.commentAccess = input.commentAccess;
+    out.commentTierId =
+      input.commentAccess === "MEMBERS" ? await needTier(ctx, artist, input.commentTierId) : null;
+  }
+  if (input.collectAccess !== undefined) {
+    out.collectAccess = input.collectAccess;
+    out.collectTierId =
+      input.collectAccess === "MEMBERS" ? await needTier(ctx, artist, input.collectTierId) : null;
+  }
+  return out;
+}
+
+async function needTier(ctx: ServiceCtx, artist: ArtistRef, tierId: string | null | undefined) {
+  const tier = await resolveTier(ctx, artist, tierId);
+  if (!tier) throw invalid("Pick one of your active membership tiers.");
+  return tier;
+}
+
+/**
+ * Sets how many copies a post has. More can always be added; fewer only
+ * while nobody has collected one.
+ */
+async function setCopies(ctx: ServiceCtx, postId: string, copies: number) {
+  const [total, collected] = await Promise.all([
+    ctx.db.postCollectible.count({ where: { postId } }),
+    ctx.db.postCollectible.count({ where: { postId, collectorId: { not: null } } }),
+  ]);
+  if (copies > total)
+    await ctx.db.postCollectible.createMany({
+      data: Array.from({ length: copies - total }, () => ({ postId })),
+    });
+  else if (copies < total) {
+    if (collected > 0)
+      throw invalid(
+        `Fans have collected ${collected} cop${collected === 1 ? "y" : "ies"} already, so the number can only go up.`,
+      );
+    const extra = await ctx.db.postCollectible.findMany({
+      where: { postId, collectorId: null },
+      take: total - copies,
+      select: { id: true },
+    });
+    await ctx.db.postCollectible.deleteMany({ where: { id: { in: extra.map((row) => row.id) } } });
   }
 }
 
@@ -77,7 +158,12 @@ const postSelect = {
   id: true,
   title: true,
   body: true,
+  audience: true,
   tierId: true,
+  commentAccess: true,
+  commentTierId: true,
+  collectAccess: true,
+  collectTierId: true,
   createdAt: true,
   updatedAt: true,
   tier: { select: { name: true } },
@@ -88,16 +174,30 @@ const postSelect = {
   _count: counts,
 };
 
-/** How many copies of a post fans collected. */
+/** How many copies of a post there are, and how many fans collected. */
 async function collectedCounts(ctx: Pick<ServiceCtx, "db">, postIds: string[]) {
-  if (postIds.length === 0) return new Map<string, number>();
-  const rows = await ctx.db.postCollectible.groupBy({
-    by: ["postId"],
-    where: { postId: { in: postIds }, collectorId: { not: null } },
-    _count: { _all: true },
-  });
-  return new Map(rows.map((row) => [row.postId, row._count._all]));
+  if (postIds.length === 0) return new Map<string, { copies: number; collected: number }>();
+  const [all, taken] = await Promise.all([
+    ctx.db.postCollectible.groupBy({
+      by: ["postId"],
+      where: { postId: { in: postIds } },
+      _count: { _all: true },
+    }),
+    ctx.db.postCollectible.groupBy({
+      by: ["postId"],
+      where: { postId: { in: postIds }, collectorId: { not: null } },
+      _count: { _all: true },
+    }),
+  ]);
+  const collected = new Map(taken.map((row) => [row.postId, row._count._all]));
+  return new Map(
+    all.map((row) => [
+      row.postId,
+      { copies: row._count._all, collected: collected.get(row.postId) ?? 0 },
+    ]),
+  );
 }
+const NO_COPIES = { copies: 0, collected: 0 };
 
 export async function listPosts(ctx: Pick<ServiceCtx, "db">, artist: Pick<ArtistRef, "id">) {
   const rows = await ctx.db.post.findMany({
@@ -115,7 +215,7 @@ export async function listPosts(ctx: Pick<ServiceCtx, "db">, artist: Pick<Artist
     tierName: tier?.name ?? null,
     likes: _count.likes,
     comments: _count.comments,
-    collected: collected.get(row.id) ?? 0,
+    ...(collected.get(row.id) ?? NO_COPIES),
   }));
 }
 
@@ -136,25 +236,27 @@ export async function getPost(
     tierName: tier?.name ?? null,
     likes: _count.likes,
     comments: _count.comments,
-    collected: collected.get(post.id) ?? 0,
+    ...(collected.get(post.id) ?? NO_COPIES),
   };
 }
 
 export async function createPost(ctx: ServiceCtx, artist: ArtistRef, input: PostInput) {
   check(input);
-  const tierId = await resolveTier(ctx, artist, input.tierId);
+  const settings = await resolveSettings(ctx, artist, input);
   const post = await ctx.db.post.create({
     data: {
       artistId: artist.id,
       title: input.title.trim(),
       body: input.body?.trim() ?? "",
-      tierId,
+      ...settings,
       media:
         input.media && input.media.length > 0
           ? { createMany: { data: mediaRows(input.media) } }
           : undefined,
       collectibles: {
-        createMany: { data: Array.from({ length: COLLECTIBLE_COPIES }, () => ({})) },
+        createMany: {
+          data: Array.from({ length: input.copies ?? COLLECTIBLE_COPIES }, () => ({})),
+        },
       },
     },
     select: { id: true },
@@ -194,12 +296,12 @@ export async function updatePost(
 ) {
   const post = await ownPost(ctx, artist, input.postId);
   check(input);
-  const tierId =
-    input.tierId === undefined ? undefined : await resolveTier(ctx, artist, input.tierId);
+  const settings = await resolveSettings(ctx, artist, input);
+  if (input.copies !== undefined) await setCopies(ctx, post.id, input.copies);
   const data = {
     ...(input.title !== undefined ? { title: input.title.trim() } : {}),
     ...(input.body !== undefined ? { body: input.body.trim() } : {}),
-    ...(tierId !== undefined ? { tierId } : {}),
+    ...settings,
   };
   const media = input.media;
   if (media === undefined) {

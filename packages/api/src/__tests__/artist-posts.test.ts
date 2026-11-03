@@ -49,6 +49,9 @@ function setup(
     postCollectible: {
       count: vi.fn().mockResolvedValue(over.collected ?? 0),
       groupBy: vi.fn().mockResolvedValue([]),
+      createMany: vi.fn().mockResolvedValue({ count: 0 }),
+      findMany: vi.fn().mockResolvedValue([]),
+      deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
     },
     postComment: {
       findFirst: vi
@@ -88,10 +91,47 @@ describe("createPost", () => {
       media: { createMany: { data: Row[] } };
       collectibles: { createMany: { data: Row[] } };
     };
-    expect(data).toMatchObject({ title: "New drop", body: "Hello", artistId: "a1", tierId: null });
+    expect(data).toMatchObject({ title: "New drop", body: "Hello", artistId: "a1" });
+    expect(data).not.toHaveProperty("tierId");
     expect(data.media.createMany.data.map((m) => m.sortOrder)).toEqual([0, 1]);
     expect(data.collectibles.createMany.data).toHaveLength(COLLECTIBLE_COPIES);
     expect(activity.set).toHaveBeenCalledWith({ targetType: "Post", targetId: "p1" });
+  });
+
+  it("saves who can see, comment and collect, with each members rule's tier, and the copies", async () => {
+    const { ctx, created } = setup();
+    await createPost(ctx, artist, {
+      title: "Settings",
+      audience: "FOLLOWERS",
+      tierId: "t9",
+      commentAccess: "MEMBERS",
+      commentTierId: "t1",
+      collectAccess: "NOBODY",
+      collectTierId: "t1",
+      copies: 25,
+    });
+    expect(created[0]).toMatchObject({
+      audience: "FOLLOWERS",
+      tierId: null,
+      commentAccess: "MEMBERS",
+      commentTierId: "t1",
+      collectAccess: "NOBODY",
+      collectTierId: null,
+    });
+    expect(
+      (created[0] as { collectibles: { createMany: { data: Row[] } } }).collectibles.createMany
+        .data,
+    ).toHaveLength(25);
+  });
+
+  it("asks for a tier when a rule is members only, and keeps copies in range", async () => {
+    const { ctx } = setup({ tier: null });
+    await expect(
+      createPost(ctx, artist, { title: "X", commentAccess: "MEMBERS", commentTierId: null }),
+    ).rejects.toMatchObject({ message: "Pick one of your active membership tiers." });
+    await expect(createPost(ctx, artist, { title: "X", copies: 0 })).rejects.toMatchObject({
+      message: "Pick between 1 and 10,000 copies.",
+    });
   });
 
   it("keeps a mix of images, video and songs in order, with each song's name", async () => {
@@ -203,9 +243,38 @@ describe("updatePost", () => {
     await updatePost(ctx, artist, { postId: "p1", title: " New ", tierId: null });
     expect(db.post.update).toHaveBeenCalledWith({
       where: { id: "p1" },
-      data: { title: "New", tierId: null },
+      data: { title: "New", audience: "EVERYONE", tierId: null },
     });
     expect(db.postMedia.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it("adds copies any time, but removes them only while nobody has collected one", async () => {
+    const more = setup();
+    more.db.postCollectible.count.mockResolvedValueOnce(100).mockResolvedValueOnce(4);
+    await updatePost(more.ctx, artist, { postId: "p1", copies: 150 });
+    expect(more.db.postCollectible.createMany).toHaveBeenCalledWith({
+      data: expect.arrayContaining([{ postId: "p1" }]),
+    });
+    expect(
+      (more.db.postCollectible.createMany.mock.calls[0]![0] as { data: Row[] }).data,
+    ).toHaveLength(50);
+
+    const fewer = setup();
+    fewer.db.postCollectible.count.mockResolvedValueOnce(100).mockResolvedValueOnce(4);
+    await expect(updatePost(fewer.ctx, artist, { postId: "p1", copies: 50 })).rejects.toMatchObject(
+      { message: "Fans have collected 4 copies already, so the number can only go up." },
+    );
+
+    const untouched = setup();
+    untouched.db.postCollectible.count.mockResolvedValueOnce(100).mockResolvedValueOnce(0);
+    untouched.db.postCollectible.findMany.mockResolvedValue([{ id: "k1" }, { id: "k2" }]);
+    await updatePost(untouched.ctx, artist, { postId: "p1", copies: 98 });
+    expect(untouched.db.postCollectible.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { postId: "p1", collectorId: null }, take: 2 }),
+    );
+    expect(untouched.db.postCollectible.deleteMany).toHaveBeenCalledWith({
+      where: { id: { in: ["k1", "k2"] } },
+    });
   });
 
   it("replaces the media list as a whole", async () => {

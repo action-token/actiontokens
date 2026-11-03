@@ -1,16 +1,6 @@
 "use client";
 
-import {
-  Eye,
-  FileText,
-  Loader2,
-  Lock,
-  Music,
-  Paperclip,
-  Users2,
-  Video,
-  X,
-} from "lucide-react";
+import { Eye, FileText, Loader2, Lock, Music, Paperclip, Users2, Video, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
@@ -18,13 +8,6 @@ import toast from "react-hot-toast";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Input } from "@bandcoin/ui/components/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@bandcoin/ui/components/select";
 import { cn } from "@bandcoin/ui/lib/cn";
 import { Field, FormPage, FormSection } from "@bandcoin/ui/patterns/form-page";
 import { Markdown } from "@bandcoin/ui/patterns/markdown";
@@ -39,12 +22,13 @@ import { AiImagePanel } from "../ai/ai-image-panel";
 import { AiTextButton } from "../ai/ai-text-button";
 
 import { MediaDrop, type PostMedia } from "./media-drop";
+import { PostSettingsSection } from "./post-settings";
+import { settingsFrom, settingsProblem, settingsSummary } from "./post-settings-model";
 import { PostComments } from "./post-comments";
 
 type Existing = RouterOutputs["posts"]["post"];
 type Media = PostMedia;
 
-const PUBLIC = "public";
 const MAX_MEDIA = 10;
 const messageOf = (error: unknown) =>
   error instanceof Error ? error.message : "Something went wrong.";
@@ -57,7 +41,7 @@ export function PostForm({ existing }: { existing?: Existing }) {
   const tiers = api.memberships.tiers.useQuery();
   const [title, setTitle] = useState(existing?.title ?? "");
   const [body, setBody] = useState(existing?.body ?? "");
-  const [tierId, setTierId] = useState(existing?.tierId ?? PUBLIC);
+  const [settings, setSettings] = useState(() => settingsFrom(existing));
   const [media, setMedia] = useState<Media[]>(
     existing?.media.map(({ type, url, title }) => ({
       type: type as Media["type"],
@@ -86,11 +70,11 @@ export function PostForm({ existing }: { existing?: Existing }) {
     onError: (error) => toast.error(messageOf(error)),
   });
   const saving = create.isPending || update.isPending;
-  const ready = title.trim().length > 0;
-
-  const activeTiers = tiers.data?.filter((tier) => tier.isActive) ?? [];
-  const tierName = (id: string) =>
-    id === PUBLIC ? "Everyone" : (tiers.data?.find((tier) => tier.id === id)?.name ?? "Members");
+  const problem = settingsProblem(settings, existing?.collected ?? 0);
+  const ready = title.trim().length > 0 && problem === null;
+  const tierName = (id: string | null) =>
+    tiers.data?.find((tier) => tier.id === id)?.name ?? "Members";
+  const summary = settingsSummary(settings, tierName);
   const aiContext = { title, content: body };
   const imagePrompt = imageBrief || [title, body.slice(0, 400)].filter(Boolean).join(". ");
   const addMedia = (file: Media) => setMedia((current) => [...current, file].slice(0, MAX_MEDIA));
@@ -98,7 +82,7 @@ export function PostForm({ existing }: { existing?: Existing }) {
   function submit(submitted: FormEvent) {
     submitted.preventDefault();
     if (!ready) return;
-    const fields = { title, body, tierId: tierId === PUBLIC ? null : tierId, media };
+    const fields = { title, body, media, ...settings };
     if (existing) update.mutate({ postId: existing.id, ...fields });
     else create.mutate(fields);
   }
@@ -108,6 +92,7 @@ export function PostForm({ existing }: { existing?: Existing }) {
       <Button asChild type="button" variant="ghost">
         <Link href="/posts">Cancel</Link>
       </Button>
+      {problem && <p className="text-danger mr-auto text-xs">{problem}</p>}
       <Button type="submit" disabled={!ready || saving}>
         {saving && <Loader2 className="animate-spin" />}
         {existing ? "Save changes" : "Publish post"}
@@ -119,7 +104,7 @@ export function PostForm({ existing }: { existing?: Existing }) {
     <FormPage
       title={existing ? existing.title : "New post"}
       eyebrow="Content"
-      description="Share news, media and perks with your followers, publicly or only for a membership tier."
+      description="Share news, media and perks with your fans. You choose who can see, comment on and collect it."
       back={{ href: "/posts", label: "Posts" }}
       onSubmit={submit}
       actions={actions}
@@ -132,8 +117,12 @@ export function PostForm({ existing }: { existing?: Existing }) {
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{portal.artist?.name ?? "You"}</p>
               <p className="text-fg-muted flex items-center gap-1 text-xs">
-                {tierId === PUBLIC ? <Users2 className="size-3" /> : <Lock className="size-3" />}
-                {tierName(tierId)}
+                {settings.audience === "EVERYONE" ? (
+                  <Users2 className="size-3" />
+                ) : (
+                  <Lock className="size-3" />
+                )}
+                {summary.see}
               </p>
             </div>
             <p className="display mt-4 text-lg leading-snug">
@@ -151,6 +140,16 @@ export function PostForm({ existing }: { existing?: Existing }) {
                 ))}
               </div>
             )}
+            <dl className="text-fg-muted mt-4 grid gap-1 border-t pt-3 text-xs">
+              <div className="flex justify-between gap-3">
+                <dt>Comments</dt>
+                <dd className="text-fg text-right font-medium capitalize">{summary.comment}</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt>Collect</dt>
+                <dd className="text-fg text-right font-medium">{summary.collect}</dd>
+              </div>
+            </dl>
           </section>
           {existing && (
             <>
@@ -276,36 +275,13 @@ export function PostForm({ existing }: { existing?: Existing }) {
         )}
       </FormSection>
 
-      <FormSection title="Who can see it" icon={Lock}>
-        <Field
-          label="Audience"
-          htmlFor="post-tier"
-          hint={
-            tierId === PUBLIC
-              ? "Everyone who follows you sees it."
-              : "Only fans who hold enough of your fan token for this tier can open it."
-          }
-        >
-          <Select value={tierId} onValueChange={setTierId}>
-            <SelectTrigger id="post-tier" className="w-full sm:max-w-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={PUBLIC}>Everyone</SelectItem>
-              {activeTiers.map((tier) => (
-                <SelectItem key={tier.id} value={tier.id}>
-                  {tier.name}
-                </SelectItem>
-              ))}
-              {existing?.tierId && !activeTiers.some((tier) => tier.id === existing.tierId) && (
-                <SelectItem value={existing.tierId}>
-                  {existing.tierName ?? "Hidden tier"}
-                </SelectItem>
-              )}
-            </SelectContent>
-          </Select>
-        </Field>
-      </FormSection>
+      <PostSettingsSection
+        value={settings}
+        onChange={setSettings}
+        tiers={tiers.data ?? []}
+        loadingTiers={tiers.isPending}
+        collected={existing?.collected ?? 0}
+      />
     </FormPage>
   );
 }

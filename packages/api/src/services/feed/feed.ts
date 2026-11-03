@@ -4,7 +4,7 @@ import { AppError, ErrorCodes } from "@bandcoin/errors";
 import type { Context, SessionUser } from "../../context";
 import { tokenHeld } from "../catalog/access";
 import { commentAuthor, commentAuthorSelect } from "./authors";
-import { postLock } from "./gate";
+import { gateMessage, postGate, postLock } from "./gate";
 
 type ServiceCtx = Pick<Context, "db" | "chain">;
 
@@ -17,8 +17,14 @@ const postSelect = (viewerId: string | null) =>
     title: true,
     body: true,
     createdAt: true,
+    audience: true,
+    commentAccess: true,
+    collectAccess: true,
+    commentTier: { select: { name: true, requiredTokens: true } },
+    collectTier: { select: { name: true, requiredTokens: true } },
     artist: {
       select: {
+        id: true,
         name: true,
         slug: true,
         avatarUrl: true,
@@ -53,12 +59,19 @@ const postSelect = (viewerId: string | null) =>
 
 type PostRow = Prisma.PostGetPayload<{ select: ReturnType<typeof postSelect> }>;
 
+const tierRule = (tier: { name: string; requiredTokens: { toString(): string } } | null) =>
+  tier ? { name: tier.name, requiredTokens: tier.requiredTokens.toString() } : null;
+
+/** Whether any of a post's rules asks for a tier or a follow. */
+const needs = (row: PostRow, kind: "MEMBERS" | "FOLLOWERS") =>
+  row.audience === kind || row.commentAccess === kind || row.collectAccess === kind;
+
 /**
- * The viewer's fan-token balances for the artists behind tier posts, read
+ * The viewer's fan-token balances for the artists behind members' rules, read
  * once per page. Signed out, or without a wallet on Stellar, they hold none.
  */
 async function heldFor(ctx: ServiceCtx, viewer: SessionUser | null, rows: PostRow[]) {
-  const gated = rows.some((row) => row.tier && row.artist.userId !== viewer?.id);
+  const gated = rows.some((row) => needs(row, "MEMBERS") && row.artist.userId !== viewer?.id);
   const account = gated && viewer ? await ctx.chain.loadAccount(viewer.walletAddress) : null;
   return (row: PostRow) => {
     const token = row.artist.fanTokenItem?.classicToken ?? null;
@@ -90,25 +103,46 @@ async function copyCounts(ctx: Pick<Context, "db">, postIds: string[]) {
   );
 }
 
-/** What a fan sees of a post: everything when it's open to them, the title and its gate when it isn't. */
+/** The artists among `rows` the viewer follows, read only when a rule asks. */
+async function followedIn(ctx: ServiceCtx, viewer: SessionUser | null, rows: PostRow[]) {
+  const asks = rows.filter((row) => needs(row, "FOLLOWERS"));
+  if (!viewer || asks.length === 0) return new Set<string>();
+  const follows = await ctx.db.follow.findMany({
+    where: { userId: viewer.id, artistId: { in: [...new Set(asks.map((row) => row.artist.id))] } },
+    select: { artistId: true },
+  });
+  return new Set(follows.map((follow) => follow.artistId));
+}
+
+/**
+ * What a fan sees of a post: everything when it's open to them, the title and
+ * its lock when it isn't, and whether they may comment on and collect it.
+ */
 async function toCards(ctx: ServiceCtx, viewer: SessionUser | null, rows: PostRow[]) {
-  const [held, copies] = await Promise.all([
+  const [held, followed, copies] = await Promise.all([
     heldFor(ctx, viewer, rows),
+    followedIn(ctx, viewer, rows),
     copyCounts(
       ctx,
       rows.map((row) => row.id),
     ),
   ]);
   return rows.map((row) => {
-    const token = row.artist.fanTokenItem?.classicToken ?? null;
-    const lock = postLock({
-      tier: row.tier
-        ? { name: row.tier.name, requiredTokens: row.tier.requiredTokens.toString() }
-        : null,
-      token,
+    const who = {
+      token: row.artist.fanTokenItem?.classicToken ?? null,
       held: held(row),
+      follows: followed.has(row.artist.id),
       isOwner: row.artist.userId === viewer?.id,
-    });
+    };
+    const lock = postLock({ audience: row.audience, tier: tierRule(row.tier), ...who });
+    const gate = (
+      action: "comment" | "collect",
+      access: typeof row.commentAccess,
+      tier: Parameters<typeof tierRule>[0],
+    ) => {
+      const result = postGate({ access, tier: tierRule(tier), viewLocked: lock !== null, ...who });
+      return { ...result, message: gateMessage(result, action, row.artist.name) };
+    };
     const copy = copies.get(row.id) ?? { total: 0, collected: 0 };
     return {
       id: row.id,
@@ -117,7 +151,8 @@ async function toCards(ctx: ServiceCtx, viewer: SessionUser | null, rows: PostRo
       media: lock ? [] : row.media,
       createdAt: row.createdAt,
       artist: { name: row.artist.name, slug: row.artist.slug, avatarUrl: row.artist.avatarUrl },
-      tierName: row.tier?.name ?? null,
+      audience: row.audience,
+      tierName: row.audience === "MEMBERS" ? (row.tier?.name ?? null) : null,
       lock,
       likes: row._count.likes,
       liked: row.likes.length > 0,
@@ -129,6 +164,8 @@ async function toCards(ctx: ServiceCtx, viewer: SessionUser | null, rows: PostRo
             author: commentAuthor(author),
           }))[0] ?? null),
       copies: { ...copy, mine: row.collectibles.length > 0 },
+      comment: gate("comment", row.commentAccess, row.commentTier),
+      collect: gate("collect", row.collectAccess, row.collectTier),
     };
   });
 }

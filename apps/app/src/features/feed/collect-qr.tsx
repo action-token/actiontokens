@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ScanLine } from "lucide-react";
+import { Check, Lock, ScanLine } from "lucide-react";
 import QRCode from "react-qr-code";
 
 import {
@@ -26,6 +26,19 @@ export function CollectQr({ post }: { post: FeedPost }) {
   const { total, collected, mine } = post.copies;
   if (post.lock || total === 0) return null;
   const left = total - collected;
+  const gate = post.collect;
+  if (!mine && !gate.open) {
+    if (gate.reason === "OFF" || gate.reason === "LOCKED") return null;
+    return (
+      <span
+        title={gate.message ?? undefined}
+        className="text-fg-muted flex max-w-28 shrink-0 items-center gap-1 text-right text-[11px] leading-tight font-semibold"
+      >
+        <Lock className="size-3 shrink-0" />
+        {gate.reason === "TIER" ? `${gate.tierName} can collect` : "Followers can collect"}
+      </span>
+    );
+  }
 
   if (mine)
     return (

@@ -19,11 +19,16 @@ const VIDEO = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flo
 const COPIES = 100;
 
 type Media = { type: "IMAGE" | "VIDEO" | "AUDIO"; url: string; title?: string };
+type Access = "VIEWERS" | "FOLLOWERS" | "MEMBERS" | "NOBODY";
 type Sample = {
   title: string;
   body: string;
   media: Media[];
   membersOnly?: boolean;
+  /** Shows the other post settings in the feed */
+  followersOnly?: boolean;
+  commentAccess?: Access;
+  collectAccess?: Access;
   collectibles?: number;
 };
 
@@ -35,7 +40,7 @@ const LONG_STORY = [
 
 function samples(name: string, slug: string, song: number): Sample[] {
   return [
-    { title: "Back in the studio", body: LONG_STORY, media: [] },
+    { title: "Back in the studio", body: LONG_STORY, media: [], collectAccess: "NOBODY" },
     {
       title: "Photos from last night",
       body: `What a crowd. Thank you for singing every word with ${name}.`,
@@ -45,11 +50,13 @@ function samples(name: string, slug: string, song: number): Sample[] {
       title: "A minute of the new video",
       body: "Shot it on a Sunday morning with one camera. Full video next week.",
       media: [{ type: "VIDEO", url: VIDEO }],
+      followersOnly: true,
     },
     {
       title: "New song: first listen",
       body: "Rough mix, straight from the laptop. Headphones on.",
       media: [{ type: "AUDIO", url: audio(song), title: "Morning Static (rough mix)" }],
+      commentAccess: "FOLLOWERS",
     },
     {
       title: "Tour diary, day 3",
@@ -59,6 +66,7 @@ function samples(name: string, slug: string, song: number): Sample[] {
         { type: "VIDEO", url: VIDEO },
         { type: "AUDIO", url: audio(song + 1), title: "Closing song (live)" },
       ],
+      collectAccess: "FOLLOWERS",
     },
     {
       title: "For members: the demo tape",
@@ -130,7 +138,14 @@ async function main() {
           artistId: artist.id,
           title: sample.title,
           body: sample.body,
+          audience: sample.membersOnly
+            ? "MEMBERS"
+            : sample.followersOnly
+              ? "FOLLOWERS"
+              : "EVERYONE",
           tierId: sample.membersOnly ? tier!.id : null,
+          commentAccess: sample.commentAccess ?? "VIEWERS",
+          collectAccess: sample.collectAccess ?? "VIEWERS",
           createdAt,
           media: {
             create: sample.media.map((file, sortOrder) => ({

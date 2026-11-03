@@ -327,6 +327,7 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
       artistId: artist.id,
       title: "Members only: studio notes",
       body: "How we recorded the last track.",
+      audience: "MEMBERS",
       tierId: insider.id,
       collectibles: { createMany: { data: Array.from({ length: 100 }, () => ({})) } },
     },

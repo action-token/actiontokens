@@ -10,10 +10,9 @@ type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 /** Longest comment, in characters. */
 export const MAX_COMMENT = 1000;
 
-const locked = () =>
-  new AppError(ErrorCodes.AUTH_FORBIDDEN, {
-    message: "Hold the tier's fan tokens to open this post first.",
-  });
+/** Refuses with the rule's own words ("Follow DJ Tamsin to comment."). */
+const refused = (gate: { open: boolean; message: string | null }) =>
+  new AppError(ErrorCodes.AUTH_FORBIDDEN, { message: gate.message ?? "You can't do that here." });
 
 /** Likes or un-likes a post; the wanted state is passed, so a double click can't flip it back. */
 export async function setPostLike(
@@ -73,7 +72,7 @@ export async function addPostComment(
       message: `Write a comment of up to ${MAX_COMMENT} characters.`,
     });
   const { card, artistUserId } = await viewPost(ctx, user, input.postId);
-  if (card.lock) throw locked();
+  if (!card.comment.open) throw refused(card.comment);
 
   const parent = input.parentId
     ? await ctx.db.postComment.findFirst({
@@ -133,8 +132,8 @@ const COLLECT_TRIES = 3;
  */
 export async function collectPost(ctx: ServiceCtx, user: SessionUser, postId: string) {
   const { card } = await viewPost(ctx, user, postId);
-  if (card.lock) throw locked();
   if (card.copies.mine) return { collected: true, already: true };
+  if (!card.collect.open) throw refused(card.collect);
   ctx.activity.set({ targetType: "Post", targetId: postId });
 
   for (let attempt = 0; attempt < COLLECT_TRIES; attempt++) {

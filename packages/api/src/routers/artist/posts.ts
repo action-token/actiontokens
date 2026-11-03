@@ -20,10 +20,17 @@ const media = z
     }),
   )
   .max(10);
+const access = z.enum(["VIEWERS", "FOLLOWERS", "MEMBERS", "NOBODY"]);
 const postFields = {
   title: z.string().trim().max(160),
   body: z.string().max(12_000).optional(),
+  audience: z.enum(["EVERYONE", "FOLLOWERS", "MEMBERS"]).optional(),
   tierId: z.string().nullish(),
+  commentAccess: access.optional(),
+  commentTierId: z.string().nullish(),
+  collectAccess: access.optional(),
+  collectTierId: z.string().nullish(),
+  copies: z.number().int().min(1).max(10_000).optional(),
   media: media.optional(),
 };
 

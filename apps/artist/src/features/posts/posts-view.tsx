@@ -117,7 +117,13 @@ function PostCard({ post }: { post: Post }) {
           <span className="inline-flex items-center gap-1">
             <MessageSquare className="size-3.5" /> {post.comments}
           </span>
-          <span>{post.collected} of 100 copies collected</span>
+          {post.collectAccess === "NOBODY" ? (
+            <span>Collecting off</span>
+          ) : (
+            <span>
+              {post.collected} of {post.copies} copies collected
+            </span>
+          )}
         </p>
       </Link>
     </li>
