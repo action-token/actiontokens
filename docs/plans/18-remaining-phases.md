@@ -20,23 +20,12 @@ you can open and check, and every stage ships with tests.
 
 ## Stages
 
-### 1. Copy bandfan's data into the dev database
+### 1. ~~Copy bandfan's data into the dev database~~ (dropped 2026-11-03)
 
-`pnpm --filter @bandcoin/db legacy:run` copies the 91 old tables (4,268 rows
-in the dry run) in the order of plan 03:
-users → artists → chain accounts → items → listings → orders and ownership →
-music → social → pins → bounties → studio → settings.
+Not needed: work continues on the demo data in the dev database. No copy and no
+testnet check of copied artists.
 
-- `legacy_id_map` makes it re-runnable: a second run skips rows already copied.
-- Nothing is deleted from the new database. Test data stays beside the copy.
-- Secrets (storage keys) are decrypted with the old key and encrypted with the new one.
-- Old `CreditBalance` becomes a Studio balance (one credit = one coin), as plan 08 suggested.
-- Afterwards: row counts old vs new, and a sample of ownerships checked against Horizon,
-  written to `docs/migration-report.md`.
-
-**You check:** the report, and old artists and items in both apps.
-
-### 2. Fan app: feed and notifications
+### 2. Fan app: feed and notifications (done)
 
 - `/feed`: posts from artists you follow, newest first, with likes and comments as on the
   artist page. Tier-locked posts show how to qualify. Empty state links to Marketplace.
