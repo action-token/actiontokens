@@ -36,7 +36,13 @@ testnet check of copied artists.
 
 **You check:** both pages, desktop and phone.
 
-### 3. Hotspots and batch pins
+### 3. Hotspots (done 2026-11-03; batch pins moved to stage 7)
+
+Decided: drops go live without admin review (as bandfan), the first drop is on the
+start date, and every drop uses "spots per drop". Batch pin creation comes with the
+pin agent in stage 7, the only place bandfan used it.
+
+Original plan:
 
 - Artist `/hotspots`: draw an area on the map (circle or polygon), choose how often pins
   drop (every N days), how long each pin lasts, start and end dates, auto-collect, and one

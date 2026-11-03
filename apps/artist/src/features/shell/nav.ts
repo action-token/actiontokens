@@ -83,7 +83,14 @@ const READY_TOOLS: NavGroup[] = [
   {
     title: "Drops",
     items: [
-      { href: "/pins", icon: Map, label: "Map & pins", shortLabel: "Map", tab: true },
+      {
+        href: "/pins",
+        icon: Map,
+        label: "Map & pins",
+        shortLabel: "Map",
+        also: ["/hotspots"],
+        tab: true,
+      },
       { href: "/events", icon: CalendarDays, label: "Events", tab: true },
       { href: "/embeds", icon: Code2, label: "Website map" },
       { href: "/reports", icon: BarChart3, label: "Pin reports" },

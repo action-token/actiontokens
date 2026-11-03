@@ -1,6 +1,6 @@
 "use client";
 
-import { Gift, List, MapPinOff, Pencil, Plus } from "lucide-react";
+import { Gift, List, MapPinOff, Pencil, Plus, Radar } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -141,6 +141,11 @@ export function PinsMap() {
           </Label>
         </div>
         <div className="pointer-events-auto ml-auto flex items-center gap-2">
+          <Button asChild variant="outline" className="shadow-sm">
+            <Link href="/hotspots">
+              <Radar /> <span className="hidden sm:inline">Hotspots</span>
+            </Link>
+          </Button>
           <Button asChild variant="outline" className="shadow-sm">
             <Link href="/pins/manage">
               <List /> <span className="hidden sm:inline">Manage</span>
