@@ -1,6 +1,6 @@
 "use client";
 
-import { Coins, LogIn, LogOut, Sparkles } from "lucide-react";
+import { AudioLines, Coins, LogIn, LogOut, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
@@ -16,6 +16,7 @@ import { api } from "~/trpc/react";
 
 const NAV = [
   { href: "/", label: "Studio", icon: Sparkles },
+  { href: "/music", label: "Music", icon: AudioLines },
   { href: "/coins", label: "Coins", icon: Coins },
 ];
 

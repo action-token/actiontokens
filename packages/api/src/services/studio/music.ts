@@ -167,15 +167,13 @@ const generationSelect = {
   createdAt: true,
 } as const;
 
-const shaped = (row: {
-  cost: { toString(): string };
-  outputs: unknown;
-  [key: string]: unknown;
-}) => ({
-  ...row,
-  cost: Number(row.cost.toString()),
-  outputs: (row.outputs ?? []) as MusicOutput[],
-});
+function shaped<T extends { cost: { toString(): string }; outputs: unknown }>(row: T) {
+  return {
+    ...row,
+    cost: Number(row.cost.toString()),
+    outputs: (row.outputs ?? []) as MusicOutput[],
+  };
+}
 
 /** One of your runs, to watch it finish. */
 export async function getGeneration(

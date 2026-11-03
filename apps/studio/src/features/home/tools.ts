@@ -7,22 +7,43 @@ export const TOOLS = [
     label: "Images",
     hint: "Covers, posters and art from a sentence.",
     icon: ImageIcon,
+    href: null,
   },
   {
     type: "MUSIC_CLIP",
     label: "Music",
     hint: "Clips, full songs and live jams with Google's Lyria, then mix them.",
     icon: AudioLines,
+    href: "/music",
   },
-  { type: "VIDEO", label: "Video", hint: "Short clips for posts and promos.", icon: Video },
-  { type: "TEXT", label: "Writing", hint: "Bios, descriptions and lyrics drafts.", icon: FileText },
+  {
+    type: "VIDEO",
+    label: "Video",
+    hint: "Short clips for posts and promos.",
+    icon: Video,
+    href: null,
+  },
+  {
+    type: "TEXT",
+    label: "Writing",
+    hint: "Bios, descriptions and lyrics drafts.",
+    icon: FileText,
+    href: null,
+  },
   {
     type: "SOCIAL",
     label: "Social posts",
     hint: "Captions and posts for your channels.",
     icon: Megaphone,
+    href: null,
   },
-  { type: "SEO", label: "SEO", hint: "Titles and descriptions people find.", icon: Search },
+  {
+    type: "SEO",
+    label: "SEO",
+    hint: "Titles and descriptions people find.",
+    icon: Search,
+    href: null,
+  },
 ] as const;
 
 export type ToolType = (typeof TOOLS)[number]["type"];

@@ -75,9 +75,18 @@ export function HomeView() {
                 ) : (
                   <Skeleton className="h-3 w-28" />
                 )}
-                <span className="bg-surface-2 rounded-full px-2 py-0.5 font-semibold">
-                  Coming soon
-                </span>
+                {tool.href ? (
+                  <Link
+                    href={tool.href}
+                    className="bg-primary text-primary-foreground rounded-full px-2.5 py-0.5 font-semibold"
+                  >
+                    Open
+                  </Link>
+                ) : (
+                  <span className="bg-surface-2 rounded-full px-2 py-0.5 font-semibold">
+                    Coming soon
+                  </span>
+                )}
               </div>
             </li>
           ))}
