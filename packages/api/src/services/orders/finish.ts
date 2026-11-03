@@ -1,4 +1,5 @@
 import { type Transaction, TransactionBuilder } from "@stellar/stellar-sdk";
+import { deliverStudioCoins } from "../studio/topup";
 
 import type { Order } from "@bandcoin/db";
 import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
@@ -204,8 +205,9 @@ export async function finishOrder(
     case "RECHARGE":
     case "XLM_SWAP":
     case "ACTIVATION":
-    case "STUDIO_COINS":
       return deliverOrder(ctx, order.id);
+    case "STUDIO_COINS":
+      return deliverStudioCoins(ctx, order.id);
     case "GIFT":
       return finishGift(ctx, order.id);
     case "VANITY":

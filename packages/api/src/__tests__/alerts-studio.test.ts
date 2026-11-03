@@ -13,7 +13,7 @@ function setup(balances: unknown[], ledger: unknown[]) {
 }
 
 describe("Studio balance alert", () => {
-  it("stays quiet when every balance equals its confirmed records", async () => {
+  it("stays quiet when every balance equals its records (held coins included)", async () => {
     const ctx = setup(
       [{ userId: "u1", balance: "12.5", updatedAt: at }],
       [{ userId: "u1", _sum: { amount: "12.5" }, _max: { createdAt: at } }],
@@ -35,7 +35,7 @@ describe("Studio balance alert", () => {
       kind: "studioBalance",
       userId: "u1",
       detail:
-        "The balance shows 15 coins, but the confirmed records add up to 12.5 (+2.5). Nothing was changed.",
+        "The balance shows 15 coins, but its records add up to 12.5 (+2.5). Nothing was changed.",
     });
     expect(alerts[1]).toMatchObject({ userId: "u2" });
   });

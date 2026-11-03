@@ -171,16 +171,16 @@ async function stuckPayments(ctx: Pick<Context, "db">, rules: AlertRules, now: D
 }
 
 /**
- * A Studio balance that doesn't equal the sum of its confirmed ledger entries
- * (they're written together, so a difference means something went wrong).
- * Shown for a person to look at; nothing is changed.
+ * A Studio balance that doesn't equal its ledger: the confirmed entries plus
+ * coins held by runs still going (they're written together, so a difference
+ * means something went wrong). Shown for a person to look at; nothing is changed.
  */
 export async function studioBalances(ctx: Pick<Context, "db">) {
   const [balances, ledger] = await Promise.all([
     ctx.db.studioBalance.findMany({ select: { userId: true, balance: true, updatedAt: true } }),
     ctx.db.studioLedgerEntry.groupBy({
       by: ["userId"],
-      where: { status: "CONFIRMED" },
+      where: { status: { in: ["CONFIRMED", "PENDING"] } },
       _sum: { amount: true },
       _max: { createdAt: true },
     }),
@@ -203,7 +203,7 @@ export async function studioBalances(ctx: Pick<Context, "db">) {
         key: `studioBalance:${userId}:${shown}:${records}`,
         kind: "studioBalance",
         title: "Studio balance doesn't match its records",
-        detail: `The balance shows ${coins(shown)} coins, but the confirmed records add up to ${coins(records)} (${shown > records ? "+" : ""}${coins(shown - records)}). Nothing was changed.`,
+        detail: `The balance shows ${coins(shown)} coins, but its records add up to ${coins(records)} (${shown > records ? "+" : ""}${coins(shown - records)}). Nothing was changed.`,
         at,
         userId,
       },
