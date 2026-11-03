@@ -36,6 +36,7 @@ function setup(user: SessionUser | null = me) {
     },
     follow: {
       findMany: vi.fn().mockResolvedValue([{ artistId: "a1" }]),
+      findUnique: vi.fn().mockResolvedValue({ userId: "u1" }),
       upsert: vi.fn().mockResolvedValue({}),
       deleteMany: vi.fn().mockResolvedValue({ count: 1 }),
       count: vi.fn().mockResolvedValue(13),

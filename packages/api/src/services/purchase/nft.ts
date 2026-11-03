@@ -5,6 +5,7 @@ import {
   type Transaction,
   TransactionBuilder,
 } from "@stellar/stellar-sdk";
+import { tellArtistAboutSale } from "../notifications/sale";
 
 import {
   buildNftBuyEdition,
@@ -684,5 +685,6 @@ export async function finishNftPurchase(ctx: Pick<Context, "db" | "chain">, orde
       itemId: order.itemId,
       quantity: tokenIds.length,
     });
+  await tellArtistAboutSale(ctx, order);
   return { orderId, status: "DELIVERED" as const };
 }

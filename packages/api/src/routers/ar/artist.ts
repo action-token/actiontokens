@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { setFollowing } from "../../services/feed/follow";
+
 import type { ArArtist } from "@bandcoin/ar-core/ar/types";
 import { site } from "@bandcoin/ar-core/site";
 import type { Db, Prisma } from "@bandcoin/db";
@@ -130,28 +132,7 @@ export const artistRouter = createRouter({
    */
   setFollowing: authedProcedure
     .input(z.object({ artistId: z.string().min(1), following: z.boolean() }))
-    .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
-      const artist = await ctx.db.artist.findFirst({
-        where: { id: input.artistId, status: "APPROVED" },
-        select: { id: true },
-      });
-      if (!artist)
-        throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, {
-          message: "This artist doesn't exist.",
-        });
-      ctx.activity.set({ targetType: "Artist", targetId: artist.id });
-      const key = { userId, artistId: artist.id };
-      if (input.following) {
-        await ctx.db.follow.upsert({
-          where: { userId_artistId: key },
-          create: key,
-          update: { isTemporary: false },
-        });
-      } else {
-        await ctx.db.follow.deleteMany({ where: key });
-      }
-      const followers = await ctx.db.follow.count({ where: { artistId: artist.id } });
-      return { following: input.following, followers };
-    }),
+    .mutation(({ ctx, input }) =>
+      setFollowing(ctx, ctx.session.user.id, { id: input.artistId }, input.following),
+    ),
 });

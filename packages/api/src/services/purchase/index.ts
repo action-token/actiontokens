@@ -1,4 +1,5 @@
 import { Account, type Asset, type Horizon, TransactionBuilder } from "@stellar/stellar-sdk";
+import { tellArtistAboutSale } from "../notifications/sale";
 
 import {
   assetFor,
@@ -427,6 +428,7 @@ export async function deliverOrder(ctx: ServiceCtx, orderId: string) {
   });
   if (delivered.guestEmail)
     await notifyGuestPurchase(ctx, { ...delivered, guestEmail: delivered.guestEmail });
+  if (delivered.kind === "ITEM_PURCHASE") await tellArtistAboutSale(ctx, delivered);
   return { orderId, status: "DELIVERED" as const };
 }
 

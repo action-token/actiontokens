@@ -6,6 +6,7 @@ import {
   type Transaction,
   TransactionBuilder,
 } from "@stellar/stellar-sdk";
+import { notify, notifyFollowers } from "../notifications/send";
 
 import {
   buildAssetContractSetup,
@@ -228,6 +229,13 @@ export async function submitFunding(
 
   const { hash } = await ctx.chain.submit(await signed(ctx, user, creator, xdr));
   await ctx.db.bounty.update({ where: { id: bounty.id }, data: { fundTxHash: hash } });
+  // Fans see a bounty once its prize is in escrow, so that's when followers hear about it.
+  await notifyFollowers(ctx, {
+    type: "BOUNTY",
+    artist: { id: artist.id, userId: user.id },
+    entityId: bounty.id,
+    once: true,
+  });
   return { txHash: hash };
 }
 
@@ -410,13 +418,11 @@ export async function submitWinner(
       txHash: hash,
     },
   });
-  await ctx.db.notificationEvent.create({
-    data: {
-      type: "BOUNTY_WINNER",
-      actorId: user.id,
-      entityId: bounty.id,
-      notifications: { create: { recipientId: input.winnerUserId } },
-    },
+  await notify(ctx, {
+    type: "BOUNTY_WINNER",
+    actorId: user.id,
+    entityId: bounty.id,
+    recipients: [{ id: input.winnerUserId }],
   });
   return { txHash: hash };
 }

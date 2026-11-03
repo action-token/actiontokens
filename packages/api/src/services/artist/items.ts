@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { announceItem } from "../notifications/item";
 
 import type { ItemType, MediaType, Visibility } from "@bandcoin/db";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
@@ -181,6 +182,7 @@ export async function createItem(
     select: { id: true, slug: true },
   });
   ctx.activity.set({ targetType: "Item", targetId: item.id });
+  await announceItem(ctx, item.id);
   return { itemId: item.id, slug: item.slug };
 }
 
@@ -433,6 +435,7 @@ export async function updateItem(
     if (listing && Object.keys(listingData).length > 0)
       await tx.listing.update({ where: { id: listing.id }, data: listingData });
   });
+  if (input.visibility === "PUBLIC") await announceItem(ctx, item.id);
   return { itemId: item.id };
 }
 

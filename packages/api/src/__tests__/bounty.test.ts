@@ -67,7 +67,9 @@ describe("bounties", () => {
         type: "BOUNTY_JOINED",
         actorId: "me",
         entityId: "b1",
-        notifications: { create: { recipientId: "artist-user", isForArtist: true } },
+        notifications: {
+          createMany: { data: [{ recipientId: "artist-user", isForArtist: true }] },
+        },
       },
     });
 

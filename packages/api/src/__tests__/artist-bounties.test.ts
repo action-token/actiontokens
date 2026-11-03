@@ -159,7 +159,11 @@ function setup(
         ),
     },
     bountyWinner: { create: vi.fn().mockResolvedValue({}) },
-    notificationEvent: { create: vi.fn().mockResolvedValue({}) },
+    notificationEvent: {
+      create: vi.fn().mockResolvedValue({}),
+      findFirst: vi.fn().mockResolvedValue(null),
+    },
+    follow: { findMany: vi.fn().mockResolvedValue([{ userId: "fan1" }]) },
     chainAccount: { findUnique: vi.fn().mockResolvedValue({ publicKey: storage }) },
     classicToken: { findUnique: vi.fn().mockResolvedValue(fan) },
     $transaction: (run: (tx: unknown) => unknown) => run(db),
@@ -451,6 +455,9 @@ describe("funding the prize", () => {
       where: { id: "b1" },
       data: { fundTxHash: "tx1" },
     });
+    expect(db.notificationEvent.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ type: "BOUNTY", entityId: "b1" }),
+    });
   });
 
   it("signs for custodial artists and for the storage account", async () => {
@@ -692,7 +699,9 @@ describe("picking winners", () => {
         type: "BOUNTY_WINNER",
         actorId: "u1",
         entityId: "b1",
-        notifications: { create: { recipientId: "fan1" } },
+        notifications: {
+          createMany: { data: [{ recipientId: "fan1", isForArtist: false }] },
+        },
       },
     });
   });

@@ -1,6 +1,7 @@
 import { NFT_MAX_SUPPLY } from "@bandcoin/chain";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 import { slugFromName } from "@bandcoin/utils/slug";
+import { announceItem } from "../notifications/item";
 
 import type { Context } from "../../context";
 import {
@@ -96,5 +97,6 @@ export async function createNft(
     select: { id: true, slug: true },
   });
   ctx.activity.set({ targetType: "Item", targetId: item.id });
+  await announceItem(ctx, item.id);
   return { itemId: item.id, slug: item.slug };
 }

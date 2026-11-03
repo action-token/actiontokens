@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { setFollowing } from "../../services/feed/follow";
+
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import { draftDesign, publishedDesign } from "../../services/artist/page";
@@ -225,29 +227,7 @@ export const artistRouter = createRouter({
   /** Follow or unfollow an artist (free; holding their token is a separate thing). */
   setFollowing: authedProcedure
     .input(slugInput.extend({ following: z.boolean() }))
-    .mutation(async ({ ctx, input }) => {
-      const artist = await ctx.db.artist.findFirst({
-        where: { slug: input.slug, status: "APPROVED" },
-        select: { id: true },
-      });
-      if (!artist)
-        throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, {
-          message: "This artist doesn't exist.",
-        });
-      ctx.activity.set({ targetType: "Artist", targetId: artist.id });
-      const key = { userId_artistId: { userId: ctx.session.user.id, artistId: artist.id } };
-      if (input.following) {
-        await ctx.db.follow.upsert({
-          where: key,
-          create: { userId: ctx.session.user.id, artistId: artist.id },
-          update: { isTemporary: false },
-        });
-      } else {
-        await ctx.db.follow.deleteMany({
-          where: { userId: ctx.session.user.id, artistId: artist.id },
-        });
-      }
-      const followers = await ctx.db.follow.count({ where: { artistId: artist.id } });
-      return { following: input.following, followers };
-    }),
+    .mutation(({ ctx, input }) =>
+      setFollowing(ctx, ctx.session.user.id, { slug: input.slug }, input.following),
+    ),
 });

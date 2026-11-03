@@ -3,6 +3,7 @@ import { AppError, ErrorCodes } from "@bandcoin/errors";
 import { isOwnS3Url } from "@bandcoin/storage";
 
 import type { Context } from "../../context";
+import { notifyFollowers } from "../notifications/send";
 import { invalid } from "./items";
 
 /**
@@ -262,31 +263,8 @@ export async function createPost(ctx: ServiceCtx, artist: ArtistRef, input: Post
     select: { id: true },
   });
   ctx.activity.set({ targetType: "Post", targetId: post.id });
-  await notifyFollowers(ctx, artist, post.id);
+  await notifyFollowers(ctx, { type: "POST", artist, entityId: post.id });
   return { postId: post.id };
-}
-
-/** A failed notification must not undo a published post, so it is reported but not thrown. */
-async function notifyFollowers(ctx: ServiceCtx, artist: ArtistRef, postId: string) {
-  try {
-    const followers = await ctx.db.follow.findMany({
-      where: { artistId: artist.id },
-      select: { userId: true },
-    });
-    if (followers.length === 0) return;
-    await ctx.db.notificationEvent.create({
-      data: {
-        type: "POST",
-        actorId: artist.userId,
-        entityId: postId,
-        notifications: {
-          createMany: { data: followers.map((follower) => ({ recipientId: follower.userId })) },
-        },
-      },
-    });
-  } catch (error) {
-    console.error("[posts] couldn't notify followers", error);
-  }
 }
 
 export async function updatePost(

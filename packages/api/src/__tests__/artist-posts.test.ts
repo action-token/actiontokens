@@ -206,7 +206,14 @@ describe("createPost", () => {
         type: "POST",
         actorId: "u-artist",
         entityId: "p1",
-        notifications: { createMany: { data: [{ recipientId: "f1" }, { recipientId: "f2" }] } },
+        notifications: {
+          createMany: {
+            data: [
+              { recipientId: "f1", isForArtist: false },
+              { recipientId: "f2", isForArtist: false },
+            ],
+          },
+        },
       },
     });
 

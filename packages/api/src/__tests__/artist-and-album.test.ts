@@ -24,11 +24,20 @@ function caller(db: object, user: SessionUser | null = fan) {
 describe("artist.setFollowing", () => {
   it("follows and unfollows, returning the new follower count", async () => {
     const follow = {
+      findUnique: vi.fn().mockResolvedValue(null),
       upsert: vi.fn().mockResolvedValue({}),
       deleteMany: vi.fn().mockResolvedValue({ count: 1 }),
       count: vi.fn().mockResolvedValue(5),
     };
-    const db = { artist: { findFirst: vi.fn().mockResolvedValue({ id: "a1" }) }, follow };
+    const notificationEvent = {
+      findFirst: vi.fn().mockResolvedValue(null),
+      create: vi.fn().mockResolvedValue({}),
+    };
+    const db = {
+      artist: { findFirst: vi.fn().mockResolvedValue({ id: "a1", userId: "artist-user" }) },
+      follow,
+      notificationEvent,
+    };
 
     expect(await caller(db).artist.setFollowing({ slug: "dj-tamsin", following: true })).toEqual({
       following: true,
@@ -38,8 +47,30 @@ describe("artist.setFollowing", () => {
       expect.objectContaining({ create: { userId: "u1", artistId: "a1" } }),
     );
 
+    expect(notificationEvent.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ type: "FOLLOW", actorId: "u1", entityId: "a1" }),
+    });
+
     await caller(db).artist.setFollowing({ slug: "dj-tamsin", following: false });
     expect(follow.deleteMany).toHaveBeenCalledWith({ where: { userId: "u1", artistId: "a1" } });
+  });
+
+  it("tells the artist about a fan's first follow only", async () => {
+    const notificationEvent = {
+      findFirst: vi.fn().mockResolvedValue({ id: "e1" }),
+      create: vi.fn().mockResolvedValue({}),
+    };
+    const db = {
+      artist: { findFirst: vi.fn().mockResolvedValue({ id: "a1", userId: "artist-user" }) },
+      follow: {
+        findUnique: vi.fn().mockResolvedValue(null),
+        upsert: vi.fn().mockResolvedValue({}),
+        count: vi.fn().mockResolvedValue(5),
+      },
+      notificationEvent,
+    };
+    await caller(db).artist.setFollowing({ slug: "dj-tamsin", following: true });
+    expect(notificationEvent.create).not.toHaveBeenCalled();
   });
 
   it("needs a signed-in fan and a real artist", async () => {

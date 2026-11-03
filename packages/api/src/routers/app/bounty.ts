@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { notifyArtist } from "../../services/notifications/send";
 
 import type { ChainConfig } from "@bandcoin/chain/server";
 import type { Db, Prisma } from "@bandcoin/db";
@@ -104,24 +105,6 @@ async function participantOf(db: Db, bountyId: string, userId: string) {
   if (!participant)
     throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, { message: "Join the bounty first." });
   return participant;
-}
-
-/** Tell the artist (in their portal) that a fan did something on their bounty. */
-async function notifyArtist(
-  db: Db,
-  type: "BOUNTY_JOINED" | "BOUNTY_SUBMISSION",
-  actorId: string,
-  bountyId: string,
-  artistUserId: string,
-) {
-  await db.notificationEvent.create({
-    data: {
-      type,
-      actorId,
-      entityId: bountyId,
-      notifications: { create: { recipientId: artistUserId, isForArtist: true } },
-    },
-  });
 }
 
 /** Per-track listening progress, as the old "My Listening Progress" showed it. */
@@ -411,7 +394,12 @@ export const bountyRouter = createRouter({
     if (existing) return { joined: true };
 
     await ctx.db.bountyParticipant.create({ data: { bountyId: bounty.id, userId } });
-    await notifyArtist(ctx.db, "BOUNTY_JOINED", userId, bounty.id, bounty.artist.userId);
+    await notifyArtist(ctx, {
+      type: "BOUNTY_JOINED",
+      actorId: userId,
+      entityId: bounty.id,
+      artistUserId: bounty.artist.userId,
+    });
     ctx.activity.set({ targetType: "Bounty", targetId: bounty.id });
     return { joined: true };
   }),
@@ -431,7 +419,12 @@ export const bountyRouter = createRouter({
         data: { bountyId: bounty.id, userId, body: input.content },
         select: { id: true },
       });
-      await notifyArtist(ctx.db, "BOUNTY_SUBMISSION", userId, bounty.id, bounty.artist.userId);
+      await notifyArtist(ctx, {
+        type: "BOUNTY_SUBMISSION",
+        actorId: userId,
+        entityId: bounty.id,
+        artistUserId: bounty.artist.userId,
+      });
       ctx.activity.set({ targetType: "Bounty", targetId: bounty.id });
       return submission;
     }),

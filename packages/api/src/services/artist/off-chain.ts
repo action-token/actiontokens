@@ -1,4 +1,5 @@
 import { slugFromName } from "@bandcoin/utils/slug";
+import { announceItem } from "../notifications/item";
 
 import type { Context } from "../../context";
 import { type ItemAccessInput, resolveItemAccess } from "./item-access";
@@ -80,5 +81,6 @@ export async function createOffChainItem(
     select: { id: true, slug: true },
   });
   ctx.activity.set({ targetType: "Item", targetId: item.id });
+  await announceItem(ctx, item.id);
   return { itemId: item.id, slug: item.slug };
 }
