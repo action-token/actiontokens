@@ -12,13 +12,13 @@ import {
 } from "../../services/artist/pins";
 import { artistProcedure, createRouter } from "../../trpc";
 
-const reward = z.discriminatedUnion("kind", [
+export const reward = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("NONE") }),
   z.object({ kind: z.literal("FAN_TOKEN"), amount: z.string().trim().max(24).optional() }),
   z.object({ kind: z.literal("ITEM"), itemId: z.string().min(1) }),
 ]);
 
-const pinFields = {
+export const pinFields = {
   title: z.string().trim().max(120),
   description: z.string().max(2500),
   imageUrl: z.string().url().nullish(),

@@ -38,4 +38,5 @@ export {
 } from "./services/jobs/queue";
 export { reconcileOrders } from "./services/orders/reconcile";
 export { keepUnlocksAlive, syncUnlocks } from "./services/catalog/unlock-chain";
+export { dropDueHotspots } from "./services/artist/hotspots";
 export { queueTranscode, type TranscodePart } from "./services/media/processing";

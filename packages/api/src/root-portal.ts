@@ -8,6 +8,7 @@ import { catalogRouter } from "./routers/artist/catalog";
 import { embedsRouter } from "./routers/artist/embeds";
 import { engageRouter } from "./routers/artist/engage";
 import { giftsRouter } from "./routers/artist/gifts";
+import { hotspotsRouter } from "./routers/artist/hotspots";
 import { membershipsRouter } from "./routers/artist/memberships";
 import { musicRouter } from "./routers/artist/music";
 import { notificationsRouter } from "./routers/artist/notifications";
@@ -26,6 +27,7 @@ import { createRouter } from "./trpc";
 /** The artist portal's API (artist.bandcoin.io, including /admin). */
 export const portalRouter = createRouter({
   notifications: notificationsRouter,
+  hotspots: hotspotsRouter,
   account: accountRouter,
   /** Recharge and wallet activation, the same as the fan app's (one account, one flow) */
   recharge: rechargeRouter,

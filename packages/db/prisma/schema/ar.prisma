@@ -116,6 +116,13 @@ model Hotspot {
   id              String    @id @default(cuid())
   artistId        String
   artist          Artist    @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  /// Every drop's pin carries this title
+  title           String    @default("")
+  /// The rest of each drop's pin: description, image, link, type, who can collect, reward, limit, tags
+  template        Json      @default("{}")
+  /// Spots each drop scatters inside the area
+  spotsPerDrop    Int       @default(1)
+  lastDropAt      DateTime?
   dropEveryDays   Int
   pinDurationDays Int
   startsAt        DateTime

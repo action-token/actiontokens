@@ -1,5 +1,6 @@
 import {
   createContext,
+  dropDueHotspots,
   keepUnlocksAlive,
   reconcileOrders,
   syncUnlocks,
@@ -25,6 +26,8 @@ export function handlersFor(deps: WorkerDeps): Record<string, JobHandler> {
 
     // Record NFT unlocks the app couldn't (see catalog/unlock-chain); not a payment, so it retries.
     "nft.unlocks": async () => ({ result: await syncUnlocks(context()) }),
+    // Drop pins in hotspots whose next drop is due; a failed drop is reported, the rest carry on.
+    "hotspot.drop": async () => ({ result: await dropDueHotspots(context()) }),
     // Keep the contract's unlock records from being archived.
     "nft.keep-alive": async () => ({ result: await keepUnlocksAlive(context()) }),
 

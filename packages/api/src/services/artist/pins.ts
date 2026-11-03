@@ -90,7 +90,7 @@ export type PinStatus =
 /** A tag as stored: lowercase and dashed so "Street Art" and "street art" are one tag. */
 export const tagName = (label: string) => label.trim().toLowerCase().replace(/\s+/g, "-");
 
-function cleanTags(labels: string[] | undefined) {
+export function cleanTags(labels: string[] | undefined) {
   const byName = new Map<string, string>();
   for (const raw of labels ?? []) {
     const label = raw.trim().replace(/\s+/g, " ");
@@ -102,7 +102,7 @@ function cleanTags(labels: string[] | undefined) {
   return [...byName].map(([name, label]) => ({ name, label }));
 }
 
-function checkText(input: Partial<PinInput>) {
+export function checkText(input: Partial<PinInput>) {
   const { title, description } = input;
   if (title !== undefined && (title.trim().length < 3 || title.trim().length > 100))
     throw invalid("Give the pin a title of 3 to 100 characters.");
@@ -113,13 +113,14 @@ function checkText(input: Partial<PinInput>) {
 
 function checkPlace(
   input: Pick<PinInput, "latitude" | "longitude" | "radiusMeters" | "spotCount">,
+  maxRadius = MAX_RADIUS_METERS,
 ) {
   if (!(input.latitude >= -90 && input.latitude <= 90))
     throw invalid("Latitude must be between -90 and 90.");
   if (!(input.longitude >= -180 && input.longitude <= 180))
     throw invalid("Longitude must be between -180 and 180.");
-  if (!(input.radiusMeters >= 0 && input.radiusMeters <= MAX_RADIUS_METERS))
-    throw invalid(`The radius can be up to ${MAX_RADIUS_METERS.toLocaleString("en-US")} metres.`);
+  if (!(input.radiusMeters >= 0 && input.radiusMeters <= maxRadius))
+    throw invalid(`The radius can be up to ${maxRadius.toLocaleString("en-US")} metres.`);
   if (!Number.isInteger(input.spotCount) || input.spotCount < 1 || input.spotCount > MAX_SPOTS)
     throw invalid(`Place between 1 and ${MAX_SPOTS} spots.`);
 }
@@ -132,7 +133,7 @@ function checkTimes(startsAt: Date, endsAt: Date, now: Date, creating: boolean) 
 }
 
 /** TIER needs a tier of this artist; every other kind ignores it. */
-async function resolveTier(
+export async function resolveTier(
   ctx: ServiceCtx,
   artist: ArtistRef,
   visibility: PinVisibility,
@@ -153,7 +154,7 @@ async function resolveTier(
  * minted on demand, or an amount of the fan token, sent from storage. Either
  * way a reward needs a limit, and a capped item can't promise more than exists.
  */
-async function resolveReward(
+export async function resolveReward(
   ctx: ServiceCtx,
   artist: ArtistRef,
   reward: PinReward,
@@ -452,14 +453,26 @@ export async function getPin(
   };
 }
 
+/**
+ * A hotspot's drop: its spots are already placed inside the hotspot's area
+ * (which may be wider than a pin's circle), and it goes live without admin
+ * review, as bandfan's drops did.
+ */
+export type HotspotDrop = {
+  hotspotId: string;
+  spots: { latitude: number; longitude: number }[];
+  maxRadius: number;
+};
+
 export async function createPin(
   ctx: ServiceCtx,
   artist: ArtistRef,
   input: PinInput,
   now = new Date(),
+  drop?: HotspotDrop,
 ) {
   checkText(input);
-  checkPlace(input);
+  checkPlace(input, drop?.maxRadius);
   checkTimes(input.startsAt, input.endsAt, now, true);
   const link = input.link?.trim() ? webLink(input.link.trim(), "The link") : null;
   const tierId = await resolveTier(ctx, artist, input.visibility, input.tierId);
@@ -489,17 +502,21 @@ export async function createPin(
         isMultiSpot: input.isMultiSpot,
         eventId,
         // Waits for an admin, as in Wadzzo: fans see it once it is approved.
-        approval: "PENDING",
+        // A hotspot's drops don't (the artist chose the area once).
+        approval: drop ? "APPROVED" : "PENDING",
+        hotspotId: drop?.hotspotId ?? null,
         spots: {
           createMany: {
-            data: Array.from({ length: input.spotCount }, () => {
-              const spot = randomLocation(input.latitude, input.longitude, input.radiusMeters);
-              return {
-                latitude: spot.latitude,
-                longitude: spot.longitude,
-                autoCollect: input.autoCollect,
-              };
-            }),
+            data: (
+              drop?.spots ??
+              Array.from({ length: input.spotCount }, () =>
+                randomLocation(input.latitude, input.longitude, input.radiusMeters),
+              )
+            ).map((spot) => ({
+              latitude: spot.latitude,
+              longitude: spot.longitude,
+              autoCollect: input.autoCollect,
+            })),
           },
         },
       },
