@@ -1,6 +1,6 @@
 "use client";
 
-import { AudioLines, Coins, LogIn, LogOut, Sparkles } from "lucide-react";
+import { AudioLines, Coins, LogIn, LogOut, SlidersHorizontal, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
@@ -17,12 +17,15 @@ import { api } from "~/trpc/react";
 const NAV = [
   { href: "/", label: "Studio", icon: Sparkles },
   { href: "/music", label: "Music", icon: AudioLines },
+  { href: "/mixer", label: "Mixer", icon: SlidersHorizontal },
   { href: "/coins", label: "Coins", icon: Coins },
 ];
 
 /** Studio's frame: the name, Studio and Coins, your coin balance and your account. */
 export function StudioShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  // The mixer's timeline uses the whole screen; other pages keep a reading width.
+  const wide = pathname.startsWith("/mixer");
   const { status } = useSession();
   const openSignIn = useConnectWalletDialogStore((state) => state.setIsOpen);
   const balance = api.coins.balance.useQuery(undefined, {
@@ -33,7 +36,12 @@ export function StudioShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-dvh">
       <header className="bg-surface/90 sticky top-0 z-30 border-b backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
+        <div
+          className={cn(
+            "mx-auto flex h-16 items-center gap-3 px-4 sm:px-6",
+            wide ? "max-w-[1800px]" : "max-w-6xl",
+          )}
+        >
           <Link href="/" className="flex shrink-0 items-center gap-2" aria-label="Studio home">
             <span className="bg-fg text-bg flex size-9 -rotate-3 items-center justify-center rounded-lg">
               <BrandMark className="size-5" />
@@ -93,7 +101,11 @@ export function StudioShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">{children}</main>
+      <main
+        className={cn("mx-auto px-4 py-6 sm:px-6 sm:py-10", wide ? "max-w-[1800px]" : "max-w-6xl")}
+      >
+        {children}
+      </main>
     </div>
   );
 }

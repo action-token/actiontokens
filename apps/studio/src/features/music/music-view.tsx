@@ -40,7 +40,7 @@ export function MusicView() {
       <MusicGenerator balance={balance.data?.coins ?? null} />
       <section className="grid gap-4">
         <h2 className="display text-xl">Your music</h2>
-        <MusicRuns />
+        <MusicRuns mixerLink />
       </section>
     </div>
   );

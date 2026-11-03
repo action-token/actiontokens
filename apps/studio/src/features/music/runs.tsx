@@ -1,19 +1,18 @@
 "use client";
 
 import { Download, Loader2, Music, TriangleAlert } from "lucide-react";
+import Link from "next/link";
 
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
 
 import { timeAgo } from "~/lib/format";
-import { api, type RouterOutputs } from "~/trpc/react";
+import { api } from "~/trpc/react";
 
 import { downloadName, isWorking, runLabel } from "./run-status";
 
-type Run = RouterOutputs["music"]["recent"][number];
-
 /** Your latest music runs: playing while they're made, then ready to play, download or mix. */
-export function MusicRuns({ onAdd }: { onAdd?: (run: Run) => void }) {
+export function MusicRuns({ mixerLink = false }: { mixerLink?: boolean }) {
   const recent = api.music.recent.useQuery(undefined, {
     // Check again every few seconds while something is still being made.
     refetchInterval: (query) =>
@@ -72,14 +71,13 @@ export function MusicRuns({ onAdd }: { onAdd?: (run: Run) => void }) {
                   >
                     <Download className="size-3.5" /> Download
                   </a>
-                  {onAdd && (
-                    <button
-                      type="button"
-                      onClick={() => onAdd(run)}
+                  {mixerLink && (
+                    <Link
+                      href={`/mixer?run=${run.id}`}
                       className="text-primary-text hover:underline"
                     >
                       Add to the mixer
-                    </button>
+                    </Link>
                   )}
                 </div>
                 {audio.lyrics && (
