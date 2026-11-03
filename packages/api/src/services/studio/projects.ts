@@ -47,7 +47,17 @@ export type MixTrack = {
   soloed: boolean;
   color: string;
 };
-export type MixProject = { bpm: number; masterVolume: number; tracks: MixTrack[] };
+/** What "Publish as a song" rendered: the mix, and each heard track lined up with it (stems). */
+export type MixPublish = {
+  audio: { url: string; durationSec: number };
+  stems: { name: string; url: string; durationSec: number }[];
+};
+export type MixProject = {
+  bpm: number;
+  masterVolume: number;
+  tracks: MixTrack[];
+  publish?: MixPublish | null;
+};
 
 const invalid = (message: string) => new AppError(ErrorCodes.VALIDATION_FAILED, { message });
 
@@ -71,6 +81,11 @@ function checkProject(data: MixProject) {
       throw invalid(`Add ${track.name} again: its audio isn't in Studio.`);
     if (track.trimStart + track.trimEnd >= track.duration)
       throw invalid(`${track.name} is trimmed to nothing. Make it longer.`);
+  }
+  if (data.publish) {
+    const files = [data.publish.audio.url, ...data.publish.stems.map((stem) => stem.url)];
+    if (files.some((url) => !isOwnS3Url(url)))
+      throw invalid("Publish again: the files aren't in Studio.");
   }
 }
 

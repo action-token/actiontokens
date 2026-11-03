@@ -5,8 +5,8 @@ export const metadata = { title: "New song" };
 export default async function NewSongPage({
   searchParams,
 }: {
-  searchParams: Promise<{ album?: string }>;
+  searchParams: Promise<{ album?: string; studio?: string }>;
 }) {
-  const { album } = await searchParams;
-  return <NewSongView albumId={album} />;
+  const { album, studio } = await searchParams;
+  return <NewSongView albumId={album} studioProjectId={studio} />;
 }

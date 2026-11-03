@@ -24,10 +24,20 @@ const track = z.object({
   soloed: z.boolean(),
   color: z.string().max(20),
 });
+const rendered = z.object({
+  url: z.string().url().max(500),
+  durationSec: z.number().int().min(1).max(21_600),
+});
 const project = z.object({
   bpm: z.number().min(40).max(240),
   masterVolume: z.number().min(0).max(1.5),
   tracks: z.array(track).max(MAX_TRACKS),
+  publish: z
+    .object({
+      audio: rendered,
+      stems: z.array(rendered.extend({ name: z.string().trim().min(1).max(30) })).max(8),
+    })
+    .nullish(),
 });
 const projectId = z.object({ projectId: z.string().min(1) });
 

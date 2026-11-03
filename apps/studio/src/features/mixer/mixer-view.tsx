@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Save, SlidersHorizontal } from "lucide-react";
+import { Loader2, Rocket, Save, SlidersHorizontal } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect, useRef } from "react";
@@ -10,6 +10,8 @@ import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
 import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
 import { api } from "~/trpc/react";
+
+const ARTIST_URL = process.env.NEXT_PUBLIC_ARTIST_URL ?? "https://artist.bandcoin.io";
 
 import { ProjectsMenu } from "./projects-menu";
 import { Sources } from "./sources";
@@ -26,6 +28,8 @@ export function MixerView() {
   const { status } = useSession();
   const openSignIn = useConnectWalletDialogStore((state) => state.setIsOpen);
   const mixer = useMixer();
+  const me = api.account.me.useQuery(undefined, { enabled: status === "authenticated" });
+  const isArtist = me.data?.artist?.status === "APPROVED";
   const utils = api.useUtils();
   const search = useSearchParams();
   const fromRun = search.get("run");
@@ -68,6 +72,17 @@ export function MixerView() {
           />
         </div>
         <ProjectsMenu mixer={mixer} />
+        {isArtist && (
+          <Button
+            variant="outline"
+            disabled={mixer.project.tracks.length === 0 || mixer.publishing !== null}
+            onClick={() => mixer.publish(ARTIST_URL)}
+            title="Render the mix and its stems and open the portal's new-song form"
+          >
+            {mixer.publishing ? <Loader2 className="animate-spin" /> : <Rocket />}
+            {mixer.publishing ?? "Publish as a song"}
+          </Button>
+        )}
         <Button
           disabled={mixer.saving || (!mixer.dirty && mixer.projectId !== null)}
           onClick={mixer.save}
@@ -85,6 +100,16 @@ export function MixerView() {
             </div>
           ) : (
             <Timeline mixer={mixer} />
+          )}
+          {mixer.publishedUrl && (
+            <a
+              href={mixer.publishedUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="bg-primary-soft text-primary-text rounded-lg px-3 py-2 text-sm font-semibold hover:underline"
+            >
+              Your mix and stems are ready: open the new-song form in the artist portal
+            </a>
           )}
           <p className="text-fg-faint text-xs">
             Drag a clip to move it, drag its edges to trim. Mute and solo on each track; click the

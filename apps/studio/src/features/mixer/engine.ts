@@ -124,19 +124,31 @@ export class MixEngine {
   }
 
   /** The whole mix as a WAV file (what you hear: mutes, solos and volumes applied). */
-  async exportWav(tracks: MixTrack[], masterVolume: number) {
+  exportWav(tracks: MixTrack[], masterVolume: number) {
     const heard = audible(tracks);
-    const length = mixLength(heard);
+    return this.render(heard, mixLength(heard), masterVolume);
+  }
+
+  /**
+   * One track alone as a WAV as long as `length`: it plays exactly where it
+   * does in the mix, so stems line up with the song.
+   */
+  stemWav(track: MixTrack, length: number) {
+    return this.render([{ ...track, muted: false, soloed: false }], length, 1);
+  }
+
+  /** Renders tracks offline (faster than real time) into a stereo WAV of `length` seconds. */
+  private async render(tracks: MixTrack[], length: number, masterVolume: number) {
     if (length <= 0)
       throw new AppError(ErrorCodes.VALIDATION_FAILED, {
         message: "Add a track before exporting.",
       });
-    const buffers = await Promise.all(heard.map((track) => this.load(track.url)));
+    const buffers = await Promise.all(tracks.map((track) => this.load(track.url)));
     const offline = new OfflineAudioContext(2, Math.ceil(length * EXPORT_RATE), EXPORT_RATE);
     const master = offline.createGain();
     master.gain.value = masterVolume;
     master.connect(offline.destination);
-    heard.forEach((track, index) => {
+    tracks.forEach((track, index) => {
       const slice = playSlice(track, 0);
       if (!slice) return;
       const source = offline.createBufferSource();

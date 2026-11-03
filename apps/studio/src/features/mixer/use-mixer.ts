@@ -8,6 +8,7 @@ import { api } from "~/trpc/react";
 
 import { MixEngine } from "./engine";
 import {
+  audible,
   emptyProject,
   MAX_TRACKS,
   mixLength,
@@ -17,6 +18,9 @@ import {
   newTrack,
   trim,
 } from "./mix";
+
+/** A song in the portal holds up to this many stems. */
+const MAX_STEMS = 8;
 
 const messageOf = (error: unknown) =>
   error instanceof Error ? error.message : "Something went wrong.";
@@ -41,6 +45,9 @@ export function useMixer() {
   const [zoom, setZoom] = useState(1);
   const [adding, setAdding] = useState(0);
   const [exporting, setExporting] = useState(false);
+  const [publishing, setPublishing] = useState<string | null>(null);
+  /** The portal form for the last publish, when the browser blocked opening it */
+  const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
   const utils = api.useUtils();
   const sign = api.projects.upload.useMutation();
   const save = api.projects.save.useMutation({
@@ -174,6 +181,71 @@ export function useMixer() {
     }
   }
 
+  /** Uploads a rendered file and gives back its address in storage. */
+  async function uploadBlob(blob: Blob, fileName: string) {
+    const file = new File([blob], fileName, { type: blob.type });
+    const declared = await declare(file);
+    const signed = await sign.mutateAsync(declared);
+    await putToStorage(file, signed, declared.checksum);
+    return signed.fileUrl;
+  }
+
+  /**
+   * "Publish as a song": renders the mix and each heard track lined up with it
+   * (the song's stems), uploads them, saves the project with them and opens the
+   * artist portal's new-song form, which fills itself in from the project.
+   */
+  async function publish(artistPortal: string) {
+    const heard = audible(project.tracks);
+    if (heard.length === 0) return void toast.error("Add a track first.");
+    if (heard.length > MAX_STEMS)
+      return void toast.error(
+        `A song holds up to ${MAX_STEMS} stems. Mute or remove tracks so ${MAX_STEMS} or fewer play.`,
+      );
+    stop();
+    setPublishedUrl(null);
+    // Opened now, while it's still the click: browsers block windows opened later.
+    const tab = window.open("about:blank", "_blank");
+    const length = mixLength(heard);
+    const durationSec = Math.max(1, Math.ceil(length));
+    const base = name.trim() || "bandcoin-mix";
+    try {
+      setPublishing("Rendering the mix…");
+      const mixUrl = await uploadBlob(
+        await sound().exportWav(project.tracks, project.masterVolume),
+        `${base}.wav`,
+      );
+      const stems = [];
+      for (const [index, track] of heard.entries()) {
+        setPublishing(`Rendering stems (${index + 1} of ${heard.length})…`);
+        const url = await uploadBlob(
+          await sound().stemWav(track, length),
+          `${base}-${index + 1}.wav`,
+        );
+        stems.push({ name: track.name.slice(0, 30), url, durationSec });
+      }
+      setPublishing("Saving…");
+      const saved = await save.mutateAsync({
+        projectId,
+        name,
+        data: { ...project, publish: { audio: { url: mixUrl, durationSec }, stems } },
+      });
+      const url = `${artistPortal}/music/new?studio=${saved.projectId}`;
+      if (tab) {
+        tab.location.href = url;
+        toast.success("The new-song form is open in the artist portal");
+      } else {
+        setPublishedUrl(url);
+        toast.success("Ready: open the new-song form below");
+      }
+    } catch (error) {
+      tab?.close();
+      toast.error(messageOf(error));
+    } finally {
+      setPublishing(null);
+    }
+  }
+
   function open(next: OpenProject) {
     stop();
     setProjectId(next.projectId);
@@ -223,6 +295,9 @@ export function useMixer() {
     },
     peaks: (url: string, buckets: number) => sound().peaks(url, buckets),
     exportWav: () => void exportWav(),
+    publishing,
+    publishedUrl,
+    publish: (artistPortal: string) => void publish(artistPortal),
     save: () => save.mutate({ projectId, name, data: project }),
     open,
     newProject: () => open({ projectId: null, name: "Untitled mix", data: emptyProject() }),

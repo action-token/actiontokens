@@ -48,6 +48,7 @@ import { StorageStock } from "../catalog/storage-stock";
 import { usePortal } from "../portal/use-portal";
 import { StemsPanel } from "./stems-panel";
 
+type StudioDraft = RouterOutputs["music"]["fromStudio"];
 type Existing = RouterOutputs["music"]["song"];
 
 const IMAGE_TYPES = "image/jpeg,image/png,image/webp,image/gif";
@@ -63,9 +64,12 @@ const messageOf = (error: unknown) =>
 export function SongForm({
   existing,
   defaultAlbumId,
+  fromStudio,
 }: {
   existing?: Existing;
   defaultAlbumId?: string;
+  /** A Studio mixer project to start from: its title, mix and stems */
+  fromStudio?: StudioDraft;
 }) {
   const router = useRouter();
   const utils = api.useUtils();
@@ -74,16 +78,23 @@ export function SongForm({
   const editing = Boolean(existing);
   const locked = existing?.locked ?? false;
 
-  const [title, setTitle] = useState(existing?.title ?? "");
+  const [title, setTitle] = useState(existing?.title ?? fromStudio?.title ?? "");
   const [artistName, setArtistName] = useState(existing?.artistName ?? "");
   const [description, setDescription] = useState(existing?.description ?? "");
   const [cover, setCover] = useState<PickedFile | null>(
     existing ? { url: existing.coverUrl, name: "cover", mime: "image/jpeg" } : null,
   );
   const [audio, setAudio] = useState<PickedFile | null>(
-    existing?.audioUrl ? { url: existing.audioUrl, name: "Song", mime: "audio/mpeg" } : null,
+    existing?.audioUrl
+      ? { url: existing.audioUrl, name: "Song", mime: "audio/mpeg" }
+      : fromStudio
+        ? { url: fromStudio.audio.url, name: `${fromStudio.title}.wav`, mime: "audio/wav" }
+        : null,
   );
-  const [duration, setDuration] = useState(existing?.durationSec ?? 0);
+  const [duration, setDuration] = useState(
+    existing?.durationSec ?? fromStudio?.audio.durationSec ?? 0,
+  );
+  const addStem = api.music.addStem.useMutation();
   const [previewStart, setPreviewStart] = useState(existing?.previewStartSec ?? 0);
   const [albumId, setAlbumId] = useState(existing?.albumId ?? defaultAlbumId ?? NO_ALBUM);
   const [trackNumber, setTrackNumber] = useState(existing?.trackNumber?.toString() ?? "");
@@ -122,7 +133,28 @@ export function SongForm({
     router.push(defaultAlbumId ? `/music/albums/${defaultAlbumId}` : "/music");
   };
   const create = api.music.createSong.useMutation({
-    onSuccess: () => done("Song released"),
+    onSuccess: async (song) => {
+      // A song from Studio gets its mixer tracks as stems, lined up with the mix.
+      const stems = fromStudio?.stems ?? [];
+      let added = 0;
+      for (const stem of stems) {
+        try {
+          await addStem.mutateAsync({
+            itemId: song.itemId,
+            name: stem.name,
+            audio: { url: stem.url, durationSec: stem.durationSec },
+          });
+          added += 1;
+        } catch (error) {
+          toast.error(`${stem.name}: ${messageOf(error)}`);
+        }
+      }
+      done(
+        stems.length > 0
+          ? `Song released with ${added} stem${added === 1 ? "" : "s"}`
+          : "Song released",
+      );
+    },
     onError: (error) => toast.error(messageOf(error)),
   });
   const updateItem = api.catalog.update.useMutation();
@@ -131,7 +163,8 @@ export function SongForm({
     onSuccess: () => done("Song deleted"),
     onError: (error) => toast.error(messageOf(error)),
   });
-  const saving = create.isPending || updateItem.isPending || updateSong.isPending;
+  const saving =
+    create.isPending || addStem.isPending || updateItem.isPending || updateSong.isPending;
   const aiContext = { title, creditedAs: artistName, description };
   const imagePrompt = imageBrief || [title, description.slice(0, 400)].filter(Boolean).join(". ");
   const backHref = defaultAlbumId ? `/music/albums/${defaultAlbumId}` : "/music";
