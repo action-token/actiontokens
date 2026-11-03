@@ -46,5 +46,8 @@ describe("post settings", () => {
         tierName,
       ),
     ).toEqual({ see: "Followers", comment: "Insider", collect: "off" });
+    expect(settingsSummary(settingsFrom(), tierName, false).collect).toBe(
+      "needs a photo, video or song",
+    );
   });
 });

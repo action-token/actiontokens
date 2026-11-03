@@ -117,7 +117,9 @@ function PostCard({ post }: { post: Post }) {
           <span className="inline-flex items-center gap-1">
             <MessageSquare className="size-3.5" /> {post.comments}
           </span>
-          {post.collectAccess === "NOBODY" ? (
+          {post.media.length === 0 ? (
+            <span>Text only, not collectable</span>
+          ) : post.collectAccess === "NOBODY" ? (
             <span>Collecting off</span>
           ) : (
             <span>

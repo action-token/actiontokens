@@ -10,7 +10,13 @@ const ARTIST_USER = "artist-user";
 type Access = "VIEWERS" | "FOLLOWERS" | "MEMBERS" | "NOBODY";
 
 function postRow(
-  over: { tier?: boolean; id?: string; commentAccess?: Access; collectAccess?: Access } = {},
+  over: {
+    tier?: boolean;
+    id?: string;
+    commentAccess?: Access;
+    collectAccess?: Access;
+    textOnly?: boolean;
+  } = {},
 ) {
   return {
     id: over.id ?? "p1",
@@ -31,7 +37,9 @@ function postRow(
       fanTokenItem: { classicToken: { code: "TAMSIN", issuer: "GISSUER" } },
     },
     tier: over.tier ? { name: "Insider", requiredTokens: { toString: () => "50" } } : null,
-    media: [{ id: "m1", type: "IMAGE", url: "https://x/1.jpg", title: null, thumbnailUrl: null }],
+    media: over.textOnly
+      ? []
+      : [{ id: "m1", type: "IMAGE", url: "https://x/1.jpg", title: null, thumbnailUrl: null }],
     _count: { likes: 2, comments: 1 },
     likes: [],
     collectibles: [],
@@ -192,6 +200,14 @@ describe("post actions", () => {
     await expect(addPostComment(ctx, fan, { postId: "p1", body: "Hi" })).rejects.toMatchObject({
       message: "Comments are off for this post.",
     });
+  });
+
+  it("never lets fans collect a text-only post", async () => {
+    const { ctx, db } = setup({ row: { textOnly: true } });
+    await expect(collectPost(ctx, fan, "p1")).rejects.toMatchObject({
+      message: "This post can't be collected.",
+    });
+    expect(db.postCollectible.updateMany).not.toHaveBeenCalled();
   });
 
   it("lets only followers collect a followers-only post", async () => {

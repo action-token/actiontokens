@@ -56,6 +56,7 @@ export function PostSettingsSection({
   tiers,
   loadingTiers,
   collected,
+  hasMedia,
 }: {
   value: PostSettings;
   onChange: (next: PostSettings) => void;
@@ -63,6 +64,8 @@ export function PostSettingsSection({
   loadingTiers: boolean;
   /** Copies fans already collected (editing) */
   collected: number;
+  /** Only posts with a photo, video or song can be collected */
+  hasMedia: boolean;
 }) {
   const set = (patch: Partial<PostSettings>) => onChange({ ...value, ...patch });
   const tierName = (id: string | null) => tiers.find((tier) => tier.id === id)?.name ?? null;
@@ -104,41 +107,52 @@ export function PostSettingsSection({
         />
       </Field>
 
-      <Field
-        label="Who can collect"
-        hint={hintOf(ACCESS_HINT.collect, value.collectAccess, tierName(value.collectTierId))}
-      >
-        <Choices
-          label="Who can collect"
-          options={accesses.map((option) => ({ value: option, label: ACCESS_LABEL[option] }))}
-          value={value.collectAccess}
-          tierId={value.collectTierId}
-          {...tierList}
-          onChange={(collectAccess, collectTierId) => set({ collectAccess, collectTierId })}
-        />
-      </Field>
-
-      {value.collectAccess !== "NOBODY" && (
-        <Field
-          label="Free copies"
-          htmlFor="post-copies"
-          hint={
-            collected > 0
-              ? `${collected} collected so far, so you can add copies but not go below ${collected}.`
-              : `1 to ${MAX_COPIES.toLocaleString("en-US")}. Once fans start collecting, you can only add more.`
-          }
-        >
-          <Input
-            id="post-copies"
-            type="number"
-            inputMode="numeric"
-            min={Math.max(1, collected)}
-            max={MAX_COPIES}
-            value={Number.isNaN(value.copies) ? "" : value.copies}
-            onChange={(event) => set({ copies: event.target.valueAsNumber })}
-            className="w-full sm:max-w-40"
-          />
+      {!hasMedia ? (
+        <Field label="Who can collect">
+          <p className="bg-surface-2 text-fg-muted rounded-lg border border-dashed px-3 py-2.5 text-sm">
+            Text-only posts can&apos;t be collected. Add a photo, video or song and fans can scan
+            its QR to keep a free copy.
+          </p>
         </Field>
+      ) : (
+        <>
+          <Field
+            label="Who can collect"
+            hint={hintOf(ACCESS_HINT.collect, value.collectAccess, tierName(value.collectTierId))}
+          >
+            <Choices
+              label="Who can collect"
+              options={accesses.map((option) => ({ value: option, label: ACCESS_LABEL[option] }))}
+              value={value.collectAccess}
+              tierId={value.collectTierId}
+              {...tierList}
+              onChange={(collectAccess, collectTierId) => set({ collectAccess, collectTierId })}
+            />
+          </Field>
+
+          {value.collectAccess !== "NOBODY" && (
+            <Field
+              label="Free copies"
+              htmlFor="post-copies"
+              hint={
+                collected > 0
+                  ? `${collected} collected so far, so you can add copies but not go below ${collected}.`
+                  : `1 to ${MAX_COPIES.toLocaleString("en-US")}. Once fans start collecting, you can only add more.`
+              }
+            >
+              <Input
+                id="post-copies"
+                type="number"
+                inputMode="numeric"
+                min={Math.max(1, collected)}
+                max={MAX_COPIES}
+                value={Number.isNaN(value.copies) ? "" : value.copies}
+                onChange={(event) => set({ copies: event.target.valueAsNumber })}
+                className="w-full sm:max-w-40"
+              />
+            </Field>
+          )}
+        </>
       )}
     </FormSection>
   );

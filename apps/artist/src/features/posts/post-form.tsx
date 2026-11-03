@@ -74,7 +74,7 @@ export function PostForm({ existing }: { existing?: Existing }) {
   const ready = title.trim().length > 0 && problem === null;
   const tierName = (id: string | null) =>
     tiers.data?.find((tier) => tier.id === id)?.name ?? "Members";
-  const summary = settingsSummary(settings, tierName);
+  const summary = settingsSummary(settings, tierName, media.length > 0);
   const aiContext = { title, content: body };
   const imagePrompt = imageBrief || [title, body.slice(0, 400)].filter(Boolean).join(". ");
   const addMedia = (file: Media) => setMedia((current) => [...current, file].slice(0, MAX_MEDIA));
@@ -281,6 +281,7 @@ export function PostForm({ existing }: { existing?: Existing }) {
         tiers={tiers.data ?? []}
         loadingTiers={tiers.isPending}
         collected={existing?.collected ?? 0}
+        hasMedia={media.length > 0}
       />
     </FormPage>
   );

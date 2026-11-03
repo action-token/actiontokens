@@ -165,7 +165,12 @@ async function toCards(ctx: ServiceCtx, viewer: SessionUser | null, rows: PostRo
           }))[0] ?? null),
       copies: { ...copy, mine: row.collectibles.length > 0 },
       comment: gate("comment", row.commentAccess, row.commentTier),
-      collect: gate("collect", row.collectAccess, row.collectTier),
+      // Only posts with a photo, video or song can be collected.
+      collect: gate(
+        "collect",
+        row.media.length > 0 ? row.collectAccess : "NOBODY",
+        row.collectTier,
+      ),
     };
   });
 }

@@ -58,7 +58,11 @@ export function settingsProblem(settings: PostSettings, collected: number): stri
 }
 
 /** "Followers · comments: Members · collect: Nobody", for the preview. */
-export function settingsSummary(settings: PostSettings, tierName: (id: string | null) => string) {
+export function settingsSummary(
+  settings: PostSettings,
+  tierName: (id: string | null) => string,
+  hasMedia = true,
+) {
   const who = (access: Audience | Access, tierId: string | null) =>
     access === "MEMBERS"
       ? tierName(tierId)
@@ -75,8 +79,9 @@ export function settingsSummary(settings: PostSettings, tierName: (id: string | 
         ? tierName(settings.tierId)
         : AUDIENCE_LABEL[settings.audience],
     comment: who(settings.commentAccess, settings.commentTierId),
-    collect:
-      settings.collectAccess === "NOBODY"
+    collect: !hasMedia
+      ? "needs a photo, video or song"
+      : settings.collectAccess === "NOBODY"
         ? "off"
         : `${who(settings.collectAccess, settings.collectTierId)}, ${settings.copies.toLocaleString("en-US")} copies`,
   };
