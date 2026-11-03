@@ -14,7 +14,8 @@
     "test": "vitest run",
     "test:e2e": "vitest run --config vitest.e2e.config.mts",
     "testnet:demo": "tsx --env-file=../db/.env --env-file=../../apps/app/.env.local scripts/testnet-demo.ts",
-    "testnet:buy": "tsx --env-file=../db/.env --env-file=../../apps/app/.env.local scripts/testnet-buy.ts"
+    "testnet:buy": "tsx --env-file=../db/.env --env-file=../../apps/app/.env.local scripts/testnet-buy.ts",
+    "testnet:studio": "tsx --env-file=../db/.env --env-file=../../apps/app/.env.local scripts/testnet-studio.ts"
   },
   "dependencies": {
     "@bandcoin/ar-core": "workspace:*",

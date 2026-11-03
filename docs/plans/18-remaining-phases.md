@@ -75,7 +75,16 @@ Original plan:
 
 **You check:** Admin › Jobs, and a vanity link moved through grace in dev.
 
-### 5. Studio app: balance and top-up (`apps/studio`, port 3102)
+### 5. Studio app: balance and top-up (`apps/studio`, port 3102) (done 2026-11-03)
+
+Decided: anyone signed in; portal AI helpers stay free; 1 coin = $0.01; a run costs
+the AI provider's cost + a 30% platform fee (Admin › Settings › Studio), rounded up to
+whole coins; top up $1–$500 or a package (dollar price + bonus coins); BANDCOIN at its
+live price, XLM/USDC at the live rate, or card. Held while a run goes, kept on success,
+refunded once on failure. `pnpm --filter @bandcoin/api testnet:studio` runs a real
+testnet top-up.
+
+Original plan:
 
 - New Next app with the same shell, sign-in and theme as the artist portal.
 - `/` home: balance, recent generations, the tools.

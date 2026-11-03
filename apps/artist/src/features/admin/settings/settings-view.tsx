@@ -16,6 +16,7 @@ import { api, type RouterOutputs } from "~/trpc/react";
 import { messageOf } from "../murals/model";
 import { SettingsSection } from "../../settings/settings-section";
 import { ContractFeeCard } from "./contract-fee-card";
+import { StudioCard } from "./studio-card";
 
 type Saved = RouterOutputs["admin"]["settings"]["get"]["saved"];
 type Rules = Saved["alertRules"];
@@ -98,6 +99,7 @@ export function AdminSettingsView() {
         />
       )}
       <ContractFeeCard />
+      <StudioCard />
     </PageBody>
   );
 }

@@ -1,0 +1,17 @@
+{
+  "extends": "@bandcoin/tsconfig/nextjs.json",
+  "compilerOptions": {
+    "paths": { "~/*": ["./src/*"] },
+    "plugins": [{ "name": "next" }]
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.mjs",
+    "**/*.js",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": ["node_modules", ".next"]
+}

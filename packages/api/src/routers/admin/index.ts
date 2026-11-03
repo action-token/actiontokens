@@ -241,7 +241,14 @@ export const adminRouter = createRouter({
       .input(
         z.object({
           key: z.string().min(1).max(500),
-          kind: z.enum(["failedPayments", "signInFailures", "fastClaims", "largeOrder", "stuck"]),
+          kind: z.enum([
+            "failedPayments",
+            "signInFailures",
+            "fastClaims",
+            "largeOrder",
+            "stuck",
+            "studioBalance",
+          ]),
           note: z.string().max(300).optional(),
         }),
       )

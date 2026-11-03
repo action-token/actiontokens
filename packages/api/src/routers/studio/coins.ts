@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { coinsForUsd, loadPricing, priceList } from "../../services/studio/pricing";
 import { studioBalance, studioLedger } from "../../services/studio/balance";
+import { cancelPurchase } from "../../services/purchase";
 import { quoteTopUp, startTopUp, submitTopUp } from "../../services/studio/topup";
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 
@@ -68,4 +69,9 @@ export const coinsRouter = createRouter({
       }),
     )
     .mutation(({ ctx, input }) => submitTopUp(ctx, ctx.session.user, input)),
+
+  /** Cancel during the countdown (or a declined wallet popup): nothing was signed or sent. */
+  cancel: authedProcedure
+    .input(z.object({ orderId: z.string().min(1) }))
+    .mutation(({ ctx, input }) => cancelPurchase(ctx, ctx.session.user, input.orderId)),
 });
