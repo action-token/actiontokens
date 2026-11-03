@@ -1,6 +1,7 @@
 import {
   createContext,
   dropDueHotspots,
+  expireVanityLinks,
   keepUnlocksAlive,
   reconcileOrders,
   syncUnlocks,
@@ -26,6 +27,8 @@ export function handlersFor(deps: WorkerDeps): Record<string, JobHandler> {
 
     // Record NFT unlocks the app couldn't (see catalog/unlock-chain); not a payment, so it retries.
     "nft.unlocks": async () => ({ result: await syncUnlocks(context()) }),
+    // Short-link reminders and freed names (see artist/vanity-expire); not a payment.
+    "vanity.expire": async () => ({ result: await expireVanityLinks(context()) }),
     // Drop pins in hotspots whose next drop is due; a failed drop is reported, the rest carry on.
     "hotspot.drop": async () => ({ result: await dropDueHotspots(context()) }),
     // Keep the contract's unlock records from being archived.

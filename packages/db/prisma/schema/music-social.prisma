@@ -200,6 +200,8 @@ enum NotificationType {
   BOUNTY_SUBMISSION
   BOUNTY_WINNER
   BOUNTY_COMMENT
+  /// The artist's short link runs out soon, is in grace, or stopped working
+  VANITY
 }
 
 /// Something that happened, fanned out to recipients as Notification rows.

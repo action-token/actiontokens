@@ -55,7 +55,16 @@ Original plan:
 
 **You check:** create a hotspot, see the first drop on the map and in the AR app.
 
-### 4. Worker schedules
+### 4. Worker schedules (done 2026-11-03)
+
+Built: `vanity.expire` hourly sends three reminders to the artist's bell (3 days
+before, grace starts, link stopped), keeps the stored status in step, and frees names
+past their 30 reserved days; the link itself was already right from its dates. The
+Studio balance check is a live Admin › Alerts alert (decided: no nightly job).
+Admin › Jobs names every job; scheduled jobs simply run again, so only music jobs
+have Retry.
+
+Original plan:
 
 - `vanity.expire` (hourly), following the vanity rules: unpaid after `paidUntil` →
   **GRACE** for 7 days (link still works, renewal reminder) → **LAPSED** (the link

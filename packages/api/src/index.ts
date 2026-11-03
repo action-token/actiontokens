@@ -39,4 +39,5 @@ export {
 export { reconcileOrders } from "./services/orders/reconcile";
 export { keepUnlocksAlive, syncUnlocks } from "./services/catalog/unlock-chain";
 export { dropDueHotspots } from "./services/artist/hotspots";
+export { expireVanityLinks } from "./services/artist/vanity-expire";
 export { queueTranscode, type TranscodePart } from "./services/media/processing";

@@ -16,13 +16,15 @@ export type JobType =
   | "media.transcode"
   | "nft.unlocks"
   | "nft.keep-alive"
-  | "hotspot.drop";
+  | "hotspot.drop"
+  | "vanity.expire";
 export const JOB_TYPES: readonly JobType[] = [
   "order.reconcile",
   "media.transcode",
   "nft.unlocks",
   "nft.keep-alive",
   "hotspot.drop",
+  "vanity.expire",
 ];
 
 /**

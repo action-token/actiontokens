@@ -1,4 +1,5 @@
 import type { NotificationType } from "@bandcoin/db";
+import { VANITY_GRACE_DAYS, VANITY_RESERVE_DAYS } from "@bandcoin/utils/vanity";
 
 export type NotificationSubject = {
   actor: { name: string; username: string | null; artistSlug: string | null };
@@ -7,7 +8,37 @@ export type NotificationSubject = {
   item?: { slug: string; title: string } | null;
   /** The post a POST or REPLY is about */
   postId?: string | null;
+  /** A short-link reminder: which one, for which month, which name */
+  vanity?: { stage: "SOON" | "GRACE" | "LAPSED"; paidUntil: Date; name: string } | null;
 };
+
+const shortDay = (date: Date) =>
+  date.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+
+/** The three short-link reminders, for the artist's bell. */
+export function describeVanity(vanity: NotificationSubject["vanity"]) {
+  const href = "/settings?tab=short-link";
+  if (!vanity) return { text: "Your short link needs a look.", href };
+  const link = `bandcoin.io/${vanity.name}`;
+  const grace = new Date(vanity.paidUntil.getTime() + VANITY_GRACE_DAYS * 86_400_000);
+  switch (vanity.stage) {
+    case "SOON":
+      return {
+        text: `${link} runs out on ${shortDay(vanity.paidUntil)}. Renew to keep it working.`,
+        href,
+      };
+    case "GRACE":
+      return {
+        text: `${link} has run out. It keeps working until ${shortDay(grace)}: renew before then.`,
+        href,
+      };
+    case "LAPSED":
+      return {
+        text: `${link} stopped working and now opens your artist page. The name is yours for ${VANITY_RESERVE_DAYS} more days if you renew.`,
+        href,
+      };
+  }
+}
 
 /** What a fan reads in the bell, and where it takes them. */
 export function describeNotification(
@@ -63,6 +94,8 @@ export function describeNotification(
       return { text: `${name} joined a membership.`, href: actorPage };
     case "PURCHASE":
       return { text: `${name} bought something.`, href: item ? `/item/${item.slug}` : actorPage };
+    case "VANITY":
+      return { text: describeVanity(null).text, href: null };
   }
 }
 
@@ -74,6 +107,7 @@ export function describeForArtist(
     bounty,
     item,
     post,
+    ...rest
   }: Omit<NotificationSubject, "item"> & {
     item?: { id: string; slug: string; title: string; type: string } | null;
     post?: { id: string; title: string } | null;
@@ -131,6 +165,8 @@ export function describeForArtist(
       };
     case "BOUNTY_COMMENT":
       return { text: `${name} commented on your bounty.`, href: bountyPage };
+    case "VANITY":
+      return describeVanity(rest.vanity);
     default:
       return { ...describeNotification(type, { actor, bounty, item }), href: null };
   }

@@ -28,6 +28,10 @@ const FILTERS: { value: Filter; label: string }[] = [
 const KIND: Record<string, string> = {
   "order.reconcile": "Payment check",
   "media.transcode": "Music processing",
+  "nft.unlocks": "NFT unlocks",
+  "nft.keep-alive": "NFT records kept alive",
+  "hotspot.drop": "Hotspot drops",
+  "vanity.expire": "Short links",
 };
 
 const STATUS: Record<Row["status"], { tone: Tone; label: string }> = {

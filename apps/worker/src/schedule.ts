@@ -7,6 +7,8 @@ export const SCHEDULES: { type: JobType; everyMs: number }[] = [
   { type: "order.reconcile", everyMs: 60_000 },
   // Record NFT unlocks a collect couldn't record right away.
   { type: "nft.unlocks", everyMs: 5 * 60_000 },
+  // Short links: reminders, stored status, and names past their reserved days set free.
+  { type: "vanity.expire", everyMs: 60 * 60_000 },
   // Drop pins in hotspots whose next drop is due (see services/artist/hotspots).
   { type: "hotspot.drop", everyMs: 5 * 60_000 },
   // Keep the NFT contract's unlock records alive (archived after months untouched).

@@ -108,3 +108,27 @@ export const notifyArtist = (
     entityId: event.entityId,
     recipients: [{ id: event.artistUserId, isForArtist: true }],
   });
+
+/**
+ * A note to the person about their own account (a short link running out):
+ * they are both who it's from and who it's for. Best effort.
+ */
+export async function notifySelf(
+  ctx: Db,
+  event: { type: NotificationType; userId: string; entityId: string; isForArtist?: boolean },
+) {
+  try {
+    await ctx.db.notificationEvent.create({
+      data: {
+        type: event.type,
+        actorId: event.userId,
+        entityId: event.entityId,
+        notifications: {
+          create: { recipientId: event.userId, isForArtist: event.isForArtist ?? false },
+        },
+      },
+    });
+  } catch (error) {
+    console.error("[notify] couldn't send a note", { type: event.type, error });
+  }
+}

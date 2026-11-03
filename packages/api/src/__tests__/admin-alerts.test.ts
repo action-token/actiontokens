@@ -38,6 +38,8 @@ function setup(
     order: { groupBy: vi.fn().mockResolvedValue(opts.failedGroups ?? []), findMany },
     activityLog: { groupBy: vi.fn().mockResolvedValue(opts.signInGroups ?? []) },
     pinClaim: { findMany: vi.fn().mockResolvedValue(opts.claims ?? []) },
+    studioBalance: { findMany: vi.fn().mockResolvedValue([]) },
+    studioLedgerEntry: { groupBy: vi.fn().mockResolvedValue([]) },
     adminAlertReview: {
       findMany: vi.fn(() => Promise.resolve((opts.reviewed ?? []).map((key) => ({ key })))),
       upsert: vi.fn().mockResolvedValue({}),
