@@ -12,7 +12,13 @@ import {
 import { artistProcedure, createRouter } from "../../trpc";
 
 const media = z
-  .array(z.object({ type: z.enum(["IMAGE", "VIDEO", "AUDIO"]), url: z.string().url() }))
+  .array(
+    z.object({
+      type: z.enum(["IMAGE", "VIDEO", "AUDIO"]),
+      url: z.string().url(),
+      title: z.string().max(200).nullish(),
+    }),
+  )
   .max(10);
 const postFields = {
   title: z.string().trim().max(160),

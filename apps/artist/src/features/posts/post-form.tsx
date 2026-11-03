@@ -3,7 +3,6 @@
 import {
   Eye,
   FileText,
-  ImageIcon,
   Loader2,
   Lock,
   Music,
@@ -38,21 +37,15 @@ import { api, type RouterOutputs } from "~/trpc/react";
 import { AiFillCard } from "../ai/ai-fill-card";
 import { AiImagePanel } from "../ai/ai-image-panel";
 import { AiTextButton } from "../ai/ai-text-button";
-import { FileField } from "../catalog/file-field";
 
+import { MediaDrop, type PostMedia } from "./media-drop";
 import { PostComments } from "./post-comments";
 
 type Existing = RouterOutputs["posts"]["post"];
-type MediaType = "IMAGE" | "VIDEO" | "AUDIO";
-type Media = { type: MediaType; url: string };
+type Media = PostMedia;
 
 const PUBLIC = "public";
 const MAX_MEDIA = 10;
-const KINDS: { type: MediaType; label: string; icon: typeof ImageIcon; accept: string }[] = [
-  { type: "IMAGE", label: "Image", icon: ImageIcon, accept: "image/*" },
-  { type: "VIDEO", label: "Video", icon: Video, accept: "video/*" },
-  { type: "AUDIO", label: "Music", icon: Music, accept: "audio/*" },
-];
 const messageOf = (error: unknown) =>
   error instanceof Error ? error.message : "Something went wrong.";
 
@@ -66,10 +59,12 @@ export function PostForm({ existing }: { existing?: Existing }) {
   const [body, setBody] = useState(existing?.body ?? "");
   const [tierId, setTierId] = useState(existing?.tierId ?? PUBLIC);
   const [media, setMedia] = useState<Media[]>(
-    existing?.media.map(({ type, url }) => ({ type: type as MediaType, url })) ?? [],
+    existing?.media.map(({ type, url, title }) => ({
+      type: type as Media["type"],
+      url,
+      title,
+    })) ?? [],
   );
-  const [kind, setKind] = useState<MediaType>("IMAGE");
-  const [uploadKey, setUploadKey] = useState(0);
   const [imageBrief, setImageBrief] = useState("");
 
   const done = (message: string) => {
@@ -98,7 +93,6 @@ export function PostForm({ existing }: { existing?: Existing }) {
     id === PUBLIC ? "Everyone" : (tiers.data?.find((tier) => tier.id === id)?.name ?? "Members");
   const aiContext = { title, content: body };
   const imagePrompt = imageBrief || [title, body.slice(0, 400)].filter(Boolean).join(". ");
-  const active = KINDS.find((entry) => entry.type === kind) ?? KINDS[0]!;
   const addMedia = (file: Media) => setMedia((current) => [...current, file].slice(0, MAX_MEDIA));
 
   function submit(submitted: FormEvent) {
@@ -248,49 +242,17 @@ export function PostForm({ existing }: { existing?: Existing }) {
       <FormSection
         title="Media"
         icon={Paperclip}
-        description={`Optional, up to ${MAX_MEDIA} images, videos or songs.`}
+        description={`Optional: up to ${MAX_MEDIA} images, videos and songs, in any mix.`}
       >
         {media.length < MAX_MEDIA && (
           <>
-            <div role="tablist" aria-label="Media type" className="flex gap-1.5">
-              {KINDS.map((entry) => (
-                <button
-                  key={entry.type}
-                  type="button"
-                  role="tab"
-                  aria-selected={kind === entry.type}
-                  onClick={() => setKind(entry.type)}
-                  className={cn(
-                    "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm",
-                    kind === entry.type
-                      ? "bg-primary text-primary-foreground border-primary font-semibold"
-                      : "hover:bg-surface-2",
-                  )}
-                >
-                  <entry.icon className="size-3.5" /> {entry.label}
-                </button>
-              ))}
-            </div>
-            <FileField
-              key={`${kind}-${uploadKey}`}
-              id="post-media"
-              accept={active.accept}
-              value={null}
-              hint={`Drop ${active.label.toLowerCase()} here, or click to choose`}
-              onChange={(file) => {
-                if (!file) return;
-                addMedia({ type: kind, url: file.url });
-                setUploadKey((n) => n + 1);
-              }}
+            <MediaDrop room={MAX_MEDIA - media.length} onAdd={addMedia} />
+            <AiImagePanel
+              form="post"
+              aspect="wide"
+              suggestedPrompt={imagePrompt}
+              onImage={(url) => addMedia({ type: "IMAGE", url })}
             />
-            {kind === "IMAGE" && (
-              <AiImagePanel
-                form="post"
-                aspect="wide"
-                suggestedPrompt={imagePrompt}
-                onImage={(url) => addMedia({ type: "IMAGE", url })}
-              />
-            )}
           </>
         )}
         {media.length > 0 && (
@@ -349,20 +311,23 @@ export function PostForm({ existing }: { existing?: Existing }) {
 }
 
 function MediaThumb({ media }: { media: Media }) {
+  const frame = "bg-surface-2 aspect-square w-full rounded-lg border";
   if (media.type === "IMAGE")
     // eslint-disable-next-line @next/next/no-img-element
+    return <img src={media.url} alt="" className={cn(frame, "object-cover")} />;
+  if (media.type === "VIDEO")
     return (
-      <img
-        src={media.url}
-        alt=""
-        className="bg-surface-2 aspect-square w-full rounded-lg border object-cover"
-      />
+      <div className={cn(frame, "relative overflow-hidden bg-black")}>
+        <video src={media.url} muted preload="metadata" className="size-full object-cover" />
+        <span className="absolute bottom-1 left-1 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[11px] text-white">
+          <Video className="size-3" /> Video
+        </span>
+      </div>
     );
-  const Icon = media.type === "VIDEO" ? Video : Music;
   return (
-    <div className="bg-surface-2 flex aspect-square w-full flex-col items-center justify-center gap-1 rounded-lg border text-center">
-      <Icon className="text-fg-muted size-6" />
-      <span className="text-fg-muted text-xs">{media.type === "VIDEO" ? "Video" : "Music"}</span>
+    <div className={cn(frame, "flex flex-col items-center justify-center gap-1.5 p-2 text-center")}>
+      <Music className="text-fg-muted size-6" />
+      <span className="text-fg-muted line-clamp-2 text-xs break-all">{media.title ?? "Song"}</span>
     </div>
   );
 }

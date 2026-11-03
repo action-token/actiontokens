@@ -17,7 +17,8 @@ export const COLLECTIBLE_COPIES = 100;
 export const MAX_MEDIA = 10;
 const MEDIA_TYPES: MediaType[] = ["IMAGE", "VIDEO", "AUDIO"];
 
-export type PostMediaInput = { type: MediaType; url: string };
+/** `title` names a song (its file name when uploaded) */
+export type PostMediaInput = { type: MediaType; url: string; title?: string | null };
 
 export type PostInput = {
   title: string;
@@ -64,7 +65,12 @@ async function ownPost(ctx: ServiceCtx, artist: ArtistRef, postId: string) {
 }
 
 const mediaRows = (media: PostMediaInput[]) =>
-  media.map((file, sortOrder) => ({ type: file.type, url: file.url, sortOrder }));
+  media.map((file, sortOrder) => ({
+    type: file.type,
+    url: file.url,
+    title: file.title?.trim().slice(0, 120) || null,
+    sortOrder,
+  }));
 
 const counts = { select: { likes: true, comments: true } } as const;
 const postSelect = {
@@ -75,7 +81,10 @@ const postSelect = {
   createdAt: true,
   updatedAt: true,
   tier: { select: { name: true } },
-  media: { orderBy: { sortOrder: "asc" as const }, select: { id: true, type: true, url: true } },
+  media: {
+    orderBy: { sortOrder: "asc" as const },
+    select: { id: true, type: true, url: true, title: true },
+  },
   _count: counts,
 };
 

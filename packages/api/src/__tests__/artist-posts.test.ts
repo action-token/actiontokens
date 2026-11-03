@@ -94,6 +94,26 @@ describe("createPost", () => {
     expect(activity.set).toHaveBeenCalledWith({ targetType: "Post", targetId: "p1" });
   });
 
+  it("keeps a mix of images, video and songs in order, with each song's name", async () => {
+    const { ctx, created } = setup();
+    await createPost(ctx, artist, {
+      title: "Mixed",
+      media: [
+        file("AUDIO", "a.mp3"),
+        file("IMAGE", "b.png"),
+        { ...file("AUDIO", "c.mp3"), title: "  Night Drive (demo) " },
+        file("VIDEO", "d.mp4"),
+      ],
+    });
+    const rows = (created[0] as { media: { createMany: { data: Row[] } } }).media.createMany.data;
+    expect(rows.map((row) => [row.type, row.title, row.sortOrder])).toEqual([
+      ["AUDIO", null, 0],
+      ["IMAGE", null, 1],
+      ["AUDIO", "Night Drive (demo)", 2],
+      ["VIDEO", null, 3],
+    ]);
+  });
+
   it("allows a post with only a title", async () => {
     const { ctx, created } = setup();
     await createPost(ctx, artist, { title: "Just this" });
@@ -196,7 +216,9 @@ describe("updatePost", () => {
       where: { id: "p1" },
       data: {
         media: {
-          createMany: { data: [{ type: "AUDIO", url: "https://cdn.example/s.mp3", sortOrder: 0 }] },
+          createMany: {
+            data: [{ type: "AUDIO", url: "https://cdn.example/s.mp3", title: null, sortOrder: 0 }],
+          },
         },
       },
     });
