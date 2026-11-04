@@ -16,7 +16,8 @@
     "migrate:dev": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
     "legacy:dry-run": "tsx scripts/migrate-legacy/index.ts --dry-run",
-    "legacy:run": "tsx scripts/migrate-legacy/index.ts",
+    "legacy:copy": "tsx scripts/migrate-legacy/copy.ts",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "seed": "tsx scripts/seed/index.ts",
@@ -32,6 +33,7 @@
   "devDependencies": {
     "@bandcoin/eslint-config": "workspace:*",
     "@bandcoin/tsconfig": "workspace:*",
+    "@bandcoin/vitest-config": "workspace:*",
     "@stellar/stellar-sdk": "catalog:",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
@@ -39,6 +41,7 @@
     "pg": "catalog:",
     "prisma": "catalog:",
     "tsx": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

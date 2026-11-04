@@ -1226,6 +1226,9 @@ importers:
       '@bandcoin/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
+      '@bandcoin/vitest-config':
+        specifier: workspace:*
+        version: link:../../tooling/vitest
       '@stellar/stellar-sdk':
         specifier: 'catalog:'
         version: 17.4.0(debug@4.4.3)
@@ -1250,6 +1253,9 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
 
   packages/errors:
     devDependencies:

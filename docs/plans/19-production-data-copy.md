@@ -28,7 +28,7 @@ Backup taken and verified 2026-11-04: 89 tables, 13,110 rows, every row's finger
 | User | 147 | users | Old id (all 147 are Stellar keys) becomes walletAddress, with a new cuid id. 22 have email. |
 | Admin | 8 | users.role = ADMIN | Row dropped, role kept. |
 | Creator | 17 | artists + chain_accounts | 10 approved, 7 pending. Secret encrypted. 1 has a junk secret and no valid public key (unapproved, no items): artist kept, no storage account, flagged. |
-| Creator facebook* | 1 | facebook_connections | Page id and name kept. Token needs bandfan's Facebook key; without it the artist reconnects. |
+| Creator facebook* | 1 | facebook_connections | Not copied: the token is sealed with bandfan's key, so the artist reconnects. The old row stays in the backup. |
 | CreatorPageAsset | 10 | items + classic_tokens + chain_accounts | 1 has no issuer secret: imported as an external token. |
 | Subscription | 4 | membership_tiers | price → requiredTokens. |
 | Follow / TemporalFollow | 4 / 39 | follows | 4 temporary follows that are also real: the real one wins. |
@@ -48,8 +48,8 @@ Backup taken and verified 2026-11-04: 89 tables, 13,110 rows, every row's finger
 | LocationGroup, Location, LocationConsumer | 143, 10,105, 11 | pins, pin_spots, pin_claims | **All copied**, including 119 REJECTED pins (10,076 spots), which fans don't see. |
 | Tags, GeoCache, LocationGroupJob | 21 + 838 + 21, 340, 3 | pin_tags, pin_tag_links, pin_tag_cache, geo_cache, pin_batch_jobs | Direct. |
 | Bounty and related | 2, 2, 1, 1, 1, 5 | bounties and related | Prize ACTION is a classic asset: prizeCurrency null, code and issuer kept. |
-| CreditBalance, CreditTransaction | 35, 19 | studio_balances + a MIGRATED ledger entry | One holder, 53.97 credits (see question). History summarised, full rows stay in the backup. |
-| CreditPackage | 1 | (see question) | Old prices don't fit 1 coin = $0.01. |
+| CreditBalance, CreditTransaction | 35, 19 | studio_balances + a MIGRATED ledger entry | One holder, 53.97 credits: 1 credit = $1, so 5,397 coins (decided). History summarised, full rows stay in the backup. |
+| CreditPackage | 1 | (not copied, decided) | Old prices don't fit 1 coin = $0.01. Stays in the backup. |
 | GenerationJob, AiGeneratedContent | 6, 3 | generations | Finished runs only: nothing to hold or refund. |
 | AgentJob, AgentConversation, AgentMessage, AgentAction | 33, 10, 31, 2 | same names | Direct. |
 
@@ -57,8 +57,9 @@ Old tables with no rows are mapped but copy nothing. Every skipped row is listed
 
 ## The tool
 
-`packages/db/scripts/migrate-legacy/`: one file per domain, in dependency order, with an id map so
-later steps find new ids.
+`pnpm --filter @bandcoin/db legacy:copy` (`packages/db/scripts/migrate-legacy/copy.ts`): grouped by
+domain, in dependency order, one transaction, with an id map so later steps find new ids. Cuid ids are
+kept, so pin, bounty and NFT links keep working. Old tables with no copy rule stop the run if they gain rows.
 
 - **Source** is opened read only and must be `ep-steep`, never the live database.
 - **Target** must be named on the command line and match an allowlist: the rehearsal schema, or
@@ -79,6 +80,8 @@ In a separate `rehearsal` schema of `ep-steep`, with a throwaway `CHAIN_ACCOUNT_
 migrations, copy, run the checks. The backup in `public` is only read. Dropped afterwards, because
 it holds real keys.
 
+**Rehearsed 2026-11-04:** all counts add up, 26 keys open and match, 26 of 26 accounts exist on mainnet, 131 s. See `docs/migration-report.md`. Not yet done: running the new apps against the rehearsal data.
+
 ## Cutover (one window, with the app switch)
 
 1. New apps deployed with mainnet settings, pointing at `ep-soft-term`, not yet live.
@@ -94,7 +97,6 @@ exist only in the new layout.
 
 ## Needs from you before cutover
 
-- Rotate both database passwords (they were pasted in chat, and the data includes live keys).
+- Rotate both database passwords yourself (they were pasted in chat, and the data includes live keys). You said you'll do this by hand; the tool then needs the new URLs.
 - A production `CHAIN_ACCOUNT_KEY`, set in the host's settings. Never in chat. Losing it locks every
   artist's account, so keep a safe copy.
-- bandfan's Facebook encryption key, if that artist should stay connected.
