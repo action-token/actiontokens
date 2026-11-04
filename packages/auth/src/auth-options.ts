@@ -70,10 +70,18 @@ export function createAuthOptions(input: {
           };
         }
         if (token.sub && Date.now() - (token.roleCheckedAt ?? 0) > ROLE_REFRESH_MS) {
-          const row = await db.user.findUnique({
-            where: { id: token.sub },
-            select: { role: true, suspendedAt: true },
-          });
+          let row: { role: UserRole; suspendedAt: Date | null } | null;
+          try {
+            row = await db.user.findUnique({
+              where: { id: token.sub },
+              select: { role: true, suspendedAt: true },
+            });
+          } catch (error) {
+            // The database being unreachable says nothing about the user. Throwing here would
+            // fail the session request and sign them out, so keep the session and look again next time.
+            console.error("[auth] couldn't refresh the session role", error);
+            return token;
+          }
           // Gone or suspended: the session ends at its next refresh.
           if (!row || row.suspendedAt) return { ...token, sub: undefined };
           return { ...token, role: row.role, roleCheckedAt: Date.now() };

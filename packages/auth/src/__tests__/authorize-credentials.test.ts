@@ -251,6 +251,19 @@ describe("session refresh", () => {
     const suspended = await jwt({ token: { sub: "u1", role: "FAN", roleCheckedAt: 0 } });
     expect(suspended.sub).toBeUndefined();
   });
+  it("keeps the session when the database can't be reached for the role check", async () => {
+    const { callbacks } = createAuthOptions({ app: "app", db: asDb });
+    const jwt = callbacks!.jwt! as (args: {
+      token: Record<string, unknown>;
+    }) => Promise<Record<string, unknown>>;
+    db.user.findUnique.mockRejectedValue(new Error("Can't reach database server"));
+
+    const token = { sub: "u1", role: "ARTIST", roleCheckedAt: 0 };
+    const kept = await jwt({ token });
+    // A failed read says nothing about the user: they stay signed in with the role they had.
+    expect(kept.sub).toBe("u1");
+    expect(kept.role).toBe("ARTIST");
+  });
   it("ends the session for the browser when the token no longer names a user", async () => {
     const { callbacks } = createAuthOptions({ app: "app", db: asDb });
     const session = callbacks!.session! as unknown as (args: {
@@ -260,7 +273,10 @@ describe("session refresh", () => {
     const open = { user: { name: null }, expires: "later" };
 
     expect(session({ session: open, token: {} })).toEqual({});
-    const live = session({ session: open, token: { sub: "u1", walletAddress: "G1", walletType: "email" } });
+    const live = session({
+      session: open,
+      token: { sub: "u1", walletAddress: "G1", walletType: "email" },
+    });
     expect((live.user as { id: string }).id).toBe("u1");
   });
 });

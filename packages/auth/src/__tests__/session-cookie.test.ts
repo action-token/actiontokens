@@ -36,6 +36,22 @@ describe("sharedSessionCookie", () => {
   });
 });
 
+describe("local development", () => {
+  it("names the cookie for Bandcoin, so other apps on localhost can't overwrite or reject it", async () => {
+    vi.resetModules();
+    vi.unstubAllEnvs();
+    vi.stubEnv("NODE_ENV", "development");
+    const { sharedSessionCookie } = await import("../session-cookie");
+    expect(sharedSessionCookie?.sessionToken.name).toBe("bandcoin.session-token");
+    expect(sharedSessionCookie?.sessionToken.options).toMatchObject({
+      httpOnly: true,
+      secure: false,
+      path: "/",
+    });
+    expect(sharedSessionCookie?.sessionToken.options).not.toHaveProperty("domain");
+  });
+});
+
 describe("clearLegacySessionCookie", () => {
   it("expires the host-only copy (no Domain) when the request carries a session", async () => {
     const { clearLegacySessionCookie } = await load(".bandcoin.io");

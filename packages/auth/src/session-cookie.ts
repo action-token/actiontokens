@@ -5,7 +5,7 @@ import type { NextRequest, NextResponse } from "next/server";
  * production only), the NextAuth session cookie is written for the whole domain, so every
  * Bandcoin app on a subdomain reads the same login. All of them must share NEXTAUTH_SECRET:
  * an app that can't decrypt the cookie deletes it, which signs the user out everywhere.
- * Unset (local dev, Vercel previews) everything behaves as NextAuth's defaults.
+ * Unset (Vercel previews) everything behaves as NextAuth's defaults; local dev uses its own cookie name (below).
  *
  * The cookie keeps NextAuth's default name, so `getToken({ req })` and existing clients
  * keep working unchanged.
@@ -16,6 +16,14 @@ export const AUTH_COOKIE_DOMAIN = process.env.AUTH_COOKIE_DOMAIN || undefined;
 
 /** NextAuth's default session cookie name over https. */
 export const SESSION_COOKIE = "__Secure-next-auth.session-token";
+
+/**
+ * On localhost every project shares one cookie jar (cookies ignore ports) and NextAuth's
+ * default cookie name, so another app's login (a different secret) overwrote this one, or
+ * failed to decrypt here and was deleted: an intermittent sign-out. Locally the cookie gets
+ * Bandcoin's own name. The four Bandcoin apps still share it, so one login covers them all.
+ */
+export const DEV_SESSION_COOKIE = "bandcoin.session-token";
 
 /** `cookies` option for NextAuth: only the session token is shared, the rest stay per site. */
 export const sharedSessionCookie = AUTH_COOKIE_DOMAIN
@@ -31,7 +39,14 @@ export const sharedSessionCookie = AUTH_COOKIE_DOMAIN
         },
       },
     }
-  : undefined;
+  : process.env.NODE_ENV === "development"
+    ? {
+        sessionToken: {
+          name: DEV_SESSION_COOKIE,
+          options: { httpOnly: true, sameSite: "lax" as const, path: "/", secure: false },
+        },
+      }
+    : undefined;
 
 /**
  * Clears the old single-site session cookie (bandfan's, on bandcoin.io) left from before the login became shared. A browser
