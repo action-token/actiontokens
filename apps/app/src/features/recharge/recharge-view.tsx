@@ -1,13 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@bandcoin/ui/components/tabs";
 import { cn } from "@bandcoin/ui/lib/cn";
-import { ToastViewport, TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
 import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
 import { Money } from "~/components/money";
@@ -17,6 +15,7 @@ import { api, type RouterOutputs } from "~/trpc/react";
 import { useSquareCard } from "../buy/square-card";
 import { ActivateWallet } from "./activate-wallet";
 import { QuoteBreakdown } from "./quote-breakdown";
+import { RechargeToast } from "./recharge-toast";
 import { useRecharge as useRechargeFlow } from "./use-recharge";
 
 type Quote = RouterOutputs["recharge"]["quote"];
@@ -56,42 +55,7 @@ export function RechargeView() {
         </TabsContent>
       </Tabs>
 
-      {flow.step && (
-        <ToastViewport>
-          <TransactionToast
-            key={flow.step.kind}
-            step={flow.step}
-            onSend={flow.send}
-            onCancel={flow.stop}
-            actions={
-              flow.step.kind === "success" ? (
-                <>
-                  <Button asChild size="sm" variant="secondary" className="h-8 px-3 text-[13px]">
-                    <Link href="/wallet">View wallet</Link>
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-8 px-3 text-[13px]"
-                    onClick={flow.close}
-                  >
-                    Close
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="h-8 px-3 text-[13px]"
-                  onClick={flow.step.kind === "confirm" ? flow.stop : flow.close}
-                >
-                  {flow.step.kind === "confirm" ? "Cancel" : "Close"}
-                </Button>
-              )
-            }
-          />
-        </ToastViewport>
-      )}
+      <RechargeToast flow={flow} />
     </section>
   );
 }
