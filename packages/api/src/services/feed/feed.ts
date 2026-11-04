@@ -177,33 +177,49 @@ async function toCards(ctx: ServiceCtx, viewer: SessionUser | null, rows: PostRo
 
 export type PostCard = Awaited<ReturnType<typeof toCards>>[number];
 
+export type FeedScope = "all" | "following";
+
 /**
- * Posts from the artists the fan follows, plus their own if they are an
- * artist, newest first, a page at a time. `following` lets the page tell
- * "follow someone" from "nothing new yet".
+ * The feed, newest first, a page at a time. "all" (For you) is every approved
+ * artist's posts and is open to anyone, signed in or not; posts the viewer
+ * can't open come back as a lock. "following" is the artists the fan follows,
+ * plus their own posts if they are an artist, and needs a session: its
+ * `following` count lets the page tell "follow someone" from "nothing new yet".
  */
-export async function feedPage(ctx: ServiceCtx, viewer: SessionUser, cursor: string | null) {
-  const [follows, own] = await Promise.all([
-    ctx.db.follow.findMany({ where: { userId: viewer.id }, select: { artistId: true } }),
-    ctx.db.artist.findFirst({ where: { userId: viewer.id }, select: { id: true } }),
-  ]);
-  const artistIds = [
-    ...new Set([...follows.map((follow) => follow.artistId), ...(own ? [own.id] : [])]),
-  ];
-  if (artistIds.length === 0) return { posts: [], next: null, following: 0 };
+export async function feedPage(
+  ctx: ServiceCtx,
+  viewer: SessionUser | null,
+  cursor: string | null,
+  scope: FeedScope = "following",
+) {
+  let where: Prisma.PostWhereInput = { isImportOnly: false, artist: { status: "APPROVED" } };
+  let following: number | null = null;
+  if (scope === "following") {
+    if (!viewer) throw new AppError(ErrorCodes.AUTH_REQUIRED);
+    const [follows, own] = await Promise.all([
+      ctx.db.follow.findMany({ where: { userId: viewer.id }, select: { artistId: true } }),
+      ctx.db.artist.findFirst({ where: { userId: viewer.id }, select: { id: true } }),
+    ]);
+    const artistIds = [
+      ...new Set([...follows.map((follow) => follow.artistId), ...(own ? [own.id] : [])]),
+    ];
+    if (artistIds.length === 0) return { posts: [], next: null, following: 0 };
+    where = { artistId: { in: artistIds }, isImportOnly: false };
+    following = follows.length;
+  }
 
   const rows = await ctx.db.post.findMany({
-    where: { artistId: { in: artistIds }, isImportOnly: false },
+    where,
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     take: FEED_PAGE + 1,
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-    select: postSelect(viewer.id),
+    select: postSelect(viewer?.id ?? null),
   });
   const page = rows.slice(0, FEED_PAGE);
   return {
     posts: await toCards(ctx, viewer, page),
     next: rows.length > FEED_PAGE ? (page.at(-1)?.id ?? null) : null,
-    following: follows.length,
+    following,
   };
 }
 

@@ -10,6 +10,7 @@ import { resolveVanity } from "../../services/artist/vanity";
 import { publicBountyWhere } from "./bounty";
 import { prizeView } from "../../services/bounty/prize";
 import { itemCardSelect, listedItemWhere, toItemCard } from "../../services/catalog/item-card";
+import { suggestedArtists } from "../../services/feed/sidebar";
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 
 const slugInput = z.object({ slug: z.string().min(1).max(120) });
@@ -223,6 +224,16 @@ export const artistRouter = createRouter({
       });
     return draftDesign(ctx, artist.id);
   }),
+
+  /** Artists to browse and follow beside the feed; open to anyone. */
+  suggested: publicProcedure
+    .input(
+      z.object({
+        limit: z.number().int().min(1).max(30).default(6),
+        excludeFollowed: z.boolean().default(false),
+      }),
+    )
+    .query(({ ctx, input }) => suggestedArtists(ctx, ctx.session?.user.id ?? null, input)),
 
   /** Follow or unfollow an artist (free; holding their token is a separate thing). */
   setFollowing: authedProcedure

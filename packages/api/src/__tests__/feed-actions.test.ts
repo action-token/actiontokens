@@ -177,6 +177,58 @@ describe("feed", () => {
   });
 });
 
+describe("the public feed", () => {
+  it("shows every approved artist's posts to someone signed out, without reading follows", async () => {
+    const { ctx, db } = setup();
+    db.post.findMany.mockResolvedValue([postRow()]);
+    const page = await feedPage(ctx, null, null, "all");
+    expect(db.post.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { isImportOnly: false, artist: { status: "APPROVED" } },
+      }),
+    );
+    expect(db.follow.findMany).not.toHaveBeenCalled();
+    expect(db.artist.findFirst).not.toHaveBeenCalled();
+    expect(page).toMatchObject({ following: null, next: null });
+    expect(page.posts[0]).toMatchObject({ body: "New song soon", lock: null, liked: false });
+  });
+
+  it("shows a members' post as a lock, with nothing inside, to someone signed out", async () => {
+    const { ctx, db, chain } = setup();
+    db.post.findMany.mockResolvedValue([postRow({ tier: true })]);
+    const [post] = (await feedPage(ctx, null, null, "all")).posts;
+    expect(post).toMatchObject({
+      title: "Studio day",
+      body: null,
+      media: [],
+      latestComment: null,
+      lock: { needed: "50", have: "0" },
+    });
+    expect(chain.loadAccount).not.toHaveBeenCalled();
+  });
+
+  it("keeps the same pages for a signed-in fan on For you", async () => {
+    const { ctx, db } = setup();
+    db.post.findMany.mockResolvedValue(
+      Array.from({ length: 11 }, (_, i) => postRow({ id: `p${i}` })),
+    );
+    const page = await feedPage(ctx, fan, "p3", "all");
+    expect(page.posts).toHaveLength(10);
+    expect(page.next).toBe("p9");
+    expect(db.post.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ cursor: { id: "p3" }, skip: 1 }),
+    );
+  });
+
+  it("asks someone signed out to sign in for Following", async () => {
+    const { ctx, db } = setup();
+    await expect(feedPage(ctx, null, null, "following")).rejects.toMatchObject({
+      code: "AUTH_REQUIRED",
+    });
+    expect(db.post.findMany).not.toHaveBeenCalled();
+  });
+});
+
 describe("post actions", () => {
   it("tells the artist about a new like, once", async () => {
     const { ctx, db, events } = setup();

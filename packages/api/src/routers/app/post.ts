@@ -14,9 +14,17 @@ const postId = z.string().min(1);
 
 /** Artists' posts as fans see them: the feed, likes and comments. Copies are collected in the AR app. */
 export const postRouter = createRouter({
-  feed: authedProcedure
-    .input(z.object({ cursor: z.string().min(1).nullish() }))
-    .query(({ ctx, input }) => feedPage(ctx, ctx.session.user, input.cursor ?? null)),
+  /** For you ("all") is open to anyone; Following needs a session. */
+  feed: publicProcedure
+    .input(
+      z.object({
+        cursor: z.string().min(1).nullish(),
+        scope: z.enum(["all", "following"]).default("all"),
+      }),
+    )
+    .query(({ ctx, input }) =>
+      feedPage(ctx, ctx.session?.user ?? null, input.cursor ?? null, input.scope),
+    ),
 
   /** One post on its own page; anyone can open it, locked parts stay hidden. */
   byId: publicProcedure

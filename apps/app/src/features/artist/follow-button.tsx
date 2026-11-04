@@ -16,10 +16,13 @@ export function FollowButton({
   slug,
   initial,
   onFollowers,
+  compact = false,
 }: {
   slug: string;
   initial: boolean;
   onFollowers?: (followers: number) => void;
+  /** A smaller button for lists */
+  compact?: boolean;
 }) {
   const { status } = useSession();
   const openSignIn = useConnectWalletDialogStore((state) => state.setIsOpen);
@@ -38,7 +41,7 @@ export function FollowButton({
     <>
       <Button
         variant={following ? "outline" : "secondary"}
-        className="h-10 rounded-full px-5"
+        className={compact ? "h-8 rounded-full px-3 text-xs" : "h-10 rounded-full px-5"}
         disabled={mutation.isPending}
         onClick={() =>
           status === "authenticated"
