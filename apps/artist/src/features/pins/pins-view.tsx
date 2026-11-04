@@ -63,7 +63,7 @@ const CARDS: { value: Filter; label: string; hint: string }[] = [
   { value: "ENDED", label: "Ended", hint: "Over, or all collected" },
 ];
 
-const NOT_COLLECTABLE: Partial<Record<Status, string>> = {
+export const NOT_COLLECTABLE: Partial<Record<Status, string>> = {
   SCHEDULED: "This pin hasn't started yet.",
   ENDED: "This pin has ended.",
   ALL_COLLECTED: "Every copy has been collected.",

@@ -58,49 +58,53 @@ const DURATIONS = [
   { label: "1 month", days: 30 },
 ];
 
-/** One form for a new pin and for editing one: where it is, what it gives, who can collect it and for how long. */
-export function PinForm({ existing }: { existing?: Existing }) {
+/** One form for a new pin (blank, from a map click, or a duplicate of another) and for editing one: where it is, what it gives, who can collect it and for how long. */
+export function PinForm({ existing, copyOf }: { existing?: Existing; copyOf?: Existing }) {
   const router = useRouter();
   const utils = api.useUtils();
   const options = api.pins.pinOptions.useQuery();
   const editing = Boolean(existing);
+  // A duplicate starts from another pin's settings, but on its own times and as a new pin.
+  const source = existing ?? copyOf;
   // Clicking the map on /pins starts a pin right there.
   const search = useSearchParams();
   const fromMap = { lat: search?.get("lat") ?? "", lng: search?.get("lng") ?? "" };
 
-  const [title, setTitle] = useState(existing?.title ?? "");
-  const [description, setDescription] = useState(existing?.description ?? "");
+  const [title, setTitle] = useState(source?.title ?? "");
+  const [description, setDescription] = useState(source?.description ?? "");
   const [cover, setCover] = useState<PickedFile | null>(
-    existing?.imageUrl ? asCover(existing.imageUrl) : null,
+    source?.imageUrl ? asCover(source.imageUrl) : null,
   );
   const [imageBrief, setImageBrief] = useState("");
-  const [link, setLink] = useState(existing?.link ?? "");
-  const [type, setType] = useState<PinTypeName>(existing?.type ?? "OTHER");
-  const [visibility, setVisibility] = useState<Visibility>(existing?.visibility ?? "PUBLIC");
-  const [tierId, setTierId] = useState(existing?.tierId ?? "");
+  const [link, setLink] = useState(source?.link ?? "");
+  const [type, setType] = useState<PinTypeName>(source?.type ?? "OTHER");
+  const [visibility, setVisibility] = useState<Visibility>(source?.visibility ?? "PUBLIC");
+  const [tierId, setTierId] = useState(source?.tierId ?? "");
   const [reward, setReward] = useState<RewardState>({
-    kind: existing?.reward.kind ?? "NONE",
-    itemId: existing?.reward.kind === "ITEM" ? existing.reward.itemId : "",
+    kind: source?.reward.kind ?? "NONE",
+    itemId: source?.reward.kind === "ITEM" ? source.reward.itemId : "",
     amount:
-      existing?.reward.kind === "FAN_TOKEN" && Number(existing.reward.amount) !== 1
-        ? String(Number(existing.reward.amount))
+      source?.reward.kind === "FAN_TOKEN" && Number(source.reward.amount) !== 1
+        ? String(Number(source.reward.amount))
         : "",
-    claimLimit: existing && existing.claimLimit > 0 ? String(existing.claimLimit) : "",
+    claimLimit: source && source.claimLimit > 0 ? String(source.claimLimit) : "",
   });
   const [startsAt, setStartsAt] = useState(existing ? toLocalInput(existing.startsAt) : "");
   const [endsAt, setEndsAt] = useState(existing ? toLocalInput(existing.endsAt) : "");
   const [lat, setLat] = useState(
-    existing ? String(existing.latitude) : Number.isFinite(Number(fromMap.lat)) ? fromMap.lat : "",
+    source ? String(source.latitude) : Number.isFinite(Number(fromMap.lat)) ? fromMap.lat : "",
   );
   const [lng, setLng] = useState(
-    existing ? String(existing.longitude) : Number.isFinite(Number(fromMap.lng)) ? fromMap.lng : "",
+    source ? String(source.longitude) : Number.isFinite(Number(fromMap.lng)) ? fromMap.lng : "",
   );
-  const [radius, setRadius] = useState(existing ? String(existing.radiusMeters) : "50");
-  const [spotCount, setSpotCount] = useState("1");
-  const [autoCollect, setAutoCollect] = useState(existing?.autoCollect ?? false);
-  const [isMultiSpot, setIsMultiSpot] = useState(existing?.isMultiSpot ?? false);
-  const [eventId, setEventId] = useState(existing?.eventId ?? NO_EVENT);
-  const [tags, setTags] = useState<string[]>(existing?.tags ?? []);
+  const [radius, setRadius] = useState(source ? String(source.radiusMeters) : "50");
+  const [spotCount, setSpotCount] = useState(
+    String(Math.max(1, copyOf?.spots.filter((spot) => !spot.isHidden).length ?? 1)),
+  );
+  const [autoCollect, setAutoCollect] = useState(source?.autoCollect ?? false);
+  const [isMultiSpot, setIsMultiSpot] = useState(source?.isMultiSpot ?? false);
+  const [eventId, setEventId] = useState(source?.eventId ?? NO_EVENT);
+  const [tags, setTags] = useState<string[]>(source?.tags ?? []);
   const [place, setPlace] = useState("");
 
   const done = (message: string) => {

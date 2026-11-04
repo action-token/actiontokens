@@ -37,6 +37,7 @@ import { PinRewardFields, type RewardState } from "../pins/pin-reward-fields";
 import { PinTagsField } from "../pins/pin-tags-field";
 import { amountProblem } from "../pins/reward-amount";
 import { AreaDraw, type DrawnArea } from "./area-draw";
+import { clearAreaDraft, peekAreaDraft } from "./area-draft";
 import { HotspotManage } from "./hotspot-manage";
 import { dropPlan } from "./schedule";
 
@@ -65,7 +66,7 @@ export function HotspotForm({ existing }: { existing?: Existing }) {
           shape: existing.shape as DrawnArea["shape"],
           feature: existing.geoJson as unknown as DrawnArea["feature"],
         }
-      : null,
+      : peekAreaDraft(), // an area just drawn on the Pins map
   );
   const [title, setTitle] = useState(existing?.title ?? "");
   const [description, setDescription] = useState(template?.description ?? "");
@@ -94,6 +95,7 @@ export function HotspotForm({ existing }: { existing?: Existing }) {
 
   const done = (message: string) => {
     toast.success(message);
+    clearAreaDraft();
     void utils.hotspots.invalidate();
     void utils.pins.invalidate();
     router.push("/hotspots");

@@ -1,9 +1,11 @@
 import { z } from "zod";
 
 import {
+  addSpot,
   createPin,
   getPin,
   listPins,
+  moveSpot,
   pinOptions,
   removePin,
   removeSpot,
@@ -37,6 +39,11 @@ export const pinFields = {
 };
 
 const pinId = z.object({ pinId: z.string().min(1) });
+const spotPlace = z.object({
+  spotId: z.string().min(1),
+  latitude: z.number(),
+  longitude: z.number(),
+});
 
 /** Pins an artist drops on the map (see services/artist/pins). */
 export const pinsRouter = createRouter({
@@ -79,4 +86,12 @@ export const pinsRouter = createRouter({
   removeSpot: artistProcedure
     .input(z.object({ spotId: z.string().min(1) }))
     .mutation(({ ctx, input }) => removeSpot(ctx, ctx.artist, input.spotId)),
+
+  addSpot: artistProcedure
+    .input(spotPlace)
+    .mutation(({ ctx, input }) => addSpot(ctx, ctx.artist, input)),
+
+  moveSpot: artistProcedure
+    .input(spotPlace)
+    .mutation(({ ctx, input }) => moveSpot(ctx, ctx.artist, input)),
 });

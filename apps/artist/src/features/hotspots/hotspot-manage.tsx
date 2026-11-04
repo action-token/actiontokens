@@ -3,49 +3,23 @@
 import { Loader2, Pause, Play, Zap } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
 
 import { DeleteCard } from "~/components/delete-card";
 import { formatWhen } from "~/lib/datetime";
-import { api, type RouterOutputs } from "~/trpc/react";
+import type { RouterOutputs } from "~/trpc/react";
 
 import { HOTSPOT_STATUS } from "./status";
+import { useHotspotActions } from "./use-hotspot-actions";
 
 type Hotspot = RouterOutputs["hotspots"]["hotspot"];
-
-const messageOf = (error: unknown) =>
-  error instanceof Error ? error.message : "Something went wrong.";
 
 /** Beside the form when editing: pause or resume, an extra drop now, recent drops, and remove. */
 export function HotspotManage({ hotspot }: { hotspot: Hotspot }) {
   const router = useRouter();
-  const utils = api.useUtils();
-  const refresh = () => Promise.all([utils.hotspots.invalidate(), utils.pins.invalidate()]);
-  const pause = api.hotspots.setPaused.useMutation({
-    onSuccess: (_, input) => {
-      toast.success(input.paused ? "Paused: no drops until you resume" : "Resumed");
-      void refresh();
-    },
-    onError: (error) => toast.error(messageOf(error)),
-  });
-  const dropNow = api.hotspots.dropNow.useMutation({
-    onSuccess: (result) => {
-      toast.success(result.outcome === "DROPPED" ? `Dropped ${result.spots} spots` : "Dropped");
-      void refresh();
-    },
-    onError: (error) => toast.error(messageOf(error)),
-  });
-  const remove = api.hotspots.removeHotspot.useMutation({
-    onSuccess: () => {
-      toast.success("Hotspot removed");
-      void refresh();
-      router.push("/hotspots");
-    },
-    onError: (error) => toast.error(messageOf(error)),
-  });
+  const { pause, dropNow, remove } = useHotspotActions(() => router.push("/hotspots"));
   const status = HOTSPOT_STATUS[hotspot.status];
   const ended = hotspot.status === "ENDED";
   const paused = hotspot.status === "PAUSED";

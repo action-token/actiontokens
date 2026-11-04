@@ -10,6 +10,7 @@ import {
   Frame,
   Gift,
   LayoutTemplate,
+  List,
   ListChecks,
   Map,
   MapPinned,
@@ -38,6 +39,8 @@ export type NavItem = {
   exact?: boolean;
   /** Other pages this entry covers, reached from tabs or links on its page. */
   also?: string[];
+  /** Pages under this entry that belong to another entry instead. */
+  except?: string[];
   /** One of the four tabs on a phone's bottom bar. */
   tab?: boolean;
 };
@@ -89,8 +92,10 @@ const READY_TOOLS: NavGroup[] = [
         label: "Map & pins",
         shortLabel: "Map",
         also: ["/hotspots"],
+        except: ["/pins/manage"],
         tab: true,
       },
+      { href: "/pins/manage", icon: List, label: "Pin management", shortLabel: "Manage" },
       { href: "/events", icon: CalendarDays, label: "Events", tab: true },
       { href: "/embeds", icon: Code2, label: "Website map" },
       { href: "/reports", icon: BarChart3, label: "Pin reports" },
@@ -147,8 +152,12 @@ export function navFor({ signedIn, step, isAdmin }: PortalNavInput): NavGroup[] 
 const under = (prefix: string, pathname: string) =>
   pathname === prefix || pathname.startsWith(`${prefix}/`);
 
-export function isActive(entry: Pick<NavItem, "href" | "exact" | "also">, pathname: string) {
+export function isActive(
+  entry: Pick<NavItem, "href" | "exact" | "also" | "except">,
+  pathname: string,
+) {
   if (entry.exact) return pathname === entry.href;
+  if (entry.except?.some((prefix) => under(prefix, pathname))) return false;
   return [entry.href, ...(entry.also ?? [])].some((prefix) => under(prefix, pathname));
 }
 

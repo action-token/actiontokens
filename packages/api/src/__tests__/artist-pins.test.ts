@@ -5,8 +5,10 @@ import type { Db } from "@bandcoin/db";
 import { suggestPinTags } from "../services/ai/generate";
 import type { AiModel } from "../services/ai/model";
 import {
+  addSpot,
   createPin,
   listPins,
+  moveSpot,
   pinOptions,
   removePin,
   removeSpot,
@@ -99,6 +101,7 @@ function setup(
             : over.spot,
         ),
       count: vi.fn().mockResolvedValue(over.visibleSpots ?? 3),
+      create: vi.fn().mockResolvedValue({ id: "s9" }),
       updateMany: vi.fn().mockResolvedValue({}),
       update: vi.fn().mockResolvedValue({}),
       delete: vi.fn().mockResolvedValue({}),
@@ -553,6 +556,56 @@ describe("hiding and deleting", () => {
     await expect(removeSpot(setup({ visibleSpots: 1 }).ctx, artist, "s1")).rejects.toThrow(
       /at least one spot/i,
     );
+  });
+
+  it("copies a spot to a new place, keeping its auto-collect setting", async () => {
+    const { ctx, db, activity } = setup({
+      spot: { id: "s1", pinId: "p1", autoCollect: true },
+      visibleSpots: 4,
+    });
+    const result = await addSpot(ctx, artist, { spotId: "s1", latitude: 23.8, longitude: 90.41 });
+    expect(db.pinSpot.create).toHaveBeenCalledWith({
+      data: { pinId: "p1", latitude: 23.8, longitude: 90.41, autoCollect: true },
+      select: { id: true },
+    });
+    expect(result).toEqual({ pinId: "p1", spotId: "s9" });
+    expect(activity.set).toHaveBeenCalledWith({ targetType: "Pin", targetId: "p1" });
+  });
+
+  it("won't copy past the spot limit, onto an impossible place, or a spot that isn't yours", async () => {
+    const full = setup({ spot: { id: "s1", pinId: "p1", autoCollect: false }, visibleSpots: 100 });
+    await expect(
+      addSpot(full.ctx, artist, { spotId: "s1", latitude: 1, longitude: 2 }),
+    ).rejects.toThrow(/up to 100 spots/i);
+    expect(full.db.pinSpot.create).not.toHaveBeenCalled();
+
+    const off = setup({ spot: { id: "s1", pinId: "p1", autoCollect: false } });
+    await expect(
+      addSpot(off.ctx, artist, { spotId: "s1", latitude: 91, longitude: 2 }),
+    ).rejects.toThrow(/latitude/i);
+
+    const stranger = setup({ spot: null });
+    await expect(
+      addSpot(stranger.ctx, artist, { spotId: "s1", latitude: 1, longitude: 2 }),
+    ).rejects.toThrow(/spot not found/i);
+  });
+
+  it("moves a spot, wherever fans have collected it before", async () => {
+    const { ctx, db, activity } = setup({ spot: { id: "s1", pinId: "p1" } });
+    await moveSpot(ctx, artist, { spotId: "s1", latitude: -12.5, longitude: 130.2 });
+    expect(db.pinSpot.update).toHaveBeenCalledWith({
+      where: { id: "s1" },
+      data: { latitude: -12.5, longitude: 130.2 },
+    });
+    expect(activity.set).toHaveBeenCalledWith({ targetType: "Pin", targetId: "p1" });
+
+    await expect(
+      moveSpot(setup({ spot: { id: "s1", pinId: "p1" } }).ctx, artist, {
+        spotId: "s1",
+        latitude: 0,
+        longitude: 181,
+      }),
+    ).rejects.toThrow(/longitude/i);
   });
 });
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { Circle, Hexagon, MapPinOff, RectangleHorizontal, RotateCcw } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
 import { Layer, Marker, Source, type MapRef } from "react-map-gl/mapbox";
 
 import { Button } from "@bandcoin/ui/components/button";
@@ -25,8 +25,8 @@ import { MAPBOX_TOKEN } from "../pins/mapbox";
 export type AreaShape = "circle" | "rectangle" | "polygon";
 export type DrawnArea = { shape: AreaShape; feature: StoredFeature };
 
-const AREA = "#dbdc2c";
-const SHAPES: { value: AreaShape; label: string; icon: typeof Circle; hint: string }[] = [
+export const AREA = "#dbdc2c";
+export const SHAPES: { value: AreaShape; label: string; icon: typeof Circle; hint: string }[] = [
   { value: "circle", label: "Circle", icon: Circle, hint: "Click the centre, then the edge." },
   {
     value: "rectangle",
@@ -63,6 +63,90 @@ function draftFeature(shape: AreaShape, points: LatLng[], hover: LatLng | null) 
 }
 
 /**
+ * The drawing itself, for any map: click a circle's centre then its edge, a
+ * rectangle's two corners, or each corner of a shape (clicking near the first
+ * point closes it). `onFinish` gets the stored feature.
+ */
+export function useAreaDrawing(
+  map: RefObject<MapRef | null>,
+  shape: AreaShape,
+  onFinish: (feature: StoredFeature) => void,
+) {
+  const [points, setPoints] = useState<LatLng[]>([]);
+  const [hover, setHover] = useState<LatLng | null>(null);
+  const drawing = points.length > 0;
+
+  const reset = () => {
+    setPoints([]);
+    setHover(null);
+  };
+  const finish = (feature: StoredFeature) => {
+    onFinish(feature);
+    reset();
+  };
+
+  /** About 12 screen pixels at the current zoom, in metres. */
+  const closeEnough = () => (156_543 / 2 ** (map.current?.getZoom() ?? 14)) * 12;
+
+  const click = (at: LatLng) => {
+    if (shape === "circle" || shape === "rectangle") {
+      if (points.length === 0) return setPoints([at]);
+      return finish(
+        shape === "circle" ? circleFeature(points[0]!, at) : rectangleFeature(points[0]!, at),
+      );
+    }
+    const first = points[0];
+    if (first && points.length >= 3 && haversineMetres(first, at) < closeEnough())
+      return finish(polygonFeature(points));
+    setPoints([...points, at]);
+  };
+
+  const draft = drawing ? draftFeature(shape, points, hover) : null;
+  return {
+    points,
+    drawing,
+    draftShape: draft ? toMapboxFeature(draft) : null,
+    click,
+    move: (at: LatLng) => drawing && setHover(at),
+    finishShape: () => finish(polygonFeature(points)),
+    reset,
+  };
+}
+
+/** The dashed outline and corner dots of a drawing in progress. Goes inside a map. */
+export function DrawingLayers({
+  draftShape,
+  points,
+}: {
+  draftShape: ReturnType<typeof toMapboxFeature>;
+  points: LatLng[];
+}) {
+  return (
+    <>
+      {draftShape && (
+        <Source id="hotspot-draft" type="geojson" data={draftShape}>
+          <Layer
+            id="hotspot-draft-fill"
+            type="fill"
+            paint={{ "fill-color": AREA, "fill-opacity": 0.12 }}
+          />
+          <Layer
+            id="hotspot-draft-line"
+            type="line"
+            paint={{ "line-color": AREA, "line-width": 2, "line-dasharray": [2, 1] }}
+          />
+        </Source>
+      )}
+      {points.map((point, index) => (
+        <Marker key={index} latitude={point.lat} longitude={point.lng} anchor="center">
+          <span className="bg-fg block size-2.5 rounded-full border-2 border-white shadow" />
+        </Marker>
+      ))}
+    </>
+  );
+}
+
+/**
  * Draw where a hotspot's pins drop: a circle, a rectangle or any shape, on the
  * portal's map. The drawing is stored in the portal's usual format (see
  * @bandcoin/geo/map-geometry). `drops` shows recent spots for context.
@@ -80,9 +164,11 @@ export function AreaDraw({
 }) {
   const map = useRef<MapRef>(null);
   const [shape, setShape] = useState<AreaShape>(value?.shape ?? "circle");
-  const [points, setPoints] = useState<LatLng[]>([]);
-  const [hover, setHover] = useState<LatLng | null>(null);
-  const drawing = points.length > 0;
+  const { points, drawing, draftShape, click, move, finishShape, reset } = useAreaDrawing(
+    map,
+    shape,
+    (feature) => onChange({ shape, feature }),
+  );
 
   // Open on the drawn area when editing.
   const initialBounds = useMemo(() => (value ? areaBounds([value.feature]) : null), []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -98,35 +184,7 @@ export function AreaDraw({
     );
   }, [initialBounds, value]);
 
-  function finish(feature: StoredFeature) {
-    onChange({ shape, feature });
-    setPoints([]);
-    setHover(null);
-  }
-
-  function click(at: LatLng) {
-    if (shape === "circle" || shape === "rectangle") {
-      if (points.length === 0) return setPoints([at]);
-      return finish(
-        shape === "circle" ? circleFeature(points[0]!, at) : rectangleFeature(points[0]!, at),
-      );
-    }
-    // Polygon: clicking near the first point closes it.
-    const first = points[0];
-    if (first && points.length >= 3 && haversineMetres(first, at) < closeEnough())
-      return finish(polygonFeature(points));
-    setPoints([...points, at]);
-  }
-
-  /** About 12 screen pixels at the current zoom, in metres. */
-  function closeEnough() {
-    const zoom = map.current?.getZoom() ?? 14;
-    return (156_543 / 2 ** zoom) * 12;
-  }
-
   const committed = value ? toMapboxFeature(value.feature) : null;
-  const draft = drawing ? draftFeature(shape, points, hover) : null;
-  const draftShape = draft ? toMapboxFeature(draft) : null;
   const hint = SHAPES.find((entry) => entry.value === shape)!.hint;
 
   if (!MAPBOX_TOKEN)
@@ -150,8 +208,7 @@ export function AreaDraw({
             aria-checked={shape === entry.value}
             onClick={() => {
               setShape(entry.value);
-              setPoints([]);
-              setHover(null);
+              reset();
             }}
             className={cn(
               "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
@@ -176,9 +233,7 @@ export function AreaDraw({
           cursor="crosshair"
           doubleClickZoom={false}
           onClick={(event) => click({ lat: event.lngLat.lat, lng: event.lngLat.lng })}
-          onMouseMove={(event) =>
-            drawing && setHover({ lat: event.lngLat.lat, lng: event.lngLat.lng })
-          }
+          onMouseMove={(event) => move({ lat: event.lngLat.lat, lng: event.lngLat.lng })}
         >
           {committed && !drawing && (
             <Source id="hotspot-area" type="geojson" data={committed}>
@@ -194,25 +249,7 @@ export function AreaDraw({
               />
             </Source>
           )}
-          {draftShape && (
-            <Source id="hotspot-draft" type="geojson" data={draftShape}>
-              <Layer
-                id="hotspot-draft-fill"
-                type="fill"
-                paint={{ "fill-color": AREA, "fill-opacity": 0.12 }}
-              />
-              <Layer
-                id="hotspot-draft-line"
-                type="line"
-                paint={{ "line-color": AREA, "line-width": 2, "line-dasharray": [2, 1] }}
-              />
-            </Source>
-          )}
-          {points.map((point, index) => (
-            <Marker key={index} latitude={point.lat} longitude={point.lng} anchor="center">
-              <span className="bg-fg block size-2.5 rounded-full border-2 border-white shadow" />
-            </Marker>
-          ))}
+          <DrawingLayers draftShape={draftShape} points={points} />
           {drops.map((spot, index) => (
             <Marker
               key={`drop-${index}`}
@@ -241,7 +278,7 @@ export function AreaDraw({
               : hint}
         </p>
         {shape === "polygon" && points.length >= 3 && (
-          <Button type="button" size="sm" onClick={() => finish(polygonFeature(points))}>
+          <Button type="button" size="sm" onClick={finishShape}>
             Finish shape
           </Button>
         )}
@@ -251,8 +288,7 @@ export function AreaDraw({
             size="sm"
             variant="ghost"
             onClick={() => {
-              setPoints([]);
-              setHover(null);
+              reset();
               if (!drawing) onChange(null);
             }}
           >

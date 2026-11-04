@@ -32,6 +32,7 @@ describe("portal navigation", () => {
   it("opens the artist tools once approved", () => {
     expect(labels({ signedIn: true, step: "READY", isAdmin: false })).toEqual([
       "Map & pins",
+      "Pin management",
       "Events",
       "Website map",
       "Pin reports",
@@ -58,6 +59,7 @@ describe("portal navigation", () => {
     ).toEqual(["Artist", "Admin"]);
     expect(labels({ signedIn: true, step: "READY", isAdmin: true })).toEqual([
       "Map & pins",
+      "Pin management",
       "Events",
       "Website map",
       "Pin reports",
@@ -107,9 +109,11 @@ describe("portal navigation", () => {
     );
     const lit = (pathname: string) =>
       entries.filter((entry) => isActive(entry, pathname)).map((entry) => entry.label);
-    expect(entries.length).toBeLessThanOrEqual(14);
+    expect(entries.length).toBeLessThanOrEqual(15);
     expect(lit("/pins")).toEqual(["Map & pins"]);
-    expect(lit("/pins/manage")).toEqual(["Map & pins"]);
+    expect(lit("/pins/manage")).toEqual(["Pin management"]);
+    expect(lit("/pins/new")).toEqual(["Map & pins"]);
+    expect(lit("/pins/p1")).toEqual(["Map & pins"]);
     expect(lit("/hotspots/new")).toEqual(["Map & pins"]);
     expect(lit("/events/announcements/new")).toEqual(["Events"]);
     expect(lit("/events/e1")).toEqual(["Events"]);

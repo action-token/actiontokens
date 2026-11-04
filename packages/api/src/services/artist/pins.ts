@@ -672,3 +672,56 @@ export async function removeSpot(ctx: ServiceCtx, artist: ArtistRef, spotId: str
   else await ctx.db.pinSpot.delete({ where: { id: spot.id } });
   return { pinId: spot.pinId };
 }
+
+function checkPoint(latitude: number, longitude: number) {
+  if (!(latitude >= -90 && latitude <= 90)) throw invalid("Latitude must be between -90 and 90.");
+  if (!(longitude >= -180 && longitude <= 180))
+    throw invalid("Longitude must be between -180 and 180.");
+}
+
+async function ownSpot(ctx: ServiceCtx, artist: ArtistRef, spotId: string) {
+  const spot = await ctx.db.pinSpot.findFirst({
+    where: { id: spotId, pin: { artistId: artist.id } },
+    select: { id: true, pinId: true, autoCollect: true },
+  });
+  if (!spot) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Spot not found" });
+  ctx.activity.set({ targetType: "Pin", targetId: spot.pinId });
+  return spot;
+}
+
+/** Copies a spot to another place on the map: the same pin, a new spot (and QR code) of its own. */
+export async function addSpot(
+  ctx: ServiceCtx,
+  artist: ArtistRef,
+  input: { spotId: string; latitude: number; longitude: number },
+) {
+  checkPoint(input.latitude, input.longitude);
+  const spot = await ownSpot(ctx, artist, input.spotId);
+  const visible = await ctx.db.pinSpot.count({ where: { pinId: spot.pinId, isHidden: false } });
+  if (visible >= MAX_SPOTS) throw invalid(`A pin can have up to ${MAX_SPOTS} spots.`);
+  const created = await ctx.db.pinSpot.create({
+    data: {
+      pinId: spot.pinId,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      autoCollect: spot.autoCollect,
+    },
+    select: { id: true },
+  });
+  return { pinId: spot.pinId, spotId: created.id };
+}
+
+/** Moves a spot; what fans collected there stays collected. */
+export async function moveSpot(
+  ctx: ServiceCtx,
+  artist: ArtistRef,
+  input: { spotId: string; latitude: number; longitude: number },
+) {
+  checkPoint(input.latitude, input.longitude);
+  const spot = await ownSpot(ctx, artist, input.spotId);
+  await ctx.db.pinSpot.update({
+    where: { id: spot.id },
+    data: { latitude: input.latitude, longitude: input.longitude },
+  });
+  return { pinId: spot.pinId, spotId: spot.id };
+}
