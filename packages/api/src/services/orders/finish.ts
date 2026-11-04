@@ -204,6 +204,7 @@ export async function finishOrder(
     case "ITEM_PURCHASE":
     case "RECHARGE":
     case "XLM_SWAP":
+    case "TOKEN_TRUST":
     case "ACTIVATION":
       return deliverOrder(ctx, order.id);
     case "STUDIO_COINS":

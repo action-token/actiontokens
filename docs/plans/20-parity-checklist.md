@@ -47,7 +47,7 @@ Legend: ✅ built · 🟡 built, different shape (read the note) · ❓ needs yo
 | `/action/qr`, `/action/qr/[id]` | `/scan` | 🟡 | Scan opens pins and posts |
 | `/action/profile` | `/profile` | ✅ | |
 | `/api/game/locations/*` (consume, view, hide, nearest) | AR `pin.*`, `claim.*` | ✅ | |
-| `/api/game/follow`, `unfollow`, `followed_brands`, `getFollowXDR`, `hasTrustOnBrand` | `follow` in app and AR | ❓ | Old follow could add a fan-token trustline. Confirm the new follow does what you want |
+| `/api/game/follow`, `unfollow`, `followed_brands`, `getFollowXDR`, `hasTrustOnBrand` | `artist.setFollowing` + `recharge` kind `TOKEN_TRUST` | 🟡 | Follow saves instantly and says whether the artist has a fan token. The fan is then offered it: they pay BANDCOIN for exactly the 0.5 XLM the line locks and the line opens, in one transaction. The old follow never actually charged BANDCOIN (its payment went back to the fan). The offer card in the app isn't built yet |
 | `/api/game/bounty/*` | AR `bounty.*` | ✅ | |
 | `/api/game/qr/*` (can-user-buy, copies) | none | ➖ | Old QR items; replaced by pins and post QR |
 | `/api/game/user/*` (balances, update, delete) | `account.*` | ❓ | Delete-account: confirm it exists |

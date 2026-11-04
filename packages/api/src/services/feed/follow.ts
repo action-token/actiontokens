@@ -19,7 +19,11 @@ export async function setFollowing(
 ) {
   const artist = await ctx.db.artist.findFirst({
     where: { ...where, status: "APPROVED" },
-    select: { id: true, userId: true },
+    select: {
+      id: true,
+      userId: true,
+      fanTokenItem: { select: { classicToken: { select: { code: true } } } },
+    },
   });
   if (!artist)
     throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "This artist doesn't exist." });
@@ -53,5 +57,11 @@ export async function setFollowing(
     await ctx.db.follow.deleteMany({ where: key });
   }
   const followers = await ctx.db.follow.count({ where: { artistId: artist.id } });
-  return { following, followers };
+  // After following, the fan may be offered the artist's fan token (a trustline; see recharge TOKEN_TRUST).
+  const code = artist.fanTokenItem?.classicToken?.code;
+  return {
+    following,
+    followers,
+    fanToken: following && code ? { code, artistId: artist.id } : null,
+  };
 }

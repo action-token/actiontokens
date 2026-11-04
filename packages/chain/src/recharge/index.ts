@@ -134,8 +134,12 @@ export function quoteTopUp(
   };
 }
 
+/** XLM the platform hands over so a fan can open a fan-token trustline: exactly the reserve it locks. */
+export const TRUST_RESERVE_XLM = "0.5";
+
+/** BANDCOIN for some XLM at the live price plus the cushion (default: one swap's worth). */
 export function quoteXlmSwap(
-  input: Rates & { bandcoinBalance: string | null; networkFeeXlm: string },
+  input: Rates & { bandcoinBalance: string | null; networkFeeXlm: string; xlm?: string },
 ) {
   const problems = rateProblem(input);
   if (problems.length > 0)
@@ -147,7 +151,7 @@ export function quoteXlmSwap(
       receiveXlm: "0",
     };
 
-  const xlm = toStroops(XLM_SWAP_AMOUNT);
+  const xlm = toStroops(input.xlm ?? XLM_SWAP_AMOUNT);
   // Rounded up: the platform never gives XLM away below its price.
   const market = usdTo(toUsd(xlm, input.xlmUsd), input.bandcoinUsd);
   const margin = applyBps(market, XLM_SWAP_MARGIN_BPS);
@@ -178,7 +182,7 @@ export function quoteXlmSwap(
     lines: [
       {
         key: "market",
-        label: "1 XLM at today's price",
+        label: `${input.xlm ?? XLM_SWAP_AMOUNT} XLM at today's price`,
         currency: "BANDCOIN",
         amount: toDisplay(market),
       },

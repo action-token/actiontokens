@@ -95,6 +95,7 @@ describe("ar artist.setFollowing", () => {
     await expect(caller.artist.setFollowing({ artistId: "a1", following: true })).resolves.toEqual({
       following: true,
       followers: 13,
+      fanToken: null,
     });
     expect(db.follow.upsert).toHaveBeenCalledWith({
       where: { userId_artistId: { userId: "me", artistId: "a1" } },

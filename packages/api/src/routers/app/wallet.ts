@@ -30,6 +30,8 @@ function orderTitle(kind: OrderKind, quantity: number, itemTitle: string | null)
       return "Top-up with card";
     case "XLM_SWAP":
       return "Swap BANDCOIN for 1 XLM";
+    case "TOKEN_TRUST":
+      return "Hold an artist's fan token";
   }
 }
 

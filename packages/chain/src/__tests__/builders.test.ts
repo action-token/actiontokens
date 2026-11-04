@@ -12,7 +12,7 @@ import { describe, expect, it } from "vitest";
 
 import { buildClassicPurchase, classicPurchaseOperations } from "../classic/purchase";
 import { buildIssuerSetup, ISSUER_STARTING_XLM } from "../classic/issuer";
-import { buildActivation, buildTopUp, buildXlmSwap } from "../classic/recharge";
+import { buildActivation, buildTopUp, buildTrustWithSwap, buildXlmSwap } from "../classic/recharge";
 import { buildIssueTokens, buildStorageGift, buildTransfer } from "../classic/transfer";
 import { toStellarError } from "../errors";
 import { buildBountyFund } from "../escrow/calls";
@@ -281,6 +281,45 @@ describe("recharge builders", () => {
       amount: "1.0000000",
     });
     expect(built.serverSigners).toEqual([mother]);
+  });
+
+  it("holding a fan token: the buyer pays BANDCOIN, gets exactly the reserve, and opens the line", () => {
+    const fanToken = new Asset("NOVA", creator);
+    const built = buildTrustWithSwap({
+      buyer: account(),
+      network,
+      orderId,
+      asset: bandcoin,
+      token: fanToken,
+      platform: mother,
+      pay: "25.5",
+      xlm: "0.5",
+    });
+    const tx = parse(built.xdr);
+    expect(tx.operations.map((op) => op.type)).toEqual(["payment", "payment", "changeTrust"]);
+    expect(tx.operations[0]).toMatchObject({ destination: mother, amount: "25.5000000" });
+    expect(tx.operations[1]).toMatchObject({
+      source: mother,
+      destination: buyerKey,
+      amount: "0.5000000",
+    });
+    expect(tx.operations[2]).toMatchObject({
+      line: expect.objectContaining({ code: "NOVA", issuer: creator }),
+    });
+    // The platform's one operation needs its signature; the buyer's two are the source's.
+    expect(built.serverSigners).toEqual([mother]);
+    expect(() =>
+      buildTrustWithSwap({
+        buyer: account(),
+        network,
+        orderId,
+        asset: bandcoin,
+        token: fanToken,
+        platform: mother,
+        pay: "0",
+        xlm: "0.5",
+      }),
+    ).toThrow(RangeError);
   });
 
   it("activation: the platform creates the account in one transaction the fan never signs", () => {

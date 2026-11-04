@@ -25,11 +25,27 @@ const ORDER = "cmvorder0000000000000001";
 const me: SessionUser = { id: "me", role: "FAN", walletAddress: fan, walletType: "freighter" };
 const custodial: SessionUser = { ...me, walletType: "emailPass", email: "fan@example.com" };
 
-function horizonAccount({ xlm = "10", bandcoin }: { xlm?: string; bandcoin?: string } = {}) {
+const tokenIssuer = Keypair.random().publicKey();
+
+function horizonAccount({
+  xlm = "10",
+  bandcoin,
+  novaLine = false,
+}: { xlm?: string; bandcoin?: string; novaLine?: boolean } = {}) {
   return Object.assign(new Account(fan, "100"), {
     subentry_count: bandcoin === undefined ? 0 : 1,
     balances: [
       { asset_type: "native", balance: xlm, selling_liabilities: "0" },
+      ...(novaLine
+        ? [
+            {
+              asset_type: "credit_alphanum4",
+              asset_code: "NOVA",
+              asset_issuer: tokenIssuer,
+              balance: "0",
+            },
+          ]
+        : []),
       ...(bandcoin === undefined
         ? []
         : [
@@ -48,11 +64,19 @@ function setup(
   opts: {
     account?: ReturnType<typeof horizonAccount> | null;
     motherKey?: string | null;
+    token?: { code: string; issuer: string } | null;
     submit?: (xdr: string) => Promise<{ hash: string }>;
   } = {},
 ) {
   const orders = new Map<string, Record<string, unknown>>();
+  const token = opts.token === undefined ? { code: "NOVA", issuer: tokenIssuer } : opts.token;
   const db = {
+    artist: {
+      findFirst: vi.fn().mockResolvedValue({
+        name: "Nova",
+        fanTokenItem: token ? { classicToken: token } : null,
+      }),
+    },
     order: {
       create: vi.fn(({ data }: { data: Record<string, unknown> }) => {
         const row = { id: ORDER, status: "QUOTED", buyerId: "me", ...data };
@@ -116,6 +140,7 @@ function setup(
 
 const topUp = { kind: "TOP_UP" as const, packageUsd: "9.99" };
 const swap = { kind: "XLM_SWAP" as const };
+const trust = { kind: "TOKEN_TRUST" as const, artistId: "a1" };
 const parse = (xdr: string) => TransactionBuilder.fromXDR(xdr, Networks.TESTNET);
 
 describe("quoteRecharge", () => {
@@ -256,6 +281,71 @@ describe("XLM swap", () => {
     ).resolves.toMatchObject({ status: "DELIVERED" });
     expect(chain.card.charge).not.toHaveBeenCalled();
     expect(parse(chain.submit.mock.calls[0]![0])).not.toBeInstanceOf(FeeBumpTransaction);
+  });
+});
+
+describe("holding an artist's fan token", () => {
+  it("prices the 0.5 XLM the line locks, at today's rate plus the cushion", async () => {
+    const { ctx } = setup({ account: horizonAccount({ bandcoin: "500" }) });
+    const quote = await quoteRecharge(ctx, me, trust);
+    expect(quote).toMatchObject({
+      ok: true,
+      kind: "TOKEN_TRUST",
+      token: { code: "NOVA", artistName: "Nova" },
+      receiveXlm: "0.5000000",
+      total: "25.5000000",
+    });
+  });
+
+  it("says no when the artist has no token, the fan already holds it, or BANDCOIN is short", async () => {
+    const none = await quoteRecharge(
+      setup({ account: horizonAccount({ bandcoin: "500" }), token: null }).ctx,
+      me,
+      trust,
+    );
+    expect(none.problems[0]).toMatchObject({ message: "This artist has no fan token to hold." });
+    const held = await quoteRecharge(
+      setup({ account: horizonAccount({ bandcoin: "500", novaLine: true }) }).ctx,
+      me,
+      trust,
+    );
+    expect(held.problems[0]).toMatchObject({ message: "You already hold NOVA." });
+    const short = await quoteRecharge(
+      setup({ account: horizonAccount({ bandcoin: "5" }) }).ctx,
+      me,
+      trust,
+    );
+    expect(short.problems[0]).toMatchObject({ code: "INSUFFICIENT_FUNDS" });
+  });
+
+  it("pays BANDCOIN, receives exactly the reserve, and opens the line, all in one transaction", async () => {
+    const { ctx, chain, orders } = setup({ account: horizonAccount({ bandcoin: "500" }) });
+    const started = await startRecharge(ctx, me, trust);
+    expect(orders.get(ORDER)).toMatchObject({
+      kind: "TOKEN_TRUST",
+      method: "WALLET",
+      currency: "BANDCOIN",
+      total: "25.5000000",
+    });
+    const tx = parse(started.xdr) as Transaction;
+    expect(tx.operations.map((op) => op.type)).toEqual(["payment", "payment", "changeTrust"]);
+    expect(tx.operations[1]).toMatchObject({
+      source: mother,
+      destination: fan,
+      amount: "0.5000000",
+    });
+    await expect(
+      submitRecharge(ctx, me, { orderId: ORDER, xdr: started.xdr }),
+    ).resolves.toMatchObject({ status: "DELIVERED" });
+    expect(chain.card.charge).not.toHaveBeenCalled();
+  });
+
+  it("won't start for a line the fan already holds, and creates no order", async () => {
+    const { ctx, orders } = setup({ account: horizonAccount({ bandcoin: "500", novaLine: true }) });
+    await expect(startRecharge(ctx, me, trust)).rejects.toMatchObject({
+      message: "You already hold NOVA.",
+    });
+    expect(orders.size).toBe(0);
   });
 });
 

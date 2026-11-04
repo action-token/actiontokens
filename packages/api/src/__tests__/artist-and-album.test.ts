@@ -42,6 +42,7 @@ describe("artist.setFollowing", () => {
     expect(await caller(db).artist.setFollowing({ slug: "dj-tamsin", following: true })).toEqual({
       following: true,
       followers: 5,
+      fanToken: null,
     });
     expect(follow.upsert).toHaveBeenCalledWith(
       expect.objectContaining({ create: { userId: "u1", artistId: "a1" } }),

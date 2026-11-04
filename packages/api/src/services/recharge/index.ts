@@ -1,14 +1,16 @@
-import { Account } from "@stellar/stellar-sdk";
+import { Account, Asset } from "@stellar/stellar-sdk";
 
 import {
   assetFor,
   buildTopUp,
+  buildTrustWithSwap,
   buildXlmSwap,
   networkFeeXlm,
   quoteTopUp,
   quoteXlmSwap,
   toCents,
   toStroops,
+  TRUST_RESERVE_XLM,
   wrapInFeeBump,
   XLM_SWAP_AMOUNT,
   type RechargeProblem,
@@ -34,9 +36,14 @@ import { deliverOrder, failOrder, holdsLine, ownOrder, userSignature } from "../
  * Two separate things, never one triggering the other:
  *   TOP_UP    card → BANDCOIN from the mother account
  *   XLM_SWAP  BANDCOIN → exactly 1 XLM, paid by the fan
+ *   TOKEN_TRUST  BANDCOIN → the 0.5 XLM a fan-token trustline locks, and the line
+ *             is opened in the same transaction (offered after following an artist)
  */
 
-export type RechargeInput = { kind: "TOP_UP"; packageUsd: string } | { kind: "XLM_SWAP" };
+export type RechargeInput =
+  | { kind: "TOP_UP"; packageUsd: string }
+  | { kind: "XLM_SWAP" }
+  | { kind: "TOKEN_TRUST"; artistId: string };
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 
 async function priceRecharge(ctx: ServiceCtx, user: SessionUser | null, input: RechargeInput) {
@@ -55,6 +62,7 @@ async function priceRecharge(ctx: ServiceCtx, user: SessionUser | null, input: R
   const { baseFee } = chain.config.network;
 
   const openTrustline = !(account && holdsLine(account, asset));
+  const token = input.kind === "TOKEN_TRUST" ? await fanTokenOf(ctx, input.artistId) : null;
   const quote =
     input.kind === "TOP_UP"
       ? {
@@ -68,16 +76,33 @@ async function priceRecharge(ctx: ServiceCtx, user: SessionUser | null, input: R
             xlmFunds: account ? (funds?.XLM ?? null) : null,
           }),
         }
-      : {
-          kind: "XLM_SWAP" as const,
-          ...quoteXlmSwap({
-            ...rate,
-            bandcoinBalance: funds?.BANDCOIN ?? null,
-            networkFeeXlm: networkFeeXlm(2, baseFee),
-          }),
-        };
+      : input.kind === "TOKEN_TRUST"
+        ? {
+            kind: "TOKEN_TRUST" as const,
+            token: token ? { code: token.code, artistName: token.artistName } : null,
+            ...quoteXlmSwap({
+              ...rate,
+              xlm: TRUST_RESERVE_XLM,
+              bandcoinBalance: funds?.BANDCOIN ?? null,
+              networkFeeXlm: networkFeeXlm(3, baseFee),
+            }),
+          }
+        : {
+            kind: "XLM_SWAP" as const,
+            ...quoteXlmSwap({
+              ...rate,
+              bandcoinBalance: funds?.BANDCOIN ?? null,
+              networkFeeXlm: networkFeeXlm(2, baseFee),
+            }),
+          };
 
   const extra: RechargeProblem[] = [];
+  if (input.kind === "TOKEN_TRUST") {
+    if (!token)
+      extra.push({ code: "UNAVAILABLE", message: "This artist has no fan token to hold." });
+    else if (account && holdsLine(account, new Asset(token.code, token.issuer)))
+      extra.push({ code: "UNAVAILABLE", message: `You already hold ${token.code}.` });
+  }
   if (!chain.config.mother)
     extra.push({ code: "UNAVAILABLE", message: "Recharge isn't available right now." });
   else if (user && !account) {
@@ -97,7 +122,21 @@ async function priceRecharge(ctx: ServiceCtx, user: SessionUser | null, input: R
     account,
     openTrustline,
     bandcoinUsd,
+    token,
   };
+}
+
+/** The artist's fan token, if they have one on Stellar that Bandcoin issued or tracks. */
+async function fanTokenOf(ctx: Pick<ServiceCtx, "db">, artistId: string) {
+  const artist = await ctx.db.artist.findFirst({
+    where: { id: artistId, status: "APPROVED" },
+    select: {
+      name: true,
+      fanTokenItem: { select: { classicToken: { select: { code: true, issuer: true } } } },
+    },
+  });
+  const line = artist?.fanTokenItem?.classicToken;
+  return line ? { code: line.code, issuer: line.issuer, artistName: artist.name } : null;
 }
 
 /** A failed price lookup shows as "price unavailable" in the quote instead of an error page. */
@@ -127,9 +166,13 @@ export async function startRecharge(ctx: ServiceCtx, user: SessionUser, input: R
 
   const card = quote.kind === "TOP_UP";
   const total = quote.kind === "TOP_UP" ? input.kind === "TOP_UP" && input.packageUsd : quote.total;
+  if (quote.kind === "TOKEN_TRUST" && !priced.token)
+    throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, {
+      message: "This artist has no fan token to hold.",
+    });
   const order = await ctx.db.order.create({
     data: {
-      kind: card ? "RECHARGE" : "XLM_SWAP",
+      kind: card ? "RECHARGE" : quote.kind === "TOKEN_TRUST" ? "TOKEN_TRUST" : "XLM_SWAP",
       buyerId: user.id,
       currency: card ? "USD" : "BANDCOIN",
       unitPrice: total as string,
@@ -162,15 +205,26 @@ export async function startRecharge(ctx: ServiceCtx, user: SessionUser, input: R
           amount: quote.receive,
           openTrustline: priced.openTrustline,
         })
-      : buildXlmSwap({
-          buyer,
-          network,
-          orderId: order.id,
-          asset,
-          platform: mother,
-          pay: quote.total,
-          xlm: XLM_SWAP_AMOUNT,
-        });
+      : quote.kind === "TOKEN_TRUST"
+        ? buildTrustWithSwap({
+            buyer,
+            network,
+            orderId: order.id,
+            asset,
+            token: new Asset(priced.token!.code, priced.token!.issuer),
+            platform: mother,
+            pay: quote.total,
+            xlm: TRUST_RESERVE_XLM,
+          })
+        : buildXlmSwap({
+            buyer,
+            network,
+            orderId: order.id,
+            asset,
+            platform: mother,
+            pay: quote.total,
+            xlm: XLM_SWAP_AMOUNT,
+          });
 
   // The hash doesn't change when signatures are added, so it pins the exact transaction.
   await transitionOrder(ctx.db, order.id, "AWAITING_SIGNATURE", { txHash: built.hash });
@@ -196,7 +250,7 @@ export async function submitRecharge(
 ) {
   const { chain, db } = ctx;
   const order = await ownOrder(ctx, user, input.orderId);
-  if (order.kind !== "RECHARGE" && order.kind !== "XLM_SWAP") {
+  if (order.kind !== "RECHARGE" && order.kind !== "XLM_SWAP" && order.kind !== "TOKEN_TRUST") {
     throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Order not found" });
   }
   const mother = chain.config.mother;

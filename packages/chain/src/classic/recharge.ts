@@ -75,6 +75,41 @@ export function buildXlmSwap(input: {
 }
 
 /**
+ * Holding an artist's fan token: the buyer pays BANDCOIN for exactly the XLM
+ * the trustline locks, the platform sends that XLM, and the buyer's own account
+ * opens the line with it, all together or not at all. The buyer pays the
+ * network fee as the source. (The same swap as `buildXlmSwap`, plus the line.)
+ */
+export function buildTrustWithSwap(input: {
+  buyer: Account;
+  network: NetworkParams;
+  orderId: string;
+  asset: Asset;
+  /** The artist's fan token */
+  token: Asset;
+  platform: string;
+  pay: string;
+  xlm: string;
+}) {
+  if (isZero(input.pay) || isZero(input.xlm))
+    throw new RangeError("Opening a line must move something both ways");
+  const builder = startTransaction(input.buyer, input.network, { memo: input.orderId })
+    .addOperation(
+      Operation.payment({ destination: input.platform, asset: input.asset, amount: input.pay }),
+    )
+    .addOperation(
+      Operation.payment({
+        source: input.platform,
+        destination: input.buyer.accountId(),
+        asset: Asset.native(),
+        amount: input.xlm,
+      }),
+    )
+    .addOperation(Operation.changeTrust({ asset: input.token }));
+  return finish(builder, [input.platform]);
+}
+
+/**
  * Activation: the platform creates the fan's account with its starting XLM.
  * The platform account is the source (and fee payer), so the fan, whose account
  * doesn't exist yet, signs nothing.
