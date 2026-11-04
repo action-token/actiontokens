@@ -21,6 +21,8 @@ import { Avatar } from "~/features/shell/context-panel";
 import { declare, putToStorage } from "~/lib/upload";
 import { api, type RouterOutputs } from "~/trpc/react";
 
+import { DeleteAccount } from "./delete-account";
+
 type Settings = RouterOutputs["account"]["settings"];
 
 /**
@@ -63,6 +65,14 @@ function Loaded({ settings }: { settings: Settings }) {
           <WalletAndSecurity settings={settings} />
           <Card title="Appearance" note="Light, dark, or follow your device.">
             <ThemeSwitch />
+          </Card>
+          <Card
+            title="Delete account"
+            note="Removes your profile and sign-in for good. Artists and wallets that still hold funds need our help."
+          >
+            <div>
+              <DeleteAccount />
+            </div>
           </Card>
         </div>
       </PageBody>

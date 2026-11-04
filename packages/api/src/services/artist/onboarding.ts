@@ -295,6 +295,8 @@ export async function startIssuerOpening(ctx: ServiceCtx, user: SessionUser) {
     artist: new Account(account.accountId(), account.sequenceNumber()),
     network: ctx.chain.config.network,
     issuer: issuer.publicKey,
+    // Wallets read this domain's stellar.toml for the token's name and image (the fan app serves it).
+    homeDomain: process.env.ISSUER_HOME_DOMAIN ?? "bandcoin.io",
   });
   // The hash doesn't change when signatures are added, so it pins the exact transaction.
   await transitionOrder(ctx.db, order.id, "AWAITING_SIGNATURE", { txHash: built.hash });

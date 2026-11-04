@@ -422,7 +422,8 @@ describe("opening the issuer", () => {
     ).rejects.toMatchObject({ code: "PRECONDITION_NOT_MET" });
   });
 
-  it("sends the payment with only the artist's signature (the issuer runs no step; Stellar refuses extra signatures), then links the issuer", async () => {
+  it("sends the payment with only the artist's signature when no home domain is set (Stellar refuses extra signatures), then links the issuer", async () => {
+    vi.stubEnv("ISSUER_HOME_DOMAIN", "");
     const { ctx, chain, artists, chainAccounts, orders } = setup({ artist: pending });
     const { xdr } = await startIssuerOpening(ctx, me);
     const [issuerKey] = [...chainAccounts.keys()];
@@ -436,6 +437,19 @@ describe("opening the issuer", () => {
     expect(chainAccounts.get(issuerKey!)!.activatedAt).toBeInstanceOf(Date);
     expect(artists.get("a1")).toMatchObject({ issuerAccountId: "chain1", status: "PENDING" });
     expect(orders.get(ORDER)).toMatchObject({ status: "DELIVERED" });
+    vi.unstubAllEnvs();
+  });
+
+  it("sets the issuer's home domain (bandcoin.io) so wallets read stellar.toml, and the issuer signs that step", async () => {
+    const { ctx, chain, chainAccounts } = setup({ artist: pending });
+    const { xdr } = await startIssuerOpening(ctx, me);
+    const [issuerKey] = [...chainAccounts.keys()];
+    const tx = TransactionBuilder.fromXDR(xdr, Networks.TESTNET) as Transaction;
+    expect(tx.operations.map((op) => op.type)).toEqual(["createAccount", "setOptions"]);
+    expect(tx.operations[1]).toMatchObject({ source: issuerKey, homeDomain: "bandcoin.io" });
+
+    await submitIssuerOpening(ctx, me, { orderId: ORDER, xdr });
+    expect(chain.signWithServerKeys).toHaveBeenCalledWith(xdr, [issuerKey]);
   });
 
   it("refuses a different transaction than the one it built", async () => {

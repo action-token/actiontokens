@@ -6,6 +6,7 @@ import { AppError, ErrorCodes } from "@bandcoin/errors";
 import { isOwnS3Url, signImageUpload } from "@bandcoin/storage";
 
 import { isCustodial } from "../../context";
+import { deleteAccount } from "../../services/account/delete";
 import {
   normalizeUsername,
   usernameChangeOpensAt,
@@ -21,6 +22,11 @@ const declaredImage = z.object({
 });
 
 export const accountRouter = createRouter({
+  /** Deletes your own account (typed confirmation; refuses when it would lose money). */
+  delete: authedProcedure
+    .input(z.object({ confirm: z.string().max(20) }))
+    .mutation(({ ctx, input }) => deleteAccount(ctx, ctx.session.user, input)),
+
   /**
    * Who is signed in, for the header and account menu: profile, artist page
    * and spendable balances. Null when signed out, so pages can call it freely.

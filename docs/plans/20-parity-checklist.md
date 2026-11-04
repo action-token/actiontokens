@@ -17,7 +17,7 @@ Legend: ✅ built · 🟡 built, different shape (read the note) · ❓ needs yo
 | `/my-collection`, `/collections` | `/collection` | ✅ | |
 | `/asset/[id]`, `/market-asset/[id]`, `/nft/[id]`, `/smart-contract/[id]` | `/item/[slug]` | 🟡 | One page for every item kind |
 | `/nft`, `/smart-contract` (lists) | `/marketplace` | 🟡 | Filters by kind |
-| `/nft/manage/[id]`, `/smart-contract/manage/[id]` | `/item/[slug]` (owner actions), `/wallet` | ❓ | Resale and gifting live on the item page; confirm nothing else was on the manage pages |
+| `/nft/manage/[id]`, `/smart-contract/manage/[id]` | none | ⛔ | **Checked 2026-11-04.** These pages were the holder's resale tools: list one copy or several (batch), set a BANDCOIN and USD price, cancel a listing, see on-chain insights. The new apps can buy a resale copy but a holder can't list one. This is the resale seller side from the resale decisions (both copy kinds, any price, fees unchanged); it needs a plan before building |
 | `/artist/[id]` | `/artist/[slug]` | ✅ | Old links by id: see "Old links" below |
 | `/[vanityURL]` | `/[vanity]` | ✅ | |
 | `/bounty`, `/bounty/[id]` | `/bounties`, `/bounty/[id]` | ✅ | |
@@ -25,7 +25,7 @@ Legend: ✅ built · 🟡 built, different shape (read the note) · ❓ needs yo
 | `/notification` | `/notifications` | ✅ | |
 | `/recharge/*` | `/recharge` | 🟡 | One screen: card, XLM swap, BANDCOIN |
 | `/wallet-balance` | `/wallet` | ✅ | |
-| `/royalty/[id]` | `/item/[slug]` + portal `/royalty` | ❓ | 1,969-line page: check what a fan sees there |
+| `/royalty/[id]` | none | ➖ | You decided to skip it |
 | `/pins` (collected pins) | AR `/collection`, `/map` | 🟡 | Moved to the AR app |
 | `/about`, `/privacy`, `/support` | same | ✅ | |
 | `/api/auth/[...nextauth]`, `/api/xdr` | same | ✅ | |
@@ -50,7 +50,7 @@ Legend: ✅ built · 🟡 built, different shape (read the note) · ❓ needs yo
 | `/api/game/follow`, `unfollow`, `followed_brands`, `getFollowXDR`, `hasTrustOnBrand` | `artist.setFollowing` + `recharge` kind `TOKEN_TRUST` | 🟡 | Follow saves instantly and says whether the artist has a fan token. The fan is then offered it: they pay BANDCOIN for exactly the 0.5 XLM the line locks and the line opens, in one transaction. The old follow never actually charged BANDCOIN (its payment went back to the fan). Run for real on testnet (`pnpm --filter @bandcoin/api testnet:trust`): the fan paid BANDCOIN, got exactly 0.5 XLM, the line opened in one transaction, and a second offer was refused. The offer card in the app isn't built yet |
 | `/api/game/bounty/*` | AR `bounty.*` | ✅ | |
 | `/api/game/qr/*` (can-user-buy, copies) | none | ➖ | Old QR items; replaced by pins and post QR |
-| `/api/game/user/*` (balances, update, delete) | `account.*` | ❓ | Delete-account: confirm it exists |
+| `/api/game/user/*` (balances, update, delete) | `account.*`, `account.delete` | ✅ | **Delete account added 2026-11-04** (the app stores require it): type DELETE; removes the person and their sign-in. Refuses, in plain words, for admins, artists (support removes them), Studio coins left, a payment in flight, and a Bandcoin-held wallet that still holds funds. Buttons in the app's Settings and the AR profile |
 | `/api/game/get-signed-url`, `/api/file` (Pinata) | S3 uploads | 🟡 | New files go to the bucket, not IPFS |
 | (new) | `/events`, `/announcements`, `/murals`, `/coins`, `/directions`, `/embed` | ✅ | New in Bandcoin |
 
@@ -87,7 +87,7 @@ Legend: ✅ built · 🟡 built, different shape (read the note) · ❓ needs yo
 | `/admin/bounty` | `/admin/bounties` | ✅ | |
 | `/admin/collection-report/*` | `/admin/reports/*` | ✅ | |
 | `/admin/market-assets` | `/admin/items` | ✅ | |
-| `/admin/wallet` | `/admin/users/[id]`? | ❓ | Old page listed wallets: confirm what you used it for |
+| `/admin/wallet` | none | ➖ | You decided to skip it |
 | `/admin/ai` | Studio settings | ⏸ | |
 | (new) | `/admin/activity`, `/alerts`, `/jobs`, `/murals`, `/settings` | ✅ | |
 
@@ -99,4 +99,4 @@ Decided 2026-11-04: old shared links are not carried over. No redirects are buil
 
 1. Click through every ✅ row on the copied production data (rehearsal) in a browser. This is the real check.
 2. Decide the ❓ rows.
-3. Serve `/.well-known/stellar.toml` on the domain the on-chain issuers use as home domain (check one issuer's `home_domain` on mainnet).
+3. **Checked 2026-11-04 on mainnet:** 10 of 11 sampled issuers have `home_domain` = `bandcoin.io`, one has `tokens.bandcoin.io`, one issuer account wasn't found. So wallets read `https://bandcoin.io/.well-known/stellar.toml` and `https://tokens.bandcoin.io/.well-known/stellar.toml`. Both domains must reach the fan app, which now serves it (or proxy that one path). Until then wallets show these tokens without names and images.

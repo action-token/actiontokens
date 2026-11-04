@@ -20,6 +20,7 @@ import { useRouter } from "~/lib/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { HoloCard } from "~/components/cards/HoloCard";
+import { DeleteAccountPanel } from "~/components/profile/DeleteAccountPanel";
 import { MuralPackSettings } from "~/components/murals/MuralPackSettings";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { AppShell, BackButton, ScreenHeader } from "~/components/shell/AppShell";
@@ -403,6 +404,9 @@ export default function ProfileScreen() {
           <ArButton variant="ghost" size="md" block icon={LogOut} onClick={signOut}>
             Sign out
           </ArButton>
+          <div className="mt-2">
+            <DeleteAccountPanel />
+          </div>
         </div>
       </div>
     </AppShell>
