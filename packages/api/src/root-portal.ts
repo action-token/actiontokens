@@ -20,6 +20,7 @@ import { pageRouter } from "./routers/artist/page";
 import { pinsRouter } from "./routers/artist/pins";
 import { redeemRouter } from "./routers/artist/redeem";
 import { postsRouter } from "./routers/artist/posts";
+import { storiesRouter } from "./routers/artist/stories";
 import { reportsRouter } from "./routers/artist/reports";
 import { profileRouter } from "./routers/artist/profile";
 import { royaltyRouter } from "./routers/artist/royalty";
@@ -51,6 +52,7 @@ export const portalRouter = createRouter({
   embeds: embedsRouter,
   page: pageRouter,
   posts: postsRouter,
+  stories: storiesRouter,
   gifts: giftsRouter,
   reports: reportsRouter,
   redeem: redeemRouter,

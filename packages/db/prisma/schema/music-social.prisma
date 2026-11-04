@@ -234,3 +234,46 @@ model Notification {
   @@index([recipientId, isForArtist, createdAt])
   @@map("notifications")
 }
+
+/// A photo or short video an artist shares for 24 hours, shown as a ring in the feed.
+/// Who can open it follows the posts' rule (everyone, followers, or a members tier);
+/// a viewer who can't open it sees a lock, never the media.
+model Story {
+  id            String          @id @default(cuid())
+  artistId      String
+  artist        Artist          @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  /// IMAGE or VIDEO
+  type          MediaType
+  url           String
+  thumbnailUrl  String?
+  caption       String?
+  audience      PostAudience    @default(EVERYONE)
+  /// The tier MEMBERS stories need
+  tierId        String?
+  tier          MembershipTier? @relation("StoryTier", fields: [tierId], references: [id], onDelete: SetNull)
+  createdAt     DateTime        @default(now())
+  /// Live until here (created + 24 hours); the worker clears them later
+  expiresAt     DateTime
+  /// Taken down early (by the artist, or by an admin with a reason)
+  removedAt     DateTime?
+  removedReason String?
+
+  views StoryView[]
+
+  @@index([artistId, expiresAt])
+  @@index([expiresAt])
+  @@map("stories")
+}
+
+/// Who has seen a story: turns its ring grey, and gives the artist a count.
+model StoryView {
+  storyId  String
+  story    Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  viewedAt DateTime @default(now())
+
+  @@id([storyId, userId])
+  @@index([userId])
+  @@map("story_views")
+}

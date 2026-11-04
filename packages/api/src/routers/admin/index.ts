@@ -31,6 +31,7 @@ import {
   userCounts,
 } from "../../services/admin/users";
 import { listBounties, setBountyHidden } from "../../services/admin/bounties";
+import { listLiveStories, takeDownStory } from "../../services/admin/stories";
 import { listItems, setItemHidden } from "../../services/admin/items";
 import { listJobs, retryAdminJob } from "../../services/admin/jobs";
 import { changeContractFee, readContractFee } from "../../services/admin/contract-fee";
@@ -163,6 +164,17 @@ export const adminRouter = createRouter({
     setHidden: adminProcedure
       .input(z.object({ bountyId: z.string().min(1) }).and(hideInput))
       .mutation(({ ctx, input }) => setBountyHidden(ctx, input)),
+  }),
+  stories: createRouter({
+    list: adminProcedure.query(({ ctx }) => listLiveStories(ctx)),
+    takeDown: adminProcedure
+      .input(
+        z.object({
+          storyId: z.string().min(1),
+          reason: z.string().trim().min(3, "Say why, in a few words").max(300),
+        }),
+      )
+      .mutation(({ ctx, input }) => takeDownStory(ctx, input)),
   }),
   items: createRouter({
     list: adminProcedure

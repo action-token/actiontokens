@@ -56,6 +56,7 @@ model Artist {
   pageLayouts        PageLayout[]
   facebook           FacebookConnection?
   posts              Post[]
+  stories            Story[]
   pins               Pin[]
   hotspots           Hotspot[]
   pinTags            PinTag[]
@@ -106,6 +107,7 @@ model MembershipTier {
   posts        Post[] @relation("PostTier")
   commentPosts Post[] @relation("PostCommentTier")
   collectPosts Post[] @relation("PostCollectTier")
+  stories      Story[] @relation("StoryTier")
   pins         Pin[]
 
   @@unique([artistId, name])

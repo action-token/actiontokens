@@ -75,6 +75,7 @@ model User {
   announcementComments AnnouncementComment[]
   aiUsages             AiUsage[]
   mcpTokens            McpToken[]
+  storyViews           StoryView[]
 
   @@map("users")
 }

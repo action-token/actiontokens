@@ -16,6 +16,7 @@ import {
   runMusic,
   runPinBatch,
   useGeoCache,
+  sweepStories,
   sweepStuckRuns,
   keepUnlocksAlive,
   reconcileOrders,
@@ -126,6 +127,8 @@ export function handlersFor(deps: WorkerDeps): Record<string, JobHandler> {
     },
     // Refund Studio runs that a stopped worker never finished.
     "studio.sweep": async () => ({ result: await sweepStuckRuns(deps) }),
+    // Clear stories that ended a day ago.
+    "stories.sweep": async () => ({ result: await sweepStories(context()) }),
     // Short-link reminders and freed names (see artist/vanity-expire); not a payment.
     "vanity.expire": async () => ({ result: await expireVanityLinks(context()) }),
     // Drop pins in hotspots whose next drop is due; a failed drop is reported, the rest carry on.

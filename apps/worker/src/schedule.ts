@@ -9,6 +9,8 @@ export const SCHEDULES: { type: JobType; everyMs: number }[] = [
   { type: "nft.unlocks", everyMs: 5 * 60_000 },
   // Studio runs a stopped worker left behind: failed and their coins refunded.
   { type: "studio.sweep", everyMs: 10 * 60_000 },
+  // Stories that ended a day ago: rows cleared (see feed/stories).
+  { type: "stories.sweep", everyMs: 60 * 60_000 },
   // Short links: reminders, stored status, and names past their reserved days set free.
   { type: "vanity.expire", everyMs: 60 * 60_000 },
   // Drop pins in hotspots whose next drop is due (see services/artist/hotspots).
