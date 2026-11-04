@@ -117,13 +117,35 @@ export async function failJob(
   return { retryAt: next };
 }
 
-/** Puts back jobs whose worker stopped mid-run, so they aren't stuck as RUNNING. */
+/**
+ * Deals with jobs whose worker stopped mid-run, so none stays RUNNING for ever:
+ * one with attempts left goes back in the queue; one that has used them all
+ * (a job meant to run once, like a payment or a paid AI run) is marked FAILED,
+ * never run a second time.
+ */
 export async function releaseStaleJobs(db: Db, now = new Date()) {
-  const { count } = await db.job.updateMany({
+  const stale = await db.job.findMany({
     where: { status: "RUNNING", lockedAt: { lt: new Date(now.getTime() - STALE_AFTER_MS) } },
-    data: { status: "QUEUED", lockedAt: null, lockedBy: null, runAt: now },
+    select: { id: true, attempts: true, maxAttempts: true },
   });
-  return count;
+  const spent = stale.filter((job) => job.attempts >= job.maxAttempts).map((job) => job.id);
+  const again = stale.filter((job) => job.attempts < job.maxAttempts).map((job) => job.id);
+  if (spent.length > 0)
+    await db.job.updateMany({
+      where: { id: { in: spent }, status: "RUNNING" },
+      data: {
+        status: "FAILED",
+        lockedAt: null,
+        lockedBy: null,
+        lastError: "The worker stopped while this was running. It isn't run again automatically.",
+      },
+    });
+  if (again.length > 0)
+    await db.job.updateMany({
+      where: { id: { in: again }, status: "RUNNING" },
+      data: { status: "QUEUED", lockedAt: null, lockedBy: null, runAt: now },
+    });
+  return stale.length;
 }
 
 /** Admin › Jobs: run a failed or finished job again now, with fresh attempts. */

@@ -93,3 +93,32 @@ don't own the song still get their 30 s cut from the original file.
   the order's state in the same database transaction and is tested twice-run.
 - **Card refunds** go through Square sandbox in dev only.
 - **ffmpeg** output differs by version; tests check length and format, not bytes.
+
+## State on 2026-11-04 (plan complete, extended)
+
+Everything above is built: queue with retries, schedules, health, payment re-checks, music
+processing, Admin › Jobs (Retry on music jobs only), Dockerfile and env example. Since then the
+worker also runs:
+
+| Job | Runs | Retried? |
+|---|---|---|
+| `nft.unlocks`, `nft.keep-alive` | on a clock | yes (they only record, and can repeat) |
+| `hotspot.drop`, `vanity.expire` | on a clock | no, the next tick picks up what's due |
+| `studio.sweep` | every 10 min | no |
+| `studio.music`, `studio.generate` | when asked | **never**: coins are held, so one attempt |
+| `agent.run`, `pins.batch` | when asked | **never**: a retry could answer twice or double the pins |
+| live music relay | WebSocket `/live` on the health port | n/a |
+
+Changes made while finishing it:
+
+- **A worker that dies mid-job no longer re-runs a once-only job.** Stale jobs (RUNNING for over 15
+  minutes) used to go back in the queue whatever their attempts; now a job that used its attempts is
+  marked FAILED ("The worker stopped…") and only jobs with attempts left are queued again.
+- **The worker does sign one thing:** the treasury's NFT unlock records (`TREASURY_SECRET`). The env
+  example said it never signs; it now lists every variable the jobs read (Gemini, OpenAI, Google Maps,
+  the live-ticket secret) and says which are optional.
+- A test checks every job type has a handler and nothing paid is put on a schedule.
+
+Dry run against the dev database: all six scheduled jobs ran and succeeded, all 11 handlers
+registered, and SIGTERM stopped it cleanly. Not run: the Docker image (no Docker engine was running)
+and the live-music relay behind a real host's WebSocket proxy. Deploying stays a separate step.

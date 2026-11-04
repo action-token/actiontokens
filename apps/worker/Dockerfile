@@ -1,4 +1,6 @@
-# The Bandcoin worker: payment checks and music processing (needs ffmpeg).
+# The Bandcoin worker: payment checks, music processing (needs ffmpeg), Studio and agent
+# jobs, batch pins, hotspot drops and the live-music relay. Port 8080 serves /health and
+# the /live WebSocket, so the host must allow WebSockets.
 # Build from the repo root:
 #   docker build -f apps/worker/Dockerfile -t bandcoin-worker .
 # Run with the variables in apps/worker/.env.example:

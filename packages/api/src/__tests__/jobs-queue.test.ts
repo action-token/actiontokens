@@ -18,6 +18,7 @@ function setup(existing: Record<string, unknown> | null = null) {
   const db = {
     job: {
       findFirst: vi.fn().mockResolvedValue(existing),
+      findMany: vi.fn().mockResolvedValue([]),
       create: vi.fn(({ data }: { data: Record<string, unknown> }) =>
         Promise.resolve({ id: "j1", ...data }),
       ),
@@ -75,16 +76,33 @@ describe("job queue", () => {
     });
   });
 
-  it("puts back jobs whose worker died mid-run", async () => {
+  it("puts back jobs whose worker died mid-run, but fails the ones that must run once", async () => {
     const { db, mock } = setup();
-    await expect(releaseStaleJobs(db, now)).resolves.toBe(2);
+    mock.job.findMany.mockResolvedValue([
+      { id: "wait", attempts: 1, maxAttempts: 5 },
+      { id: "paid", attempts: 1, maxAttempts: 1 },
+      { id: "last", attempts: 5, maxAttempts: 5 },
+    ]);
+    await expect(releaseStaleJobs(db, now)).resolves.toBe(3);
+    expect(mock.job.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { status: "RUNNING", lockedAt: { lt: new Date(now.getTime() - STALE_AFTER_MS) } },
+      }),
+    );
     expect(mock.job.updateMany).toHaveBeenCalledWith({
-      where: {
-        status: "RUNNING",
-        lockedAt: { lt: new Date(now.getTime() - STALE_AFTER_MS) },
-      },
+      where: { id: { in: ["paid", "last"] }, status: "RUNNING" },
+      data: expect.objectContaining({ status: "FAILED", lockedAt: null }) as unknown,
+    });
+    expect(mock.job.updateMany).toHaveBeenCalledWith({
+      where: { id: { in: ["wait"] }, status: "RUNNING" },
       data: { status: "QUEUED", lockedAt: null, lockedBy: null, runAt: now },
     });
+  });
+
+  it("does nothing when no job is stale", async () => {
+    const { db, mock } = setup();
+    await expect(releaseStaleJobs(db, now)).resolves.toBe(0);
+    expect(mock.job.updateMany).not.toHaveBeenCalled();
   });
 
   it("lets an admin run a job again with fresh attempts", async () => {

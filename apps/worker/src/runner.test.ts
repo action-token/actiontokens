@@ -22,6 +22,7 @@ function setup(claimed: Job | null) {
     $queryRaw: vi.fn().mockResolvedValue(claimed ? [claimed] : []),
     job: {
       update: vi.fn().mockResolvedValue({}),
+      findMany: vi.fn().mockResolvedValue([]),
       updateMany: vi.fn().mockResolvedValue({ count: 0 }),
       count: vi.fn().mockResolvedValue(3),
     },
