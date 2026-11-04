@@ -1,6 +1,11 @@
 # 21 · Resale: holders list their own copies
 
-Status: **plan, waiting for your answers** (2026-11-05). Not built.
+Status: **answered 2026-11-05, building** (both halves together).
+
+Progress: classic copies, backend done (`e36b299`, with a testnet run script) and now the fan screens (item page
+"Sell your copies", `/selling` with listings, change price, take back, and sold history). **Still to build:** NFT editions
+(list, cancel and reprice through the contract, my listings and sold history for them, the worker check that a listed
+edition is still owned by the seller), then a testnet run and a signed-in browser check of both.
 
 ## Why
 
@@ -60,3 +65,10 @@ This is the larger half: a new account type, new money movements, and refunds if
 2. **Fan storage for classic copies**: the seller pays ~1 XLM once to open storage, as in the old app.
    Is that still what you want?
 3. **Anything new**: a seller fee? (The decision says no. Keep fees as they are?)
+
+## Your answers (2026-11-05)
+
+1. **Order**: both together (NFT editions and classic copies in one build).
+2. **Fan storage for classic copies**: the seller pays the ~1 XLM once, shown in the price breakdown before they
+   confirm. (Artists differ: the platform opens their storage at approval, plan 15.)
+3. **Fees**: unchanged. No seller fee; the buyer pays 2.5% on top; the royalty comes out of the seller's share.

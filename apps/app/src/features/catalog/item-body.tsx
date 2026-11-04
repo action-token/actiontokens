@@ -6,6 +6,7 @@ import { ItemPurchase } from "~/features/buy/item-purchase";
 import { AccessNotice, ItemActivity, ItemDetails, MoreFromArtist, royaltyOf } from "./item-parts";
 import { LockedContent } from "~/features/nft/locked-content";
 import { UnlockNotice } from "~/features/nft/locked-preview";
+import { SellPanel } from "~/features/resale/sell-panel";
 import { StickyPanel } from "~/features/nft/sticky-panel";
 import type { RouterOutputs } from "~/trpc/react";
 
@@ -71,6 +72,16 @@ export function ItemBody({
             nft={item.chainType === "CONTRACT_NFT"}
             stacked
           />
+          {item.ownedQuantity > 0 &&
+            item.chainType === "CLASSIC_TOKEN" &&
+            item.type !== "FAN_TOKEN" && (
+              <SellPanel
+                itemId={item.id}
+                itemTitle={item.title}
+                owned={item.ownedQuantity}
+                royaltyPercent={item.royaltyPercent}
+              />
+            )}
         </StickyPanel>
 
         {/* Without locked content the left is short: more from the artist fills it, and Details takes up any rest so both sides end level. */}
