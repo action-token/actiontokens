@@ -7,7 +7,6 @@ import type { ReactNode } from "react";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { cn } from "@bandcoin/ui/lib/cn";
 
-import { Money } from "~/components/money";
 import { api } from "~/trpc/react";
 
 import { FollowButton } from "../artist/follow-button";
@@ -201,7 +200,7 @@ export function ArtistsToFollow() {
   );
   if (artists.data?.length === 0) return null;
   return (
-    <Block title="Artists to follow" note="find your next favourite" href="/marketplace">
+    <Block title="Artists to follow" note="find your next favourite" href="/artists">
       {artists.isPending ? (
         <Loading className="h-[4.5rem] w-72" />
       ) : (
@@ -238,53 +237,6 @@ export function ArtistsToFollow() {
   );
 }
 
-/** The bounties with the biggest prizes. */
-export function TopBounties() {
-  const top = api.bounty.top.useQuery(undefined, { staleTime: 60_000 });
-  if (top.data?.length === 0) return null;
-  return (
-    <Block title="Top bounties" note="win a prize" href="/bounties">
-      {top.isPending ? (
-        <Loading className="h-16 w-64" />
-      ) : (
-        top.data?.slice(0, 3).map((bounty, index) => (
-          <Link
-            key={bounty.id}
-            href={`/bounty/${bounty.id}`}
-            className={cn(
-              "bg-surface hover:border-fg flex items-center gap-3 rounded-[1.4rem] border-2 p-3 transition-colors",
-              ITEM,
-              "w-64",
-            )}
-          >
-            <span
-              className={cn(
-                "marker w-6 shrink-0 text-xl",
-                index === 0 ? "text-primary-text" : "text-fg-faint",
-              )}
-            >
-              #{index + 1}
-            </span>
-            <span className="min-w-0 flex-1">
-              <b className="display block truncate text-sm leading-tight">{bounty.title}</b>
-              <span className="bg-primary text-primary-foreground mt-1 inline-block rounded-md px-1.5 py-0.5">
-                <Money
-                  amount={bounty.prize.amount}
-                  currency={bounty.prize.currency}
-                  code={bounty.prize.code}
-                  short
-                  onBrand
-                  className="display text-xs leading-none"
-                />
-              </span>
-            </span>
-          </Link>
-        ))
-      )}
-    </Block>
-  );
-}
-
 /** On screens without side columns, the same blocks sit above the posts. */
 export function DiscoverBand() {
   return (
@@ -292,7 +244,6 @@ export function DiscoverBand() {
       <UpcomingEvents />
       <NewMusic />
       <ArtistsToFollow />
-      <TopBounties />
     </div>
   );
 }

@@ -61,3 +61,67 @@ export async function upcomingEvents(
     },
   });
 }
+
+export type DirectorySort = "popular" | "newest";
+const DIRECTORY_ORDER = {
+  popular: [{ followers: { _count: "desc" } }, { createdAt: "desc" }, { id: "desc" }],
+  newest: [{ createdAt: "desc" }, { id: "desc" }],
+} satisfies Record<DirectorySort, Prisma.ArtistOrderByWithRelationInput[]>;
+
+/**
+ * Every approved artist for the Artists page: search by name, most followed or
+ * newest first, a page at a time (`next` is the cursor for the page after).
+ * Open to anyone; `following` is set when the viewer is signed in.
+ */
+export async function artistDirectory(
+  ctx: ServiceCtx,
+  viewerId: string | null,
+  options: { limit: number; sort: DirectorySort; search?: string; cursor?: string },
+  now = new Date(),
+) {
+  const search = options.search?.trim();
+  const rows = await ctx.db.artist.findMany({
+    where: {
+      status: "APPROVED",
+      ...(search ? { name: { contains: search, mode: "insensitive" } } : {}),
+    },
+    orderBy: DIRECTORY_ORDER[options.sort],
+    take: options.limit + 1,
+    ...(options.cursor ? { cursor: { id: options.cursor }, skip: 1 } : {}),
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      bio: true,
+      avatarUrl: true,
+      coverUrl: true,
+      fanTokenItem: { select: { classicToken: { select: { code: true } } } },
+      _count: {
+        select: {
+          followers: true,
+          posts: true,
+          items: { where: { deletedAt: null, hiddenAt: null, visibility: { not: "DRAFT" } } },
+          stories: { where: { removedAt: null, expiresAt: { gt: now } } },
+        },
+      },
+      followers: { where: { userId: viewerId ?? "" }, select: { userId: true } },
+    },
+  });
+  const page = rows.slice(0, options.limit);
+  return {
+    artists: page.map((artist) => ({
+      name: artist.name,
+      slug: artist.slug,
+      bio: artist.bio,
+      avatarUrl: artist.avatarUrl,
+      coverUrl: artist.coverUrl,
+      tokenCode: artist.fanTokenItem?.classicToken?.code ?? null,
+      followers: artist._count.followers,
+      posts: artist._count.posts,
+      songs: artist._count.items,
+      liveStories: artist._count.stories,
+      following: artist.followers.length > 0,
+    })),
+    next: rows.length > options.limit ? (page.at(-1)?.id ?? null) : null,
+  };
+}

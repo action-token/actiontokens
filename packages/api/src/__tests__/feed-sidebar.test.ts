@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { suggestedArtists, upcomingEvents } from "../services/feed/sidebar";
+import { artistDirectory, suggestedArtists, upcomingEvents } from "../services/feed/sidebar";
 
 const now = new Date("2026-11-05T12:00:00Z");
 
@@ -84,5 +84,75 @@ describe("upcoming events", () => {
         take: 4,
       }),
     );
+  });
+});
+
+describe("the artist directory", () => {
+  const row = (over: object = {}) => ({
+    id: "a",
+    name: "DJ Tamsin",
+    slug: "dj-tamsin",
+    bio: "Bedroom beats",
+    avatarUrl: null,
+    coverUrl: "https://c/x.jpg",
+    fanTokenItem: { classicToken: { code: "TAMSIN" } },
+    _count: { followers: 12, posts: 3, items: 5, stories: 1 },
+    followers: [],
+    ...over,
+  });
+
+  it("lists approved artists, most followed first, a page at a time", async () => {
+    const { ctx, db } = setup([row(), row({ id: "b", slug: "b" }), row({ id: "c", slug: "c" })]);
+    const page = await artistDirectory(ctx, null, { limit: 2, sort: "popular" }, now);
+    expect(db.artist.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { status: "APPROVED" },
+        orderBy: [{ followers: { _count: "desc" } }, { createdAt: "desc" }, { id: "desc" }],
+        take: 3,
+      }),
+    );
+    expect(page.artists).toHaveLength(2);
+    expect(page.next).toBe("b");
+    expect(page.artists[0]).toEqual({
+      name: "DJ Tamsin",
+      slug: "dj-tamsin",
+      bio: "Bedroom beats",
+      avatarUrl: null,
+      coverUrl: "https://c/x.jpg",
+      tokenCode: "TAMSIN",
+      followers: 12,
+      posts: 3,
+      songs: 5,
+      liveStories: 1,
+      following: false,
+    });
+  });
+
+  it("searches by name, orders the newest first, and starts after a cursor", async () => {
+    const { ctx, db } = setup([]);
+    await artistDirectory(
+      ctx,
+      "fan",
+      { limit: 24, sort: "newest", search: "  tam ", cursor: "b" },
+      now,
+    );
+    expect(db.artist.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { status: "APPROVED", name: { contains: "tam", mode: "insensitive" } },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        cursor: { id: "b" },
+        skip: 1,
+      }),
+    );
+  });
+
+  it("counts only stories that are live now, and marks the ones the viewer follows", async () => {
+    const { ctx, db } = setup([row({ followers: [{ userId: "fan" }] })]);
+    const page = await artistDirectory(ctx, "fan", { limit: 24, sort: "popular" }, now);
+    expect(page.artists[0]!.following).toBe(true);
+    const select = db.artist.findMany.mock.calls[0]![0].select;
+    expect(select._count.select.stories).toEqual({
+      where: { removedAt: null, expiresAt: { gt: now } },
+    });
   });
 });

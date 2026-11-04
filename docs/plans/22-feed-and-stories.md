@@ -1,6 +1,6 @@
 # 22 · Feed like Wadzzo, plus stories
 
-Status: **approved 2026-11-05, in progress** (Phase A, then stories).
+Status: **built 2026-11-05** (public feed, stories, artists page). Not pushed; the stories migration is applied to the dev database only.
 
 ## What you asked for
 
@@ -77,3 +77,16 @@ Likes or comments on stories, story replies, reposting, and a story composer in 
 - Rules: live at once with no review, admins can take one down; up to 10 live stories per artist;
   artists see how many people viewed each story (a count, not names).
 - Order: build everything in sequence without stopping in between.
+
+## What was built (and where it differs from the plan)
+
+- **Layout**: three columns on wide screens (events on the left, posts in the middle, new music and
+  artists to follow on the right), swipeable rows after the first post on narrower screens. Top
+  bounties were dropped from the feed.
+- **Artists page** (`/artists`): "See all" on Artists to follow opens a searchable, pageable list of
+  poster cards (cover, live-story badge, fan token code, counts, Follow and Share).
+- **Stories in the portal**: one entry, "Posts & stories", with tabs; a manage grid and a New story
+  page (several files at once, a caption each, phone preview). Admin: Story review.
+- **Not done**: editing a story after it is shared (remove and re-add), story notifications to
+  followers, deleting expired story files from storage (rows are cleared a day after they end).
+- **Before production**: run `prisma migrate deploy` for `20261105130000_stories`.

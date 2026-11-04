@@ -7,7 +7,6 @@ import {
   ArtistsToFollow,
   DiscoverBand,
   NewMusic,
-  TopBounties,
   UpcomingEvents,
 } from "~/features/feed/feed-sections";
 import { FeedView } from "~/features/feed/feed-view";
@@ -29,7 +28,6 @@ export default function FeedPage() {
       <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,38rem)_minmax(0,1fr)] xl:gap-6">
         <aside className="sticky top-6 hidden max-h-[calc(100dvh-3rem)] [scrollbar-width:none] gap-6 overflow-y-auto pb-6 xl:grid xl:grid-cols-[minmax(0,1fr)]">
           <UpcomingEvents />
-          <ArtistsToFollow />
         </aside>
         <div className="mx-auto grid w-full max-w-3xl gap-4 xl:max-w-none">
           <Composer />
@@ -37,7 +35,7 @@ export default function FeedPage() {
         </div>
         <aside className="sticky top-6 hidden max-h-[calc(100dvh-3rem)] [scrollbar-width:none] gap-6 overflow-y-auto pb-6 xl:grid xl:grid-cols-[minmax(0,1fr)]">
           <NewMusic />
-          <TopBounties />
+          <ArtistsToFollow />
         </aside>
       </div>
     </PageBody>
