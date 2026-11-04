@@ -19,13 +19,13 @@ import { api } from "~/trpc/react";
 import { Avatar } from "./context-panel";
 import { AR_URL, ARTIST_URL, artistEntry, GROUPS, isActive, type NavItem } from "./nav";
 import { ResizeHandle } from "./resize-handle";
-import { RailTools, SidebarSearchRow } from "./sidebar-search";
+import { HeaderTools } from "./sidebar-search";
 import { AccountActions, BalanceCard } from "./sidebar-tools";
 import { SidebarTheme } from "./sidebar-theme";
 
 /**
- * The desktop sidebar: a row of Search and notifications
- * (Search opens the search field there), links in groups (the page you're on is filled in the brand yellow), your
+ * The desktop sidebar: Search and notification buttons beside the logo
+ * (Search opens the search field beside the sidebar), links in groups (the page you're on is filled in the brand yellow), your
  * balances, then your account at the bottom (opens the wallet dialog) with
  * Settings and Log out, then the theme, socials, info pages and copyright. Below the xl breakpoint it is an icon rail.
  */
@@ -35,11 +35,11 @@ export function Sidebar() {
       aria-label="Main"
       className="bg-surface relative sticky top-0 hidden h-dvh min-w-0 grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-2 border-r px-3 py-3 sm:grid"
     >
-      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4 pb-2">
+      <div className="flex min-w-0 flex-col items-center gap-3 pb-2 xl:flex-row xl:justify-between xl:gap-1 xl:px-0.5">
         <Link
           href="/"
           aria-label="Bandcoin marketplace home"
-          className="flex items-center justify-center gap-2.5 xl:justify-start xl:px-1.5"
+          className="flex min-w-0 items-center justify-center gap-2"
         >
           <Image
             src="/images/logo.png"
@@ -56,12 +56,7 @@ export function Sidebar() {
             <span className="marker text-primary-text mt-0.5 block text-[11px]">marketplace</span>
           </span>
         </Link>
-        <div className="hidden min-w-0 xl:grid">
-          <SidebarSearchRow />
-        </div>
-        <div className="grid xl:hidden">
-          <RailTools />
-        </div>
+        <HeaderTools className="flex shrink-0 flex-col items-center gap-1.5 xl:flex-row" />
       </div>
 
       <div className="-mx-1 grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-1 overflow-y-auto px-1 pt-0.5 pb-2">

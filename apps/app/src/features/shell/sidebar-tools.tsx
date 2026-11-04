@@ -15,16 +15,16 @@ import { api } from "~/trpc/react";
 
 import { Avatar } from "./context-panel";
 
-/** A cell of the sidebar toolbar. */
-export const toolClass =
-  "text-fg-muted hover:text-fg hover:bg-surface data-[state=open]:bg-surface data-[state=open]:text-fg relative flex h-8 w-full min-w-8 items-center justify-center rounded-full transition-colors";
+/** A round dark button in the sidebar header (Search, Notifications). */
+export const iconButton =
+  "bg-fg text-bg relative flex size-9 shrink-0 items-center justify-center rounded-full transition-transform duration-200 hover:scale-110";
 
-/** The bell, beside the search at the top of the sidebar. Signed-in only. */
+/** The bell, beside the search in the sidebar header. Signed-in only. */
 export function SidebarTools({ className }: { className?: string }) {
   const { status } = useSession();
   if (status !== "authenticated") return null;
   return (
-    <div className={cn("flex shrink-0 items-center gap-1", className)}>
+    <div className={cn("flex shrink-0 items-center gap-1.5", className)}>
       <NotificationsBell />
     </div>
   );
@@ -75,9 +75,9 @@ function NotificationsBell() {
           type="button"
           aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
           title="Notifications"
-          className={toolClass}
+          className={iconButton}
         >
-          <Bell className="size-4" />
+          <Bell className="size-4" strokeWidth={2.6} />
           {unread > 0 && (
             <span className="bg-primary text-primary-foreground border-surface absolute -top-0.5 -right-0.5 grid h-4 min-w-4 place-items-center rounded-full border-2 px-0.5 text-[9px] font-bold">
               {unread > 9 ? "9+" : unread}
