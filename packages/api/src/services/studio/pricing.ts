@@ -31,12 +31,14 @@ export type StudioTool = (typeof STUDIO_TOOLS)[number];
 /**
  * What one run costs at the provider, in USD, until an admin sets real figures.
  * Lyria: $0.04 a clip and $0.08 a song (Gemini API price list, Nov 2026);
- * RealTime has no published price yet, so its minute is a placeholder.
+ * RealTime has no published price yet, so its minute is a placeholder. Video is an
+ * 8 second Veo 3.1 Fast clip with sound ($0.15 a second, unchecked); an image is one
+ * Gemini 3.1 Flash Image at 1K ($0.067). Admins set the real figures in Settings.
  */
 export const DEFAULT_API_COST_USD: Record<StudioTool, number> = {
   TEXT: 0.003,
-  IMAGE: 0.04,
-  VIDEO: 0.5,
+  IMAGE: 0.067,
+  VIDEO: 1.2,
   SEO: 0.003,
   SOCIAL: 0.003,
   MUSIC_CLIP: 0.04,

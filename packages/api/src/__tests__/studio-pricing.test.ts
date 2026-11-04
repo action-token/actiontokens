@@ -30,8 +30,8 @@ describe("Studio pricing", () => {
   it("lists every tool's price and turns dollars into coins", () => {
     expect(priceList(pricingOf(null))).toEqual({
       TEXT: 1,
-      IMAGE: 6,
-      VIDEO: 65,
+      IMAGE: 9,
+      VIDEO: 156,
       SEO: 1,
       SOCIAL: 1,
       MUSIC_CLIP: 6,

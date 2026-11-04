@@ -3,10 +3,11 @@ import { uploadBufferToS3 } from "@bandcoin/storage";
 
 import type { Context, SessionUser } from "../../context";
 import { enqueueJob } from "../jobs/queue";
-import { holdCoins, settleHold } from "./balance";
+import { holdCoins } from "./balance";
 import { LIVE_MODEL } from "./live";
 import { type MusicKind, MUSIC_MODELS, type MusicProvider } from "./lyria";
 import { loadPricing, priceList } from "./pricing";
+import { failRun, keepRun } from "./run";
 
 /**
  * Studio's music runs: a clip or a full song from a prompt. Starting one
@@ -75,29 +76,6 @@ export async function startMusic(
   return { generationId: generation.id, coins };
 }
 
-async function heldEntry(ctx: Pick<Context, "db">, generationId: string) {
-  const entry = await ctx.db.studioLedgerEntry.findFirst({
-    where: { generationId, kind: "SPEND", status: "PENDING" },
-    select: { id: true },
-  });
-  return entry?.id ?? null;
-}
-
-/** Ends a run that didn't work and gives its coins back (once). */
-async function failRun(ctx: Pick<Context, "db">, generationId: string, reason: string) {
-  await ctx.db.generation.update({
-    where: { id: generationId },
-    data: { status: "FAILED", error: reason.slice(0, 500), progress: null },
-  });
-  const entryId = await heldEntry(ctx, generationId);
-  if (entryId)
-    await settleHold(ctx, {
-      entryId,
-      outcome: "REFUND",
-      note: "The run didn't work, so its coins came back.",
-    });
-}
-
 /** The worker's `studio.music`: one queued run, start to finish. */
 export async function runMusic(
   ctx: Pick<Context, "db">,
@@ -127,8 +105,7 @@ export async function runMusic(
       where: { id: generationId },
       data: { status: "SUCCEEDED", progress: 100, outputs },
     });
-    const entryId = await heldEntry(ctx, generationId);
-    if (entryId) await settleHold(ctx, { entryId, outcome: "KEEP" });
+    await keepRun(ctx, generationId);
     return { generationId, outcome: "DONE" as const, url };
   } catch (error) {
     const reason =

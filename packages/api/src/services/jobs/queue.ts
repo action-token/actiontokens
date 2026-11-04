@@ -19,6 +19,7 @@ export type JobType =
   | "hotspot.drop"
   | "vanity.expire"
   | "studio.music"
+  | "studio.generate"
   | "studio.sweep";
 export const JOB_TYPES: readonly JobType[] = [
   "order.reconcile",
@@ -28,6 +29,7 @@ export const JOB_TYPES: readonly JobType[] = [
   "hotspot.drop",
   "vanity.expire",
   "studio.music",
+  "studio.generate",
   "studio.sweep",
 ];
 

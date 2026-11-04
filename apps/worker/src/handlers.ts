@@ -3,6 +3,9 @@ import {
   dropDueHotspots,
   expireVanityLinks,
   lyriaProvider,
+  generateInput,
+  googleProvider,
+  runGeneration,
   runMusic,
   sweepStuckRuns,
   keepUnlocksAlive,
@@ -39,6 +42,19 @@ export function handlersFor(deps: WorkerDeps): Record<string, JobHandler> {
         });
       const result = await runMusic(deps, generationId, { provider: lyriaProvider() });
       return { result, target: { type: "Generation", id: generationId } };
+    },
+    // A Studio image, video or writing run: Google, then storage; coins kept or refunded. Never retried.
+    "studio.generate": async (job) => {
+      const payload = job.payload as { generationId?: unknown; input?: unknown };
+      const input = generateInput.safeParse(payload.input);
+      if (typeof payload.generationId !== "string" || !input.success)
+        throw new AppError(ErrorCodes.VALIDATION_FAILED, {
+          message: "studio.generate needs a generationId and its input",
+        });
+      const result = await runGeneration(deps, payload.generationId, input.data, {
+        provider: googleProvider(),
+      });
+      return { result, target: { type: "Generation", id: payload.generationId } };
     },
     // Refund Studio runs that a stopped worker never finished.
     "studio.sweep": async () => ({ result: await sweepStuckRuns(deps) }),

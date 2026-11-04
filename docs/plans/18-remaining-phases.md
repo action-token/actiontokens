@@ -108,6 +108,17 @@ API and the worker, and `LIVE_WS_URL` (default `ws://localhost:8080/live`). Veri
 real Lyria on the dev database. The Studio screens (a draft is in `apps/studio/src/features/live`,
 not wired in) are built with the rest of the Studio frontend.
 
+### 6b. Studio image, video and writing (backend done 2026-11-04; Google only)
+
+`generate.start` (IMAGE, VIDEO, TEXT, SEO, SOCIAL) prices it, holds the coins and queues
+`studio.generate`; the worker calls Google, saves the file (or the text) and keeps the
+coins, or refunds them. `generate.library` lists everything you made (filter, paged),
+`generate.remove` deletes one. Models: Gemini 3.1 Flash Image, Veo 3.1 Fast (8 s with
+sound), Gemini 3.8 Flash. Imagen and Veo 3 no longer exist on the API, and gemini-2.5-flash
+was closed to new users, so the model names live in one place (`google.ts`). Image and text
+verified against real Google; video not run yet (about $1.20 a clip). OpenAI waits for a
+key. "Use as cover / in a post" arrive with the Studio screens.
+
 ### 6. Studio generators
 
 - `/text`, `/image`, `/video`, `/music`: prompt, model, cost shown first, history.
