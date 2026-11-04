@@ -124,6 +124,7 @@ try {
     balanceOf(mother, bandcoin),
   ]);
   const quote = await caller.recharge.quote(input);
+  if (quote.kind !== "TOKEN_TRUST") throw new Error("Expected a fan-token quote");
   console.log(
     "quote",
     quote.ok ? "ok" : quote.problems,
