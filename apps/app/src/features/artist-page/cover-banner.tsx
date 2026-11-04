@@ -1,7 +1,7 @@
 import { cn } from "@bandcoin/ui/lib/cn";
 
 import { ArtistActions } from "../artist/artist-actions";
-import { Avatar } from "../shell/context-panel";
+import { StoryAvatar } from "./artist-stories";
 
 import type { ArtistPageData } from "./artist-page-data";
 
@@ -44,7 +44,8 @@ export function CoverBanner({
         )}
       >
         <div className={cn("flex items-end gap-5", centered && "flex-col items-center")}>
-          <Avatar
+          <StoryAvatar
+            slug={artist.slug}
             name={artist.name}
             url={artist.avatarUrl}
             className="bg-surface-3 text-fg hidden size-28 shrink-0 place-items-center rounded-full border-4 border-white object-cover text-3xl font-bold shadow-xl sm:grid lg:size-36"

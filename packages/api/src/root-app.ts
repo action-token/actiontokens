@@ -18,6 +18,7 @@ import { postRouter } from "./routers/app/post";
 import { profileRouter } from "./routers/app/profile";
 import { reactionRouter } from "./routers/app/reaction";
 import { resaleRouter } from "./routers/app/resale";
+import { searchRouter } from "./routers/app/search";
 import { createRouter } from "./trpc";
 
 /** The fan app's API. Each app gets only the routers it uses. */
@@ -42,6 +43,7 @@ export const appRouter = createRouter({
   profile: profileRouter,
   reaction: reactionRouter,
   resale: resaleRouter,
+  search: searchRouter,
 });
 
 export type AppRouter = typeof appRouter;

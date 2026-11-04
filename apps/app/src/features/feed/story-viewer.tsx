@@ -28,10 +28,13 @@ const TICK_MS = 50;
  */
 export function StoryViewer({
   slug,
+  startAt,
   onClose,
   onFinish,
 }: {
   slug: string;
+  /** Open on this story (its place in the artist's list) instead of the first one not watched yet. */
+  startAt?: number;
   onClose: () => void;
   onFinish: () => void;
 }) {
@@ -51,8 +54,8 @@ export function StoryViewer({
     if (!data.data || started.current) return;
     started.current = true;
     const firstNew = data.data.stories.findIndex((entry) => !entry.seen && !entry.lock);
-    setIndex(firstNew === -1 ? 0 : firstNew);
-  }, [data.data]);
+    setIndex(startAt ?? (firstNew === -1 ? 0 : firstNew));
+  }, [data.data, startAt]);
 
   // The page behind doesn't scroll while a story is open.
   useEffect(() => {
@@ -61,8 +64,9 @@ export function StoryViewer({
     return () => {
       document.body.style.overflow = before;
       void utils.story.ring.invalidate();
+      void utils.story.byArtist.invalidate({ slug });
     };
-  }, [utils]);
+  }, [utils, slug]);
 
   const next = useCallback(() => {
     setProgress(0);

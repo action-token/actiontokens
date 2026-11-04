@@ -16,6 +16,7 @@ import { ItemCard } from "~/features/catalog/item-card";
 import { TrackList } from "~/features/music/track-list";
 import { serverApi } from "~/server/api";
 import { PageAssetOffers } from "./page-assets";
+import { ArtistStories } from "./artist-stories";
 
 export const loadArtist = cache(async (slug: string) => {
   const api = await serverApi();
@@ -58,7 +59,8 @@ export async function ArtistView({ slug }: { slug: string }) {
     return (
       <>
         <PageRenderer blocks={artist.design.blocks} theme={artist.design.theme} artist={artist} />
-        <PageBody wide>
+        <PageBody wide className="grid gap-12">
+          <ArtistStories slug={artist.slug} />
           <PageAssetOffers slug={artist.slug} />
         </PageBody>
       </>
@@ -69,6 +71,8 @@ export async function ArtistView({ slug }: { slug: string }) {
       <CoverBanner artist={artist} />
 
       <PageBody wide className="grid gap-12">
+        <ArtistStories slug={artist.slug} />
+
         {artist.popular.length > 0 && (
           <Section title="Popular" note="their most played songs">
             <TrackList tracks={artist.popular.slice(0, 5)} />

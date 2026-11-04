@@ -1,6 +1,6 @@
 "use client";
 
-import { PackageOpen } from "lucide-react";
+import { PackageOpen, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 
@@ -68,6 +68,17 @@ export function MarketplaceView() {
   return (
     <div className="grid gap-6">
       <Toolbar>
+        {search && (
+          <button
+            type="button"
+            onClick={() => setParam("search", "", "")}
+            title="Clear the search"
+            className="bg-surface-2 hover:bg-surface-3 flex h-9 max-w-full items-center gap-2 rounded-full border pr-2 pl-3.5 text-sm font-medium"
+          >
+            <span className="truncate">Search: “{search}”</span>
+            <X className="size-4 shrink-0" />
+          </button>
+        )}
         <label className="text-fg-muted flex items-center gap-2 text-sm sm:ml-auto">
           Sort
           <select

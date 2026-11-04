@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Search } from "lucide-react";
 import { type CSSProperties, type ReactNode, useEffect } from "react";
 
 import { cn } from "@bandcoin/ui/lib/cn";
@@ -17,7 +18,7 @@ import { isActive, MOBILE_TABS } from "./nav";
 import { usePanelWidths } from "./panel-widths";
 import { contextPanelFor } from "./panel-rule";
 import { ResizeHandle } from "./resize-handle";
-import { SearchBox } from "./search-box";
+import { openSearch, SearchDialog } from "./search-dialog";
 import { Sidebar } from "./sidebar";
 
 /**
@@ -49,6 +50,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       )}
     >
       <Sidebar />
+      <SearchDialog />
 
       <div className="flex min-w-0 flex-col">
         {/* Phones have no sidebar, so search and the account stay in a small bar. */}
@@ -56,7 +58,15 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link href="/" aria-label="Home">
             <Image src="/images/logo.png" alt="" width={313} height={364} className="h-8 w-auto" />
           </Link>
-          <SearchBox className="flex-1" />
+          <button
+            type="button"
+            onClick={openSearch}
+            aria-label="Search"
+            className="bg-surface-2 text-fg-faint flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full border px-3.5 text-left text-sm"
+          >
+            <Search className="size-4 shrink-0" />
+            <span className="truncate">Search songs, artists</span>
+          </button>
           <AccountButton />
         </header>
         <main className="flex-1 pb-32 sm:pb-20">{children}</main>
