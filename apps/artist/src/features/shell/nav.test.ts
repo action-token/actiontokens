@@ -38,7 +38,7 @@ describe("portal navigation", () => {
       "Pin reports",
       "Redeem",
       "My page",
-      "Posts",
+      "Posts & stories",
       "Bounties",
       "Music",
       "Items",
@@ -65,7 +65,7 @@ describe("portal navigation", () => {
       "Pin reports",
       "Redeem",
       "My page",
-      "Posts",
+      "Posts & stories",
       "Bounties",
       "Music",
       "Items",
@@ -78,6 +78,7 @@ describe("portal navigation", () => {
       "Admins",
       "Pin review",
       "Mural review",
+      "Story review",
       "Bounties",
       "Items",
       "Collection reports",
@@ -120,6 +121,8 @@ describe("portal navigation", () => {
     expect(lit("/reports")).toEqual(["Pin reports"]);
     expect(lit("/reports/pin1")).toEqual(["Pin reports"]);
     expect(lit("/redeem")).toEqual(["Redeem"]);
+    expect(lit("/posts/new")).toEqual(["Posts & stories"]);
+    expect(lit("/stories")).toEqual(["Posts & stories"]);
     expect(lit("/royalty")).toEqual(["Royalties"]);
   });
 

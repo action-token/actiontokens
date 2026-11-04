@@ -7,6 +7,7 @@ import {
   Coins,
   Crown,
   FileText,
+  Aperture,
   Frame,
   Gift,
   LayoutTemplate,
@@ -53,6 +54,12 @@ export const EVENTS_TABS: SectionTab[] = [
   { href: "/events/announcements", label: "Announcements" },
 ];
 
+/** Posts and stories share one entry and switch with tabs, like events and announcements. */
+export const POSTS_TABS: SectionTab[] = [
+  { href: "/posts", label: "Posts", exact: true },
+  { href: "/stories", label: "Stories" },
+];
+
 export type PortalNavInput = {
   signedIn: boolean;
   /** null when the person has not applied yet. */
@@ -68,6 +75,7 @@ const ADMIN: NavGroup = {
     { href: "/admin/admins", icon: ShieldCheck, label: "Admins" },
     { href: "/admin/pins", icon: MapPinned, label: "Pin review" },
     { href: "/admin/murals", icon: Frame, label: "Mural review" },
+    { href: "/admin/stories", icon: Aperture, label: "Story review" },
     { href: "/admin/bounties", icon: Trophy, label: "Bounties" },
     { href: "/admin/items", icon: Package, label: "Items" },
     { href: "/admin/reports", icon: BarChart3, label: "Collection reports" },
@@ -106,7 +114,14 @@ const READY_TOOLS: NavGroup[] = [
     title: "Content",
     items: [
       { href: "/page", icon: LayoutTemplate, label: "My page" },
-      { href: "/posts", icon: FileText, label: "Posts", tab: true },
+      {
+        href: "/posts",
+        icon: FileText,
+        label: "Posts & stories",
+        shortLabel: "Posts",
+        also: ["/stories"],
+        tab: true,
+      },
       { href: "/bounties", icon: Trophy, label: "Bounties", tab: true },
     ],
   },

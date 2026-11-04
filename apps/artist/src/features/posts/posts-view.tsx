@@ -11,6 +11,8 @@ import { Markdown } from "@bandcoin/ui/patterns/markdown";
 import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
 import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
 
+import { SectionTabs } from "~/components/section-tabs";
+import { POSTS_TABS } from "~/features/shell/nav";
 import { timeAgo } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";
 
@@ -31,10 +33,11 @@ export function PostsView() {
     <PageBody className="grid max-w-3xl gap-6">
       <PageHeader
         eyebrow="Content"
-        title="Posts"
+        title="Posts & stories"
         description="News, media and perks for your followers, public or for a membership tier."
         actions={posts.data && posts.data.length > 0 ? add : undefined}
       />
+      <SectionTabs tabs={POSTS_TABS} label="Posts and stories" />
       {posts.isPending ? (
         <div className="grid gap-4">
           {Array.from({ length: 3 }, (_, i) => (
