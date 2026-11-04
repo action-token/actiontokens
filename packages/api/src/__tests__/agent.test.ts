@@ -150,7 +150,7 @@ describe("carrying out a confirmed proposal", () => {
     };
     expect(data.total).toBe(2);
     expect(data.payload.places.map((p) => p.id)).toEqual(["p1", "p3"]);
-    expect(data.payload.places[0].endsAt).toBe("2026-12-24T23:59:59.999Z");
+    expect(data.payload.places[0]!.endsAt).toBe("2026-12-24T23:59:59.999Z");
     expect(data.payload.options).toMatchObject({ pinNumber: 5, grouping: "per-location" });
     expect(jobs).toEqual([expect.objectContaining({ type: "pins.batch", maxAttempts: 1 })]);
   });
