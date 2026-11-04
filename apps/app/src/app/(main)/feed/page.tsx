@@ -27,7 +27,7 @@ export default function FeedPage() {
       <h1 className="sr-only">Feed</h1>
       <PeopleRow />
       <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,38rem)_minmax(0,1fr)] xl:gap-6">
-        <aside className="sticky top-6 hidden gap-4 xl:grid xl:grid-cols-[minmax(0,1fr)]">
+        <aside className="sticky top-6 hidden max-h-[calc(100dvh-3rem)] [scrollbar-width:none] gap-6 overflow-y-auto pb-6 xl:grid xl:grid-cols-[minmax(0,1fr)]">
           <UpcomingEvents />
           <ArtistsToFollow />
         </aside>
@@ -36,7 +36,7 @@ export default function FeedPage() {
           <Composer />
           <FeedView />
         </div>
-        <aside className="sticky top-6 hidden gap-4 xl:grid xl:grid-cols-[minmax(0,1fr)]">
+        <aside className="sticky top-6 hidden max-h-[calc(100dvh-3rem)] [scrollbar-width:none] gap-6 overflow-y-auto pb-6 xl:grid xl:grid-cols-[minmax(0,1fr)]">
           <NewMusic />
           <TopBounties />
         </aside>
