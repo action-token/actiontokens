@@ -50,4 +50,10 @@ describe("post settings", () => {
       "needs a photo, video or song",
     );
   });
+
+  it("labels the subscribers audience, and it needs no tier", () => {
+    const settings = { ...settingsFrom(), audience: "SUBSCRIBERS" as const };
+    expect(settingsSummary(settings, () => "").see).toBe("Subscribers");
+    expect(settingsProblem(settings, 0)).toBeNull();
+  });
 });

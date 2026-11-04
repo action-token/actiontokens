@@ -96,8 +96,15 @@ export function ProfileHeader({ profile, onEdit }: { profile: Profile; onEdit: (
               </div>
               <p className="text-fg-muted mt-0.5 text-sm">
                 {profile.counts.followers.toLocaleString()}{" "}
-                {profile.counts.followers === 1 ? "follower" : "followers"} · Joined{" "}
-                {joined(profile.createdAt)}
+                {profile.counts.followers === 1 ? "follower" : "followers"}
+                {profile.fanToken && (
+                  <>
+                    {" · "}
+                    {profile.counts.subscribers.toLocaleString()}{" "}
+                    {profile.counts.subscribers === 1 ? "subscriber" : "subscribers"}
+                  </>
+                )}{" "}
+                · Joined {joined(profile.createdAt)}
               </p>
             </div>
             <div className="flex gap-2">

@@ -61,7 +61,10 @@ export function CoverBanner({
         <ArtistActions
           slug={artist.slug}
           following={artist.following}
+          subscribed={artist.subscribed}
           followers={artist.followers}
+          subscribers={artist.subscribers}
+          token={artist.tokenCode ? { code: artist.tokenCode, artistId: artist.artistId } : null}
           popular={artist.popular}
         />
       </div>

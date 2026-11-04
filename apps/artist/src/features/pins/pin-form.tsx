@@ -44,7 +44,7 @@ import { PinSpotsCard } from "./pin-spots-card";
 import { PinTagsField } from "./pin-tags-field";
 
 type Existing = RouterOutputs["pins"]["pin"];
-type Visibility = "PUBLIC" | "FOLLOWERS" | "MEMBERS" | "TIER";
+type Visibility = "PUBLIC" | "FOLLOWERS" | "SUBSCRIBERS" | "MEMBERS" | "TIER";
 
 const NO_EVENT = "none";
 const messageOf = (error: unknown) =>
@@ -163,7 +163,12 @@ export function PinForm({ existing, copyOf }: { existing?: Existing; copyOf?: Ex
   const who =
     visibility === "TIER"
       ? (options.data?.tiers.find((tier) => tier.id === tierId)?.name ?? "A tier")
-      : { PUBLIC: "Everyone", FOLLOWERS: "Followers", MEMBERS: "Members" }[visibility];
+      : {
+          PUBLIC: "Everyone",
+          FOLLOWERS: "Followers",
+          SUBSCRIBERS: "Subscribers",
+          MEMBERS: "Members",
+        }[visibility];
   const aiContext = { title, description, type, place };
   const imagePrompt = imageBrief || [title, description.slice(0, 400)].filter(Boolean).join(". ");
 
@@ -449,6 +454,7 @@ export function PinForm({ existing, copyOf }: { existing?: Existing; copyOf?: Ex
               <SelectContent>
                 <SelectItem value="PUBLIC">Everyone</SelectItem>
                 <SelectItem value="FOLLOWERS">Only followers</SelectItem>
+                <SelectItem value="SUBSCRIBERS">Only subscribers</SelectItem>
                 <SelectItem value="MEMBERS" disabled={!options.data?.tiers.length}>
                   Members: anyone in a tier
                 </SelectItem>

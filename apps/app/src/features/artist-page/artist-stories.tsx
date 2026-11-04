@@ -105,7 +105,11 @@ function Tile({ story, onOpen }: { story: Story; onOpen: () => void }) {
       {story.lock ? (
         <span className="text-fg-muted absolute inset-0 grid place-content-center justify-items-center gap-2 px-3 text-center text-xs font-semibold">
           <Lock className="size-6" />
-          {story.lock.kind === "FOLLOW" ? "Followers only" : `${story.lock.tierName} members`}
+          {story.lock.kind === "FOLLOW"
+            ? "Followers only"
+            : story.lock.kind === "SUBSCRIBE"
+              ? "Subscribers only"
+              : `${story.lock.tierName} members`}
         </span>
       ) : (
         <>

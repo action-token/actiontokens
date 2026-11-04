@@ -33,9 +33,12 @@ export type TokenOffer = { code: string; artistId: string };
 export function HoldTokenDialog({
   offer,
   onClose,
+  onSubscribed,
 }: {
   offer: TokenOffer | null;
   onClose: () => void;
+  /** The trustline is open: the fan is a subscriber now */
+  onSubscribed?: () => void;
 }) {
   const { status } = useSession();
   const flow = useRecharge();
@@ -57,6 +60,13 @@ export function HoldTokenDialog({
   useEffect(() => {
     if (offer && nothingToOffer) onClose();
   }, [offer, nothingToOffer, onClose]);
+
+  const done = flow.step?.kind === "success";
+  useEffect(() => {
+    if (done) onSubscribed?.();
+    // Once per finished order; the callback itself may change every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [done]);
 
   async function hold() {
     if (!offer || !data?.ok) return;
@@ -81,11 +91,11 @@ export function HoldTokenDialog({
       <Dialog open={Boolean(offer)} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Hold {offer?.code} too?</DialogTitle>
+            <DialogTitle>Subscribe with {offer?.code}</DialogTitle>
             <DialogDescription>
-              You&apos;re following. Holding their fan token shows you&apos;re a real fan. It locks
-              0.5 XLM in your wallet, which you get back if you remove it. Nothing happens unless
-              you tap Hold.
+              Subscribers are followers who trust the artist&apos;s fan token, and can open posts,
+              stories and pins made for subscribers. It locks 0.5 XLM in your wallet, which you get
+              back if you remove the line. Nothing happens unless you tap Subscribe.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
@@ -110,7 +120,7 @@ export function HoldTokenDialog({
                 disabled={!data?.ok || blocked || flow.busy || quote.isFetching}
                 onClick={() => void hold()}
               >
-                Hold {offer?.code}
+                Subscribe
               </Button>
             )}
           </DialogFooter>

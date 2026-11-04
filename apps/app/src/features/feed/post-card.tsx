@@ -201,6 +201,27 @@ function LockedNote({ post, artistHref }: { post: FeedPost; artistHref: string }
         </Link>
       </div>
     );
+  if (lock.kind === "SUBSCRIBE")
+    return (
+      <div className="bg-surface-2 grid gap-2 rounded-xl border border-dashed p-4">
+        <p className="flex items-center gap-2 text-sm font-semibold">
+          <Lock className="text-fg-muted size-4 shrink-0" /> For subscribers
+        </p>
+        <p className="text-fg-muted text-sm">
+          {lock.code
+            ? `Subscribe to ${post.artist.name} (trust ${lock.code}) to open it.`
+            : "This artist's subscriptions open soon."}
+        </p>
+        {lock.code && (
+          <Link
+            href={artistHref}
+            className="text-primary-text justify-self-start text-sm font-semibold hover:underline"
+          >
+            Subscribe on {post.artist.name}&apos;s page
+          </Link>
+        )}
+      </div>
+    );
   const needed = Number(lock.needed).toLocaleString("en-US");
   return (
     <div className="bg-surface-2 grid gap-2 rounded-xl border border-dashed p-4">

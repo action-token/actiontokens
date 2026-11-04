@@ -18,7 +18,12 @@ import { HideDialog } from "./hide-dialog";
 
 type Row = RouterOutputs["admin"]["stories"]["list"][number];
 
-const WHO = { EVERYONE: "Everyone", FOLLOWERS: "Followers", MEMBERS: "Members" } as const;
+const WHO = {
+  EVERYONE: "Everyone",
+  FOLLOWERS: "Followers",
+  SUBSCRIBERS: "Subscribers",
+  MEMBERS: "Members",
+} as const;
 
 /** Every live story. Taking one down ends it at once; the artist's reason is kept in the activity log. */
 export function StoriesAdminView() {

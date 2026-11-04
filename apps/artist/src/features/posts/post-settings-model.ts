@@ -1,5 +1,5 @@
 /** Who can open a post, and who can comment on or collect it (see services/artist/posts). */
-export type Audience = "EVERYONE" | "FOLLOWERS" | "MEMBERS";
+export type Audience = "EVERYONE" | "FOLLOWERS" | "SUBSCRIBERS" | "MEMBERS";
 export type Access = "VIEWERS" | "FOLLOWERS" | "MEMBERS" | "NOBODY";
 
 export type PostSettings = {
@@ -18,6 +18,7 @@ export const MAX_COPIES = 10_000;
 export const AUDIENCE_LABEL: Record<Audience, string> = {
   EVERYONE: "Everyone",
   FOLLOWERS: "Followers",
+  SUBSCRIBERS: "Subscribers",
   MEMBERS: "Members",
 };
 export const ACCESS_LABEL: Record<Access, string> = {

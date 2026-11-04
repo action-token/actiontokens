@@ -1,6 +1,6 @@
 "use client";
 
-import { Aperture, Eye, ImagePlus, Loader2, Lock, Users, X } from "lucide-react";
+import { Aperture, BadgeCheck, Eye, ImagePlus, Loader2, Lock, Users, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type DragEvent, type FormEvent, useRef, useState } from "react";
@@ -24,7 +24,7 @@ import { api } from "~/trpc/react";
 import { useUpload } from "../catalog/use-upload";
 import { clipSeconds, MAX_LIVE, storyKindOf, type StoryKind, videoProblem } from "./story-file";
 
-type Audience = "EVERYONE" | "FOLLOWERS" | "MEMBERS";
+type Audience = "EVERYONE" | "FOLLOWERS" | "SUBSCRIBERS" | "MEMBERS";
 type Item = {
   key: string;
   kind: StoryKind;
@@ -40,6 +40,12 @@ const WHO: { value: Audience; label: string; hint: string; icon: typeof Eye }[] 
     label: "Followers",
     hint: "Others see a lock and a Follow prompt.",
     icon: Users,
+  },
+  {
+    value: "SUBSCRIBERS",
+    label: "Subscribers",
+    hint: "Followers who trust your fan token can watch.",
+    icon: BadgeCheck,
   },
   {
     value: "MEMBERS",

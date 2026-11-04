@@ -1,6 +1,7 @@
 import { Account, Keypair } from "@stellar/stellar-sdk";
 import { describe, expect, it, vi } from "vitest";
 
+import { setFollowing } from "../services/feed/follow";
 import {
   setSubscribed,
   syncAllSubscribers,
@@ -37,6 +38,8 @@ function setup(opts: { follow?: { isTemporary: boolean } | null; account?: unkno
       updateMany: vi.fn().mockResolvedValue({ count: 1 }),
       findMany: vi.fn().mockResolvedValue([]),
       createMany: vi.fn().mockResolvedValue({ count: 0 }),
+      deleteMany: vi.fn().mockResolvedValue({ count: 1 }),
+      count: vi.fn().mockResolvedValue(3),
     },
     artist: { findMany: vi.fn().mockResolvedValue([]) },
     user: { findMany: vi.fn().mockResolvedValue([]) },
@@ -149,6 +152,18 @@ describe("the worker sync", () => {
     });
   });
 
+  it("makes everyone a plain follower of an artist with no fan token (nobody can subscribe)", async () => {
+    const { ctx, db } = setup();
+    await syncAllSubscribers(ctx);
+    expect(db.follow.updateMany).toHaveBeenCalledWith({
+      where: {
+        isTemporary: false,
+        artist: { OR: [{ fanTokenItem: null }, { fanTokenItem: { classicToken: null } }] },
+      },
+      data: { isTemporary: true },
+    });
+  });
+
   it("never demotes anyone from a list it couldn't read in full", async () => {
     const { ctx, db, chain } = setup();
     db.artist.findMany.mockResolvedValue([artist()]);
@@ -164,5 +179,59 @@ describe("the worker sync", () => {
       .mockRejectedValueOnce(new Error("horizon down"))
       .mockResolvedValueOnce({ addresses: [], complete: true });
     expect((await syncAllSubscribers(ctx)).artists).toBe(1);
+  });
+});
+
+describe("setFollowing", () => {
+  const noop = { set: vi.fn() };
+  const withArtist = (account: unknown) => {
+    const made = setup({ account });
+    (made.db as Record<string, unknown>).artist = {
+      findFirst: vi.fn().mockResolvedValue({
+        id: "a1",
+        userId: "artist-user",
+        fanTokenItem: { classicToken: TOKEN },
+      }),
+    };
+    (made.db as Record<string, unknown>).notificationEvent = {
+      findFirst: vi.fn().mockResolvedValue({ id: "told" }),
+    };
+    return { ...made, ctx: { ...(made.ctx as object), activity: noop } as never };
+  };
+
+  it("follows as a subscriber when the wallet already trusts the token", async () => {
+    const { ctx, db } = withArtist(trusting());
+    const done = await setFollowing(ctx, user, { slug: "nova" }, true);
+    expect(done).toMatchObject({ following: true, subscribed: true, fanToken: null });
+    expect(db.follow.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({ create: { userId: "u1", artistId: "a1", isTemporary: false } }),
+    );
+  });
+
+  it("follows as a follower otherwise, and says they could subscribe", async () => {
+    const { ctx, db } = withArtist(bare());
+    const done = await setFollowing(ctx, user, { slug: "nova" }, true);
+    expect(done).toMatchObject({
+      following: true,
+      subscribed: false,
+      fanToken: { code: "NOVA", artistId: "a1" },
+    });
+    expect(db.follow.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({ create: { userId: "u1", artistId: "a1", isTemporary: true } }),
+    );
+  });
+
+  it("won't unfollow while the wallet still trusts the token (they'd be re-followed)", async () => {
+    const { ctx, db } = withArtist(trusting());
+    await expect(setFollowing(ctx, user, { slug: "nova" }, false)).rejects.toThrow(
+      /Remove the NOVA line/,
+    );
+    expect(db.follow.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it("unfollows a plain follower", async () => {
+    const { ctx, db } = withArtist(bare());
+    await setFollowing(ctx, user, { slug: "nova" }, false);
+    expect(db.follow.deleteMany).toHaveBeenCalled();
   });
 });

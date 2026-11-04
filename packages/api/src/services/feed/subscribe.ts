@@ -86,6 +86,14 @@ export async function syncAllSubscribers(ctx: ServiceCtx) {
       fanTokenItem: { select: { classicToken: { select: { code: true, issuer: true } } } },
     },
   });
+  // Nobody can subscribe to an artist without a fan token.
+  await ctx.db.follow.updateMany({
+    where: {
+      isTemporary: false,
+      artist: { OR: [{ fanTokenItem: null }, { fanTokenItem: { classicToken: null } }] },
+    },
+    data: { isTemporary: true },
+  });
   const done = { artists: 0, subscribed: 0, demoted: 0 };
   for (const artist of artists) {
     const token = tokenOf(artist)!;

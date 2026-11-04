@@ -128,9 +128,10 @@ export const artistRouter = createRouter({
         publishedDesign(ctx, artist.id),
       ]);
 
-    const { _count, id: _id, fanTokenItem, ...profile } = artist;
+    const { _count, id: artistId, fanTokenItem, ...profile } = artist;
     return {
       ...profile,
+      artistId,
       /** The page the artist designed in the page builder, or null for the standard page */
       design,
       tokenCode: fanTokenItem?.classicToken?.code ?? null,

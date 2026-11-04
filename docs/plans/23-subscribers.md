@@ -1,6 +1,6 @@
 # 23 · Followers and subscribers
 
-Status: **decided 2026-11-05, building.**
+Status: **built 2026-11-05.** The `SUBSCRIBERS` migration (`20261105150000`) is applied to the dev database only.
 
 ## The rule (yours)
 
@@ -24,3 +24,18 @@ whatever the balance), they are a **subscriber**. Without the trustline they are
 ## Not in scope
 
 Comment and collect rules ("Who can comment / collect a post") keep their choices; Subscribers is for who can open.
+
+## What was built
+
+- **Rule**: `Follow.isTemporary` true = follower, false = subscriber (`services/feed/subscribe.ts`). Set when a fan follows (from their
+  wallet), brought in line when they open an artist's page, set when a hold-token order completes (which also follows them), and fixed for
+  everyone by the worker job `follows.sync` every 30 minutes (lists who trusts each fan token; follows of artists with no token are
+  followers; a list too long to read in full never demotes anyone).
+- **Unfollowing**: refused while the wallet still trusts the token (they would be followed again), with a message to remove the line.
+- **Audience Subscribers** for posts, stories and pins (portal pickers, lock screens in the fan app, AR pin lock text, rarity "rare").
+  Decided from the live wallet trustline, so a fan who just subscribed can open things at once.
+- **Fan app**: Follow / Following / Subscribed, a separate Subscribe button that opens the price dialog, follower and subscriber counts.
+- **Artist portal**: follower and subscriber counts on the profile header.
+- **Not done**: the lists (Suggested artists, the Artists page) still show only Follow / Following; Subscribe is on the artist's page.
+  Comment and collect rules still have no Subscribers choice. Subscribing was not completed in the browser (it signs a real testnet
+  transaction); the price dialog was checked.

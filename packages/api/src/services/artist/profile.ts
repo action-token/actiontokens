@@ -23,39 +23,43 @@ export type ProfileInput = {
 
 /** Everything the Settings page shows: the profile, what the artist has made, and their accounts. */
 export async function getProfile(ctx: Pick<Context, "db">, artist: { id: string }) {
-  const row = await ctx.db.artist.findUniqueOrThrow({
-    where: { id: artist.id },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      bio: true,
-      avatarUrl: true,
-      coverUrl: true,
-      website: true,
-      twitter: true,
-      instagram: true,
-      status: true,
-      createdAt: true,
-      issuerAccount: { select: { publicKey: true, activatedAt: true } },
-      storageAccount: { select: { publicKey: true, activatedAt: true } },
-      fanTokenItem: { select: { classicToken: { select: { code: true, issuer: true } } } },
-      _count: {
-        select: {
-          followers: true,
-          pins: true,
-          posts: true,
-          bounties: true,
-          items: { where: { deletedAt: null } },
+  const [row, subscribers] = await Promise.all([
+    ctx.db.artist.findUniqueOrThrow({
+      where: { id: artist.id },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        bio: true,
+        avatarUrl: true,
+        coverUrl: true,
+        website: true,
+        twitter: true,
+        instagram: true,
+        status: true,
+        createdAt: true,
+        issuerAccount: { select: { publicKey: true, activatedAt: true } },
+        storageAccount: { select: { publicKey: true, activatedAt: true } },
+        fanTokenItem: { select: { classicToken: { select: { code: true, issuer: true } } } },
+        _count: {
+          select: {
+            followers: true,
+            pins: true,
+            posts: true,
+            bounties: true,
+            items: { where: { deletedAt: null } },
+          },
         },
       },
-    },
-  });
+    }),
+    // Followers who also trust the fan token.
+    ctx.db.follow.count({ where: { artistId: artist.id, isTemporary: false } }),
+  ]);
   const { _count, fanTokenItem, ...profile } = row;
   return {
     ...profile,
     fanToken: fanTokenItem?.classicToken ?? null,
-    counts: _count,
+    counts: { ..._count, subscribers },
   };
 }
 

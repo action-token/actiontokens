@@ -42,7 +42,7 @@ import { HotspotManage } from "./hotspot-manage";
 import { dropPlan } from "./schedule";
 
 type Existing = RouterOutputs["hotspots"]["hotspot"];
-type Visibility = "PUBLIC" | "FOLLOWERS" | "MEMBERS" | "TIER";
+type Visibility = "PUBLIC" | "FOLLOWERS" | "SUBSCRIBERS" | "MEMBERS" | "TIER";
 
 const messageOf = (error: unknown) =>
   error instanceof Error ? error.message : "Something went wrong.";
@@ -314,6 +314,7 @@ export function HotspotForm({ existing }: { existing?: Existing }) {
             <SelectContent>
               <SelectItem value="PUBLIC">Everyone</SelectItem>
               <SelectItem value="FOLLOWERS">Only followers</SelectItem>
+              <SelectItem value="SUBSCRIBERS">Only subscribers</SelectItem>
               <SelectItem value="MEMBERS" disabled={!options.data?.tiers.length}>
                 Members: anyone in a tier
               </SelectItem>

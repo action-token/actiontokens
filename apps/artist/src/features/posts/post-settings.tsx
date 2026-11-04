@@ -24,6 +24,8 @@ type Tier = { id: string; name: string; isActive: boolean; requiredTokens: strin
 const AUDIENCE_HINT: Record<Audience, string> = {
   EVERYONE: "Anyone can open it, signed in or not.",
   FOLLOWERS: "Only fans who follow you can open it. Others see the title and a Follow prompt.",
+  SUBSCRIBERS:
+    "Only followers who trust your fan token (subscribers) can open it. Others see the title and a Subscribe prompt.",
   MEMBERS: "Only fans holding enough of your fan token for this tier can open it.",
 };
 const ACCESS_HINT: Record<"comment" | "collect", Record<Access, string>> = {

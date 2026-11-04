@@ -1,6 +1,6 @@
 "use client";
 
-import { Aperture, Eye, Lock, Plus, Trash2, Users } from "lucide-react";
+import { Aperture, BadgeCheck, Eye, Lock, Plus, Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -33,9 +33,11 @@ const messageOf = (error: unknown) =>
 const audienceOf = (story: Story) =>
   story.audience === "MEMBERS"
     ? { icon: Lock, label: story.tierName ? `${story.tierName} members` : "Members" }
-    : story.audience === "FOLLOWERS"
-      ? { icon: Users, label: "Followers" }
-      : { icon: Eye, label: "Everyone" };
+    : story.audience === "SUBSCRIBERS"
+      ? { icon: BadgeCheck, label: "Subscribers" }
+      : story.audience === "FOLLOWERS"
+        ? { icon: Users, label: "Followers" }
+        : { icon: Eye, label: "Everyone" };
 
 /**
  * Stories: what is live right now, how many people watched each, and a way to

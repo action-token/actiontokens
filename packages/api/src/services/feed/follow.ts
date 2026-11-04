@@ -62,6 +62,11 @@ export async function setFollowing(
         });
     }
   } else {
+    // A fan who still trusts the token would be followed again as soon as it is looked at.
+    if (token && (await walletTrusts(ctx, user.walletAddress, token)) === true)
+      throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, {
+        message: `You're subscribed because your wallet holds the ${token.code} line. Remove the ${token.code} line in your wallet to stop.`,
+      });
     await ctx.db.follow.deleteMany({ where: key });
   }
   const [followers, subscribers] = await Promise.all([

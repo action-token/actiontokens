@@ -305,6 +305,23 @@ function LockScreen({
             <FollowButton slug={slug} initial={false} />
           </div>
         </>
+      ) : lock.kind === "SUBSCRIBE" ? (
+        <>
+          <p className="display text-xl">Subscribers only</p>
+          <p className="text-sm text-white/70">
+            {lock.code
+              ? `Subscribe to ${name} (trust ${lock.code}) to watch this story.`
+              : `${name}'s subscriptions open soon.`}
+          </p>
+          {lock.code && (
+            <Link
+              href={`/artist/${slug}`}
+              className="relative z-30 rounded-full bg-white px-5 py-2 text-sm font-semibold text-black"
+            >
+              Subscribe on {name}&apos;s page
+            </Link>
+          )}
+        </>
       ) : (
         <>
           <p className="display text-xl">{lock.tierName} members</p>
