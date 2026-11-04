@@ -103,3 +103,7 @@ exist only in the new layout.
 - Rotate both database passwords yourself (they were pasted in chat, and the data includes live keys). You said you'll do this by hand; the tool then needs the new URLs.
 - A production `CHAIN_ACCOUNT_KEY`, set in the host's settings. Never in chat. Losing it locks every
   artist's account, so keep a safe copy.
+
+## Cutover done 2026-11-04
+
+Backup re-verified identical just before; `ep-soft-term` old tables dropped, 30 migrations applied, data copied in one transaction (147 users, 17 artists, 21 items, 143 pins; 26 keys encrypted and checked; report in `docs/migration-report.md`), then starting settings added: app settings (fee 2.5%, vanity prices from the dev seed: check them), mural settings, three coin packages. Studio prices use the code defaults. The old tables exist only in `ep-steep` (`public`); the `rehearsal` schema there holds real keys and should be dropped.

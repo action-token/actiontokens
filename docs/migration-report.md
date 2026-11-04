@@ -1,6 +1,6 @@
-# Data copy report (rehearsal)
+# Data copy report (CUTOVER)
 
-Generated 2026-11-04T10:47:57.711Z. Took 131 s. Target schema: `rehearsal`.
+Generated 2026-11-04T11:10:26.157Z. Took 133 s. Target schema: `public`.
 
 ## Checks
 
