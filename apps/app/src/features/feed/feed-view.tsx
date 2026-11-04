@@ -3,7 +3,7 @@
 import { Newspaper } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { Fragment, type ReactNode, useState } from "react";
+import { Fragment, type ReactNode, useRef, useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
@@ -27,6 +27,7 @@ export function FeedView({ afterFirst }: { afterFirst?: ReactNode }) {
   const signedIn = status === "authenticated";
   const openSignIn = useConnectWalletDialogStore((state) => state.setIsOpen);
   const [picked, setPicked] = useState<Scope>("all");
+  const anchor = useRef<HTMLDivElement>(null);
   const scope: Scope = picked === "following" && !signedIn ? "all" : picked;
   const feed = api.post.feed.useInfiniteQuery(
     { scope },
@@ -39,6 +40,9 @@ export function FeedView({ afterFirst }: { afterFirst?: ReactNode }) {
       onValueChange={(next) => {
         if (next === "following" && !signedIn) return openSignIn(true);
         setPicked(next as Scope);
+        // A new list starts from its top, never from wherever the last one was scrolled to.
+        const top = anchor.current;
+        if (top && top.getBoundingClientRect().top < 0) top.scrollIntoView({ block: "start" });
       }}
     >
       <TabsList>
@@ -48,11 +52,17 @@ export function FeedView({ afterFirst }: { afterFirst?: ReactNode }) {
     </Tabs>
   );
 
-  if (status === "loading" || feed.isPending)
-    return (
-      <div className="grid gap-4">
-        {tabs}
-        {[0, 1].map((key) => (
+  const pages = feed.data?.pages ?? [];
+  const posts = pages.flatMap((page) => page.posts);
+  const loading = status === "loading" || feed.isPending;
+
+  // The tabs stay mounted and the column keeps about a screen of height in every
+  // state, so switching lists never collapses the page under the scroll position.
+  return (
+    <div ref={anchor} className="grid min-h-[100dvh] scroll-mt-4 content-start gap-4">
+      {tabs}
+      {loading ? (
+        [0, 1, 2, 3, 4].map((key) => (
           <div key={key} className="bg-surface grid gap-3 rounded-[1.2rem] border p-5">
             <div className="flex items-center gap-3">
               <Skeleton className="size-9 rounded-full" />
@@ -61,63 +71,59 @@ export function FeedView({ afterFirst }: { afterFirst?: ReactNode }) {
             <Skeleton className="h-5 w-2/3" />
             <Skeleton className="h-16 w-full" />
           </div>
-        ))}
-      </div>
-    );
-
-  const pages = feed.data?.pages ?? [];
-  const posts = pages.flatMap((page) => page.posts);
-  if (posts.length === 0) {
-    const following = pages[0]?.following ?? 0;
-    return (
-      <div className="grid gap-4">
-        {tabs}
-        {scope === "all" ? (
-          <EmptyState
-            icon={Newspaper}
-            title="No posts yet"
-            description="When artists post news, photos or music, it shows up here."
-          />
-        ) : (
-          <EmptyState
-            icon={Newspaper}
-            title={following === 0 ? "Follow artists to fill your feed" : "No posts yet"}
-            description={
-              following === 0
-                ? "When artists you follow post news, photos or music, it shows up here."
-                : "The artists you follow haven't posted yet. New posts show up here."
-            }
-            action={
-              <Button asChild variant={following === 0 ? "default" : "secondary"}>
-                <Link href="/marketplace">Find artists</Link>
-              </Button>
-            }
-          />
-        )}
-        {afterFirst}
-      </div>
-    );
-  }
-
-  return (
-    <div className="grid gap-4">
-      {tabs}
-      {posts.map((post, index) => (
-        <Fragment key={post.id}>
-          <PostCard post={post} />
-          {index === 0 && afterFirst}
-        </Fragment>
-      ))}
-      {feed.hasNextPage && (
-        <Button
-          variant="secondary"
-          className="justify-self-center"
-          disabled={feed.isFetchingNextPage}
-          onClick={() => void feed.fetchNextPage()}
-        >
-          {feed.isFetchingNextPage ? "Loading…" : "Load more"}
-        </Button>
+        ))
+      ) : posts.length === 0 ? (
+        <>
+          {scope === "all" ? (
+            <EmptyState
+              icon={Newspaper}
+              title="No posts yet"
+              description="When artists post news, photos or music, it shows up here."
+            />
+          ) : (
+            <FollowingEmpty following={pages[0]?.following ?? 0} />
+          )}
+          {afterFirst}
+        </>
+      ) : (
+        <>
+          {posts.map((post, index) => (
+            <Fragment key={post.id}>
+              <PostCard post={post} />
+              {index === 0 && afterFirst}
+            </Fragment>
+          ))}
+          {feed.hasNextPage && (
+            <Button
+              variant="secondary"
+              className="justify-self-center"
+              disabled={feed.isFetchingNextPage}
+              onClick={() => void feed.fetchNextPage()}
+            >
+              {feed.isFetchingNextPage ? "Loading…" : "Load more"}
+            </Button>
+          )}
+        </>
       )}
     </div>
+  );
+}
+
+function FollowingEmpty({ following }: { following: number }) {
+  return (
+    <EmptyState
+      icon={Newspaper}
+      title={following === 0 ? "Follow artists to fill your feed" : "No posts yet"}
+      description={
+        following === 0
+          ? "When artists you follow post news, photos or music, it shows up here."
+          : "The artists you follow haven't posted yet. New posts show up here."
+      }
+      action={
+        <Button asChild variant={following === 0 ? "default" : "secondary"}>
+          <Link href="/marketplace">Find artists</Link>
+        </Button>
+      }
+    />
   );
 }
