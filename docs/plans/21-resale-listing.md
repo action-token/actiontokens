@@ -20,6 +20,15 @@ unchanged (buyer pays 2.5% on top, the artist's royalty comes out of the seller'
 sees their net before listing; only copies you actually hold can be listed; selling and buying look
 and work the same as a primary sale.
 
+## Correction (2026-11-05): NFT resale needs a buy side too
+
+The paragraph below said the new apps can already buy a resale NFT copy. They cannot: `loadNftSale` refuses any
+listing that is not `PRIMARY`, and nothing calls `buildNftBuyListed`. Only classic copies can be bought from a
+resale listing. So NFT edition resale is two pieces, not one: **list / cancel / reprice** (seller) and **buy a listed
+copy** (`buy` / `buy_batch` with the treasury co-signing, royalty and fee as the contract pays them, the copy and its
+unlocks moving to the buyer in the database, card path as for a primary NFT sale). The builders for all of these exist
+in `@bandcoin/chain`; the services, router, screens and a testnet run do not.
+
 ## What already exists
 
 - Buying a resale NFT edition and a resale classic copy (quote, order, signatures).
