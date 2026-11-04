@@ -380,6 +380,40 @@ export async function finishListNft(ctx: Pick<ServiceCtx, "db">, orderId: string
   });
 }
 
+/**
+ * Ends listings whose copy the seller no longer owns (a listed copy isn't
+ * locked, so it can be sent elsewhere). Checks the ones looked at longest ago
+ * first, a batch at a time. A copy whose owner can't be read is left alone.
+ */
+export async function endStaleNftListings(ctx: Pick<ServiceCtx, "db" | "chain">, limit = 50) {
+  const rows = await ctx.db.listing.findMany({
+    where: { kind: "RESALE", status: "ACTIVE", editionId: { not: null } },
+    orderBy: { updatedAt: "asc" },
+    take: limit,
+    select: {
+      id: true,
+      seller: { select: { walletAddress: true } },
+      edition: { select: { tokenId: true } },
+    },
+  });
+  let ended = 0;
+  for (const row of rows) {
+    if (!row.edition) continue;
+    const owner = await ctx.chain.nftOwnerOf(Number(row.edition.tokenId));
+    if (owner !== null && owner !== row.seller.walletAddress) {
+      await ctx.db.listing.updateMany({
+        where: { id: row.id, status: "ACTIVE" },
+        data: { status: "CLOSED" },
+      });
+      ended += 1;
+    } else {
+      // Looked at: it goes to the back of the line.
+      await ctx.db.listing.update({ where: { id: row.id }, data: { status: "ACTIVE" } });
+    }
+  }
+  return { checked: rows.length, ended };
+}
+
 // ─── Take a copy off sale ───────────────────────────────────────────────────
 
 async function ownNftListing(ctx: Pick<ServiceCtx, "db">, user: SessionUser, listingId: string) {

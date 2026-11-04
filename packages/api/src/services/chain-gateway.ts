@@ -19,6 +19,9 @@ import {
   contractIsLive,
   prepareContractCall,
   readEditionId,
+  readNftListing,
+  readNftOwner,
+  type NftListingRead,
   readPurchaseReceipt,
   type NftPurchaseReceipt,
   readNftFeeSettings,
@@ -65,6 +68,10 @@ export type ChainGateway = {
   assetTomlUrl(code: string, issuer: string): Promise<string | null>;
   /** The on-chain id of the edition registered under `editionRef`, or null when there is none */
   editionIdByRef(editionRef: string): Promise<number | null>;
+  /** A copy's resale listing on the contract now (null: not listed) */
+  nftListing(tokenId: number): Promise<NftListingRead | null>;
+  /** Who owns a copy on the contract now (null: unknown) */
+  nftOwnerOf(tokenId: number): Promise<string | null>;
   /** What `buy_edition` minted under this purchase ref (the order id), or null when nothing landed */
   nftPurchaseByRef(purchaseRef: string): Promise<NftPurchaseReceipt | null>;
   /** What the NFT contract enforces now: fee (basis points), treasury, owner */
@@ -164,6 +171,10 @@ export function createChainGateway(db: Db): ChainGateway {
       readEditionId(chainConfig().nftContract, chainConfig().treasury, editionRef),
     nftPurchaseByRef: (purchaseRef) =>
       readPurchaseReceipt(chainConfig().nftContract, chainConfig().treasury, purchaseRef),
+    nftListing: (tokenId) =>
+      readNftListing(chainConfig().nftContract, chainConfig().treasury, tokenId),
+    nftOwnerOf: (tokenId) =>
+      readNftOwner(chainConfig().nftContract, chainConfig().treasury, tokenId),
     nftFeeSettings: () => readNftFeeSettings(chainConfig().nftContract, chainConfig().treasury),
     findTransaction,
     async accountForEmail(email) {

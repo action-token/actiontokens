@@ -670,7 +670,7 @@ export async function myListings(ctx: Pick<ServiceCtx, "db">, user: SessionUser)
 export async function soldHistory(ctx: Pick<ServiceCtx, "db">, user: SessionUser) {
   const rows = await ctx.db.order.findMany({
     where: {
-      kind: "ITEM_PURCHASE",
+      kind: { in: ["ITEM_PURCHASE", "NFT_PURCHASE"] },
       status: "DELIVERED",
       listing: { sellerId: user.id, kind: "RESALE" },
     },

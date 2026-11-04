@@ -24,7 +24,8 @@ export type JobType =
   | "agent.run"
   | "facebook.import"
   | "studio.sweep"
-  | "stories.sweep";
+  | "stories.sweep"
+  | "resale.verify";
 export const JOB_TYPES: readonly JobType[] = [
   "order.reconcile",
   "media.transcode",
@@ -39,6 +40,7 @@ export const JOB_TYPES: readonly JobType[] = [
   "facebook.import",
   "studio.sweep",
   "stories.sweep",
+  "resale.verify",
 ];
 
 /**

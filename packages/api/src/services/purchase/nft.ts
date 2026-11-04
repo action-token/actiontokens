@@ -9,6 +9,7 @@ import { tellArtistAboutSale } from "../notifications/sale";
 
 import {
   buildNftBuyEdition,
+  buildNftBuyListed,
   buildNftRegisterEdition,
   buildTopUp,
   type Currency,
@@ -37,7 +38,7 @@ import { type Context, isCustodial, type SessionUser } from "../../context";
 import { notifyGuestPurchase } from "../email/guest-email";
 import { DEFAULT_PLATFORM_FEE_BPS } from "../admin/settings";
 import { accessOf, accessSelect, checkAccess } from "../catalog/access";
-import { ensureUnlockPins } from "../catalog/unlock-pins";
+import { ensureUnlockPins, moveUnlockPins } from "../catalog/unlock-pins";
 import { transitionOrder } from "../order-state";
 import { failOrder, holdsLine, ownOrder, userSignature } from "./index";
 import { notSetUpProblems } from "./not-set-up";
@@ -104,13 +105,26 @@ export async function loadNftSale(db: Db, listingId: string) {
           },
         },
       },
+      /** A resale listing is one numbered copy and the person selling it */
+      edition: { select: { id: true, tokenId: true, ownerId: true } },
+      seller: { select: { walletAddress: true } },
     },
   });
   if (!listing || listing.item.deletedAt)
     throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "This listing doesn't exist." });
-  if (listing.item.hiddenAt || listing.status !== "ACTIVE" || listing.kind !== "PRIMARY")
+  const resaleCopy = listing.kind === "RESALE" && listing.edition ? listing.edition : null;
+  if (
+    listing.item.hiddenAt ||
+    listing.status !== "ACTIVE" ||
+    (listing.kind !== "PRIMARY" && !resaleCopy)
+  )
     throw new AppError(ErrorCodes.ITEM_NOT_AVAILABLE, {
       message: "This item isn't for sale right now.",
+    });
+  // A listed copy isn't locked: if the seller no longer owns it, the listing is stale.
+  if (resaleCopy && resaleCopy.ownerId !== listing.sellerId)
+    throw new AppError(ErrorCodes.ITEM_NOT_AVAILABLE, {
+      message: "This copy was sold or moved by its owner.",
     });
   const creator = listing.item.artist?.user.walletAddress ?? null;
   if (!listing.item.contractNft || !creator)
@@ -124,6 +138,15 @@ export async function loadNftSale(db: Db, listingId: string) {
     nft: listing.item.contractNft,
     creator,
     remaining: cap === null ? null : Math.max(0, cap - listing.quantitySold),
+    /** A resale: the numbered copy and who sells it (null for a sale by the artist) */
+    resale: resaleCopy
+      ? {
+          editionId: resaleCopy.id,
+          tokenId: Number(resaleCopy.tokenId),
+          sellerId: listing.sellerId,
+          sellerWallet: listing.seller.walletAddress,
+        }
+      : null,
   };
 }
 
@@ -151,6 +174,10 @@ export async function priceNft(
     unavailable("Contract NFTs are paid in BANDCOIN or by card.");
   if (input.quantity > NFT_MAX_PER_BUY)
     unavailable(`Up to ${NFT_MAX_PER_BUY} copies in one purchase.`);
+  // Each resale listing is one numbered copy.
+  if (sale.resale && input.quantity !== 1) unavailable("A resold copy is bought one at a time.");
+  if (sale.resale && user && sale.resale.sellerId === user.id)
+    unavailable("This is your own listing.");
   if (sale.remaining !== null && input.quantity > sale.remaining)
     unavailable(sale.remaining === 0 ? "Sold out." : `Only ${sale.remaining} left.`);
   // The artist may buy their own NFT (to gift it): the contract pays the price back to them.
@@ -238,7 +265,15 @@ export async function priceNft(
 
   const shown = creatorAccount ? problems : notSetUpProblems();
   const feeBps = settings?.platformFeeBps ?? DEFAULT_PLATFORM_FEE_BPS;
-  const platform = (price.bandcoin * BigInt(feeBps) + 9_999n) / 10_000n;
+  // The contract settles a resale as: platform fee and royalty out of the price, the seller keeps the rest.
+  // It rounds down; the artist's own resale pays no royalty.
+  const platform = sale.resale
+    ? (price.bandcoin * BigInt(feeBps)) / 10_000n
+    : (price.bandcoin * BigInt(feeBps) + 9_999n) / 10_000n;
+  const royalty =
+    sale.resale && sale.resale.sellerWallet !== sale.creator
+      ? (price.bandcoin * BigInt(sale.nft.royaltyBps)) / 10_000n
+      : 0n;
   const quote: Quote = {
     currency,
     quantity: input.quantity,
@@ -246,10 +281,10 @@ export async function priceNft(
     rateUsd: null,
     lines,
     totals: [{ currency, amount: toAmount(total) }],
-    // The contract takes the platform fee out of the creator's share; the buyer doesn't pay it.
+    // The contract takes the platform fee (and a resale's royalty) out of the seller's share; the buyer doesn't pay them.
     payout: {
-      seller: toAmount(price.bandcoin - platform),
-      royalty: "0.0000000",
+      seller: toAmount(price.bandcoin - platform - royalty),
+      royalty: toAmount(royalty),
       platform: toAmount(platform),
     },
     cardSettlement: null,
@@ -347,24 +382,32 @@ async function prepareBuy(
   quantity: number,
   networkFee: bigint,
   budget: bigint,
+  /** A resale: the numbered copy to buy from its listing (a sale by the artist mints new ones) */
+  resaleTokenId?: number,
 ) {
   const { chain } = ctx;
   const bandcoin = new Asset(
     chain.config.assets.bandcoin.code,
     chain.config.assets.bandcoin.issuer,
   );
-  const built = buildNftBuyEdition({
+  const common = {
     source: new Account(buyer.accountId(), buyer.sequenceNumber()),
     network: chain.config.network,
     contract: chain.config.nftContract!,
-    editionRef: order.itemId,
-    purchaseRef: order.id,
     paymentToken: tokenAddressOf(bandcoin, chain.config.network.passphrase),
-    quantity,
     inclusionFee: 0n,
     networkFee,
     treasury: chain.config.treasury,
-  });
+  };
+  const built =
+    resaleTokenId !== undefined
+      ? buildNftBuyListed({ ...common, tokenIds: [resaleTokenId] })
+      : buildNftBuyEdition({
+          ...common,
+          editionRef: order.itemId,
+          purchaseRef: order.id,
+          quantity,
+        });
   const prepared = await chain.prepareContractCall(built.xdr, [chain.config.treasury]);
   const tx = TransactionBuilder.fromXDR(prepared, chain.config.network.passphrase) as Transaction;
   // What the treasury will pay: the call's fee plus the fee bump's own.
@@ -410,7 +453,9 @@ export async function startNftPurchase(ctx: ServiceCtx, user: SessionUser, input
       message: quote.problems[0]?.message ?? "This purchase can't go through right now.",
       details: { problems: quote.problems },
     });
-  await ensureRegistered(ctx, sale);
+  // A resale's edition is registered already; a first sale by the artist registers it.
+  if (sale.resale) await checkListingOnChain(ctx, sale);
+  else await ensureRegistered(ctx, sale);
 
   const card = input.currency === "USD";
   const total = quote.totals[0]!.amount;
@@ -435,10 +480,19 @@ export async function startNftPurchase(ctx: ServiceCtx, user: SessionUser, input
           budgetXlm: toAmount(priced.buyFeeXlm),
           openTrustline: priced.openTrustline,
           reserveXlm: toAmount(priced.reserveXlm),
+          ...(sale.resale
+            ? {
+                resale: {
+                  editionId: sale.resale.editionId,
+                  tokenId: sale.resale.tokenId,
+                  sellerId: sale.resale.sellerId,
+                },
+              }
+            : {}),
         },
       },
       sellerAmount: quote.payout.seller,
-      royaltyAmount: "0",
+      royaltyAmount: quote.payout.royalty,
     },
   });
   ctx.activity.set({
@@ -459,6 +513,7 @@ export async function startNftPurchase(ctx: ServiceCtx, user: SessionUser, input
           input.quantity,
           priced.feeBandcoin,
           priced.buyFeeXlm,
+          sale.resale?.tokenId,
         );
   } catch (error) {
     await transitionOrder(ctx.db, order.id, "FAILED", {
@@ -476,7 +531,33 @@ export async function startNftPurchase(ctx: ServiceCtx, user: SessionUser, input
   };
 }
 
-type NftBreakdown = { nft: { bandcoin: string; budgetXlm: string } };
+type NftBreakdown = {
+  nft: {
+    bandcoin: string;
+    budgetXlm: string;
+    resale?: { editionId: string; tokenId: number; sellerId: string };
+  };
+};
+
+/**
+ * A resale's listing must still be on the contract at the price shown, before
+ * anything is charged: a listed copy isn't locked, so the seller may have
+ * moved it or relisted it since. (A card order pays first, so this matters most there.)
+ */
+async function checkListingOnChain(ctx: ServiceCtx, sale: NftSale) {
+  if (!sale.resale) return;
+  const stale = (message: string) => new AppError(ErrorCodes.ITEM_NOT_AVAILABLE, { message });
+  const onChain = await ctx.chain.nftListing(sale.resale.tokenId);
+  if (!onChain || (sale.resale.sellerWallet && onChain.seller !== sale.resale.sellerWallet))
+    throw stale("This copy was sold or taken off sale. Nothing was charged.");
+  const bandcoin = tokenAddressOf(
+    new Asset(ctx.chain.config.assets.bandcoin.code, ctx.chain.config.assets.bandcoin.issuer),
+    ctx.chain.config.network.passphrase,
+  );
+  const entry = onChain.prices.find((price) => price.paymentToken === bandcoin);
+  if (!entry || entry.price !== toStroops(sale.listing.priceBandcoin.toString()))
+    throw stale("The seller changed the price. Reload the page to see the new one.");
+}
 
 /**
  * Sends it. Wallet: the signed buy, fee-bumped by the treasury. Card: the card
@@ -575,6 +656,7 @@ export async function runCardNftSteps(
       order.quantity,
       0n,
       toStroops(details.budgetXlm),
+      details.resale?.tokenId,
     );
     await chain.submit(await bumped(await chain.signForCustodialUser(buy.xdr, buyer.email)));
   } catch (error) {
@@ -622,6 +704,11 @@ async function deliverWhenVisible(ctx: ServiceCtx, orderId: string) {
  * leaves the order as it is.
  */
 export async function finishNftPurchase(ctx: Pick<Context, "db" | "chain">, orderId: string) {
+  const resale = (
+    (await ctx.db.order.findUnique({ where: { id: orderId }, select: { breakdown: true } }))
+      ?.breakdown as Partial<NftBreakdown> | null
+  )?.nft?.resale;
+  if (resale) return finishNftResale(ctx, orderId, resale);
   // A failed read throws: "no receipt" must only ever mean the contract has none.
   const receipt = await ctx.chain.nftPurchaseByRef(orderId);
   if (!receipt) return { orderId, status: "SUBMITTED" as const };
@@ -686,5 +773,51 @@ export async function finishNftPurchase(ctx: Pick<Context, "db" | "chain">, orde
       quantity: tokenIds.length,
     });
   await tellArtistAboutSale(ctx, order);
+  return { orderId, status: "DELIVERED" as const };
+}
+
+/**
+ * A resold copy is delivered once the contract names the buyer as its owner
+ * (the proof the buy landed, whatever happened to the answer): the copy, its
+ * unlock places and the owner counts move from the seller to the buyer, and
+ * the listing ends. Runs once: the CONFIRMED transition guards it.
+ */
+async function finishNftResale(
+  ctx: Pick<Context, "db" | "chain">,
+  orderId: string,
+  resale: { editionId: string; tokenId: number; sellerId: string },
+) {
+  const buyerRow = await ctx.db.order.findUnique({
+    where: { id: orderId },
+    select: { buyer: { select: { walletAddress: true } } },
+  });
+  const owner = await ctx.chain.nftOwnerOf(resale.tokenId);
+  if (!owner || owner !== buyerRow?.buyer?.walletAddress)
+    return { orderId, status: "SUBMITTED" as const };
+  await ctx.db.$transaction(async (tx) => {
+    await transitionOrder(tx, orderId, "CONFIRMED");
+    const order = await tx.order.findUniqueOrThrow({ where: { id: orderId } });
+    if (!order.buyerId || !order.itemId) throw new AppError(ErrorCodes.INTERNAL);
+    await tx.nftEdition.update({
+      where: { id: resale.editionId },
+      data: { ownerId: order.buyerId },
+    });
+    await tx.ownership.updateMany({
+      where: { userId: resale.sellerId, itemId: order.itemId, quantity: { gte: 1 } },
+      data: { quantity: { decrement: 1 } },
+    });
+    await tx.ownership.upsert({
+      where: { userId_itemId: { userId: order.buyerId, itemId: order.itemId } },
+      create: { userId: order.buyerId, itemId: order.itemId, quantity: 1, source: "PURCHASE" },
+      update: { quantity: { increment: 1 } },
+    });
+    await moveUnlockPins(tx, resale.editionId, order.buyerId);
+    if (order.listingId)
+      await tx.listing.update({
+        where: { id: order.listingId },
+        data: { quantitySold: { increment: 1 }, status: "SOLD_OUT" },
+      });
+    await transitionOrder(tx, orderId, "DELIVERED");
+  });
   return { orderId, status: "DELIVERED" as const };
 }

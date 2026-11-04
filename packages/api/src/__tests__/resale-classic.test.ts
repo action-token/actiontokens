@@ -473,7 +473,7 @@ describe("what the holder sees", () => {
     expect(db.order.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {
-          kind: "ITEM_PURCHASE",
+          kind: { in: ["ITEM_PURCHASE", "NFT_PURCHASE"] },
           status: "DELIVERED",
           listing: { sellerId: "me", kind: "RESALE" },
         },

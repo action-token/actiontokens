@@ -159,6 +159,58 @@ export async function readPurchaseReceipt(
   };
 }
 
+export type NftListingRead = {
+  seller: string;
+  /** Price per payment token address, in stroops */
+  prices: { paymentToken: string; price: bigint }[];
+};
+
+/** A copy's resale listing as the contract has it now, or null when it isn't listed. Read-only. */
+export async function readNftListing(
+  contract: string | null,
+  reader: string,
+  tokenId: number,
+): Promise<NftListingRead | null> {
+  const listing = await readContract<
+    | { seller: string; prices: { payment_token: string; price: bigint | number }[] }
+    | null
+    | undefined
+  >(
+    contract,
+    reader,
+    "listing",
+    [nativeToScVal(tokenId, { type: "u32" })],
+    "Couldn't read the listing from the contract.",
+  );
+  if (!listing) return null;
+  return {
+    seller: listing.seller,
+    prices: listing.prices.map((entry) => ({
+      paymentToken: entry.payment_token,
+      price: BigInt(entry.price),
+    })),
+  };
+}
+
+/** Who owns a copy on the contract now, or null when it can't be read (no such token). Read-only. */
+export async function readNftOwner(
+  contract: string | null,
+  reader: string,
+  tokenId: number,
+): Promise<string | null> {
+  try {
+    return await readContract<string>(
+      contract,
+      reader,
+      "owner_of",
+      [nativeToScVal(tokenId, { type: "u32" })],
+      "Couldn't read the owner from the contract.",
+    );
+  } catch {
+    return null;
+  }
+}
+
 /**
  * What the nft_oz contract enforces now: the platform fee (basis points), the
  * account it goes to, and the owner (the only one who may change them).

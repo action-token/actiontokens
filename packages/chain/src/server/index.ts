@@ -23,7 +23,10 @@ export {
   contractIsLive,
   prepareContractCall,
   readEditionId,
+  readNftListing,
+  readNftOwner,
   readPurchaseReceipt,
   type NftPurchaseReceipt,
+  type NftListingRead,
   readNftFeeSettings,
 } from "./soroban";

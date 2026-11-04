@@ -11,6 +11,8 @@ export const SCHEDULES: { type: JobType; everyMs: number }[] = [
   { type: "studio.sweep", everyMs: 10 * 60_000 },
   // Stories that ended a day ago: rows cleared (see feed/stories).
   { type: "stories.sweep", everyMs: 60 * 60_000 },
+  // Resale listings of NFT copies the seller no longer owns are ended.
+  { type: "resale.verify", everyMs: 30 * 60_000 },
   // Short links: reminders, stored status, and names past their reserved days set free.
   { type: "vanity.expire", everyMs: 60 * 60_000 },
   // Drop pins in hotspots whose next drop is due (see services/artist/hotspots).

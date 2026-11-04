@@ -1,5 +1,6 @@
 import {
   Account,
+  Asset,
   Keypair,
   Networks,
   type Transaction,
@@ -7,6 +8,7 @@ import {
 } from "@stellar/stellar-sdk";
 import { describe, expect, it, vi } from "vitest";
 
+import { tokenAddressOf } from "@bandcoin/chain";
 import type { Db } from "@bandcoin/db";
 
 import type { SessionUser } from "../context";
@@ -19,6 +21,7 @@ const contract = "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC";
 const fan = Keypair.random().publicKey();
 const treasury = Keypair.random().publicKey();
 const creator = Keypair.random().publicKey();
+const sellerWallet = Keypair.random().publicKey();
 const bandcoin = { code: "BANDCOIN", issuer: Keypair.random().publicKey() };
 const usdc = { code: "USDC", issuer: Keypair.random().publicKey() };
 
@@ -59,6 +62,17 @@ function setup(
     /** The artist's wallet isn't on Stellar */
     creatorMissing?: boolean;
     prepareFee?: string;
+    /** A resold copy (token 41) listed by another fan */
+    resale?: {
+      /** What the contract says is listed, in stroops (default: the price shown) */
+      onChainPrice?: bigint;
+      /** The contract has no listing for it */
+      unlisted?: boolean;
+      /** Our records say someone else owns it now */
+      ownerId?: string;
+      /** Who owns it on the contract (default: the seller until the buy lands) */
+      owner?: string;
+    };
     submit?: (xdr: string, call: number) => Promise<{ hash: string }>;
   } = {},
 ) {
@@ -93,16 +107,27 @@ function setup(
       },
     },
   };
+  const resaleListing = {
+    ...listing,
+    kind: "RESALE",
+    sellerId: "seller1",
+    quantity: 1,
+    quantitySold: 0,
+    priceBandcoin: { toString: () => "40" },
+    priceUsd: { toString: () => "3" },
+    edition: { id: "e41", tokenId: "41", ownerId: opts.resale?.ownerId ?? "seller1" },
+    seller: { walletAddress: sellerWallet },
+  };
   const db = {
     listing: {
-      findUnique: vi.fn().mockResolvedValue(listing),
+      findUnique: vi.fn().mockResolvedValue(opts.resale ? resaleListing : listing),
       update: vi.fn().mockResolvedValue({ ...listing, quantitySold: 4, item: { supply: 50 } }),
     },
     appSetting: { findUnique: vi.fn().mockResolvedValue({ platformFeeBps: 250 }) },
     contractNft: { update: vi.fn().mockResolvedValue({}) },
     order: {
       create: vi.fn(({ data }: { data: Row }) => {
-        const row = { id: "order1", status: "QUOTED", ...data };
+        const row = { id: "order1", status: "QUOTED", buyer: { walletAddress: fan }, ...data };
         orders.set("order1", row);
         return Promise.resolve(row);
       }),
@@ -130,8 +155,9 @@ function setup(
         editions.push(...data);
         return Promise.resolve({ count: data.length });
       }),
+      update: vi.fn().mockResolvedValue({}),
     },
-    ownership: { upsert: vi.fn().mockResolvedValue({}) },
+    ownership: { upsert: vi.fn().mockResolvedValue({}), updateMany: vi.fn().mockResolvedValue({}) },
     item: {
       findUnique: vi.fn().mockResolvedValue({ title: "VIP pass", coverUrl: null, artistId: "a1" }),
     },
@@ -145,6 +171,7 @@ function setup(
       ]),
     },
     pin: {
+      updateMany: vi.fn().mockResolvedValue({ count: 2 }),
       findMany: vi.fn().mockResolvedValue([]),
       create: vi.fn().mockResolvedValue({ id: "pin" }),
     },
@@ -183,6 +210,25 @@ function setup(
     signWithServerKeys: vi.fn((xdr: string) => Promise.resolve(xdr)),
     signForCustodialUser: vi.fn((xdr: string) => Promise.resolve(xdr)),
     editionIdByRef: vi.fn(() => Promise.resolve(registered ? 7 : null)),
+    nftListing: vi.fn(() =>
+      Promise.resolve(
+        opts.resale?.unlisted
+          ? null
+          : {
+              seller: sellerWallet,
+              prices: [
+                {
+                  paymentToken: tokenAddressOf(
+                    new Asset(bandcoin.code, bandcoin.issuer),
+                    network.passphrase,
+                  ),
+                  price: opts.resale?.onChainPrice ?? 400_000_000n,
+                },
+              ],
+            },
+      ),
+    ),
+    nftOwnerOf: vi.fn(() => Promise.resolve(opts.resale?.owner ?? sellerWallet)),
     nftPurchaseByRef: vi.fn(() =>
       Promise.resolve(
         opts.receipt === false
@@ -456,5 +502,131 @@ describe("settling a stuck NFT order", () => {
     );
     expect(orders.get("order1")).toMatchObject({ failureCode: "NFT_BUY_FAILED_FUNDED" });
     expect(chain.card.refund).not.toHaveBeenCalled();
+  });
+});
+
+describe("buying a resold smart-contract NFT", () => {
+  const one = { listingId: "l1", quantity: 1, currency: "BANDCOIN" as const };
+  const methodOf = (xdr: string) => {
+    const op = (TransactionBuilder.fromXDR(xdr, network.passphrase) as Transaction)
+      .operations[0] as unknown as { func: { value: { functionName: Uint8Array } } };
+    return String(op.func.value.functionName);
+  };
+
+  it("prices it as the contract settles it: platform fee and royalty out of the seller's share", async () => {
+    const quote = await quoteNftPurchase(setup({ resale: {} }).ctx, wallet, one);
+    expect(quote.lines[0]).toMatchObject({ key: "price", amount: "40.0000000" });
+    // 40: platform 2.5% = 1, royalty 5% = 2, the seller keeps 37. The buyer pays the price and the network fee.
+    expect(quote.payout).toEqual({
+      seller: "37.0000000",
+      royalty: "2.0000000",
+      platform: "1.0000000",
+    });
+    expect(quote.ok).toBe(true);
+  });
+
+  it("pays no royalty when the seller is the artist", async () => {
+    const { ctx, db } = setup({ resale: {} });
+    const listing = (await db.listing.findUnique()) as { seller: { walletAddress: string } };
+    listing.seller.walletAddress = creator;
+    expect((await quoteNftPurchase(ctx, wallet, one)).payout.royalty).toBe("0.0000000");
+  });
+
+  it("is one copy at a time, and never your own listing", async () => {
+    const { ctx } = setup({ resale: {} });
+    expect(
+      (await quoteNftPurchase(ctx, wallet, { ...one, quantity: 2 })).problems.map((p) => p.message),
+    ).toContain("A resold copy is bought one at a time.");
+    expect(
+      (await quoteNftPurchase(ctx, { ...wallet, id: "seller1" }, one)).problems.map(
+        (p) => p.message,
+      ),
+    ).toContain("This is your own listing.");
+  });
+
+  it("refuses a listing whose seller no longer owns the copy", async () => {
+    const { ctx } = setup({ resale: { ownerId: "someone-else" } });
+    await expect(quoteNftPurchase(ctx, wallet, one)).rejects.toThrow(/sold or moved/);
+  });
+
+  it("builds a buy for that copy, without registering anything", async () => {
+    const { ctx, chain, orders } = setup({ resale: {} });
+    const started = await startNftPurchase(ctx, wallet, one);
+    expect(methodOf(started.xdr)).toBe("buy");
+    expect(chain.editionIdByRef).not.toHaveBeenCalled();
+    expect(chain.nftListing).toHaveBeenCalledWith(41);
+    expect(orders.get("order1")).toMatchObject({
+      kind: "NFT_PURCHASE",
+      sellerAmount: "37.0000000",
+      royaltyAmount: "2.0000000",
+    });
+  });
+
+  it("stops before anything is charged if the copy was taken off sale or repriced", async () => {
+    const gone = setup({ resale: { unlisted: true } });
+    await expect(startNftPurchase(gone.ctx, wallet, one)).rejects.toThrow(/taken off sale/);
+    expect(gone.chain.submit).not.toHaveBeenCalled();
+    const repriced = setup({ resale: { onChainPrice: 500_000_000n } });
+    await expect(startNftPurchase(repriced.ctx, wallet, one)).rejects.toThrow(/changed the price/);
+  });
+
+  it("delivers once the contract names the buyer, moving the copy, its places and the counts", async () => {
+    const { ctx, chain, db, orders } = setup({ resale: { owner: fan } });
+    const { orderId, xdr } = await startNftPurchase(ctx, wallet, one);
+    await expect(submitNftPurchase(ctx, wallet, { orderId, xdr })).resolves.toEqual({
+      orderId,
+      status: "DELIVERED",
+    });
+    expect(chain.nftPurchaseByRef).not.toHaveBeenCalled();
+    expect(db.nftEdition.update).toHaveBeenCalledWith({
+      where: { id: "e41" },
+      data: { ownerId: "fan" },
+    });
+    expect(db.ownership.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ userId: "seller1", itemId: "i1" }),
+        data: { quantity: { decrement: 1 } },
+      }),
+    );
+    expect(db.ownership.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({ update: { quantity: { increment: 1 } } }),
+    );
+    expect(db.pin.updateMany).toHaveBeenCalledWith({
+      where: { unlockEditionId: "e41" },
+      data: { restrictedToUserId: "fan" },
+    });
+    expect(db.listing.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: { quantitySold: { increment: 1 }, status: "SOLD_OUT" } }),
+    );
+    expect(orders.get(orderId)).toMatchObject({ status: "DELIVERED" });
+  });
+
+  it("waits while the contract still names the seller (the worker finishes it later)", async () => {
+    const { ctx, db, orders } = setup({ resale: { owner: sellerWallet } });
+    const { orderId, xdr } = await startNftPurchase(ctx, wallet, one);
+    vi.useFakeTimers();
+    const pending = submitNftPurchase(ctx, wallet, { orderId, xdr });
+    await vi.runAllTimersAsync();
+    expect(await pending).toEqual({ orderId, status: "SUBMITTED" });
+    vi.useRealTimers();
+    expect(db.nftEdition.update).not.toHaveBeenCalled();
+    expect(orders.get(orderId)).toMatchObject({ status: "SUBMITTED" });
+  });
+
+  it("by card: the BANDCOIN goes in first, then the buy of that copy", async () => {
+    const { ctx, chain } = setup({
+      resale: { owner: fan },
+      buyer: horizon(fan, { bandcoin: "0" }),
+    });
+    const { orderId, xdr } = await startNftPurchase(ctx, custodial, { ...one, currency: "USD" });
+    expect(opsOf(xdr).map((op) => op.type)).toEqual(["payment"]);
+    await submitNftPurchase(ctx, custodial, { orderId, xdr, card: { sourceId: "cnon:1" } });
+    const buyTx = chain.submit.mock.calls[1]![0];
+    const inner = (
+      TransactionBuilder.fromXDR(buyTx, network.passphrase) as unknown as {
+        innerTransaction: Transaction;
+      }
+    ).innerTransaction;
+    expect(methodOf(inner.toXDR())).toBe("buy");
   });
 });

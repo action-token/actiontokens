@@ -9,6 +9,7 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { SessionUser } from "../context";
 import {
+  endStaleNftListings,
   finishCancelNft,
   finishListNft,
   nftNet,
@@ -88,6 +89,8 @@ function setup(
         return Promise.resolve({ id: `l-${(args.where as { editionId: string }).editionId}` });
       }),
       updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      findMany: vi.fn().mockResolvedValue([]),
+      update: vi.fn().mockResolvedValue({}),
     },
     order: {
       create: vi.fn(({ data }: { data: Row }) => {
@@ -307,5 +310,38 @@ describe("taking a smart-contract NFT off sale", () => {
     await submitCancelNft(ctx, me, { orderId: ORDER, xdr: started.xdr });
     await expect(finishCancelNft(ctx, ORDER)).rejects.toThrow();
     await expect(finishListNft(ctx, ORDER)).rejects.toThrow();
+  });
+});
+
+describe("listings whose copy moved", () => {
+  const row = (id: string, tokenId: string, wallet: string) => ({
+    id,
+    seller: { walletAddress: wallet },
+    edition: { tokenId },
+  });
+
+  it("ends a listing when the contract says someone else owns the copy", async () => {
+    const { ctx, db, chain } = setup();
+    db.listing.findMany.mockResolvedValue([
+      row("l1", "7", wallet.publicKey()),
+      row("l2", "8", wallet.publicKey()),
+    ]);
+    (chain as Record<string, unknown>).nftOwnerOf = vi.fn((token: number) =>
+      Promise.resolve(token === 7 ? wallet.publicKey() : Keypair.random().publicKey()),
+    );
+    expect(await endStaleNftListings(ctx)).toEqual({ checked: 2, ended: 1 });
+    expect(db.listing.updateMany).toHaveBeenCalledTimes(1);
+    expect(db.listing.updateMany).toHaveBeenCalledWith({
+      where: { id: "l2", status: "ACTIVE" },
+      data: { status: "CLOSED" },
+    });
+  });
+
+  it("leaves a listing alone when the owner can't be read", async () => {
+    const { ctx, db, chain } = setup();
+    db.listing.findMany.mockResolvedValue([row("l1", "7", wallet.publicKey())]);
+    (chain as Record<string, unknown>).nftOwnerOf = vi.fn().mockResolvedValue(null);
+    expect(await endStaleNftListings(ctx)).toEqual({ checked: 1, ended: 0 });
+    expect(db.listing.updateMany).not.toHaveBeenCalled();
   });
 });
