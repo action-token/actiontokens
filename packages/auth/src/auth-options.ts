@@ -80,17 +80,21 @@ export function createAuthOptions(input: {
         }
         return token;
       },
-      session: ({ session, token }) => ({
-        ...session,
-        user: {
-          ...session.user,
-          id: token.sub!,
-          walletAddress: token.walletAddress!,
-          walletType: token.walletType!,
-          role: token.role ?? "FAN",
-          emailVerified: token.emailVerified ?? false,
-        },
-      }),
+      // A token whose user is gone gives an empty session, which the browser reads as signed out.
+      session: ({ session, token }) =>
+        token.sub
+          ? {
+              ...session,
+              user: {
+                ...session.user,
+                id: token.sub,
+                walletAddress: token.walletAddress!,
+                walletType: token.walletType!,
+                role: token.role ?? "FAN",
+                emailVerified: token.emailVerified ?? false,
+              },
+            }
+          : ({} as Session),
     },
   };
 }

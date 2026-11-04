@@ -251,4 +251,16 @@ describe("session refresh", () => {
     const suspended = await jwt({ token: { sub: "u1", role: "FAN", roleCheckedAt: 0 } });
     expect(suspended.sub).toBeUndefined();
   });
+  it("ends the session for the browser when the token no longer names a user", async () => {
+    const { callbacks } = createAuthOptions({ app: "app", db: asDb });
+    const session = callbacks!.session! as unknown as (args: {
+      session: Record<string, unknown>;
+      token: Record<string, unknown>;
+    }) => Record<string, unknown>;
+    const open = { user: { name: null }, expires: "later" };
+
+    expect(session({ session: open, token: {} })).toEqual({});
+    const live = session({ session: open, token: { sub: "u1", walletAddress: "G1", walletType: "email" } });
+    expect((live.user as { id: string }).id).toBe("u1");
+  });
 });
