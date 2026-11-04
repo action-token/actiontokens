@@ -81,3 +81,36 @@ This is the larger half: a new account type, new money movements, and refunds if
 2. **Fan storage for classic copies**: the seller pays the ~1 XLM once, shown in the price breakdown before they
    confirm. (Artists differ: the platform opens their storage at approval, plan 15.)
 3. **Fees**: unchanged. No seller fee; the buyer pays 2.5% on top; the royalty comes out of the seller's share.
+
+## What the NFT contract does (read 2026-11-05, contract unchanged)
+
+Read from `contracts/nft_oz/src/lib.rs` in the old repo. **The contract is not changed.**
+
+- **List**: `list(seller, token_id, prices)` and `list_batch` (up to 20 tokens, one price grid). Only the seller
+  signs. The prices are a list of `(payment token, price)`: 1 to a small maximum, each above zero, no repeats. Nothing
+  else is required of them, so the seller may offer any tokens. **Listing does not lock the copy**: the seller keeps it
+  and can still transfer it.
+- **Cancel**: `cancel_listing(seller, token_id)`, seller signs. There is no edit: changing a price is cancel, then list.
+- **Buy**: `buy` / `buy_batch` (up to 20 tokens, one payment token). The **buyer signs and the treasury co-signs**; the
+  seller does not sign at sale time. It refuses a buyer who is the seller (`SelfPurchase`) and a stale listing, where the
+  seller no longer owns the copy (`ListingStale`).
+- **Who gets what** (`compute_breakdown`): the buyer pays the listed price. Out of that, the platform fee goes to the
+  treasury and the artist's royalty to the creator (none if the seller is the creator); **the seller gets the rest**.
+  On top of the price the buyer pays the treasury the network fee. So the platform fee comes out of the **seller's
+  share**, not on top of the buyer's price. This is how a primary NFT sale already works in the new app
+  ("the contract takes the platform fee out of the creator's share; the buyer doesn't pay it").
+- **Preview**: `sale_breakdown(token_id, payment_token)` returns the exact split, so the quote can read it from the
+  contract instead of recomputing it.
+- **Edition and token**: one token is one copy with one owner, and each token has its own listing. In the database a
+  resale listing is one row per `NftEdition` (`Listing.editionId` is unique), one copy each.
+
+### What this means for the build
+
+1. **Fees differ from classic copies.** Classic resale: the buyer pays 2.5% on top. NFT resale with this contract:
+   the seller gets the price less the platform fee and the royalty, and the buyer pays only the price (and the network fee).
+2. **One on-chain price per payment token.** The seller's BANDCOIN price goes on chain. The USD (card) price stays in
+   the database and is only the card charge; the treasury sends the BANDCOIN first, as in a primary card sale.
+3. **Stale listings are normal**, since a listed copy isn't locked. The worker must end a listing when the seller no
+   longer owns the copy, and the buy must handle `ListingStale` with a plain message.
+4. **Moving a copy** (database): ownership, the copy's locked-content unlocks and any unlock pins move to the buyer,
+   as `moveUnlockPins` does for a gift.
