@@ -167,7 +167,7 @@ describe("listing smart-contract NFTs", () => {
     expect(quote.copies).toEqual(["7", "8"]);
     expect(quote.net.bandcoin.net).toBe("87.5");
     expect(quote.net.usd).toBeNull();
-    expect(quote.total).toBe("0.0700000");
+    expect(quote.total).toBe("0.3100000");
     // Only copies the seller owns, with no live listing.
     expect(db.nftEdition.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -188,7 +188,7 @@ describe("listing smart-contract NFTs", () => {
   it("says so when there is no free copy, or too little XLM", async () => {
     const none = setup({ editions: [] });
     expect((await quoteListNft(none.ctx, me, input)).problems[0]!.message).toMatch(/free copy/);
-    const poor = setup({ xlm: "1" });
+    const poor = setup({ xlm: "0.2" });
     expect((await quoteListNft(poor.ctx, me, input)).problems[0]!.code).toBe("INSUFFICIENT_FUNDS");
   });
 

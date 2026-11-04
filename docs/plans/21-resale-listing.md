@@ -2,10 +2,19 @@
 
 Status: **answered 2026-11-05, building** (both halves together).
 
-Progress: classic copies, backend done (`e36b299`, with a testnet run script) and now the fan screens (item page
-"Sell your copies", `/selling` with listings, change price, take back, and sold history). **Still to build:** NFT editions
-(list, cancel and reprice through the contract, my listings and sold history for them, the worker check that a listed
-edition is still owned by the seller), then a testnet run and a signed-in browser check of both.
+Progress (2026-11-05): **both kinds built and run on testnet.** Classic copies: backend, fan screens, `testnet:resale`.
+Smart-contract NFTs: list, reprice (same `list` call), take off sale, buy a listed copy (wallet and card), a worker job that ends
+listings whose copy moved (`resale.verify`), the same screens, and `testnet:nft-resale`. The NFT run, with the contract unchanged:
+seller listed 2 copies (`list_batch`), a buyer bought one (seller +37, artist royalty +2, platform fee 1, on a price of 40), the
+database and contract agreed on the owner, the other copy was repriced and then taken off sale.
+
+**Open problem found by the run (not caused by resale): a primary smart-contract NFT purchase fails its network-fee check.**
+The quote budgets about 0.08 XLM (0.05 + 0.01 per copy) but the contract call's real fee on testnet was 0.4 XLM and on one
+run 14.8 XLM, so `startNftPurchase` refuses ("The network fee is higher than shown"), every time. This matches the two failed
+"Circle Line VIP pass" orders in the dev database. The resale run only got past it with the check switched off for one run.
+Needs a decision on the estimate.
+
+Not done yet: a signed-in browser check of the NFT screens, and card payment for a resold NFT was covered by a unit test only.
 
 ## Why
 

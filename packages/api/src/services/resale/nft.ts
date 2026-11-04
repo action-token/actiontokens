@@ -19,7 +19,6 @@ import { type Context, isCustodial, type SessionUser } from "../../context";
 import { transitionOrder } from "../order-state";
 import { DEFAULT_PLATFORM_FEE_BPS } from "../admin/settings";
 import { failOrder, ownOrder, userSignature } from "../purchase";
-import { feeEstimateStroops } from "../purchase/nft";
 
 /**
  * Resale of smart-contract NFTs (the numbered editions of the nft_oz contract),
@@ -34,6 +33,15 @@ import { feeEstimateStroops } from "../purchase/nft";
  * the rest, in BANDCOIN. A card buyer's USD price only sets the charge.
  */
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
+
+/**
+ * What the holder's own list / cancel call costs them in XLM: measured on testnet
+ * (a two-copy `list_batch` was about 0.17 XLM), with margin. The call's real fee
+ * must fit inside what was shown, or nothing is sent.
+ */
+const FEE_ESTIMATE = { baseXlm: "0.25", perCopyXlm: "0.03" } as const;
+const feeEstimateStroops = (copies: number) =>
+  toStroops(FEE_ESTIMATE.baseXlm) + toStroops(FEE_ESTIMATE.perCopyXlm) * BigInt(copies);
 
 const PRICE = /^\d{1,12}(\.\d{1,7})?$/;
 
@@ -272,7 +280,7 @@ export async function startListNft(ctx: ServiceCtx, user: SessionUser, input: Nf
     const xdr = await chain.prepareContractCall(call.xdr, []);
     const tx = TransactionBuilder.fromXDR(xdr, chain.config.network.passphrase) as Transaction;
     // The call's real fee must fit the estimate shown, or nothing is sent.
-    if (BigInt(tx.fee) > prepared.fee + toStroops("0.05"))
+    if (BigInt(tx.fee) > prepared.fee)
       throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, {
         message:
           "The network fee is higher than shown right now. Nothing was charged; try again in a minute.",
