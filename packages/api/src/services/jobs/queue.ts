@@ -22,6 +22,7 @@ export type JobType =
   | "studio.generate"
   | "pins.batch"
   | "agent.run"
+  | "facebook.import"
   | "studio.sweep";
 export const JOB_TYPES: readonly JobType[] = [
   "order.reconcile",
@@ -34,6 +35,7 @@ export const JOB_TYPES: readonly JobType[] = [
   "studio.generate",
   "pins.batch",
   "agent.run",
+  "facebook.import",
   "studio.sweep",
 ];
 

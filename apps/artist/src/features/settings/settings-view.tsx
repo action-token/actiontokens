@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Coins, Copy, ExternalLink, Link2, UserRound, Wallet } from "lucide-react";
+import { Check, Coins, Copy, ExternalLink, Link2, Share2, UserRound, Wallet } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
@@ -19,6 +19,7 @@ import { FAN_APP_URL } from "../shell/links";
 
 import { AccountsTab, FanTokenTab } from "./account-tabs";
 import { BalancesTab } from "./balances-tab";
+import { FacebookTab } from "./facebook-tab";
 import { ProfileForm } from "./profile-form";
 import { FULL_BLEED, ProfileHeader, SETTINGS_COLUMN } from "./profile-header";
 import { SettingsSection } from "./settings-section";
@@ -31,6 +32,7 @@ const TABS = [
   { id: "short-link", label: "Short link", icon: Link2 },
   { id: "accounts", label: "Accounts", icon: Wallet },
   { id: "balances", label: "Balances", icon: Coins },
+  { id: "facebook", label: "Facebook", icon: Share2 },
 ] as const;
 type Tab = (typeof TABS)[number]["id"];
 
@@ -139,6 +141,14 @@ function Settings({ profile }: { profile: Profile }) {
               description="What your wallet and your storage account hold. Move XLM or tokens between them; you see the network fee first."
             >
               <BalancesTab storageOpen={Boolean(profile.storageAccount?.activatedAt)} />
+            </SettingsSection>
+          </TabsContent>
+          <TabsContent value="facebook">
+            <SettingsSection
+              title="Facebook"
+              description="Copy new posts from a Facebook page into your Bandcoin posts. Nothing is posted to Facebook."
+            >
+              <FacebookTab />
             </SettingsSection>
           </TabsContent>
         </Tabs>

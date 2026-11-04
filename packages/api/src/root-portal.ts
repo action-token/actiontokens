@@ -4,6 +4,7 @@ import { rechargeRouter } from "./routers/app/recharge";
 import { adminRouter } from "./routers/admin";
 import { agentRouter } from "./routers/artist/agent";
 import { aiRouter } from "./routers/artist/ai";
+import { facebookRouter } from "./routers/artist/facebook";
 import { bountiesRouter } from "./routers/artist/bounties";
 import { catalogRouter } from "./routers/artist/catalog";
 import { embedsRouter } from "./routers/artist/embeds";
@@ -42,6 +43,7 @@ export const portalRouter = createRouter({
   engage: engageRouter,
   agent: agentRouter,
   ai: aiRouter,
+  facebook: facebookRouter,
   bounties: bountiesRouter,
   pins: pinsRouter,
   embeds: embedsRouter,

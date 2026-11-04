@@ -5,6 +5,8 @@ import {
   expireVanityLinks,
   lyriaProvider,
   generateInput,
+  importFacebookPost,
+  type ImportPayload,
   googleProvider,
   runGeneration,
   openaiAgentModel,
@@ -83,6 +85,16 @@ export function handlersFor(deps: WorkerDeps): Record<string, JobHandler> {
         model: openaiAgentModel,
       });
       return { result, target: { type: "AgentJob", id: payload.agentJobId } };
+    },
+    // Copies one new post from an artist's Facebook page (photos re-hosted). Safe to repeat: one post, once.
+    "facebook.import": async (job) => {
+      const payload = job.payload as ImportPayload & { artistId?: unknown };
+      if (typeof payload.artistId !== "string" || typeof payload.fbPostId !== "string")
+        throw new AppError(ErrorCodes.VALIDATION_FAILED, {
+          message: "facebook.import needs an artistId and an fbPostId",
+        });
+      const result = await importFacebookPost(context(), payload.artistId, payload);
+      return { result, target: { type: "FacebookPost", id: payload.fbPostId } };
     },
     // Pins an artist confirmed on an agent card, made one by one. A failed place is logged, never retried.
     "pins.batch": async (job) => {

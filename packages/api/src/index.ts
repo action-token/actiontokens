@@ -43,6 +43,13 @@ export { dropDueHotspots } from "./services/artist/hotspots";
 export { expireVanityLinks } from "./services/artist/vanity-expire";
 export { runMusic, sweepStuckRuns } from "./services/studio/music";
 export { stellarToml } from "./services/platform/toml";
+export {
+  FACEBOOK_IMPORT_JOB,
+  importFacebookPost,
+  receiveWebhook,
+  type ImportPayload,
+} from "./services/facebook/import";
+export { loginUrl, makeState, readState, sealToken, userTokenFor } from "./services/facebook/graph";
 export { runPinBatch, BATCH_JOB, type BatchDeps } from "./services/agent/batch";
 export type { AgentRunPayload } from "./services/agent/contract";
 export { runAgent } from "./services/agent/runner";

@@ -153,6 +153,19 @@ Not built yet: the MCP server and tokens Wadzzo has, and a home area.
 
 **You check:** ask the agent for pins, confirm one; mix and export a track.
 
+### 8a. Facebook post sync (built 2026-11-04; waiting for a Facebook app to try it for real)
+
+Portal Settings › Facebook: Connect Facebook (`/api/facebook/start` → Facebook → `/api/facebook/callback`),
+pick a page, and Bandcoin listens to its feed. Meta's webhook (`/api/webhooks/facebook`, checked
+against the app secret) queues `facebook.import`; the worker fetches the post, re-hosts its
+photos and videos in our storage and creates the post once (a post id is only copied once).
+As in the old app, an imported post shows in the feed but has no collectible copies, and the
+"auto-publish" setting only exists as a flag: nothing is posted to Facebook. A page can belong to
+one artist; if Facebook says access was taken away the connection is dropped. Page tokens are
+sealed with `SOCIAL_TOKEN_ENC_KEY`. Needs from you: a Facebook developer app (id, secret,
+redirect and webhook set up as in `apps/artist/.env.example`). The old artist's one connection
+wasn't carried over (its token was sealed with the old key): they connect again.
+
 ### 8. Facebook post sync
 
 - Settings › Facebook: connect a page (Facebook login), choose auto-publish or manual.
