@@ -18,7 +18,7 @@ import { createChainGateway } from "../src/services/chain-gateway";
 import { createCallerFactory } from "../src/trpc";
 
 const host = new URL(process.env.DATABASE_URL ?? "postgresql://x@missing/x").hostname;
-if (!host.startsWith("ep-shy-leaf-")) throw new Error(`Refusing to run against ${host}`);
+if (!host.startsWith("ep-red-sea-")) throw new Error(`Refusing to run against ${host}`);
 
 const slug = process.argv[2] ?? "lumen-avenue-night-drive";
 const currency = (process.argv[3] ?? "XLM") as "BANDCOIN" | "XLM" | "USDC";

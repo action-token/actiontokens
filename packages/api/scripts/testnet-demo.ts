@@ -17,7 +17,7 @@ import { addSignatures, chainConfig, encryptSecret, submit } from "@bandcoin/cha
 import { db } from "@bandcoin/db/server";
 
 const host = new URL(process.env.DATABASE_URL ?? "postgresql://x@missing/x").hostname;
-if (!host.startsWith("ep-shy-leaf-")) throw new Error(`Refusing to run against ${host}`);
+if (!host.startsWith("ep-red-sea-")) throw new Error(`Refusing to run against ${host}`);
 const config = chainConfig();
 if (config.name !== "testnet") throw new Error("Testnet only");
 

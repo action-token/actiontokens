@@ -6,7 +6,7 @@ import { claimJob, completeJob } from "../src/services/jobs/queue";
 
 // Only the dev database: the queue's locking needs a real Postgres.
 const host = new URL(process.env.DATABASE_URL ?? "postgresql://x@missing/x").hostname;
-if (!host.startsWith("ep-shy-leaf-")) throw new Error(`Refusing to run against ${host}`);
+if (!host.startsWith("ep-red-sea-")) throw new Error(`Refusing to run against ${host}`);
 
 /** A type no real worker handles, so the test can't take a real job (or a real worker this one). */
 const TYPE = `test.claim.${Date.now()}`;

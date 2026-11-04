@@ -23,7 +23,7 @@ import { createCallerFactory } from "../src/trpc";
  */
 
 const host = new URL(process.env.DATABASE_URL ?? "postgresql://x@missing/x").hostname;
-if (!host.startsWith("ep-shy-leaf-")) throw new Error(`Refusing to run against ${host}`);
+if (!host.startsWith("ep-red-sea-")) throw new Error(`Refusing to run against ${host}`);
 
 const BANDCOIN = {
   code: "BANDCOIN",

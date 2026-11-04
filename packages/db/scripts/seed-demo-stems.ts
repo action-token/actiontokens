@@ -132,7 +132,7 @@ const remove = process.argv.includes("--remove");
 if (!title || !displayName)
   throw new Error('Usage: seed-demo-stems.ts "<song title>" "<display name>" [--remove]');
 
-if (!/ep-shy-leaf/.test(process.env.DATABASE_URL ?? ""))
+if (!/ep-red-sea/.test(process.env.DATABASE_URL ?? ""))
   throw new Error("Refusing to run: DATABASE_URL is not the development database.");
 
 const item = await db.item.findFirst({

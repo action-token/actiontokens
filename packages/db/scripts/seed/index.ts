@@ -27,7 +27,7 @@ import {
   type DemoArtist,
 } from "./demo-data";
 
-const DEV_HOST_PREFIX = "ep-shy-leaf-";
+const DEV_HOST_PREFIX = "ep-red-sea-";
 const DAY = 86_400_000;
 
 const slugify = (s: string) =>

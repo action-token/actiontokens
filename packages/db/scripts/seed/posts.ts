@@ -12,7 +12,7 @@ import "dotenv/config";
 import { db } from "../../src/client";
 import { audio, cover } from "./demo-data";
 
-const DEV_HOST_PREFIX = "ep-shy-leaf-";
+const DEV_HOST_PREFIX = "ep-red-sea-";
 const HOUR = 3_600_000;
 const VIDEO = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
 /** Free copies fans collect by scanning the post's QR, as for posts made in the portal. */
