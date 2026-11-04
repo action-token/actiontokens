@@ -19,14 +19,24 @@ import { Avatar } from "./context-panel";
 export const toolClass =
   "text-fg-muted hover:text-fg hover:bg-surface data-[state=open]:bg-surface data-[state=open]:text-fg relative flex h-8 w-full min-w-8 items-center justify-center rounded-full transition-colors";
 
-/** Notifications, Settings and Log out, beside the search. Signed-in only. */
+/** The bell, beside the search at the top of the sidebar. Signed-in only. */
 export function SidebarTools({ className }: { className?: string }) {
   const { status } = useSession();
   if (status !== "authenticated") return null;
   return (
     <div className={cn("flex shrink-0 items-center gap-1", className)}>
       <NotificationsBell />
-      <Link href="/settings" aria-label="Settings" title="Settings" className={toolClass}>
+    </div>
+  );
+}
+
+/** Settings and Log out, in the account card at the bottom of the sidebar. */
+export function AccountActions({ className }: { className?: string }) {
+  const actionClass =
+    "text-fg-muted hover:text-fg hover:bg-surface-2 flex size-8 shrink-0 items-center justify-center rounded-full transition-colors";
+  return (
+    <div className={cn("flex items-center gap-0.5", className)}>
+      <Link href="/settings" aria-label="Settings" title="Settings" className={actionClass}>
         <Settings className="size-4" />
       </Link>
       <button
@@ -34,7 +44,7 @@ export function SidebarTools({ className }: { className?: string }) {
         aria-label="Log out"
         title="Log out"
         onClick={() => void signOut({ redirect: false })}
-        className={toolClass}
+        className={actionClass}
       >
         <LogOut className="size-4" />
       </button>

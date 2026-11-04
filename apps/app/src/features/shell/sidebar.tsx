@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, LogIn, Mic2, Plus, ScanLine } from "lucide-react";
+import { ArrowUpRight, LogIn, Mic2, ScanLine } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -20,14 +20,14 @@ import { Avatar } from "./context-panel";
 import { AR_URL, ARTIST_URL, artistEntry, GROUPS, isActive, type NavItem } from "./nav";
 import { ResizeHandle } from "./resize-handle";
 import { RailTools, SidebarSearchRow } from "./sidebar-search";
-import { BalanceCard } from "./sidebar-tools";
+import { AccountActions, BalanceCard } from "./sidebar-tools";
 import { SidebarTheme } from "./sidebar-theme";
 
 /**
- * The desktop sidebar: a row of Search, notifications, settings and log out
+ * The desktop sidebar: a row of Search and notifications
  * (Search opens the search field there), links in groups (the page you're on is filled in the brand yellow), your
- * balances, then your account at the bottom (opens the wallet dialog) with a
- * Recharge button, then the theme, socials, info pages and copyright. Below the xl breakpoint it is an icon rail.
+ * balances, then your account at the bottom (opens the wallet dialog) with
+ * Settings and Log out, then the theme, socials, info pages and copyright. Below the xl breakpoint it is an icon rail.
  */
 export function Sidebar() {
   return (
@@ -235,7 +235,7 @@ function AccountCard() {
     abbreviateAddress(me.data.walletAddress ?? undefined);
 
   return (
-    <div className="border-fg bg-bg flex min-w-0 items-center justify-center gap-2 rounded-xl border-[3px] p-2 shadow-[3px_4px_0_0_var(--color-primary)] xl:justify-between">
+    <div className="border-fg bg-bg flex min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl border-[3px] p-2 shadow-[3px_4px_0_0_var(--color-primary)] xl:flex-row xl:justify-between xl:gap-2">
       <button
         type="button"
         title="Your wallet"
@@ -257,14 +257,7 @@ function AccountCard() {
           )}
         </span>
       </button>
-      <Link
-        href="/recharge"
-        title="Recharge"
-        aria-label="Recharge"
-        className="bg-primary text-primary-foreground border-fg hidden size-8 shrink-0 items-center justify-center rounded-full border-2 xl:flex"
-      >
-        <Plus className="size-4" strokeWidth={3} />
-      </Link>
+      <AccountActions className="flex-col xl:flex-row" />
     </div>
   );
 }

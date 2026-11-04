@@ -10,7 +10,7 @@ import { cn } from "@bandcoin/ui/lib/cn";
 import { SearchBox } from "./search-box";
 import { SidebarTools, toolClass } from "./sidebar-tools";
 
-/** One rounded bar of equal cells: Search, Notifications, Settings, Log out. */
+/** One rounded bar of equal cells: Search, Notifications. */
 const toolbarClass =
   "bg-surface-2 grid h-10 auto-cols-fr items-center gap-0.5 rounded-full border p-[3px]";
 
@@ -23,7 +23,7 @@ function SearchButton(props: React.ComponentProps<"button">) {
 }
 
 /**
- * The wide sidebar's tool row: Search, Notifications, Settings, Log out,
+ * The wide sidebar's tool row: Search, Notifications,
  * centered. Search grows the search field out of the row (and × or Escape
  * folds it back). It stays open on the marketplace while a search is showing.
  */
