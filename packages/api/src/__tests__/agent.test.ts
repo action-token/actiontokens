@@ -144,9 +144,12 @@ describe("carrying out a confirmed proposal", () => {
       defaults: { pinNumber: 5, endDate: "2026-12-24" },
     });
     expect(done).toEqual({ message: "Creating 2 pins…", pinJobId: "b1" });
-    const data = db.pinBatchJob.create.mock.calls[0]![0].data;
+    const data = db.pinBatchJob.create.mock.calls[0]![0].data as {
+      total: number;
+      payload: { places: { id: string; endsAt: string }[]; options: object };
+    };
     expect(data.total).toBe(2);
-    expect(data.payload.places.map((p: { id: string }) => p.id)).toEqual(["p1", "p3"]);
+    expect(data.payload.places.map((p) => p.id)).toEqual(["p1", "p3"]);
     expect(data.payload.places[0].endsAt).toBe("2026-12-24T23:59:59.999Z");
     expect(data.payload.options).toMatchObject({ pinNumber: 5, grouping: "per-location" });
     expect(jobs).toEqual([expect.objectContaining({ type: "pins.batch", maxAttempts: 1 })]);
