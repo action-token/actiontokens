@@ -89,7 +89,7 @@ export function UpcomingEvents() {
   return (
     <Block title="Upcoming events" note="live near you soon">
       {events.isPending ? (
-        <Loading className="aspect-[4/3] w-64" />
+        <Loading className="aspect-[4/3] w-64 xl:aspect-[16/9]" />
       ) : (
         events.data?.map((event) => (
           <Link
@@ -97,7 +97,7 @@ export function UpcomingEvents() {
             href={`/artist/${event.artist.slug}`}
             className={cn(POSTER, ITEM, "w-64")}
           >
-            <div className="relative aspect-[4/3]">
+            <div className="relative aspect-[4/3] xl:aspect-[16/9]">
               {event.coverUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts
                 <img

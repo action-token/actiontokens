@@ -69,7 +69,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
           <AccountButton />
         </header>
-        <main className="flex-1 pb-32 sm:pb-20">{children}</main>
+        <main className={cn("flex-1 pb-32", hasTrack ? "sm:pb-24" : "sm:pb-0")}>{children}</main>
       </div>
 
       {panel && (
