@@ -114,3 +114,16 @@ Read from `contracts/nft_oz/src/lib.rs` in the old repo. **The contract is not c
    longer owns the copy, and the buy must handle `ListingStale` with a plain message.
 4. **Moving a copy** (database): ownership, the copy's locked-content unlocks and any unlock pins move to the buyer,
    as `moveUnlockPins` does for a gift.
+
+## Your answers on NFT resale (2026-11-05)
+
+Words used here: **classic copies** are plain tokens; **smart-contract NFTs** are the numbered editions sold through the
+`nft_oz` contract.
+
+1. **Contract**: unchanged.
+2. **Fees for smart-contract NFTs**: follow the contract. The seller gets the price less the platform fee and the royalty
+   (shown before listing); the buyer pays the listed price and the network fee. (Classic copies keep "buyer pays 2.5% on top".)
+3. **Card**: yes, BANDCOIN and card, as in the old app (`buyBatchWithCard`: the card is charged the seller's USD price,
+   which is mandatory on a listing; card checkout is for email and social sign-in accounts, which Bandcoin holds the key for).
+4. **Order**: both sides (list / reprice / take off sale, and buy a listed copy), then one testnet run.
+5. **Repricing** is one `list` call again (the contract overwrites an existing listing), not cancel then list.
