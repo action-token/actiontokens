@@ -1,6 +1,16 @@
 "use client";
 
-import { Check, Coins, Copy, ExternalLink, Link2, Share2, UserRound, Wallet } from "lucide-react";
+import {
+  Bot,
+  Check,
+  Coins,
+  Copy,
+  ExternalLink,
+  Link2,
+  Share2,
+  UserRound,
+  Wallet,
+} from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
@@ -18,6 +28,7 @@ import { VANITY_HOST } from "../domain/host";
 import { FAN_APP_URL } from "../shell/links";
 
 import { AccountsTab, FanTokenTab } from "./account-tabs";
+import { AiAppsTab } from "./ai-apps-tab";
 import { BalancesTab } from "./balances-tab";
 import { FacebookTab } from "./facebook-tab";
 import { ProfileForm } from "./profile-form";
@@ -33,6 +44,7 @@ const TABS = [
   { id: "accounts", label: "Accounts", icon: Wallet },
   { id: "balances", label: "Balances", icon: Coins },
   { id: "facebook", label: "Facebook", icon: Share2 },
+  { id: "ai-apps", label: "AI apps", icon: Bot },
 ] as const;
 type Tab = (typeof TABS)[number]["id"];
 
@@ -149,6 +161,14 @@ function Settings({ profile }: { profile: Profile }) {
               description="Copy new posts from a Facebook page into your Bandcoin posts. Nothing is posted to Facebook."
             >
               <FacebookTab />
+            </SettingsSection>
+          </TabsContent>
+          <TabsContent value="ai-apps">
+            <SettingsSection
+              title="AI apps"
+              description="Use your map agent from Claude, Cursor or another AI app."
+            >
+              <AiAppsTab />
             </SettingsSection>
           </TabsContent>
         </Tabs>

@@ -3,10 +3,12 @@ import { cache } from "react";
 
 import {
   type ChainGateway,
+  agentRouter,
   createCallerFactory,
   createChainGateway,
   createContext,
   liveSession,
+  type SessionUser,
   portalRouter,
 } from "@bandcoin/api";
 import { sessionUserOf } from "@bandcoin/auth";
@@ -33,3 +35,15 @@ export async function createPortalContext(requestHeaders: Headers) {
 export const serverApi = cache(async () =>
   createCallerFactory(portalRouter)(await createPortalContext(new Headers(await headers()))),
 );
+
+/** The agent API as the person an MCP token stands for (no browser session: the token is the sign-in). */
+export const agentCallerFor = (user: SessionUser, requestHeaders: Headers) =>
+  createCallerFactory(agentRouter)(
+    createContext({
+      db,
+      chain: chain(),
+      app: "artist",
+      session: { user },
+      headers: requestHeaders,
+    }),
+  );

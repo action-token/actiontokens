@@ -142,7 +142,7 @@ become a `pins.batch` job: one pin per place (or one pin for all), live without 
 a place's Google photo and link, shared search tags from the first pin, progress in
 `agent.pinJob`, and one bad place never stops the rest. Tests use a fake model; Google was
 checked for real; the OpenAI side needs `OPENAI_API_KEY` in the worker's env to try for real.
-Not built yet: the MCP server and tokens Wadzzo has, and a home area.
+MCP (built 2026-11-04, as Wadzzo): the portal's `/api/mcp` serves the agent to AI apps with `bc_mcp_…` tokens (Settings › AI apps; only a hash is stored, up to 10 per person); every tool calls the agent API as the token's person, so the daily limit and confirm-before-change rules are the same. Not built: a home area.
 
 ### 7. Pin agent and stem editor
 

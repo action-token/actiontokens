@@ -50,6 +50,10 @@ export {
   type ImportPayload,
 } from "./services/facebook/import";
 export { loginUrl, makeState, readState, sealToken, userTokenFor } from "./services/facebook/graph";
+export { bearerMcpToken, mcpUser, MCP_TOKEN_PREFIX } from "./services/agent/mcp-token";
+export { handleMcpPost, mcpNotAllowed } from "./services/agent/mcp-http";
+export { createMcpServer, type AgentCaller } from "./services/agent/mcp";
+export { agentRouter } from "./routers/artist/agent";
 export { runPinBatch, BATCH_JOB, type BatchDeps } from "./services/agent/batch";
 export type { AgentRunPayload } from "./services/agent/contract";
 export { runAgent } from "./services/agent/runner";

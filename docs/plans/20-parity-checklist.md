@@ -73,7 +73,7 @@ Legend: ✅ built · 🟡 built, different shape (read the note) · ❓ needs yo
 | `/artist/map`, `/map/collection-report/*` | `/pins/*`, `/hotspots/*`, `/reports/*` | ✅ | |
 | (new) | `/events`, `/embeds`, `/notifications` | ✅ | |
 | `/artist/studio` | Studio | ⏸ | |
-| Pin agent (chat on the map) | `agent.*` API | 🟡 | Backend built; the chat screen comes with the Studio frontend |
+| Pin agent (chat on the map) | `agent.*` API, MCP at the portal's `/api/mcp` | 🟡 | Backend built, plus Wadzzo's MCP server (Settings › AI apps makes the token, an AI app uses the agent). The chat screen comes with the Studio frontend |
 | Facebook sync (`/api/social/facebook/*`, `/api/webhooks/facebook`) | none yet | ⛔ | Stage 8, needs your Facebook app id and secret |
 
 ## Admin (bandfan `/admin/*` → portal `/admin/*`)

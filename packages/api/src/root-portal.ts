@@ -5,6 +5,7 @@ import { adminRouter } from "./routers/admin";
 import { agentRouter } from "./routers/artist/agent";
 import { aiRouter } from "./routers/artist/ai";
 import { facebookRouter } from "./routers/artist/facebook";
+import { mcpTokensRouter } from "./routers/artist/mcp-tokens";
 import { bountiesRouter } from "./routers/artist/bounties";
 import { catalogRouter } from "./routers/artist/catalog";
 import { embedsRouter } from "./routers/artist/embeds";
@@ -44,6 +45,7 @@ export const portalRouter = createRouter({
   agent: agentRouter,
   ai: aiRouter,
   facebook: facebookRouter,
+  mcpTokens: mcpTokensRouter,
   bounties: bountiesRouter,
   pins: pinsRouter,
   embeds: embedsRouter,
