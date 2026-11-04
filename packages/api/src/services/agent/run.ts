@@ -15,6 +15,7 @@ import type {
   ReportStat,
 } from "./contract";
 import type { ArtistContext } from "./context";
+import type { AgentModel } from "./model";
 
 /** A set of things a tool found, which later tools can show or act on by its ref. */
 export type ResultSet =
@@ -55,6 +56,7 @@ export class Run {
     readonly agentJobId: string,
     readonly artist: ArtistContext,
     readonly conversationId: string,
+    readonly model: AgentModel,
   ) {}
 
   /** Starts a visible step; finish it with done() or fail(). */

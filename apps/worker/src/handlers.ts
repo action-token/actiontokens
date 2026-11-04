@@ -1,4 +1,5 @@
 import {
+  type AgentRunPayload,
   createContext,
   dropDueHotspots,
   expireVanityLinks,
@@ -6,8 +7,13 @@ import {
   generateInput,
   googleProvider,
   runGeneration,
+  openaiAgentModel,
+  pinTags,
+  placePhoto,
+  runAgent,
   runMusic,
   runPinBatch,
+  useGeoCache,
   sweepStuckRuns,
   keepUnlocksAlive,
   reconcileOrders,
@@ -57,12 +63,53 @@ export function handlersFor(deps: WorkerDeps): Record<string, JobHandler> {
       });
       return { result, target: { type: "Generation", id: payload.generationId } };
     },
+    // One chat message to the map agent: OpenAI and Google, steps shown live, answer saved. Never retried.
+    "agent.run": async (job) => {
+      const payload = job.payload as {
+        agentJobId?: unknown;
+        conversationId?: unknown;
+        artistId?: unknown;
+      };
+      if (
+        typeof payload.agentJobId !== "string" ||
+        typeof payload.conversationId !== "string" ||
+        typeof payload.artistId !== "string"
+      )
+        throw new AppError(ErrorCodes.VALIDATION_FAILED, {
+          message: "agent.run needs its run details",
+        });
+      useGeoCache(deps.db);
+      const result = await runAgent(context(), payload as AgentRunPayload, {
+        model: openaiAgentModel,
+      });
+      return { result, target: { type: "AgentJob", id: payload.agentJobId } };
+    },
     // Pins an artist confirmed on an agent card, made one by one. A failed place is logged, never retried.
     "pins.batch": async (job) => {
       const { batchId } = job.payload as { batchId?: unknown };
       if (typeof batchId !== "string")
         throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "pins.batch needs a batchId" });
-      const result = await runPinBatch(context(), batchId);
+      const result = await runPinBatch(context(), batchId, {
+        // A Google place's photo and link, and shared search tags: best effort, a failure leaves the pin plain.
+        enrich: async (place) => {
+          if (!place.gPlaceId) return place;
+          const image =
+            place.image ?? (await placePhoto(place.gPlaceId).catch(() => null)) ?? undefined;
+          return {
+            ...place,
+            image,
+            url: place.url ?? `https://www.google.com/maps/place/?q=place_id:${place.gPlaceId}`,
+          };
+        },
+        tags: (place) =>
+          pinTags(openaiAgentModel, {
+            title: place.title,
+            description: place.description,
+            latitude: place.latitude,
+            longitude: place.longitude,
+            type: "LANDMARK",
+          }),
+      });
       return { result, target: { type: "PinBatchJob", id: batchId } };
     },
     // Refund Studio runs that a stopped worker never finished.

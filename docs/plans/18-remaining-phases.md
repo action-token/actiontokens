@@ -130,6 +130,20 @@ key. "Use as cover / in a post" arrive with the Studio screens.
 
 **You check:** one generation of each kind, and a failed one refunded.
 
+### 7a. Pin agent and batch pins (backend built 2026-11-04; the chat screen comes with the Studio frontend)
+
+Follows Wadzzo's map agent. `agent.send` queues one message (counts as one of the artist's
+50 daily AI generations; admins are unlimited, and it's free for approved artists), the worker
+job `agent.run` lets OpenAI call tools (Google places and geocoding, web lists and events,
+the artist's own pins, hotspots, events and announcements, collection reports) and shows each
+step live through `agent.poll`. The agent only proposes: `agent.confirm` runs a proposal once
+through the same services as the forms, `agent.cancel` turns it down. Confirmed `create_pins`
+become a `pins.batch` job: one pin per place (or one pin for all), live without admin review,
+a place's Google photo and link, shared search tags from the first pin, progress in
+`agent.pinJob`, and one bad place never stops the rest. Tests use a fake model; Google was
+checked for real; the OpenAI side needs `OPENAI_API_KEY` in the worker's env to try for real.
+Not built yet: the MCP server and tokens Wadzzo has, and a home area.
+
 ### 7. Pin agent and stem editor
 
 - `/agent`: the bandfan pin and hotspot agent (chat). It proposes pins and hotspots as
