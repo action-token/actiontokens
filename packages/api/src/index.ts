@@ -42,5 +42,7 @@ export { keepUnlocksAlive, syncUnlocks } from "./services/catalog/unlock-chain";
 export { dropDueHotspots } from "./services/artist/hotspots";
 export { expireVanityLinks } from "./services/artist/vanity-expire";
 export { runMusic, sweepStuckRuns } from "./services/studio/music";
-export { lyriaProvider } from "./services/studio/lyria";
+export { lyriaProvider, lyriaLive, type LiveConnect } from "./services/studio/lyria";
+export { LiveSession, type LiveIn, type LiveOut } from "./services/studio/live-session";
+export { liveTicket, readTicket } from "./services/studio/live";
 export { queueTranscode, type TranscodePart } from "./services/media/processing";

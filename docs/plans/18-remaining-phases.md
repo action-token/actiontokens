@@ -96,6 +96,18 @@ Original plan:
 
 **You check:** top up on testnet and see the ledger.
 
+### 6a. Studio live music (backend done 2026-11-04; Studio screens come last)
+
+Live Lyria jams are charged per started minute of playing. The API signs a one-minute
+ticket (`music.liveTicket`); the browser opens `/live?ticket=…` on the worker, which
+relays to Lyria RealTime (`LiveSession`: connect is free, a minute is held when playing
+reaches it, kept once music arrives in it, refunded if none did, pause stops the clock,
+ends at 30 minutes or when coins run out). `music.saveRecording` keeps a WAV with the run.
+Needs `GEMINI_API_KEY` and the same `NEXTAUTH_SECRET` (or `LIVE_TICKET_SECRET`) on the
+API and the worker, and `LIVE_WS_URL` (default `ws://localhost:8080/live`). Verified with
+real Lyria on the dev database. The Studio screens (a draft is in `apps/studio/src/features/live`,
+not wired in) are built with the rest of the Studio frontend.
+
 ### 6. Studio generators
 
 - `/text`, `/image`, `/video`, `/music`: prompt, model, cost shown first, history.

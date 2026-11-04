@@ -66,3 +66,46 @@ export function lyriaProvider(apiKey = process.env.GEMINI_API_KEY): MusicProvide
     },
   };
 }
+
+/** What the live relay needs from a Lyria RealTime session. */
+export type LiveLyria = {
+  setWeightedPrompts(input: { weightedPrompts: { text: string; weight: number }[] }): Promise<void>;
+  setMusicGenerationConfig(input: {
+    musicGenerationConfig: { bpm?: number; density?: number; brightness?: number };
+  }): Promise<void>;
+  play(): void;
+  pause(): void;
+  stop(): void;
+  close(): void;
+};
+export type LiveEvents = {
+  onAudio(base64Pcm: string): void;
+  onFiltered(reason: string): void;
+  onError(message: string): void;
+  onClose(): void;
+};
+export type LiveConnect = (events: LiveEvents) => Promise<LiveLyria>;
+
+/** Opens a Lyria RealTime session (48 kHz stereo 16-bit audio, in ~2 s chunks). */
+export function lyriaLive(apiKey = process.env.GEMINI_API_KEY): LiveConnect {
+  return async (events) => {
+    if (!apiKey)
+      throw new AppError(ErrorCodes.CONFIG_MISSING, { message: "Live music isn't set up yet." });
+    const ai = new GoogleGenAI({ apiKey, apiVersion: "v1alpha" });
+    const session = await ai.live.music.connect({
+      model: "lyria-realtime-exp",
+      callbacks: {
+        onmessage: (message) => {
+          for (const chunk of message.serverContent?.audioChunks ?? [])
+            if (chunk.data) events.onAudio(chunk.data);
+          if (message.filteredPrompt)
+            events.onFiltered(message.filteredPrompt.filteredReason ?? "A prompt was filtered.");
+        },
+        onerror: (error: unknown) =>
+          events.onError(error instanceof Error ? error.message : "Lyria had a problem."),
+        onclose: () => events.onClose(),
+      },
+    });
+    return session as unknown as LiveLyria;
+  };
+}

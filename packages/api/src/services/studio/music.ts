@@ -4,6 +4,7 @@ import { uploadBufferToS3 } from "@bandcoin/storage";
 import type { Context, SessionUser } from "../../context";
 import { enqueueJob } from "../jobs/queue";
 import { holdCoins, settleHold } from "./balance";
+import { LIVE_MODEL } from "./live";
 import { type MusicKind, MUSIC_MODELS, type MusicProvider } from "./lyria";
 import { loadPricing, priceList } from "./pricing";
 
@@ -24,6 +25,8 @@ const LABEL: Record<MusicKind, string> = { CLIP: "Music clip", SONG: "Full song"
 export const MAX_PROMPT = 2000;
 /** A run not finished after this long belonged to a worker that stopped: refunded. */
 export const STUCK_AFTER_MS = 20 * 60_000;
+/** A live jam can sit paused for a while, so it gets longer before it counts as left behind. */
+export const LIVE_STUCK_AFTER_MS = 3 * 60 * 60_000;
 
 export type MusicOutput = { type: "audio"; url: string; mimeType: string; lyrics: string | null };
 
@@ -143,7 +146,13 @@ export async function sweepStuckRuns(ctx: Pick<Context, "db">, now = new Date())
   const stuck = await ctx.db.generation.findMany({
     where: {
       status: { in: ["QUEUED", "RUNNING"] },
-      updatedAt: { lt: new Date(now.getTime() - STUCK_AFTER_MS) },
+      OR: [
+        { model: { not: LIVE_MODEL }, updatedAt: { lt: new Date(now.getTime() - STUCK_AFTER_MS) } },
+        {
+          model: LIVE_MODEL,
+          updatedAt: { lt: new Date(now.getTime() - LIVE_STUCK_AFTER_MS) },
+        },
+      ],
     },
     select: { id: true },
     take: 100,

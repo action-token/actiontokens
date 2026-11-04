@@ -17,13 +17,15 @@
     "@bandcoin/db": "workspace:*",
     "@bandcoin/errors": "workspace:*",
     "tsx": "catalog:",
-    "@bandcoin/storage": "workspace:*"
+    "@bandcoin/storage": "workspace:*",
+    "ws": "catalog:"
   },
   "devDependencies": {
     "@bandcoin/eslint-config": "workspace:*",
     "@bandcoin/tsconfig": "workspace:*",
     "@bandcoin/vitest-config": "workspace:*",
     "@types/node": "catalog:",
+    "@types/ws": "catalog:",
     "eslint": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

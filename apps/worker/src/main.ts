@@ -1,10 +1,11 @@
 import { hostname } from "node:os";
 
-import { createChainGateway } from "@bandcoin/api";
+import { createChainGateway, lyriaLive } from "@bandcoin/api";
 import { db } from "@bandcoin/db/server";
 
 import { handlersFor } from "./handlers";
 import { startHealthServer } from "./health";
+import { attachLiveRelay } from "./live-relay";
 import { runLoop, type RunnerState } from "./runner";
 import { startSchedules } from "./schedule";
 
@@ -18,6 +19,7 @@ const handlers = handlersFor({ db, chain: createChainGateway(db) });
 
 const stopSchedules = startSchedules(db);
 const health = startHealthServer(db, state, Number(process.env.PORT ?? 8080));
+const live = attachLiveRelay(health, { ctx: { db }, connect: lyriaLive() });
 console.log(`[worker] ${workerId} running: ${Object.keys(handlers).join(", ")}`);
 
 const loop = runLoop(db, workerId, handlers, state);
@@ -27,6 +29,7 @@ async function stop(signal: string) {
   state.stopped = true;
   stopSchedules();
   health.close();
+  await live.close();
   await loop;
   await db.$disconnect();
   process.exit(0);

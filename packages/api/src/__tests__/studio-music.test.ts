@@ -158,4 +158,18 @@ describe("running it", () => {
     expect(await sweepStuckRuns(ctx)).toEqual({ refunded: 1 });
     expect(ledger).toEqual([expect.objectContaining({ kind: "REFUND" })]);
   });
+
+  it("gives a paused live jam hours before it counts as left behind", async () => {
+    const { ctx, db } = setup();
+    const now = new Date("2026-01-01T12:00:00Z");
+    await sweepStuckRuns(ctx, now);
+    const where = db.generation.findMany.mock.calls[0]![0].where.OR as {
+      model: unknown;
+      updatedAt: { lt: Date };
+    }[];
+    const live = where.find((clause) => clause.model === "lyria-realtime-exp")!;
+    const rest = where.find((clause) => clause.model !== "lyria-realtime-exp")!;
+    expect(now.getTime() - live.updatedAt.lt.getTime()).toBe(3 * 60 * 60_000);
+    expect(now.getTime() - rest.updatedAt.lt.getTime()).toBe(20 * 60_000);
+  });
 });
