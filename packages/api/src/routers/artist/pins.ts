@@ -26,7 +26,7 @@ export const pinFields = {
   imageUrl: z.string().url().nullish(),
   link: z.string().max(500).nullish(),
   type: z.enum(["EVENT", "BOUNTY", "EXPERIENCE", "LAUNCH", "LANDMARK", "OTHER"]),
-  visibility: z.enum(["PUBLIC", "FOLLOWERS", "MEMBERS", "TIER"]),
+  visibility: z.enum(["PUBLIC", "FOLLOWERS", "SUBSCRIBERS", "MEMBERS", "TIER"]),
   tierId: z.string().nullish(),
   reward,
   claimLimit: z.number().int(),

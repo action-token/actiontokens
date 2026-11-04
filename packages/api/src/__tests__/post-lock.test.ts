@@ -4,7 +4,7 @@ import { postGate, postLock } from "../services/feed/gate";
 
 const tier = { name: "Insider", requiredTokens: "50" };
 const token = { code: "TAMSIN" };
-const fan = { token, held: 0, follows: false, isOwner: false };
+const fan = { token, held: 0, trusts: false, follows: false, isOwner: false };
 
 describe("postLock", () => {
   it("leaves posts for everyone open", () => {
@@ -33,6 +33,20 @@ describe("postLock", () => {
   it("opens a followers post once the fan follows", () => {
     expect(postLock({ audience: "FOLLOWERS", tier: null, ...fan })).toEqual({ kind: "FOLLOW" });
     expect(postLock({ audience: "FOLLOWERS", tier: null, ...fan, follows: true })).toBeNull();
+  });
+
+  it("opens a subscribers post once the fan has the token's trustline, whatever they hold or follow", () => {
+    const lock = postLock({ audience: "SUBSCRIBERS", tier: null, ...fan });
+    expect(lock).toEqual({ kind: "SUBSCRIBE", code: "TAMSIN" });
+    expect(postLock({ audience: "SUBSCRIBERS", tier: null, ...fan, trusts: true })).toBeNull();
+    expect(postLock({ audience: "SUBSCRIBERS", tier: null, ...fan, isOwner: true })).toBeNull();
+  });
+
+  it("keeps a subscribers post locked while the artist has no fan token yet", () => {
+    expect(postLock({ audience: "SUBSCRIBERS", tier: null, ...fan, token: null })).toEqual({
+      kind: "SUBSCRIBE",
+      code: null,
+    });
   });
 
   it("opens a members post whose tier was deleted, and always the artist's own posts", () => {

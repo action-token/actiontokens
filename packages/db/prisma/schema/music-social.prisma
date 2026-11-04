@@ -77,6 +77,8 @@ model StemMix {
 enum PostAudience {
   EVERYONE
   FOLLOWERS
+  /// Fans with a trustline to the artist's fan token
+  SUBSCRIBERS
   MEMBERS
 }
 

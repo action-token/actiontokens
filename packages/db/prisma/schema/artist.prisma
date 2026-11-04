@@ -119,7 +119,8 @@ model Follow {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   artistId    String
   artist      Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  /// Followed without a trustline yet (was TemporalFollow)
+  /// true: just a follower (no trustline to the artist's fan token); false: a subscriber (has the trustline).
+  /// Was TemporalFollow. Kept true to the chain by the follow service and the `follows.sync` job.
   isTemporary Boolean  @default(false)
   createdAt   DateTime @default(now())
 

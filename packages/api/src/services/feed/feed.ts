@@ -2,7 +2,7 @@ import type { Prisma } from "@bandcoin/db";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import type { Context, SessionUser } from "../../context";
-import { tokenHeld } from "../catalog/access";
+import { tokenHeld, tokenTrusted } from "../catalog/access";
 import { commentAuthor, commentAuthorSelect } from "./authors";
 import { gateMessage, postGate, postLock } from "./gate";
 
@@ -63,7 +63,7 @@ const tierRule = (tier: { name: string; requiredTokens: { toString(): string } }
   tier ? { name: tier.name, requiredTokens: tier.requiredTokens.toString() } : null;
 
 /** Whether any of a post's rules asks for a tier or a follow. */
-const needs = (row: PostRow, kind: "MEMBERS" | "FOLLOWERS") =>
+const needs = (row: PostRow, kind: "MEMBERS" | "FOLLOWERS" | "SUBSCRIBERS") =>
   row.audience === kind || row.commentAccess === kind || row.collectAccess === kind;
 
 /**
@@ -71,11 +71,18 @@ const needs = (row: PostRow, kind: "MEMBERS" | "FOLLOWERS") =>
  * once per page. Signed out, or without a wallet on Stellar, they hold none.
  */
 async function heldFor(ctx: ServiceCtx, viewer: SessionUser | null, rows: PostRow[]) {
-  const gated = rows.some((row) => needs(row, "MEMBERS") && row.artist.userId !== viewer?.id);
-  const account = gated && viewer ? await ctx.chain.loadAccount(viewer.walletAddress) : null;
+  const gated = rows.some(
+    (row) =>
+      (needs(row, "MEMBERS") || needs(row, "SUBSCRIBERS")) && row.artist.userId !== viewer?.id,
+  );
+  const account =
+    gated && viewer ? await ctx.chain.loadAccount(viewer.walletAddress).catch(() => null) : null;
   return (row: PostRow) => {
     const token = row.artist.fanTokenItem?.classicToken ?? null;
-    return token ? tokenHeld(account, token) : 0;
+    return {
+      held: token ? tokenHeld(account, token) : 0,
+      trusts: token ? tokenTrusted(account, token) : false,
+    };
   };
 }
 
@@ -119,7 +126,7 @@ async function followedIn(ctx: ServiceCtx, viewer: SessionUser | null, rows: Pos
  * its lock when it isn't, and whether they may comment on and collect it.
  */
 async function toCards(ctx: ServiceCtx, viewer: SessionUser | null, rows: PostRow[]) {
-  const [held, followed, copies] = await Promise.all([
+  const [wallet, followed, copies] = await Promise.all([
     heldFor(ctx, viewer, rows),
     followedIn(ctx, viewer, rows),
     copyCounts(
@@ -130,7 +137,7 @@ async function toCards(ctx: ServiceCtx, viewer: SessionUser | null, rows: PostRo
   return rows.map((row) => {
     const who = {
       token: row.artist.fanTokenItem?.classicToken ?? null,
-      held: held(row),
+      ...wallet(row),
       follows: followed.has(row.artist.id),
       isOwner: row.artist.userId === viewer?.id,
     };

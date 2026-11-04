@@ -8,6 +8,8 @@ type Viewer = {
   token: { code: string } | null;
   /** Fan tokens the viewer holds (0 when signed out or without a trustline) */
   held: number;
+  /** The viewer's wallet has a trustline to the fan token (they are a subscriber) */
+  trusts: boolean;
   /** The viewer follows the artist */
   follows: boolean;
   isOwner: boolean;
@@ -26,17 +28,23 @@ function tierShortfall(tier: Exclude<Tier, null>, viewer: Viewer) {
 
 /** A post the viewer can't open yet, and what opens it. */
 export type PostLock =
-  { kind: "FOLLOW" } | ({ kind: "TIER" } & NonNullable<ReturnType<typeof tierShortfall>>);
+  | { kind: "FOLLOW" }
+  /** Needs the trustline to the artist's fan token (code is null while they have no token) */
+  | { kind: "SUBSCRIBE"; code: string | null }
+  | ({ kind: "TIER" } & NonNullable<ReturnType<typeof tierShortfall>>);
 
 /**
  * Whether a post is open to the viewer: everyone's posts always are,
- * followers' posts once they follow, members' posts for fans holding the
+ * followers' posts once they follow, subscribers' posts once they trust the
+ * fan token, members' posts for fans holding the
  * tier's fan tokens, and the artist's own posts for the artist. Locked posts
  * show their title and what opens them, not their text or media.
  */
 export function postLock(input: { audience: PostAudience; tier: Tier } & Viewer): PostLock | null {
   if (input.isOwner) return null;
   if (input.audience === "FOLLOWERS") return input.follows ? null : { kind: "FOLLOW" };
+  if (input.audience === "SUBSCRIBERS")
+    return input.token && input.trusts ? null : { kind: "SUBSCRIBE", code: input.token?.code ?? null };
   if (input.audience === "MEMBERS" && input.tier) {
     const short = tierShortfall(input.tier, input);
     return short ? { kind: "TIER", ...short } : null;

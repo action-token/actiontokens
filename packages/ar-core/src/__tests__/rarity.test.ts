@@ -8,6 +8,7 @@ describe("deriveRarity", () => {
   it("maps each visibility to its rung", () => {
     expect(deriveRarity({ visibility: "PUBLIC" })).toBe("common");
     expect(deriveRarity({ visibility: "FOLLOWERS" })).toBe("rare");
+    expect(deriveRarity({ visibility: "SUBSCRIBERS" })).toBe("rare");
     expect(deriveRarity({ visibility: "MEMBERS" })).toBe("epic");
   });
 

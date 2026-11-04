@@ -41,6 +41,8 @@ enum Visibility {
   DRAFT
   PUBLIC
   FOLLOWERS
+  /// Fans with a trustline to the artist's fan token
+  SUBSCRIBERS
   /// Holders of any membership tier
   MEMBERS
   /// Holders of the tier in tierId

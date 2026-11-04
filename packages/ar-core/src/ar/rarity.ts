@@ -8,6 +8,7 @@ import type { ArPin, PinStatus, Rarity } from "./types";
  *
  *   PUBLIC     anyone                                   common
  *   FOLLOWERS  the artist's followers                   rare
+ *   SUBSCRIBERS fans trusting the artist's fan token      rare
  *   MEMBERS    holders of any membership tier           epic
  *   TIER       holders of one tier, by its rung         epic → legendary → mythic
  *
@@ -17,7 +18,7 @@ import type { ArPin, PinStatus, Rarity } from "./types";
  */
 
 /** Mirrors Prisma's `Visibility`, without importing the client into UI code. */
-export type PinVisibility = "DRAFT" | "PUBLIC" | "FOLLOWERS" | "MEMBERS" | "TIER";
+export type PinVisibility = "DRAFT" | "PUBLIC" | "FOLLOWERS" | "SUBSCRIBERS" | "MEMBERS" | "TIER";
 
 export interface PinAccess {
   visibility: PinVisibility;
@@ -29,7 +30,7 @@ export interface PinAccess {
 
 /** Needs the artist's whole tier ladder, so the server ships it on the pin. */
 export function deriveRarity(access: PinAccess): Rarity {
-  if (access.visibility === "FOLLOWERS") return "rare";
+  if (access.visibility === "FOLLOWERS" || access.visibility === "SUBSCRIBERS") return "rare";
   if (access.visibility === "MEMBERS") return "epic";
   if (access.visibility !== "TIER") return "common";
 

@@ -26,7 +26,7 @@ const MAX_CLAIMS = 100_000;
 const MAX_TAGS = 10;
 
 /** Who can collect it; DRAFT stays out because a hidden pin is already "not shown yet". */
-export type PinVisibility = "PUBLIC" | "FOLLOWERS" | "MEMBERS" | "TIER";
+export type PinVisibility = "PUBLIC" | "FOLLOWERS" | "SUBSCRIBERS" | "MEMBERS" | "TIER";
 
 /** A fan-token reward gives `amount` per collect (default 1); an item always gives one copy. */
 export type PinReward =

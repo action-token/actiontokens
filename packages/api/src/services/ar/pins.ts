@@ -8,6 +8,7 @@ import { AppError, ErrorCodes } from "@bandcoin/errors";
 import { generateRedeemCode } from "@bandcoin/utils/redeem-code";
 
 import type { Context } from "../../context";
+import { tokenTrusted } from "../catalog/access";
 
 /**
  * Pins as the AR app sees them. A `Pin` is one drop; its `PinSpot`s are the
@@ -82,7 +83,10 @@ export async function loadViewer(
   const user = ctx.session?.user;
   if (!user) return null;
   const needsBalance = pins.some(
-    (pin) => pin.visibility === "MEMBERS" || pin.visibility === "TIER",
+    (pin) =>
+      pin.visibility === "MEMBERS" ||
+      pin.visibility === "TIER" ||
+      pin.visibility === "SUBSCRIBERS",
   );
   const [follows, account] = await Promise.all([
     ctx.db.follow.findMany({ where: { userId: user.id }, select: { artistId: true } }),
@@ -118,6 +122,12 @@ export function lockReasonFor(
   switch (pin.visibility) {
     case "PUBLIC":
       return null;
+    case "SUBSCRIBERS": {
+      const token = pin.artist.fanTokenItem?.classicToken;
+      if (!token) return "Not available";
+      if (!viewer) return `Sign in and subscribe to ${artist} to unlock`;
+      return tokenTrusted(viewer.account, token) ? null : `Subscribe to ${artist} to unlock`;
+    }
     case "FOLLOWERS":
       if (!viewer) return `Sign in and follow ${artist} to unlock`;
       return viewer.followedArtistIds.has(pin.artistId) ? null : `Follow ${artist} to unlock`;

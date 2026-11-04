@@ -67,6 +67,21 @@ export function tokenHeld(
   return line ? Number(line.balance) : 0;
 }
 
+/** Whether the account has a trustline to the token (any balance, even none). */
+export function tokenTrusted(
+  account: Horizon.AccountResponse | null,
+  token: { code: string; issuer: string },
+) {
+  return Boolean(
+    account?.balances.some(
+      (balance) =>
+        "asset_code" in balance &&
+        balance.asset_code === token.code &&
+        balance.asset_issuer === token.issuer,
+    ),
+  );
+}
+
 /** Whether the viewer clears the gate, and what to tell them when they don't. */
 export function checkAccess(
   access: Access,

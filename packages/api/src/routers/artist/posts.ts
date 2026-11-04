@@ -24,7 +24,7 @@ const access = z.enum(["VIEWERS", "FOLLOWERS", "MEMBERS", "NOBODY"]);
 const postFields = {
   title: z.string().trim().max(160),
   body: z.string().max(12_000).optional(),
-  audience: z.enum(["EVERYONE", "FOLLOWERS", "MEMBERS"]).optional(),
+  audience: z.enum(["EVERYONE", "FOLLOWERS", "SUBSCRIBERS", "MEMBERS"]).optional(),
   tierId: z.string().nullish(),
   commentAccess: access.optional(),
   commentTierId: z.string().nullish(),

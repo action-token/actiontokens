@@ -2,7 +2,7 @@ import type { PostAudience } from "@bandcoin/db";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import type { Context, SessionUser } from "../../context";
-import { tokenHeld } from "../catalog/access";
+import { tokenHeld, tokenTrusted } from "../catalog/access";
 import { postLock } from "./gate";
 
 type ServiceCtx = Pick<Context, "db" | "chain">;
@@ -22,7 +22,8 @@ type Tiered = {
 
 /**
  * Whether each story is open to the viewer, by the posts' rule: everyone's
- * always, followers' once they follow, members' with enough of the artist's
+ * always, followers' once they follow, subscribers' with a trustline to the
+ * fan token, members' with enough of the artist's
  * fan token, and the artist's own for the artist. The follow and the wallet are
  * read only when a story asks for them.
  */
@@ -45,7 +46,7 @@ async function locksFor(
       : false;
   const token = artist.fanTokenItem?.classicToken ?? null;
   const account =
-    viewer && !isOwner && token && asks("MEMBERS")
+    viewer && !isOwner && token && (asks("MEMBERS") || asks("SUBSCRIBERS"))
       ? await ctx.chain.loadAccount(viewer.walletAddress).catch(() => null)
       : null;
   const held = token ? tokenHeld(account, token) : 0;
@@ -57,6 +58,7 @@ async function locksFor(
         : null,
       token,
       held,
+      trusts: token ? tokenTrusted(account, token) : false,
       follows,
       isOwner,
     });

@@ -14,7 +14,7 @@ export const storiesRouter = createRouter({
         url: z.string().url(),
         thumbnailUrl: z.string().url().nullish(),
         caption: z.string().max(400).nullish(),
-        audience: z.enum(["EVERYONE", "FOLLOWERS", "MEMBERS"]).optional(),
+        audience: z.enum(["EVERYONE", "FOLLOWERS", "SUBSCRIBERS", "MEMBERS"]).optional(),
         tierId: z.string().nullish(),
       }),
     )

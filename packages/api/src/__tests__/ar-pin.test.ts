@@ -111,6 +111,18 @@ describe("pin locks", () => {
     expect(lockReasonFor(pin, viewer({ follows: ["artist1"] }))).toBeNull();
   });
 
+  it("asks a subscribers pin for the fan token's trustline, even with nothing held", () => {
+    const pin = pinRow({ visibility: "SUBSCRIBERS" as never });
+    expect(lockReasonFor(pin, null)).toBe("Sign in and subscribe to Luna Vale to unlock");
+    expect(lockReasonFor(pin, viewer())).toBe("Subscribe to Luna Vale to unlock");
+    expect(lockReasonFor(pin, viewer({ balance: "0" }))).toBeNull();
+    const noToken = pinRow({
+      visibility: "SUBSCRIBERS" as never,
+      artist: { ...pinRow().artist, fanTokenItem: null },
+    });
+    expect(lockReasonFor(noToken, viewer({ balance: "5" }))).toBe("Not available");
+  });
+
   it("checks the fan token against the tier, or the lowest tier for members", () => {
     const tier = pinRow({ visibility: "TIER", tier: { requiredTokens: 50 } as never });
     expect(lockReasonFor(tier, viewer({ balance: "49.9" }))).toBe("Hold 50 LUNA to unlock");
