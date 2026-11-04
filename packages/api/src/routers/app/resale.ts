@@ -12,7 +12,7 @@ import {
   startList,
   submitCancel,
   submitList,
-} from "../../services/resale/classic";
+} from "../../services/resale";
 import { authedProcedure, createRouter } from "../../trpc";
 
 const price = z.string().regex(/^\d{1,12}(\.\d{1,7})?$/, "Enter a price like 12.5");
@@ -21,6 +21,8 @@ const listInput = z.object({
   amount: z.number().int().min(1).max(MAX_LISTED),
   priceBandcoin: price,
   priceUsd: price,
+  /** Smart-contract NFTs: put the new price on these listed copies instead of listing more */
+  listingIds: z.array(z.string().min(1)).max(20).optional(),
 });
 const signed = z.object({ orderId: z.string().min(1), xdr: z.string().min(1) });
 

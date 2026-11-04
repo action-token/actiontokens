@@ -646,11 +646,14 @@ export async function myListings(ctx: Pick<ServiceCtx, "db">, user: SessionUser)
       quantity: true,
       quantitySold: true,
       createdAt: true,
+      edition: { select: { tokenId: true } },
       item: { select: { slug: true, title: true, coverUrl: true } },
     },
   });
   return rows.map((row) => ({
     id: row.id,
+    /** A smart-contract NFT: one numbered copy, listed on the contract */
+    tokenId: row.edition?.tokenId ?? null,
     status: row.status,
     priceBandcoin: row.priceBandcoin.toString(),
     priceUsd: row.priceUsd.toString(),

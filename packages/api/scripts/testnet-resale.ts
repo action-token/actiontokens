@@ -149,10 +149,12 @@ try {
     quote.net.royaltyPercent + "% royalty",
   );
   const started = await seller.resale.startList(listing);
-  const listed = await seller.resale.submitList({
+  const listedRaw = await seller.resale.submitList({
     orderId: started.orderId,
     xdr: sign(started.xdr, sellerKeys),
   });
+  if (!listedRaw.listingId) throw new Error("The listing wasn't recorded");
+  const listed = { ...listedRaw, listingId: listedRaw.listingId };
   console.log("listed", listed.status, "listing", listed.listingId);
   const storage = await db.chainAccount.findFirstOrThrow({
     where: { ownerId: sellerUser.id, kind: "RESALE_STORAGE" },

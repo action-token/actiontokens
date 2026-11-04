@@ -140,16 +140,31 @@ export function SellPanel({
                   You get, for each copy:{" "}
                   <b>
                     <Money amount={quote.data.net.bandcoin.net} currency="BANDCOIN" />
-                  </b>{" "}
-                  or{" "}
-                  <b>
-                    <Money amount={quote.data.net.usd.net} currency="USD" />
                   </b>
-                  {Number(quote.data.net.royaltyPercent) > 0 && (
+                  {quote.data.net.usd && (
+                    <>
+                      {" "}
+                      or{" "}
+                      <b>
+                        <Money amount={quote.data.net.usd.net} currency="USD" />
+                      </b>
+                    </>
+                  )}
+                  {"platformPercent" in quote.data.net ? (
                     <span className="text-fg-muted">
                       {" "}
-                      (after the {quote.data.net.royaltyPercent}% royalty)
+                      (after the {quote.data.net.platformPercent}% platform fee
+                      {Number(quote.data.net.royaltyPercent) > 0 &&
+                        ` and the ${quote.data.net.royaltyPercent}% royalty`}
+                      ). You are paid in BANDCOIN, even when a buyer pays by card.
                     </span>
+                  ) : (
+                    Number(quote.data.net.royaltyPercent) > 0 && (
+                      <span className="text-fg-muted">
+                        {" "}
+                        (after the {quote.data.net.royaltyPercent}% royalty)
+                      </span>
+                    )
                   )}
                 </p>
                 <div className="grid gap-2">
