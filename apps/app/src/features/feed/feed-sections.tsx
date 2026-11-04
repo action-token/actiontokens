@@ -29,11 +29,14 @@ function Block({
   title,
   note,
   href,
+  columns,
   children,
 }: {
   title: string;
   note: string;
   href?: string;
+  /** Grid columns in the wide side column (one by default) */
+  columns?: string;
   children: ReactNode;
 }) {
   return (
@@ -52,7 +55,15 @@ function Block({
           </Link>
         )}
       </div>
-      {children}
+      {/* Swipeable rows on narrower screens, stacked cards in the side columns. */}
+      <div
+        className={cn(
+          "-mx-4 flex snap-x scroll-px-4 [scrollbar-width:none] gap-3 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:scroll-px-6 sm:px-6 xl:mx-0 xl:grid xl:overflow-visible xl:px-0 xl:pb-0",
+          columns,
+        )}
+      >
+        {children}
+      </div>
     </section>
   );
 }
@@ -60,13 +71,14 @@ function Block({
 /** The poster look the Home page uses: full-bleed picture, dark fade, text on top. */
 const POSTER =
   "group bg-surface-3 hover:border-fg relative isolate block overflow-hidden rounded-[1.4rem] border-2 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-[5px_6px_0_0_var(--color-primary)]";
+const ITEM = "shrink-0 snap-start xl:w-auto";
 const FADE =
   "absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black/85 via-black/45 to-transparent";
 
 const Loading = ({ className }: { className: string }) => (
   <>
     {[0, 1, 2].map((key) => (
-      <Skeleton key={key} className={cn("rounded-[1.4rem]", className)} />
+      <Skeleton key={key} className={cn("rounded-[1.4rem]", ITEM, className)} />
     ))}
   </>
 );
@@ -78,10 +90,14 @@ export function UpcomingEvents() {
   return (
     <Block title="Upcoming events" note="live near you soon">
       {events.isPending ? (
-        <Loading className="aspect-[4/3]" />
+        <Loading className="aspect-[4/3] w-64" />
       ) : (
         events.data?.map((event) => (
-          <Link key={event.id} href={`/artist/${event.artist.slug}`} className={POSTER}>
+          <Link
+            key={event.id}
+            href={`/artist/${event.artist.slug}`}
+            className={cn(POSTER, ITEM, "w-64")}
+          >
             <div className="relative aspect-[4/3]">
               {event.coverUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts
@@ -124,57 +140,55 @@ export function NewMusic() {
   const tracks = (music.data?.newest ?? []).filter((track) => track.playable).slice(0, 4);
   if (!music.isPending && tracks.length === 0) return null;
   return (
-    <Block title="New music" note="fresh off the press" href="/music">
-      <div className="grid grid-cols-2 gap-3">
-        {music.isPending ? (
-          <>
-            {[0, 1, 2, 3].map((key) => (
-              <Skeleton key={key} className="aspect-square rounded-[1.4rem]" />
-            ))}
-          </>
-        ) : (
-          tracks.map((track, index) => {
-            const isCurrent = current === track.id;
-            return (
-              <div key={track.id} className={POSTER}>
-                <div className="relative aspect-square">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
-                  <img
-                    src={track.coverUrl}
-                    alt=""
-                    loading="lazy"
-                    className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div aria-hidden className={FADE} />
-                  <div className="absolute inset-x-0 bottom-0 grid gap-0.5 p-2.5 pr-11 text-white">
-                    <p className="truncate text-[11px] font-semibold text-white/80">
-                      {track.artistName}
-                    </p>
-                    <p className="display line-clamp-2 text-sm leading-[1.05]">{track.title}</p>
-                  </div>
-                  <Link
-                    href={`/item/${track.slug}`}
-                    aria-label={`${track.title} by ${track.artistName}`}
-                    className="absolute inset-0"
-                  />
-                  <button
-                    type="button"
-                    aria-label={`${isCurrent && playing ? "Pause" : "Play"} ${track.title}`}
-                    onClick={() => (isCurrent ? toggle() : playQueue(tracks, index))}
-                    className="bg-primary text-primary-foreground absolute right-2 bottom-2 z-10 grid size-8 place-items-center rounded-full shadow-lg transition-transform hover:scale-105"
-                  >
-                    {isCurrent && playing ? (
-                      <Pause className="size-3.5 fill-current" />
-                    ) : (
-                      <Play className="size-3.5 translate-x-px fill-current" />
-                    )}
-                  </button>
+    <Block title="New music" note="fresh off the press" href="/music" columns="xl:grid-cols-2">
+      {music.isPending ? (
+        <>
+          {[0, 1, 2, 3].map((key) => (
+            <Skeleton key={key} className={cn("aspect-square w-36 rounded-[1.4rem]", ITEM)} />
+          ))}
+        </>
+      ) : (
+        tracks.map((track, index) => {
+          const isCurrent = current === track.id;
+          return (
+            <div key={track.id} className={cn(POSTER, ITEM, "w-36")}>
+              <div className="relative aspect-square">
+                {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
+                <img
+                  src={track.coverUrl}
+                  alt=""
+                  loading="lazy"
+                  className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div aria-hidden className={FADE} />
+                <div className="absolute inset-x-0 bottom-0 grid gap-0.5 p-2.5 pr-11 text-white">
+                  <p className="truncate text-[11px] font-semibold text-white/80">
+                    {track.artistName}
+                  </p>
+                  <p className="display line-clamp-2 text-sm leading-[1.05]">{track.title}</p>
                 </div>
+                <Link
+                  href={`/item/${track.slug}`}
+                  aria-label={`${track.title} by ${track.artistName}`}
+                  className="absolute inset-0"
+                />
+                <button
+                  type="button"
+                  aria-label={`${isCurrent && playing ? "Pause" : "Play"} ${track.title}`}
+                  onClick={() => (isCurrent ? toggle() : playQueue(tracks, index))}
+                  className="bg-primary text-primary-foreground absolute right-2 bottom-2 z-10 grid size-8 place-items-center rounded-full shadow-lg transition-transform hover:scale-105"
+                >
+                  {isCurrent && playing ? (
+                    <Pause className="size-3.5 fill-current" />
+                  ) : (
+                    <Play className="size-3.5 translate-x-px fill-current" />
+                  )}
+                </button>
               </div>
-            );
-          })
-        )}
-      </div>
+            </div>
+          );
+        })
+      )}
     </Block>
   );
 }
@@ -189,12 +203,16 @@ export function ArtistsToFollow() {
   return (
     <Block title="Artists to follow" note="find your next favourite" href="/marketplace">
       {artists.isPending ? (
-        <Loading className="h-[4.5rem]" />
+        <Loading className="h-[4.5rem] w-72" />
       ) : (
         artists.data?.map((artist) => (
           <div
             key={artist.slug}
-            className="bg-surface flex items-center gap-3 rounded-[1.4rem] border-2 p-3"
+            className={cn(
+              "bg-surface flex items-center gap-3 rounded-[1.4rem] border-2 p-3",
+              ITEM,
+              "w-72",
+            )}
           >
             <Link
               href={`/artist/${artist.slug}`}
@@ -227,13 +245,17 @@ export function TopBounties() {
   return (
     <Block title="Top bounties" note="win a prize" href="/bounties">
       {top.isPending ? (
-        <Loading className="h-16" />
+        <Loading className="h-16 w-64" />
       ) : (
         top.data?.slice(0, 3).map((bounty, index) => (
           <Link
             key={bounty.id}
             href={`/bounty/${bounty.id}`}
-            className="bg-surface hover:border-fg flex items-center gap-3 rounded-[1.4rem] border-2 p-3 transition-colors"
+            className={cn(
+              "bg-surface hover:border-fg flex items-center gap-3 rounded-[1.4rem] border-2 p-3 transition-colors",
+              ITEM,
+              "w-64",
+            )}
           >
             <span
               className={cn(
@@ -266,7 +288,7 @@ export function TopBounties() {
 /** On screens without side columns, the same blocks sit above the posts. */
 export function DiscoverBand() {
   return (
-    <div className="grid gap-6 md:grid-cols-2 xl:hidden">
+    <div className="grid gap-6 xl:hidden">
       <UpcomingEvents />
       <NewMusic />
       <ArtistsToFollow />

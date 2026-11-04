@@ -19,7 +19,7 @@ export const metadata: Metadata = { title: "Feed" };
  * No page title. The artists row across the top, then three columns on a wide
  * screen: events and artists to follow on the left, the posts in the middle,
  * new music and top bounties on the right. Narrower screens put the same
- * cards above the posts instead.
+ * cards, as swipeable rows, after the first post.
  */
 export default function FeedPage() {
   return (
@@ -32,9 +32,8 @@ export default function FeedPage() {
           <ArtistsToFollow />
         </aside>
         <div className="mx-auto grid w-full max-w-3xl gap-4 xl:max-w-none">
-          <DiscoverBand />
           <Composer />
-          <FeedView />
+          <FeedView afterFirst={<DiscoverBand />} />
         </div>
         <aside className="sticky top-6 hidden max-h-[calc(100dvh-3rem)] [scrollbar-width:none] gap-6 overflow-y-auto pb-6 xl:grid xl:grid-cols-[minmax(0,1fr)]">
           <NewMusic />

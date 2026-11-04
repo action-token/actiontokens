@@ -3,7 +3,7 @@
 import { Newspaper } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { Fragment, type ReactNode, useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
@@ -22,7 +22,7 @@ type Scope = "all" | "following";
  * (needs sign-in), newest first, with "Load more". Posts the viewer can't open
  * are shown locked.
  */
-export function FeedView() {
+export function FeedView({ afterFirst }: { afterFirst?: ReactNode }) {
   const { status } = useSession();
   const signedIn = status === "authenticated";
   const openSignIn = useConnectWalletDialogStore((state) => state.setIsOpen);
@@ -94,6 +94,7 @@ export function FeedView() {
             }
           />
         )}
+        {afterFirst}
       </div>
     );
   }
@@ -101,8 +102,11 @@ export function FeedView() {
   return (
     <div className="grid gap-4">
       {tabs}
-      {posts.map((post) => (
-        <PostCard key={post.id} post={post} />
+      {posts.map((post, index) => (
+        <Fragment key={post.id}>
+          <PostCard post={post} />
+          {index === 0 && afterFirst}
+        </Fragment>
       ))}
       {feed.hasNextPage && (
         <Button
