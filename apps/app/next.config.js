@@ -1,3 +1,5 @@
+import { legacyRedirects } from "./legacy-redirects.mjs";
+
 /** @type {import("next").NextConfig} */
 const config = {
   transpilePackages: [
@@ -19,6 +21,16 @@ const config = {
     "@bandcoin/wallet",
   ],
   reactStrictMode: true,
+
+  // Old bandfan addresses (see legacy-redirects.mjs).
+  redirects() {
+    return Promise.resolve(
+      legacyRedirects({
+        portal: new URL(process.env.NEXT_PUBLIC_ARTIST_URL ?? "https://artist.bandcoin.io").origin,
+        ar: new URL(process.env.NEXT_PUBLIC_AR_URL ?? "https://ar.bandcoin.io").origin,
+      }),
+    );
+  },
 
   // The page builder's preview may only be framed by the artist portal.
   async headers() {
