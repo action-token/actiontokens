@@ -9,6 +9,7 @@ import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
 import { api } from "~/trpc/react";
 
+import { LiveJam } from "../live/live-jam";
 import { MusicGenerator } from "./generator";
 import { MusicRuns } from "./runs";
 
@@ -38,6 +39,7 @@ export function MusicView() {
         </p>
       </header>
       <MusicGenerator balance={balance.data?.coins ?? null} />
+      <LiveJam balance={balance.data?.coins ?? null} />
       <section className="grid gap-4">
         <h2 className="display text-xl">Your music</h2>
         <MusicRuns mixerLink />
