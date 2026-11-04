@@ -91,22 +91,12 @@ Legend: ✅ built · 🟡 built, different shape (read the note) · ❓ needs yo
 | `/admin/ai` | Studio settings | ⏸ | |
 | (new) | `/admin/activity`, `/alerts`, `/jobs`, `/murals`, `/settings` | ✅ | |
 
-## Old links (built 2026-11-04)
+## Old links
 
-`apps/app/legacy-redirects.mjs` sends old addresses to the new ones (temporary redirects until
-the checklist is done, then make them permanent):
-
-- One thing by old id, through `/api/legacy/<kind>/<id>` and `legacy_id_map`: `/artist/<Stellar key>`,
-  `/asset/<n>`, `/market-asset/<n>`, `/nft/<id>` (+ `/manage`), `/smart-contract/<id>` (+ `/manage`),
-  `/music/album/<n>`. Not found or removed: a "This link has moved" page.
-- Pages that moved inside the app (`/my-collection`, `/creator-feed`, `/notification`, …).
-- The old artist portal (`/artist/*`, `/admin/*`) go to the portal; the old in-app map (`/action/*`) to the AR app.
-- Kept as they were, so they need no redirect: bounty ids and pin ids.
-- Not covered: old per-id portal pages whose ids weren't kept (membership tiers, albums in the portal) land on the list page.
+Decided 2026-11-04: old shared links are not carried over. No redirects are built.
 
 ## Before cutover
 
 1. Click through every ✅ row on the copied production data (rehearsal) in a browser. This is the real check.
 2. Decide the ❓ rows.
-3. Click the old-link redirects on the production copy (they need `NEXT_PUBLIC_AR_URL` and `NEXT_PUBLIC_ARTIST_URL` set).
-4. Serve `/.well-known/stellar.toml` on the domain the on-chain issuers use as home domain (check one issuer's `home_domain` on mainnet).
+3. Serve `/.well-known/stellar.toml` on the domain the on-chain issuers use as home domain (check one issuer's `home_domain` on mainnet).

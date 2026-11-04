@@ -42,7 +42,6 @@ export { keepUnlocksAlive, syncUnlocks } from "./services/catalog/unlock-chain";
 export { dropDueHotspots } from "./services/artist/hotspots";
 export { expireVanityLinks } from "./services/artist/vanity-expire";
 export { runMusic, sweepStuckRuns } from "./services/studio/music";
-export { resolveLegacyLink, LEGACY_KINDS } from "./services/platform/legacy-links";
 export { stellarToml } from "./services/platform/toml";
 export { runPinBatch, BATCH_JOB, type BatchDeps } from "./services/agent/batch";
 export type { AgentRunPayload } from "./services/agent/contract";
