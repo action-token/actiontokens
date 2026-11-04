@@ -31,7 +31,7 @@ Legend: ✅ built · 🟡 built, different shape (read the note) · ❓ needs yo
 | `/api/auth/[...nextauth]`, `/api/xdr` | same | ✅ | |
 | `/api/lastfm/*` | same | ✅ | |
 | `/api/proxy-image` | AR `/api/proxy-image` | ✅ | |
-| `/api/toml`, rewrite `/.well-known/stellar.toml` | `apps/app` `/.well-known/stellar.toml` | ✅ | **Added today.** The old one was a real gap: wallets read it for token names and images. It must be served from the domain the issuers' home domain points to |
+| `/api/toml`, rewrite `/.well-known/stellar.toml` | `apps/app` `/.well-known/stellar.toml` (rewrite to `/stellar-toml`) | ✅ | **Added today.** The old one was a real gap: wallets read it for token names and images. It must be served from the domain the issuers' home domain points to |
 | `/api/internal/keep-alive*` | worker `nft.keep-alive` | ✅ | |
 | `/dev/loading-preview`, `/test` | none | ➖ | Dev pages |
 | `/ai/*`, `/ai-generation`, `/text-generation`, `/api/generate*` | Studio | ⏸ | Skipped for now |

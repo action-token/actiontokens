@@ -22,6 +22,11 @@ const config = {
   ],
   reactStrictMode: true,
 
+  // SEP-1: wallets look for the file under .well-known (a folder the type checker skips, so the route lives apart).
+  rewrites() {
+    return Promise.resolve([{ source: "/.well-known/stellar.toml", destination: "/stellar-toml" }]);
+  },
+
   // Old bandfan addresses (see legacy-redirects.mjs).
   redirects() {
     return Promise.resolve(
