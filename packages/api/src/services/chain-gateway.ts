@@ -14,6 +14,7 @@ import {
   liveRates,
   loadAccount,
   loadAssetHolders,
+  loadAssetTrustees,
   claimableFor,
   type ClaimableToken,
   contractIsLive,
@@ -53,6 +54,8 @@ export type ChainGateway = {
   signForCustodialUser(xdr: string, email: string): Promise<string>;
   /** Simulates a contract call and fills in its footprint and fee, ready to sign. `signers` are platform-held keys that authorise it (the price authority) */
   prepareContractCall(xdr: string, signers?: string[]): Promise<string>;
+  /** Every account with a trustline to an asset, whatever it holds; `complete` is false when there were too many to list */
+  assetTrustees(code: string, issuer: string): Promise<{ addresses: string[]; complete: boolean }>;
   /** Every account holding an asset and how much; `complete` is false when there were too many to list */
   assetHolders(
     code: string,
@@ -167,6 +170,7 @@ export function createChainGateway(db: Db): ChainGateway {
     assetExists,
     assetTomlUrl,
     assetHolders: (code, issuer) => loadAssetHolders(new Asset(code, issuer)),
+    assetTrustees: (code, issuer) => loadAssetTrustees(new Asset(code, issuer)),
     editionIdByRef: (editionRef) =>
       readEditionId(chainConfig().nftContract, chainConfig().treasury, editionRef),
     nftPurchaseByRef: (purchaseRef) =>

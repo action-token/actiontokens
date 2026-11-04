@@ -17,6 +17,7 @@ import {
   runPinBatch,
   useGeoCache,
   endStaleNftListings,
+  syncAllSubscribers,
   sweepStories,
   sweepStuckRuns,
   keepUnlocksAlive,
@@ -132,6 +133,8 @@ export function handlersFor(deps: WorkerDeps): Record<string, JobHandler> {
     "stories.sweep": async () => ({ result: await sweepStories(context()) }),
     // End resale listings of NFT copies the seller moved away.
     "resale.verify": async () => ({ result: await endStaleNftListings(context()) }),
+    // Followers who trust an artist's fan token are subscribers; keep the saved flag true to the chain.
+    "follows.sync": async () => ({ result: await syncAllSubscribers(context()) }),
     // Short-link reminders and freed names (see artist/vanity-expire); not a payment.
     "vanity.expire": async () => ({ result: await expireVanityLinks(context()) }),
     // Drop pins in hotspots whose next drop is due; a failed drop is reported, the rest carry on.

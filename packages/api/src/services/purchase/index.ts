@@ -21,6 +21,7 @@ import { type Context, isCustodial, type SessionUser } from "../../context";
 import { DEFAULT_PLATFORM_FEE_BPS } from "../admin/settings";
 import { notifyGuestPurchase } from "../email/guest-email";
 import { accessOf, checkAccess } from "../catalog/access";
+import { setSubscribed } from "../feed/subscribe";
 import { transitionOrder } from "../order-state";
 import { notSetUpProblems, salesNotSetUp } from "./not-set-up";
 import { loadSale, planDelivery, type Sale } from "./sale";
@@ -429,6 +430,12 @@ export async function deliverOrder(ctx: ServiceCtx, orderId: string) {
   if (delivered.guestEmail)
     await notifyGuestPurchase(ctx, { ...delivered, guestEmail: delivered.guestEmail });
   if (delivered.kind === "ITEM_PURCHASE") await tellArtistAboutSale(ctx, delivered);
+  // Trusting an artist's fan token makes the fan their subscriber (and follower).
+  if (delivered.kind === "TOKEN_TRUST" && delivered.buyerId) {
+    const artistId = (delivered.breakdown as { token?: { artistId?: string } } | null)?.token
+      ?.artistId;
+    if (artistId) await setSubscribed(ctx.db, delivered.buyerId, artistId);
+  }
   return { orderId, status: "DELIVERED" as const };
 }
 

@@ -133,6 +133,6 @@ export const artistRouter = createRouter({
   setFollowing: authedProcedure
     .input(z.object({ artistId: z.string().min(1), following: z.boolean() }))
     .mutation(({ ctx, input }) =>
-      setFollowing(ctx, ctx.session.user.id, { id: input.artistId }, input.following),
+      setFollowing(ctx, ctx.session.user, { id: input.artistId }, input.following),
     ),
 });

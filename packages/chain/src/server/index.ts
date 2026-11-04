@@ -13,6 +13,7 @@ export {
   horizon,
   loadAccount,
   loadAssetHolders,
+  loadAssetTrustees,
   spendableXlm,
   submit,
   trusts,

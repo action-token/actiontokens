@@ -74,6 +74,24 @@ export async function loadAssetHolders(
   }
 }
 
+/**
+ * Every account with a trustline to an asset, whatever it holds (even nothing), in pages of 200
+ * (`complete` is false past the cap). Who "trusts" the asset, as opposed to who holds some of it.
+ */
+export async function loadAssetTrustees(
+  asset: Asset,
+  maxPages = MAX_HOLDER_PAGES,
+): Promise<{ addresses: string[]; complete: boolean }> {
+  const addresses: string[] = [];
+  let page = await horizon().accounts().forAsset(asset).limit(HOLDERS_PER_PAGE).call();
+  for (let count = 1; ; count++) {
+    for (const account of page.records) addresses.push(account.account_id);
+    if (page.records.length < HOLDERS_PER_PAGE) return { addresses, complete: true };
+    if (count >= maxPages) return { addresses, complete: false };
+    page = await page.next();
+  }
+}
+
 /** XLM the account can spend: balance − reserves − XLM locked in offers. */
 export function spendableXlm(account: Horizon.AccountResponse): string {
   const native = account.balances.find((balance) => balance.asset_type === "native");

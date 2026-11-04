@@ -94,13 +94,15 @@ describe("ar artist.setFollowing", () => {
     const { caller, db } = setup();
     await expect(caller.artist.setFollowing({ artistId: "a1", following: true })).resolves.toEqual({
       following: true,
+      subscribed: false,
       followers: 13,
+      subscribers: 13,
       fanToken: null,
     });
     expect(db.follow.upsert).toHaveBeenCalledWith({
       where: { userId_artistId: { userId: "me", artistId: "a1" } },
-      create: { userId: "me", artistId: "a1" },
-      update: { isTemporary: false },
+      create: { userId: "me", artistId: "a1", isTemporary: true },
+      update: { isTemporary: true },
     });
     await caller.artist.setFollowing({ artistId: "a1", following: false });
     expect(db.follow.deleteMany).toHaveBeenCalledWith({ where: { userId: "me", artistId: "a1" } });

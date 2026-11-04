@@ -77,7 +77,11 @@ const artistFields = {
  * The row at the top of the feed: artists with a live story, people the viewer
  * follows first, then ones they haven't seen, then the newest.
  */
-export async function storyRing(ctx: Pick<Context, "db">, viewer: SessionUser | null, now = new Date()) {
+export async function storyRing(
+  ctx: Pick<Context, "db">,
+  viewer: SessionUser | null,
+  now = new Date(),
+) {
   const rows = await ctx.db.story.findMany({
     where: { removedAt: null, expiresAt: { gt: now }, artist: { status: "APPROVED" } },
     orderBy: { createdAt: "desc" },

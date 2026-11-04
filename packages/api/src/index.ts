@@ -43,6 +43,7 @@ export { dropDueHotspots } from "./services/artist/hotspots";
 export { expireVanityLinks } from "./services/artist/vanity-expire";
 export { sweepStories } from "./services/feed/stories";
 export { endStaleNftListings } from "./services/resale/nft";
+export { syncAllSubscribers } from "./services/feed/subscribe";
 export { runMusic, sweepStuckRuns } from "./services/studio/music";
 export { stellarToml } from "./services/platform/toml";
 export {

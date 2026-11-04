@@ -79,7 +79,9 @@ async function priceRecharge(ctx: ServiceCtx, user: SessionUser | null, input: R
       : input.kind === "TOKEN_TRUST"
         ? {
             kind: "TOKEN_TRUST" as const,
-            token: token ? { code: token.code, artistName: token.artistName } : null,
+            token: token
+              ? { code: token.code, artistName: token.artistName, artistId: input.artistId }
+              : null,
             ...quoteXlmSwap({
               ...rate,
               xlm: TRUST_RESERVE_XLM,

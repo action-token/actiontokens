@@ -77,6 +77,7 @@ function setup(
         fanTokenItem: token ? { classicToken: token } : null,
       }),
     },
+    follow: { upsert: vi.fn().mockResolvedValue({}) },
     order: {
       create: vi.fn(({ data }: { data: Record<string, unknown> }) => {
         const row = { id: ORDER, status: "QUOTED", buyerId: "me", ...data };
@@ -319,7 +320,7 @@ describe("holding an artist's fan token", () => {
   });
 
   it("pays BANDCOIN, receives exactly the reserve, and opens the line, all in one transaction", async () => {
-    const { ctx, chain, orders } = setup({ account: horizonAccount({ bandcoin: "500" }) });
+    const { ctx, chain, orders, db } = setup({ account: horizonAccount({ bandcoin: "500" }) });
     const started = await startRecharge(ctx, me, trust);
     expect(orders.get(ORDER)).toMatchObject({
       kind: "TOKEN_TRUST",
@@ -338,6 +339,12 @@ describe("holding an artist's fan token", () => {
       submitRecharge(ctx, me, { orderId: ORDER, xdr: started.xdr }),
     ).resolves.toMatchObject({ status: "DELIVERED" });
     expect(chain.card.charge).not.toHaveBeenCalled();
+    // Trusting the token makes the fan a subscriber of that artist (and a follower).
+    expect(db.follow.upsert).toHaveBeenCalledWith({
+      where: { userId_artistId: { userId: "me", artistId: "a1" } },
+      create: { userId: "me", artistId: "a1", isTemporary: false },
+      update: { isTemporary: false },
+    });
   });
 
   it("won't start for a line the fan already holds, and creates no order", async () => {

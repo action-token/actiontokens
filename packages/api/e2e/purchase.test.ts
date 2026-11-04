@@ -74,6 +74,7 @@ const chain: ChainGateway = {
   editionIdByRef: () => Promise.resolve(null),
   nftPurchaseByRef: () => Promise.resolve(null),
   nftListing: () => Promise.resolve(null),
+  assetTrustees: () => Promise.resolve({ addresses: [], complete: true }),
   nftOwnerOf: () => Promise.resolve(null),
   assetTomlUrl: () => Promise.resolve(null),
   nftFeeSettings: () => Promise.resolve({ feeBps: 0, treasury: null, owner: null }),

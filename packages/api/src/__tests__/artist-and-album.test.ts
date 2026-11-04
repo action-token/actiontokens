@@ -41,11 +41,14 @@ describe("artist.setFollowing", () => {
 
     expect(await caller(db).artist.setFollowing({ slug: "dj-tamsin", following: true })).toEqual({
       following: true,
+      subscribed: false,
       followers: 5,
+      subscribers: 5,
       fanToken: null,
     });
+    // No fan token, so no trustline: just a follower.
     expect(follow.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({ create: { userId: "u1", artistId: "a1" } }),
+      expect.objectContaining({ create: { userId: "u1", artistId: "a1", isTemporary: true } }),
     );
 
     expect(notificationEvent.create).toHaveBeenCalledWith({

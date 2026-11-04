@@ -3,17 +3,19 @@ import type { Prisma } from "@bandcoin/db";
 
 import type { Context } from "../../context";
 import { notifyArtist } from "../notifications/send";
+import { tokenOf, walletTrusts } from "./subscribe";
 
-type ServiceCtx = Pick<Context, "db" | "activity">;
+type ServiceCtx = Pick<Context, "db" | "activity" | "chain">;
 
 /**
- * Follows or unfollows an approved artist (free; holding their token is a
- * separate thing). The artist hears about a fan's first follow only, so
+ * Follows or unfollows an approved artist (free). A fan whose wallet already
+ * trusts the artist's fan token follows as a subscriber; otherwise as a
+ * follower, and `fanToken` says they could subscribe. The artist hears about a fan's first follow only, so
  * following and unfollowing again doesn't ping them each time.
  */
 export async function setFollowing(
   ctx: ServiceCtx,
-  userId: string,
+  user: { id: string; walletAddress: string },
   where: Prisma.ArtistWhereInput,
   following: boolean,
 ) {
@@ -22,24 +24,30 @@ export async function setFollowing(
     select: {
       id: true,
       userId: true,
-      fanTokenItem: { select: { classicToken: { select: { code: true } } } },
+      fanTokenItem: { select: { classicToken: { select: { code: true, issuer: true } } } },
     },
   });
   if (!artist)
     throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "This artist doesn't exist." });
   ctx.activity.set({ targetType: "Artist", targetId: artist.id });
+  const userId = user.id;
   const key = { userId, artistId: artist.id };
+  const token = tokenOf(artist);
 
+  let subscribed = false;
   if (following) {
     const before = await ctx.db.follow.findUnique({
       where: { userId_artistId: key },
       select: { userId: true },
     });
+    // Trusting the token makes them a subscriber; an unreadable wallet counts as a follower for now.
+    const trusts = (await walletTrusts(ctx, user.walletAddress, token)) === true;
     await ctx.db.follow.upsert({
       where: { userId_artistId: key },
-      create: key,
-      update: { isTemporary: false },
+      create: { ...key, isTemporary: !trusts },
+      update: { isTemporary: !trusts },
     });
+    subscribed = trusts;
     if (!before && artist.userId !== userId) {
       const told = await ctx.db.notificationEvent.findFirst({
         where: { type: "FOLLOW", actorId: userId, entityId: artist.id },
@@ -56,12 +64,16 @@ export async function setFollowing(
   } else {
     await ctx.db.follow.deleteMany({ where: key });
   }
-  const followers = await ctx.db.follow.count({ where: { artistId: artist.id } });
-  // After following, the fan may be offered the artist's fan token (a trustline; see recharge TOKEN_TRUST).
-  const code = artist.fanTokenItem?.classicToken?.code;
+  const [followers, subscribers] = await Promise.all([
+    ctx.db.follow.count({ where: { artistId: artist.id } }),
+    ctx.db.follow.count({ where: { artistId: artist.id, isTemporary: false } }),
+  ]);
+  // A follower can subscribe by trusting the artist's fan token (see recharge TOKEN_TRUST).
   return {
     following,
+    subscribed,
     followers,
-    fanToken: following && code ? { code, artistId: artist.id } : null,
+    subscribers,
+    fanToken: following && !subscribed && token ? { code: token.code, artistId: artist.id } : null,
   };
 }

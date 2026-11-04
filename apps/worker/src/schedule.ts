@@ -13,6 +13,8 @@ export const SCHEDULES: { type: JobType; everyMs: number }[] = [
   { type: "stories.sweep", everyMs: 60 * 60_000 },
   // Resale listings of NFT copies the seller no longer owns are ended.
   { type: "resale.verify", everyMs: 30 * 60_000 },
+  // Followers vs subscribers: who trusts each fan token (see feed/subscribe).
+  { type: "follows.sync", everyMs: 30 * 60_000 },
   // Short links: reminders, stored status, and names past their reserved days set free.
   { type: "vanity.expire", everyMs: 60 * 60_000 },
   // Drop pins in hotspots whose next drop is due (see services/artist/hotspots).

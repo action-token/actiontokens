@@ -44,7 +44,9 @@ export function postLock(input: { audience: PostAudience; tier: Tier } & Viewer)
   if (input.isOwner) return null;
   if (input.audience === "FOLLOWERS") return input.follows ? null : { kind: "FOLLOW" };
   if (input.audience === "SUBSCRIBERS")
-    return input.token && input.trusts ? null : { kind: "SUBSCRIBE", code: input.token?.code ?? null };
+    return input.token && input.trusts
+      ? null
+      : { kind: "SUBSCRIBE", code: input.token?.code ?? null };
   if (input.audience === "MEMBERS" && input.tier) {
     const short = tierShortfall(input.tier, input);
     return short ? { kind: "TIER", ...short } : null;

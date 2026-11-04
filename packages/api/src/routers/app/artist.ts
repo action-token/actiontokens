@@ -11,6 +11,7 @@ import { publicBountyWhere } from "./bounty";
 import { prizeView } from "../../services/bounty/prize";
 import { itemCardSelect, listedItemWhere, toItemCard } from "../../services/catalog/item-card";
 import { artistDirectory, suggestedArtists } from "../../services/feed/sidebar";
+import { syncViewerSubscription } from "../../services/feed/subscribe";
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 
 const slugInput = z.object({ slug: z.string().min(1).max(120) });
@@ -44,7 +45,7 @@ export const artistRouter = createRouter({
         website: true,
         twitter: true,
         instagram: true,
-        fanTokenItem: { select: { classicToken: { select: { code: true } } } },
+        fanTokenItem: { select: { classicToken: { select: { code: true, issuer: true } } } },
         _count: { select: { followers: true, items: { where: listedItemWhere } } },
       },
     });
@@ -52,7 +53,7 @@ export const artistRouter = createRouter({
       throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "This artist doesn't exist." });
 
     const mine = { ...listedItemWhere, artistId: artist.id };
-    const [popular, forSale, albums, bounties, following, tiers, events, design] =
+    const [popular, forSale, albums, bounties, standing, subscribers, tiers, events, design] =
       await Promise.all([
         ctx.db.item.findMany({
           where: { ...mine, type: "TRACK" },
@@ -92,12 +93,11 @@ export const artistRouter = createRouter({
             _count: { select: { participants: true } },
           },
         }),
-        viewerId
-          ? ctx.db.follow.findUnique({
-              where: { userId_artistId: { userId: viewerId, artistId: artist.id } },
-              select: { userId: true },
-            })
-          : null,
+        // Follower or subscriber, brought in line with their wallet (a trustline to the fan token).
+        ctx.session?.user
+          ? syncViewerSubscription(ctx, ctx.session.user, artist)
+          : { following: false, subscribed: false },
+        ctx.db.follow.count({ where: { artistId: artist.id, isTemporary: false } }),
         ctx.db.membershipTier.findMany({
           where: { artistId: artist.id, isActive: true },
           orderBy: [{ requiredTokens: "asc" }, { sortOrder: "asc" }],
@@ -138,7 +138,10 @@ export const artistRouter = createRouter({
       events,
       followers: _count.followers,
       itemCount: _count.items,
-      following: Boolean(following),
+      following: standing.following,
+      /** Follows and also trusts the artist's fan token */
+      subscribed: standing.subscribed,
+      subscribers,
       popular: popular.map(toItemCard),
       forSale: forSale.map(toItemCard),
       albums: albums.map((album) => ({
@@ -256,6 +259,6 @@ export const artistRouter = createRouter({
   setFollowing: authedProcedure
     .input(slugInput.extend({ following: z.boolean() }))
     .mutation(({ ctx, input }) =>
-      setFollowing(ctx, ctx.session.user.id, { slug: input.slug }, input.following),
+      setFollowing(ctx, ctx.session.user, { slug: input.slug }, input.following),
     ),
 });
