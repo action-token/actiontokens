@@ -417,6 +417,23 @@ describe("taking copies back", () => {
 });
 
 describe("what the holder sees", () => {
+  it("shows nothing left on a listing that ended: its copies went back or sold", async () => {
+    const { ctx, db } = setup();
+    const row = (id: string, status: string, quantitySold: number) => ({
+      id,
+      status,
+      priceBandcoin: { toString: () => "8" },
+      priceUsd: { toString: () => "0.9" },
+      quantity: 4,
+      quantitySold,
+      createdAt: new Date(),
+      item: { slug: "print", title: "Print", coverUrl: "u" },
+    });
+    db.listing.findMany.mockResolvedValue([row("l1", "CLOSED", 0), row("l2", "SOLD_OUT", 4)]);
+    const listings = await myListings(ctx, me);
+    expect(listings.map((listing) => listing.left)).toEqual([0, 0]);
+  });
+
   it("lists listings with what's left, and what sold", async () => {
     const { ctx, db } = setup();
     db.listing.findMany.mockResolvedValue([

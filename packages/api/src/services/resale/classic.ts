@@ -656,7 +656,8 @@ export async function myListings(ctx: Pick<ServiceCtx, "db">, user: SessionUser)
     priceUsd: row.priceUsd.toString(),
     listed: row.quantity ?? 0,
     sold: row.quantitySold,
-    left: Math.max(0, (row.quantity ?? 0) - row.quantitySold),
+    // A listing that ended has nothing on offer: its copies sold or went back to the holder.
+    left: row.status === "ACTIVE" ? Math.max(0, (row.quantity ?? 0) - row.quantitySold) : 0,
     createdAt: row.createdAt,
     item: row.item,
   }));
