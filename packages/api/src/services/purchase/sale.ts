@@ -17,9 +17,9 @@ export async function loadSale(db: Db, listingId: string) {
         select: {
           id: true,
           walletAddress: true,
-          // A user has one storage account; the oldest open one if data ever holds more.
+          // Where a holder's listed copies wait: their resale storage (never an artist's own stock).
           chainAccounts: {
-            where: { kind: "STORAGE", activatedAt: { not: null } },
+            where: { kind: "RESALE_STORAGE", activatedAt: { not: null } },
             orderBy: { createdAt: "asc" },
             select: { publicKey: true },
             take: 1,

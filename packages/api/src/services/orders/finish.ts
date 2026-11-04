@@ -1,3 +1,4 @@
+import { finishCancel, finishList } from "../resale/classic";
 import { type Transaction, TransactionBuilder } from "@stellar/stellar-sdk";
 import { deliverStudioCoins } from "../studio/topup";
 
@@ -213,6 +214,10 @@ export async function finishOrder(
       return finishGift(ctx, order.id);
     case "VANITY":
       return { orderId: order.id, status: (await deliverVanity(ctx, order.id)).status };
+    case "RESALE_LIST":
+      return finishList(ctx, order.id);
+    case "RESALE_CANCEL":
+      return finishCancel(ctx, order.id);
     case "STORAGE_STOCK":
     case "STORAGE_WITHDRAW":
     case "STORAGE_DEPOSIT":

@@ -16,6 +16,7 @@
     "testnet:demo": "tsx --env-file=../db/.env --env-file=../../apps/app/.env.local scripts/testnet-demo.ts",
     "testnet:buy": "tsx --env-file=../db/.env --env-file=../../apps/app/.env.local scripts/testnet-buy.ts",
     "testnet:trust": "tsx --env-file=../db/.env --env-file=../../apps/app/.env.local scripts/testnet-trust.ts",
+    "testnet:resale": "tsx --env-file=../db/.env --env-file=../../apps/app/.env.local scripts/testnet-resale.ts",
     "testnet:studio": "tsx --env-file=../db/.env --env-file=../../apps/app/.env.local scripts/testnet-studio.ts"
   },
   "dependencies": {

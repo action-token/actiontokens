@@ -32,6 +32,10 @@ function orderTitle(kind: OrderKind, quantity: number, itemTitle: string | null)
       return "Swap BANDCOIN for 1 XLM";
     case "TOKEN_TRUST":
       return "Hold an artist's fan token";
+    case "RESALE_LIST":
+      return `Listed ${itemTitle ?? "copies"} for resale`;
+    case "RESALE_CANCEL":
+      return `Took ${itemTitle ?? "copies"} off sale`;
   }
 }
 

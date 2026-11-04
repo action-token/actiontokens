@@ -12,6 +12,7 @@ import { describe, expect, it } from "vitest";
 
 import { buildClassicPurchase, classicPurchaseOperations } from "../classic/purchase";
 import { buildIssuerSetup, ISSUER_STARTING_XLM } from "../classic/issuer";
+import { buildResaleList } from "../classic/resale";
 import { buildActivation, buildTopUp, buildTrustWithSwap, buildXlmSwap } from "../classic/recharge";
 import { buildIssueTokens, buildStorageGift, buildTransfer } from "../classic/transfer";
 import { toStellarError } from "../errors";
@@ -318,6 +319,75 @@ describe("recharge builders", () => {
         platform: mother,
         pay: "0",
         xlm: "0.5",
+      }),
+    ).toThrow(RangeError);
+  });
+
+  it("resale listing: opens storage and the payout line, trusts the token, and moves the copies, in one transaction", () => {
+    const stored = key();
+    const token = { code: "PRINT", issuer: creator };
+    const built = buildResaleList({
+      seller: account(),
+      network,
+      orderId,
+      storage: stored,
+      asset: token,
+      amount: "3",
+      openStorage: true,
+      openTrustline: true,
+      openPayoutLine: { code: "BANDCOIN", issuer: creator },
+    });
+    const tx = parse(built.xdr);
+    expect(tx.operations.map((op) => op.type)).toEqual([
+      "changeTrust",
+      "createAccount",
+      "changeTrust",
+      "payment",
+    ]);
+    expect(tx.operations[1]).toMatchObject({ destination: stored, startingBalance: "1.5000000" });
+    expect(tx.operations[2]).toMatchObject({ source: stored });
+    expect(tx.operations[3]).toMatchObject({ destination: stored, amount: "3.0000000" });
+    expect(built.serverSigners).toEqual([stored]);
+  });
+
+  it("resale listing: just the copies when storage already trusts the token; a reserve when it only needs the line", () => {
+    const stored = key();
+    const token = { code: "PRINT", issuer: creator };
+    const plain = buildResaleList({
+      seller: account(),
+      network,
+      orderId,
+      storage: stored,
+      asset: token,
+      amount: "2",
+      openStorage: false,
+      openTrustline: false,
+    });
+    expect(parse(plain.xdr).operations.map((op) => op.type)).toEqual(["payment"]);
+    expect(plain.serverSigners).toEqual([]);
+    const line = buildResaleList({
+      seller: account(),
+      network,
+      orderId,
+      storage: stored,
+      asset: token,
+      amount: "2",
+      openStorage: false,
+      openTrustline: true,
+    });
+    const ops = parse(line.xdr).operations;
+    expect(ops.map((op) => op.type)).toEqual(["payment", "changeTrust", "payment"]);
+    expect(ops[0]).toMatchObject({ amount: "0.5000000" });
+    expect(() =>
+      buildResaleList({
+        seller: account(),
+        network,
+        orderId,
+        storage: stored,
+        asset: token,
+        amount: "0",
+        openStorage: false,
+        openTrustline: false,
       }),
     ).toThrow(RangeError);
   });

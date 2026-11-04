@@ -86,6 +86,8 @@ enum ChainAccountKind {
   ISSUER
   /// Platform-owned (studio treasury, fee recipient…)
   PLATFORM
+  /// A holder's account where copies wait while listed for resale (never mixed with an artist's own stock)
+  RESALE_STORAGE
 }
 
 /// A Stellar account whose secret key the platform holds. The secret is
