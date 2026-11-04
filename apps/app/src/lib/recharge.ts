@@ -1,5 +1,5 @@
 type Line = { key: string; label: string; currency: "USD" | "BANDCOIN" | "XLM"; amount: string };
-type QuoteLines = { kind: "TOP_UP" | "XLM_SWAP"; lines: Line[] };
+type QuoteLines = { kind: "TOP_UP" | "XLM_SWAP" | "TOKEN_TRUST"; lines: Line[] };
 
 /** The breakdown's own "You pay" row is the charge or total, so it isn't repeated as a line. */
 export const shownLines = (quote: QuoteLines) =>
