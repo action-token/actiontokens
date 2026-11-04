@@ -134,7 +134,26 @@ export function SellingView() {
         </TabsContent>
       </Tabs>
 
-      {pricing && <PriceDialog listing={pricing} onClose={() => setPricing(null)} />}
+      {pricing && (
+        <PriceDialog
+          listing={pricing}
+          onClose={() => setPricing(null)}
+          onRelist={async (prices) => {
+            const listing = pricing;
+            setPricing(null);
+            await order.run({
+              kind: "list",
+              input: { itemId: listing.itemId, amount: 1, ...prices, listingIds: [listing.id] },
+              summary: (
+                <>
+                  New price for {listing.item.title} #{listing.tokenId}
+                </>
+              ),
+              done: { title: "Price changed", body: "The new price is on the network now." },
+            });
+          }}
+        />
+      )}
       {taking && (
         <TakeBackDialog
           listing={taking}
@@ -145,15 +164,20 @@ export function SellingView() {
             await order.run({
               kind: "cancel",
               input: { listingId: listing.id },
-              summary: (
-                <>
-                  Take back {listing.left} × {listing.item.title}
-                </>
-              ),
-              done: {
-                title: "Taken back",
-                body: "The unsold copies are back in your wallet.",
-              },
+              summary:
+                listing.tokenId !== null ? (
+                  <>
+                    Take {listing.item.title} #{listing.tokenId} off sale
+                  </>
+                ) : (
+                  <>
+                    Take back {listing.left} × {listing.item.title}
+                  </>
+                ),
+              done:
+                listing.tokenId !== null
+                  ? { title: "Off sale", body: "The copy is still yours; it just isn't for sale." }
+                  : { title: "Taken back", body: "The unsold copies are back in your wallet." },
             });
           }}
         />
@@ -199,7 +223,9 @@ function ListingRow({
           <Money amount={listing.priceBandcoin} currency="BANDCOIN" />
           <Money amount={listing.priceUsd} currency="USD" />
           <span>
-            {listing.left} left · {listing.sold} sold of {listing.listed}
+            {listing.tokenId !== null
+              ? `Copy #${listing.tokenId}`
+              : `${listing.left} left · ${listing.sold} sold of ${listing.listed}`}
           </span>
           {!live && (
             <Badge variant="secondary">
@@ -214,7 +240,7 @@ function ListingRow({
             Change price
           </Button>
           <Button variant="outline" size="sm" onClick={onTakeBack} disabled={busy}>
-            Take back
+            {listing.tokenId !== null ? "Take off sale" : "Take back"}
           </Button>
         </div>
       )}
@@ -222,7 +248,16 @@ function ListingRow({
   );
 }
 
-function PriceDialog({ listing, onClose }: { listing: Listing; onClose: () => void }) {
+function PriceDialog({
+  listing,
+  onClose,
+  onRelist,
+}: {
+  listing: Listing;
+  onClose: () => void;
+  /** A smart-contract NFT's price is changed on the network: a transaction to sign */
+  onRelist: (prices: { priceBandcoin: string; priceUsd: string }) => void;
+}) {
   const utils = api.useUtils();
   const [bandcoin, setBandcoin] = useState(listing.priceBandcoin);
   const [usd, setUsd] = useState(listing.priceUsd);
@@ -241,8 +276,9 @@ function PriceDialog({ listing, onClose }: { listing: Listing; onClose: () => vo
         <DialogHeader>
           <DialogTitle className="display">Change the price</DialogTitle>
           <DialogDescription>
-            {listing.item.title}: the {listing.left} unsold copies. Nothing moves on the network, so
-            it&apos;s instant.
+            {listing.tokenId !== null
+              ? `${listing.item.title}, copy #${listing.tokenId}: the new price is put on the network, so you sign a transaction.`
+              : `${listing.item.title}: the ${listing.left} unsold copies. Nothing moves on the network, so it's instant.`}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -272,11 +308,13 @@ function PriceDialog({ listing, onClose }: { listing: Listing; onClose: () => vo
           <Button
             disabled={!valid || save.isPending}
             onClick={() =>
-              save.mutate({
-                listingId: listing.id,
-                priceBandcoin: bandcoin.trim(),
-                priceUsd: usd.trim(),
-              })
+              listing.tokenId !== null
+                ? onRelist({ priceBandcoin: bandcoin.trim(), priceUsd: usd.trim() })
+                : save.mutate({
+                    listingId: listing.id,
+                    priceBandcoin: bandcoin.trim(),
+                    priceUsd: usd.trim(),
+                  })
             }
           >
             Save price
@@ -301,10 +339,13 @@ function TakeBackDialog({
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="display">Take back unsold copies</DialogTitle>
+          <DialogTitle className="display">
+            {listing.tokenId !== null ? "Take it off sale" : "Take back unsold copies"}
+          </DialogTitle>
           <DialogDescription>
-            {listing.item.title}: {quote.data ? quote.data.copies : listing.left} copies go back to
-            your wallet and the listing ends. Copies already sold stay sold.
+            {listing.tokenId !== null
+              ? `${listing.item.title}, copy #${listing.tokenId}: it stays in your wallet and stops being for sale.`
+              : `${listing.item.title}: ${quote.data ? quote.data.copies : listing.left} copies go back to your wallet and the listing ends. Copies already sold stay sold.`}
           </DialogDescription>
         </DialogHeader>
         {quote.data && quote.data.lines.length > 0 && (

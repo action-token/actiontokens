@@ -73,8 +73,8 @@ export function ItemBody({
             stacked
           />
           {item.ownedQuantity > 0 &&
-            item.chainType === "CLASSIC_TOKEN" &&
-            item.type !== "FAN_TOKEN" && (
+            (item.chainType === "CONTRACT_NFT" ||
+              (item.chainType === "CLASSIC_TOKEN" && item.type !== "FAN_TOKEN")) && (
               <SellPanel
                 itemId={item.id}
                 itemTitle={item.title}
