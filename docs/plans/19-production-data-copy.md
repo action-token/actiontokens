@@ -80,7 +80,10 @@ In a separate `rehearsal` schema of `ep-steep`, with a throwaway `CHAIN_ACCOUNT_
 migrations, copy, run the checks. The backup in `public` is only read. Dropped afterwards, because
 it holds real keys.
 
-**Rehearsed 2026-11-04:** all counts add up, 26 keys open and match, 26 of 26 accounts exist on mainnet, 131 s. See `docs/migration-report.md`. Not yet done: running the new apps against the rehearsal data.
+**Rehearsed 2026-11-04:** all counts add up, 26 keys open and match, 26 of 26 accounts exist on mainnet, 131 s. See `docs/migration-report.md`. 
+API read check on the rehearsal data, 2026-11-04: 243 calls to the fan, AR and portal read endpoints as guest, fan, artist and admin. 163 returned data, 33 were correct refusals or not-found, 40 needed specific input and weren't exercised, 7 failed only because those reads create a row the first time and the connection was read-only. No response contained a secret key. Not checked: pin detail on a live pin (no unrestricted approved pin is currently live), screens in a browser.
+
+Decided: the 2 custom domains stay unverified and the artists re-verify after the DNS change; loose media stays in the backup only.
 
 ## Cutover (one window, with the app switch)
 
