@@ -42,6 +42,7 @@ export { keepUnlocksAlive, syncUnlocks } from "./services/catalog/unlock-chain";
 export { dropDueHotspots } from "./services/artist/hotspots";
 export { expireVanityLinks } from "./services/artist/vanity-expire";
 export { runMusic, sweepStuckRuns } from "./services/studio/music";
+export { runPinBatch, BATCH_JOB } from "./services/agent/batch";
 export { runGeneration, GENERATE_JOB } from "./services/studio/generate";
 export { generateInput } from "./services/studio/generate-input";
 export { googleProvider } from "./services/studio/google";

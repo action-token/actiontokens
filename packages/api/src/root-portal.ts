@@ -2,6 +2,7 @@ import { accountRouter } from "./routers/app/account";
 import { activationRouter } from "./routers/app/activation";
 import { rechargeRouter } from "./routers/app/recharge";
 import { adminRouter } from "./routers/admin";
+import { agentRouter } from "./routers/artist/agent";
 import { aiRouter } from "./routers/artist/ai";
 import { bountiesRouter } from "./routers/artist/bounties";
 import { catalogRouter } from "./routers/artist/catalog";
@@ -39,6 +40,7 @@ export const portalRouter = createRouter({
   music: musicRouter,
   memberships: membershipsRouter,
   engage: engageRouter,
+  agent: agentRouter,
   ai: aiRouter,
   bounties: bountiesRouter,
   pins: pinsRouter,

@@ -20,6 +20,8 @@ export type JobType =
   | "vanity.expire"
   | "studio.music"
   | "studio.generate"
+  | "pins.batch"
+  | "agent.run"
   | "studio.sweep";
 export const JOB_TYPES: readonly JobType[] = [
   "order.reconcile",
@@ -30,6 +32,8 @@ export const JOB_TYPES: readonly JobType[] = [
   "vanity.expire",
   "studio.music",
   "studio.generate",
+  "pins.batch",
+  "agent.run",
   "studio.sweep",
 ];
 

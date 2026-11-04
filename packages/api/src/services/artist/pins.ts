@@ -459,7 +459,7 @@ export async function getPin(
  * review, as bandfan's drops did.
  */
 export type HotspotDrop = {
-  hotspotId: string;
+  hotspotId?: string;
   spots: { latitude: number; longitude: number }[];
   maxRadius: number;
 };
@@ -470,6 +470,8 @@ export async function createPin(
   input: PinInput,
   now = new Date(),
   drop?: HotspotDrop,
+  /** `live`: skips the admin review (hotspot drops, and batches the artist confirmed). */
+  options: { live?: boolean } = {},
 ) {
   checkText(input);
   checkPlace(input, drop?.maxRadius);
@@ -503,7 +505,7 @@ export async function createPin(
         eventId,
         // Waits for an admin, as in Wadzzo: fans see it once it is approved.
         // A hotspot's drops don't (the artist chose the area once).
-        approval: drop ? "APPROVED" : "PENDING",
+        approval: drop || options.live ? "APPROVED" : "PENDING",
         hotspotId: drop?.hotspotId ?? null,
         spots: {
           createMany: {

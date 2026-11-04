@@ -7,6 +7,7 @@ import {
   googleProvider,
   runGeneration,
   runMusic,
+  runPinBatch,
   sweepStuckRuns,
   keepUnlocksAlive,
   reconcileOrders,
@@ -55,6 +56,14 @@ export function handlersFor(deps: WorkerDeps): Record<string, JobHandler> {
         provider: googleProvider(),
       });
       return { result, target: { type: "Generation", id: payload.generationId } };
+    },
+    // Pins an artist confirmed on an agent card, made one by one. A failed place is logged, never retried.
+    "pins.batch": async (job) => {
+      const { batchId } = job.payload as { batchId?: unknown };
+      if (typeof batchId !== "string")
+        throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "pins.batch needs a batchId" });
+      const result = await runPinBatch(context(), batchId);
+      return { result, target: { type: "PinBatchJob", id: batchId } };
     },
     // Refund Studio runs that a stopped worker never finished.
     "studio.sweep": async () => ({ result: await sweepStuckRuns(deps) }),
