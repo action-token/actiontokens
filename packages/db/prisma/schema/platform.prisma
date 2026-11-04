@@ -130,3 +130,24 @@ model LegacyIdMap {
   @@index([newId])
   @@map("legacy_id_map")
 }
+
+/// An access token for an AI app (Claude, Cursor…) to use the map agent as this person.
+/// Shown once when made; only its SHA-256 is kept.
+model McpToken {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// What the person called it, e.g. "Claude Desktop"
+  name       String
+  tokenHash  String    @unique
+  /// The token's first characters, to tell tokens apart in the list
+  prefix     String
+  /// The session's wallet type when the token was made
+  walletType String
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+  @@map("mcp_tokens")
+}

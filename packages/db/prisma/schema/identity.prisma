@@ -74,6 +74,7 @@ model User {
   eventComments        EventComment[]
   announcementComments AnnouncementComment[]
   aiUsages             AiUsage[]
+  mcpTokens            McpToken[]
 
   @@map("users")
 }
