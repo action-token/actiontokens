@@ -1,0 +1,82 @@
+name: Deploy worker (AWS EC2, Docker)
+
+# The web apps deploy through Vercel. Only the worker (jobs, payment re-checks, music
+# processing, live-music relay) runs on the server, as one Docker container.
+# Off until the server is ready: set the repository variable DEPLOY_WORKER=true and add the
+# secrets EC2_SSH_KEY, EC2_HOST and EC2_USER.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/worker/**"
+      - "packages/**"
+      - "tooling/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "scripts/deploy-worker.sh"
+      - ".github/workflows/deploy-worker.yml"
+  workflow_dispatch:
+
+# Two deploys at once would restart the one container twice and drop its job twice.
+concurrency:
+  group: deploy-worker
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: vars.DEPLOY_WORKER == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 30
+    env:
+      TAG: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Test the worker
+        run: pnpm --filter @bandcoin/worker test
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build the image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/worker/Dockerfile
+          load: true
+          tags: bandcoin-worker:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key.pem
+          chmod 600 ~/.ssh/deploy_key.pem
+          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
+
+      # The image is built here, so the server never compiles anything: it only loads it.
+      - name: Send the image to the server
+        run: |
+          docker save bandcoin-worker:${TAG} | gzip \
+            | ssh -i ~/.ssh/deploy_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'gunzip | docker load'
+
+      - name: Swap the container, wait for /health, go back if it fails
+        run: |
+          ssh -i ~/.ssh/deploy_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
+            "bash -s -- ${TAG}" < scripts/deploy-worker.sh
+
+      - name: Keep the watchdog current
+        run: |
+          scp -i ~/.ssh/deploy_key.pem scripts/worker-watchdog.sh \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:bandcoin/worker-watchdog.sh
