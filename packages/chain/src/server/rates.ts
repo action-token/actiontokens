@@ -70,16 +70,24 @@ async function fromBinance(fetcher: Fetcher) {
   }
 }
 
+/** USD per BANDCOIN the old Bandcoin used when the market had no price. */
+export const BANDCOIN_FALLBACK_USD = "0.00231";
+
 /**
- * USD per BANDCOIN. On mainnet, the asset's market price. On testnet a test
- * asset has no market, so the price comes from `devPrice` (BANDCOIN_USD_PRICE)
- * and is never used on mainnet. Refuses rather than guessing.
+ * USD per BANDCOIN. On mainnet, the asset's market price; when the market has
+ * none (Stellar Expert prices only from exchange trades, and BANDCOIN rarely
+ * trades) or can't be reached, `fallbackPrice` (BANDCOIN_USD_PRICE), else the
+ * old Bandcoin's fixed price. A fallback is never cached, so the market price
+ * is used again as soon as there is one. On testnet a test asset has no
+ * market, so the price comes from `devPrice` (BANDCOIN_USD_PRICE) and the
+ * market is never asked; a missing one is refused.
  */
 export async function liveBandcoinUsd(
   input: {
     name: "mainnet" | "testnet";
     asset: { code: string; issuer: string };
     devPrice?: string;
+    fallbackPrice?: string;
   },
   fetcher: Fetcher = defaultFetcher,
   now = Date.now(),
@@ -106,9 +114,8 @@ export async function liveBandcoinUsd(
     price = null;
   }
   if (price === null) {
-    throw new AppError(ErrorCodes.EXTERNAL_SERVICE_FAILED, {
-      message: "Couldn't load the BANDCOIN price. Try again in a moment.",
-    });
+    const fallback = Number.parseFloat(input.fallbackPrice ?? "");
+    return (usable(fallback) ? fallback : Number.parseFloat(BANDCOIN_FALLBACK_USD)).toFixed(7);
   }
   bandcoinCache = { price: price.toFixed(7), at: now };
   return bandcoinCache.price;

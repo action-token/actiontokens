@@ -90,12 +90,39 @@ describe("liveBandcoinUsd", () => {
     expect(urls).toEqual(["https://api.stellar.expert/explorer/public/asset/BANDCOIN-GISSUER"]);
   });
 
-  it("on mainnet ignores the dev price and refuses when the market has none", async () => {
-    await expect(
-      liveBandcoinUsd({ name: "mainnet", asset, devPrice: "1" }, async () => ({}), 0),
-    ).rejects.toMatchObject({
-      code: "EXTERNAL_SERVICE_FAILED",
-    });
+  it("on mainnet falls back to the configured price when the market has none or can't be reached", async () => {
+    const asset2 = { code: "BANDCOIN", issuer: "GISSUER" };
+    expect(
+      await liveBandcoinUsd(
+        { name: "mainnet", asset: asset2, fallbackPrice: "0.003" },
+        async () => ({ price: null }),
+        0,
+      ),
+    ).toBe("0.0030000");
+    const down = () => Promise.reject(new Error("offline"));
+    expect(await liveBandcoinUsd({ name: "mainnet", asset, fallbackPrice: "0.003" }, down, 0)).toBe(
+      "0.0030000",
+    );
+  });
+
+  it("on mainnet falls back to the old Bandcoin's $0.00231 when nothing is configured", async () => {
+    expect(await liveBandcoinUsd({ name: "mainnet", asset }, async () => ({}), 0)).toBe(
+      "0.0023100",
+    );
+    expect(
+      await liveBandcoinUsd({ name: "mainnet", asset, fallbackPrice: "free" }, async () => ({}), 0),
+    ).toBe("0.0023100");
+  });
+
+  it("on mainnet a market price wins over the fallback, and the fallback isn't cached", async () => {
+    await liveBandcoinUsd({ name: "mainnet", asset, fallbackPrice: "0.003" }, async () => ({}), 0);
+    expect(
+      await liveBandcoinUsd(
+        { name: "mainnet", asset, fallbackPrice: "0.003" },
+        async () => ({ price: 0.0041 }),
+        1_000,
+      ),
+    ).toBe("0.0041000");
   });
 
   it("on testnet uses the dev price, since a test asset has no market, and says so when it's missing", async () => {

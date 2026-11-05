@@ -46,7 +46,7 @@ export type ChainGateway = {
   config: ChainConfig;
   loadAccount(id: string): Promise<Horizon.AccountResponse | null>;
   rates(): Promise<Rates>;
-  /** USD per BANDCOIN: the market price, or BANDCOIN_USD_PRICE on testnet */
+  /** USD per BANDCOIN: the market price; BANDCOIN_USD_PRICE on testnet, and on mainnet when the market has none */
   bandcoinUsd(): Promise<string>;
   /** Signs with the platform-held keys (issuer, storage) the builder listed */
   signWithServerKeys(xdr: string, publicKeys: string[]): Promise<string>;
@@ -148,6 +148,7 @@ export function createChainGateway(db: Db): ChainGateway {
         name: config.name,
         asset: config.assets.bandcoin,
         devPrice: process.env.BANDCOIN_USD_PRICE,
+        fallbackPrice: process.env.BANDCOIN_USD_PRICE,
       });
     },
     signWithServerKeys: async (xdr, publicKeys) => {
