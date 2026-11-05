@@ -57,7 +57,7 @@ function Block({
       {/* Swipeable rows on narrower screens, stacked cards in the side columns. */}
       <div
         className={cn(
-          "-mx-4 flex snap-x scroll-px-4 [scrollbar-width:none] gap-3 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:scroll-px-6 sm:px-6 xl:mx-0 xl:grid xl:overflow-visible xl:px-0 xl:pb-0",
+          "-mx-4 flex snap-x scroll-px-4 [scrollbar-width:none] gap-3 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:scroll-px-6 sm:px-6 xl:mx-0 xl:grid xl:grid-cols-[minmax(0,1fr)] xl:overflow-visible xl:px-0 xl:pb-0",
           columns,
         )}
       >
