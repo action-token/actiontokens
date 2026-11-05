@@ -227,7 +227,7 @@ export function PinForm({ existing, copyOf }: { existing?: Existing; copyOf?: Ex
   return (
     <FormPage
       title={existing ? existing.title : "New pin"}
-      description="A reward on the map that fans collect when they're nearby. Free, and live as soon as you save."
+      description="A reward on the map that fans collect when they're nearby. Free. It goes live once Bandcoin has approved it."
       back={{ href: "/pins", label: "Map & pins" }}
       onSubmit={submit}
       actions={actions}

@@ -107,8 +107,12 @@ Done with real clicks and no problems found: like and comment on a post (count a
 off with "Subscribe to X to comment."), create a playlist and add a song to it, recharge quote for $9.99 and the Get XLM quote, bounty list
 and detail and joining a music bounty (participants 0 to 1), marketplace search, collection and favourites, the contract-NFT buy panel
 quote, Selling and the Sell dialog, stories and highlights, Last.fm connect and its return trip. Anything that needs a wallet signature (buy,
-list, subscribe, pay by card) was taken as far as the confirm step. Not yet clicked through: the artist portal's create flows and the AR
-app's map and collect. Every action took several seconds in dev, which is the dev server compiling, not the app.
+list, subscribe, pay by card) was taken as far as the confirm step. Artist portal and admin, same day: create a post (it reached the feed), create a pin (it waits in "In review", as plan 11 decided; its
+form wrongly said "live as soon as you save", now fixed), approve it in Pin review, take a story down in Story review (a reason is
+required), and the Jobs, Artists and Alerts pages show real data. AR: Bounty, Collection and Artists show real data; the map asks for
+location with clear steps (a browser permission I can't grant). Not clicked through: creating items, stories (file upload) and
+bounties (funding) from the portal, and collecting a drop in AR, since they need a wallet signature, a file upload or the device's
+location. Every action took several seconds in dev, which is the dev server compiling, not the app.
 
 ## Before cutover
 
