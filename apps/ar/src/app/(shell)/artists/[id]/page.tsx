@@ -6,6 +6,7 @@ import { useQueryParams, useRouter } from "~/lib/navigation";
 import { useState } from "react";
 
 import { ArtistAvatar } from "~/components/artist/ArtistAvatar";
+import { SubscribeSheet } from "~/components/artist/SubscribeSheet";
 import { HoloCard } from "~/components/cards/HoloCard";
 import { AppShell } from "~/components/shell/AppShell";
 import { CardSkeleton, Skeleton, SkeletonText, StatRowSkeleton } from "~/components/ui/Skeleton";
@@ -64,6 +65,7 @@ export default function ArtistDetail() {
   const signedIn = useAuth((s) => Boolean(s.user));
 
   const [tab, setTab] = useState<Tab>("live");
+  const [subscribing, setSubscribing] = useState(false);
 
   const artist = artistQuery.data ?? null;
 
@@ -231,8 +233,22 @@ export default function ArtistDetail() {
               toggleFollow(artist);
             }}
           >
-            {followLabel(artist)}
+            {artist.subscribed && followPendingId !== artist.id
+              ? "Subscribed"
+              : followLabel(artist)}
           </ArButton>
+          {/* As in the fan app: Subscribe once they follow, when the artist has a fan token. */}
+          {artist.followed && !artist.subscribed && artist.fanToken && (
+            <ArButton
+              size="md"
+              variant="primary"
+              block
+              icon={BadgeCheck}
+              onClick={() => setSubscribing(true)}
+            >
+              Subscribe
+            </ArButton>
+          )}
           <ArLinkButton href="/map" size="md" variant="outline" className="shrink-0">
             On map
           </ArLinkButton>
@@ -240,8 +256,22 @@ export default function ArtistDetail() {
 
         {artist.followed && (
           <p className="text-ar-faint mt-2 px-5 text-[11px] leading-relaxed">
-            Their follower-only pins now show on your map. Members pins need their fan token.
+            {artist.subscribed
+              ? `You trust ${artist.fanToken}: their subscriber pins are open to you. Members pins need more ${artist.fanToken}.`
+              : artist.fanToken
+                ? `Their follower-only pins now show on your map. Subscribe (trust ${artist.fanToken}) for their subscriber pins.`
+                : "Their follower-only pins now show on your map."}
           </p>
+        )}
+
+        {artist.fanToken && (
+          <SubscribeSheet
+            open={subscribing}
+            onClose={() => setSubscribing(false)}
+            artistId={artist.id}
+            artistName={artist.name}
+            code={artist.fanToken}
+          />
         )}
 
         {/* ── Bio ──────────────────────────────────────────────────── */}

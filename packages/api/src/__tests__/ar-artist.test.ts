@@ -43,15 +43,16 @@ function setup(user: SessionUser | null = me) {
     },
     activityLog: { create: vi.fn().mockResolvedValue({}) },
   };
+  const chain = { loadAccount: vi.fn().mockResolvedValue({ balances: [] }) };
   const caller = createCallerFactory(arRouter)(
     createContext({
       db: db as unknown as Db,
-      chain: {} as ChainGateway,
+      chain: chain as unknown as ChainGateway,
       app: "ar",
       session: user ? { user } : null,
     }),
   );
-  return { db, caller };
+  return { db, chain, caller };
 }
 
 describe("ar artist.byId and list", () => {
@@ -68,6 +69,47 @@ describe("ar artist.byId and list", () => {
       pinCount: 3,
       categories: ["launch", "vinyl"],
     });
+  });
+
+  it("lists the fan token and who subscribes from the saved follow", async () => {
+    const { caller, db } = setup();
+    db.artist.findMany.mockResolvedValue([
+      { ...artistRow, fanTokenItem: { classicToken: { code: "LUNA", issuer: "GISSUER" } } },
+      { ...artistRow, id: "a2", fanTokenItem: null },
+    ]);
+    db.follow.findMany.mockResolvedValue([
+      { artistId: "a1", isTemporary: false },
+      { artistId: "a2", isTemporary: true },
+    ]);
+    const [luna, other] = await caller.artist.list();
+    expect(luna).toMatchObject({ fanToken: "LUNA", followed: true, subscribed: true });
+    expect(other).toMatchObject({ fanToken: null, followed: true, subscribed: false });
+  });
+
+  it("checks the wallet on the artist's page, as the fan app does", async () => {
+    const { caller, db, chain } = setup();
+    db.artist.findFirst.mockResolvedValue({
+      ...artistRow,
+      fanTokenItem: { classicToken: { code: "LUNA", issuer: "GISSUER" } },
+    });
+    db.follow.findUnique.mockResolvedValue({ isTemporary: true });
+    chain.loadAccount.mockResolvedValue({
+      balances: [
+        {
+          asset_type: "credit_alphanum4",
+          asset_code: "LUNA",
+          asset_issuer: "GISSUER",
+          balance: "0",
+        },
+      ],
+    });
+    await expect(caller.artist.byId({ id: "a1" })).resolves.toMatchObject({
+      fanToken: "LUNA",
+      followed: true,
+      subscribed: true,
+    });
+    expect(chain.loadAccount).toHaveBeenCalledWith("GME");
+    expect(db.follow.upsert).toHaveBeenCalled();
   });
 
   it("shows nobody as followed when signed out, without asking the database", async () => {

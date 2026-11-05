@@ -8,6 +8,7 @@ import { eventRouter } from "./routers/ar/event";
 import { muralRouter } from "./routers/ar/mural";
 import { pinRouter } from "./routers/ar/pin";
 import { arPostRouter } from "./routers/ar/post";
+import { subscribeRouter } from "./routers/ar/subscribe";
 import { createRouter } from "./trpc";
 
 /** The AR app's API: the map, collecting, the collection and bounties (the fan app's router). */
@@ -22,6 +23,7 @@ export const arRouter = createRouter({
   notification: notificationRouter,
   pin: pinRouter,
   post: arPostRouter,
+  subscribe: subscribeRouter,
 });
 
 export type ArRouter = typeof arRouter;

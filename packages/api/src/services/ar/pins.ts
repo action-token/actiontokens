@@ -84,9 +84,7 @@ export async function loadViewer(
   if (!user) return null;
   const needsBalance = pins.some(
     (pin) =>
-      pin.visibility === "MEMBERS" ||
-      pin.visibility === "TIER" ||
-      pin.visibility === "SUBSCRIBERS",
+      pin.visibility === "MEMBERS" || pin.visibility === "TIER" || pin.visibility === "SUBSCRIBERS",
   );
   const [follows, account] = await Promise.all([
     ctx.db.follow.findMany({ where: { userId: user.id }, select: { artistId: true } }),
@@ -173,6 +171,7 @@ export function toArPin(
   spot: SpotFacts,
   claim: ClaimFacts | undefined,
   lockReason: string | null,
+  subscribe: ArPin["subscribe"] = null,
 ): ArPin {
   const facts = pinFacts(pin);
   return {
@@ -200,6 +199,7 @@ export function toArPin(
     // Whatever gate a collected pin sat behind was cleared when it was collected.
     locked: claim == null && lockReason != null,
     lockReason: claim == null ? lockReason : null,
+    subscribe: claim == null && lockReason != null ? subscribe : null,
     tags: facts.tags,
   };
 }
@@ -207,10 +207,18 @@ export function toArPin(
 /** Every visible spot of a pin, with the viewer's claim applied the multi-spot way. */
 export function spotsOf(pin: PinRow, viewer: Viewer): ArPin[] {
   const lockReason = lockReasonFor(pin, viewer);
+  // Subscribing (trusting the fan token) is what opens it: the sheet can offer it.
+  const subscribe =
+    viewer &&
+    lockReason &&
+    pin.visibility === "SUBSCRIBERS" &&
+    pin.artist.fanTokenItem?.classicToken
+      ? { following: viewer.followedArtistIds.has(pin.artistId) }
+      : null;
   const anyClaim = pin.spots.flatMap((spot) => spot.claims)[0];
   return pin.spots.map((spot) => {
     const own = spot.claims[0];
-    return toArPin(pin, spot, pin.isMultiSpot ? own : (own ?? anyClaim), lockReason);
+    return toArPin(pin, spot, pin.isMultiSpot ? own : (own ?? anyClaim), lockReason, subscribe);
   });
 }
 

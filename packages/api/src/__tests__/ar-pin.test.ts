@@ -157,6 +157,22 @@ describe("spotsOf", () => {
     expect(pins[1]!.autoCollect).toBe(true);
   });
 
+  it("offers Subscribe only on a subscribers pin a signed-in fan can't open yet", () => {
+    const pin = pinRow({ visibility: "SUBSCRIBERS" as never });
+    expect(spotsOf(pin, viewer())[0]!.subscribe).toEqual({ following: false });
+    expect(spotsOf(pin, viewer({ follows: ["artist1"] }))[0]!.subscribe).toEqual({
+      following: true,
+    });
+    expect(spotsOf(pin, viewer({ balance: "0" }))[0]!.subscribe).toBeNull();
+    expect(spotsOf(pin, null)[0]!.subscribe).toBeNull();
+    const noToken = pinRow({
+      visibility: "SUBSCRIBERS" as never,
+      artist: { ...pinRow().artist, fanTokenItem: null },
+    });
+    expect(spotsOf(noToken, viewer())[0]!.subscribe).toBeNull();
+    expect(spotsOf(pinRow({ visibility: "FOLLOWERS" }), viewer())[0]!.subscribe).toBeNull();
+  });
+
   it("marks every spot collected when one is, unless the pin is multi-spot", () => {
     const claim = {
       userId: "me",

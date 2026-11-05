@@ -11,7 +11,8 @@ import {
 import { getWalletProvider, signTransaction } from "@bandcoin/wallet";
 
 /**
- * The steps every Bandcoin payment goes through, for the AR app's claims:
+ * The steps every Bandcoin payment goes through, for the AR app's claims and
+ * subscribing:
  *
  *   email / Google / Apple accounts: countdown with Cancel → server signs → done
  *   wallet extensions:               "Confirm in Freighter" → wallet signs → done
@@ -23,6 +24,10 @@ export function useSignedTransaction(flow: {
   submit: (xdr: string) => Promise<unknown>;
   /** Shown while the server submits. */
   sending: string;
+  /** Shown while the transaction is built. Defaults to the claim wording. */
+  preparing?: string;
+  /** Called when the fan cancels (or the wallet popup is declined) after `prepare`. */
+  cancel?: () => Promise<unknown>;
   success: { title: string; body: string };
   /** Shown when the error has no message of its own. */
   failure: string;
@@ -41,7 +46,7 @@ export function useSignedTransaction(flow: {
   async function start(summary: ReactNode) {
     let prepared;
     try {
-      setStep({ kind: "submitting", title: "Preparing your claim…", summary });
+      setStep({ kind: "submitting", title: flow.preparing ?? "Preparing your claim…", summary });
       prepared = await flow.prepare();
     } catch (error) {
       setStep({ kind: "failed", reason: reasonOf(error) });
@@ -91,8 +96,10 @@ export function useSignedTransaction(flow: {
   }
 
   function stop() {
+    const wasPending = pending.current !== null;
     pending.current = null;
     setStep({ kind: "canceled" });
+    if (wasPending) void flow.cancel?.().catch(() => undefined);
   }
 
   return {

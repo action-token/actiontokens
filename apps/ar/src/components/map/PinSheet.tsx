@@ -1,4 +1,14 @@
-import { Bike, Bus, Car, Navigation, Package, ScanLine, Timer, Footprints } from "lucide-react";
+import {
+  BadgeCheck,
+  Bike,
+  Bus,
+  Car,
+  Navigation,
+  Package,
+  ScanLine,
+  Timer,
+  Footprints,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -17,6 +27,9 @@ import { ArButton, ArLinkButton } from "~/components/ui/ArButton";
 import { DETECTION_META, DetectionBadge, RarityPlate, StatusBadge } from "~/components/ui/Badges";
 import { BottomSheet } from "~/components/ui/BottomSheet";
 import { ArtistAvatar } from "~/components/artist/ArtistAvatar";
+import { SubscribeSheet } from "~/components/artist/SubscribeSheet";
+import { useToggleFollow } from "~/lib/ar/usePins";
+import { api } from "~/trpc/react";
 
 const MODES: { id: TravelMode; icon: typeof Bike; label: string }[] = [
   { id: "walk", icon: Footprints, label: "Walk" },
@@ -246,6 +259,9 @@ function PinSheetBody({
             {status === "locked" && pin.lockReason && (
               <p className="text-ar-faint text-center text-[11px]">{pin.lockReason}</p>
             )}
+            {status === "locked" && pin.subscribe && (
+              <SubscribeToUnlock pin={pin} following={pin.subscribe.following} />
+            )}
           </>
         )}
 
@@ -295,5 +311,58 @@ function Fact({
       </p>
       {sub && <p className="text-ar-faint mt-0.5 text-[9.5px]">{sub}</p>}
     </div>
+  );
+}
+
+/**
+ * Under a subscriber pin's lock: Follow first, as in the fan app, then
+ * Subscribe (trust the artist's fan token). The pin reloads and opens after.
+ */
+function SubscribeToUnlock({ pin, following }: { pin: ArPin; following: boolean }) {
+  const [open, setOpen] = useState(false);
+  const { toggle, pendingId, error } = useToggleFollow();
+  const artist = api.artist.byId.useQuery({ id: pin.artistId }, { enabled: following });
+  const code = artist.data?.fanToken;
+
+  if (!following) {
+    return (
+      <>
+        <ArButton
+          variant="primary"
+          size="lg"
+          block
+          busy={pendingId === pin.artistId}
+          onClick={() => toggle({ id: pin.artistId, followed: false })}
+        >
+          Follow {pin.artistName}
+        </ArButton>
+        <p className="text-ar-faint text-center text-[11px]">Then subscribe to unlock this pin.</p>
+        {error && <p className="text-ar-danger text-center text-[11px]">{error}</p>}
+      </>
+    );
+  }
+  return (
+    <>
+      <ArButton
+        variant="primary"
+        size="lg"
+        block
+        icon={BadgeCheck}
+        busy={artist.isPending}
+        disabled={!code}
+        onClick={() => setOpen(true)}
+      >
+        Subscribe{code ? ` with ${code}` : ""}
+      </ArButton>
+      {code && (
+        <SubscribeSheet
+          open={open}
+          onClose={() => setOpen(false)}
+          artistId={pin.artistId}
+          artistName={pin.artistName}
+          code={code}
+        />
+      )}
+    </>
   );
 }

@@ -64,6 +64,11 @@ export interface ArPin {
   locked: boolean;
   /** Why it's locked, phrased as the action that unlocks it. Null if open. */
   lockReason: string | null;
+  /**
+   * Set when only the Subscribers rule keeps a signed-in fan out and the artist
+   * has a fan token: the sheet offers Follow (if `following` is false), then Subscribe.
+   */
+  subscribe: { following: boolean } | null;
 
   /** This pin's own tag labels (`ArArtist.categories` is the union across an artist's pins). */
   tags: string[];
@@ -82,6 +87,10 @@ export interface ArArtist {
   /** The artist profile is approved by an admin. */
   verified: boolean;
   followed: boolean;
+  /** The viewer trusts the artist's fan token (a subscriber). */
+  subscribed: boolean;
+  /** The artist's fan token code, which a fan trusts to subscribe; null when they have none. */
+  fanToken: string | null;
   followers: number;
   /** Live, approved pins this artist currently has on the map. */
   pinCount: number;

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { setFollowing } from "../../services/feed/follow";
+import { syncViewerSubscription } from "../../services/feed/subscribe";
 
 import type { ArArtist } from "@bandcoin/ar-core/ar/types";
 import { site } from "@bandcoin/ar-core/site";
@@ -19,13 +20,17 @@ const artistSelect = {
   coverUrl: true,
   status: true,
   _count: { select: { followers: true } },
+  fanTokenItem: { select: { classicToken: { select: { code: true, issuer: true } } } },
 } satisfies Prisma.ArtistSelect;
 
 type ArtistRow = Prisma.ArtistGetPayload<{ select: typeof artistSelect }>;
 
+type Standing = { following: boolean; subscribed: boolean };
+const STRANGER: Standing = { following: false, subscribed: false };
+
 function toArArtist(
   row: ArtistRow,
-  followed: boolean,
+  standing: Standing,
   pinCount: number,
   categories: string[],
 ): ArArtist {
@@ -38,7 +43,9 @@ function toArArtist(
     avatarUrl: row.avatarUrl ?? site.assets.mark,
     coverUrl: row.coverUrl,
     verified: row.status === "APPROVED",
-    followed,
+    followed: standing.following,
+    subscribed: standing.subscribed,
+    fanToken: row.fanTokenItem?.classicToken?.code ?? null,
     followers: row._count.followers,
     pinCount,
     categories,
@@ -68,13 +75,16 @@ async function pinFacets(db: Db, artistIds: string[], viewerId: string | null) {
   };
 }
 
-async function followedIds(db: Db, userId: string | null, artistIds: string[]) {
-  if (!userId) return new Set<string>();
+/** Who the viewer follows, and which of those they subscribe to (the saved flag). */
+async function standingsOf(db: Db, userId: string | null, artistIds: string[]) {
+  if (!userId) return new Map<string, Standing>();
   const rows = await db.follow.findMany({
     where: { userId, artistId: { in: artistIds } },
-    select: { artistId: true },
+    select: { artistId: true, isTemporary: true },
   });
-  return new Set(rows.map((row) => row.artistId));
+  return new Map(
+    rows.map((row) => [row.artistId, { following: true, subscribed: !row.isTemporary }]),
+  );
 }
 
 export const artistRouter = createRouter({
@@ -87,21 +97,21 @@ export const artistRouter = createRouter({
       orderBy: { createdAt: "desc" },
     });
     const ids = artists.map((artist) => artist.id);
-    const [facets, followed] = await Promise.all([
+    const [facets, standings] = await Promise.all([
       pinFacets(ctx.db, ids, viewerId),
-      followedIds(ctx.db, viewerId, ids),
+      standingsOf(ctx.db, viewerId, ids),
     ]);
     return artists.map((artist) =>
       toArArtist(
         artist,
-        followed.has(artist.id),
+        standings.get(artist.id) ?? STRANGER,
         facets.pinCount(artist.id),
         facets.categoriesOf(artist.id),
       ),
     );
   }),
 
-  /** One artist, for their page or a shared link. */
+  /** One artist, for their page or a shared link. Subscribed is read from the wallet, as in the fan app. */
   byId: publicProcedure
     .input(z.object({ id: z.string().min(1) }))
     .query(async ({ ctx, input }): Promise<ArArtist> => {
@@ -114,13 +124,14 @@ export const artistRouter = createRouter({
         throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, {
           message: "This artist doesn't exist.",
         });
-      const [facets, followed] = await Promise.all([
+      const user = ctx.session?.user;
+      const [facets, standing] = await Promise.all([
         pinFacets(ctx.db, [artist.id], viewerId),
-        followedIds(ctx.db, viewerId, [artist.id]),
+        user ? syncViewerSubscription(ctx, user, artist) : STRANGER,
       ]);
       return toArArtist(
         artist,
-        followed.has(artist.id),
+        standing,
         facets.pinCount(artist.id),
         facets.categoriesOf(artist.id),
       );

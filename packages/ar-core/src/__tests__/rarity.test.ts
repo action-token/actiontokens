@@ -59,6 +59,7 @@ const pin = (over: Partial<ArPin> = {}): ArPin => ({
   isRedeemed: null,
   locked: false,
   lockReason: null,
+  subscribe: null,
   tags: [],
   ...over,
 });

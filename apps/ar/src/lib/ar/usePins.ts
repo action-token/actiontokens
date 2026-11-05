@@ -103,6 +103,7 @@ export function useCollectPin() {
                 remaining: result.remaining,
                 locked: false,
                 lockReason: null,
+                subscribe: null,
               }
             : pin,
         ),
@@ -138,6 +139,7 @@ export function useCollectPinByQr() {
                 remaining: result.remaining,
                 locked: false,
                 lockReason: null,
+                subscribe: null,
               }
             : pin,
         ),
