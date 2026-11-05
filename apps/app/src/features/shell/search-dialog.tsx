@@ -18,6 +18,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@bandcoin/ui/components/dialog";
+import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { cn } from "@bandcoin/ui/lib/cn";
 
 import { api } from "~/trpc/react";
@@ -123,6 +124,19 @@ export function SearchDialog() {
               <p className="text-fg-faint px-2 pb-2 text-[11px] font-semibold tracking-wider uppercase">
                 {searching ? "Searching…" : "Jump to"}
               </p>
+              {searching && (
+                <div className="grid gap-1" aria-hidden>
+                  {[0, 1, 2, 3].map((key) => (
+                    <div key={key} className="flex items-center gap-3 rounded-lg p-2">
+                      <Skeleton className="size-10 shrink-0 rounded-md" />
+                      <div className="grid flex-1 gap-1.5">
+                        <Skeleton className="h-3.5 w-2/5" />
+                        <Skeleton className="h-3 w-1/4" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
               {!searching && (
                 <div className="grid grid-cols-2 gap-2">
                   {QUICK.map((link) => (

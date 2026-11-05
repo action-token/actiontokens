@@ -27,6 +27,18 @@ const SORTS: { value: Sort; label: string }[] = [
 /** Full releases, for Home. */
 export function AlbumsCarousel() {
   const overview = api.music.overview.useQuery();
+  if (overview.isPending)
+    return (
+      <MediaCarousel title="Albums" note="full releases" itemWidth="minmax(160px,188px)">
+        {[0, 1, 2, 3, 4, 5].map((key) => (
+          <div key={key} className="grid gap-2" aria-hidden>
+            <Skeleton className="aspect-square w-full rounded-2xl" />
+            <Skeleton className="h-3.5 w-3/4" />
+            <Skeleton className="h-3 w-1/2" />
+          </div>
+        ))}
+      </MediaCarousel>
+    );
   if (!overview.data || overview.data.albums.length === 0) return null;
   return (
     <MediaCarousel title="Albums" note="full releases" itemWidth="minmax(160px,188px)">

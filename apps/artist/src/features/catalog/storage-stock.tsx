@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Input } from "@bandcoin/ui/components/input";
+import { Skeleton } from "@bandcoin/ui/components/skeleton";
 
 import { api } from "~/trpc/react";
 
@@ -28,6 +29,8 @@ export function StorageStock({ itemId }: { itemId: string }) {
   );
   const flow = useStorageStock({ itemId, quantity });
 
+  if (profile.isPending)
+    return <Skeleton className="h-28 rounded-[1.4rem]" aria-label="Loading storage copies" />;
   if (!profile.data) return null;
   const stock = quote.data?.stock;
 

@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight, Lock, Play } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
+import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { cn } from "@bandcoin/ui/lib/cn";
 import { SectionTitle } from "@bandcoin/ui/patterns/media-carousel";
 
@@ -72,6 +73,8 @@ export function ArtistStories({ slug }: { slug: string }) {
   const stories = useArtistStories(slug);
   const [start, setStart] = useState<number | null>(null);
   const live = stories.data?.stories ?? [];
+  if (stories.isPending)
+    return <RowSkeleton title="Stories" note="gone in 24 hours" shape="round" label="Stories" />;
   if (live.length === 0) return null;
 
   return (
@@ -110,6 +113,15 @@ export function ArtistHighlights({ slug }: { slug: string }) {
   const pages = archive.data?.pages ?? [];
   const artist = pages[0]?.artist;
   const stories = pages.flatMap((page) => page.stories);
+  if (archive.isPending)
+    return (
+      <RowSkeleton
+        title="Highlights"
+        note="everything they've shared"
+        shape="square"
+        label="Highlights"
+      />
+    );
   if (!artist || stories.length === 0) return null;
 
   return (
@@ -207,6 +219,38 @@ function ScrollRow({ children, onEnd }: { children: ReactNode; onEnd?: () => voi
         </button>
       )}
     </div>
+  );
+}
+
+/** The row's place held while its stories load: the same title and tile sizes, so nothing jumps. */
+function RowSkeleton({
+  title,
+  note,
+  shape,
+  label,
+}: {
+  title: string;
+  note: string;
+  shape: "round" | "square";
+  label: string;
+}) {
+  return (
+    <section className="grid grid-cols-[minmax(0,1fr)] gap-4" aria-label={label} aria-busy="true">
+      <SectionTitle title={title} note={note} />
+      <ul className="flex items-start gap-4 overflow-hidden px-1.5 py-1.5" aria-hidden>
+        {Array.from({ length: shape === "round" ? 5 : 7 }, (_, key) => (
+          <li
+            key={key}
+            className={cn("grid shrink-0 justify-items-center gap-1.5", SIZE[shape].width)}
+          >
+            <Skeleton
+              className={cn(SIZE[shape].box, shape === "round" ? "rounded-full" : "rounded-2xl")}
+            />
+            <Skeleton className="h-2.5 w-3/5" />
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

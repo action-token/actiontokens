@@ -9,6 +9,7 @@ import { TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
 
 import { ArButton } from "~/components/ui/ArButton";
 import { BottomSheet } from "~/components/ui/BottomSheet";
+import { Skeleton } from "~/components/ui/Skeleton";
 import { useRewardClaim } from "~/lib/ar/useRewardClaim";
 import { api } from "~/trpc/react";
 
@@ -27,6 +28,8 @@ export function ClaimToWallet({ pinId }: { pinId: string }) {
   const [open, setOpen] = useState(false);
 
   const overview = state.data;
+  if (session.status === "loading" || (session.status === "authenticated" && state.isPending))
+    return <Skeleton className="h-14 w-full" />;
   if (!overview) return null;
 
   if (overview.state === "none" || overview.state === "unsupported" || !overview.reward) {
