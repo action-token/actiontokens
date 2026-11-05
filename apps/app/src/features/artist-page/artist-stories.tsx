@@ -77,10 +77,10 @@ export function ArtistStories({ slug }: { slug: string }) {
   return (
     <section className="grid gap-4" aria-label="Stories">
       <SectionTitle title="Stories" note="gone in 24 hours" />
-      <ul className="-mx-4 flex [scrollbar-width:none] gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+      <ul className="-mx-4 flex [scrollbar-width:none] items-start gap-4 overflow-x-auto px-4 py-1.5 sm:mx-0 sm:px-1.5">
         {live.map((story, index) => (
           <li key={story.id} className="shrink-0">
-            <Tile story={story} onOpen={() => setStart(index)} />
+            <Tile shape="round" story={story} onOpen={() => setStart(index)} />
           </li>
         ))}
       </ul>
@@ -115,10 +115,10 @@ export function ArtistHighlights({ slug }: { slug: string }) {
   return (
     <section className="grid gap-4" aria-label="Highlights">
       <SectionTitle title="Highlights" note="everything they've shared" />
-      <ul className="-mx-4 flex [scrollbar-width:none] gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+      <ul className="-mx-4 flex [scrollbar-width:none] items-start gap-4 overflow-x-auto px-4 py-1.5 sm:mx-0 sm:px-1.5">
         {stories.map((story, index) => (
           <li key={story.id} className="shrink-0">
-            <Tile past story={story} onOpen={() => setStart(index)} />
+            <Tile shape="square" story={story} onOpen={() => setStart(index)} />
           </li>
         ))}
         {archive.hasNextPage && (
@@ -127,7 +127,7 @@ export function ArtistHighlights({ slug }: { slug: string }) {
               type="button"
               disabled={archive.isFetchingNextPage}
               onClick={() => void archive.fetchNextPage()}
-              className="bg-surface-2 text-fg-muted hover:text-fg grid aspect-[9/16] w-28 place-content-center rounded-2xl border-2 border-dashed text-xs font-semibold sm:w-32"
+              className="bg-surface-2 text-fg-muted hover:text-fg grid size-28 place-content-center rounded-2xl border-2 border-dashed text-xs font-semibold sm:size-36"
             >
               {archive.isFetchingNextPage ? "Loading…" : "Older"}
             </button>
@@ -147,67 +147,86 @@ export function ArtistHighlights({ slug }: { slug: string }) {
   );
 }
 
+/** Live stories are small rings; highlights are bigger squares so the picture reads. */
+const SIZE = {
+  round: { box: "size-[4.5rem] sm:size-20", width: "w-[4.5rem] sm:w-20" },
+  square: { box: "size-28 sm:size-36", width: "w-28 sm:w-36" },
+} as const;
+
+/**
+ * One story, small: a ringed circle for a live story (yellow while it is new,
+ * grey once watched or locked), a rounded square for a highlight. A click opens
+ * the story in the viewer.
+ */
 function Tile({
   story,
   onOpen,
-  past = false,
+  shape,
 }: {
   story: Story | PastStory;
   onOpen: () => void;
-  /** A highlight: not "new", so no yellow border, and the date instead of the age */
-  past?: boolean;
+  shape: "round" | "square";
 }) {
   const picture = story.thumbnailUrl ?? (story.type === "IMAGE" ? story.url : null);
+  const round = shape === "round";
+  const fresh = round && !story.lock && !("seen" in story && story.seen);
+  const lockLabel = story.lock
+    ? story.lock.kind === "FOLLOW"
+      ? "Followers"
+      : story.lock.kind === "SUBSCRIBE"
+        ? "Subscribers"
+        : story.lock.tierName
+    : null;
+  const label = lockLabel ?? (round ? timeAgo(story.createdAt) : shortDate(story.createdAt));
   return (
     <button
       type="button"
       onClick={onOpen}
-      aria-label={story.lock ? "A locked story" : (story.caption ?? "Watch this story")}
-      className={cn(
-        "bg-surface-3 relative block aspect-[9/16] w-32 overflow-hidden rounded-2xl border-2 text-left text-white transition-transform hover:-translate-y-0.5 sm:w-36",
-        past || ("seen" in story && story.seen) || story.lock ? "border-border" : "border-primary",
-      )}
+      aria-label={
+        story.lock ? `A locked story: ${lockLabel}` : (story.caption ?? "Watch this story")
+      }
+      title={story.lock ? "Locked" : (story.caption ?? undefined)}
+      className={cn("group grid justify-items-center gap-1.5 text-center", SIZE[shape].width)}
     >
-      {story.lock ? (
-        <span className="text-fg-muted absolute inset-0 grid place-content-center justify-items-center gap-2 px-3 text-center text-xs font-semibold">
-          <Lock className="size-6" />
-          {story.lock.kind === "FOLLOW"
-            ? "Followers only"
-            : story.lock.kind === "SUBSCRIBE"
-              ? "Subscribers only"
-              : `${story.lock.tierName} members`}
-        </span>
-      ) : (
-        <>
-          {picture ? (
-            // eslint-disable-next-line @next/next/no-img-element -- media comes from storage hosts
-            <img src={picture} alt="" className="absolute inset-0 size-full object-cover" />
-          ) : story.url ? (
-            <video
-              src={`${story.url}#t=0.1`}
-              preload="metadata"
-              muted
-              playsInline
-              className="absolute inset-0 size-full object-cover"
-            />
-          ) : null}
-          <span
-            aria-hidden
-            className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/75 to-transparent"
-          />
-          {story.type === "VIDEO" && (
-            <span className="absolute top-2 right-2 grid size-6 place-items-center rounded-full bg-black/55">
-              <Play className="size-3 fill-current" />
-            </span>
-          )}
-          <span className="absolute inset-x-2 bottom-2 grid gap-0.5 text-xs">
-            {story.caption && <span className="line-clamp-2 font-semibold">{story.caption}</span>}
-            <span className="text-white/70">
-              {past ? shortDate(story.createdAt) : timeAgo(story.createdAt)}
-            </span>
+      <span
+        className={cn(
+          "relative block overflow-hidden transition-transform group-hover:scale-105",
+          SIZE[shape].box,
+          round
+            ? cn(
+                "rounded-full ring-2 ring-offset-2",
+                fresh ? "ring-primary" : "ring-border",
+                "ring-offset-bg",
+              )
+            : "border-border rounded-2xl border-2",
+          "bg-surface-3",
+        )}
+      >
+        {story.lock ? (
+          <span className="text-fg-muted absolute inset-0 grid place-items-center">
+            <Lock className={round ? "size-5" : "size-7"} />
           </span>
-        </>
-      )}
+        ) : picture ? (
+          // eslint-disable-next-line @next/next/no-img-element -- media comes from storage hosts
+          <img src={picture} alt="" className="absolute inset-0 size-full object-cover" />
+        ) : story.url ? (
+          <video
+            src={`${story.url}#t=0.1`}
+            preload="metadata"
+            muted
+            playsInline
+            className="absolute inset-0 size-full object-cover"
+          />
+        ) : null}
+        {story.type === "VIDEO" && !story.lock && (
+          <span className="absolute right-1 bottom-1 grid size-5 place-items-center rounded-full bg-black/60 text-white">
+            <Play className="size-2.5 fill-current" />
+          </span>
+        )}
+      </span>
+      <span className="text-fg-muted w-full truncate text-[11px] leading-none font-medium">
+        {label}
+      </span>
     </button>
   );
 }
