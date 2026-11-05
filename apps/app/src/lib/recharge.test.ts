@@ -11,7 +11,7 @@ const topUp = {
   ],
 };
 const swap = {
-  kind: "XLM_SWAP" as const,
+  kind: "TOKEN_TRUST" as const,
   lines: [
     { key: "market", label: "1 XLM at today's price", currency: "BANDCOIN" as const, amount: "50" },
     { key: "margin", label: "Price cushion (2%)", currency: "BANDCOIN" as const, amount: "1" },

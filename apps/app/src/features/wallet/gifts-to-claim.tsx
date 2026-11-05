@@ -6,12 +6,14 @@ import { useRef, useState } from "react";
 
 import { isAppError } from "@bandcoin/errors";
 import { Button } from "@bandcoin/ui/components/button";
+import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import {
   CUSTODIAL_COUNTDOWN_SECONDS,
   ToastViewport,
   TransactionToast,
   type TransactionStep,
 } from "@bandcoin/ui/patterns/transaction-toast";
+import { WalletPanel } from "@bandcoin/ui/patterns/wallet-blocks";
 import { getWalletProvider, signTransaction } from "@bandcoin/wallet";
 
 import { Money } from "~/components/money";
@@ -28,46 +30,68 @@ const tokens = (amount: string) =>
   Number(amount).toLocaleString("en-US", { maximumFractionDigits: 7 });
 
 /**
- * Gifts an artist left for the fan to claim (their fan token, sent before the
- * fan held it). Each shows what claiming costs first; claiming moves through
- * the usual toast: countdown with Cancel for email/Google/Apple accounts,
- * "Confirm in your wallet" for wallet extensions.
+ * Pending gifts: tokens waiting for the fan to accept, from an artist (their
+ * fan token, sent before the fan held it) or from anyone who sent a token the
+ * fan couldn't hold yet. Each shows what accepting costs first; accepting
+ * moves through the usual toast: countdown with Cancel for email/Google/Apple
+ * accounts, "Confirm in your wallet" for wallet extensions.
  */
 export function GiftsToClaim() {
   const gifts = api.wallet.gifts.useQuery();
   const flow = useGiftClaim();
-  if (!gifts.data?.length) return null;
+  const count = gifts.data?.length ?? 0;
 
   return (
-    <section className="grid gap-3">
-      <h2 className="display flex items-center gap-2 text-lg">
-        <Gift className="text-primary-text size-5" /> Gifts to claim
-      </h2>
-      <ul className="divide-y rounded-2xl border">
-        {gifts.data.map((gift) => (
-          <li key={gift.balanceId} className="flex flex-wrap items-center gap-3 p-4">
-            <div className="min-w-0 flex-1">
-              <p className="font-semibold">
-                <span className="num">{tokens(gift.amount)}</span> {gift.code}
-              </p>
-              <p className="text-fg-muted text-sm">
-                From {gift.artist?.name ?? "an artist"} · {gift.title}
-              </p>
-              <p className="text-fg-muted text-xs">
-                Claiming costs <Money amount={gift.cost.total} currency="XLM" />
-                {gift.cost.lines.some((line) => line.key === "reserve") &&
-                  " (most of it stays in your wallet so it can hold the token)"}
-              </p>
-            </div>
-            <Button disabled={flow.busy} onClick={() => flow.claim(gift)}>
-              {flow.busy && flow.current === gift.balanceId && (
-                <Loader2 className="size-4 animate-spin" />
-              )}
-              Claim
-            </Button>
-          </li>
-        ))}
-      </ul>
+    <WalletPanel
+      title={
+        <>
+          Pending gifts
+          {count > 0 && (
+            <span className="bg-primary text-primary-foreground rounded-full px-2 font-sans text-sm font-bold tabular-nums">
+              {count}
+            </span>
+          )}
+        </>
+      }
+    >
+      {gifts.isPending ? (
+        <Skeleton className="h-14 rounded-xl" />
+      ) : count === 0 ? (
+        <p className="text-fg-muted flex items-center gap-2 py-2 text-sm">
+          <Gift className="size-4" /> No gifts waiting. Tokens sent to you show up here to accept.
+        </p>
+      ) : (
+        <ul className="space-y-2">
+          {gifts.data!.map((gift) => (
+            <li
+              key={gift.balanceId}
+              className="bg-surface-2 flex items-center gap-3 rounded-xl p-3"
+            >
+              <span className="blob bg-primary text-primary-foreground flex size-10 shrink-0 -rotate-6 items-center justify-center">
+                <Gift className="size-5" strokeWidth={2.4} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold">
+                  <span className="num">{tokens(gift.amount)}</span> {gift.code}
+                  {gift.title !== gift.code && (
+                    <span className="text-fg-muted font-normal"> · {gift.title}</span>
+                  )}
+                </p>
+                <p className="text-fg-muted truncate text-xs">
+                  From {senderOf(gift)} · accepting costs{" "}
+                  <Money amount={gift.cost.total} currency="XLM" />
+                </p>
+              </div>
+              <Button size="sm" disabled={flow.busy} onClick={() => flow.claim(gift)}>
+                {flow.busy && flow.current === gift.balanceId && (
+                  <Loader2 className="size-4 animate-spin" />
+                )}
+                Accept
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
       {flow.step && (
         <ToastViewport>
           <TransactionToast
@@ -88,8 +112,17 @@ export function GiftsToClaim() {
           />
         </ToastViewport>
       )}
-    </section>
+    </WalletPanel>
   );
+}
+
+/** The artist, the Bandcoin user, or the start and end of the address. */
+function senderOf(gift: WaitingGift) {
+  if (gift.artist) return gift.artist.name;
+  if (gift.from.username) return `@${gift.from.username}`;
+  return gift.from.address
+    ? `${gift.from.address.slice(0, 5)}…${gift.from.address.slice(-5)}`
+    : "someone";
 }
 
 function useGiftClaim() {
@@ -153,8 +186,12 @@ function useGiftClaim() {
     setStep({ kind: "submitting", summary: "Claiming your gift. This takes a few seconds." });
     try {
       await submit.mutateAsync({ balanceId: current, xdr });
-      setStep({ kind: "success", title: "Gift claimed", body: "It's in your wallet now." });
-      await Promise.all([utils.wallet.gifts.invalidate(), utils.account.me.invalidate()]);
+      setStep({ kind: "success", title: "Gift accepted", body: "It's in your wallet now." });
+      await Promise.all([
+        utils.wallet.gifts.invalidate(),
+        utils.wallet.assets.invalidate(),
+        utils.account.me.invalidate(),
+      ]);
     } catch (error) {
       setStep({ kind: "failed", reason: reasonOf(error) });
     } finally {

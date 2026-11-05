@@ -1,10 +1,11 @@
 import { applyBps, toAmount, toDisplay, toStroops, toUsd, usdTo } from "../money";
 
 /**
- * Recharge: two separate things a fan can do, neither ever automatic.
+ * Recharge and swap: separate things a fan can do, never automatic.
  *
  *   top-up    pay by card, receive BANDCOIN from the platform (quoteTopUp)
- *   XLM swap  pay BANDCOIN, receive exactly 1 XLM (quoteXlmSwap)
+ *   swap      any amount of BANDCOIN for XLM, or XLM for BANDCOIN (quoteSwap)
+ *   fan token BANDCOIN for the XLM a fan-token line locks (quoteXlmSwap)
  *
  * Pure, like the purchase quote: the server feeds it live rates and balances,
  * the screen only shows what comes back.
@@ -20,9 +21,7 @@ export const RECHARGE_PACKAGES_USD = [
   "49.99",
   "99.99",
 ] as const;
-/** XLM one swap hands out: enough to activate or top up a wallet. */
-export const XLM_SWAP_AMOUNT = "1";
-/** Cushion on the swap so price movement between quote and settlement never costs the platform. */
+/** Cushion on a swap so price movement between quote and settlement never costs the platform. */
 export const XLM_SWAP_MARGIN_BPS = 200;
 
 export type RechargeLine = {
@@ -137,9 +136,9 @@ export function quoteTopUp(
 /** XLM the platform hands over so a fan can open a fan-token trustline: exactly the reserve it locks. */
 export const TRUST_RESERVE_XLM = "0.5";
 
-/** BANDCOIN for some XLM at the live price plus the cushion (default: one swap's worth). */
+/** BANDCOIN for some XLM at the live price plus the cushion (the fan-token reserve). */
 export function quoteXlmSwap(
-  input: Rates & { bandcoinBalance: string | null; networkFeeXlm: string; xlm?: string },
+  input: Rates & { bandcoinBalance: string | null; networkFeeXlm: string; xlm: string },
 ) {
   const problems = rateProblem(input);
   if (problems.length > 0)
@@ -151,7 +150,7 @@ export function quoteXlmSwap(
       receiveXlm: "0",
     };
 
-  const xlm = toStroops(input.xlm ?? XLM_SWAP_AMOUNT);
+  const xlm = toStroops(input.xlm);
   // Rounded up: the platform never gives XLM away below its price.
   const market = usdTo(toUsd(xlm, input.xlmUsd), input.bandcoinUsd);
   const margin = applyBps(market, XLM_SWAP_MARGIN_BPS);
@@ -182,7 +181,7 @@ export function quoteXlmSwap(
     lines: [
       {
         key: "market",
-        label: `${input.xlm ?? XLM_SWAP_AMOUNT} XLM at today's price`,
+        label: `${input.xlm} XLM at today's price`,
         currency: "BANDCOIN",
         amount: toDisplay(market),
       },
@@ -199,6 +198,129 @@ export function quoteXlmSwap(
         amount: toDisplay(toStroops(input.networkFeeXlm)),
       },
       { key: "total", label: "You pay", currency: "BANDCOIN", amount: toDisplay(total) },
+    ] satisfies RechargeLine[],
+  };
+}
+
+export type SwapDirection = "TO_XLM" | "TO_BANDCOIN";
+type SwapCurrency = "BANDCOIN" | "XLM";
+type Holdings = Record<SwapCurrency, string>;
+
+const SWAP_AMOUNT = /^\d{1,12}(\.\d{1,7})?$/;
+const STROOPS = 10_000_000n;
+
+/**
+ * A swap of any amount, either way, with the platform treasury: the fan pays
+ * `amount` and receives the other currency at today's price, less the 2%
+ * cushion. What the fan receives is rounded down. Swapping to BANDCOIN opens
+ * the BANDCOIN line first when the wallet has none (its reserve is counted).
+ * `funds` and `treasury` are spendable balances; null means unknown.
+ */
+export function quoteSwap(
+  input: Rates & {
+    direction: SwapDirection;
+    amount: string;
+    funds: Holdings | null;
+    treasury: Holdings | null;
+    networkFeeXlm: string;
+    openTrustline?: boolean;
+  },
+) {
+  const payCurrency: SwapCurrency = input.direction === "TO_XLM" ? "BANDCOIN" : "XLM";
+  const receiveCurrency: SwapCurrency = input.direction === "TO_XLM" ? "XLM" : "BANDCOIN";
+  const refuse = (problems: RechargeProblem[]) => ({
+    ok: false as const,
+    problems,
+    direction: input.direction,
+    pay: { currency: payCurrency, amount: "0" },
+    receive: { currency: receiveCurrency, amount: "0" },
+    lines: [] as RechargeLine[],
+  });
+
+  const rate = rateProblem(input);
+  if (rate.length > 0) return refuse(rate);
+  const text = input.amount.trim();
+  const pay = SWAP_AMOUNT.test(text) ? toStroops(text) : 0n;
+  if (pay <= 0n) return refuse([{ code: "UNAVAILABLE", message: "Enter an amount above zero." }]);
+
+  const [payRate, receiveRate] =
+    input.direction === "TO_XLM"
+      ? [input.bandcoinUsd, input.xlmUsd]
+      : [input.xlmUsd, input.bandcoinUsd];
+  // Both steps round down: the platform never hands out more than the price.
+  const market = (((pay * payRate) / STROOPS) * STROOPS) / receiveRate;
+  const margin = applyBps(market, XLM_SWAP_MARGIN_BPS);
+  const receive = market > margin ? market - margin : 0n;
+  if (receive === 0n)
+    return refuse([{ code: "UNAVAILABLE", message: "That's too little to swap." }]);
+
+  const fee = toStroops(input.networkFeeXlm);
+  const reserve = input.direction === "TO_BANDCOIN" && input.openTrustline ? TRUSTLINE_RESERVE : 0n;
+  const problems: RechargeProblem[] = [];
+  if (input.funds === null) problems.push({ code: "SIGN_IN", message: "Sign in to pay." });
+  else {
+    const needs: [SwapCurrency, bigint][] =
+      input.direction === "TO_XLM"
+        ? [
+            ["BANDCOIN", pay],
+            ["XLM", fee],
+          ]
+        : [["XLM", pay + fee + reserve]];
+    for (const [currency, need] of needs) {
+      const have = toStroops(input.funds[currency]);
+      if (have < need)
+        problems.push({
+          code: "INSUFFICIENT_FUNDS",
+          message: `You need ${toDisplay(need - have)} more ${currency}.`,
+          shortfall: {
+            currency,
+            need: toDisplay(need),
+            have: toDisplay(have),
+            short: toDisplay(need - have),
+          },
+        });
+    }
+  }
+  if (!input.treasury || toStroops(input.treasury[receiveCurrency]) < receive)
+    problems.push({ code: "UNAVAILABLE", message: "Swap isn't available right now." });
+
+  return {
+    ok: problems.length === 0,
+    problems,
+    direction: input.direction,
+    pay: { currency: payCurrency, amount: toAmount(pay) },
+    receive: { currency: receiveCurrency, amount: toAmount(receive) },
+    lines: [
+      { key: "pay", label: "You pay", currency: payCurrency, amount: toDisplay(pay) },
+      {
+        key: "market",
+        label: "At today's price",
+        currency: receiveCurrency,
+        amount: toDisplay(market),
+      },
+      {
+        key: "margin",
+        label: "Price cushion (2%)",
+        currency: receiveCurrency,
+        amount: toDisplay(margin),
+      },
+      { key: "networkFee", label: "Network fee", currency: "XLM", amount: toDisplay(fee) },
+      ...(reserve > 0n
+        ? [
+            {
+              key: "reserve",
+              label: "Wallet reserve for BANDCOIN (refundable)",
+              currency: "XLM" as const,
+              amount: toDisplay(reserve),
+            },
+          ]
+        : []),
+      {
+        key: "receive",
+        label: "You receive",
+        currency: receiveCurrency,
+        amount: toDisplay(receive),
+      },
     ] satisfies RechargeLine[],
   };
 }

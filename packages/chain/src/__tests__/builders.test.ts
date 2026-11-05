@@ -13,7 +13,7 @@ import { describe, expect, it } from "vitest";
 import { buildClassicPurchase, classicPurchaseOperations } from "../classic/purchase";
 import { buildIssuerSetup, ISSUER_STARTING_XLM } from "../classic/issuer";
 import { buildResaleList } from "../classic/resale";
-import { buildActivation, buildTopUp, buildTrustWithSwap, buildXlmSwap } from "../classic/recharge";
+import { buildActivation, buildSwap, buildTopUp, buildTrustWithSwap } from "../classic/recharge";
 import { buildIssueTokens, buildStorageGift, buildTransfer } from "../classic/transfer";
 import { toStellarError } from "../errors";
 import { buildBountyFund } from "../escrow/calls";
@@ -263,15 +263,15 @@ describe("recharge builders", () => {
     });
   });
 
-  it("swap: the buyer pays BANDCOIN to the platform and gets exactly the XLM, in one transaction", () => {
-    const built = buildXlmSwap({
+  it("swap: the buyer pays one asset to the platform and gets the other, in one transaction", () => {
+    const built = buildSwap({
       buyer: account(),
       network,
       orderId,
-      asset: bandcoin,
       platform: mother,
-      pay: "51",
-      xlm: "1",
+      pay: { asset: bandcoin, amount: "51" },
+      receive: { asset: Asset.native(), amount: "1" },
+      openTrustline: false,
     });
     const tx = parse(built.xdr);
     expect(tx.operations.map((op) => op.type)).toEqual(["payment", "payment"]);
@@ -282,6 +282,22 @@ describe("recharge builders", () => {
       amount: "1.0000000",
     });
     expect(built.serverSigners).toEqual([mother]);
+  });
+
+  it("swap to BANDCOIN: opens the line first when the wallet has none", () => {
+    const tx = parse(
+      buildSwap({
+        buyer: account(),
+        network,
+        orderId,
+        platform: mother,
+        pay: { asset: Asset.native(), amount: "2" },
+        receive: { asset: bandcoin, amount: "98" },
+        openTrustline: true,
+      }).xdr,
+    );
+    expect(tx.operations.map((op) => op.type)).toEqual(["changeTrust", "payment", "payment"]);
+    expect(tx.operations[2]).toMatchObject({ source: mother, amount: "98.0000000" });
   });
 
   it("holding a fan token: the buyer pays BANDCOIN, gets exactly the reserve, and opens the line", () => {
@@ -434,14 +450,14 @@ describe("recharge builders", () => {
       }),
     ).toThrow(RangeError);
     expect(() =>
-      buildXlmSwap({
+      buildSwap({
         buyer: account(),
         network,
         orderId,
-        asset: bandcoin,
         platform: mother,
-        pay: "0",
-        xlm: "1",
+        pay: { asset: bandcoin, amount: "0" },
+        receive: { asset: Asset.native(), amount: "1" },
+        openTrustline: false,
       }),
     ).toThrow(RangeError);
   });
@@ -523,6 +539,26 @@ describe("other builders", () => {
     );
     expect(direct.operations[0]?.type).toBe("payment");
     expect(claimable.operations[0]?.type).toBe("createClaimableBalance");
+  });
+
+  it("send: XLM to an account that doesn't exist yet opens it", () => {
+    const tx = parse(
+      buildTransfer({
+        sender: account(),
+        network,
+        to: seller,
+        asset: Asset.native(),
+        amount: "5",
+        receiverTrusts: false,
+        receiverExists: false,
+        memo: orderId,
+      }).xdr,
+    );
+    expect(tx.operations[0]).toMatchObject({
+      type: "createAccount",
+      destination: seller,
+      startingBalance: "5.0000000",
+    });
   });
 
   it("issues tokens from the issuer to the fan while the artist's wallet is the source and pays the fee", () => {

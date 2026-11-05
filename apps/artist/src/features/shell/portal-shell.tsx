@@ -13,6 +13,7 @@ import {
   SheetTitle,
 } from "@bandcoin/ui/components/sheet";
 import { cn } from "@bandcoin/ui/lib/cn";
+import { useSidebarCollapsed } from "@bandcoin/ui/lib/sidebar-collapsed";
 
 import { AccountButton } from "~/features/account/account-button";
 import {
@@ -40,17 +41,20 @@ export function PortalShell({
   const pathname = usePathname();
   const { signedIn, step, isAdmin, artist, loading } = usePortal(initialStatus);
   const groups = navFor({ signedIn, step, isAdmin });
+  const { collapsed, setCollapsed } = useSidebarCollapsed();
 
   // Signed out: the menu stays (links still change the page), the page itself is the sign-in card.
   const signedOut = !loading && !signedIn;
 
   return (
-    <div className="grid min-h-dvh grid-cols-1 sm:grid-cols-[72px_minmax(0,1fr)] xl:grid-cols-[288px_minmax(0,1fr)]">
+    <div className="grid min-h-dvh grid-cols-1 sm:grid-cols-[auto_minmax(0,1fr)]">
       <Sidebar
         groups={groups}
         pathname={pathname}
         portalName={isAdmin && step !== "READY" ? "admin portal" : "artist portal"}
         fallbackName={artist?.name}
+        collapsed={collapsed}
+        onToggle={() => setCollapsed(!collapsed)}
       />
 
       <main className="min-w-0 pt-4 pb-24 sm:pt-0 sm:pb-12">

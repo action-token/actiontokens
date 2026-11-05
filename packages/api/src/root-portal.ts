@@ -1,6 +1,7 @@
 import { accountRouter } from "./routers/app/account";
 import { activationRouter } from "./routers/app/activation";
 import { rechargeRouter } from "./routers/app/recharge";
+import { walletRouter } from "./routers/app/wallet";
 import { adminRouter } from "./routers/admin";
 import { agentRouter } from "./routers/artist/agent";
 import { aiRouter } from "./routers/artist/ai";
@@ -36,6 +37,8 @@ export const portalRouter = createRouter({
   /** Recharge and wallet activation, the same as the fan app's (one account, one flow) */
   recharge: rechargeRouter,
   activation: activationRouter,
+  /** Send, Swap, assets, history and gifts, the same as the fan app's */
+  wallet: walletRouter,
   portal: portalStatusRouter,
   onboarding: onboardingRouter,
   admin: adminRouter,

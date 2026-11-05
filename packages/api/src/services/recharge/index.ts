@@ -4,7 +4,6 @@ import {
   assetFor,
   buildTopUp,
   buildTrustWithSwap,
-  buildXlmSwap,
   networkFeeXlm,
   quoteTopUp,
   quoteXlmSwap,
@@ -12,7 +11,6 @@ import {
   toStroops,
   TRUST_RESERVE_XLM,
   wrapInFeeBump,
-  XLM_SWAP_AMOUNT,
   type RechargeProblem,
 } from "@bandcoin/chain";
 import { QUOTE_TTL_SECONDS } from "@bandcoin/chain/quote";
@@ -33,17 +31,15 @@ import { deliverOrder, failOrder, holdsLine, ownOrder, userSignature } from "../
  *            network fee (fee bump) and refunds the card if the chain says no
  *   cancel → `cancelPurchase`, which works on any order
  *
- * Two separate things, never one triggering the other:
+ * Separate things, never one triggering the other:
  *   TOP_UP    card → BANDCOIN from the mother account
- *   XLM_SWAP  BANDCOIN → exactly 1 XLM, paid by the fan
  *   TOKEN_TRUST  BANDCOIN → the 0.5 XLM a fan-token trustline locks, and the line
  *             is opened in the same transaction (offered after following an artist)
+ * Swapping BANDCOIN and XLM is the wallet's Swap (services/wallet/swap).
  */
 
 export type RechargeInput =
-  | { kind: "TOP_UP"; packageUsd: string }
-  | { kind: "XLM_SWAP" }
-  | { kind: "TOKEN_TRUST"; artistId: string };
+  { kind: "TOP_UP"; packageUsd: string } | { kind: "TOKEN_TRUST"; artistId: string };
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 
 async function priceRecharge(ctx: ServiceCtx, user: SessionUser | null, input: RechargeInput) {
@@ -76,27 +72,18 @@ async function priceRecharge(ctx: ServiceCtx, user: SessionUser | null, input: R
             xlmFunds: account ? (funds?.XLM ?? null) : null,
           }),
         }
-      : input.kind === "TOKEN_TRUST"
-        ? {
-            kind: "TOKEN_TRUST" as const,
-            token: token
-              ? { code: token.code, artistName: token.artistName, artistId: input.artistId }
-              : null,
-            ...quoteXlmSwap({
-              ...rate,
-              xlm: TRUST_RESERVE_XLM,
-              bandcoinBalance: funds?.BANDCOIN ?? null,
-              networkFeeXlm: networkFeeXlm(3, baseFee),
-            }),
-          }
-        : {
-            kind: "XLM_SWAP" as const,
-            ...quoteXlmSwap({
-              ...rate,
-              bandcoinBalance: funds?.BANDCOIN ?? null,
-              networkFeeXlm: networkFeeXlm(2, baseFee),
-            }),
-          };
+      : {
+          kind: "TOKEN_TRUST" as const,
+          token: token
+            ? { code: token.code, artistName: token.artistName, artistId: input.artistId }
+            : null,
+          ...quoteXlmSwap({
+            ...rate,
+            xlm: TRUST_RESERVE_XLM,
+            bandcoinBalance: funds?.BANDCOIN ?? null,
+            networkFeeXlm: networkFeeXlm(3, baseFee),
+          }),
+        };
 
   const extra: RechargeProblem[] = [];
   if (input.kind === "TOKEN_TRUST") {
@@ -174,7 +161,7 @@ export async function startRecharge(ctx: ServiceCtx, user: SessionUser, input: R
     });
   const order = await ctx.db.order.create({
     data: {
-      kind: card ? "RECHARGE" : quote.kind === "TOKEN_TRUST" ? "TOKEN_TRUST" : "XLM_SWAP",
+      kind: card ? "RECHARGE" : "TOKEN_TRUST",
       buyerId: user.id,
       currency: card ? "USD" : "BANDCOIN",
       unitPrice: total as string,
@@ -207,26 +194,16 @@ export async function startRecharge(ctx: ServiceCtx, user: SessionUser, input: R
           amount: quote.receive,
           openTrustline: priced.openTrustline,
         })
-      : quote.kind === "TOKEN_TRUST"
-        ? buildTrustWithSwap({
-            buyer,
-            network,
-            orderId: order.id,
-            asset,
-            token: new Asset(priced.token!.code, priced.token!.issuer),
-            platform: mother,
-            pay: quote.total,
-            xlm: TRUST_RESERVE_XLM,
-          })
-        : buildXlmSwap({
-            buyer,
-            network,
-            orderId: order.id,
-            asset,
-            platform: mother,
-            pay: quote.total,
-            xlm: XLM_SWAP_AMOUNT,
-          });
+      : buildTrustWithSwap({
+          buyer,
+          network,
+          orderId: order.id,
+          asset,
+          token: new Asset(priced.token!.code, priced.token!.issuer),
+          platform: mother,
+          pay: quote.total,
+          xlm: TRUST_RESERVE_XLM,
+        });
 
   // The hash doesn't change when signatures are added, so it pins the exact transaction.
   await transitionOrder(ctx.db, order.id, "AWAITING_SIGNATURE", { txHash: built.hash });
@@ -252,7 +229,7 @@ export async function submitRecharge(
 ) {
   const { chain, db } = ctx;
   const order = await ownOrder(ctx, user, input.orderId);
-  if (order.kind !== "RECHARGE" && order.kind !== "XLM_SWAP" && order.kind !== "TOKEN_TRUST") {
+  if (order.kind !== "RECHARGE" && order.kind !== "TOKEN_TRUST") {
     throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Order not found" });
   }
   const mother = chain.config.mother;

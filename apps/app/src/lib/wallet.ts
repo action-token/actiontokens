@@ -30,3 +30,6 @@ export function statusTone(status: HistoryStatus) {
       return "warning" as const;
   }
 }
+
+/** A wallet token's currency for `Money`: XLM, BANDCOIN and USDC show their icon, other tokens a plain number. */
+export const CURRENCY = { xlm: "XLM", bandcoin: "BANDCOIN", usdc: "USDC", other: null } as const;

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
+import { PageBody } from "@bandcoin/ui/patterns/page-header";
 
 import { WalletView } from "~/features/wallet/wallet-view";
 
@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 
 export default function WalletPage() {
   return (
-    <PageBody className="grid gap-6">
-      <PageHeader title="Wallet" note="*your balances, history and what you own*" />
+    <PageBody wide className="grid gap-6">
+      <h1 className="sr-only">Wallet</h1>
       <Suspense>
         <WalletView />
       </Suspense>

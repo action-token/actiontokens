@@ -2,12 +2,15 @@
 
 import {
   ArrowDownToLine,
+  ArrowLeftRight,
   Check,
+  Coins,
   Copy,
   ExternalLink,
   Layers,
   Plus,
   ReceiptText,
+  Send,
   Wallet,
 } from "lucide-react";
 import Link from "next/link";
@@ -22,33 +25,50 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@bandcoin/ui/components/dialog";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
 import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
 import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
+import { TallText } from "@bandcoin/ui/patterns/tall-text";
+import {
+  WalletAssets,
+  WalletHero,
+  WalletPanel,
+  XlmPanel,
+  type WalletAction,
+} from "@bandcoin/ui/patterns/wallet-blocks";
 import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
 import { Money } from "~/components/money";
-import { timeAgo } from "~/lib/format";
-import { statusLabel, statusTone } from "~/lib/wallet";
+import { formatAmount, timeAgo } from "~/lib/format";
+import { CURRENCY, statusLabel, statusTone } from "~/lib/wallet";
 import { api, type RouterOutputs } from "~/trpc/react";
 
-import { ItemCard } from "../catalog/item-card";
 import { ActivateWallet } from "../recharge/activate-wallet";
+import { RechargeToast } from "../recharge/recharge-toast";
 import { GiftsToClaim } from "./gifts-to-claim";
+import { SendDialog } from "./send-dialog";
+import { SwapForm } from "./swap-form";
+import { useWalletOrder } from "./use-wallet-order";
 
 type Me = NonNullable<RouterOutputs["account"]["me"]>;
+type Assets = RouterOutputs["wallet"]["assets"];
+type Token = Assets["tokens"][number];
+type Open = { kind: "send"; token?: Token } | { kind: "swap" } | { kind: "receive" } | null;
 
-const CURRENCIES = ["BANDCOIN", "XLM", "USDC"] as const;
-const ASSET_PREVIEW = 10;
-
-/** Balances up top, then what went in and out, then what you own. */
+/**
+ * The wallet, laid out like Wadzzo's: the balance block with Recharge, Send,
+ * Swap and Receive, then every token (each with Send) beside the XLM card and
+ * Pending gifts, then the history. Songs and items you own live on My
+ * collection.
+ */
 export function WalletView() {
   const { status } = useSession();
   const openSignIn = useConnectWalletDialogStore((state) => state.setIsOpen);
   const me = api.account.me.useQuery(undefined, { enabled: status === "authenticated" });
+  const assets = api.wallet.assets.useQuery(undefined, { enabled: status === "authenticated" });
+  const flow = useWalletOrder();
+  const [open, setOpen] = useState<Open>(null);
 
   if (status === "unauthenticated") {
     return (
@@ -61,72 +81,209 @@ export function WalletView() {
     );
   }
   if (status === "loading" || me.isPending || !me.data)
-    return <Skeleton className="h-48 rounded-2xl" />;
+    return (
+      <div className="grid gap-4">
+        <Skeleton className="blob h-64" />
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Skeleton className="h-44 rounded-2xl" />
+          <Skeleton className="h-44 rounded-2xl" />
+        </div>
+      </div>
+    );
+
+  const active = me.data.activated;
+  const sendable = (assets.data?.tokens ?? []).filter((token) => Number(token.amount) > 0);
+  const actions: WalletAction[] = [
+    { id: "recharge", label: "Recharge", icon: Plus, primary: true, href: "/recharge" },
+    ...(active
+      ? [
+          {
+            id: "send",
+            label: "Send",
+            icon: Send,
+            disabled: sendable.length === 0 || flow.busy,
+            onClick: () => setOpen({ kind: "send" }),
+          },
+          {
+            id: "swap",
+            label: "Swap",
+            icon: ArrowLeftRight,
+            disabled: flow.busy,
+            onClick: () => setOpen({ kind: "swap" }),
+          },
+        ]
+      : []),
+    ...(me.data.walletAddress
+      ? [
+          {
+            id: "receive",
+            label: "Receive",
+            icon: ArrowDownToLine,
+            onClick: () => setOpen({ kind: "receive" }),
+          },
+        ]
+      : []),
+  ];
 
   return (
-    <div className="grid gap-8">
-      <Balances me={me.data} />
-      {!me.data.activated && me.data.walletAddress && (
-        <ActivateWallet address={me.data.walletAddress} />
+    <div className="grid gap-6">
+      <Hero me={me.data} actions={actions} />
+      {!active && me.data.walletAddress && <ActivateWallet address={me.data.walletAddress} />}
+
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_24rem]">
+        <AssetsPanel
+          assets={assets.data}
+          loading={assets.isPending}
+          onSend={(token) => setOpen({ kind: "send", token })}
+        />
+        <div className="grid content-start gap-4">
+          {assets.data?.active && <XlmCard xlm={assets.data.xlm} />}
+          <GiftsToClaim />
+        </div>
+      </div>
+
+      <WalletPanel title="History">
+        <History />
+      </WalletPanel>
+
+      <Link
+        href="/collection"
+        className="text-fg-muted hover:text-fg flex items-center gap-2 justify-self-start text-sm font-medium"
+      >
+        <Layers className="size-4" /> Songs, tickets and items you own are in My collection
+      </Link>
+
+      {open?.kind === "send" && sendable.length > 0 && (
+        <SendDialog
+          tokens={sendable}
+          initial={open.token}
+          flow={flow}
+          onClose={() => setOpen(null)}
+        />
       )}
-      <GiftsToClaim />
-      <Tabs defaultValue="history">
-        <TabsList variant="line" className="w-full justify-start overflow-x-auto border-b">
-          <TabsTrigger value="history" className="flex-none">
-            History
-          </TabsTrigger>
-          <TabsTrigger value="assets" className="flex-none">
-            Assets
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="history" className="pt-5">
-          <History />
-        </TabsContent>
-        <TabsContent value="assets" className="pt-5">
-          <Assets />
-        </TabsContent>
-      </Tabs>
+      {open?.kind === "swap" && (
+        <Dialog open onOpenChange={(next) => !next && setOpen(null)}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="display text-2xl">Swap</DialogTitle>
+              <DialogDescription>
+                BANDCOIN for XLM, or XLM for BANDCOIN, at today&apos;s price.
+              </DialogDescription>
+            </DialogHeader>
+            <SwapForm flow={flow} onStarted={() => setOpen(null)} />
+          </DialogContent>
+        </Dialog>
+      )}
+      {open?.kind === "receive" && me.data.walletAddress && (
+        <ReceiveDialog address={me.data.walletAddress} onClose={() => setOpen(null)} />
+      )}
+      <RechargeToast flow={flow} />
     </div>
   );
 }
 
-function Balances({ me }: { me: Me }) {
+function Hero({ me, actions }: { me: Me; actions: WalletAction[] }) {
   return (
-    <section aria-label="Balances" className="bg-surface grid gap-5 rounded-2xl border p-5 sm:p-6">
-      <div className="grid gap-4 sm:grid-cols-3">
-        {CURRENCIES.map((currency) => (
-          <div key={currency} className="grid gap-1">
-            <span className="eyebrow">{currency}</span>
-            <Money
-              amount={me.balances[currency]}
-              currency={currency}
-              short
-              className="display text-[26px] leading-tight font-semibold"
-            />
-          </div>
-        ))}
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <Button asChild>
-          <Link href="/recharge">
-            <Plus /> Recharge
-          </Link>
-        </Button>
-        {me.walletAddress && <ReceiveDialog address={me.walletAddress} />}
-      </div>
-    </section>
+    <WalletHero
+      label={me.activated ? "your BANDCOIN balance" : "your wallet"}
+      address={me.walletAddress}
+      actions={actions}
+      balance={
+        me.activated ? (
+          <TallText className="pb-[0.12em] text-7xl tabular-nums sm:text-8xl">
+            {formatAmount(me.balances.BANDCOIN, "BANDCOIN", { short: true })}{" "}
+            <span className="text-[0.45em]">BANDCOIN</span>
+          </TallText>
+        ) : (
+          <p className="text-side-ink/80 max-w-md font-semibold">
+            Your wallet isn&apos;t on Stellar yet. Activate it below to start.
+          </p>
+        )
+      }
+      below={
+        me.activated && (
+          <p className="text-side-ink/75 flex flex-wrap gap-x-4 text-sm font-semibold">
+            {(["XLM", "USDC"] as const).map((currency) => (
+              <span key={currency}>
+                {formatAmount(me.balances[currency], currency, { short: true })} {currency}
+              </span>
+            ))}
+          </p>
+        )
+      }
+    />
   );
 }
 
-function ReceiveDialog({ address }: { address: string }) {
+function AssetsPanel({
+  assets,
+  loading,
+  onSend,
+}: {
+  assets: Assets | undefined;
+  loading: boolean;
+  onSend: (token: Token) => void;
+}) {
+  const tokens = assets?.tokens ?? [];
+  return (
+    <WalletPanel title="Assets" aside={assets && `${tokens.length} in your wallet`}>
+      {loading ? (
+        <div className="grid gap-2">
+          {Array.from({ length: 4 }, (_, index) => (
+            <Skeleton key={index} className="h-12 rounded-xl" />
+          ))}
+        </div>
+      ) : (
+        <WalletAssets
+          rows={tokens.map((token) => {
+            const main = CURRENCY[token.kind];
+            return {
+              key: `${token.code}:${token.issuer ?? "native"}`,
+              code: token.code,
+              title: token.title,
+              href: token.itemId ? `/item/${token.itemId}` : null,
+              amount: (
+                <Money
+                  amount={token.amount}
+                  currency={main}
+                  code={main ? undefined : ""}
+                  short
+                  className="display"
+                />
+              ),
+              onSend: assets?.active && Number(token.amount) > 0 ? () => onSend(token) : null,
+            };
+          })}
+          empty={
+            <EmptyState
+              icon={Coins}
+              title="Nothing here yet"
+              description="Your XLM and tokens show up here."
+              className="border-0 py-6"
+            />
+          }
+        />
+      )}
+    </WalletPanel>
+  );
+}
+
+function XlmCard({ xlm }: { xlm: Assets["xlm"] }) {
+  const total = Number(xlm.total);
+  return (
+    <XlmPanel
+      total={<Money amount={xlm.total} currency="XLM" short />}
+      spendable={<Money amount={xlm.spendable} currency="XLM" />}
+      reserved={<Money amount={xlm.reserved} currency="XLM" />}
+      share={total > 0 ? Number(xlm.spendable) / total : 0}
+    />
+  );
+}
+
+function ReceiveDialog({ address, onClose }: { address: string; onClose: () => void }) {
   const [copied, setCopied] = useState(false);
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="secondary">
-          <ArrowDownToLine /> Receive
-        </Button>
-      </DialogTrigger>
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>Receive</DialogTitle>
@@ -188,9 +345,9 @@ function History() {
     );
   }
   return (
-    <ul className="bg-surface divide-y rounded-2xl border">
+    <ul className="divide-y">
       {history.data.map((entry) => (
-        <li key={entry.id} className="flex items-center gap-3 px-4 py-3">
+        <li key={entry.id} className="flex items-center gap-3 py-3">
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">{entry.title}</p>
             <p className="text-fg-faint text-xs">{timeAgo(entry.at)}</p>
@@ -216,47 +373,5 @@ function History() {
         </li>
       ))}
     </ul>
-  );
-}
-
-function Assets() {
-  const collection = api.collection.mine.useQuery({});
-  if (collection.isPending) {
-    return (
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-        {Array.from({ length: 5 }, (_, index) => (
-          <Skeleton key={index} className="aspect-[3/4] rounded-[1.4rem]" />
-        ))}
-      </div>
-    );
-  }
-  const items = collection.data?.items ?? [];
-  if (items.length === 0) {
-    return (
-      <EmptyState
-        icon={Layers}
-        title="Nothing here yet"
-        description="Songs, tickets, fan tokens and merch you own show up here."
-        action={
-          <Button asChild variant="secondary">
-            <Link href="/marketplace">Browse the marketplace</Link>
-          </Button>
-        }
-      />
-    );
-  }
-  return (
-    <div className="grid gap-5">
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-        {items.slice(0, ASSET_PREVIEW).map((item) => (
-          <ItemCard key={item.id} item={item} queue={items} />
-        ))}
-      </div>
-      <Button asChild variant="secondary" className="w-fit">
-        <Link href="/collection">
-          See all {collection.data?.total.toLocaleString()} in your collection
-        </Link>
-      </Button>
-    </div>
   );
 }

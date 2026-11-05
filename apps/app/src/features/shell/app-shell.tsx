@@ -7,6 +7,7 @@ import { Search } from "lucide-react";
 import { type CSSProperties, type ReactNode, useEffect } from "react";
 
 import { cn } from "@bandcoin/ui/lib/cn";
+import { useSidebarCollapsed } from "@bandcoin/ui/lib/sidebar-collapsed";
 
 import { AccountButton } from "~/features/account/account-button";
 import { BountiesPanel } from "~/features/bounty/bounties-panel";
@@ -31,6 +32,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const hasTrack = usePlayer((state) => state.queue.length > 0);
   const panel = contextPanelFor(pathname, hasTrack);
   const { widths, load } = usePanelWidths();
+  const { collapsed, setCollapsed } = useSidebarCollapsed();
   // Saved widths are read after the first render, so the server and the browser agree.
   useEffect(load, [load]);
 
@@ -38,18 +40,16 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div
       style={
         {
-          "--panel-left": `${widths.left}px`,
+          "--panel-left": collapsed ? "5.25rem" : "19.5rem",
           "--panel-right": `${widths.right}px`,
         } as CSSProperties
       }
       className={cn(
-        "grid min-h-dvh grid-cols-1 sm:grid-cols-[72px_minmax(0,1fr)]",
-        panel
-          ? "xl:grid-cols-[var(--panel-left)_minmax(0,1fr)_var(--panel-right)]"
-          : "xl:grid-cols-[var(--panel-left)_minmax(0,1fr)]",
+        "grid min-h-dvh grid-cols-1 sm:grid-cols-[auto_minmax(0,1fr)]",
+        panel && "xl:grid-cols-[auto_minmax(0,1fr)_var(--panel-right)]",
       )}
     >
-      <Sidebar />
+      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       <SearchDialog />
 
       <div className="flex min-w-0 flex-col">
@@ -86,7 +86,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div
         className={cn(
-          "fixed inset-x-0 bottom-0 z-40 sm:left-[72px] xl:left-[var(--panel-left)]",
+          "fixed inset-x-0 bottom-0 z-40 sm:left-[5.25rem] xl:left-[var(--panel-left)]",
           panel && "xl:right-[var(--panel-right)]",
         )}
       >

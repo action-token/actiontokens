@@ -8,8 +8,8 @@ import { AppError, ErrorCodes } from "@bandcoin/errors";
 import { type Context, isCustodial, type SessionUser } from "../../context";
 
 /**
- * A fan accepts a gift an artist sent from storage as a claimable balance
- * (they didn't hold the token yet): the fan's own transaction opens the
+ * A fan accepts a gift waiting as a claimable balance (they didn't hold the
+ * token yet): an artist's gift from storage, or a token someone sent them: the fan's own transaction opens the
  * trustline (0.5 XLM of their reserve) and claims it, as on the old Bandcoin.
  * The fan pays that reserve and the network fee, shown before they confirm.
  *
@@ -67,28 +67,38 @@ export async function listGifts(ctx: ServiceCtx, user: Pick<SessionUser, "wallet
     ctx.chain.loadAccount(user.walletAddress),
   ]);
   if (waiting.length === 0) return [];
-  const tokens = await ctx.db.classicToken.findMany({
-    where: { OR: waiting.map((gift) => ({ code: gift.code, issuer: gift.issuer })) },
-    select: {
-      code: true,
-      issuer: true,
-      item: { select: { id: true, title: true, artist: { select: { name: true, slug: true } } } },
-    },
-  });
-  return waiting.flatMap((gift) => {
-    const token = tokens.find((row) => row.code === gift.code && row.issuer === gift.issuer);
-    if (!token?.item) return [];
-    const openTrustline = !holds(account, gift.code, gift.issuer);
-    return [
-      {
-        balanceId: gift.id,
-        code: gift.code,
-        amount: gift.amount,
-        title: token.item.title,
-        artist: token.item.artist,
-        cost: costOf(ctx, openTrustline),
+  const [tokens, senders] = await Promise.all([
+    ctx.db.classicToken.findMany({
+      where: { OR: waiting.map((gift) => ({ code: gift.code, issuer: gift.issuer })) },
+      select: {
+        code: true,
+        issuer: true,
+        item: { select: { id: true, title: true, artist: { select: { name: true, slug: true } } } },
       },
-    ];
+    }),
+    ctx.db.user.findMany({
+      where: { walletAddress: { in: [...new Set(waiting.map((gift) => gift.sponsor))] } },
+      select: { walletAddress: true, username: true, displayName: true },
+    }),
+  ]);
+  return waiting.map((gift) => {
+    const token = tokens.find((row) => row.code === gift.code && row.issuer === gift.issuer);
+    const sender = senders.find((row) => row.walletAddress === gift.sponsor);
+    return {
+      balanceId: gift.id,
+      code: gift.code,
+      amount: gift.amount,
+      title: token?.item?.title ?? gift.code,
+      /** The artist whose item this is; null for any other token */
+      artist: token?.item?.artist ?? null,
+      /** Who sent it (the account that made the balance), named when they're on Bandcoin */
+      from: {
+        address: gift.sponsor,
+        username: sender?.username ?? null,
+        name: sender?.displayName ?? null,
+      },
+      cost: costOf(ctx, !holds(account, gift.code, gift.issuer)),
+    };
   });
 }
 

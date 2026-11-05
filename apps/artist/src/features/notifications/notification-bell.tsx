@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@bandcoin/ui/components/ava
 import { Popover, PopoverContent, PopoverTrigger } from "@bandcoin/ui/components/popover";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { cn } from "@bandcoin/ui/lib/cn";
+import { sideIconButton } from "@bandcoin/ui/patterns/side-frame";
 
 import { timeAgo } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";
@@ -52,15 +53,12 @@ export function NotificationBell({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
-        className={cn(
-          "bg-fg text-bg relative flex size-9 shrink-0 items-center justify-center rounded-full transition-transform duration-200 hover:scale-110",
-          className,
-        )}
+        className={cn(sideIconButton, className)}
         aria-label={unread ? `Notifications (${unread} unread)` : "Notifications"}
       >
         <Bell className="size-[18px]" strokeWidth={2.6} />
         {unread > 0 && (
-          <span className="bg-danger ring-surface absolute -top-1 -right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold text-white ring-2">
+          <span className="bg-danger ring-side absolute -top-1 -right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold text-white ring-2">
             {unread > 9 ? "9+" : unread}
           </span>
         )}

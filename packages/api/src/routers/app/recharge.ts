@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { RECHARGE_PACKAGES_USD, XLM_SWAP_AMOUNT, XLM_SWAP_MARGIN_BPS } from "@bandcoin/chain";
+import { RECHARGE_PACKAGES_USD } from "@bandcoin/chain";
 
 import { cancelPurchase } from "../../services/purchase";
 import { quoteRecharge, startRecharge, submitRecharge } from "../../services/recharge";
@@ -8,7 +8,6 @@ import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 
 const rechargeInput = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("TOP_UP"), packageUsd: z.enum(RECHARGE_PACKAGES_USD) }),
-  z.object({ kind: z.literal("XLM_SWAP") }),
   z.object({ kind: z.literal("TOKEN_TRUST"), artistId: z.string().min(1) }),
 ]);
 
@@ -16,7 +15,6 @@ export const rechargeRouter = createRouter({
   /** What can be bought, for the page. The server alone decides what each package gives. */
   options: publicProcedure.query(() => ({
     packagesUsd: [...RECHARGE_PACKAGES_USD],
-    xlmSwap: { xlm: XLM_SWAP_AMOUNT, marginBps: XLM_SWAP_MARGIN_BPS },
   })),
 
   /** The price breakdown. Works signed out (shows "Sign in to pay"). */

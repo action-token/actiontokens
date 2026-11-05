@@ -205,6 +205,7 @@ export async function finishOrder(
     case "ITEM_PURCHASE":
     case "RECHARGE":
     case "XLM_SWAP":
+    case "BANDCOIN_SWAP":
     case "TOKEN_TRUST":
     case "ACTIVATION":
       return deliverOrder(ctx, order.id);
@@ -218,6 +219,7 @@ export async function finishOrder(
       return finishList(ctx, order.id);
     case "RESALE_CANCEL":
       return finishCancel(ctx, order.id);
+    case "SEND":
     case "STORAGE_STOCK":
     case "STORAGE_WITHDRAW":
     case "STORAGE_DEPOSIT":

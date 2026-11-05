@@ -45,6 +45,47 @@ function setup(user: SessionUser | null = me, network: "testnet" | "mainnet" = "
           txHash: null,
           createdAt: new Date("2026-10-04"),
           item: null,
+          breakdown: { receive: { currency: "XLM", amount: "0.9800000" } },
+        },
+        {
+          id: "o4",
+          kind: "SEND",
+          status: "DELIVERED",
+          currency: "XLM",
+          total: "1.0000100",
+          quantity: 1,
+          txHash: "dd",
+          createdAt: new Date("2026-10-03T12:00:00Z"),
+          item: null,
+          breakdown: {
+            sendDetails: {
+              username: "mira",
+              to: "GFRIEND",
+              code: "NOVA",
+              amount: "10.0000000",
+              mode: "gift",
+            },
+          },
+        },
+        {
+          id: "o5",
+          kind: "SEND",
+          status: "DELIVERED",
+          currency: "XLM",
+          total: "2.0000100",
+          quantity: 1,
+          txHash: "ee",
+          createdAt: new Date("2026-10-02"),
+          item: null,
+          breakdown: {
+            sendDetails: {
+              username: null,
+              to: "GABCDEFGHIJKLMNOPQRSTUVWXYZ234567ABCDEFGHIJKLMNOPQRSTUVW",
+              code: "XLM",
+              amount: "2.0000000",
+              mode: "create",
+            },
+          },
         },
       ]),
     },
@@ -89,9 +130,13 @@ describe("wallet.history", () => {
     ).toEqual([
       ["Bounty prize: Film the set", "received", "300", "USDC", "DELIVERED"],
       ["Top-up with card", "paid", "9.99", "USD", "DELIVERED"],
-      ["Swap BANDCOIN for 1 XLM", "paid", "74.31", "BANDCOIN", "FAILED"],
+      ["Swapped for 0.98 XLM", "paid", "74.31", "BANDCOIN", "FAILED"],
+      // a send shows what was sent, not the network fee
+      ["Sent to @mira as a gift", "paid", "10", null, "DELIVERED"],
       ["Bought 2 × Night Drive", "paid", "50", "BANDCOIN", "DELIVERED"],
+      ["Sent to GABCD…STUVW", "paid", "2", "XLM", "DELIVERED"],
     ]);
+    expect(history[3]?.code).toBe("NOVA");
   });
 
   it("links each transaction to the explorer for the right network, and only when there is one", async () => {

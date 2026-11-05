@@ -79,7 +79,7 @@ enum OrderKind {
   STUDIO_COINS
   /// Card top-up: the platform sends BANDCOIN to the buyer
   RECHARGE
-  /// The buyer pays BANDCOIN and receives 1 XLM
+  /// Swap: the buyer pays BANDCOIN and receives XLM from the platform
   XLM_SWAP
   /// The buyer pays BANDCOIN for the XLM a fan-token trustline locks, and the line is opened
   TOKEN_TRUST
@@ -107,6 +107,10 @@ enum OrderKind {
   NFT_PLATFORM_FEE
   /// An artist gives one NFT copy they own (nft_oz transfer); they pay the network fee
   NFT_GIFT
+  /// Someone sends XLM or a token from their wallet to an address or a Bandcoin user (a gift to claim if they can't hold it)
+  SEND
+  /// Swap: the buyer pays XLM and receives BANDCOIN from the platform
+  BANDCOIN_SWAP
 }
 
 /// One payment by a buyer. Every money flow with a buyer goes through here,

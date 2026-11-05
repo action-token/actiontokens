@@ -14,12 +14,18 @@ export function buildTransfer(input: {
   asset: Asset;
   amount: string;
   receiverTrusts: boolean;
+  /** False for an address with no account yet: XLM then opens it (at least 1 XLM) */
+  receiverExists?: boolean;
   memo?: string;
 }) {
   const sender = input.sender.accountId();
   const builder = startTransaction(input.sender, input.network, { memo: input.memo });
 
-  if (input.receiverTrusts || input.asset.isNative()) {
+  if (input.asset.isNative() && input.receiverExists === false) {
+    builder.addOperation(
+      Operation.createAccount({ destination: input.to, startingBalance: input.amount }),
+    );
+  } else if (input.receiverTrusts || input.asset.isNative()) {
     builder.addOperation(
       Operation.payment({ destination: input.to, asset: input.asset, amount: input.amount }),
     );

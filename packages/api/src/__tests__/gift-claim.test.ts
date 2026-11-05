@@ -58,6 +58,11 @@ function setup(opts: { trusts?: boolean; xlm?: string } = {}) {
       findUnique: vi.fn().mockResolvedValue({ itemId: "fan-item" }),
     },
     ownership: { upsert: vi.fn().mockResolvedValue({}) },
+    user: {
+      findMany: vi
+        .fn()
+        .mockResolvedValue([{ walletAddress: "GX", username: "mira", displayName: "Mira" }]),
+    },
   };
   const chain = {
     config: {
@@ -81,15 +86,25 @@ function setup(opts: { trusts?: boolean; xlm?: string } = {}) {
 }
 
 describe("gifts waiting to be claimed", () => {
-  it("lists the artist's tokens only, with what claiming costs", async () => {
+  it("lists every token waiting, with who sent it and what claiming costs", async () => {
     const gifts = await listGifts(setup().ctx, fan);
-    expect(gifts).toHaveLength(1);
+    expect(gifts).toHaveLength(2);
     expect(gifts[0]).toMatchObject({
       balanceId: BALANCE,
       code: "LUNA",
       amount: "25.0000000",
+      title: "Luna fan token",
       artist: { name: "Luna" },
+      from: { address: "GSTORAGE", username: null, name: null },
       cost: { total: "0.5000200" },
+    });
+    // a token someone sent from their wallet: no item, named by its code and the sender
+    expect(gifts[1]).toMatchObject({
+      balanceId: OTHER,
+      code: "UNKNOWN",
+      title: "UNKNOWN",
+      artist: null,
+      from: { address: "GX", username: "mira", name: "Mira" },
     });
     expect((await listGifts(setup({ trusts: true }).ctx, fan))[0]?.cost.total).toBe("0.0000100");
   });

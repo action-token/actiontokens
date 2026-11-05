@@ -4,6 +4,10 @@ import { toDisplay, toStroops } from "@bandcoin/chain";
 import type { OrderKind, OrderStatus } from "@bandcoin/db";
 
 import { listGifts, prepareGiftClaim, submitGiftClaim } from "../../services/gifts/claim";
+import { cancelPurchase } from "../../services/purchase";
+import { walletAssets } from "../../services/wallet/assets";
+import { ownSendOrder, quoteSend, startSend, submitSend } from "../../services/wallet/send";
+import { ownSwapOrder, quoteSwap, startSwap, submitSwap } from "../../services/wallet/swap";
 import { authedProcedure, createRouter } from "../../trpc";
 
 /** Orders that reached the chain or failed; quotes, unsigned carts and cancellations aren't history. */
@@ -16,7 +20,24 @@ const HISTORY_STATUSES: OrderStatus[] = [
 ];
 const PAGE = 50;
 
-function orderTitle(kind: OrderKind, quantity: number, itemTitle: string | null) {
+type SendDetails = {
+  to: string;
+  username: string | null;
+  code: string;
+  amount: string;
+  mode: "payment" | "gift" | "create";
+};
+type Breakdown = { sendDetails?: SendDetails; receive?: { currency: string; amount: string } };
+
+const short = (address: string) => `${address.slice(0, 5)}…${address.slice(-5)}`;
+const MAIN_CURRENCIES = ["BANDCOIN", "XLM", "USDC"] as const;
+
+function orderTitle(
+  kind: OrderKind,
+  quantity: number,
+  itemTitle: string | null,
+  breakdown: Breakdown | null,
+) {
   switch (kind) {
     case "ITEM_PURCHASE":
       return `Bought ${quantity > 1 ? `${quantity} × ` : ""}${itemTitle ?? "an item"}`;
@@ -29,7 +50,20 @@ function orderTitle(kind: OrderKind, quantity: number, itemTitle: string | null)
     case "RECHARGE":
       return "Top-up with card";
     case "XLM_SWAP":
-      return "Swap BANDCOIN for 1 XLM";
+    case "BANDCOIN_SWAP": {
+      const receive = breakdown?.receive;
+      return receive
+        ? `Swapped for ${toDisplay(toStroops(receive.amount))} ${receive.currency}`
+        : kind === "XLM_SWAP"
+          ? "Swapped BANDCOIN for XLM"
+          : "Swapped XLM for BANDCOIN";
+    }
+    case "SEND": {
+      const send = breakdown?.sendDetails;
+      if (!send) return "Sent";
+      const to = send.username ? `@${send.username}` : short(send.to);
+      return `Sent to ${to}${send.mode === "gift" ? " as a gift" : ""}`;
+    }
     case "TOKEN_TRUST":
       return "Hold an artist's fan token";
     case "RESALE_LIST":
@@ -41,7 +75,56 @@ function orderTitle(kind: OrderKind, quantity: number, itemTitle: string | null)
 
 const amountOf = (value: { toString(): string }) => toDisplay(toStroops(value));
 
+const orderInput = z.object({ orderId: z.string().min(1) });
+const amount = z.string().trim().min(1).max(24);
+const sendInput = z.object({
+  to: z.string().trim().min(1).max(80),
+  code: z.string().regex(/^[A-Za-z0-9]{1,12}$/),
+  issuer: z.string().length(56).nullable(),
+  amount,
+});
+const swapInput = z.object({ direction: z.enum(["TO_XLM", "TO_BANDCOIN"]), amount });
+
+/** Send XLM or a token to an address or a Bandcoin @username (services/wallet/send). */
+const sendRouter = createRouter({
+  quote: authedProcedure
+    .input(sendInput)
+    .query(({ ctx, input }) => quoteSend(ctx, ctx.session.user, input)),
+  start: authedProcedure
+    .input(sendInput)
+    .mutation(({ ctx, input }) => startSend(ctx, ctx.session.user, input)),
+  submit: authedProcedure
+    .input(orderInput.extend({ xdr: z.string().min(1) }))
+    .mutation(({ ctx, input }) => submitSend(ctx, ctx.session.user, input)),
+  cancel: authedProcedure.input(orderInput).mutation(async ({ ctx, input }) => {
+    await ownSendOrder(ctx, ctx.session.user, input.orderId);
+    return cancelPurchase(ctx, ctx.session.user, input.orderId);
+  }),
+});
+
+/** Swap BANDCOIN and XLM with the treasury, any amount, either way (services/wallet/swap). */
+const swapRouter = createRouter({
+  quote: authedProcedure
+    .input(swapInput)
+    .query(({ ctx, input }) => quoteSwap(ctx, ctx.session.user, input)),
+  start: authedProcedure
+    .input(swapInput)
+    .mutation(({ ctx, input }) => startSwap(ctx, ctx.session.user, input)),
+  submit: authedProcedure
+    .input(orderInput.extend({ xdr: z.string().min(1) }))
+    .mutation(({ ctx, input }) => submitSwap(ctx, ctx.session.user, input)),
+  cancel: authedProcedure.input(orderInput).mutation(async ({ ctx, input }) => {
+    await ownSwapOrder(ctx, ctx.session.user, input.orderId);
+    return cancelPurchase(ctx, ctx.session.user, input.orderId);
+  }),
+});
+
 export const walletRouter = createRouter({
+  /** XLM (spendable and reserved) and every token in the main wallet. */
+  assets: authedProcedure.query(({ ctx }) => walletAssets(ctx, ctx.session.user)),
+  send: sendRouter,
+  swap: swapRouter,
+
   /** Gifts an artist left for this fan to claim (they didn't hold the token yet). */
   gifts: authedProcedure.query(({ ctx }) => listGifts(ctx, ctx.session.user)),
   prepareGiftClaim: authedProcedure
@@ -72,6 +155,7 @@ export const walletRouter = createRouter({
           quantity: true,
           txHash: true,
           createdAt: true,
+          breakdown: true,
           item: { select: { title: true } },
         },
       }),
@@ -90,17 +174,24 @@ export const walletRouter = createRouter({
     ]);
 
     const entries = [
-      ...orders.map((order) => ({
-        id: order.id,
-        title: orderTitle(order.kind, order.quantity, order.item?.title ?? null),
-        direction: "paid" as const,
-        amount: amountOf(order.total),
-        currency: order.currency,
-        code: order.currency as string,
-        status: order.status,
-        at: order.createdAt,
-        explorerUrl: explorer(order.txHash),
-      })),
+      ...orders.map((order) => {
+        const breakdown = order.breakdown as Breakdown | null;
+        // A send shows what was sent (a token or XLM), not what it cost in fees.
+        const sent = order.kind === "SEND" ? breakdown?.sendDetails : undefined;
+        const main = sent && MAIN_CURRENCIES.find((currency) => currency === sent.code);
+        return {
+          id: order.id,
+          title: orderTitle(order.kind, order.quantity, order.item?.title ?? null, breakdown),
+          direction: "paid" as const,
+          amount: amountOf(sent ? sent.amount : order.total),
+          /** Null for any other token: show `code` */
+          currency: sent ? (main ?? null) : order.currency,
+          code: sent ? sent.code : (order.currency as string),
+          status: order.status,
+          at: order.createdAt,
+          explorerUrl: explorer(order.txHash),
+        };
+      }),
       ...prizes.map((prize) => ({
         id: prize.id,
         title: `Bounty prize: ${prize.bounty.title}`,

@@ -3,12 +3,22 @@
 import Link from "next/link";
 
 import { Button } from "@bandcoin/ui/components/button";
-import { ToastViewport, TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
+import {
+  ToastViewport,
+  TransactionToast,
+  type TransactionStep,
+} from "@bandcoin/ui/patterns/transaction-toast";
 
-import type { useRecharge } from "./use-recharge";
+/** What drives the toast: Recharge, Send and Swap all have it. */
+type Flow = {
+  step: TransactionStep | null;
+  send: () => void;
+  stop: () => void;
+  close: () => void;
+};
 
 /** The one toast a recharge-style order moves through: countdown or wallet prompt, sending, done. */
-export function RechargeToast({ flow }: { flow: ReturnType<typeof useRecharge> }) {
+export function RechargeToast({ flow }: { flow: Flow }) {
   if (!flow.step) return null;
   return (
     <ToastViewport>

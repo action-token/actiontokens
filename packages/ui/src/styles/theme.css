@@ -100,6 +100,34 @@
   color-scheme: light;
 }
 
+/* Sidebar block (Wadzzo's look). side = the block, side-ink = text and
+   circles on it, side-mint = the current page and accents, side-chip = quiet
+   text on an ink chip (profile row, balance card). Dark: a chartreuse
+   block with dark ink. Light: a dark ink block with chartreuse accents. */
+.side-scope {
+  --side: var(--bc-primary);
+  --side-ink: var(--bc-primary-ink);
+  --side-mint: #f6f7c9;
+  --side-badge: var(--bc-primary-ink);
+  --side-chip: #f6f7c9;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .side-scope {
+    --side: #16170f;
+    --side-ink: #f3f4ea;
+    --side-mint: var(--bc-primary);
+    --side-badge: #2b2d20;
+    --side-chip: #3d3f2e;
+  }
+}
+:root[data-theme="light"] .side-scope {
+  --side: #16170f;
+  --side-ink: #f3f4ea;
+  --side-mint: var(--bc-primary);
+  --side-badge: #2b2d20;
+  --side-chip: #3d3f2e;
+}
+
 /* ── Tailwind mapping ───────────────────────────────────────────────────── */
 @theme inline {
   --font-display: "Unbounded Variable", "Arial Black", system-ui, sans-serif;
@@ -121,6 +149,11 @@
   --color-danger: var(--bc-danger);
   --color-danger-soft: var(--bc-danger-soft);
   --color-overlay: var(--bc-overlay);
+  --color-side: var(--side);
+  --color-side-ink: var(--side-ink);
+  --color-side-mint: var(--side-mint);
+  --color-side-badge: var(--side-badge);
+  --color-side-chip: var(--side-chip);
 
   /* shadcn names, so Radix-based components keep working */
   --color-background: var(--bc-bg);
@@ -313,4 +346,17 @@
 @utility font-hud {
   font-family: var(--font-display);
   font-weight: 700;
+}
+
+/* Hand-made shape: slightly uneven corners (Wadzzo). */
+@utility blob {
+  border-radius: 18px 12px 20px 10px / 12px 18px 10px 20px;
+}
+
+/* A long-dash rule between sidebar links (colour = currentColor). */
+@utility dash-rule {
+  height: 2px;
+  background-image: linear-gradient(90deg, currentColor 55%, transparent 0);
+  background-size: 22px 2px;
+  opacity: 0.35;
 }

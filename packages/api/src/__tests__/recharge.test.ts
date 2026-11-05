@@ -139,8 +139,7 @@ function setup(
   return { ctx, db, chain, orders };
 }
 
-const topUp = { kind: "TOP_UP" as const, packageUsd: "9.99" };
-const swap = { kind: "XLM_SWAP" as const };
+const topUp = { kind: "TOP_UP", packageUsd: "9.99" } as const;
 const trust = { kind: "TOKEN_TRUST" as const, artistId: "a1" };
 const parse = (xdr: string) => TransactionBuilder.fromXDR(xdr, Networks.TESTNET);
 
@@ -166,15 +165,6 @@ describe("quoteRecharge", () => {
       ok: false,
       problems: [{ code: "UNAVAILABLE", message: "Recharge isn't available right now." }],
     });
-  });
-
-  it("tells the swap how much BANDCOIN is short, and never swaps for it", async () => {
-    const { ctx, chain } = setup({ account: horizonAccount({ bandcoin: "20" }) });
-    const quote = await quoteRecharge(ctx, me, swap);
-    expect(quote.problems).toMatchObject([
-      { code: "INSUFFICIENT_FUNDS", shortfall: { short: "31" } },
-    ]);
-    expect(chain.submit).not.toHaveBeenCalled();
   });
 });
 
@@ -256,32 +246,6 @@ describe("top-up", () => {
       card: { sourceId: "c" },
     });
     expect(chain.signForCustodialUser).toHaveBeenCalledWith(started.xdr, "fan@example.com");
-  });
-});
-
-describe("XLM swap", () => {
-  it("won't start without enough BANDCOIN", async () => {
-    const { ctx, orders } = setup({ account: horizonAccount({ bandcoin: "20" }) });
-    await expect(startRecharge(ctx, me, swap)).rejects.toMatchObject({
-      message: "You need 31 more BANDCOIN.",
-    });
-    expect(orders.size).toBe(0);
-  });
-
-  it("pays BANDCOIN and receives 1 XLM in one transaction, with no card involved", async () => {
-    const { ctx, chain, orders } = setup({ account: horizonAccount({ bandcoin: "500" }) });
-    const started = await startRecharge(ctx, me, swap);
-    expect(orders.get(ORDER)).toMatchObject({
-      kind: "XLM_SWAP",
-      method: "WALLET",
-      currency: "BANDCOIN",
-      total: "51.0000000",
-    });
-    await expect(
-      submitRecharge(ctx, me, { orderId: ORDER, xdr: started.xdr }),
-    ).resolves.toMatchObject({ status: "DELIVERED" });
-    expect(chain.card.charge).not.toHaveBeenCalled();
-    expect(parse(chain.submit.mock.calls[0]![0])).not.toBeInstanceOf(FeeBumpTransaction);
   });
 });
 
@@ -370,10 +334,9 @@ describe("recharge router", () => {
     );
   };
 
-  it("lists the card packages and the swap for the page", async () => {
+  it("lists the card packages for the page", async () => {
     await expect(callerFor(null).recharge.options()).resolves.toEqual({
       packagesUsd: ["1.99", "4.99", "9.99", "19.99", "24.99", "49.99", "99.99"],
-      xlmSwap: { xlm: "1", marginBps: 200 },
     });
   });
 
@@ -381,7 +344,7 @@ describe("recharge router", () => {
     await expect(
       callerFor(me).recharge.quote({ kind: "TOP_UP", packageUsd: "9.98" as never }),
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
-    await expect(callerFor(null).recharge.start({ kind: "XLM_SWAP" })).rejects.toMatchObject({
+    await expect(callerFor(null).recharge.start(topUp)).rejects.toMatchObject({
       code: "UNAUTHORIZED",
     });
     await expect(callerFor(null).recharge.submit({ orderId: "o", xdr: "x" })).rejects.toMatchObject(

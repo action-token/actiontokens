@@ -5,6 +5,7 @@ import {
   ACTIVATION_PRICE_USD,
   quoteActivation,
   quoteTopUp,
+  quoteSwap,
   quoteXlmSwap,
   RECHARGE_PACKAGES_USD,
 } from "../recharge";
@@ -87,6 +88,7 @@ describe("quoteXlmSwap", () => {
     // 1 XLM = $0.10 = 50 BANDCOIN at $0.002; 2% margin = 1 BANDCOIN
     const quote = quoteXlmSwap({
       ...rates,
+      xlm: "1",
       bandcoinBalance: toAmount(toStroops("500")),
       networkFeeXlm: "0.00001",
     });
@@ -102,7 +104,12 @@ describe("quoteXlmSwap", () => {
   });
 
   it("says exactly how much BANDCOIN is missing and never swaps anything else", () => {
-    const quote = quoteXlmSwap({ ...rates, bandcoinBalance: "20", networkFeeXlm: "0.00001" });
+    const quote = quoteXlmSwap({
+      ...rates,
+      xlm: "1",
+      bandcoinBalance: "20",
+      networkFeeXlm: "0.00001",
+    });
     expect(quote.ok).toBe(false);
     expect(quote.problems).toEqual([
       {
@@ -114,9 +121,114 @@ describe("quoteXlmSwap", () => {
   });
 
   it("asks to sign in when there are no balances", () => {
-    expect(quoteXlmSwap({ ...rates, bandcoinBalance: null, networkFeeXlm: "0" }).problems).toEqual([
-      { code: "SIGN_IN", message: "Sign in to pay." },
+    expect(
+      quoteXlmSwap({ ...rates, xlm: "1", bandcoinBalance: null, networkFeeXlm: "0" }).problems,
+    ).toEqual([{ code: "SIGN_IN", message: "Sign in to pay." }]);
+  });
+});
+
+describe("quoteSwap", () => {
+  const funds = { BANDCOIN: "1000", XLM: "10" };
+  const treasury = { BANDCOIN: "100000", XLM: "1000" };
+  const base = { ...rates, funds, treasury, networkFeeXlm: "0.00002" };
+
+  it("BANDCOIN to XLM: any amount, at today's price less the 2% cushion", () => {
+    // 100 BANDCOIN = $0.20 = 2 XLM; the cushion keeps 0.04 XLM
+    const quote = quoteSwap({ ...base, direction: "TO_XLM", amount: "100" });
+    expect(quote.ok).toBe(true);
+    expect(quote.pay).toEqual({ currency: "BANDCOIN", amount: "100.0000000" });
+    expect(quote.receive).toEqual({ currency: "XLM", amount: "1.9600000" });
+    expect(quote.lines.map((line) => [line.key, line.currency, line.amount])).toEqual([
+      ["pay", "BANDCOIN", "100"],
+      ["market", "XLM", "2"],
+      ["margin", "XLM", "0.04"],
+      ["networkFee", "XLM", "0.00002"],
+      ["receive", "XLM", "1.96"],
     ]);
+  });
+
+  it("XLM to BANDCOIN: opens the BANDCOIN line when the wallet has none, and counts its reserve", () => {
+    const quote = quoteSwap({
+      ...base,
+      direction: "TO_BANDCOIN",
+      amount: "2",
+      openTrustline: true,
+    });
+    expect(quote.ok).toBe(true);
+    expect(quote.receive).toEqual({ currency: "BANDCOIN", amount: "98.0000000" });
+    expect(quote.lines.map((line) => line.key)).toEqual([
+      "pay",
+      "market",
+      "margin",
+      "networkFee",
+      "reserve",
+      "receive",
+    ]);
+    // 2 XLM + 0.5 reserve + the fee is more than 2.4 XLM
+    const short = quoteSwap({
+      ...base,
+      funds: { BANDCOIN: "0", XLM: "2.4" },
+      direction: "TO_BANDCOIN",
+      amount: "2",
+      openTrustline: true,
+    });
+    expect(short.problems).toEqual([
+      {
+        code: "INSUFFICIENT_FUNDS",
+        message: "You need 0.10002 more XLM.",
+        shortfall: { currency: "XLM", need: "2.50002", have: "2.4", short: "0.10002" },
+      },
+    ]);
+  });
+
+  it("rounds what the fan receives down, never up", () => {
+    const quote = quoteSwap({
+      ...base,
+      bandcoinUsd: toStroops("0.0030001"),
+      direction: "TO_XLM",
+      amount: "33.3333333",
+    });
+    const market = (toStroops("33.3333333") * toStroops("0.0030001")) / toStroops("0.1");
+    expect(toStroops(quote.receive.amount)).toBeLessThan(market);
+  });
+
+  it("says how much BANDCOIN is missing", () => {
+    const quote = quoteSwap({ ...base, direction: "TO_XLM", amount: "1200" });
+    expect(quote.problems).toEqual([
+      {
+        code: "INSUFFICIENT_FUNDS",
+        message: "You need 200 more BANDCOIN.",
+        shortfall: { currency: "BANDCOIN", need: "1200", have: "1000", short: "200" },
+      },
+    ]);
+  });
+
+  it("refuses when the treasury can't cover it, a bad amount, no price, or no wallet", () => {
+    const unavailable = { code: "UNAVAILABLE", message: "Swap isn't available right now." };
+    expect(
+      quoteSwap({
+        ...base,
+        treasury: { BANDCOIN: "0", XLM: "1" },
+        direction: "TO_XLM",
+        amount: "100",
+      }).problems,
+    ).toEqual([unavailable]);
+    expect(
+      quoteSwap({ ...base, treasury: null, direction: "TO_XLM", amount: "100" }).problems,
+    ).toEqual([unavailable]);
+    for (const amount of ["0", "", "abc", "-1", "1.12345678"])
+      expect(quoteSwap({ ...base, direction: "TO_XLM", amount }).problems).toEqual([
+        { code: "UNAVAILABLE", message: "Enter an amount above zero." },
+      ]);
+    expect(
+      quoteSwap({ ...base, direction: "TO_XLM", amount: "0.0000001" }).problems[0]?.message,
+    ).toBe("That's too little to swap.");
+    expect(
+      quoteSwap({ ...base, bandcoinUsd: 0n, direction: "TO_XLM", amount: "100" }).problems[0]?.code,
+    ).toBe("RATE_UNAVAILABLE");
+    expect(
+      quoteSwap({ ...base, funds: null, direction: "TO_XLM", amount: "100" }).problems,
+    ).toEqual([{ code: "SIGN_IN", message: "Sign in to pay." }]);
   });
 });
 

@@ -45,30 +45,38 @@ export function buildTopUp(input: {
 }
 
 /**
- * The XLM swap: the buyer pays BANDCOIN to the platform and receives exactly
- * `xlm`, together or not at all. The buyer pays the network fee as the source.
+ * A swap with the platform: the buyer pays one asset and receives the other,
+ * together or not at all, opening the line for what arrives first when the
+ * wallet has none. The buyer pays the network fee as the source.
  */
-export function buildXlmSwap(input: {
+export function buildSwap(input: {
   buyer: Account;
   network: NetworkParams;
   orderId: string;
-  asset: Asset;
   platform: string;
-  pay: string;
-  xlm: string;
+  pay: { asset: Asset; amount: string };
+  receive: { asset: Asset; amount: string };
+  openTrustline: boolean;
 }) {
-  if (isZero(input.pay) || isZero(input.xlm))
+  if (isZero(input.pay.amount) || isZero(input.receive.amount))
     throw new RangeError("A swap must move something both ways");
-  const builder = startTransaction(input.buyer, input.network, { memo: input.orderId })
+  const builder = startTransaction(input.buyer, input.network, { memo: input.orderId });
+  if (input.openTrustline)
+    builder.addOperation(Operation.changeTrust({ asset: input.receive.asset }));
+  builder
     .addOperation(
-      Operation.payment({ destination: input.platform, asset: input.asset, amount: input.pay }),
+      Operation.payment({
+        destination: input.platform,
+        asset: input.pay.asset,
+        amount: input.pay.amount,
+      }),
     )
     .addOperation(
       Operation.payment({
         source: input.platform,
         destination: input.buyer.accountId(),
-        asset: Asset.native(),
-        amount: input.xlm,
+        asset: input.receive.asset,
+        amount: input.receive.amount,
       }),
     );
   return finish(builder, [input.platform]);
@@ -78,7 +86,7 @@ export function buildXlmSwap(input: {
  * Holding an artist's fan token: the buyer pays BANDCOIN for exactly the XLM
  * the trustline locks, the platform sends that XLM, and the buyer's own account
  * opens the line with it, all together or not at all. The buyer pays the
- * network fee as the source. (The same swap as `buildXlmSwap`, plus the line.)
+ * network fee as the source.
  */
 export function buildTrustWithSwap(input: {
   buyer: Account;
