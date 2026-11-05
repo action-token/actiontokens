@@ -27,9 +27,9 @@ export const site = {
     packDoneGlow: "hsl(60 71% 52% / 0.35)",
   },
   urls: {
-    arWeb: process.env.NEXT_PUBLIC_AR_URL ?? "https://ar.bandcoin.io",
+    arWeb: process.env.NEXT_PUBLIC_AR_URL ?? "https://www.bandcoin.io",
     artistPortal: process.env.NEXT_PUBLIC_ARTIST_URL ?? "https://artist.bandcoin.io",
-    fanApp: process.env.NEXT_PUBLIC_APP_URL ?? "https://bandcoin.io",
+    fanApp: process.env.NEXT_PUBLIC_APP_URL ?? "https://app.bandcoin.io",
   },
   contact: { supportEmail: "support@bandcoin.io" },
   calendar: { productId: "Bandcoin", uidDomain: "bandcoin.io" },
