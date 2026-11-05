@@ -70,38 +70,20 @@ async function fromBinance(fetcher: Fetcher) {
   }
 }
 
-/** USD per BANDCOIN the old Bandcoin used when the market had no price. */
-export const BANDCOIN_FALLBACK_USD = "0.00231";
+/** USD per BANDCOIN on testnet, where the test asset has no market: the old Bandcoin's price. */
+export const TESTNET_BANDCOIN_USD = "0.00231";
 
 /**
- * USD per BANDCOIN. On mainnet, the asset's market price; when the market has
- * none (Stellar Expert prices only from exchange trades, and BANDCOIN rarely
- * trades) or can't be reached, `fallbackPrice` (BANDCOIN_USD_PRICE), else the
- * old Bandcoin's fixed price. A fallback is never cached, so the market price
- * is used again as soon as there is one. On testnet a test asset has no
- * market, so the price comes from `devPrice` (BANDCOIN_USD_PRICE) and the
- * market is never asked; a missing one is refused.
+ * USD per BANDCOIN. On mainnet, only the asset's market price from Stellar
+ * Expert; with no price, or no answer, it refuses rather than guessing. On
+ * testnet the fixed `TESTNET_BANDCOIN_USD`, and the market is never asked.
  */
 export async function liveBandcoinUsd(
-  input: {
-    name: "mainnet" | "testnet";
-    asset: { code: string; issuer: string };
-    devPrice?: string;
-    fallbackPrice?: string;
-  },
+  input: { name: "mainnet" | "testnet"; asset: { code: string; issuer: string } },
   fetcher: Fetcher = defaultFetcher,
   now = Date.now(),
 ): Promise<string> {
-  if (input.name === "testnet") {
-    const dev = Number.parseFloat(input.devPrice ?? "");
-    if (!usable(dev)) {
-      throw new AppError(ErrorCodes.CONFIG_MISSING, {
-        message: "BANDCOIN has no market price on testnet. Set BANDCOIN_USD_PRICE for development.",
-        details: { name: "BANDCOIN_USD_PRICE" },
-      });
-    }
-    return dev.toFixed(7);
-  }
+  if (input.name === "testnet") return Number.parseFloat(TESTNET_BANDCOIN_USD).toFixed(7);
   if (bandcoinCache && now - bandcoinCache.at < CACHE_TTL_MS) return bandcoinCache.price;
 
   let price: number | null = null;
@@ -114,8 +96,9 @@ export async function liveBandcoinUsd(
     price = null;
   }
   if (price === null) {
-    const fallback = Number.parseFloat(input.fallbackPrice ?? "");
-    return (usable(fallback) ? fallback : Number.parseFloat(BANDCOIN_FALLBACK_USD)).toFixed(7);
+    throw new AppError(ErrorCodes.EXTERNAL_SERVICE_FAILED, {
+      message: "Couldn't load the BANDCOIN price. Try again in a moment.",
+    });
   }
   bandcoinCache = { price: price.toFixed(7), at: now };
   return bandcoinCache.price;

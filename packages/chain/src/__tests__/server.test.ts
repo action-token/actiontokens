@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import { chainConfig } from "../server/config";
-import { clearRateCache, liveBandcoinUsd, liveRates } from "../server/rates";
+import { clearRateCache, liveBandcoinUsd, liveRates, TESTNET_BANDCOIN_USD } from "../server/rates";
 import { decryptSecret, encryptSecret } from "../server/secrets";
 
 const KEY = "a".repeat(64);
@@ -90,52 +90,23 @@ describe("liveBandcoinUsd", () => {
     expect(urls).toEqual(["https://api.stellar.expert/explorer/public/asset/BANDCOIN-GISSUER"]);
   });
 
-  it("on mainnet falls back to the configured price when the market has none or can't be reached", async () => {
-    const asset2 = { code: "BANDCOIN", issuer: "GISSUER" };
-    expect(
-      await liveBandcoinUsd(
-        { name: "mainnet", asset: asset2, fallbackPrice: "0.003" },
-        async () => ({ price: null }),
-        0,
-      ),
-    ).toBe("0.0030000");
-    const down = () => Promise.reject(new Error("offline"));
-    expect(await liveBandcoinUsd({ name: "mainnet", asset, fallbackPrice: "0.003" }, down, 0)).toBe(
-      "0.0030000",
-    );
+  it("on mainnet refuses when the market has no price or can't be reached, with no fallback", async () => {
+    for (const fetcher of [
+      async () => ({}),
+      async () => ({ price: null }),
+      () => Promise.reject(new Error("offline")),
+    ]) {
+      await expect(liveBandcoinUsd({ name: "mainnet", asset }, fetcher, 0)).rejects.toMatchObject({
+        code: "EXTERNAL_SERVICE_FAILED",
+        message: "Couldn't load the BANDCOIN price. Try again in a moment.",
+      });
+    }
   });
 
-  it("on mainnet falls back to the old Bandcoin's $0.00231 when nothing is configured", async () => {
-    expect(await liveBandcoinUsd({ name: "mainnet", asset }, async () => ({}), 0)).toBe(
-      "0.0023100",
-    );
-    expect(
-      await liveBandcoinUsd({ name: "mainnet", asset, fallbackPrice: "free" }, async () => ({}), 0),
-    ).toBe("0.0023100");
-  });
-
-  it("on mainnet a market price wins over the fallback, and the fallback isn't cached", async () => {
-    await liveBandcoinUsd({ name: "mainnet", asset, fallbackPrice: "0.003" }, async () => ({}), 0);
-    expect(
-      await liveBandcoinUsd(
-        { name: "mainnet", asset, fallbackPrice: "0.003" },
-        async () => ({ price: 0.0041 }),
-        1_000,
-      ),
-    ).toBe("0.0041000");
-  });
-
-  it("on testnet uses the dev price, since a test asset has no market, and says so when it's missing", async () => {
+  it("on testnet uses the fixed price and never asks the market", async () => {
     const never = () =>
       Promise.reject(new AppError(ErrorCodes.INTERNAL, { message: "must not call the network" }));
-    expect(await liveBandcoinUsd({ name: "testnet", asset, devPrice: "0.002" }, never, 0)).toBe(
-      "0.0020000",
-    );
-    await expect(liveBandcoinUsd({ name: "testnet", asset }, never, 0)).rejects.toMatchObject({
-      code: "CONFIG_MISSING",
-    });
-    await expect(
-      liveBandcoinUsd({ name: "testnet", asset, devPrice: "free" }, never, 0),
-    ).rejects.toMatchObject({ code: "CONFIG_MISSING" });
+    expect(TESTNET_BANDCOIN_USD).toBe("0.00231");
+    expect(await liveBandcoinUsd({ name: "testnet", asset }, never, 0)).toBe("0.0023100");
   });
 });

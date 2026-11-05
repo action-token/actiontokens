@@ -46,7 +46,7 @@ export type ChainGateway = {
   config: ChainConfig;
   loadAccount(id: string): Promise<Horizon.AccountResponse | null>;
   rates(): Promise<Rates>;
-  /** USD per BANDCOIN: the market price; BANDCOIN_USD_PRICE on testnet, and on mainnet when the market has none */
+  /** USD per BANDCOIN: the Stellar market price on mainnet, a fixed price on testnet */
   bandcoinUsd(): Promise<string>;
   /** Signs with the platform-held keys (issuer, storage) the builder listed */
   signWithServerKeys(xdr: string, publicKeys: string[]): Promise<string>;
@@ -144,12 +144,7 @@ export function createChainGateway(db: Db): ChainGateway {
     rates: () => liveRates(),
     bandcoinUsd() {
       const config = chainConfig();
-      return liveBandcoinUsd({
-        name: config.name,
-        asset: config.assets.bandcoin,
-        devPrice: process.env.BANDCOIN_USD_PRICE,
-        fallbackPrice: process.env.BANDCOIN_USD_PRICE,
-      });
+      return liveBandcoinUsd({ name: config.name, asset: config.assets.bandcoin });
     },
     signWithServerKeys: async (xdr, publicKeys) => {
       // Only keys this transaction needs: Stellar refuses an extra signature (tx_bad_auth_extra).
