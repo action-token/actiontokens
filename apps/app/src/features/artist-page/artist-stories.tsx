@@ -127,7 +127,7 @@ export function ArtistHighlights({ slug }: { slug: string }) {
               type="button"
               disabled={archive.isFetchingNextPage}
               onClick={() => void archive.fetchNextPage()}
-              className="bg-surface-2 text-fg-muted hover:text-fg grid size-28 place-content-center rounded-2xl border-2 border-dashed text-xs font-semibold sm:size-36"
+              className="bg-surface-2 text-fg-muted hover:text-fg grid aspect-[3/5] w-28 place-content-center rounded-2xl border-2 border-dashed text-xs font-semibold sm:w-32"
             >
               {archive.isFetchingNextPage ? "Loading…" : "Older"}
             </button>
@@ -147,15 +147,15 @@ export function ArtistHighlights({ slug }: { slug: string }) {
   );
 }
 
-/** Live stories are small rings; highlights are bigger squares so the picture reads. */
+/** Live stories are small rings; highlights are tall portrait rectangles so the picture reads. */
 const SIZE = {
   round: { box: "size-[4.5rem] sm:size-20", width: "w-[4.5rem] sm:w-20" },
-  square: { box: "size-28 sm:size-36", width: "w-28 sm:w-36" },
+  square: { box: "w-28 aspect-[3/5] sm:w-32", width: "w-28 sm:w-32" },
 } as const;
 
 /**
  * One story, small: a ringed circle for a live story (yellow while it is new,
- * grey once watched or locked), a rounded square for a highlight. A click opens
+ * grey once watched or locked), a tall rounded rectangle for a highlight. A click opens
  * the story in the viewer.
  */
 function Tile({
