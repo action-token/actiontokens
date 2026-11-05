@@ -82,6 +82,8 @@ export function describeNotification(
         text: item ? `${name} released ${item.title}.` : `${name} released something new.`,
         href: item ? `/item/${item.slug}` : actorPage,
       };
+    case "STORY":
+      return { text: `${name} shared a story.`, href: actorPage };
     case "FOLLOW":
       return { text: `${name} started following you.`, href: actorPage };
     case "LIKE":

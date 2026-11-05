@@ -196,6 +196,8 @@ enum NotificationType {
   MEMBERSHIP
   POST
   NEW_ITEM
+  /// An artist shared a story (one per artist per day)
+  STORY
   PURCHASE
   BOUNTY
   BOUNTY_JOINED

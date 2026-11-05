@@ -46,6 +46,13 @@ describe("describeNotification", () => {
     expect(describeNotification("FOLLOW", { actor: fan }).href).toBe("/u/ana");
   });
 
+  it("says an artist shared a story and opens their page", () => {
+    expect(describeNotification("STORY", { actor: artist })).toEqual({
+      text: "DJ Tamsin shared a story.",
+      href: "/artist/dj-tamsin",
+    });
+  });
+
   it("has wording for every type", () => {
     const types = [
       "LIKE",
@@ -55,6 +62,7 @@ describe("describeNotification", () => {
       "MEMBERSHIP",
       "POST",
       "NEW_ITEM",
+      "STORY",
       "PURCHASE",
       "BOUNTY",
       "BOUNTY_JOINED",

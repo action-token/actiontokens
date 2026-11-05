@@ -9,12 +9,14 @@ import {
   removeStory,
   STORY_LIFETIME_MS,
 } from "../services/artist/stories";
+import { announceStory } from "../services/notifications/story";
 
 vi.mock("@bandcoin/storage", () => ({
   isOwnS3Url: (url: string) => url.startsWith("https://cdn.example/"),
 }));
+vi.mock("../services/notifications/story", () => ({ announceStory: vi.fn() }));
 
-const artist = { id: "a1" };
+const artist = { id: "a1", userId: "artist-user" };
 const now = new Date("2026-11-05T12:00:00Z");
 const photo = { type: "IMAGE" as const, url: "https://cdn.example/s/1.jpg" };
 
@@ -38,6 +40,12 @@ function setup(over: { live?: number; tier?: object | null; story?: object | nul
 }
 
 describe("adding a story", () => {
+  it("tells the artist's followers, with the audience it was shared with", async () => {
+    const { ctx } = setup();
+    await createStory(ctx, artist, { ...photo, audience: "SUBSCRIBERS" }, now);
+    expect(announceStory).toHaveBeenCalledWith(ctx, { artist, audience: "SUBSCRIBERS", now });
+  });
+
   it("goes live at once for 24 hours, open to everyone by default", async () => {
     const { ctx, db, activity } = setup();
     expect(await createStory(ctx, artist, { ...photo, caption: "  Soundcheck  " }, now)).toEqual({
@@ -97,9 +105,9 @@ describe("adding a story", () => {
     await expect(
       createStory(ctx, artist, { ...photo, caption: "x".repeat(201) }, now),
     ).rejects.toThrow(/200 characters/i);
-    await expect(
-      createStory(ctx, artist, { ...photo, audience: "MEMBERS" }, now),
-    ).rejects.toThrow(/tier/i);
+    await expect(createStory(ctx, artist, { ...photo, audience: "MEMBERS" }, now)).rejects.toThrow(
+      /tier/i,
+    );
     const noTier = setup({ tier: null });
     await expect(
       createStory(noTier.ctx, artist, { ...photo, audience: "MEMBERS", tierId: "t9" }, now),

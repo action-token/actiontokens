@@ -3,6 +3,7 @@ import { AppError, ErrorCodes } from "@bandcoin/errors";
 import { isOwnS3Url } from "@bandcoin/storage";
 
 import type { Context } from "../../context";
+import { announceStory } from "../notifications/story";
 import { invalid } from "./items";
 
 /**
@@ -13,7 +14,7 @@ import { invalid } from "./items";
  * lock instead (see feed/stories).
  */
 type ServiceCtx = Pick<Context, "db" | "activity">;
-type ArtistRef = { id: string };
+type ArtistRef = { id: string; userId: string };
 
 export const MAX_LIVE_STORIES = 10;
 export const STORY_LIFETIME_MS = 24 * 60 * 60_000;
@@ -82,11 +83,16 @@ export async function createStory(
     select: { id: true },
   });
   ctx.activity.set({ targetType: "Story", targetId: story.id });
+  await announceStory(ctx, { artist, audience, now });
   return { storyId: story.id };
 }
 
 /** The artist's live stories, newest first, with how many people have viewed each. */
-export async function listMyStories(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef, now = new Date()) {
+export async function listMyStories(
+  ctx: Pick<ServiceCtx, "db">,
+  artist: ArtistRef,
+  now = new Date(),
+) {
   const rows = await ctx.db.story.findMany({
     where: liveWhere(artist.id, now),
     orderBy: { createdAt: "desc" },
