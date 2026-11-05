@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   getProject,
   listProjects,
+  MAX_CLIPS,
   MAX_TRACKS,
   removeProject,
   saveProject,
@@ -11,25 +12,34 @@ import {
 import { authedProcedure, createRouter } from "../../trpc";
 
 const seconds = z.number().min(0).max(3600);
-const track = z.object({
+const clip = z.object({
   id: z.string().min(1).max(40),
-  name: z.string().trim().min(1).max(80),
   url: z.string().url().max(500),
   startTime: seconds,
   trimStart: seconds,
   trimEnd: seconds,
   duration: z.number().positive().max(3600),
+  fadeIn: seconds,
+  fadeOut: seconds,
+});
+const track = z.object({
+  id: z.string().min(1).max(40),
+  name: z.string().trim().min(1).max(80),
+  color: z.string().max(20),
   volume: z.number().min(0).max(1.5),
+  pan: z.number().min(-1).max(1),
   muted: z.boolean(),
   soloed: z.boolean(),
-  color: z.string().max(20),
+  clips: z.array(clip).max(MAX_CLIPS),
 });
 const rendered = z.object({
   url: z.string().url().max(500),
   durationSec: z.number().int().min(1).max(21_600),
 });
 const project = z.object({
+  version: z.literal(2),
   bpm: z.number().min(40).max(240),
+  snap: z.boolean(),
   masterVolume: z.number().min(0).max(1.5),
   tracks: z.array(track).max(MAX_TRACKS),
   publish: z

@@ -1,6 +1,6 @@
 import type { Context } from "../../context";
 import type { GenerateInput } from "./generate-input";
-import { checkOptions, MODELS } from "./models";
+import { checkOptions, MODELS, providerReady } from "./models";
 
 /**
  * Studio coins are dollars: one coin is one cent. A generation costs what the
@@ -93,10 +93,17 @@ export function runPrice(input: GenerateInput, pricing: StudioPricing) {
   return generationCoins(usd, pricing.feePercent);
 }
 
-/** The catalog as the screens show it: each model's options and its price for one plain run. */
-export function catalog(pricing: StudioPricing) {
+/**
+ * The catalog as the screens show it: each model's options, its price for one
+ * plain run, and whether its provider is set up (`available`).
+ */
+export function catalog(
+  pricing: StudioPricing,
+  env: Record<string, string | undefined> = process.env,
+) {
   return MODELS.map((model) => ({
     ...model,
+    available: providerReady(model.provider, env),
     coins: generationCoins(pricing.apiCostUsd[model.id] ?? model.costUsd, pricing.feePercent),
   }));
 }

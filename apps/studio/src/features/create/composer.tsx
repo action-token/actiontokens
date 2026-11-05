@@ -114,8 +114,13 @@ export function buildInput(tool: ToolId, prompt: string, s: Settings): StartInpu
 export function useModels(tool: ToolId, chosen?: string) {
   const prices = api.coins.prices.useQuery(undefined, { staleTime: 60_000 });
   const models = (prices.data?.models ?? []).filter((model) => model.tool === MODEL_TOOL[tool]);
+  // A model whose provider isn't set up can't be used, so it's never the choice or the default.
+  const usable = models.filter((entry) => entry.available);
   const model =
-    models.find((entry) => entry.id === chosen) ?? models.find((entry) => entry.isDefault);
+    usable.find((entry) => entry.id === chosen) ??
+    usable.find((entry) => entry.isDefault) ??
+    usable[0] ??
+    models.find((entry) => entry.isDefault);
   return { models, model };
 }
 
@@ -189,7 +194,7 @@ export function Composer({
           event.preventDefault();
           if (ready) onSubmit();
         }}
-        className="bg-surface focus-within:border-fg/40 grid gap-2 rounded-[1.6rem] border-2 p-3 shadow-[0_10px_40px_-20px_rgb(0_0_0/0.5)] transition-colors"
+        className="studio-prompt bg-surface/95 focus-within:border-fg/40 grid gap-2 rounded-[1.6rem] border-2 p-3 shadow-[0_10px_40px_-20px_rgb(0_0_0/0.5)] transition-colors"
       >
         <textarea
           ref={box}
@@ -235,11 +240,10 @@ export function Composer({
             )}
             Enhance
           </button>
-          <span className="flex-1" />
           <button
             type="submit"
             disabled={!ready}
-            className="bg-primary text-primary-foreground flex h-10 items-center gap-2 rounded-full pr-1.5 pl-4 text-sm font-bold transition-transform hover:scale-[1.02] disabled:opacity-40 disabled:hover:scale-100"
+            className="bg-primary text-primary-foreground ml-auto flex h-10 items-center gap-2 rounded-full pr-1.5 pl-4 text-sm font-bold transition-transform hover:scale-[1.02] disabled:opacity-40 disabled:hover:scale-100"
           >
             {busy ? "Starting…" : "Generate"}
             <span className="bg-primary-foreground text-primary flex h-7 items-center gap-1 rounded-full px-2 text-xs tabular-nums">
@@ -291,9 +295,10 @@ function ModelMenu({
                 <button
                   key={entry.id}
                   type="button"
+                  disabled={!entry.available}
                   onClick={() => onPick(entry)}
                   className={cn(
-                    "hover:bg-surface-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 rounded-xl px-2.5 py-2 text-left",
+                    "hover:bg-surface-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 rounded-xl px-2.5 py-2 text-left disabled:opacity-50 disabled:hover:bg-transparent",
                     entry.id === model?.id && "bg-surface-2",
                   )}
                 >
@@ -302,11 +307,15 @@ function ModelMenu({
                       {entry.name}
                       {entry.id === model?.id && <Check className="text-primary-text size-3.5" />}
                     </span>
-                    <span className="text-fg-muted block truncate text-xs">{entry.blurb}</span>
+                    <span className="text-fg-muted block truncate text-xs">
+                      {entry.available ? entry.blurb : "Not set up yet"}
+                    </span>
                   </span>
-                  <span className="text-fg-faint flex items-center gap-1 text-xs font-semibold tabular-nums">
-                    <Coins className="size-3" /> {entry.coins}
-                  </span>
+                  {entry.available && (
+                    <span className="text-fg-faint flex items-center gap-1 text-xs font-semibold tabular-nums">
+                      <Coins className="size-3" /> {entry.coins}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>

@@ -2,16 +2,16 @@
 
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
-import { audible, mixLength, type MixTrack, playSlice } from "./mix";
+import { audible, fadePoints, mixLength, type MixTrack, playSlice } from "./mix";
 import { encodeWav } from "./wav";
 
 const EXPORT_RATE = 44_100;
 
 /**
  * The mixer's sound, on the browser's Web Audio. Files are fetched and decoded
- * once; playing schedules every audible track at once on one clock, so they
- * stay in time; exporting renders the same schedule offline (faster than real
- * time) into a WAV file.
+ * once; playing schedules every clip of every audible track at once on one
+ * clock, so they stay in time; exporting renders the same schedule offline
+ * (faster than real time) into a WAV file.
  */
 export class MixEngine {
   private context: AudioContext | null = null;
@@ -49,6 +49,64 @@ export class MixEngine {
     return buffer;
   }
 
+  private loadAll(tracks: MixTrack[]) {
+    return Promise.all(tracks.flatMap((track) => track.clips.map((clip) => this.load(clip.url))));
+  }
+
+  /**
+   * Starts every clip of `tracks` from `from` on the timeline, `at` on the
+   * context's clock: each through its fades, then its track's volume and pan.
+   */
+  private async schedule(
+    context: BaseAudioContext,
+    tracks: MixTrack[],
+    from: number,
+    at: number,
+    destination: AudioNode,
+  ) {
+    const sources: AudioBufferSourceNode[] = [];
+    for (const track of tracks) {
+      const gain = context.createGain();
+      gain.gain.value = track.volume;
+      const pan = context.createStereoPanner();
+      pan.pan.value = track.pan;
+      gain.connect(pan).connect(destination);
+      for (const clip of track.clips) {
+        const slice = playSlice(clip, from);
+        if (!slice) continue;
+        const source = context.createBufferSource();
+        source.buffer = await this.load(clip.url);
+        const fade = context.createGain();
+        const points = fadePoints(clip, from);
+        points.forEach((point, index) => {
+          if (index === 0) fade.gain.setValueAtTime(point.gain, at + point.at);
+          else fade.gain.linearRampToValueAtTime(point.gain, at + point.at);
+        });
+        source.connect(fade).connect(gain);
+        source.start(at + slice.wait, slice.offset, slice.length);
+        sources.push(source);
+      }
+    }
+    return sources;
+  }
+
+  /**
+   * Opens a file from your device before it's uploaded, to be sure this
+   * browser can play it. Null when it can't (an unsupported format).
+   */
+  async decodeFile(file: Blob): Promise<AudioBuffer | null> {
+    try {
+      return await this.audio().decodeAudioData(await file.arrayBuffer());
+    } catch {
+      return null;
+    }
+  }
+
+  /** Keeps audio already decoded (a checked upload) for its address in storage. */
+  remember(url: string, buffer: AudioBuffer) {
+    this.buffers.set(url, Promise.resolve(buffer));
+  }
+
   /** Peaks for drawing a waveform: `buckets` values from 0 to 1. */
   async peaks(url: string, buckets: number) {
     const buffer = await this.load(url);
@@ -71,23 +129,12 @@ export class MixEngine {
     const context = this.audio();
     if (context.state === "suspended") await context.resume();
     const heard = audible(tracks);
-    const buffers = await Promise.all(heard.map((track) => this.load(track.url)));
+    await this.loadAll(heard);
     const master = context.createGain();
     master.gain.value = masterVolume;
     master.connect(context.destination);
     const now = context.currentTime + 0.05;
-    const sources: AudioBufferSourceNode[] = [];
-    heard.forEach((track, index) => {
-      const slice = playSlice(track, from);
-      if (!slice) return;
-      const source = context.createBufferSource();
-      source.buffer = buffers[index]!;
-      const gain = context.createGain();
-      gain.gain.value = track.volume;
-      source.connect(gain).connect(master);
-      source.start(now + slice.wait, slice.offset, slice.length);
-      sources.push(source);
-    });
+    const sources = await this.schedule(context, heard, from, now, master);
     this.playing = { sources, master, startedAt: now, from };
     const ends = Math.max(0, mixLength(heard) - from);
     const timer = window.setTimeout(
@@ -130,8 +177,8 @@ export class MixEngine {
   }
 
   /**
-   * One track alone as a WAV as long as `length`: it plays exactly where it
-   * does in the mix, so stems line up with the song.
+   * One track alone (all its clips) as a WAV as long as `length`: it plays
+   * exactly where it does in the mix, so stems line up with the song.
    */
   stemWav(track: MixTrack, length: number) {
     return this.render([{ ...track, muted: false, soloed: false }], length, 1);
@@ -143,21 +190,12 @@ export class MixEngine {
       throw new AppError(ErrorCodes.VALIDATION_FAILED, {
         message: "Add a track before exporting.",
       });
-    const buffers = await Promise.all(tracks.map((track) => this.load(track.url)));
+    await this.loadAll(tracks);
     const offline = new OfflineAudioContext(2, Math.ceil(length * EXPORT_RATE), EXPORT_RATE);
     const master = offline.createGain();
     master.gain.value = masterVolume;
     master.connect(offline.destination);
-    tracks.forEach((track, index) => {
-      const slice = playSlice(track, 0);
-      if (!slice) return;
-      const source = offline.createBufferSource();
-      source.buffer = buffers[index]!;
-      const gain = offline.createGain();
-      gain.gain.value = track.volume;
-      source.connect(gain).connect(master);
-      source.start(slice.wait, slice.offset, slice.length);
-    });
+    await this.schedule(offline, tracks, 0, 0, master);
     const rendered = await offline.startRendering();
     const channels = [rendered.getChannelData(0), rendered.getChannelData(1)];
     return new Blob([encodeWav(channels, EXPORT_RATE)], { type: "audio/wav" });

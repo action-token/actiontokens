@@ -70,7 +70,9 @@ export function HomeView() {
     <div className="mx-auto grid max-w-5xl gap-14 px-4 py-10 sm:px-8 sm:py-16">
       <section className="grid justify-items-center gap-6 text-center">
         <p className="marker text-primary-text -rotate-2 text-xl">*make it with AI*</p>
-        <TallText className="pb-[0.12em] text-7xl sm:text-8xl">Let&apos;s create</TallText>
+        <TallText center className="pb-[0.12em] text-7xl sm:text-8xl">
+          Let&apos;s create
+        </TallText>
         <p className="text-fg-muted max-w-lg">
           Images, video, music and words for your releases, with Google and OpenAI. Every run shows
           its price first, in coins: one coin is one cent.
@@ -84,7 +86,7 @@ export function HomeView() {
                   event.preventDefault();
                   router.push(`/music?prompt=${encodeURIComponent(prompt)}`);
                 }}
-                className="bg-surface grid gap-2 rounded-[1.6rem] border-2 p-3"
+                className="studio-prompt bg-surface/95 grid gap-2 rounded-[1.6rem] border-2 p-3"
               >
                 <textarea
                   value={prompt}

@@ -6,7 +6,7 @@ import { enqueueJob } from "../jobs/queue";
 import { holdCoins } from "./balance";
 import type { GenerateInput, GenerateTool } from "./generate-input";
 import type { GenerateProvider } from "./google";
-import { checkOptions, type Provider } from "./models";
+import { checkOptions, type Provider, providerReady } from "./models";
 import { loadPricing, runPrice } from "./pricing";
 import type { MusicOutput } from "./music";
 import { failRun, keepRun } from "./run";
@@ -61,7 +61,13 @@ export function providerPrompt(input: GenerateInput) {
 }
 
 export async function startGeneration(ctx: ServiceCtx, user: SessionUser, input: GenerateInput) {
-  // Refuses a model or option that doesn't fit before anything is created or held.
+  // Refuses a model or option that doesn't fit, or a provider that isn't set up,
+  // before anything is created or held.
+  const model = checkOptions(input);
+  if (!providerReady(model.provider))
+    throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, {
+      message: `${model.name} isn't set up yet. Pick another model.`,
+    });
   const coins = runPrice(input, await loadPricing(ctx));
   const prompt = promptOf(input);
   const artist = await ctx.db.artist.findUnique({

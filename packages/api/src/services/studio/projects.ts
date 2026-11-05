@@ -6,34 +6,23 @@ import type { Context, SessionUser } from "../../context";
 
 /**
  * Mixer projects, saved to the person's account (bandfan kept them in the
- * browser only). A project is its tracks (each an audio file in our storage,
- * placed on the timeline with its trim, volume, mute and solo), the master
+ * browser only). A project is its tracks (volume, pan, mute, solo), each holding clips (a
+ * piece of an audio file in our storage placed on the timeline, trimmed and faded), the master
  * volume and the tempo. The audio itself lives in storage; the project only
  * points at it.
  */
 type ServiceCtx = Pick<Context, "db" | "activity">;
 
 export const MAX_TRACKS = 24;
+export const MAX_CLIPS = 64;
 export const MAX_PROJECTS = 100;
 export const MAX_AUDIO_BYTES = 100 * 1024 * 1024;
-/** The audio a mixer track may be: what browsers can decode. */
-export const AUDIO_TYPES: readonly string[] = [
-  "audio/mpeg",
-  "audio/mp3",
-  "audio/wav",
-  "audio/x-wav",
-  "audio/wave",
-  "audio/ogg",
-  "audio/aac",
-  "audio/mp4",
-  "audio/x-m4a",
-  "audio/flac",
-  "audio/webm",
-];
+/** A mixer track may be any audio (the browser checks it can open it before uploading). */
+const isAudioType = (type: string) => /^audio\/[\w.+-]+$/.test(type);
 
-export type MixTrack = {
+/** A piece of an audio file placed on a track. */
+export type MixClip = {
   id: string;
-  name: string;
   url: string;
   /** Where on the timeline it starts, in seconds */
   startTime: number;
@@ -42,18 +31,33 @@ export type MixTrack = {
   trimEnd: number;
   /** The file's full length, in seconds */
   duration: number;
+  fadeIn: number;
+  fadeOut: number;
+};
+export type MixTrack = {
+  id: string;
+  name: string;
+  color: string;
   volume: number;
+  /** -1 (left) to 1 (right) */
+  pan: number;
   muted: boolean;
   soloed: boolean;
-  color: string;
+  clips: MixClip[];
 };
 /** What "Publish as a song" rendered: the mix, and each heard track lined up with it (stems). */
 export type MixPublish = {
   audio: { url: string; durationSec: number };
   stems: { name: string; url: string; durationSec: number }[];
 };
+/**
+ * Saved as version 2 (tracks holding clips). Older projects (one clip per
+ * track) are converted by the mixer when it opens them.
+ */
 export type MixProject = {
+  version: 2;
   bpm: number;
+  snap: boolean;
   masterVolume: number;
   tracks: MixTrack[];
   publish?: MixPublish | null;
@@ -68,8 +72,8 @@ export async function signStudioAudio(file: {
   fileSize: number;
   checksum: string;
 }) {
-  if (!AUDIO_TYPES.includes(file.fileType))
-    throw invalid("Add an audio file: MP3, WAV, OGG, AAC, M4A, FLAC or WebM.");
+  if (!isAudioType(file.fileType))
+    throw invalid("Add an audio file, like MP3, WAV, FLAC, M4A, OGG or AIFF.");
   if (file.fileSize > MAX_AUDIO_BYTES) throw invalid("Keep each audio file under 100 MB.");
   return presignUpload(file);
 }
@@ -77,10 +81,17 @@ export async function signStudioAudio(file: {
 function checkProject(data: MixProject) {
   if (data.tracks.length > MAX_TRACKS) throw invalid(`A project holds up to ${MAX_TRACKS} tracks.`);
   for (const track of data.tracks) {
-    if (!isOwnS3Url(track.url))
-      throw invalid(`Add ${track.name} again: its audio isn't in Studio.`);
-    if (track.trimStart + track.trimEnd >= track.duration)
-      throw invalid(`${track.name} is trimmed to nothing. Make it longer.`);
+    if (track.clips.length > MAX_CLIPS)
+      throw invalid(`${track.name} has too many clips: a track holds up to ${MAX_CLIPS} clips.`);
+    for (const clip of track.clips) {
+      if (!isOwnS3Url(clip.url))
+        throw invalid(`Add ${track.name} again: its audio isn't in Studio.`);
+      const length = clip.duration - clip.trimStart - clip.trimEnd;
+      if (length <= 0)
+        throw invalid(`A clip on ${track.name} is trimmed to nothing. Make it longer.`);
+      if (clip.fadeIn + clip.fadeOut > length + 0.001)
+        throw invalid(`A clip on ${track.name}: its fades are longer than the clip.`);
+    }
   }
   if (data.publish) {
     const files = [data.publish.audio.url, ...data.publish.stems.map((stem) => stem.url)];

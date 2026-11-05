@@ -45,6 +45,17 @@ describe("Studio pricing", () => {
       "gemini-3.8-flash": 1,
     });
     expect(coinsForUsd(9)).toBe(900);
+
+    // A model is available only when its provider has a key.
+    const ready = Object.fromEntries(
+      catalog(pricing, { GEMINI_API_KEY: "k" }).map((model) => [model.id, model.available]),
+    );
+    expect(ready).toMatchObject({
+      "gemini-nano-banana-2.1": true,
+      "gemini-omni-1.1-flash": true,
+      "gpt-image-2.6-flare": false,
+      "gpt-6-luna": false,
+    });
     expect(coinsForUsd(0.29)).toBe(29);
   });
 });

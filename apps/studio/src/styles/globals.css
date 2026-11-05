@@ -4,3 +4,141 @@
 /* Class names used inside shared packages (Tailwind only scans the app by default). */
 @source "../../../../packages/ui/src";
 @source "../../../../packages/wallet/src";
+
+/* ── Ambient glow (as on Gemini's dashboard) ─────────────────────────────
+   Four soft colour fields behind the page that drift and fade in turn, so
+   the colours shift: chartreuse, green, teal and a warm amber. Kept cheap
+   for the GPU: plain radial gradients (no blur filter), and the animations
+   only touch transform and opacity, which the compositor runs without
+   repainting. Reduced motion stops them. */
+.studio-glow {
+  --glow-a: rgb(219 220 44 / 0.24);
+  --glow-b: rgb(74 222 128 / 0.18);
+  --glow-c: rgb(45 212 191 / 0.18);
+  --glow-d: rgb(251 191 36 / 0.12);
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .studio-glow {
+    --glow-a: rgb(219 220 44 / 0.5);
+    --glow-b: rgb(74 222 128 / 0.3);
+    --glow-c: rgb(45 212 191 / 0.26);
+    --glow-d: rgb(251 191 36 / 0.22);
+  }
+}
+:root[data-theme="light"] .studio-glow {
+  --glow-a: rgb(219 220 44 / 0.5);
+  --glow-b: rgb(74 222 128 / 0.3);
+  --glow-c: rgb(45 212 191 / 0.26);
+  --glow-d: rgb(251 191 36 / 0.22);
+}
+.studio-glow > span {
+  position: absolute;
+  width: 60vmax;
+  height: 60vmax;
+  border-radius: 9999px;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+.studio-glow > span:nth-child(1) {
+  top: -25vmax;
+  right: -15vmax;
+  background: radial-gradient(closest-side, var(--glow-a), transparent);
+  animation-name: studio-glow-1;
+  animation-duration: 18s;
+}
+.studio-glow > span:nth-child(2) {
+  bottom: -28vmax;
+  left: -18vmax;
+  background: radial-gradient(closest-side, var(--glow-b), transparent);
+  animation-name: studio-glow-2;
+  animation-duration: 21s;
+}
+.studio-glow > span:nth-child(3) {
+  bottom: -30vmax;
+  right: -5vmax;
+  background: radial-gradient(closest-side, var(--glow-c), transparent);
+  animation-name: studio-glow-3;
+  animation-duration: 24s;
+}
+.studio-glow > span:nth-child(4) {
+  top: -20vmax;
+  left: 10vmax;
+  background: radial-gradient(closest-side, var(--glow-d), transparent);
+  animation-name: studio-glow-4;
+  animation-duration: 27s;
+}
+@keyframes studio-glow-1 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translate3d(-20vw, 14vh, 0) scale(1.15);
+    opacity: 0.45;
+  }
+  100% {
+    transform: translate3d(-34vw, 4vh, 0) scale(0.95);
+    opacity: 0.9;
+  }
+}
+@keyframes studio-glow-2 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate3d(24vw, -16vh, 0) scale(1.1);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translate3d(36vw, -6vh, 0) scale(1.2);
+    opacity: 1;
+  }
+}
+@keyframes studio-glow-3 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1.1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translate3d(-26vw, -12vh, 0) scale(0.95);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(-12vw, -24vh, 0) scale(1.1);
+    opacity: 0.6;
+  }
+}
+@keyframes studio-glow-4 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.9);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate3d(20vw, 18vh, 0) scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(42vw, 8vh, 0) scale(1);
+    opacity: 0.5;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .studio-glow > span {
+    animation: none;
+  }
+}
+
+/* The prompt box glows while you write, like Gemini's. */
+.studio-prompt {
+  transition:
+    box-shadow 250ms var(--ease-out-soft),
+    border-color 250ms var(--ease-out-soft);
+}
+.studio-prompt:focus-within {
+  box-shadow:
+    0 0 0 1px rgb(219 220 44 / 0.35),
+    0 0 40px -6px rgb(219 220 44 / 0.45),
+    0 0 90px -20px rgb(45 212 191 / 0.35);
+}

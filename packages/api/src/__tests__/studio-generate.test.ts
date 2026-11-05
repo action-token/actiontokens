@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
@@ -12,6 +12,12 @@ import {
 } from "../services/studio/generate";
 import { generateInput } from "../services/studio/generate-input";
 import { googleProvider, type GenerateProvider } from "../services/studio/google";
+
+beforeEach(() => {
+  vi.stubEnv("GEMINI_API_KEY", "test-key");
+  vi.stubEnv("OPENAI_API_KEY", "test-key");
+});
+afterEach(() => vi.unstubAllEnvs());
 
 const user: SessionUser = { id: "u1", role: "FAN", walletAddress: "G1", walletType: "email" };
 
@@ -143,6 +149,24 @@ describe("starting a run", () => {
       ),
     ).rejects.toThrow("GPT Image 2.6 Flare can't make 21:9.");
     expect(db.generation.create).not.toHaveBeenCalled();
+  });
+
+  it("won't start a run on a provider that isn't set up, and holds nothing", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "");
+    const { ctx, db } = setup();
+    await expect(
+      startGeneration(
+        ctx,
+        user,
+        generateInput.parse({
+          tool: "IMAGE",
+          prompt: "a red guitar",
+          model: "gpt-image-2.6-flare",
+        }),
+      ),
+    ).rejects.toThrow("GPT Image 2.6 Flare isn't set up yet. Pick another model.");
+    expect(db.generation.create).not.toHaveBeenCalled();
+    expect(db.studioLedgerEntry.create).not.toHaveBeenCalled();
   });
 
   it("never starts when the coins aren't there", async () => {

@@ -67,7 +67,7 @@ export function MusicGenerator({
         event.preventDefault();
         if (ready) start.mutate({ kind, prompt });
       }}
-      className="bg-surface focus-within:border-fg/40 grid gap-2 rounded-[1.6rem] border-2 p-3 shadow-[0_10px_40px_-20px_rgb(0_0_0/0.5)]"
+      className="studio-prompt bg-surface/95 focus-within:border-fg/40 grid gap-2 rounded-[1.6rem] border-2 p-3 shadow-[0_10px_40px_-20px_rgb(0_0_0/0.5)]"
     >
       <textarea
         aria-label="Describe the music"
@@ -137,11 +137,10 @@ export function MusicGenerator({
             Not enough coins: top up
           </Link>
         )}
-        <span className="flex-1" />
         <button
           type="submit"
           disabled={!ready}
-          className="bg-primary text-primary-foreground flex h-10 items-center gap-2 rounded-full pr-1.5 pl-4 text-sm font-bold transition-transform hover:scale-[1.02] disabled:opacity-40 disabled:hover:scale-100"
+          className="bg-primary text-primary-foreground ml-auto flex h-10 items-center gap-2 rounded-full pr-1.5 pl-4 text-sm font-bold transition-transform hover:scale-[1.02] disabled:opacity-40 disabled:hover:scale-100"
         >
           {start.isPending ? "Starting…" : "Generate"}
           <span className="bg-primary-foreground text-primary flex h-7 items-center gap-1 rounded-full px-2 text-xs tabular-nums">

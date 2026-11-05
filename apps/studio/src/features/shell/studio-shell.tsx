@@ -52,7 +52,7 @@ export function StudioShell({ children }: { children: ReactNode }) {
             address: me.data?.walletAddress,
             avatarUrl: me.data?.avatarUrl,
             onOpen: () => openAccount(true),
-            onSignOut: () => void signOut({ callbackUrl: "/" }),
+            onSignOut: () => void signOut({ redirect: false }),
             settingsHref: `${APP_URL}/settings`,
           };
 
@@ -116,7 +116,7 @@ export function StudioShell({ children }: { children: ReactNode }) {
       />
 
       <div className="flex min-w-0 flex-col">
-        <header className="bg-bg/85 sticky top-0 z-30 flex h-14 items-center gap-3 border-b px-4 backdrop-blur sm:hidden">
+        <header className="bg-bg/95 sticky top-0 z-30 flex h-14 items-center gap-3 border-b px-4 sm:hidden">
           <Link href="/" aria-label="Studio home" className="flex items-center gap-2">
             <BrandMark className="h-7" />
             <span className="marker text-primary-text text-sm">studio</span>
@@ -135,7 +135,19 @@ export function StudioShell({ children }: { children: ReactNode }) {
             </Button>
           )}
         </header>
-        <main className="min-w-0 flex-1 pb-20 sm:pb-0">{children}</main>
+        <main className="relative isolate min-w-0 flex-1 pb-20 sm:pb-0">
+          {/* soft colour glows behind every page, as on Gemini */}
+          <div
+            aria-hidden
+            className="studio-glow pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+          >
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
+          {children}
+        </main>
       </div>
 
       <nav

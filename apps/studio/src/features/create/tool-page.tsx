@@ -109,15 +109,7 @@ export function ToolPage({ tool }: { tool: ToolId }) {
   const short = start.error?.message.match(/needs \d+ coins/);
   return (
     <div className="flex h-[calc(100dvh-8.5rem)] flex-col sm:h-dvh">
-      <header className="flex shrink-0 items-end gap-3 border-b px-4 py-4 sm:px-8">
-        <span className="bg-primary text-primary-foreground blob flex size-10 items-center justify-center">
-          <page.icon className="size-5" strokeWidth={2.4} />
-        </span>
-        <span className="min-w-0">
-          <TallText className="pb-0 text-4xl">{page.label}</TallText>
-          <span className="marker text-primary-text block -rotate-1 text-sm">*{copy.note}*</span>
-        </span>
-      </header>
+      <h1 className="sr-only">{page.label}</h1>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto grid w-full max-w-3xl gap-8 px-4 py-6 sm:px-6">
@@ -133,7 +125,7 @@ export function ToolPage({ tool }: { tool: ToolId }) {
             </Button>
           )}
           {signedIn && items.length === 0 && !runs.isPending && (
-            <Ideas ideas={copy.ideas} onPick={setPrompt} />
+            <Ideas title={page.label} note={copy.note} ideas={copy.ideas} onPick={setPrompt} />
           )}
           {!signedIn && status !== "loading" && (
             <div className="grid justify-items-center gap-3 py-16 text-center">
@@ -153,7 +145,7 @@ export function ToolPage({ tool }: { tool: ToolId }) {
         </div>
       </div>
 
-      <div className="from-bg via-bg/95 shrink-0 bg-gradient-to-t to-transparent px-4 pt-2 pb-4 sm:px-6">
+      <div className="shrink-0 px-4 pt-2 pb-4 sm:px-6">
         <div className="mx-auto w-full max-w-3xl">
           {start.error && (
             <p role="alert" className="text-danger mb-2 px-2 text-sm">
@@ -184,9 +176,26 @@ export function ToolPage({ tool }: { tool: ToolId }) {
   );
 }
 
-function Ideas({ ideas, onPick }: { ideas: string[]; onPick: (idea: string) => void }) {
+/** An empty tool: its name, what it makes, and a few prompts to start from. */
+function Ideas({
+  title,
+  note,
+  ideas,
+  onPick,
+}: {
+  title: string;
+  note: string;
+  ideas: string[];
+  onPick: (idea: string) => void;
+}) {
   return (
     <div className="grid gap-3 py-10">
+      <div aria-hidden className="mb-4 grid justify-items-center gap-1 text-center">
+        <TallText center className="pb-[0.12em] text-6xl sm:text-7xl">
+          {title}
+        </TallText>
+        <p className="marker text-primary-text -rotate-1 text-lg">*{note}*</p>
+      </div>
       <p className="marker text-fg-muted text-center text-lg">*try one of these*</p>
       <div className="grid gap-2 sm:grid-cols-2">
         {ideas.map((idea) => (

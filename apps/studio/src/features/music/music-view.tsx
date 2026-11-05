@@ -1,12 +1,10 @@
 "use client";
 
-import { AudioLines } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
-import { TallText } from "@bandcoin/ui/patterns/tall-text";
 import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
 import { api } from "~/trpc/react";
@@ -29,17 +27,7 @@ export function MusicView() {
 
   return (
     <div className="flex h-[calc(100dvh-8.5rem)] flex-col sm:h-dvh">
-      <header className="flex shrink-0 items-end gap-3 border-b px-4 py-4 sm:px-8">
-        <span className="bg-primary text-primary-foreground blob flex size-10 items-center justify-center">
-          <AudioLines className="size-5" strokeWidth={2.4} />
-        </span>
-        <span className="min-w-0">
-          <TallText className="pb-0 text-4xl">Music</TallText>
-          <span className="marker text-primary-text block -rotate-1 text-sm">
-            *clips, full songs and live jams with Lyria*
-          </span>
-        </span>
-      </header>
+      <h1 className="sr-only">Music</h1>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto grid w-full max-w-3xl gap-6 px-4 py-6 sm:px-6">
@@ -60,7 +48,7 @@ export function MusicView() {
         </div>
       </div>
 
-      <div className="from-bg via-bg/95 shrink-0 bg-gradient-to-t to-transparent px-4 pt-2 pb-4 sm:px-6">
+      <div className="shrink-0 px-4 pt-2 pb-4 sm:px-6">
         <div className="mx-auto w-full max-w-3xl">
           <MusicGenerator
             balance={balance.data?.coins ?? null}

@@ -1,7 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { generateInput } from "../services/studio/generate-input";
-import { checkOptions, defaultModel, modelOf, MODELS } from "../services/studio/models";
+import {
+  checkOptions,
+  defaultModel,
+  modelOf,
+  MODELS,
+  providerReady,
+} from "../services/studio/models";
 import { pricingOf, runPrice } from "../services/studio/pricing";
 
 const pricing = pricingOf(null);
@@ -93,5 +99,19 @@ describe("Enhance prompt", () => {
     await expect(enhancePrompt({ tool: "IMAGE", prompt: "x" }, write)).rejects.toThrow(
       /between 3 and/,
     );
+  });
+});
+
+describe("which providers are set up", () => {
+  it("needs each provider's own key", () => {
+    expect(providerReady("google", { GEMINI_API_KEY: "k" })).toBe(true);
+    expect(providerReady("google", { OPENAI_API_KEY: "k" })).toBe(false);
+    expect(providerReady("openai", { OPENAI_API_KEY: "k" })).toBe(true);
+    expect(providerReady("openai", { GEMINI_API_KEY: "k" })).toBe(false);
+  });
+
+  it("treats an empty or blank key as not set up", () => {
+    expect(providerReady("openai", { OPENAI_API_KEY: "" })).toBe(false);
+    expect(providerReady("openai", { OPENAI_API_KEY: "  " })).toBe(false);
   });
 });

@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { SessionUser } from "../context";
 import {
   getProject,
+  type MixClip,
   type MixTrack,
   removeProject,
   saveProject,
@@ -17,18 +18,26 @@ vi.mock("@bandcoin/storage", () => ({
 }));
 
 const user: SessionUser = { id: "u1", role: "FAN", walletAddress: "G1", walletType: "email" };
-const track = (over: Partial<MixTrack> = {}): MixTrack => ({
-  id: "t1",
-  name: "Beat",
+const clip = (over: Partial<MixClip> = {}): MixClip => ({
+  id: "c1",
   url: "https://bucket/beat.mp3",
   startTime: 0,
   trimStart: 0,
   trimEnd: 0,
   duration: 30,
+  fadeIn: 0,
+  fadeOut: 0,
+  ...over,
+});
+const track = (over: Partial<MixTrack> = {}, clips: MixClip[] = [clip()]): MixTrack => ({
+  id: "t1",
+  name: "Beat",
+  color: "#dbdc2c",
   volume: 1,
+  pan: 0,
   muted: false,
   soloed: false,
-  color: "#dbdc2c",
+  clips,
   ...over,
 });
 
@@ -49,13 +58,21 @@ function setup(owned = true, count = 0) {
   return { ctx: { db, activity: { set: vi.fn() } } as never, db };
 }
 
-const project = (tracks: MixTrack[]) => ({ bpm: 120, masterVolume: 1, tracks });
+const project = (tracks: MixTrack[]) => ({
+  version: 2 as const,
+  bpm: 120,
+  masterVolume: 1,
+  snap: true,
+  tracks,
+});
 
 describe("mixer uploads", () => {
   it("signs audio only, up to 100 MB", async () => {
     const file = { fileName: "a.mp3", fileType: "audio/mpeg", fileSize: 1000, checksum: "x" };
     await expect(signStudioAudio(file)).resolves.toMatchObject({ fileUrl: "https://bucket/k" });
     await expect(signStudioAudio({ ...file, fileType: "image/png" })).rejects.toThrow(/audio file/);
+    for (const fileType of ["audio/aiff", "audio/opus", "audio/x-caf", "audio/flac"])
+      await expect(signStudioAudio({ ...file, fileType })).resolves.toBeTruthy();
     await expect(signStudioAudio({ ...file, fileSize: 200 * 1024 * 1024 })).rejects.toThrow(
       /100 MB/,
     );
@@ -79,15 +96,29 @@ describe("mixer projects", () => {
     await expect(
       saveProject(ctx, user, {
         name: "Mix",
-        data: project([track({ url: "https://elsewhere/x.mp3" })]),
+        data: project([track({}, [clip({ url: "https://elsewhere/x.mp3" })])]),
       }),
     ).rejects.toThrow(/Add Beat again/);
     await expect(
       saveProject(ctx, user, {
         name: "Mix",
-        data: project([track({ trimStart: 20, trimEnd: 10 })]),
+        data: project([track({}, [clip(), clip({ id: "c2", trimStart: 20, trimEnd: 10 })])]),
       }),
     ).rejects.toThrow(/trimmed to nothing/);
+  });
+
+  it("keeps fades inside their clip, and clips to 64 a track", async () => {
+    const { ctx } = setup();
+    await expect(
+      saveProject(ctx, user, {
+        name: "Mix",
+        data: project([track({}, [clip({ trimEnd: 20, fadeIn: 6, fadeOut: 6 })])]),
+      }),
+    ).rejects.toThrow(/fades are longer/);
+    const many = Array.from({ length: 65 }, (_, index) => clip({ id: `c${index}` }));
+    await expect(
+      saveProject(ctx, user, { name: "Mix", data: project([track({}, many)]) }),
+    ).rejects.toThrow(/64 clips/);
   });
 
   it("only opens, changes or deletes your own projects", async () => {

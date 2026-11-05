@@ -161,6 +161,19 @@ export const MODELS: readonly StudioModel[] = [
 ];
 
 /** The model a tool's runs use: SEO and social posts are written by the text models. */
+const PROVIDER_KEY: Record<Provider, string> = {
+  google: "GEMINI_API_KEY",
+  openai: "OPENAI_API_KEY",
+};
+
+/** Whether a provider has its API key here (a model of a provider without one can't run). */
+export function providerReady(
+  provider: Provider,
+  env: Record<string, string | undefined> = process.env,
+) {
+  return Boolean(env[PROVIDER_KEY[provider]]?.trim());
+}
+
 export const modelToolOf = (tool: GenerateInput["tool"]): ModelTool =>
   tool === "SEO" || tool === "SOCIAL" ? "TEXT" : tool;
 
