@@ -2,8 +2,10 @@
 
 import { Camera, Check, Copy, ImagePlus, Loader2, Settings, X } from "lucide-react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { type ReactNode, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Input } from "@bandcoin/ui/components/input";
@@ -18,6 +20,7 @@ import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
 import { ThemeSwitch } from "~/components/theme-switch";
 import { Avatar } from "~/features/shell/context-panel";
+import { lastFmErrorText } from "~/lib/lastfm-errors";
 import { declare, putToStorage } from "~/lib/upload";
 import { api, type RouterOutputs } from "~/trpc/react";
 
@@ -372,6 +375,21 @@ function ConnectedAccounts({ settings }: { settings: Settings }) {
   const disconnect = api.bounty.disconnectLastFm.useMutation({
     onSuccess: () => utils.account.settings.invalidate(),
   });
+
+  // Back from Last.fm: say how it went, refresh the card, then tidy the URL.
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const connected = params.get("lastfm") === "connected";
+  const failure = params.get("error");
+  useEffect(() => {
+    if (!connected && !failure) return;
+    if (connected) {
+      toast.success("Last.fm account connected!", { id: "lastfm" });
+      void utils.account.settings.invalidate();
+    } else if (failure) toast.error(lastFmErrorText(failure), { id: "lastfm" });
+    router.replace(pathname);
+  }, [connected, failure, pathname, router, utils]);
 
   return (
     <Card title="Connected accounts" note="Last.fm lets bounties count the songs you play.">

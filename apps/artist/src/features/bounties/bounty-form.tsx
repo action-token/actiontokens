@@ -13,7 +13,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { type FormEvent, useEffect, useMemo } from "react";
 import toast from "react-hot-toast";
 
@@ -93,6 +93,13 @@ const MAX_INSTRUCTIONS = 10;
 const NO_EVENT = "none";
 const messageOf = (error: unknown) =>
   error instanceof Error ? error.message : "Something went wrong.";
+
+/** What Last.fm's return trip says went wrong (set by /api/lastfm/callback). */
+const LASTFM_ERRORS: Record<string, string> = {
+  lastfm_unavailable: "Last.fm isn't set up yet.",
+  missing_token: "Last.fm didn't send a sign-in token. Try again.",
+  lastfm_failed: "Could not connect your Last.fm account. Please try again.",
+};
 
 const blank: State = {
   title: "",
@@ -201,6 +208,24 @@ export function BountyForm({
 
   const sources = api.bounties.fundingSources.useQuery(undefined, { enabled: !editing });
   const lastFm = api.bounties.lastFm.useQuery(undefined, { enabled: state.music });
+  const pathname = usePathname();
+  const query = useSearchParams();
+  const lastFmError = LASTFM_ERRORS[query.get("error") ?? ""];
+  // Connect from here, and Last.fm sends you back here (same page, same options).
+  const lastFmBack = (() => {
+    const rest = new URLSearchParams(query.toString());
+    rest.delete("lastfm");
+    rest.delete("error");
+    return rest.size > 0 ? `${pathname}?${rest.toString()}` : pathname;
+  })();
+  const justConnected = query.get("lastfm") === "connected";
+  const { refetch: refetchLastFm } = lastFm;
+  useEffect(() => {
+    if (!justConnected) return;
+    toast.success("Last.fm connected", { id: "lastfm" });
+    void refetchLastFm();
+    router.replace(lastFmBack);
+  }, [justConnected, refetchLastFm, router, lastFmBack]);
   const events = api.engage.events.useQuery();
   const disconnect = api.bounties.disconnectLastFm.useMutation({
     onSuccess: () => {
@@ -709,10 +734,13 @@ export function BountyForm({
                       <p className="text-fg-muted text-xs">
                         To create music bounties, connect Last.fm so scrobbles can be verified.
                       </p>
+                      {lastFmError && (
+                        <p role="alert" className="text-danger text-xs font-semibold">
+                          {lastFmError}
+                        </p>
+                      )}
                       <Button asChild size="sm" className="justify-self-start">
-                        <a
-                          href={`/api/lastfm/auth?redirect=${encodeURIComponent("/bounties/new")}`}
-                        >
+                        <a href={`/api/lastfm/auth?redirect=${encodeURIComponent(lastFmBack)}`}>
                           Connect Last.fm
                         </a>
                       </Button>

@@ -25,6 +25,7 @@ import { PageBody } from "@bandcoin/ui/patterns/page-header";
 
 import { Money } from "~/components/money";
 import { timeAgo } from "~/lib/format";
+import { lastFmErrorText } from "~/lib/lastfm-errors";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import { StickyPanel } from "../nft/sticky-panel";
@@ -42,12 +43,6 @@ const STATUS: Record<Bounty["status"], { label: string; tone: string }> = {
   RUNNING: { label: "Running", tone: "bg-primary text-primary-foreground border-transparent" },
   PAUSED: { label: "Paused", tone: "bg-surface-3 text-fg" },
   COMPLETED: { label: "Completed", tone: "bg-surface-2 text-fg-muted" },
-};
-
-const LASTFM_ERRORS: Record<string, string> = {
-  lastfm_unavailable: "Last.fm isn't set up yet.",
-  missing_token: "Last.fm didn't send a sign-in token. Try again.",
-  lastfm_failed: "Could not connect your Last.fm account. Please try again.",
 };
 
 /**
@@ -72,11 +67,8 @@ export function BountyView({ initial }: { initial: Bounty }) {
   const lastFmError = params.get("error");
   useEffect(() => {
     if (!lastFm && !lastFmError) return;
-    if (lastFm === "connected") toast.success("Last.fm account connected!");
-    else if (lastFmError)
-      toast.error(
-        LASTFM_ERRORS[lastFmError] ?? "Could not connect your Last.fm account. Please try again.",
-      );
+    if (lastFm === "connected") toast.success("Last.fm account connected!", { id: "lastfm" });
+    else if (lastFmError) toast.error(lastFmErrorText(lastFmError), { id: "lastfm" });
     const query = new URLSearchParams(params.toString());
     query.delete("lastfm");
     query.delete("error");
