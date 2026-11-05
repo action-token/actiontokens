@@ -1,7 +1,7 @@
 "use client";
 
-import { Lock, Play } from "lucide-react";
-import { useState } from "react";
+import { ChevronLeft, ChevronRight, Lock, Play } from "lucide-react";
+import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 import { cn } from "@bandcoin/ui/lib/cn";
 import { SectionTitle } from "@bandcoin/ui/patterns/media-carousel";
@@ -75,15 +75,15 @@ export function ArtistStories({ slug }: { slug: string }) {
   if (live.length === 0) return null;
 
   return (
-    <section className="grid gap-4" aria-label="Stories">
+    <section className="grid grid-cols-[minmax(0,1fr)] gap-4" aria-label="Stories">
       <SectionTitle title="Stories" note="gone in 24 hours" />
-      <ul className="-mx-4 flex [scrollbar-width:none] items-start gap-4 overflow-x-auto px-4 py-1.5 sm:mx-0 sm:px-1.5">
+      <ScrollRow>
         {live.map((story, index) => (
           <li key={story.id} className="shrink-0">
             <Tile shape="round" story={story} onOpen={() => setStart(index)} />
           </li>
         ))}
-      </ul>
+      </ScrollRow>
       {start !== null && (
         <StoryViewer
           slug={slug}
@@ -113,27 +113,19 @@ export function ArtistHighlights({ slug }: { slug: string }) {
   if (!artist || stories.length === 0) return null;
 
   return (
-    <section className="grid gap-4" aria-label="Highlights">
+    <section className="grid grid-cols-[minmax(0,1fr)] gap-4" aria-label="Highlights">
       <SectionTitle title="Highlights" note="everything they've shared" />
-      <ul className="-mx-4 flex [scrollbar-width:none] items-start gap-4 overflow-x-auto px-4 py-1.5 sm:mx-0 sm:px-1.5">
+      <ScrollRow
+        onEnd={() => {
+          if (archive.hasNextPage && !archive.isFetchingNextPage) void archive.fetchNextPage();
+        }}
+      >
         {stories.map((story, index) => (
           <li key={story.id} className="shrink-0">
             <Tile shape="square" story={story} onOpen={() => setStart(index)} />
           </li>
         ))}
-        {archive.hasNextPage && (
-          <li className="shrink-0">
-            <button
-              type="button"
-              disabled={archive.isFetchingNextPage}
-              onClick={() => void archive.fetchNextPage()}
-              className="bg-surface-2 text-fg-muted hover:text-fg grid aspect-[3/5] w-28 place-content-center rounded-2xl border-2 border-dashed text-xs font-semibold sm:w-32"
-            >
-              {archive.isFetchingNextPage ? "Loading…" : "Older"}
-            </button>
-          </li>
-        )}
-      </ul>
+      </ScrollRow>
       {start !== null && (
         <StoryViewer
           slug={slug}
@@ -144,6 +136,77 @@ export function ArtistHighlights({ slug }: { slug: string }) {
         />
       )}
     </section>
+  );
+}
+
+/**
+ * A row that scrolls sideways. Arrow buttons (wide screens) and a fade at an
+ * edge show there is more to see; the arrows hide at the ends. `onEnd` runs
+ * when the last item is near, to load the next page.
+ */
+function ScrollRow({ children, onEnd }: { children: ReactNode; onEnd?: () => void }) {
+  const row = useRef<HTMLUListElement>(null);
+  const [edge, setEdge] = useState({ left: false, right: false });
+  const measure = useCallback(() => {
+    const el = row.current;
+    if (!el) return;
+    const rest = el.scrollWidth - el.clientWidth - el.scrollLeft;
+    setEdge({ left: el.scrollLeft > 4, right: rest > 4 });
+    if (rest < 240) onEnd?.();
+  }, [onEnd]);
+  useEffect(() => {
+    measure();
+    const el = row.current;
+    if (!el) return;
+    const watcher = new ResizeObserver(measure);
+    watcher.observe(el);
+    return () => watcher.disconnect();
+  }, [measure, children]);
+  const move = (direction: 1 | -1) =>
+    row.current?.scrollBy({ left: direction * row.current.clientWidth * 0.8, behavior: "smooth" });
+
+  return (
+    <div className="relative min-w-0">
+      <ul
+        ref={row}
+        onScroll={measure}
+        className="-mx-4 flex [scrollbar-width:none] items-start gap-4 overflow-x-auto px-4 py-1.5 sm:mx-0 sm:px-1.5"
+      >
+        {children}
+      </ul>
+      {(["left", "right"] as const).map((side) =>
+        edge[side] ? (
+          <span
+            key={side}
+            aria-hidden
+            className={cn(
+              "from-bg pointer-events-none absolute inset-y-0 hidden w-12 to-transparent sm:block",
+              side === "left" ? "left-0 bg-gradient-to-r" : "right-0 bg-gradient-to-l",
+            )}
+          />
+        ) : null,
+      )}
+      {edge.left && (
+        <button
+          type="button"
+          aria-label="Scroll left"
+          onClick={() => move(-1)}
+          className="bg-fg text-bg absolute top-1/2 left-1 hidden size-9 -translate-y-1/2 place-items-center rounded-full shadow-md transition-transform hover:scale-110 sm:grid"
+        >
+          <ChevronLeft className="size-5" />
+        </button>
+      )}
+      {edge.right && (
+        <button
+          type="button"
+          aria-label="Scroll right"
+          onClick={() => move(1)}
+          className="bg-fg text-bg absolute top-1/2 right-1 hidden size-9 -translate-y-1/2 place-items-center rounded-full shadow-md transition-transform hover:scale-110 sm:grid"
+        >
+          <ChevronRight className="size-5" />
+        </button>
+      )}
+    </div>
   );
 }
 
