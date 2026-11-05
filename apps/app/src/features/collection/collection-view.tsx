@@ -90,7 +90,7 @@ export function CollectionView() {
                   {SOURCE_LABEL[item.source] ?? "Owned"}
                 </span>
                 {item.quantity > 1 && (
-                  <span className="bg-primary text-primary-foreground display rounded-md px-1.5 py-0.5 text-[11px] shadow">
+                  <span className="bg-primary text-primary-foreground display rounded-md px-1.5 py-0.5 text-sm shadow">
                     ×{item.quantity.toLocaleString()}
                   </span>
                 )}

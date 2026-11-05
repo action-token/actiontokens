@@ -83,7 +83,7 @@ export default async function ProfilePage({ params }: Props) {
             />
             <div className="grid min-w-0 flex-1 gap-1">
               <span className="marker -rotate-1 text-lg text-white/80">*fan*</span>
-              <h1 className="display text-4xl break-words sm:text-5xl xl:text-6xl">{name}</h1>
+              <h1 className="display text-5xl break-words sm:text-6xl xl:text-7xl">{name}</h1>
               <p className="text-sm text-white/75">
                 @{profile.username} · fan since {since}
               </p>
@@ -101,7 +101,7 @@ export default async function ProfilePage({ params }: Props) {
               ].map(([label, value]) => (
                 <div key={label} className="flex flex-col-reverse">
                   <dt className="text-xs font-semibold text-white/70">{label}</dt>
-                  <dd className="display text-2xl">{Number(value).toLocaleString()}</dd>
+                  <dd className="display text-3xl">{Number(value).toLocaleString()}</dd>
                 </div>
               ))}
             </dl>
@@ -160,7 +160,7 @@ export default async function ProfilePage({ params }: Props) {
                     covers={playlist.covers}
                     className="shadow-md transition-transform duration-250 group-hover:-translate-y-0.5"
                   />
-                  <span className="display truncate text-sm">{playlist.name}</span>
+                  <span className="display truncate text-lg">{playlist.name}</span>
                   <span className="text-fg-muted -mt-1.5 text-xs">
                     {playlist.trackCount} {playlist.trackCount === 1 ? "song" : "songs"}
                   </span>
@@ -184,7 +184,7 @@ export default async function ProfilePage({ params }: Props) {
                       url={artist.avatarUrl}
                       className="bg-surface-3 grid size-20 place-items-center rounded-full object-cover text-lg font-bold transition-transform group-hover:-translate-y-0.5"
                     />
-                    <span className="display w-full truncate text-xs">{artist.name}</span>
+                    <span className="display w-full truncate text-base">{artist.name}</span>
                   </Link>
                 </li>
               ))}

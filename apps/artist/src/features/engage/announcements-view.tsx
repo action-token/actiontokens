@@ -79,7 +79,7 @@ function AnnouncementCard({ announcement }: { announcement: Announcement }) {
     <li className="bg-surface grid gap-3 rounded-xl border p-4 sm:p-5">
       <Link href={`/events/announcements/${announcement.id}`} className="grid gap-3">
         <div className="flex flex-wrap items-start justify-between gap-2">
-          <h3 className="display min-w-0 text-lg">{announcement.title}</h3>
+          <h3 className="display min-w-0 text-2xl">{announcement.title}</h3>
           <div className="flex items-center gap-2">
             {announcement.isPinned && (
               <StatusPill tone="info">

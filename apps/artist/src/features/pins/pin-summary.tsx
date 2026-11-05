@@ -47,7 +47,7 @@ export function PinSummary({
   );
   return (
     <section className="bg-surface border-fg/10 rounded-[1.4rem] border-2 p-5">
-      <h2 className="display mb-3 text-base">Summary</h2>
+      <h2 className="display mb-3 text-xl">Summary</h2>
       {imageUrl && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={imageUrl} alt="" className="mb-3 aspect-video w-full rounded-lg object-cover" />

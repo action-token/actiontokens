@@ -104,7 +104,7 @@ export function BountiesView() {
                 className="bg-surface hover:bg-surface-2 grid gap-2 rounded-xl border p-4 transition-colors sm:p-5"
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
-                  <h3 className="display min-w-0 text-lg">{row.title}</h3>
+                  <h3 className="display min-w-0 text-2xl">{row.title}</h3>
                   <StatusPill tone={statusTone(row)}>{statusLabel(row)}</StatusPill>
                 </div>
                 {row.summary && <p className="text-fg-muted line-clamp-2 text-sm">{row.summary}</p>}

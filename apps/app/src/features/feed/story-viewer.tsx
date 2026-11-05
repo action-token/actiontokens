@@ -305,7 +305,7 @@ function LockScreen({
       </span>
       {lock.kind === "FOLLOW" ? (
         <>
-          <p className="display text-xl">Followers only</p>
+          <p className="display text-2xl">Followers only</p>
           <p className="text-sm text-white/70">Follow {name} to watch this story.</p>
           <div className="relative z-30">
             <FollowButton slug={slug} initial={false} />
@@ -313,7 +313,7 @@ function LockScreen({
         </>
       ) : lock.kind === "SUBSCRIBE" ? (
         <>
-          <p className="display text-xl">Subscribers only</p>
+          <p className="display text-2xl">Subscribers only</p>
           <p className="text-sm text-white/70">
             {lock.code
               ? `Subscribe to ${name} (trust ${lock.code}) to watch this story.`
@@ -330,7 +330,7 @@ function LockScreen({
         </>
       ) : (
         <>
-          <p className="display text-xl">{lock.tierName} members</p>
+          <p className="display text-2xl">{lock.tierName} members</p>
           <p className={cn("text-sm text-white/70")}>
             Hold {lock.needed} {lock.code ?? "fan tokens"} to watch.
             {lock.code ? ` You hold ${lock.have}.` : ""}

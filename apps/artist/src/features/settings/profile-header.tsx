@@ -91,7 +91,7 @@ export function ProfileHeader({ profile, onEdit }: { profile: Profile; onEdit: (
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="display truncate text-2xl sm:text-3xl">{profile.name}</h1>
+                <h1 className="display truncate text-3xl sm:text-4xl">{profile.name}</h1>
                 <Badge variant={status.tone}>{status.label}</Badge>
               </div>
               <p className="text-fg-muted mt-0.5 text-sm">

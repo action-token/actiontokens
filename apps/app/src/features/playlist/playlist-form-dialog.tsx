@@ -83,7 +83,7 @@ export function PlaylistFormDialog({
       <DialogContent className="max-w-md">
         <form onSubmit={submit} className="grid gap-5">
           <DialogHeader>
-            <DialogTitle className="display text-2xl">
+            <DialogTitle className="display text-3xl">
               {playlist ? "Edit playlist" : "New playlist"}
             </DialogTitle>
             <DialogDescription className="marker text-base">

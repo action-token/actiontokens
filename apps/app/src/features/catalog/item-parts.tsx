@@ -36,7 +36,7 @@ function Fold({ title, open, children }: { title: string; open?: boolean; childr
       open={open}
       className="group bg-surface rounded-[1.2rem] border-2 px-5 py-4 [&_summary::-webkit-details-marker]:hidden"
     >
-      <summary className="display flex cursor-pointer list-none items-center justify-between text-xl">
+      <summary className="display flex cursor-pointer list-none items-center justify-between text-2xl">
         {title}
         <ChevronDown className="size-5 transition-transform group-open:rotate-180" />
       </summary>
@@ -116,7 +116,7 @@ export function ItemDetails({ item, single = false }: { item: Item; single?: boo
               />
               <span className="min-w-0 flex-1">
                 <span className="marker text-fg-muted block text-sm">made by</span>
-                <span className="display block truncate text-xl">{item.artist.name}</span>
+                <span className="display block truncate text-2xl">{item.artist.name}</span>
                 {item.artist.bio && (
                   <span className="text-fg-muted line-clamp-1 text-sm">{item.artist.bio}</span>
                 )}
@@ -177,7 +177,7 @@ export function MoreFromArtist({
     >
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h2 className="display text-2xl">More from {more.artist?.name ?? artistName}</h2>
+          <h2 className="display text-3xl">More from {more.artist?.name ?? artistName}</h2>
           <p className="marker text-fg-muted text-base">same artist, more drops</p>
         </div>
         {more.artist && (

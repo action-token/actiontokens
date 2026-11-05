@@ -150,7 +150,7 @@ function Editor({ id, saved }: { id: string; saved: Saved | null }) {
           </Link>
         </Button>
         <div className="min-w-0 flex-1">
-          <h1 className="display truncate text-lg">{isNew ? "New website map" : draft.name}</h1>
+          <h1 className="display truncate text-2xl">{isNew ? "New website map" : draft.name}</h1>
           <p className="text-fg-muted text-xs">
             {dirty ? "Unsaved changes" : isNew ? "Not saved yet" : "All changes saved"}
           </p>

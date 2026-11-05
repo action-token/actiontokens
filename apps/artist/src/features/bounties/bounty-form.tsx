@@ -368,7 +368,7 @@ export function BountyForm({
               <p className="text-primary-text text-xs font-semibold tracking-wide uppercase">
                 Preview
               </p>
-              <p className="display text-xl leading-snug">{state.title || "Untitled bounty"}</p>
+              <p className="display text-2xl leading-snug">{state.title || "Untitled bounty"}</p>
               {state.summary && (
                 <p className="text-fg-muted line-clamp-3 text-sm">{state.summary}</p>
               )}
@@ -391,7 +391,7 @@ export function BountyForm({
             </section>
             {!editing && (
               <section className="bg-surface border-fg/10 grid gap-2 rounded-[1.4rem] border-2 p-5 text-sm">
-                <h2 className="display text-xl">What you pay</h2>
+                <h2 className="display text-2xl">What you pay</h2>
                 <p className="flex justify-between gap-3">
                   <span className="text-fg-muted">Prize into escrow</span>
                   {state.prizeAmount && !prizeProblem ? (

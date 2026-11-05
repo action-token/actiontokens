@@ -25,7 +25,7 @@ export function PostComments({ postId }: { postId: string }) {
 
   return (
     <section className="bg-surface rounded-[1.4rem] border-2 p-5">
-      <h2 className="display mb-3 flex items-center gap-2 text-base">
+      <h2 className="display mb-3 flex items-center gap-2 text-xl">
         <MessageSquare className="text-primary-text size-4" /> Comments
       </h2>
       {comments.isPending ? (

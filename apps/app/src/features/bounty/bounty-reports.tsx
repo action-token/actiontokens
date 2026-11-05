@@ -72,7 +72,7 @@ function ReportForm({ bountyId }: { bountyId: string }) {
 
   return (
     <div className="bg-surface grid gap-3 rounded-[1.4rem] border-2 p-4 sm:p-5">
-      <p className="display text-base">Submit your entry</p>
+      <p className="display text-xl">Submit your entry</p>
       <MarkdownEditor
         value={content}
         onChange={setContent}
@@ -198,7 +198,7 @@ function ListeningProgress({ bounty, music }: { bounty: Bounty; music: Music }) 
           <Disc3 className="size-8 animate-spin [animation-duration:8s]" />
         </span>
         <div className="grid gap-1.5">
-          <p className="display text-base">Connect Last.fm to track your progress</p>
+          <p className="display text-xl">Connect Last.fm to track your progress</p>
           <p className="text-fg-muted mx-auto max-w-xs text-sm">
             Your listening progress is synced from Last.fm scrobbles. Connect your account to see
             how far you&apos;ve come.
@@ -243,7 +243,7 @@ function ListeningProgress({ bounty, music }: { bounty: Bounty; music: Music }) 
   return (
     <section className="grid gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="display flex items-center gap-2 text-base">
+        <h3 className="display flex items-center gap-2 text-xl">
           <Headphones className="text-primary-text size-4" /> My listening progress
         </h3>
         <div className="flex items-center gap-2">
@@ -286,7 +286,7 @@ function ListeningProgress({ bounty, music }: { bounty: Bounty; music: Music }) 
       >
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="display text-xl tabular-nums">
+            <p className="display text-2xl tabular-nums">
               {progress.doneCount} of {total} tracks completed
             </p>
             <p className="text-fg-muted mt-0.5 text-xs">{rule}</p>
@@ -296,7 +296,7 @@ function ListeningProgress({ bounty, music }: { bounty: Bounty; music: Music }) 
               </p>
             )}
           </div>
-          <span className="display shrink-0 text-3xl tabular-nums">{progress.percent}%</span>
+          <span className="display shrink-0 text-4xl tabular-nums">{progress.percent}%</span>
         </div>
       </ProgressBand>
 
@@ -450,7 +450,7 @@ function MediaViewer({ media, onClose }: { media: Media | null; onClose: () => v
         {media && (
           <>
             <div className="flex items-center justify-between border-b px-4 py-3">
-              <DialogTitle className="display text-sm">
+              <DialogTitle className="display text-lg">
                 {media.type === "VIDEO" ? "Video" : media.type === "IMAGE" ? "Image" : "File"}
               </DialogTitle>
               <div className="flex gap-1">

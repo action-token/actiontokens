@@ -241,7 +241,7 @@ function Hero({ settings, form }: { settings: Settings; form: Form }) {
           </div>
           <div className="grid min-w-0 flex-1 gap-1">
             <span className="marker -rotate-1 text-lg text-white/80">*your profile*</span>
-            <h1 className="display text-4xl break-words sm:text-5xl xl:text-6xl">{name}</h1>
+            <h1 className="display text-5xl break-words sm:text-6xl xl:text-7xl">{name}</h1>
             <p className="text-sm text-white/75">
               {handle ? `@${handle}` : "Pick a username below"}
             </p>

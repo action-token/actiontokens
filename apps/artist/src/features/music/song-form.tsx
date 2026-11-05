@@ -253,7 +253,7 @@ export function SongForm({
               <p className="text-primary-text text-xs font-semibold tracking-wide uppercase">
                 Preview
               </p>
-              <p className="display text-xl leading-snug">{title || "Untitled song"}</p>
+              <p className="display text-2xl leading-snug">{title || "Untitled song"}</p>
               <p className="text-fg-muted text-sm">
                 {artistName.trim() || portal.artist?.name || "Your artist name"}
                 {duration > 0 ? ` · ${formatDuration(duration)}` : ""}

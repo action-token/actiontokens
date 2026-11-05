@@ -18,7 +18,7 @@ export function EmbedInstall({ id, draft }: { id: string; draft: EmbedDraft }) {
   return (
     <div className="mx-auto grid max-w-3xl grid-cols-[minmax(0,1fr)] gap-8 p-4 md:p-8">
       <div>
-        <h2 className="display text-xl">Add this map to your website</h2>
+        <h2 className="display text-2xl">Add this map to your website</h2>
         <p className="text-fg-muted mt-1 text-sm">
           Paste the snippet once. Anything you change in Settings later updates the live map, with
           no website edit needed.

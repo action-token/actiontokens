@@ -28,7 +28,7 @@ export function HotspotManage({ hotspot }: { hotspot: Hotspot }) {
     <>
       <section className="bg-surface grid gap-3 rounded-[1.4rem] border-2 p-5">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="display text-lg">Drops</h2>
+          <h2 className="display text-2xl">Drops</h2>
           <StatusPill tone={status.tone}>{status.label}</StatusPill>
         </div>
         <p className="text-fg-muted text-sm">

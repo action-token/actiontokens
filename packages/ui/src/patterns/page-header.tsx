@@ -46,7 +46,9 @@ export function PageHeader({
             {eyebrow}
           </p>
         )}
-        <h1 className="display text-foreground text-3xl sm:text-4xl">{title}</h1>
+        <h1 className="display text-foreground text-[2.75rem] break-words sm:text-6xl lg:text-7xl">
+          {title}
+        </h1>
         {note && <p className="marker text-primary-text mt-1 -rotate-1 text-lg">{note}</p>}
         {description && (
           <p className="text-muted-foreground mt-1 max-w-2xl text-sm">{description}</p>

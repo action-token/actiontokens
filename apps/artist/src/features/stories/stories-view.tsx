@@ -127,7 +127,7 @@ export function StoriesView() {
           {ended.length > 0 && (
             <section className="grid gap-3" aria-label="Ended stories">
               <div>
-                <h2 className="display text-lg">Highlights</h2>
+                <h2 className="display text-2xl">Highlights</h2>
                 <p className="text-fg-muted text-sm">
                   Ended stories stay on your page for fans to watch, by the audience you chose.
                 </p>

@@ -110,7 +110,7 @@ export async function ArtistView({ slug }: { slug: string }) {
                     href={`/bounty/${bounty.id}`}
                     className="bg-surface hover:border-border-strong grid h-full gap-2 rounded-lg border p-4 transition-colors"
                   >
-                    <b className="display flex items-center gap-2 text-base">
+                    <b className="display flex items-center gap-2 text-xl">
                       <Trophy className="text-primary-text size-4 shrink-0" />
                       {bounty.title}
                     </b>

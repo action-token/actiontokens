@@ -39,7 +39,7 @@ export function PageAssets() {
   return (
     <section className="grid max-w-2xl gap-4">
       <div>
-        <h2 className="display text-xl">Sell page assets</h2>
+        <h2 className="display text-2xl">Sell page assets</h2>
         <p className="text-fg-muted text-sm">
           Sell a bundle of {fanToken.code} from your storage. The first fan to buy it gets all of
           it.

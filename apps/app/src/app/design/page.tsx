@@ -65,7 +65,7 @@ export default function DesignPreviewPage() {
         </div>
         <dl className="grid gap-3 text-sm">
           {[
-            ["Display", "Unbounded: headings and big moments"],
+            ["Display", "Bricolage Grotesque: headings and big moments"],
             ["Text", "Onest: everything you read"],
             ["Numbers", "JetBrains Mono: prices, balances, times"],
             ["Accent", "Bandcoin chartreuse, from the guitar-pick logo"],
@@ -102,7 +102,7 @@ export default function DesignPreviewPage() {
       <Block title="Type">
         <div className="grid gap-4 md:grid-cols-3">
           <div className={panel}>
-            <span className="eyebrow">Display · Unbounded</span>
+            <span className="eyebrow">Display · Bricolage Grotesque</span>
             <div className="font-display text-[40px] leading-none font-extrabold tracking-tight">
               Night Drive
             </div>

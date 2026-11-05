@@ -19,7 +19,7 @@
     "@bandcoin/utils": "workspace:*",
     "@fontsource-variable/jetbrains-mono": "catalog:",
     "@fontsource-variable/onest": "catalog:",
-    "@fontsource-variable/unbounded": "catalog:",
+    "@fontsource-variable/bricolage-grotesque": "catalog:",
     "@fontsource/caveat-brush": "catalog:",
     "@uiw/react-md-editor": "catalog:",
     "class-variance-authority": "catalog:",

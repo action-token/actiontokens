@@ -103,7 +103,7 @@ export function TierForm({ existing, tokenCode }: { existing?: Existing; tokenCo
             <p className="text-primary-text text-xs font-semibold tracking-wide uppercase">
               Preview
             </p>
-            <p className="display text-xl">{name || "Tier name"}</p>
+            <p className="display text-2xl">{name || "Tier name"}</p>
             <p className="text-fg-muted text-sm">
               Hold <span className="num font-semibold">{required || "…"}</span> {tokenCode}
             </p>

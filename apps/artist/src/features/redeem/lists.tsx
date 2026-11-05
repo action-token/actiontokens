@@ -172,7 +172,7 @@ function RewardRow({ reward }: { reward: Reward }) {
 function Stat({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
   return (
     <div>
-      <p className={cn("display num text-lg", highlight && "text-warning")}>
+      <p className={cn("display num text-2xl", highlight && "text-warning")}>
         {value.toLocaleString()}
       </p>
       <p className="text-fg-muted text-[11px]">{label}</p>

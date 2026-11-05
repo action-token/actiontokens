@@ -157,7 +157,7 @@ export function PinsView() {
             )}
           >
             <span className="text-fg-muted text-xs">{card.label}</span>
-            <span className="display num mt-1 block text-2xl">
+            <span className="display num mt-1 block text-3xl">
               {pins.data ? (
                 count(card.value).toLocaleString()
               ) : (

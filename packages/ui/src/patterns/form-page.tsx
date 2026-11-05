@@ -69,7 +69,7 @@ export function FormSection({
   return (
     <section className={cn("bg-surface border-fg/10 rounded-[1.4rem] border-2 p-5", className)}>
       <div className="mb-4">
-        <h2 className="display flex items-center gap-2.5 text-2xl">
+        <h2 className="display flex items-center gap-2.5 text-3xl">
           {Icon && (
             <span className="bg-primary text-primary-foreground flex size-8 shrink-0 -rotate-6 items-center justify-center rounded-lg">
               <Icon className="size-4" strokeWidth={2.4} />
@@ -118,7 +118,7 @@ export function MoreOptions({
     >
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
         <span className="min-w-0">
-          <span className="display block text-xl">{title}</span>
+          <span className="display block text-2xl">{title}</span>
           {hint && <span className="text-fg-muted block text-sm">{hint}</span>}
         </span>
         <ChevronDown className="size-5 shrink-0 transition-transform group-open/more:rotate-180" />

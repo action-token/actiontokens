@@ -113,7 +113,7 @@ export function PlaylistView({ playlistId }: { playlistId: string }) {
               {!data.isPublic && <Lock className="size-3.5" />}
               {data.isPublic ? "Playlist" : "Private playlist"}
             </span>
-            <h1 className="display text-4xl break-words sm:text-6xl">{data.name}</h1>
+            <h1 className="display text-5xl break-words sm:text-7xl">{data.name}</h1>
             {data.description && (
               <p className="marker text-fg-muted -rotate-1 text-lg">{data.description}</p>
             )}

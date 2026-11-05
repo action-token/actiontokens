@@ -65,7 +65,7 @@ export default async function AlbumPage({ params }: Props) {
           />
           <div className="grid min-w-0 gap-2">
             <span className="text-fg-muted text-xs font-bold tracking-wider uppercase">Album</span>
-            <h1 className="display text-4xl break-words sm:text-6xl">{album.title}</h1>
+            <h1 className="display text-5xl break-words sm:text-7xl">{album.title}</h1>
             <p className="text-fg-muted flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
               {album.artist && (
                 <Link

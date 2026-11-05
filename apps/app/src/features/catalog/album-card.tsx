@@ -25,7 +25,7 @@ export function AlbumCard({
         loading="lazy"
         className="aspect-square w-full rounded-lg object-cover shadow-md transition-transform duration-250 group-hover:-translate-y-0.5"
       />
-      <span className="display truncate text-sm">{album.title}</span>
+      <span className="display truncate text-lg">{album.title}</span>
       <span className="text-fg-muted -mt-1.5 truncate text-xs">
         {album.year} · {album.artistName ? `${album.artistName} · ` : ""}
         {album.trackCount} {album.trackCount === 1 ? "song" : "songs"}

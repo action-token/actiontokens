@@ -107,7 +107,7 @@ export function Hero({ items }: { items: HeroItem[] }) {
                 )}
                 *
               </p>
-              <h2 className="display line-clamp-2 text-4xl break-words sm:text-5xl">
+              <h2 className="display line-clamp-2 text-5xl break-words sm:text-6xl">
                 {item.title}
               </h2>
               {item.description && (
@@ -124,7 +124,7 @@ export function Hero({ items }: { items: HeroItem[] }) {
                   currency="BANDCOIN"
                   short
                   onBrand
-                  className="display text-3xl leading-none"
+                  className="display text-4xl leading-none"
                 />
                 <p className="marker text-sm">
                   ≈ <Money amount={item.price.usd} currency="USD" /> · to own it

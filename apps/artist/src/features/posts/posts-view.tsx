@@ -71,7 +71,7 @@ function PostCard({ post }: { post: Post }) {
     <li className="bg-surface overflow-hidden rounded-[1.4rem] border-2">
       <Link href={`/posts/${post.id}`} className="grid gap-3 p-4 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-2">
-          <h3 className="display min-w-0 text-lg">{post.title}</h3>
+          <h3 className="display min-w-0 text-2xl">{post.title}</h3>
           {post.tierName ? (
             <StatusPill tone="info" icon={Lock}>
               {post.tierName}

@@ -99,7 +99,7 @@ export function SendDialog({
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="display text-2xl">Send</DialogTitle>
+          <DialogTitle className="display text-3xl">Send</DialogTitle>
           <DialogDescription>
             Send XLM or any token in your wallet to a Stellar address or a Bandcoin @username.
           </DialogDescription>
@@ -150,7 +150,7 @@ export function SendDialog({
                   const next = event.target.value.replace(/,/g, "");
                   if (AMOUNT.test(next)) setAmount(next);
                 }}
-                className="display h-12 text-2xl"
+                className="display h-12 text-3xl"
               />
               <Button
                 type="button"

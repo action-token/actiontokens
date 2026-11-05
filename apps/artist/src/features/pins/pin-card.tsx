@@ -125,7 +125,7 @@ export function PinCard({
         <img src={pin.imageUrl} alt="" className="aspect-video w-full rounded-lg object-cover" />
       )}
       <div className="flex items-start justify-between gap-2">
-        <h2 className="display min-w-0 text-lg leading-snug">{pin.title}</h2>
+        <h2 className="display min-w-0 text-2xl leading-snug">{pin.title}</h2>
         <div className="flex shrink-0 items-center gap-1">
           <StatusPill tone={status.tone}>{status.label}</StatusPill>
           <Button variant="ghost" size="icon-sm" onClick={onClose} aria-label="Close">
@@ -250,7 +250,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-surface-2 rounded-xl px-2 py-2">
       <dt className="text-fg-faint text-[11px]">{label}</dt>
-      <dd className="display num text-sm">{value}</dd>
+      <dd className="display num text-lg">{value}</dd>
     </div>
   );
 }

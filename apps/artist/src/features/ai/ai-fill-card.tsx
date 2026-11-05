@@ -48,7 +48,7 @@ export function AiFillCard<F extends FillForm>({
         <span className="bg-primary text-primary-foreground flex size-7 -rotate-6 items-center justify-center rounded-lg">
           <Sparkles className="size-4" />
         </span>
-        <h2 className="display text-xl">Fill with AI</h2>
+        <h2 className="display text-2xl">Fill with AI</h2>
         <AiQuota kind="text" className="ml-auto" />
       </div>
       <Textarea

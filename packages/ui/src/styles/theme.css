@@ -11,7 +11,7 @@
    (bg-surface, text-fg-muted, bg-primary…), never raw hex values.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-@import "@fontsource-variable/unbounded";
+@import "@fontsource-variable/bricolage-grotesque/standard.css";
 @import "@fontsource-variable/onest";
 @import "@fontsource-variable/jetbrains-mono";
 /* Hand-written notes in the connect-wallet dialog */
@@ -130,7 +130,7 @@
 
 /* ── Tailwind mapping ───────────────────────────────────────────────────── */
 @theme inline {
-  --font-display: "Unbounded Variable", "Arial Black", system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque Variable", "Arial Narrow", system-ui, sans-serif;
   --font-sans: "Onest Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
 
@@ -240,7 +240,9 @@
   h2,
   h3 {
     font-family: var(--font-display);
-    letter-spacing: -0.01em;
+    font-weight: 800;
+    font-stretch: 75%;
+    letter-spacing: -0.02em;
     text-wrap: balance;
   }
   :focus-visible {
@@ -321,8 +323,10 @@
 @utility display {
   font-family: var(--font-display);
   font-weight: 800;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
+  font-stretch: 75%;
+  text-transform: uppercase;
+  line-height: 0.9;
+  letter-spacing: 0;
 }
 
 /* A hand-written note. */
@@ -346,6 +350,8 @@
 @utility font-hud {
   font-family: var(--font-display);
   font-weight: 700;
+  font-stretch: 75%;
+  letter-spacing: 0;
 }
 
 /* Hand-made shape: slightly uneven corners (Wadzzo). */

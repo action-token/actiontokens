@@ -218,7 +218,7 @@ function RewardsCard({ bounty }: { bounty: Bounty }) {
             amount={bounty.prize.amount}
             currency={bounty.prize.currency}
             code={bounty.prize.code}
-            className="display text-3xl"
+            className="display text-4xl"
           />
           <a
             href={bounty.prize.explorerUrl}
@@ -273,7 +273,7 @@ function StatsCard({ bounty }: { bounty: Bounty }) {
 function WinnersCard({ bounty }: { bounty: Bounty }) {
   return (
     <section className="grid gap-3 border-t pt-4">
-      <h2 className="display flex items-center gap-2 text-sm">
+      <h2 className="display flex items-center gap-2 text-lg">
         <Crown className="text-primary-text size-4" /> Winners
         <span className="text-fg-muted text-xs font-normal">
           ({bounty.winnerList.length}/{bounty.maxWinners})

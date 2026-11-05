@@ -124,7 +124,7 @@ export function BountyView({ initial }: { initial: Bounty }) {
                   </span>
                 )}
               </div>
-              <h1 className="display text-4xl break-words sm:text-5xl xl:text-6xl">
+              <h1 className="display text-5xl break-words sm:text-6xl xl:text-7xl">
                 {bounty.title}
               </h1>
               {bounty.summary && (

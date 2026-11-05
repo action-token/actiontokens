@@ -65,7 +65,7 @@ export function NotificationBell({
       </PopoverTrigger>
       <PopoverContent side={side} align={align} className="w-[min(24rem,calc(100vw-1.5rem))] p-0">
         <div className="flex items-center justify-between border-b px-4 py-3">
-          <p className="display text-sm">Notifications</p>
+          <p className="display text-lg">Notifications</p>
           <button
             type="button"
             disabled={!unread || markAllRead.isPending}

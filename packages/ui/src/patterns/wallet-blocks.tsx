@@ -143,7 +143,7 @@ export function WalletPanel({
   return (
     <section className={cn("bg-surface space-y-3 rounded-[1.6rem] border-2 p-5", className)}>
       <div className="flex items-center justify-between gap-3">
-        <h2 className="display flex items-center gap-2 text-xl">{title}</h2>
+        <h2 className="display flex items-center gap-2 text-2xl">{title}</h2>
         {aside && <span className="text-fg-muted text-xs">{aside}</span>}
       </div>
       {children}
@@ -190,7 +190,7 @@ export function WalletAssets({ rows, empty }: { rows: WalletAssetRow[]; empty: R
             ) : (
               <span className="flex min-w-0 flex-1 items-center gap-3">{body}</span>
             )}
-            <span className="display truncate text-base tabular-nums">{row.amount}</span>
+            <span className="display truncate text-xl tabular-nums">{row.amount}</span>
             <button
               type="button"
               disabled={!row.onSend}
@@ -227,7 +227,7 @@ export function XlmPanel({
   return (
     <WalletPanel
       title="XLM"
-      aside={<span className="display text-primary-text text-lg">{total}</span>}
+      aside={<span className="display text-primary-text text-2xl">{total}</span>}
     >
       <ul className="space-y-2">
         {rows.map((row) => (
@@ -239,7 +239,7 @@ export function XlmPanel({
               <span className="block text-sm font-semibold">{row.label}</span>
               <span className="text-fg-muted block truncate text-xs">{row.hint}</span>
             </span>
-            <span className="display shrink-0 text-base tabular-nums">{row.value}</span>
+            <span className="display shrink-0 text-xl tabular-nums">{row.value}</span>
           </li>
         ))}
       </ul>

@@ -3,27 +3,27 @@ import type { ReactNode } from "react";
 import { cn } from "../lib/cn";
 
 /**
- * Display words at Wadzzo's height: uppercase with tight lines, as Wadzzo's
- * Anton. Unbounded is about twice as wide, so it's squeezed sideways to fit
- * the same width; a word too long still ends in "…". `underline` adds the
+ * Display words, set tall: the display face condensed, uppercase, tight lines. A word
+ * too long ends in "…". `underline` adds the
  * scribble under the current page (sidebar). `className` sets the size.
  */
-const SQUEEZE = 0.55;
 export function TallText({
   children,
   className,
   underline = false,
+  center = false,
 }: {
   children: ReactNode;
   className?: string;
   underline?: boolean;
+  /** Centred in its line */
+  center?: boolean;
 }) {
   return (
-    <span className="block min-w-0 overflow-x-clip">
+    <span className={cn("block min-w-0 overflow-x-clip", center && "text-center")}>
       <span
-        style={{ maxWidth: `${100 / SQUEEZE}%`, transform: `scaleX(${SQUEEZE})` }}
         className={cn(
-          "display relative inline-block origin-left truncate pt-[0.12em] pb-1.5 align-top leading-[0.9] tracking-normal uppercase",
+          "display relative inline-block max-w-full truncate pt-[0.12em] pb-1.5 align-top leading-[0.9] tracking-normal uppercase",
           className,
         )}
       >

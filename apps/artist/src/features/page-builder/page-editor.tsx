@@ -211,7 +211,7 @@ function Editor({ initial, onReload }: { initial: EditorData; onReload: () => Pr
           </Link>
         </Button>
         <div className="min-w-0 flex-1">
-          <h1 className="display truncate text-lg">My page</h1>
+          <h1 className="display truncate text-2xl">My page</h1>
           <p className={cn("text-xs", save === "error" ? "text-danger" : "text-fg-muted")}>
             {status}
           </p>

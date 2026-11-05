@@ -23,7 +23,7 @@ export function PinSpotsCard({ pin }: { pin: RouterOutputs["pins"]["pin"] }) {
   return (
     <section className="bg-surface grid gap-3 rounded-[1.4rem] border-2 p-5">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="display text-lg">Spots</h2>
+        <h2 className="display text-2xl">Spots</h2>
         <span className="num text-fg-muted text-sm">
           {pin.collected} collected{pin.claimLimit > 0 ? ` · ${pin.claimsLeft} left` : ""}
         </span>

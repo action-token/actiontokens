@@ -100,7 +100,7 @@ function Details({ person }: { person: Person }) {
         <Avatar src={person.avatarUrl} name={title} className="size-16 text-2xl" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="display truncate text-2xl sm:text-3xl">{title}</h1>
+            <h1 className="display truncate text-3xl sm:text-4xl">{title}</h1>
             {person.role === "ADMIN" && (
               <StatusPill tone="info" icon={Shield}>
                 Admin

@@ -29,7 +29,7 @@ export function HotspotCard({ hotspot, onClose }: { hotspot: Hotspot; onClose: (
       onClick={(event) => event.stopPropagation()}
     >
       <div className="flex items-start justify-between gap-2">
-        <h2 className="display min-w-0 text-lg leading-snug">{hotspot.title}</h2>
+        <h2 className="display min-w-0 text-2xl leading-snug">{hotspot.title}</h2>
         <div className="flex shrink-0 items-center gap-1">
           <StatusPill tone={status.tone}>{status.label}</StatusPill>
           <Button variant="ghost" size="icon-sm" onClick={onClose} aria-label="Close">

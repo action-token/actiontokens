@@ -108,7 +108,7 @@ export function MembershipBlock({
               style={tier.isPopular ? { borderColor: "var(--page-accent)" } : undefined}
             >
               <div className="flex items-start justify-between gap-2">
-                <h3 className="display text-lg">{tier.name}</h3>
+                <h3 className="display text-2xl">{tier.name}</h3>
                 {tier.isPopular && (
                   <span className="rounded-full bg-[var(--page-accent)] px-2 py-0.5 text-[11px] font-bold text-[var(--page-accent-ink)]">
                     Popular
@@ -171,7 +171,7 @@ export function TourBlock({
                 href={`${AR_URL}/events/${event.id}`}
                 className="bg-surface hover:border-border-strong grid gap-1 rounded-[var(--page-radius)] border p-4 transition-colors"
               >
-                <b className="display text-base">{event.title}</b>
+                <b className="display text-xl">{event.title}</b>
                 <span className="text-fg-muted flex items-center gap-1.5 text-[13px]">
                   <Calendar className="size-3.5 shrink-0" />{" "}
                   <span suppressHydrationWarning>{when(event.startsAt)}</span>

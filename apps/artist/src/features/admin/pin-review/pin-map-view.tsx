@@ -72,7 +72,7 @@ export function PinMapView() {
       <div className="grid min-h-[60dvh] place-items-center p-6 text-center">
         <div className="grid max-w-sm justify-items-center gap-3">
           <MapPinOff className="text-fg-faint size-8" />
-          <h1 className="display text-xl">The map isn&apos;t switched on</h1>
+          <h1 className="display text-2xl">The map isn&apos;t switched on</h1>
           <p className="text-fg-muted text-sm">Add a Mapbox token (NEXT_PUBLIC_MAPBOX_API).</p>
         </div>
       </div>
@@ -188,7 +188,7 @@ function PinCard({ pin, onClose }: { pin: Pin; onClose: () => void }) {
         <img src={pin.imageUrl} alt="" className="aspect-video w-full rounded-lg object-cover" />
       )}
       <div className="flex items-start justify-between gap-2">
-        <h2 className="display min-w-0 text-lg leading-snug">{pin.title}</h2>
+        <h2 className="display min-w-0 text-2xl leading-snug">{pin.title}</h2>
         <StatusPill tone={status.tone}>{status.label}</StatusPill>
       </div>
       <Link

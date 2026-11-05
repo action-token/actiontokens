@@ -25,7 +25,7 @@ export function EventPreview({
       )}
       <div className="grid gap-2 p-5">
         <p className="text-primary-text text-xs font-semibold tracking-wide uppercase">Preview</p>
-        <p className="display text-xl leading-snug">{title || "Untitled event"}</p>
+        <p className="display text-2xl leading-snug">{title || "Untitled event"}</p>
         <p className="text-fg-muted text-sm">
           {startsAt && !Number.isNaN(startsAt.getTime())
             ? formatWhen(startsAt)

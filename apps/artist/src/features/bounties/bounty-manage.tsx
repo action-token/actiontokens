@@ -132,7 +132,7 @@ function Loaded({ bounty }: { bounty: Bounty }) {
 
       {!bounty.funded && (
         <section role="note" className="bg-surface grid max-w-3xl gap-3 rounded-xl border p-5">
-          <h2 className="display text-lg">This bounty isn&apos;t funded yet</h2>
+          <h2 className="display text-2xl">This bounty isn&apos;t funded yet</h2>
           <p className="text-fg-muted text-sm">
             Fans can&apos;t see it until its prize of{" "}
             <Money amount={bounty.prizeAmount} currency={currency} code={code} /> is in escrow. You
@@ -201,7 +201,7 @@ function Loaded({ bounty }: { bounty: Bounty }) {
       )}
 
       <section className="max-w-3xl">
-        <h2 className="display mb-2 text-xl">Description</h2>
+        <h2 className="display mb-2 text-2xl">Description</h2>
         <Markdown content={bounty.description || "_No description._"} />
       </section>
 
@@ -223,7 +223,7 @@ function Stat({ label, children }: { label: string; children: React.ReactNode })
   return (
     <div className="bg-surface rounded-xl border p-3">
       <dt className="text-fg-muted text-xs">{label}</dt>
-      <dd className="display text-lg">{children}</dd>
+      <dd className="display text-2xl">{children}</dd>
     </div>
   );
 }

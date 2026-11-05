@@ -79,7 +79,7 @@ export function SupportView() {
                     <contact.icon className="size-5" />
                   </span>
                   <span className="min-w-0">
-                    <span className="display block text-lg">{contact.title}</span>
+                    <span className="display block text-2xl">{contact.title}</span>
                     <span className="text-fg-muted block truncate text-sm">{contact.email}</span>
                   </span>
                 </a>
@@ -90,7 +90,7 @@ export function SupportView() {
 
         <section className="grid gap-5" aria-label="Common questions">
           <div>
-            <h2 className="display text-3xl">Common questions</h2>
+            <h2 className="display text-4xl">Common questions</h2>
             <p className="marker text-fg-muted mt-1 text-lg">quick answers</p>
           </div>
           <div className="grid items-start gap-3 lg:grid-cols-2">
@@ -118,7 +118,7 @@ export function SupportView() {
           aria-label="Find us"
         >
           <div>
-            <h2 className="display text-2xl">Find us</h2>
+            <h2 className="display text-3xl">Find us</h2>
             <p className="marker text-lg opacity-70">news, drops and shout-outs</p>
           </div>
           <ul className="flex flex-wrap gap-3">

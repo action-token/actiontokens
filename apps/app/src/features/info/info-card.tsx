@@ -20,7 +20,7 @@ export function InfoCard({
     <section
       className={cn("bg-surface grid gap-3 rounded-[1.4rem] p-5 sm:p-6", STICKER, className)}
     >
-      {title && <h2 className="display text-xl">{title}</h2>}
+      {title && <h2 className="display text-2xl">{title}</h2>}
       <div className="text-fg-muted grid gap-3 text-sm leading-relaxed">{children}</div>
     </section>
   );

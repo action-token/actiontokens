@@ -81,7 +81,7 @@ export function SectionTitle({
 }) {
   return (
     <div className={cn("grid min-w-0", className)}>
-      <h3 className="display text-xl sm:text-2xl">{title}</h3>
+      <h3 className="display text-4xl sm:text-[2.6rem] lg:text-5xl">{title}</h3>
       {note && <p className="marker text-fg-muted -rotate-1 text-base">{note}</p>}
     </div>
   );

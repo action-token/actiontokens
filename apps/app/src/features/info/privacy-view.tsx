@@ -37,7 +37,7 @@ function Part({ id, children }: { id: string; children: ReactNode }) {
   const number = SECTIONS.findIndex((section) => section.id === id) + 1;
   return (
     <section id={id} className="relative scroll-mt-24">
-      <span className="bg-primary text-primary-foreground border-fg display absolute -top-3 -left-3 z-10 grid size-9 place-items-center rounded-full border-2 text-sm">
+      <span className="bg-primary text-primary-foreground border-fg display absolute -top-3 -left-3 z-10 grid size-9 place-items-center rounded-full border-2 text-lg">
         {number}
       </span>
       {children}
@@ -69,7 +69,7 @@ export function PrivacyView() {
           className="bg-fg text-bg grid gap-4 rounded-[1.6rem] p-6 sm:p-8"
           aria-label="The short version"
         >
-          <h2 className="display text-2xl">The short version</h2>
+          <h2 className="display text-3xl">The short version</h2>
           <ul className="grid gap-3 md:grid-cols-3">
             {SHORT.map((line) => (
               <li key={line} className="bg-bg/10 rounded-xl p-4 text-sm leading-snug font-medium">
@@ -90,7 +90,7 @@ export function PrivacyView() {
             aria-label="Contents"
             className="bg-surface-2 border-fg/15 rounded-2xl border-2 p-4 text-sm lg:sticky lg:top-6"
           >
-            <p className="display mb-2 text-base">Contents</p>
+            <p className="display mb-2 text-xl">Contents</p>
             <ol className="grid gap-1.5">
               {SECTIONS.map((section, index) => (
                 <li key={section.id}>

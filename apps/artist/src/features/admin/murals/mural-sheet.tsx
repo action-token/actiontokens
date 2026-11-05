@@ -245,7 +245,7 @@ function Body({
                   </div>
                 ) : (
                   <>
-                    <SheetTitle className="display mt-2 flex items-start gap-2 text-xl">
+                    <SheetTitle className="display mt-2 flex items-start gap-2 text-2xl">
                       <span className="min-w-0">{query.data.title ?? query.data.autoTitle}</span>
                       <Button
                         variant="ghost"

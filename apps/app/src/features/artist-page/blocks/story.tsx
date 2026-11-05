@@ -125,7 +125,7 @@ export function BandMembersBlock({ block, empty }: { block: Block; empty: boolea
                   className="size-24 rounded-full object-cover"
                 />
               ) : (
-                <span className="bg-surface-2 display grid size-24 place-items-center rounded-full text-2xl">
+                <span className="bg-surface-2 display grid size-24 place-items-center rounded-full text-3xl">
                   {member.name.slice(0, 1).toUpperCase()}
                 </span>
               )}

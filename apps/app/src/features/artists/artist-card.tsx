@@ -98,7 +98,7 @@ export function ArtistCard({ artist, className }: { artist: ArtistCardData; clas
               <Avatar name={artist.name} url={artist.avatarUrl} className={AVATAR} />
             </span>
             <div className="min-w-0">
-              <h3 className="display flex items-center gap-1.5 text-2xl leading-none">
+              <h3 className="display flex items-center gap-1.5 text-3xl leading-none">
                 <Link
                   href={href}
                   className="min-w-0 truncate after:absolute after:inset-0 focus-visible:outline-none"
@@ -140,7 +140,7 @@ function Stat({ icon: Icon, value, label }: { icon: typeof Users; value: number;
   return (
     <li className="inline-flex items-center gap-1.5 rounded-full bg-white/12 px-2.5 py-1">
       <Icon className="size-3.5 text-white/70" />
-      <b className="display text-sm">{count(value)}</b>
+      <b className="display text-lg">{count(value)}</b>
       <span className="text-white/70">{label}</span>
     </li>
   );

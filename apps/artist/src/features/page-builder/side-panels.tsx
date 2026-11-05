@@ -228,7 +228,7 @@ export function SettingsPanel({
   return (
     <div className="grid gap-5 p-4">
       <div>
-        <h2 className="display text-base">{def.label}</h2>
+        <h2 className="display text-xl">{def.label}</h2>
         <p className="text-fg-muted text-xs">{def.description}</p>
       </div>
 
@@ -306,7 +306,7 @@ function ThemePanel({ theme, onTheme }: { theme: PageTheme; onTheme: (theme: Pag
   return (
     <div className="grid gap-5 p-4">
       <div>
-        <h2 className="display text-base">Page style</h2>
+        <h2 className="display text-xl">Page style</h2>
         <p className="text-fg-muted text-xs">
           Select a block to edit it, or change how the whole page looks.
         </p>

@@ -264,7 +264,7 @@ export function PinForm({ existing, copyOf }: { existing?: Existing; copyOf?: Ex
             <MoreOptions
               title="Spots"
               hint={`${spots} ${spots === 1 ? "spot" : "spots"} within ${radiusMeters} m`}
-              className="rounded-lg border p-3 [&_.display]:text-base"
+              className="rounded-lg border p-3 [&_.display]:text-xl"
             >
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
                 <Field
@@ -640,7 +640,7 @@ function ManageCard({
   return (
     <>
       <section className="bg-surface grid gap-3 rounded-[1.4rem] border-2 p-5">
-        <h2 className="display text-lg">
+        <h2 className="display text-2xl">
           {existing.isHidden ? "Hidden from the map" : "On the map"}
         </h2>
         <p className="text-fg-muted text-sm">

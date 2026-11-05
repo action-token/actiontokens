@@ -44,7 +44,7 @@ export function PlaylistsView() {
           <span className="bg-primary text-primary-foreground grid size-12 place-items-center rounded-full">
             <Plus className="size-6" />
           </span>
-          <span className="display text-base">New playlist</span>
+          <span className="display text-xl">New playlist</span>
         </button>
         {mine.isPending
           ? Array.from({ length: 4 }, (_, index) => (
@@ -60,7 +60,7 @@ export function PlaylistsView() {
                   covers={playlist.covers}
                   className="shadow-md transition-transform duration-250 group-hover:-translate-y-0.5"
                 />
-                <span className="display flex items-center gap-1.5 truncate text-sm">
+                <span className="display flex items-center gap-1.5 truncate text-lg">
                   {!playlist.isPublic && <Lock className="size-3.5 shrink-0" />}
                   {playlist.name}
                 </span>

@@ -91,7 +91,7 @@ export type LiveCheck = { state: "idle" | "checking" | "ok" | "bad"; message?: s
 function StepHeading({ title, children }: { title: string; children: ReactNode }) {
   return (
     <header className="grid gap-1">
-      <h2 className="display text-2xl sm:text-3xl">{title}</h2>
+      <h2 className="display text-3xl sm:text-4xl">{title}</h2>
       <p className="text-fg-muted max-w-prose text-sm text-pretty">{children}</p>
     </header>
   );
@@ -153,7 +153,7 @@ export function ProfileStep({ draft, set }: { draft: Draft; set: Set }) {
             {draft.avatarUrl && <ChangeBadge className="right-0 bottom-0" />}
           </UploadArea>
           <div className="min-w-0 pb-2">
-            <p className="display truncate text-xl">{draft.name || "Your name"}</p>
+            <p className="display truncate text-2xl">{draft.name || "Your name"}</p>
             <p className="text-fg-faint text-xs">
               {draft.avatarUrl ? "Looking good." : "Add a photo to go on."}
             </p>
@@ -563,7 +563,7 @@ export function PageCard({ draft, onEdit }: { draft: Draft; onEdit?: (step: numb
           )}
         </span>
         <div className="min-w-0 flex-1 pt-3">
-          <p className="display truncate text-lg">{draft.name}</p>
+          <p className="display truncate text-2xl">{draft.name}</p>
           <p className="text-fg-muted line-clamp-2 text-sm">
             {draft.bio || "No line about you yet."}
           </p>

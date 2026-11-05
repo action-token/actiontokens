@@ -34,7 +34,7 @@ function Panel({
 }) {
   return (
     <section className="grid gap-2">
-      <h2 className="display flex items-center gap-2 text-base">
+      <h2 className="display flex items-center gap-2 text-xl">
         <Icon className="text-primary-text size-4" /> {title}
       </h2>
       <div className="grid gap-1">{children}</div>

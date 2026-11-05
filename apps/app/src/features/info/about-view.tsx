@@ -125,20 +125,20 @@ export function AboutView() {
           <section
             className={`bg-primary text-primary-foreground grid content-start gap-5 rounded-[1.6rem] p-6 sm:p-8 ${STICKER} shadow-[6px_7px_0_0_var(--color-fg)]`}
           >
-            <h2 className="display text-3xl">For artists</h2>
+            <h2 className="display text-4xl">For artists</h2>
             <Checklist items={ARTISTS} />
           </section>
           <section
             className={`bg-fg text-bg grid content-start gap-5 rounded-[1.6rem] p-6 sm:p-8 ${STICKER}`}
           >
-            <h2 className="display text-3xl">For fans</h2>
+            <h2 className="display text-4xl">For fans</h2>
             <Checklist items={FANS} />
           </section>
         </div>
 
         <section className="grid gap-5" aria-label="What you can do here">
           <div>
-            <h2 className="display text-3xl">What you can do here</h2>
+            <h2 className="display text-4xl">What you can do here</h2>
             <p className="marker text-fg-muted mt-1 text-lg">six things, one place</p>
           </div>
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -150,7 +150,7 @@ export function AboutView() {
                 <span className="bg-primary text-primary-foreground border-fg grid size-11 place-items-center rounded-full border-2">
                   <thing.icon className="size-5" />
                 </span>
-                <h3 className="display text-lg">{thing.title}</h3>
+                <h3 className="display text-2xl">{thing.title}</h3>
                 <p className="text-fg-muted text-sm leading-relaxed">{thing.text}</p>
               </li>
             ))}
@@ -159,16 +159,16 @@ export function AboutView() {
 
         <section className="grid gap-5" aria-label="Why Bandcoin">
           <div>
-            <h2 className="display text-3xl">Why Bandcoin?</h2>
+            <h2 className="display text-4xl">Why Bandcoin?</h2>
             <p className="marker text-fg-muted mt-1 text-lg">in three lines</p>
           </div>
           <ol className="grid gap-4 md:grid-cols-3">
             {WHY.map((reason, index) => (
               <li key={reason.title} className="grid content-start gap-2 border-t-[3px] pt-4">
-                <span className="display text-primary-text text-5xl leading-none">
+                <span className="display text-primary-text text-6xl leading-none">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <h3 className="display flex items-center gap-2 text-xl">
+                <h3 className="display flex items-center gap-2 text-2xl">
                   <reason.icon className="size-5" /> {reason.title}
                 </h3>
                 <p className="text-fg-muted text-sm leading-relaxed">{reason.text}</p>

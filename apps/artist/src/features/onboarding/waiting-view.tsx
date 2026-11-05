@@ -40,7 +40,7 @@ export function WaitingView() {
     <div className="mx-auto w-full max-w-5xl">
       <div className="mb-6">
         <p className="marker text-primary-text text-sm">artist portal</p>
-        <h1 className="display text-3xl sm:text-4xl">You&apos;re in review</h1>
+        <h1 className="display text-4xl sm:text-5xl">You&apos;re in review</h1>
         <p className="text-fg-muted mt-1 text-sm">
           Your artist account is open and your page is with an admin. Nothing else to do.
         </p>
@@ -60,7 +60,7 @@ export function WaitingView() {
               <Clock className="size-5" strokeWidth={2.4} />
             </span>
             <div>
-              <p className="display text-xl">Application pending</p>
+              <p className="display text-2xl">Application pending</p>
               {sentAt && (
                 <p className="text-fg-muted text-xs">
                   Sent{" "}

@@ -36,7 +36,7 @@ export function EmbedStats({ id }: { id: string }) {
   return (
     <div className="mx-auto grid max-w-4xl gap-6 p-4 md:p-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="display text-xl">How the map is doing</h2>
+        <h2 className="display text-2xl">How the map is doing</h2>
         <div className="bg-surface-2 flex gap-1 rounded-xl border p-1">
           {([7, 30, 90] as const).map((option) => (
             <button

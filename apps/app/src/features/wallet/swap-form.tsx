@@ -111,7 +111,7 @@ export function SwapForm({
               const next = event.target.value.replace(/,/g, "");
               if (AMOUNT.test(next)) setAmount(next);
             }}
-            className="display h-12 text-2xl"
+            className="display h-12 text-3xl"
           />
           <Button
             type="button"
@@ -129,7 +129,7 @@ export function SwapForm({
         <span className="text-fg-muted flex items-center gap-2 text-sm">
           <ArrowDownUp className="size-4" /> You receive
         </span>
-        <span className="display text-2xl">
+        <span className="display text-3xl">
           {q && q.receive.amount !== "0" ? (
             <Money amount={q.receive.amount} currency={q.receive.currency} className="display" />
           ) : (

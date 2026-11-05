@@ -81,7 +81,7 @@ export function SellPanel({
     <section aria-label="Sell" className="bg-surface grid gap-3 rounded-xl border p-4">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="display text-base">Sell your copies</h2>
+          <h2 className="display text-xl">Sell your copies</h2>
           <p className="text-fg-muted text-[13px]">
             You hold {owned.toLocaleString()}. Set your own price.
           </p>

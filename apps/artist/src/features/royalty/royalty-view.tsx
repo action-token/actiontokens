@@ -72,7 +72,7 @@ export function RoyaltyView() {
           )}
           <section className="bg-surface grid content-start gap-5 rounded-[1.4rem] border-2 p-5 sm:p-6">
             <div>
-              <h2 className="display text-lg">{item.title}</h2>
+              <h2 className="display text-2xl">{item.title}</h2>
               {item.lastPayoutAt && (
                 <p className="text-fg-muted text-sm">Last paid {timeAgo(item.lastPayoutAt)}</p>
               )}
@@ -83,7 +83,7 @@ export function RoyaltyView() {
       )}
 
       <section className="grid gap-3">
-        <h2 className="display text-lg">Past payouts</h2>
+        <h2 className="display text-2xl">Past payouts</h2>
         <PayoutHistory onResume={(id) => void flow.resumePayout(id)} busy={flow.busy} />
       </section>
 

@@ -108,7 +108,7 @@ function LinkCard({ overview }: { overview: Overview }) {
           href={url}
           target="_blank"
           rel="noreferrer"
-          className="display truncate text-xl hover:underline"
+          className="display truncate text-2xl hover:underline"
         >
           {VANITY_HOST}/<b>{link.name}</b>
         </a>

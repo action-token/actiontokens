@@ -42,7 +42,7 @@ function Block({
     <section className="grid grid-cols-[minmax(0,1fr)] content-start gap-3">
       <div className="flex items-end justify-between gap-2 px-1">
         <div className="min-w-0">
-          <h2 className="display text-xl leading-none">{title}</h2>
+          <h2 className="display text-2xl leading-none">{title}</h2>
           <p className="marker text-fg-muted mt-1 text-sm leading-none">{note}</p>
         </div>
         {href && (
@@ -112,7 +112,7 @@ export function UpcomingEvents() {
                 </span>
               )}
               <div aria-hidden className={FADE} />
-              <span className="bg-primary text-primary-foreground display absolute top-2.5 right-2.5 rotate-3 rounded-lg px-2 py-1 text-sm leading-none">
+              <span className="bg-primary text-primary-foreground display absolute top-2.5 right-2.5 rotate-3 rounded-lg px-2 py-1 text-base leading-none">
                 {day(event.startsAt)}
               </span>
               <div className="absolute inset-x-0 bottom-0 grid gap-0.5 p-3 text-white">
@@ -120,7 +120,7 @@ export function UpcomingEvents() {
                   {time(event.startsAt)}
                   {event.venueName ? ` · ${event.venueName}` : ""}
                 </p>
-                <p className="display line-clamp-2 text-lg leading-[1.05]">{event.title}</p>
+                <p className="display line-clamp-2 text-2xl leading-[1.05]">{event.title}</p>
               </div>
             </div>
           </Link>
@@ -164,7 +164,7 @@ export function NewMusic() {
                   <p className="truncate text-[11px] font-semibold text-white/80">
                     {track.artistName}
                   </p>
-                  <p className="display line-clamp-2 text-sm leading-[1.05]">{track.title}</p>
+                  <p className="display line-clamp-2 text-lg leading-[1.05]">{track.title}</p>
                 </div>
                 <Link
                   href={`/item/${track.slug}`}
@@ -221,9 +221,7 @@ export function ArtistsToFollow() {
                 <Avatar name={artist.name} url={artist.avatarUrl} className={AVATAR} />
               </span>
               <span className="min-w-0">
-                <span className="display block truncate text-base leading-tight">
-                  {artist.name}
-                </span>
+                <span className="display block truncate text-xl leading-tight">{artist.name}</span>
                 <span className="text-fg-muted block truncate text-xs">
                   {artist.followers.toLocaleString("en-US")} followers
                 </span>

@@ -146,7 +146,7 @@ export function AnnouncementForm({ existing }: { existing?: Existing }) {
               <p className="text-primary-text flex items-center gap-2 text-xs font-semibold tracking-wide uppercase">
                 Preview {pinned && <Pin className="size-3" />}
               </p>
-              <p className="display text-xl leading-snug">{title || "Untitled announcement"}</p>
+              <p className="display text-2xl leading-snug">{title || "Untitled announcement"}</p>
               <p className="text-fg-muted line-clamp-6 text-sm whitespace-pre-line">
                 {body || "Your message shows here."}
               </p>

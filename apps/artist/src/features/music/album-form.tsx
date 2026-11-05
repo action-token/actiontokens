@@ -103,7 +103,7 @@ export function AlbumForm({ existing }: { existing?: Album }) {
               <p className="text-primary-text text-xs font-semibold tracking-wide uppercase">
                 Preview
               </p>
-              <p className="display text-xl leading-snug">{title || "Untitled album"}</p>
+              <p className="display text-2xl leading-snug">{title || "Untitled album"}</p>
               {description && <p className="text-fg-muted line-clamp-4 text-sm">{description}</p>}
             </div>
           </section>

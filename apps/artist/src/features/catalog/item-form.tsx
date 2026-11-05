@@ -271,7 +271,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
               <p className="text-primary-text text-xs font-semibold tracking-wide uppercase">
                 Preview
               </p>
-              <p className="display text-xl leading-snug">{title || "Untitled item"}</p>
+              <p className="display text-2xl leading-snug">{title || "Untitled item"}</p>
               <p className="text-fg-muted text-sm">
                 {kindLabel} ·{" "}
                 {nft

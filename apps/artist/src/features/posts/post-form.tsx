@@ -111,7 +111,7 @@ export function PostForm({ existing }: { existing?: Existing }) {
       aside={
         <>
           <section className="bg-surface rounded-[1.4rem] border-2 p-5">
-            <h2 className="display mb-4 flex items-center gap-2 text-base">
+            <h2 className="display mb-4 flex items-center gap-2 text-xl">
               <Eye className="text-primary-text size-4" /> Preview
             </h2>
             <div className="min-w-0">
@@ -125,7 +125,7 @@ export function PostForm({ existing }: { existing?: Existing }) {
                 {summary.see}
               </p>
             </div>
-            <p className="display mt-4 text-lg leading-snug">
+            <p className="display mt-4 text-2xl leading-snug">
               {title || <span className="text-fg-faint">Your title</span>}
             </p>
             {body.trim() ? (

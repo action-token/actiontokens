@@ -140,7 +140,7 @@ function TokenStrip({ token }: { token: FanToken }) {
           className="bg-surface-2 size-12 shrink-0 rounded-xl object-cover"
         />
         <div className="min-w-0">
-          <p className="display truncate text-xl">{token.code}</p>
+          <p className="display truncate text-2xl">{token.code}</p>
           <p className="text-fg-muted truncate text-xs">
             {token.external ? "Issued by you" : "Issued by your artist account"} ·{" "}
             {abbreviateAddress(token.issuer, 4)}
@@ -246,7 +246,7 @@ function TierCard({ tier, index, tokenCode }: { tier: Tier; index: number; token
           </span>
         )}
       </p>
-      <h3 className="display mt-1 truncate text-lg">{tier.name}</h3>
+      <h3 className="display mt-1 truncate text-2xl">{tier.name}</h3>
       <p className="mt-2">
         <span className="num text-2xl font-semibold">{tier.requiredTokens}</span>{" "}
         <span className="text-fg-muted text-sm">{tokenCode} to hold</span>

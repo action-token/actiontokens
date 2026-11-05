@@ -104,7 +104,7 @@ function Details({ artist }: { artist: Artist }) {
       <div className="mt-12 flex flex-wrap items-start justify-between gap-4 sm:mt-4 sm:pl-40">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="display truncate text-2xl sm:text-3xl">{artist.name}</h1>
+            <h1 className="display truncate text-3xl sm:text-4xl">{artist.name}</h1>
             <ArtistStatus status={artist.status} paid={ref.paid} />
           </div>
           <p className="text-fg-muted mt-1 max-w-2xl text-sm">{artist.bio ?? "No bio yet."}</p>

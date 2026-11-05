@@ -172,7 +172,7 @@ export function PinsMap() {
       <div className="grid min-h-[60dvh] place-items-center p-6">
         <div className="grid max-w-sm justify-items-center gap-3 text-center">
           <MapPinOff className="text-fg-faint size-8" />
-          <h1 className="display text-xl">The map isn&apos;t switched on</h1>
+          <h1 className="display text-2xl">The map isn&apos;t switched on</h1>
           <p className="text-fg-muted text-sm">
             Add a Mapbox token (NEXT_PUBLIC_MAPBOX_API) to see your pins on the map. You can still
             manage them as a list.

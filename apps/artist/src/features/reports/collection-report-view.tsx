@@ -383,7 +383,7 @@ export function CollectionReportView({ admin = false }: { admin?: boolean }) {
           <section className="mt-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <div>
-                <h2 className="display text-lg">All pins</h2>
+                <h2 className="display text-2xl">All pins</h2>
                 <p className="text-fg-muted text-sm">
                   Numbers are for {periodLabel(period)}. Open a pin for its map and collectors.
                 </p>

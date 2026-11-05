@@ -219,7 +219,7 @@ function Body({ report: r, admin }: { report: Report; admin: boolean }) {
         )}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="display text-2xl sm:text-3xl">{r.title}</h1>
+            <h1 className="display text-3xl sm:text-4xl">{r.title}</h1>
             <StatusPill tone={status.tone}>{status.label}</StatusPill>
           </div>
           <p className="text-fg-muted mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
@@ -384,7 +384,7 @@ function Body({ report: r, admin }: { report: Report; admin: boolean }) {
       <section className="mt-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div>
-            <h2 className="display text-lg">Collectors</h2>
+            <h2 className="display text-2xl">Collectors</h2>
             <p className="text-fg-muted text-sm">
               {selectedSpot
                 ? `Who collected spot ${index.get(selectedSpot)}.`

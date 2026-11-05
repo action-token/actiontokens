@@ -78,7 +78,7 @@ export function CodeChecker() {
   return (
     <section className="bg-surface grid gap-4 rounded-[1.4rem] border-2 p-4 sm:p-6 lg:grid-cols-[minmax(0,380px)_1fr]">
       <form onSubmit={check} className="flex flex-col">
-        <h2 className="display flex items-center gap-2 text-lg">
+        <h2 className="display flex items-center gap-2 text-2xl">
           <Ticket className="text-primary-text size-5" /> Redeem a code
         </h2>
         <p className="text-fg-muted mt-1 text-sm">

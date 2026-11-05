@@ -195,7 +195,7 @@ function SendGift() {
 
         {step === 0 && (
           <div className="grid gap-5">
-            <h2 className="display text-xl">What do you want to give?</h2>
+            <h2 className="display text-2xl">What do you want to give?</h2>
             <WhatPicker
               choice={choice}
               onChoose={setChoice}
@@ -208,7 +208,7 @@ function SendGift() {
 
         {step === 1 && (
           <div className="grid gap-4">
-            <h2 className="display text-xl">Who gets {what}?</h2>
+            <h2 className="display text-2xl">Who gets {what}?</h2>
             <Field
               label="Recipient"
               htmlFor="gift-to"
@@ -256,7 +256,7 @@ function SendGift() {
 
         {step === 2 && (
           <div className="grid gap-5">
-            <h2 className="display text-xl">Check and send</h2>
+            <h2 className="display text-2xl">Check and send</h2>
             <div className="bg-surface-2 flex items-center gap-3 rounded-xl p-4">
               {choice?.kind === "copy" ? (
                 // eslint-disable-next-line @next/next/no-img-element

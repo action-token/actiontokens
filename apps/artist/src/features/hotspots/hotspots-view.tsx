@@ -79,7 +79,7 @@ function HotspotCard({ hotspot }: { hotspot: Hotspot }) {
         className="bg-surface hover:bg-surface-2 grid gap-2 rounded-xl border p-4 transition-colors sm:p-5"
       >
         <div className="flex flex-wrap items-start justify-between gap-2">
-          <h3 className="display flex min-w-0 items-center gap-2 text-lg">
+          <h3 className="display flex min-w-0 items-center gap-2 text-2xl">
             <Shape className="text-primary-text size-4 shrink-0" />
             <span className="truncate">{hotspot.title}</span>
           </h3>

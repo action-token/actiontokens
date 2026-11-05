@@ -136,7 +136,7 @@ export function WalletView() {
           loading={assets.isPending}
           onSend={(token) => setOpen({ kind: "send", token })}
         />
-        <div className="grid content-start gap-4">
+        <div className="grid grid-cols-[minmax(0,1fr)] content-start gap-4">
           {assets.data?.active && <XlmCard xlm={assets.data.xlm} />}
           <GiftsToClaim />
         </div>
@@ -165,7 +165,7 @@ export function WalletView() {
         <Dialog open onOpenChange={(next) => !next && setOpen(null)}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle className="display text-2xl">Swap</DialogTitle>
+              <DialogTitle className="display text-3xl">Swap</DialogTitle>
               <DialogDescription>
                 BANDCOIN for XLM, or XLM for BANDCOIN, at today&apos;s price.
               </DialogDescription>

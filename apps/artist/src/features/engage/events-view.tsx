@@ -87,7 +87,7 @@ function EventCard({ event }: { event: Event }) {
         )}
         <div className="grid min-w-0 content-start gap-2 sm:col-start-2">
           <div className="flex flex-wrap items-start justify-between gap-2">
-            <h3 className="display min-w-0 text-lg">{event.title}</h3>
+            <h3 className="display min-w-0 text-2xl">{event.title}</h3>
             <StatusPill tone={status === "Past" ? "neutral" : "success"}>{status}</StatusPill>
           </div>
           <p className="text-fg-muted text-sm">{formatWhen(event.startsAt)}</p>

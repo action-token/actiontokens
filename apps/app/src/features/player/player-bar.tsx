@@ -134,7 +134,7 @@ export function PlayerBar() {
         {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
         <img src={track.coverUrl} alt="" className="size-9 shrink-0 rounded-sm object-cover" />
         <div className="min-w-0">
-          <b className="display block truncate text-[13px] leading-tight">{track.title}</b>
+          <b className="display block truncate text-lg leading-tight">{track.title}</b>
           <span className="text-fg-muted block truncate text-[11px] leading-tight">
             {track.artistName}
             {preview && " · 30 s preview"}
@@ -287,7 +287,7 @@ function StemsButton({
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="display flex items-center gap-2 text-lg leading-none">
+            <h3 className="display flex items-center gap-2 text-2xl leading-none">
               Stems
               {stems.active && (
                 <span className="bg-primary text-primary-foreground rounded-full px-2 py-0.5 text-[10px] font-extrabold tracking-wide uppercase">

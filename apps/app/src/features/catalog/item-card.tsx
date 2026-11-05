@@ -110,7 +110,7 @@ export function ItemCard({
                 currency="BANDCOIN"
                 short
                 onBrand
-                className="display text-[1.05rem] leading-none"
+                className="display text-xl leading-none"
               />
               <span className="block text-[9px] leading-tight font-bold whitespace-nowrap opacity-80">
                 ≈ <Money amount={item.price.usd} currency="USD" />
@@ -130,7 +130,7 @@ export function ItemCard({
           ) : (
             <p className="truncate text-xs font-semibold text-white/80">{item.artistName}</p>
           )}
-          <p className="display line-clamp-2 pr-10 text-[1.15rem] leading-[1.05] break-words">
+          <p className="display line-clamp-2 pr-10 text-2xl leading-[1.05] break-words">
             {item.title}
           </p>
         </div>

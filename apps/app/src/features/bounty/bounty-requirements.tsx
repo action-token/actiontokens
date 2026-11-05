@@ -120,7 +120,7 @@ export function BountyRequirements({ bounty }: { bounty: Bounty }) {
         className="gloss relative grid gap-3 overflow-hidden rounded-[1.4rem] border border-white/20 bg-neutral-900/70 p-5"
       >
         <header className="flex items-center justify-between gap-2">
-          <h2 className="display text-lg">
+          <h2 className="display text-2xl">
             {bounty.music?.mode === "MUSIC_ONLY" ? "Listening challenge" : "Requirements"}
           </h2>
           {twoSided && side && (

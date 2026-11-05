@@ -16,7 +16,7 @@ export function ContextPanel() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="grid gap-3">
-      <h2 className="display text-base">{title}</h2>
+      <h2 className="display text-xl">{title}</h2>
       {children}
     </section>
   );

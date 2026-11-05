@@ -52,7 +52,7 @@ export function CoverBanner({
           />
           <div className="grid min-w-0 gap-1">
             <span className="marker -rotate-1 text-lg text-white/80">*artist*</span>
-            <h1 className="display text-5xl break-words sm:text-6xl xl:text-7xl">{artist.name}</h1>
+            <h1 className="display text-6xl break-words sm:text-7xl xl:text-8xl">{artist.name}</h1>
             <span className="text-sm text-white/75">
               {artist.itemCount.toLocaleString()} {artist.itemCount === 1 ? "drop" : "drops"}
             </span>

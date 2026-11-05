@@ -85,7 +85,7 @@ function SummaryCard({
           <Icon className={cn("size-5", warn ? "text-warning" : "text-primary-text")} />
         </div>
         <div>
-          <div className={cn("display num text-2xl", warn && "text-warning")}>
+          <div className={cn("display num text-3xl", warn && "text-warning")}>
             {value === undefined ? <Skeleton className="h-7 w-10" /> : value.toLocaleString()}
           </div>
           <p className="text-fg-muted text-xs font-medium">{label}</p>

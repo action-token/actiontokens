@@ -28,7 +28,7 @@ export function InfoHero({
       />
       <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
         <p className="text-xs font-bold tracking-[0.18em] uppercase opacity-70">{eyebrow}</p>
-        <h1 className="display mt-2 max-w-3xl text-5xl leading-[1.02] text-balance sm:text-7xl">
+        <h1 className="display mt-2 max-w-3xl text-6xl leading-[1.02] text-balance sm:text-8xl">
           {title}
         </h1>
         {note && <p className="marker mt-3 -rotate-1 text-xl opacity-80 sm:text-2xl">{note}</p>}

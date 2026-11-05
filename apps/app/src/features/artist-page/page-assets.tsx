@@ -27,7 +27,7 @@ export function PageAssetOffers({ slug }: { slug: string }) {
   return (
     <section className="grid gap-4" aria-label="Page assets">
       <div>
-        <h2 className="display text-2xl">{code} bundles</h2>
+        <h2 className="display text-3xl">{code} bundles</h2>
         <p className="text-fg-muted text-sm">
           The artist&apos;s fan token, sold in bundles. Each one goes whole to the first fan to buy
           it.
@@ -45,7 +45,7 @@ export function PageAssetOffers({ slug }: { slug: string }) {
             <div className="flex flex-wrap items-center gap-3">
               <Coins className="text-primary-text size-6 shrink-0" />
               <div className="min-w-0 flex-1">
-                <p className="display text-lg">
+                <p className="display text-2xl">
                   <span className="num">{tokens(offer.amount)}</span> {code}
                 </p>
                 {offer.note && <p className="text-fg-muted text-sm">{offer.note}</p>}

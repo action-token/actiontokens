@@ -72,7 +72,7 @@ export function BountyCard({ bounty }: { bounty: BountyCardData }) {
             code={bounty.prize.code}
             short
             onBrand
-            className="display text-lg leading-none"
+            className="display text-2xl leading-none"
           />
           <a
             href={bounty.prize.explorerUrl}
@@ -93,7 +93,7 @@ export function BountyCard({ bounty }: { bounty: BountyCardData }) {
         </span>
       </div>
 
-      <h3 className="display mt-4 line-clamp-2 text-lg leading-tight break-words">
+      <h3 className="display mt-4 line-clamp-2 text-2xl leading-tight break-words">
         <Link href={href} className="after:absolute after:inset-0 after:content-['']">
           {bounty.title}
         </Link>
