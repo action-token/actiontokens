@@ -101,6 +101,15 @@ Every route in this list was loaded and none crashed: 25 fan app routes and 40 a
 7 detail routes (signed out). Two portal paths redirect on purpose (`/` to Pins, `/domain` to Settings), and AR's `/` goes to `/map`.
 This only shows the pages load. It doesn't replace clicking through each flow with real data (the first item below).
 
+## Click-through (2026-11-05, local, fan app, test data)
+
+Done with real clicks and no problems found: like and comment on a post (count and comment appeared), comment rule "Subscribers" (button
+off with "Subscribe to X to comment."), create a playlist and add a song to it, recharge quote for $9.99 and the Get XLM quote, bounty list
+and detail and joining a music bounty (participants 0 to 1), marketplace search, collection and favourites, the contract-NFT buy panel
+quote, Selling and the Sell dialog, stories and highlights, Last.fm connect and its return trip. Anything that needs a wallet signature (buy,
+list, subscribe, pay by card) was taken as far as the confirm step. Not yet clicked through: the artist portal's create flows and the AR
+app's map and collect. Every action took several seconds in dev, which is the dev server compiling, not the app.
+
 ## Before cutover
 
 1. Click through every ✅ row on the copied production data (rehearsal) in a browser. This is the real check.
