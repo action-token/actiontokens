@@ -8,13 +8,16 @@ listings whose copy moved (`resale.verify`), the same screens, and `testnet:nft-
 seller listed 2 copies (`list_batch`), a buyer bought one (seller +37, artist royalty +2, platform fee 1, on a price of 40), the
 database and contract agreed on the owner, the other copy was repriced and then taken off sale.
 
-**Open problem found by the run (not caused by resale): a primary smart-contract NFT purchase fails its network-fee check.**
-The quote budgets about 0.08 XLM (0.05 + 0.01 per copy) but the contract call's real fee on testnet was 0.4 XLM and on one
-run 14.8 XLM, so `startNftPurchase` refuses ("The network fee is higher than shown"), every time. This matches the two failed
-"Circle Line VIP pass" orders in the dev database. The resale run only got past it with the check switched off for one run.
-Needs a decision on the estimate.
+**Found by the run, settled 2026-11-05 (not caused by resale): the primary smart-contract NFT purchase refused every buy.**
+Its network-fee check compared the simulated fee (about 0.26 XLM for 3 copies on testnet; one earlier run showed a 13 XLM
+payment, cause not found) with a budget of 0.05 + 0.01 per copy. Decision: follow the old Bandcoin. The buyer is charged 0.10 XLM
+plus 0.40 XLM per copy (the copy's storage reserve) in BANDCOIN, and the buy is **not refused over the real fee**: the platform
+pays what the network asks, as before. The old 15 XLM ceiling was not carried over (a buy tops out at 8.1 XLM). Gift and resale
+buys keep their own fee checks. The testnet run after the change was not re-read in full.
 
-Not done yet: a signed-in browser check of the NFT screens, and card payment for a resold NFT was covered by a unit test only.
+Browser check 2026-11-05 (local, signed in): Selling (Listings and Sold tabs, Ended and Sold-out states, Change price dialog), the Sell dialog on
+an item you hold, and the contract-NFT buy panel with the 0.10 + 0.40 XLM network fee all show and behave. Nothing was signed or saved.
+Not done yet: signing a list or a buy from the browser (needs a wallet), and card payment for a resold NFT was covered by a unit test only.
 
 ## Why
 

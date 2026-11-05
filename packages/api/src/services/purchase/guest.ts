@@ -208,7 +208,6 @@ export async function startGuestPurchase(ctx: ServiceCtx, input: GuestInput) {
               nft: {
                 bandcoin: toAmount(priced.price.bandcoin),
                 feeBandcoin: toAmount(priced.feeBandcoin),
-                budgetXlm: toAmount(priced.buyFeeXlm),
                 openTrustline: priced.openTrustline,
                 reserveXlm: toAmount(priced.reserveXlm),
               },

@@ -59,16 +59,20 @@ import { notSetUpProblems } from "./not-set-up";
  * refunded; if (2) fails the buyer keeps the BANDCOIN and nothing is bought.
  * Nothing is retried.
  *
- * The network fee shown is a fixed estimate with a margin (the exact one is
- * only known by simulating, which needs the edition registered). At checkout
- * the simulated fee must fit inside it, or the order stops before anything
- * is sent.
+ * The network fee shown is a fixed estimate (the exact one is only known by
+ * simulating, which needs the edition registered). As on the old Bandcoin the
+ * buy isn't refused over the real fee; the platform pays what the network asks.
  */
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 type PurchaseInput = { listingId: string; quantity: number; currency: Currency };
 
-/** What the platform expects to pay Stellar for one buy, in XLM: a base plus each copy minted. */
-export const NFT_FEE_ESTIMATE = { baseXlm: "0.05", perCopyXlm: "0.01" } as const;
+/**
+ * The network fee on a buy, in XLM, priced as on the old Bandcoin: 0.10 a buy
+ * (0.07 inclusion + 0.03 network) plus 0.40 for each copy minted, which is the
+ * copy's storage reserve (its ledger entry and TTL top-ups). The real cost is
+ * well under it, and the spread is what the platform keeps to cover rent.
+ */
+export const NFT_FEE_ESTIMATE = { baseXlm: "0.10", perCopyXlm: "0.40" } as const;
 const READ_BACK_ATTEMPTS = 8;
 const READ_BACK_DELAY_MS = 1500;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -381,7 +385,6 @@ async function prepareBuy(
   order: { id: string; itemId: string },
   quantity: number,
   networkFee: bigint,
-  budget: bigint,
   /** A resale: the numbered copy to buy from its listing (a sale by the artist mints new ones) */
   resaleTokenId?: number,
 ) {
@@ -410,13 +413,6 @@ async function prepareBuy(
         });
   const prepared = await chain.prepareContractCall(built.xdr, [chain.config.treasury]);
   const tx = TransactionBuilder.fromXDR(prepared, chain.config.network.passphrase) as Transaction;
-  // What the treasury will pay: the call's fee plus the fee bump's own.
-  const cost = BigInt(tx.fee) + BigInt(chain.config.network.baseFee);
-  if (cost > budget)
-    throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, {
-      message:
-        "The network fee is higher than shown right now. Nothing was charged; try again in a minute.",
-    });
   return { xdr: prepared, hash: Buffer.from(tx.hash()).toString("hex") };
 }
 
@@ -477,7 +473,6 @@ export async function startNftPurchase(ctx: ServiceCtx, user: SessionUser, input
         nft: {
           bandcoin: toAmount(priced.price.bandcoin),
           feeBandcoin: toAmount(priced.feeBandcoin),
-          budgetXlm: toAmount(priced.buyFeeXlm),
           openTrustline: priced.openTrustline,
           reserveXlm: toAmount(priced.reserveXlm),
           ...(sale.resale
@@ -512,7 +507,6 @@ export async function startNftPurchase(ctx: ServiceCtx, user: SessionUser, input
           { id: order.id, itemId: sale.item.id },
           input.quantity,
           priced.feeBandcoin,
-          priced.buyFeeXlm,
           sale.resale?.tokenId,
         );
   } catch (error) {
@@ -534,7 +528,6 @@ export async function startNftPurchase(ctx: ServiceCtx, user: SessionUser, input
 type NftBreakdown = {
   nft: {
     bandcoin: string;
-    budgetXlm: string;
     resale?: { editionId: string; tokenId: number; sellerId: string };
   };
 };
@@ -655,7 +648,6 @@ export async function runCardNftSteps(
       { id: order.id, itemId: order.itemId! },
       order.quantity,
       0n,
-      toStroops(details.budgetXlm),
       details.resale?.tokenId,
     );
     await chain.submit(await bumped(await chain.signForCustodialUser(buy.xdr, buyer.email)));

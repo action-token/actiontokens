@@ -273,12 +273,12 @@ describe("contract NFT quote", () => {
   it("prices it in BANDCOIN with the network fee in BANDCOIN, and no platform fee for the fan", async () => {
     const { ctx } = setup();
     const quote = await quoteNftPurchase(ctx, wallet, buy);
-    // 2 copies: 0.05 + 2 × 0.01 = 0.07 XLM ≈ $0.007 = 0.7 BANDCOIN
+    // 2 copies: 0.10 + 2 × 0.40 = 0.9 XLM ≈ $0.09 = 9 BANDCOIN, as on the old Bandcoin
     expect(quote.lines.map((line) => [line.key, line.amount, line.currency])).toEqual([
       ["price", "50.0000000", "BANDCOIN"],
-      ["networkFee", "0.7000000", "BANDCOIN"],
+      ["networkFee", "9.0000000", "BANDCOIN"],
     ]);
-    expect(quote.totals).toEqual([{ currency: "BANDCOIN", amount: "50.7000000" }]);
+    expect(quote.totals).toEqual([{ currency: "BANDCOIN", amount: "59.0000000" }]);
     expect(quote.payout).toMatchObject({ seller: "48.7500000", platform: "1.2500000" });
     expect(quote.ok).toBe(true);
   });
@@ -286,7 +286,7 @@ describe("contract NFT quote", () => {
   it("says what's in the way", async () => {
     const codes = async (user: SessionUser | null, input = buy, over = {}) =>
       (await quoteNftPurchase(setup(over).ctx, user, input)).problems.map((p) => p.message);
-    expect(await codes(wallet, buy, { held: "10" })).toEqual(["You're 40.7 BANDCOIN short."]);
+    expect(await codes(wallet, buy, { held: "10" })).toEqual(["You're 49 BANDCOIN short."]);
     expect(await codes(wallet, { ...buy, currency: "XLM" as never })).toContain(
       "Contract NFTs are paid in BANDCOIN or by card.",
     );
@@ -325,7 +325,7 @@ describe("contract NFT quote", () => {
     expect(quote.lines.map((line) => [line.key, line.amount])).toEqual([
       ["price", "4.0000000"],
       ["reserve", "0.0500000"],
-      ["networkFee", "0.0070040"],
+      ["networkFee", "0.0900040"],
     ]);
     expect(quote.ok).toBe(true);
   });
@@ -357,18 +357,14 @@ describe("buying with BANDCOIN from a wallet", () => {
       kind: "NFT_PURCHASE",
       status: "AWAITING_SIGNATURE",
       method: "WALLET",
-      total: "50.7000000",
+      total: "59.0000000",
     });
   });
 
-  it("stops before anything is sent when the real fee is above what was shown", async () => {
-    const { ctx, chain, orders } = setup({ prepareFee: "2000000" });
-    await expect(startNftPurchase(ctx, wallet, buy)).rejects.toMatchObject({
-      message:
-        "The network fee is higher than shown right now. Nothing was charged; try again in a minute.",
-    });
-    expect(orders.get("order1")).toMatchObject({ status: "FAILED" });
-    expect(chain.submit).not.toHaveBeenCalled();
+  it("doesn't refuse the buy over the simulated network fee, as on the old Bandcoin", async () => {
+    const { ctx, orders } = setup({ prepareFee: "2600000" });
+    await expect(startNftPurchase(ctx, wallet, buy)).resolves.toMatchObject({ signer: "wallet" });
+    expect(orders.get("order1")).toMatchObject({ status: "AWAITING_SIGNATURE" });
   });
 
   it("fee-bumps the signed buy with the treasury, then records each minted copy", async () => {
