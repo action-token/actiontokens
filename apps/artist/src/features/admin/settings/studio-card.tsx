@@ -18,31 +18,49 @@ import { SettingsSection } from "../../settings/settings-section";
 
 type Studio = RouterOutputs["admin"]["settings"]["studio"];
 type Pack = Studio["packages"][number];
-type Tool = keyof Studio["pricing"]["apiCostUsd"];
+type Row = { key: string; label: string; unit: string };
 
-const TOOLS: { type: Tool; label: string }[] = [
-  { type: "TEXT", label: "Writing" },
-  { type: "IMAGE", label: "Image" },
-
-  { type: "VIDEO", label: "Video" },
-  { type: "SEO", label: "SEO" },
-  { type: "SOCIAL", label: "Social post" },
-  { type: "MUSIC_CLIP", label: "Music clip (~30 s)" },
-  { type: "MUSIC_SONG", label: "Full song" },
-  { type: "MUSIC_LIVE", label: "Live music, per minute" },
+const UNIT = {
+  IMAGE: "an image (smallest size, standard quality)",
+  VIDEO: "a clip at 720p",
+  TEXT: "a run (text, SEO and social posts)",
+} as const;
+const GROUP = { IMAGE: "Images", VIDEO: "Video", TEXT: "Writing" } as const;
+const PROVIDER = { google: "Google", openai: "OpenAI" } as const;
+const MUSIC: Row[] = [
+  { key: "MUSIC_CLIP", label: "Lyria 3 Clip", unit: "a ~30 s clip" },
+  { key: "MUSIC_SONG", label: "Lyria 3 Pro", unit: "a full song" },
+  { key: "MUSIC_LIVE", label: "Lyria RealTime", unit: "a live minute" },
 ];
 
+/** One row per model (grouped by what it makes), then music's three. */
+function groupsOf(studio: Studio): { title: string; rows: Row[] }[] {
+  return [
+    ...(["IMAGE", "VIDEO", "TEXT"] as const).map((tool) => ({
+      title: GROUP[tool],
+      rows: studio.models
+        .filter((model) => model.tool === tool)
+        .map((model) => ({
+          key: model.id,
+          label: `${model.name} · ${PROVIDER[model.provider]}`,
+          unit: UNIT[tool],
+        })),
+    })),
+    { title: "Music", rows: MUSIC },
+  ];
+}
+
 /**
- * Studio prices and coin packages. A run costs what the AI provider charges
- * plus the platform fee, in coins of one cent each; a package is priced in
- * dollars and may add bonus coins.
+ * Studio prices and coin packages. Each model has its own AI provider cost
+ * (a run's options multiply it), plus the platform fee, in coins of one cent
+ * each; a package is priced in dollars and may add bonus coins.
  */
 export function StudioCard() {
   const studio = api.admin.settings.studio.useQuery(undefined, { refetchOnWindowFocus: false });
   return (
     <SettingsSection
       title="Studio"
-      description="What each AI run costs and the coin packages. One coin is one cent; BANDCOIN, XLM and USDC follow the live rate."
+      description="What each AI model costs and the coin packages. One coin is one cent; BANDCOIN, XLM and USDC follow the live rate."
     >
       {studio.isPending ? (
         <Skeleton className="h-64 w-full rounded-xl" />
@@ -61,10 +79,12 @@ export function StudioCard() {
 function PricingForm({ studio }: { studio: Studio }) {
   const utils = api.useUtils();
   const [fee, setFee] = useState(String(studio.pricing.feePercent));
-  const [costs, setCosts] = useState<Record<Tool, string>>(
+  const groups = groupsOf(studio);
+  const rows = groups.flatMap((group) => group.rows);
+  const [costs, setCosts] = useState<Record<string, string>>(() =>
     Object.fromEntries(
-      TOOLS.map((tool) => [tool.type, String(studio.pricing.apiCostUsd[tool.type])]),
-    ) as Record<Tool, string>,
+      rows.map((row) => [row.key, String(studio.pricing.apiCostUsd[row.key] ?? 0)]),
+    ),
   );
   const save = api.admin.settings.updateStudioPricing.useMutation({
     onSuccess: () => {
@@ -77,7 +97,7 @@ function PricingForm({ studio }: { studio: Studio }) {
   const valid =
     feePercent >= 0 &&
     feePercent <= 500 &&
-    TOOLS.every((tool) => Number(costs[tool.type]) >= 0 && costs[tool.type].trim() !== "");
+    rows.every((row) => Number(costs[row.key]) >= 0 && (costs[row.key] ?? "").trim() !== "");
 
   return (
     <div className="bg-surface grid gap-4 rounded-xl border p-4 sm:p-5">
@@ -94,44 +114,47 @@ function PricingForm({ studio }: { studio: Studio }) {
           className="w-full sm:max-w-32"
         />
       </Field>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {TOOLS.map((tool) => {
-          const cost = Number(costs[tool.type]);
-          return (
-            <Field
-              key={tool.type}
-              label={`${tool.label}: API cost ($)`}
-              htmlFor={`studio-cost-${tool.type}`}
-              hint={
-                Number.isFinite(cost) && Number.isFinite(feePercent)
-                  ? `Fans pay ${coinsFor(cost, feePercent)} coins a run`
-                  : "A dollar amount"
-              }
-            >
-              <Input
-                id={`studio-cost-${tool.type}`}
-                inputMode="decimal"
-                value={costs[tool.type]}
-                onChange={(event) =>
-                  setCosts({
-                    ...costs,
-                    [tool.type]: event.target.value.replace(/[^\d.]/g, "").slice(0, 8),
-                  })
-                }
-              />
-            </Field>
-          );
-        })}
-      </div>
+      {groups.map((group) => (
+        <fieldset key={group.title} className="grid gap-3">
+          <legend className="mb-1 text-sm font-semibold">{group.title}</legend>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {group.rows.map((row) => {
+              const cost = Number(costs[row.key]);
+              return (
+                <Field
+                  key={row.key}
+                  label={`${row.label}: API cost ($)`}
+                  htmlFor={`studio-cost-${row.key}`}
+                  hint={
+                    Number.isFinite(cost) && Number.isFinite(feePercent)
+                      ? `Per ${row.unit}: ${coinsFor(cost, feePercent)} coins`
+                      : "A dollar amount"
+                  }
+                >
+                  <Input
+                    id={`studio-cost-${row.key}`}
+                    inputMode="decimal"
+                    value={costs[row.key] ?? ""}
+                    onChange={(event) =>
+                      setCosts({
+                        ...costs,
+                        [row.key]: event.target.value.replace(/[^\d.]/g, "").slice(0, 8),
+                      })
+                    }
+                  />
+                </Field>
+              );
+            })}
+          </div>
+        </fieldset>
+      ))}
       <Button
         className="justify-self-start"
         disabled={!valid || save.isPending}
         onClick={() =>
           save.mutate({
             feePercent,
-            apiCostUsd: Object.fromEntries(
-              TOOLS.map((tool) => [tool.type, Number(costs[tool.type])]),
-            ) as Record<Tool, number>,
+            apiCostUsd: Object.fromEntries(rows.map((row) => [row.key, Number(costs[row.key])])),
           })
         }
       >

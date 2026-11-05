@@ -1,11 +1,22 @@
 import { z } from "zod";
 
+import { MODELS } from "./models";
+
 /**
  * What each generator takes. Everything has a sensible default, and the
  * strings are capped so a prompt can't run away with the provider's bill.
  */
-export const IMAGE_RATIOS = ["1:1", "3:4", "4:3", "9:16", "16:9"] as const;
+export const IMAGE_RATIOS = ["1:1", "3:4", "4:3", "9:16", "16:9", "21:9", "3:2", "2:3"] as const;
 export const VIDEO_RATIOS = ["16:9", "9:16"] as const;
+
+/** A model id, defaulting to the tool's default (checked against the catalog when the run starts). */
+const model = (tool: "IMAGE" | "VIDEO" | "TEXT") =>
+  z
+    .string()
+    .trim()
+    .min(1)
+    .max(80)
+    .default(MODELS.find((entry) => entry.tool === tool && entry.isDefault)!.id);
 export const MAX_PROMPT = 2000;
 
 const text = (max: number) => z.string().trim().max(max);
@@ -13,24 +24,35 @@ const prompt = z.string().trim().min(3).max(MAX_PROMPT);
 
 export const imageInput = z.object({
   tool: z.literal("IMAGE"),
+  model: model("IMAGE"),
   prompt,
   aspectRatio: z.enum(IMAGE_RATIOS).default("1:1"),
   style: text(60).default(""),
+  /** How many images in one run */
+  count: z.number().int().min(1).max(4).default(1),
+  /** Google: 1K / 2K / 4K */
+  size: z.enum(["1K", "2K", "4K"]).optional(),
+  /** OpenAI: low / medium / high */
+  quality: z.enum(["low", "medium", "high"]).optional(),
 });
 
 export const videoInput = z.object({
   tool: z.literal("VIDEO"),
+  model: model("VIDEO"),
   prompt,
   aspectRatio: z.enum(VIDEO_RATIOS).default("16:9"),
+  resolution: z.enum(["720p", "1080p"]).optional(),
 });
 
 export const textInput = z.object({
   tool: z.literal("TEXT"),
+  model: model("TEXT"),
   prompt,
 });
 
 export const seoInput = z.object({
   tool: z.literal("SEO"),
+  model: model("TEXT"),
   topic: text(300).min(3),
   primaryKeyword: text(100).default(""),
   secondaryKeywords: z.array(text(100)).max(10).default([]),
@@ -62,6 +84,7 @@ export const SOCIAL_PLATFORMS = [
 
 export const socialInput = z.object({
   tool: z.literal("SOCIAL"),
+  model: model("TEXT"),
   topic: text(300).min(3),
   context: text(1000).default(""),
   platform: z.enum(SOCIAL_PLATFORMS).default("Instagram"),

@@ -5,7 +5,7 @@ import { isOwnS3Url } from "@bandcoin/storage";
 
 import type { Context, SessionUser } from "../../context";
 import { holdCoins, settleHold } from "./balance";
-import { loadPricing, priceList } from "./pricing";
+import { loadPricing, musicPrices } from "./pricing";
 
 /**
  * Live Lyria jams, billed per started minute of playing. The browser connects
@@ -56,7 +56,7 @@ export function readTicket(ticket: string | null | undefined, now = Date.now()) 
 }
 
 export async function livePrice(ctx: Db) {
-  return priceList(await loadPricing(ctx)).MUSIC_LIVE;
+  return musicPrices(await loadPricing(ctx)).MUSIC_LIVE;
 }
 
 /** A live session shows in your music like any run. */

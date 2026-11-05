@@ -294,16 +294,8 @@ export const adminRouter = createRouter({
       .input(
         z.object({
           feePercent: z.number().min(0).max(500),
-          apiCostUsd: z.object({
-            TEXT: z.number().min(0).max(100),
-            IMAGE: z.number().min(0).max(100),
-            VIDEO: z.number().min(0).max(100),
-            SEO: z.number().min(0).max(100),
-            SOCIAL: z.number().min(0).max(100),
-            MUSIC_CLIP: z.number().min(0).max(100),
-            MUSIC_SONG: z.number().min(0).max(100),
-            MUSIC_LIVE: z.number().min(0).max(100),
-          }),
+          /** USD per unit, keyed by model id or music tool (services/studio/pricing PRICE_KEYS) */
+          apiCostUsd: z.record(z.string().max(80), z.number().min(0).max(100)),
         }),
       )
       .mutation(({ ctx, input }) => updateStudioPricing(ctx, input)),

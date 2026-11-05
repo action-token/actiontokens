@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  catalog,
   coinsForUsd,
   DEFAULT_API_COST_USD,
   generationCoins,
-  priceList,
+  musicPrices,
   pricingOf,
 } from "../services/studio/pricing";
 
@@ -21,22 +22,27 @@ describe("Studio pricing", () => {
     expect(pricingOf(null)).toEqual({ feePercent: 30, apiCostUsd: DEFAULT_API_COST_USD });
     // The old seed format (coins per type) isn't pricing: it falls back.
     expect(pricingOf({ TEXT: 1, IMAGE: 5 })).toEqual(pricingOf(null));
-    const saved = pricingOf({ feePercent: 50, apiCostUsd: { IMAGE: 0.02, VIDEO: -1 } });
+    const saved = pricingOf({
+      feePercent: 50,
+      apiCostUsd: { "gpt-6-luna": 0.02, "gemini-omni-1.1-flash": -1, "not-a-model": 9 },
+    });
     expect(saved.feePercent).toBe(50);
-    expect(saved.apiCostUsd.IMAGE).toBe(0.02);
-    expect(saved.apiCostUsd.VIDEO).toBe(DEFAULT_API_COST_USD.VIDEO);
+    expect(saved.apiCostUsd["gpt-6-luna"]).toBe(0.02);
+    expect(saved.apiCostUsd["gemini-omni-1.1-flash"]).toBe(
+      DEFAULT_API_COST_USD["gemini-omni-1.1-flash"],
+    );
+    expect(saved.apiCostUsd["not-a-model"]).toBeUndefined();
   });
 
-  it("lists every tool's price and turns dollars into coins", () => {
-    expect(priceList(pricingOf(null))).toEqual({
-      TEXT: 1,
-      IMAGE: 9,
-      VIDEO: 156,
-      SEO: 1,
-      SOCIAL: 1,
-      MUSIC_CLIP: 6,
-      MUSIC_SONG: 11,
-      MUSIC_LIVE: 7,
+  it("prices every model and music, and turns dollars into coins", () => {
+    const pricing = pricingOf(null);
+    expect(musicPrices(pricing)).toEqual({ MUSIC_CLIP: 6, MUSIC_SONG: 11, MUSIC_LIVE: 7 });
+    const coins = Object.fromEntries(catalog(pricing).map((model) => [model.id, model.coins]));
+    expect(coins).toMatchObject({
+      "gemini-nano-banana-2.1": 5,
+      "gemini-3-pro-image": 18,
+      "gemini-omni-1.1-flash": 104,
+      "gemini-3.8-flash": 1,
     });
     expect(coinsForUsd(9)).toBe(900);
     expect(coinsForUsd(0.29)).toBe(29);

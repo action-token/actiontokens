@@ -8,6 +8,7 @@ import {
   importFacebookPost,
   type ImportPayload,
   googleProvider,
+  openaiProvider,
   runGeneration,
   openaiAgentModel,
   pinTags,
@@ -55,7 +56,7 @@ export function handlersFor(deps: WorkerDeps): Record<string, JobHandler> {
       const result = await runMusic(deps, generationId, { provider: lyriaProvider() });
       return { result, target: { type: "Generation", id: generationId } };
     },
-    // A Studio image, video or writing run: Google, then storage; coins kept or refunded. Never retried.
+    // A Studio image, video or writing run: the model's provider (Google or OpenAI), then storage; coins kept or refunded. Never retried.
     "studio.generate": async (job) => {
       const payload = job.payload as { generationId?: unknown; input?: unknown };
       const input = generateInput.safeParse(payload.input);
@@ -64,7 +65,7 @@ export function handlersFor(deps: WorkerDeps): Record<string, JobHandler> {
           message: "studio.generate needs a generationId and its input",
         });
       const result = await runGeneration(deps, payload.generationId, input.data, {
-        provider: googleProvider(),
+        providers: { google: googleProvider(), openai: openaiProvider() },
       });
       return { result, target: { type: "Generation", id: payload.generationId } };
     },

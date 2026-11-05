@@ -33,7 +33,7 @@ export function MusicRuns({ mixerLink = false }: { mixerLink?: boolean }) {
       <EmptyState
         icon={Music}
         title="Nothing made yet"
-        description="Describe some music above. What you make shows up here, ready to play, download or mix."
+        description="Describe some music below. What you make shows up here, ready to play, download or mix."
       />
     );
 
@@ -43,7 +43,11 @@ export function MusicRuns({ mixerLink = false }: { mixerLink?: boolean }) {
         const status = run.status;
         const audio = run.outputs[0];
         return (
-          <li key={run.id} className="bg-surface grid gap-3 rounded-xl border p-4">
+          <li
+            key={run.id}
+            id={`run-${run.id}`}
+            className="bg-surface grid scroll-mt-24 gap-3 rounded-2xl border-2 p-4"
+          >
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="grid min-w-0 gap-0.5">
                 <p className="line-clamp-2 text-sm font-semibold">{run.prompt}</p>

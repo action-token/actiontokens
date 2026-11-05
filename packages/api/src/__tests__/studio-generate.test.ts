@@ -57,11 +57,17 @@ function setup(over: { canPay?: boolean; status?: string } = {}) {
 }
 
 const provider = (over: Partial<GenerateProvider> = {}): GenerateProvider => ({
-  image: vi.fn().mockResolvedValue({ bytes: Buffer.from("png"), mimeType: "image/png" }),
+  image: vi.fn(({ count }: { count: number }) =>
+    Promise.resolve(
+      Array.from({ length: count }, () => ({ bytes: Buffer.from("png"), mimeType: "image/png" })),
+    ),
+  ),
   video: vi.fn().mockResolvedValue({ bytes: Buffer.from("mp4"), mimeType: "video/mp4" }),
   write: vi.fn().mockResolvedValue({ text: "Hello fans", tokens: 42 }),
   ...over,
 });
+/** Google for everything unless a test says otherwise. */
+const providers = (google = provider(), openai = provider()) => ({ google, openai });
 const upload = vi.fn().mockResolvedValue("https://bucket/out");
 
 describe("what each tool accepts", () => {
@@ -107,18 +113,36 @@ describe("starting a run", () => {
       user,
       generateInput.parse({ tool: "IMAGE", prompt: "a red guitar" }),
     );
-    expect(started).toEqual({ generationId: "g1", coins: 9 });
+    // Nano Banana 2.1 at 1K: $0.0336 + 30% → 5 coins
+    expect(started).toEqual({ generationId: "g1", coins: 5 });
     expect(db.generation.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ type: "IMAGE", model: "gemini-3.1-flash-image" }),
+        data: expect.objectContaining({ type: "IMAGE", model: "gemini-nano-banana-2.1" }),
       }),
     );
     expect(ledger).toEqual([
-      expect.objectContaining({ kind: "SPEND", status: "PENDING", amount: -9 }),
+      expect.objectContaining({ kind: "SPEND", status: "PENDING", amount: -5 }),
     ]);
     expect(db.job.create).toHaveBeenCalledWith({
       data: expect.objectContaining({ type: "studio.generate", maxAttempts: 1 }),
     });
+  });
+
+  it("refuses an option the model doesn't have before holding anything", async () => {
+    const { ctx, db } = setup();
+    await expect(
+      startGeneration(
+        ctx,
+        user,
+        generateInput.parse({
+          tool: "IMAGE",
+          prompt: "a red guitar",
+          model: "gpt-image-2.6-flare",
+          aspectRatio: "21:9",
+        }),
+      ),
+    ).rejects.toThrow("GPT Image 2.6 Flare can't make 21:9.");
+    expect(db.generation.create).not.toHaveBeenCalled();
   });
 
   it("never starts when the coins aren't there", async () => {
@@ -134,27 +158,42 @@ describe("starting a run", () => {
 describe("running one", () => {
   it("saves an image and keeps the coins", async () => {
     const { ctx, db, tx } = setup();
-    const input = generateInput.parse({ tool: "IMAGE", prompt: "a red guitar" });
-    expect(await runGeneration(ctx, "g1", input, { provider: provider(), upload })).toEqual({
+    const input = generateInput.parse({ tool: "IMAGE", prompt: "a red guitar", count: 2 });
+    expect(await runGeneration(ctx, "g1", input, { providers: providers(), upload })).toEqual({
       generationId: "g1",
       outcome: "DONE",
     });
+    const image = { type: "image", url: "https://bucket/out", mimeType: "image/png" };
     expect(db.generation.update).toHaveBeenCalledWith({
       where: { id: "g1" },
-      data: expect.objectContaining({
-        status: "SUCCEEDED",
-        outputs: [{ type: "image", url: "https://bucket/out", mimeType: "image/png" }],
-      }),
+      data: expect.objectContaining({ status: "SUCCEEDED", outputs: [image, image] }),
     });
     expect(tx.studioLedgerEntry.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ status: "CONFIRMED" }) }),
     );
   });
 
+  it("asks the model's own provider, with the model and its options", async () => {
+    const { ctx } = setup();
+    const google = provider();
+    const openai = provider();
+    const input = generateInput.parse({
+      tool: "IMAGE",
+      prompt: "a red guitar",
+      model: "gpt-image-2.6-flare",
+      quality: "high",
+    });
+    await runGeneration(ctx, "g1", input, { providers: providers(google, openai), upload });
+    expect(google.image).not.toHaveBeenCalled();
+    expect(openai.image).toHaveBeenCalledWith(
+      expect.objectContaining({ model: "gpt-image-2.6-flare", quality: "high", count: 1 }),
+    );
+  });
+
   it("keeps written text and the tokens used", async () => {
     const { ctx, db } = setup();
     const input = generateInput.parse({ tool: "SEO", topic: "indie folk" });
-    await runGeneration(ctx, "g1", input, { provider: provider(), upload });
+    await runGeneration(ctx, "g1", input, { providers: providers(), upload });
     expect(db.generation.update).toHaveBeenCalledWith({
       where: { id: "g1" },
       data: expect.objectContaining({
@@ -174,7 +213,7 @@ describe("running one", () => {
         ),
     });
     const input = generateInput.parse({ tool: "VIDEO", prompt: "a long drive" });
-    const done = await runGeneration(ctx, "g1", input, { provider: refused, upload });
+    const done = await runGeneration(ctx, "g1", input, { providers: providers(refused), upload });
     expect(done).toMatchObject({ outcome: "FAILED", reason: "A safety filter stopped it" });
     expect(db.generation.update).toHaveBeenCalledWith({
       where: { id: "g1" },
@@ -187,7 +226,7 @@ describe("running one", () => {
     const { ctx } = setup();
     const broken = provider({ image: vi.fn().mockRejectedValue(new Error("503 secret detail")) });
     const input = generateInput.parse({ tool: "IMAGE", prompt: "a red guitar" });
-    const done = await runGeneration(ctx, "g1", input, { provider: broken, upload });
+    const done = await runGeneration(ctx, "g1", input, { providers: providers(broken), upload });
     expect(done).toMatchObject({ outcome: "FAILED" });
     expect((done as { reason: string }).reason).not.toMatch(/secret/);
   });
@@ -196,7 +235,9 @@ describe("running one", () => {
     const { ctx } = setup({ status: "RUNNING" });
     const input = generateInput.parse({ tool: "IMAGE", prompt: "a red guitar" });
     const p = provider();
-    expect(await runGeneration(ctx, "g1", input, { provider: p, upload })).toMatchObject({
+    expect(
+      await runGeneration(ctx, "g1", input, { providers: providers(p), upload }),
+    ).toMatchObject({
       outcome: "SKIPPED",
     });
     expect(p.image).not.toHaveBeenCalled();
@@ -237,36 +278,76 @@ describe("the library", () => {
   });
 });
 
-describe("Google's video", () => {
-  it("is fetched with the key once it's done, after polling", async () => {
+describe("Google", () => {
+  async function withGoogle(create: ReturnType<typeof vi.fn>) {
     vi.resetModules();
-    const generateVideos = vi.fn().mockResolvedValue({ done: false });
-    const getVideosOperation = vi.fn().mockResolvedValue({
-      done: true,
-      response: { generatedVideos: [{ video: { uri: "https://g/v.mp4", mimeType: "video/mp4" } }] },
-    });
     vi.doMock("@google/genai", () => ({
       GoogleGenAI: class {
-        models = { generateVideos };
-        operations = { getVideosOperation };
+        interactions = { create };
       },
     }));
     const { googleProvider: fresh } = await import("../services/studio/google");
-    const get = vi
-      .fn()
-      .mockResolvedValue({ ok: true, arrayBuffer: () => Promise.resolve(Buffer.from("mp4")) });
-    const sleep = vi.fn().mockResolvedValue(undefined);
-    const media = await fresh("key", { sleep, fetch: get as never }).video({
-      prompt: "a drive",
-      aspectRatio: "16:9",
+    return fresh("key");
+  }
+
+  it("makes each image with the model, ratio and size, one request per image", async () => {
+    const create = vi.fn().mockResolvedValue({
+      output_image: { data: Buffer.from("png").toString("base64"), mime_type: "image/png" },
     });
-    expect(sleep).toHaveBeenCalledTimes(1);
-    expect(get).toHaveBeenCalledWith("https://g/v.mp4", { headers: { "x-goog-api-key": "key" } });
-    expect(media.bytes.toString()).toBe("mp4");
+    const google = await withGoogle(create);
+    const images = await google.image({
+      model: "gemini-nano-banana-2.1",
+      prompt: "a cover",
+      aspectRatio: "16:9",
+      size: "2K",
+      count: 2,
+    });
+    expect(images).toHaveLength(2);
+    expect(images[0]!.bytes.toString()).toBe("png");
+    expect(create).toHaveBeenCalledWith({
+      model: "gemini-nano-banana-2.1",
+      input: "a cover",
+      response_format: { type: "image", aspect_ratio: "16:9", image_size: "2K" },
+    });
+    vi.doUnmock("@google/genai");
+  });
+
+  it("makes a video with Omni and reads it from the answer", async () => {
+    const create = vi.fn().mockResolvedValue({
+      output_video: { data: Buffer.from("mp4").toString("base64"), mime_type: "video/mp4" },
+    });
+    const google = await withGoogle(create);
+    const video = await google.video({
+      model: "gemini-omni-1.1-flash",
+      prompt: "a drive",
+      aspectRatio: "9:16",
+      resolution: "1080p",
+    });
+    expect(video).toMatchObject({ mimeType: "video/mp4" });
+    expect(create).toHaveBeenCalledWith({
+      model: "gemini-omni-1.1-flash",
+      input: "a drive",
+      response_format: { type: "video", aspect_ratio: "9:16", resolution: "1080p" },
+    });
+    vi.doUnmock("@google/genai");
+  });
+
+  it("says a safety filter stopped it when nothing comes back", async () => {
+    const google = await withGoogle(vi.fn().mockResolvedValue({}));
+    await expect(
+      google.image({
+        model: "gemini-nano-banana-2.1",
+        prompt: "a cover",
+        aspectRatio: "1:1",
+        count: 1,
+      }),
+    ).rejects.toThrow(/safety filter/);
     vi.doUnmock("@google/genai");
   });
 
   it("says generating isn't set up when there's no key", async () => {
-    await expect(googleProvider("").write({ prompt: "hi there" })).rejects.toThrow(/isn't set up/);
+    await expect(
+      googleProvider("").write({ model: "gemini-3.8-flash", prompt: "hi there" }),
+    ).rejects.toThrow(/isn't set up/);
   });
 });

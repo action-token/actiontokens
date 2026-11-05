@@ -57,16 +57,19 @@ describe("Admin › Studio", () => {
     );
   });
 
-  it("saves the API costs and fee, and the prices follow", async () => {
+  it("saves each model's API cost and the fee, and that model's price follows", async () => {
     const { ctx, db } = setup();
-    db.appSetting.findUnique.mockResolvedValue({
-      studioPrices: { feePercent: 30, apiCostUsd: { ...DEFAULT_API_COST_USD, IMAGE: 0.1 } },
-    });
-    const saved = await updateStudioPricing(ctx, {
-      feePercent: 30,
-      apiCostUsd: { ...DEFAULT_API_COST_USD, IMAGE: 0.1 },
-    });
+    const apiCostUsd = { ...DEFAULT_API_COST_USD, "gemini-nano-banana-2.1": 0.1 };
+    db.appSetting.findUnique.mockResolvedValue({ studioPrices: { feePercent: 30, apiCostUsd } });
+    const saved = await updateStudioPricing(ctx, { feePercent: 30, apiCostUsd });
     expect(db.appSetting.upsert).toHaveBeenCalled();
-    expect(saved.prices.IMAGE).toBe(13);
+    expect(saved.models.find((model) => model.id === "gemini-nano-banana-2.1")).toMatchObject({
+      provider: "google",
+      coins: 13,
+    });
+    expect(saved.music).toEqual({ MUSIC_CLIP: 6, MUSIC_SONG: 11, MUSIC_LIVE: 7 });
+    await expect(
+      updateStudioPricing(ctx, { feePercent: 30, apiCostUsd: { "gpt-6-luna": 500 } }),
+    ).rejects.toThrow(/between \$0 and \$100/);
   });
 });

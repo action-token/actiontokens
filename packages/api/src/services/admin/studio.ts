@@ -3,15 +3,16 @@ import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import type { Context } from "../../context";
 import {
+  catalog,
   coinsForUsd,
   loadPricing,
-  priceList,
-  STUDIO_TOOLS,
+  musicPrices,
+  PRICE_KEYS,
   type StudioPricing,
 } from "../studio/pricing";
 
 /**
- * Admin › Settings › Studio: what each tool costs at the AI provider and the
+ * Admin › Settings › Studio: what each model (and music) costs at the AI provider and the
  * platform fee on top (prices follow), and the coin packages. A package is
  * priced in dollars; its coins follow (one coin a cent) and it may add bonus coins.
  */
@@ -24,7 +25,15 @@ export async function getStudioSettings(ctx: Pick<Context, "db">) {
   ]);
   return {
     pricing,
-    prices: priceList(pricing),
+    /** Each model's name and provider, its price for one plain run, and music's prices */
+    models: catalog(pricing).map((model) => ({
+      id: model.id,
+      name: model.name,
+      provider: model.provider,
+      tool: model.tool,
+      coins: model.coins,
+    })),
+    music: musicPrices(pricing),
     packages: packages.map((pack) => ({
       id: pack.id,
       name: pack.name,
@@ -40,11 +49,13 @@ export async function getStudioSettings(ctx: Pick<Context, "db">) {
 }
 
 export async function updateStudioPricing(ctx: ServiceCtx, input: StudioPricing) {
-  for (const type of STUDIO_TOOLS)
-    if (!(input.apiCostUsd[type] >= 0 && input.apiCostUsd[type] <= 100))
+  for (const key of PRICE_KEYS) {
+    const cost = input.apiCostUsd[key];
+    if (cost !== undefined && !(cost >= 0 && cost <= 100))
       throw new AppError(ErrorCodes.VALIDATION_FAILED, {
         message: "Each API cost must be between $0 and $100.",
       });
+  }
   ctx.activity.set({ targetType: "AppSetting", targetId: "studioPrices" });
   await ctx.db.appSetting.upsert({
     where: { id: 1 },

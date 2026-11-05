@@ -134,19 +134,14 @@ export const STUDIO_PACKAGES = [
   { name: "Studio", coins: 3000, bonusCoins: 500, priceBandcoin: 0, priceUsd: 30, sortOrder: 2 },
 ];
 
-/** What one run costs at the AI provider (USD) and the platform fee on top (see api services/studio/pricing). */
+/**
+ * The platform fee on top of the AI provider's costs (see api services/studio/
+ * pricing). Each model's cost comes from the model catalog until an admin sets
+ * it; music's are listed here.
+ */
 export const STUDIO_PRICES = {
   feePercent: 30,
-  apiCostUsd: {
-    TEXT: 0.003,
-    IMAGE: 0.04,
-    VIDEO: 0.5,
-    SEO: 0.003,
-    SOCIAL: 0.003,
-    MUSIC_CLIP: 0.04,
-    MUSIC_SONG: 0.08,
-    MUSIC_LIVE: 0.05,
-  },
+  apiCostUsd: { MUSIC_CLIP: 0.04, MUSIC_SONG: 0.08, MUSIC_LIVE: 0.05 },
 };
 
 /** A small offset in metres → degrees, to scatter pins around a city centre. */

@@ -6,8 +6,10 @@ export const metadata = { title: "Mixer" };
 
 export default function MixerPage() {
   return (
-    <Suspense>
-      <MixerView />
-    </Suspense>
+    <div className="mx-auto max-w-[1800px] px-4 py-6 sm:px-8">
+      <Suspense>
+        <MixerView />
+      </Suspense>
+    </div>
   );
 }

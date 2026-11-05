@@ -5,16 +5,19 @@ import type { Context, SessionUser } from "../../context";
 import { enqueueJob } from "../jobs/queue";
 import { holdCoins } from "./balance";
 import type { GenerateInput, GenerateTool } from "./generate-input";
-import { GOOGLE_MODELS, type GenerateProvider } from "./google";
-import { loadPricing, priceList } from "./pricing";
+import type { GenerateProvider } from "./google";
+import { checkOptions, type Provider } from "./models";
+import { loadPricing, runPrice } from "./pricing";
+import type { MusicOutput } from "./music";
 import { failRun, keepRun } from "./run";
 import { seoPrompt, socialPrompt } from "./writing";
 
 /**
  * Studio's image, video and writing runs. Same shape as music: starting one
- * prices it, holds the coins and queues it for the worker; the worker asks
- * Google, saves the result and keeps the coins, or gives them back if anything
- * fails. Nothing is retried, so a run is never paid for twice.
+ * checks the chosen model can do it, prices it, holds the coins and queues it
+ * for the worker; the worker asks that model's provider (Google or OpenAI),
+ * saves the result and keeps the coins, or gives them back if anything fails.
+ * Nothing is retried, so a run is never paid for twice.
  */
 type ServiceCtx = Pick<Context, "db" | "activity">;
 type Db = Pick<Context, "db">;
@@ -58,7 +61,8 @@ export function providerPrompt(input: GenerateInput) {
 }
 
 export async function startGeneration(ctx: ServiceCtx, user: SessionUser, input: GenerateInput) {
-  const coins = priceList(await loadPricing(ctx))[input.tool];
+  // Refuses a model or option that doesn't fit before anything is created or held.
+  const coins = runPrice(input, await loadPricing(ctx));
   const prompt = promptOf(input);
   const artist = await ctx.db.artist.findUnique({
     where: { userId: user.id },
@@ -70,7 +74,7 @@ export async function startGeneration(ctx: ServiceCtx, user: SessionUser, input:
       artistId: artist?.id ?? null,
       type: TYPE[input.tool],
       prompt,
-      model: GOOGLE_MODELS[input.tool === "SEO" || input.tool === "SOCIAL" ? "TEXT" : input.tool],
+      model: input.model,
       status: "QUEUED",
       cost: coins,
       message: LABEL[input.tool],
@@ -105,25 +109,37 @@ async function produce(
   upload: typeof uploadBufferToS3,
 ): Promise<{ outputs: GenerateOutput[]; tokens: number | null }> {
   const prompt = providerPrompt(input);
+  const keep = async (media: { bytes: Buffer; mimeType: string }, type: "image" | "video") => ({
+    type,
+    url: await upload(media.bytes, media.mimeType, { keyPrefix: `studio-${type}-` }),
+    mimeType: media.mimeType,
+  });
   switch (input.tool) {
-    case "IMAGE":
-    case "VIDEO": {
-      const media =
-        input.tool === "IMAGE"
-          ? await provider.image({ prompt, aspectRatio: input.aspectRatio })
-          : await provider.video({ prompt, aspectRatio: input.aspectRatio });
-      const url = await upload(media.bytes, media.mimeType, {
-        keyPrefix: `studio-${input.tool.toLowerCase()}-`,
+    case "IMAGE": {
+      const images = await provider.image({
+        model: input.model,
+        prompt,
+        aspectRatio: input.aspectRatio,
+        size: input.size,
+        quality: input.quality,
+        count: input.count,
       });
       return {
-        outputs: [
-          { type: input.tool === "IMAGE" ? "image" : "video", url, mimeType: media.mimeType },
-        ],
+        outputs: await Promise.all(images.map((image) => keep(image, "image"))),
         tokens: null,
       };
     }
+    case "VIDEO": {
+      const video = await provider.video({
+        model: input.model,
+        prompt,
+        aspectRatio: input.aspectRatio,
+        resolution: input.resolution,
+      });
+      return { outputs: [await keep(video, "video")], tokens: null };
+    }
     default: {
-      const written = await provider.write({ prompt });
+      const written = await provider.write({ model: input.model, prompt });
       return { outputs: [{ type: "text", text: written.text }], tokens: written.tokens };
     }
   }
@@ -134,7 +150,7 @@ export async function runGeneration(
   ctx: Db,
   generationId: string,
   input: GenerateInput,
-  deps: { provider: GenerateProvider; upload?: typeof uploadBufferToS3 },
+  deps: { providers: Record<Provider, GenerateProvider>; upload?: typeof uploadBufferToS3 },
 ) {
   // Take the run once: a second worker finds it already running.
   const { count } = await ctx.db.generation.updateMany({
@@ -148,7 +164,7 @@ export async function runGeneration(
   if (count !== 1) return { generationId, outcome: "SKIPPED" as const };
   try {
     const { outputs, tokens } = await produce(
-      deps.provider,
+      deps.providers[checkOptions(input).provider],
       input,
       deps.upload ?? uploadBufferToS3,
     );
@@ -204,7 +220,8 @@ export async function library(
     items: page.map((row) => ({
       ...row,
       cost: Number(row.cost.toString()),
-      outputs: (row.outputs ?? []) as GenerateOutput[],
+      // Music runs keep audio; the rest images, videos or text.
+      outputs: (row.outputs ?? []) as (GenerateOutput | MusicOutput)[],
     })),
     nextCursor: rows.length > LIBRARY_PAGE ? (page.at(-1)?.id ?? null) : null,
   };

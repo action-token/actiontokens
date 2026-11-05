@@ -68,6 +68,7 @@ export { useGeoCache } from "./services/agent/geo-cache";
 export { runGeneration, GENERATE_JOB } from "./services/studio/generate";
 export { generateInput } from "./services/studio/generate-input";
 export { googleProvider } from "./services/studio/google";
+export { openaiProvider } from "./services/studio/openai";
 export { lyriaProvider, lyriaLive, type LiveConnect } from "./services/studio/lyria";
 export { LiveSession, type LiveIn, type LiveOut } from "./services/studio/live-session";
 export { liveTicket, readTicket } from "./services/studio/live";

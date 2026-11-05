@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { coinsForUsd, loadPricing, priceList } from "../../services/studio/pricing";
+import { catalog, coinsForUsd, loadPricing, musicPrices } from "../../services/studio/pricing";
 import { studioBalance, studioLedger } from "../../services/studio/balance";
 import { cancelPurchase } from "../../services/purchase";
 import { quoteTopUp, startTopUp, submitTopUp } from "../../services/studio/topup";
@@ -26,8 +26,11 @@ export const coinsRouter = createRouter({
     .input(z.object({ cursor: z.string().min(1).nullish() }))
     .query(({ ctx, input }) => studioLedger(ctx, ctx.session.user.id, input.cursor ?? null)),
 
-  /** Coins per run for each tool, as the Generate buttons show them. */
-  prices: publicProcedure.query(async ({ ctx }) => priceList(await loadPricing(ctx))),
+  /** Every model with its options and price for one plain run, and music's prices. */
+  prices: publicProcedure.query(async ({ ctx }) => {
+    const pricing = await loadPricing(ctx);
+    return { models: catalog(pricing), music: musicPrices(pricing) };
+  }),
 
   packages: publicProcedure.query(async ({ ctx }) => {
     const packs = await ctx.db.studioPackage.findMany({

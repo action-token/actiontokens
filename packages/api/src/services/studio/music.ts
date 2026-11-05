@@ -6,7 +6,7 @@ import { enqueueJob } from "../jobs/queue";
 import { holdCoins } from "./balance";
 import { LIVE_MODEL } from "./live";
 import { type MusicKind, MUSIC_MODELS, type MusicProvider } from "./lyria";
-import { loadPricing, priceList } from "./pricing";
+import { loadPricing, musicPrices } from "./pricing";
 import { failRun, keepRun } from "./run";
 
 /**
@@ -41,7 +41,7 @@ export async function startMusic(
     throw new AppError(ErrorCodes.VALIDATION_FAILED, {
       message: `Describe the music in 3 to ${MAX_PROMPT.toLocaleString("en-US")} characters.`,
     });
-  const coins = priceList(await loadPricing(ctx))[TOOL[input.kind]];
+  const coins = musicPrices(await loadPricing(ctx))[TOOL[input.kind]];
   const artist = await ctx.db.artist.findUnique({
     where: { userId: user.id },
     select: { id: true },

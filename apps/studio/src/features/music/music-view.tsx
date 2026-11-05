@@ -1,10 +1,12 @@
 "use client";
 
 import { AudioLines } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
+import { TallText } from "@bandcoin/ui/patterns/tall-text";
 import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
 import { api } from "~/trpc/react";
@@ -13,37 +15,60 @@ import { LiveJam } from "../live/live-jam";
 import { MusicGenerator } from "./generator";
 import { MusicRuns } from "./runs";
 
-/** Studio › Music: make clips and songs with Lyria, then play, download or mix them. */
+/**
+ * Studio › Music, laid out like the other tools: your tracks (and a live jam)
+ * above, the prompt box pinned under them. Clips and full songs are made by
+ * Google's Lyria; play, download or take them to the mixer.
+ */
 export function MusicView() {
   const { status } = useSession();
   const openSignIn = useConnectWalletDialogStore((state) => state.setIsOpen);
   const balance = api.coins.balance.useQuery(undefined, { enabled: status === "authenticated" });
-
-  if (status === "unauthenticated")
-    return (
-      <EmptyState
-        icon={AudioLines}
-        title="Sign in to make music"
-        description="Describe a beat or a song and Google's Lyria makes it. Each run shows its price first."
-        action={<Button onClick={() => openSignIn(true)}>Sign in</Button>}
-      />
-    );
+  // The home page's prompt box hands its text over here.
+  const [prompt, setPrompt] = useState(useSearchParams().get("prompt") ?? "");
 
   return (
-    <div className="mx-auto grid max-w-4xl gap-8">
-      <header className="grid gap-2">
-        <p className="marker text-primary-text text-sm">*music*</p>
-        <h1 className="display text-4xl">Make music</h1>
-        <p className="text-fg-muted text-sm">
-          Clips and full songs from a description, made by Google&apos;s Lyria.
-        </p>
+    <div className="flex h-[calc(100dvh-8.5rem)] flex-col sm:h-dvh">
+      <header className="flex shrink-0 items-end gap-3 border-b px-4 py-4 sm:px-8">
+        <span className="bg-primary text-primary-foreground blob flex size-10 items-center justify-center">
+          <AudioLines className="size-5" strokeWidth={2.4} />
+        </span>
+        <span className="min-w-0">
+          <TallText className="pb-0 text-4xl">Music</TallText>
+          <span className="marker text-primary-text block -rotate-1 text-sm">
+            *clips, full songs and live jams with Lyria*
+          </span>
+        </span>
       </header>
-      <MusicGenerator balance={balance.data?.coins ?? null} />
-      <LiveJam balance={balance.data?.coins ?? null} />
-      <section className="grid gap-4">
-        <h2 className="display text-xl">Your music</h2>
-        <MusicRuns mixerLink />
-      </section>
+
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto grid w-full max-w-3xl gap-6 px-4 py-6 sm:px-6">
+          {status === "unauthenticated" ? (
+            <div className="grid justify-items-center gap-3 py-16 text-center">
+              <p className="text-fg-muted max-w-sm">
+                Sign in to make music. Each run shows its price in coins first: one coin is one
+                cent.
+              </p>
+              <Button onClick={() => openSignIn(true)}>Sign in</Button>
+            </div>
+          ) : (
+            <>
+              <LiveJam balance={balance.data?.coins ?? null} />
+              <MusicRuns mixerLink />
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="from-bg via-bg/95 shrink-0 bg-gradient-to-t to-transparent px-4 pt-2 pb-4 sm:px-6">
+        <div className="mx-auto w-full max-w-3xl">
+          <MusicGenerator
+            balance={balance.data?.coins ?? null}
+            prompt={prompt}
+            onPrompt={setPrompt}
+          />
+        </div>
+      </div>
     </div>
   );
 }
