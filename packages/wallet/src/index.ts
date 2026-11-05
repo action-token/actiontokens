@@ -22,3 +22,4 @@ export {
 export { signTransaction } from "./signing/sign-transaction";
 export { getWalletProvider } from "./providers/registry";
 export { useCustodialSigner } from "./session/use-custodial-signer";
+export { forgetAccountData } from "./session/forget-account-data";

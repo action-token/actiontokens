@@ -70,7 +70,7 @@ function Frame({
   const account: SideAccount =
     status === "loading" || (signedIn && me.isPending)
       ? { state: "loading" }
-      : !me.data
+      : !signedIn || !me.data
         ? { state: "signedOut", onSignIn: () => openWallet(true) }
         : {
             state: "signedIn",

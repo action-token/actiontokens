@@ -1,8 +1,10 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useEffect, useRef } from "react";
 
+import { forgetAccountData } from "@bandcoin/wallet";
+
 import { deriveArUser, useAuth } from "~/lib/ar/store";
-import { api } from "~/trpc/react";
 
 /**
  * ── SessionSync ────────────────────────────────────────────────────────────
@@ -37,8 +39,9 @@ import { api } from "~/trpc/react";
  * whole cache away — which reads as "the login didn't really take," even
  * though the session itself updated correctly the whole time.
  *
- * `void utils.invalidate()` refetches everything currently mounted against
- * the newly-current identity. Keyed on the user's *id* rather than the
+ * `forgetAccountData` empties every cached query and loads the mounted ones
+ * again for the newly-current identity (invalidating alone kept the old data
+ * on screen, and in switched-off queries for good). Keyed on the user's *id* rather than the
  * session object — a new object reference arrives on every background
  * session poll — so this fires once on an actual sign-in or sign-out, not on
  * every revalidation. The `undefined` guard on the first run skips
@@ -47,7 +50,7 @@ import { api } from "~/trpc/react";
 export function SessionSync() {
   const { data: session, status } = useSession();
   const setUser = useAuth((s) => s.setUser);
-  const utils = api.useUtils();
+  const queryClient = useQueryClient();
   const previousUserId = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
@@ -58,10 +61,10 @@ export function SessionSync() {
     setUser(status === "authenticated" && session?.user ? deriveArUser(session.user) : null);
 
     if (previousUserId.current !== undefined && previousUserId.current !== userId) {
-      void utils.invalidate();
+      void forgetAccountData(queryClient);
     }
     previousUserId.current = userId;
-  }, [status, session, setUser, utils]);
+  }, [status, session, setUser, queryClient]);
 
   return null;
 }
