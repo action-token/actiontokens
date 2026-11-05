@@ -174,7 +174,11 @@ wasn't carried over (its token was sealed with the old key): they connect again.
 
 **You check:** with a test page in a Facebook developer app.
 
-### 9. Parity checklist and cutover plan
+### 9. Parity checklist and cutover plan (skipped 2026-11-05)
+
+Production already runs the new apps on the copied data (data copy 2026-11-04). The fan app, the artist portal, the AR app and the
+worker are all live, so a cutover and rollback plan is no longer needed. The checklist (`20-parity-checklist.md`) stays as the record of
+what was built; clicking through it on production is left for later.
 
 - Every bandfan page and feature listed with where it lives now, checked ✓ in a browser.
 - A separate production cutover plan (domains, env, production copy, rollback) for your approval.
