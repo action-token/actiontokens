@@ -13,7 +13,13 @@ import { api, type RouterOutputs } from "~/trpc/react";
 
 import { FollowButton } from "../artist/follow-button";
 
-type Story = RouterOutputs["story"]["byArtist"]["stories"][number];
+type LiveStory = RouterOutputs["story"]["byArtist"]["stories"][number];
+/** What the viewer needs of a story; a past story has no "seen" and no end time. */
+type Story = Omit<LiveStory, "seen" | "expiresAt"> & { seen?: boolean };
+export type StorySource = {
+  artist: { name: string; slug: string; avatarUrl: string | null };
+  stories: Story[];
+};
 
 /** How long a photo stays before the next story. */
 const PHOTO_MS = 5000;
@@ -24,15 +30,19 @@ const TICK_MS = 50;
  * for the previous, hold to pause, Esc to close. A photo plays for five
  * seconds, a clip to its end. A story the viewer can't open shows what unlocks
  * it instead. `onFinish` runs after the last story (the row moves on to the
- * next artist).
+ * next artist). With `archive` it plays those past stories instead of the live
+ * ones: nothing is recorded as watched.
  */
 export function StoryViewer({
   slug,
   startAt,
+  archive,
   onClose,
   onFinish,
 }: {
   slug: string;
+  /** Past stories to play (the artist's highlights) instead of the live ones */
+  archive?: StorySource;
   /** Open on this story (its place in the artist's list) instead of the first one not watched yet. */
   startAt?: number;
   onClose: () => void;
@@ -40,7 +50,10 @@ export function StoryViewer({
 }) {
   const { status } = useSession();
   const utils = api.useUtils();
-  const data = api.story.byArtist.useQuery({ slug }, { staleTime: 0 });
+  const live = api.story.byArtist.useQuery({ slug }, { staleTime: 0, enabled: !archive });
+  const data: { data: StorySource | undefined; isPending: boolean; isError: boolean } = archive
+    ? { data: archive, isPending: false, isError: false }
+    : live;
   const markViewed = api.story.markViewed.useMutation();
   const [index, setIndex] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -48,14 +61,17 @@ export function StoryViewer({
   const started = useRef(false);
   const stories = data.data?.stories ?? [];
   const story: Story | undefined = stories[index];
+  const artist = data.data?.artist;
 
   // Open on the first story not seen yet.
   useEffect(() => {
     if (!data.data || started.current) return;
     started.current = true;
-    const firstNew = data.data.stories.findIndex((entry) => !entry.seen && !entry.lock);
+    const firstNew = archive
+      ? -1
+      : data.data.stories.findIndex((entry) => !entry.seen && !entry.lock);
     setIndex(startAt ?? (firstNew === -1 ? 0 : firstNew));
-  }, [data.data, startAt]);
+  }, [data.data, startAt, archive]);
 
   // The page behind doesn't scroll while a story is open.
   useEffect(() => {
@@ -83,8 +99,8 @@ export function StoryViewer({
   const open = story ? story.lock === null : false;
   const { mutate } = markViewed;
   useEffect(() => {
-    if (storyId && open && status === "authenticated") mutate({ storyId });
-  }, [storyId, open, status, mutate]);
+    if (storyId && open && !archive && status === "authenticated") mutate({ storyId });
+  }, [storyId, open, archive, status, mutate]);
 
   // A photo runs on a timer; a clip reports its own progress.
   useEffect(() => {
@@ -131,7 +147,7 @@ export function StoryViewer({
       <div className="relative h-dvh w-full max-w-[460px] overflow-hidden bg-neutral-900 text-white sm:h-[min(92dvh,860px)] sm:rounded-3xl">
         {data.isPending ? (
           <Skeleton className="size-full rounded-none" />
-        ) : data.isError || !story ? (
+        ) : data.isError || !story || !artist ? (
           <div className="grid size-full place-items-center p-8 text-center text-sm">
             {data.isError ? "Couldn't load these stories." : "No stories right now."}
           </div>
@@ -188,23 +204,19 @@ export function StoryViewer({
                 ))}
               </div>
               <div className="flex items-center gap-2.5 text-sm">
-                {data.data.artist.avatarUrl ? (
+                {artist.avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element -- avatars come from many hosts
-                  <img
-                    src={data.data.artist.avatarUrl}
-                    alt=""
-                    className="size-8 rounded-full object-cover"
-                  />
+                  <img src={artist.avatarUrl} alt="" className="size-8 rounded-full object-cover" />
                 ) : (
                   <span className="grid size-8 place-items-center rounded-full bg-white/25 text-xs font-bold">
-                    {data.data.artist.name.slice(0, 2).toUpperCase()}
+                    {artist.name.slice(0, 2).toUpperCase()}
                   </span>
                 )}
                 <Link
-                  href={`/artist/${data.data.artist.slug}`}
+                  href={`/artist/${artist.slug}`}
                   className="pointer-events-auto font-semibold hover:underline"
                 >
-                  {data.data.artist.name}
+                  {artist.name}
                 </Link>
                 <span className="text-white/70">{timeAgo(story.createdAt)}</span>
                 <button
@@ -223,13 +235,7 @@ export function StoryViewer({
                 {story.caption}
               </p>
             )}
-            {story.lock && (
-              <LockScreen
-                lock={story.lock}
-                name={data.data.artist.name}
-                slug={data.data.artist.slug}
-              />
-            )}
+            {story.lock && <LockScreen lock={story.lock} name={artist.name} slug={artist.slug} />}
           </>
         )}
       </div>

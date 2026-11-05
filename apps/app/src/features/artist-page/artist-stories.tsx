@@ -13,6 +13,12 @@ import { StoryViewer } from "../feed/story-viewer";
 import { Avatar } from "../shell/context-panel";
 
 type Story = RouterOutputs["story"]["byArtist"]["stories"][number];
+type PastStory = RouterOutputs["story"]["archive"]["stories"][number];
+
+const shortDate = (date: Date | string) =>
+  new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(
+    new Date(date),
+  );
 
 /** An artist's live stories (open to anyone; locked ones come back as a lock). */
 function useArtistStories(slug: string) {
@@ -90,7 +96,67 @@ export function ArtistStories({ slug }: { slug: string }) {
   );
 }
 
-function Tile({ story, onOpen }: { story: Story; onOpen: () => void }) {
+/**
+ * Everything the artist ever shared, newest first, as a row under their stories.
+ * Each story keeps the audience it had: a locked one shows what unlocks it.
+ * Tapping one plays the highlights from there. Hidden when there are none.
+ */
+export function ArtistHighlights({ slug }: { slug: string }) {
+  const archive = api.story.archive.useInfiniteQuery(
+    { slug },
+    { getNextPageParam: (last) => last.nextCursor ?? undefined, staleTime: 60_000 },
+  );
+  const [start, setStart] = useState<number | null>(null);
+  const pages = archive.data?.pages ?? [];
+  const artist = pages[0]?.artist;
+  const stories = pages.flatMap((page) => page.stories);
+  if (!artist || stories.length === 0) return null;
+
+  return (
+    <section className="grid gap-4" aria-label="Highlights">
+      <SectionTitle title="Highlights" note="everything they've shared" />
+      <ul className="-mx-4 flex [scrollbar-width:none] gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+        {stories.map((story, index) => (
+          <li key={story.id} className="shrink-0">
+            <Tile past story={story} onOpen={() => setStart(index)} />
+          </li>
+        ))}
+        {archive.hasNextPage && (
+          <li className="shrink-0">
+            <button
+              type="button"
+              disabled={archive.isFetchingNextPage}
+              onClick={() => void archive.fetchNextPage()}
+              className="bg-surface-2 text-fg-muted hover:text-fg grid aspect-[9/16] w-28 place-content-center rounded-2xl border-2 border-dashed text-xs font-semibold sm:w-32"
+            >
+              {archive.isFetchingNextPage ? "Loading…" : "Older"}
+            </button>
+          </li>
+        )}
+      </ul>
+      {start !== null && (
+        <StoryViewer
+          slug={slug}
+          archive={{ artist, stories }}
+          startAt={start}
+          onClose={() => setStart(null)}
+          onFinish={() => setStart(null)}
+        />
+      )}
+    </section>
+  );
+}
+
+function Tile({
+  story,
+  onOpen,
+  past = false,
+}: {
+  story: Story | PastStory;
+  onOpen: () => void;
+  /** A highlight: not "new", so no yellow border, and the date instead of the age */
+  past?: boolean;
+}) {
   const picture = story.thumbnailUrl ?? (story.type === "IMAGE" ? story.url : null);
   return (
     <button
@@ -99,7 +165,7 @@ function Tile({ story, onOpen }: { story: Story; onOpen: () => void }) {
       aria-label={story.lock ? "A locked story" : (story.caption ?? "Watch this story")}
       className={cn(
         "bg-surface-3 relative block aspect-[9/16] w-32 overflow-hidden rounded-2xl border-2 text-left text-white transition-transform hover:-translate-y-0.5 sm:w-36",
-        story.seen || story.lock ? "border-border" : "border-primary",
+        past || ("seen" in story && story.seen) || story.lock ? "border-border" : "border-primary",
       )}
     >
       {story.lock ? (
@@ -136,7 +202,9 @@ function Tile({ story, onOpen }: { story: Story; onOpen: () => void }) {
           )}
           <span className="absolute inset-x-2 bottom-2 grid gap-0.5 text-xs">
             {story.caption && <span className="line-clamp-2 font-semibold">{story.caption}</span>}
-            <span className="text-white/70">{timeAgo(story.createdAt)}</span>
+            <span className="text-white/70">
+              {past ? shortDate(story.createdAt) : timeAgo(story.createdAt)}
+            </span>
           </span>
         </>
       )}

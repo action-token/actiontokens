@@ -193,6 +193,63 @@ export async function artistStories(
   };
 }
 
+/** How many ended stories one page of an artist's archive shows. */
+const ARCHIVE_PAGE = 24;
+
+/**
+ * An artist's past stories (ended, never taken down), newest first, a page at a
+ * time. Each keeps the audience it was shared with: one the viewer can't open
+ * comes back as a lock with no picture or words, as in the live ring. Live
+ * stories aren't repeated here.
+ */
+export async function storyArchive(
+  ctx: ServiceCtx,
+  viewer: SessionUser | null,
+  input: { slug: string; cursor?: string },
+  now = new Date(),
+) {
+  const artist = await ctx.db.artist.findFirst({
+    where: { slug: input.slug, status: "APPROVED" },
+    select: artistFields,
+  });
+  if (!artist) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Artist not found" });
+  const rows = await ctx.db.story.findMany({
+    where: { artistId: artist.id, removedAt: null, expiresAt: { lte: now } },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    take: ARCHIVE_PAGE + 1,
+    ...(input.cursor ? { cursor: { id: input.cursor } } : {}),
+    select: {
+      id: true,
+      type: true,
+      url: true,
+      thumbnailUrl: true,
+      caption: true,
+      audience: true,
+      tier: { select: { name: true, requiredTokens: true } },
+      createdAt: true,
+      expiresAt: true,
+    },
+  });
+  const page = rows.slice(0, ARCHIVE_PAGE);
+  const lockOf = await locksFor(ctx, viewer, artist, page);
+  return {
+    artist: { name: artist.name, slug: artist.slug, avatarUrl: artist.avatarUrl },
+    stories: page.map((row) => {
+      const lock = lockOf(row);
+      return {
+        id: row.id,
+        type: row.type,
+        createdAt: row.createdAt,
+        url: lock ? null : row.url,
+        thumbnailUrl: lock ? null : row.thumbnailUrl,
+        caption: lock ? null : row.caption,
+        lock,
+      };
+    }),
+    nextCursor: rows.length > ARCHIVE_PAGE ? (rows[ARCHIVE_PAGE]?.id ?? null) : null,
+  };
+}
+
 /** Records that the viewer watched a story (once each; not the artist, not a story they can't open). */
 export async function markStoryViewed(
   ctx: ServiceCtx,
@@ -225,14 +282,15 @@ export async function markStoryViewed(
   return { recorded: true };
 }
 
-/** How long an ended story's row is kept before the worker clears it. */
+/** How long a taken-down story's row is kept before the worker clears it. */
 export const STORY_KEEP_MS = 24 * 60 * 60_000;
 
-/** The worker's cleanup: stories that ended (or were taken down) more than a day ago. */
+/**
+ * The worker's cleanup: stories taken down more than a day ago. Stories that
+ * simply ended are kept, they are the artist's archive.
+ */
 export async function sweepStories(ctx: Pick<Context, "db">, now = new Date()) {
   const before = new Date(now.getTime() - STORY_KEEP_MS);
-  const { count } = await ctx.db.story.deleteMany({
-    where: { OR: [{ expiresAt: { lt: before } }, { removedAt: { lt: before } }] },
-  });
+  const { count } = await ctx.db.story.deleteMany({ where: { removedAt: { lt: before } } });
   return { deleted: count };
 }

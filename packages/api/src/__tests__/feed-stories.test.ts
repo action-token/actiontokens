@@ -5,6 +5,7 @@ import {
   artistStories,
   markStoryViewed,
   STORY_KEEP_MS,
+  storyArchive,
   storyRing,
   sweepStories,
 } from "../services/feed/stories";
@@ -45,7 +46,9 @@ function setup(
     },
     story: {
       findMany: vi.fn().mockResolvedValue(over.stories ?? [storyRow()]),
-      findFirst: vi.fn().mockResolvedValue({ id: "s1", audience: "EVERYONE", tier: null, artist: artistRow }),
+      findFirst: vi
+        .fn()
+        .mockResolvedValue({ id: "s1", audience: "EVERYONE", tier: null, artist: artistRow }),
     },
     follow: {
       findFirst: vi.fn().mockResolvedValue(over.follows ? { artistId: "a0" } : null),
@@ -194,9 +197,9 @@ describe("viewing a story", () => {
 
   it("doesn't count the artist's own views, or a story the viewer can't open", async () => {
     const own = setup();
-    expect(
-      await markStoryViewed(own.ctx, { ...fan, id: ARTIST_USER }, "s1", now),
-    ).toEqual({ recorded: false });
+    expect(await markStoryViewed(own.ctx, { ...fan, id: ARTIST_USER }, "s1", now)).toEqual({
+      recorded: false,
+    });
     expect(own.db.storyView.createMany).not.toHaveBeenCalled();
 
     const locked = setup();
@@ -217,14 +220,95 @@ describe("viewing a story", () => {
   });
 });
 
+describe("the story archive", () => {
+  const endedRow = (over: Record<string, unknown> = {}) => {
+    const { views: _views, ...rest } = storyRow({
+      createdAt: new Date("2026-11-01T09:00:00Z"),
+      expiresAt: new Date("2026-11-02T09:00:00Z"),
+      ...over,
+    });
+    return rest;
+  };
+
+  it("lists the artist's ended stories, newest first, never the live or taken-down ones", async () => {
+    const { ctx, db } = setup({ stories: [endedRow()] });
+    const result = await storyArchive(ctx, null, { slug: "dj-tamsin" }, now);
+    expect(result.artist).toEqual({ name: "DJ Tamsin", slug: "dj-tamsin", avatarUrl: null });
+    expect(result.stories).toEqual([
+      expect.objectContaining({ id: "s1", url: "https://cdn/s1.jpg", lock: null }),
+    ]);
+    expect(db.story.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { artistId: "a0", removedAt: null, expiresAt: { lte: now } },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        take: 25,
+      }),
+    );
+  });
+
+  it("keeps the audience a story had: a followers' story is a lock to someone who doesn't follow", async () => {
+    const { ctx } = setup({ stories: [endedRow({ audience: "FOLLOWERS" })] });
+    const [story] = (await storyArchive(ctx, fan, { slug: "dj-tamsin" }, now)).stories;
+    expect(story).toMatchObject({
+      url: null,
+      thumbnailUrl: null,
+      caption: null,
+      lock: { kind: "FOLLOW" },
+    });
+  });
+
+  it("opens a subscribers' story only for a fan who trusts the fan token", async () => {
+    const stories = [endedRow({ audience: "SUBSCRIBERS" })];
+    const trusting = setup({ stories });
+    const [open] = (await storyArchive(trusting.ctx, fan, { slug: "dj-tamsin" }, now)).stories;
+    expect(open).toMatchObject({ url: "https://cdn/s1.jpg", lock: null });
+
+    const plain = setup({ stories });
+    plain.chain.loadAccount.mockResolvedValue({ balances: [] });
+    const [locked] = (await storyArchive(plain.ctx, fan, { slug: "dj-tamsin" }, now)).stories;
+    expect(locked).toMatchObject({
+      url: null,
+      lock: expect.objectContaining({ kind: expect.any(String) }),
+    });
+    expect(locked?.lock).not.toBeNull();
+  });
+
+  it("always opens the artist's own old stories for them", async () => {
+    const { ctx } = setup({ stories: [endedRow({ audience: "MEMBERS" })] });
+    const owner: SessionUser = { ...fan, id: ARTIST_USER };
+    const [story] = (await storyArchive(ctx, owner, { slug: "dj-tamsin" }, now)).stories;
+    expect(story).toMatchObject({ url: "https://cdn/s1.jpg", lock: null });
+  });
+
+  it("pages 24 at a time: the extra row becomes the cursor for the next page", async () => {
+    const rows = Array.from({ length: 25 }, (_, index) => endedRow({ id: `s${index}` }));
+    const { ctx, db } = setup({ stories: rows });
+    const page = await storyArchive(ctx, null, { slug: "dj-tamsin" }, now);
+    expect(page.stories).toHaveLength(24);
+    expect(page.nextCursor).toBe("s24");
+
+    db.story.findMany.mockResolvedValue([endedRow({ id: "s24" })]);
+    const last = await storyArchive(ctx, null, { slug: "dj-tamsin", cursor: "s24" }, now);
+    expect(last.nextCursor).toBeNull();
+    expect(db.story.findMany).toHaveBeenLastCalledWith(
+      expect.objectContaining({ cursor: { id: "s24" } }),
+    );
+  });
+
+  it("says so when the artist isn't there", async () => {
+    const { ctx } = setup({ artist: null });
+    await expect(storyArchive(ctx, null, { slug: "nobody" }, now)).rejects.toMatchObject({
+      code: "RESOURCE_NOT_FOUND",
+    });
+  });
+});
+
 describe("the cleanup", () => {
-  it("clears stories that ended a day ago, and ones taken down a day ago", async () => {
+  it("keeps ended stories for the archive and only clears ones taken down a day ago", async () => {
     const deleteMany = vi.fn().mockResolvedValue({ count: 3 });
     const ctx = { db: { story: { deleteMany } } } as never;
     expect(await sweepStories(ctx, now)).toEqual({ deleted: 3 });
     const before = new Date(now.getTime() - STORY_KEEP_MS);
-    expect(deleteMany).toHaveBeenCalledWith({
-      where: { OR: [{ expiresAt: { lt: before } }, { removedAt: { lt: before } }] },
-    });
+    expect(deleteMany).toHaveBeenCalledWith({ where: { removedAt: { lt: before } } });
   });
 });
