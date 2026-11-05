@@ -95,6 +95,12 @@ Legend: ✅ built · 🟡 built, different shape (read the note) · ❓ needs yo
 
 Decided 2026-11-04: old shared links are not carried over. No redirects are built.
 
+## Route smoke test (2026-11-05, local)
+
+Every route in this list was loaded and none crashed: 25 fan app routes and 40 artist portal routes (signed in), and 12 AR routes plus
+7 detail routes (signed out). Two portal paths redirect on purpose (`/` to Pins, `/domain` to Settings), and AR's `/` goes to `/map`.
+This only shows the pages load. It doesn't replace clicking through each flow with real data (the first item below).
+
 ## Before cutover
 
 1. Click through every ✅ row on the copied production data (rehearsal) in a browser. This is the real check.
