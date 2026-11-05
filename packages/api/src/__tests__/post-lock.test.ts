@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { postGate, postLock } from "../services/feed/gate";
+import { gateMessage, postGate, postLock } from "../services/feed/gate";
 
 const tier = { name: "Insider", requiredTokens: "50" };
 const token = { code: "TAMSIN" };
@@ -85,7 +85,38 @@ describe("postGate", () => {
     expect(postGate({ access: "MEMBERS", ...open, tier, held: 60 })).toEqual({ open: true });
   });
 
+  it("asks fans to subscribe when the artist chose subscribers, and opens for the token's trustline", () => {
+    expect(postGate({ access: "SUBSCRIBERS", ...open })).toEqual({
+      open: false,
+      reason: "SUBSCRIBE",
+      code: "TAMSIN",
+    });
+    expect(postGate({ access: "SUBSCRIBERS", ...open, trusts: true })).toEqual({ open: true });
+    // Following isn't enough, and neither is holding the token without the line (impossible, but the line decides).
+    expect(postGate({ access: "SUBSCRIBERS", ...open, follows: true, held: 500 })).toMatchObject({
+      reason: "SUBSCRIBE",
+    });
+    expect(postGate({ access: "SUBSCRIBERS", ...open, token: null, trusts: true })).toEqual({
+      open: false,
+      reason: "SUBSCRIBE",
+      code: null,
+    });
+    expect(postGate({ access: "SUBSCRIBERS", ...open, viewLocked: true, trusts: true })).toEqual({
+      open: false,
+      reason: "LOCKED",
+    });
+  });
+
+  it("tells a fan to subscribe, by name, to comment or collect", () => {
+    const gate = postGate({ access: "SUBSCRIBERS", ...open });
+    expect(gateMessage(gate, "comment", "DJ Tamsin")).toBe("Subscribe to DJ Tamsin to comment.");
+    expect(gateMessage(gate, "collect", "DJ Tamsin")).toBe(
+      "Subscribe to DJ Tamsin to collect this post.",
+    );
+  });
+
   it("always lets the artist in unless it's off", () => {
     expect(postGate({ access: "MEMBERS", ...open, tier, isOwner: true })).toEqual({ open: true });
+    expect(postGate({ access: "SUBSCRIBERS", ...open, isOwner: true })).toEqual({ open: true });
   });
 });

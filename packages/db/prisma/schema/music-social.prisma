@@ -87,6 +87,8 @@ enum PostAccess {
   /// Everyone who can open it
   VIEWERS
   FOLLOWERS
+  /// Followers who trust the artist's fan token
+  SUBSCRIBERS
   MEMBERS
   NOBODY
 }

@@ -35,7 +35,11 @@ export function CollectQr({ post }: { post: FeedPost }) {
         className="text-fg-muted flex max-w-28 shrink-0 items-center gap-1 text-right text-[11px] leading-tight font-semibold"
       >
         <Lock className="size-3 shrink-0" />
-        {gate.reason === "TIER" ? `${gate.tierName} can collect` : "Followers can collect"}
+        {gate.reason === "TIER"
+          ? `${gate.tierName} can collect`
+          : gate.reason === "SUBSCRIBE"
+            ? "Subscribers can collect"
+            : "Followers can collect"}
       </span>
     );
   }

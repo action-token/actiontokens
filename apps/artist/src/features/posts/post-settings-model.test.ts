@@ -56,4 +56,17 @@ describe("post settings", () => {
     expect(settingsSummary(settings, () => "").see).toBe("Subscribers");
     expect(settingsProblem(settings, 0)).toBeNull();
   });
+
+  it("labels subscribers for comments and collecting, and they need no tier", () => {
+    const settings = {
+      ...settingsFrom(),
+      commentAccess: "SUBSCRIBERS" as const,
+      collectAccess: "SUBSCRIBERS" as const,
+    };
+    expect(settingsSummary(settings, () => "")).toMatchObject({
+      comment: "subscribers",
+      collect: "subscribers, 100 copies",
+    });
+    expect(settingsProblem(settings, 0)).toBeNull();
+  });
 });

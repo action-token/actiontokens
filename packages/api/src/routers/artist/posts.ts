@@ -20,7 +20,7 @@ const media = z
     }),
   )
   .max(10);
-const access = z.enum(["VIEWERS", "FOLLOWERS", "MEMBERS", "NOBODY"]);
+const access = z.enum(["VIEWERS", "FOLLOWERS", "SUBSCRIBERS", "MEMBERS", "NOBODY"]);
 const postFields = {
   title: z.string().trim().max(160),
   body: z.string().max(12_000).optional(),

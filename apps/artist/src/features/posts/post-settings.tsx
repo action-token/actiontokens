@@ -32,12 +32,14 @@ const ACCESS_HINT: Record<"comment" | "collect", Record<Access, string>> = {
   comment: {
     VIEWERS: "Anyone who can open the post can comment.",
     FOLLOWERS: "Only fans who follow you can comment.",
+    SUBSCRIBERS: "Only followers who trust your fan token (subscribers) can comment.",
     MEMBERS: "Only fans in this tier can comment.",
     NOBODY: "Comments are off. Comments already there stay visible.",
   },
   collect: {
     VIEWERS: "Anyone who can open the post can scan its QR to keep a free copy, one each.",
     FOLLOWERS: "Only fans who follow you can collect a copy.",
+    SUBSCRIBERS: "Only followers who trust your fan token (subscribers) can collect a copy.",
     MEMBERS: "Only fans in this tier can collect a copy.",
     NOBODY: "No QR shows and nobody can collect it.",
   },

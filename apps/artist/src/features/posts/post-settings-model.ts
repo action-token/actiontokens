@@ -1,6 +1,6 @@
 /** Who can open a post, and who can comment on or collect it (see services/artist/posts). */
 export type Audience = "EVERYONE" | "FOLLOWERS" | "SUBSCRIBERS" | "MEMBERS";
-export type Access = "VIEWERS" | "FOLLOWERS" | "MEMBERS" | "NOBODY";
+export type Access = "VIEWERS" | "FOLLOWERS" | "SUBSCRIBERS" | "MEMBERS" | "NOBODY";
 
 export type PostSettings = {
   audience: Audience;
@@ -24,6 +24,7 @@ export const AUDIENCE_LABEL: Record<Audience, string> = {
 export const ACCESS_LABEL: Record<Access, string> = {
   VIEWERS: "Everyone who can see",
   FOLLOWERS: "Followers",
+  SUBSCRIBERS: "Subscribers",
   MEMBERS: "Members",
   NOBODY: "Nobody",
 };
@@ -73,7 +74,9 @@ export function settingsSummary(
           ? "off"
           : access === "FOLLOWERS"
             ? "followers"
-            : "everyone";
+            : access === "SUBSCRIBERS"
+              ? "subscribers"
+              : "everyone";
   return {
     see:
       settings.audience === "MEMBERS"

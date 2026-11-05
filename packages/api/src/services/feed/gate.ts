@@ -58,11 +58,13 @@ export function postLock(input: { audience: PostAudience; tier: Tier } & Viewer)
 export type PostGate =
   | { open: true }
   | { open: false; reason: "OFF" | "LOCKED" | "FOLLOW" }
+  /** Needs the trustline to the artist's fan token (code is null while they have no token) */
+  | { open: false; reason: "SUBSCRIBE"; code: string | null }
   | ({ open: false; reason: "TIER" } & NonNullable<ReturnType<typeof tierShortfall>>);
 
 /**
  * Commenting and collecting each have their own rule: everyone who can open
- * the post, followers, members of a tier, or nobody. "Nobody" holds for the
+ * the post, followers, subscribers, members of a tier, or nobody. "Nobody" holds for the
  * artist too; otherwise the artist always may.
  */
 export function postGate(
@@ -73,6 +75,10 @@ export function postGate(
   if (input.viewLocked) return { open: false, reason: "LOCKED" };
   if (input.access === "FOLLOWERS")
     return input.follows ? { open: true } : { open: false, reason: "FOLLOW" };
+  if (input.access === "SUBSCRIBERS")
+    return input.token && input.trusts
+      ? { open: true }
+      : { open: false, reason: "SUBSCRIBE", code: input.token?.code ?? null };
   if (input.access === "MEMBERS" && input.tier) {
     const short = tierShortfall(input.tier, input);
     return short ? { open: false, reason: "TIER", ...short } : { open: true };
@@ -93,6 +99,8 @@ export function gateMessage(gate: PostGate, action: "comment" | "collect", artis
       return `Open this post first to ${doing}.`;
     case "FOLLOW":
       return `Follow ${artistName} to ${doing}.`;
+    case "SUBSCRIBE":
+      return `Subscribe to ${artistName} to ${doing}.`;
     case "TIER":
       return gate.code
         ? `Hold ${Number(gate.needed).toLocaleString("en-US")} ${gate.code} (${gate.tierName}) to ${doing}.`
