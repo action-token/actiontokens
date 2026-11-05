@@ -1,6 +1,8 @@
 # 24 · Story archive, story notifications and editing
 
-Status: **plan, waiting for approval** (2026-11-05). Nothing built.
+Status: **built 2026-11-05** (approved the same day), phases A to D, browser-checked locally. Committed, not pushed. The dev database has the new
+notification type applied (`20261105170000_story_notifications`); **production still needs that migration, and the worker needs the new sweep.**
+Test stories marked "[test]" were added to the dev database for the browser checks.
 
 ## What you asked for
 

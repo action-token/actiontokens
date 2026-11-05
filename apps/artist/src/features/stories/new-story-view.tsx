@@ -33,7 +33,7 @@ type Item = {
   caption: string;
 };
 
-const WHO: { value: Audience; label: string; hint: string; icon: typeof Eye }[] = [
+export const WHO: { value: Audience; label: string; hint: string; icon: typeof Eye }[] = [
   { value: "EVERYONE", label: "Everyone", hint: "Anyone can watch, signed in or not.", icon: Eye },
   {
     value: "FOLLOWERS",
