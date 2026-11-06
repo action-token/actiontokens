@@ -34,6 +34,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The image is about 3.5 GB (the API package pulls in onnxruntime) and Docker keeps a copy
+      # of each layer, so the runner's default free space is not enough. Remove tools this job
+      # never uses.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          df -h / | tail -1
+
       - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
@@ -55,8 +63,6 @@ jobs:
           file: apps/worker/Dockerfile
           load: true
           tags: bandcoin-worker:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Set up SSH
         run: |
