@@ -42,6 +42,7 @@ import {
   saveStudioPackage,
   updateStudioPricing,
 } from "../../services/admin/studio";
+import { studioEarnings } from "../../services/admin/studio-earnings";
 import { collectionSummary, exportCollections, pinReport } from "../../services/artist/reports";
 import { decidePins, deletePins, listPins, pinCounts, pinsForMap } from "../../services/admin/pins";
 import { getMuralSettings } from "../../services/ar/murals";
@@ -290,6 +291,10 @@ export const adminRouter = createRouter({
       )
       .mutation(({ ctx, input }) => updateSettings(ctx, input)),
     studio: adminProcedure.query(({ ctx }) => getStudioSettings(ctx)),
+    /** What Studio earns, from the coin ledger: per model, over the last `days` (all time when omitted). */
+    studioEarnings: adminProcedure
+      .input(z.object({ days: z.number().int().min(1).max(3650).optional() }))
+      .query(({ ctx, input }) => studioEarnings(ctx, input)),
     updateStudioPricing: adminProcedure
       .input(
         z.object({

@@ -81,6 +81,7 @@ const ADMIN: NavGroup = {
     { href: "/admin/reports", icon: BarChart3, label: "Collection reports" },
     { href: "/admin/alerts", icon: BellRing, label: "Alerts" },
     { href: "/admin/jobs", icon: Workflow, label: "Jobs" },
+    { href: "/admin/studio-earnings", icon: Coins, label: "Studio earnings" },
     { href: "/admin/settings", icon: SlidersHorizontal, label: "Settings" },
     { href: "/admin/activity", icon: ListChecks, label: "Activity" },
   ],
