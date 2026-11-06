@@ -142,7 +142,7 @@ class Mixed(unittest.TestCase):
         obs = observed(
             {
                 "bandcoin-worker": service(health_ok=False, failed_jobs=9),
-                "wadzzo-worker": service(running=False, health_ok=False),
+                "second-service": service(running=False, health_ok=False),
             },
             disk=95,
         )
@@ -150,20 +150,21 @@ class Mixed(unittest.TestCase):
         self.assertIn("disk", first["body"].lower())  # a full disk needs no second look
         mail, _ = run(obs, state, now=300)
         self.assertIn("bandcoin-worker", mail["body"])
-        self.assertIn("wadzzo-worker", mail["body"])
+        self.assertIn("second-service", mail["body"])
 
     def test_a_missing_optional_service_is_not_checked(self):
         mail, state = run(observed({"bandcoin-worker": service()}))
         self.assertIsNone(mail)
-        self.assertNotIn("wadzzo-worker", state["last"])
+        self.assertNotIn("second-service", state["last"])
 
 
 class Names(unittest.TestCase):
-    def test_it_watches_the_containers_the_servers_really_run(self):
-        # A wrong name is silent: an optional container that isn't found is simply skipped.
+    def test_it_watches_this_project_s_container_and_no_other(self):
+        # Other projects on the same machine watch their own containers. A wrong name here is
+        # silent for an optional container, so the list is pinned.
         self.assertEqual(
             [(name, port, required) for name, port, required in sm.SERVICES],
-            [("bandcoin-worker", 8080, True), ("wadzzo-worker", 4000, False)],
+            [("bandcoin-worker", 8080, True)],
         )
 
 

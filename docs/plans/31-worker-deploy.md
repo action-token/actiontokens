@@ -15,9 +15,13 @@ got **its own server**.
 | Account / region | Wadzzo AWS account (827022199028) · us-west-2a (Oregon, same region as the Neon database) |
 | Size | t3.small (2 vCPU, 2 GiB) · Ubuntu 24.04 LTS · 30 GiB gp3 (grown from 20 on 2026-11-06) · 1 GB swap |
 | Address | Elastic IP **54.69.28.110** · SSH user `ubuntu` · key pair `bandcoin-worker` (public half of `bandcoin.pem`) |
-| HTTPS names | `bandcoin.54-69-28-110.sslip.io` (this worker, host port 8080) and `wadzzo.54-69-28-110.sslip.io` (the Wadzzo task server, host port 4000). Free names that resolve to the IP; Caddy gets a Let's Encrypt certificate for each. The plain `54-69-28-110.sslip.io` is no longer served. |
+| HTTPS name | `bandcoin.54-69-28-110.sslip.io` (this worker, host port 8080). A free name that resolves to the IP; Caddy gets a Let's Encrypt certificate for it. The plain `54-69-28-110.sslip.io` is no longer served. |
 | Open ports | 22, 80, 443 (the worker's 8080 is bound to 127.0.0.1 only) |
-| Cost | about **$21.23 a month**: server $15.18 + public IPv4 $3.65 + 30 GB disk $2.40. About $6 while stopped. No free tier in this account. Both apps share it at no extra cost. |
+| Cost | about **$21.23 a month**: server $15.18 + public IPv4 $3.65 + 30 GB disk $2.40. About $6 while stopped. No free tier in this account. |
+
+**Shared machine.** The same EC2 instance also runs a container of another project. That project's
+repo documents its own deploy, container, port and Caddy site; they share the instance's memory (2 GB),
+disk and Docker, so the disk and memory alerts below cover the whole machine.
 
 What takes the 2 GB: Ubuntu ~250 MB, the worker 150–300 MB, ffmpeg while processing a song 200–500 MB
 (bursts), Caddy ~30 MB. Peak is about 1.5 GB; the swap file is the safety net.
@@ -31,7 +35,7 @@ What takes the 2 GB: Ubuntu ~250 MB, the worker 150–300 MB, ffmpeg while proce
    stops the container (up to 120 s so the job in hand finishes), starts the new one and waits
    for `/health`. If it never answers, it starts `previous` again and the workflow fails.
 
-The workflow does nothing unless the repository variable `DEPLOY_WORKER` is `true` (it is). Deploys of the two apps don't collide: each has its own workflow lock, container name, port and env file.
+The workflow does nothing unless the repository variable `DEPLOY_WORKER` is `true` (it is). Each deploy has its own workflow lock, container name, port and env file.
 
 ## Staying up
 
@@ -42,8 +46,8 @@ The workflow does nothing unless the repository variable `DEPLOY_WORKER` is `tru
 
 ## Done on the server (2026-11-06)
 
-Swap file, Docker, Caddy (`/etc/caddy/Caddyfile`: `bandcoin.54-69-28-110.sslip.io` → `127.0.0.1:8080`
-and `wadzzo.54-69-28-110.sslip.io` → `127.0.0.1:4000`, certificates issued), password logins off,
+Swap file, Docker, Caddy (`/etc/caddy/Caddyfile`: `bandcoin.54-69-28-110.sslip.io` → `127.0.0.1:8080`, certificate
+issued), password logins off,
 the watchdog and its cron line, and `~/bandcoin/worker.env` (mode 600): the production database,
 mainnet Stellar and treasury values, Square production, S3, the Firebase web config the shared
 wallet package reads on load, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `GOOGLE_MAP_API_KEY`,
@@ -61,9 +65,8 @@ contract-unlock transactions with `tx_insufficient_balance`: top it up.
   `NEXTAUTH_SECRET` identical to the worker's.
 - **Treasury**: a few XLM, so unlock transactions don't fail.
 - **Email**: SPF, DKIM and DMARC records for `bandcoin.io`.
-- **Later**: real names (`worker.bandcoin.io`, `task.wadzzo.com`…, each an A record to
-  54.69.28.110): change the site name in the Caddyfile, then `LIVE_WS_URL` and the Wadzzo apps'
-  `EXPRESS_SERVER_URL`.
+- **Later**: a real name (`worker.bandcoin.io`, an A record to 54.69.28.110): change the site name in
+  the Caddyfile, then `LIVE_WS_URL`.
 
 ## Checks after the first deploy
 

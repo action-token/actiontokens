@@ -34,7 +34,8 @@ ENV_PATH = os.environ.get("MONITOR_ENV", f"{HOME}/bandcoin/worker.env")
 ALERT_TO = os.environ.get("ALERT_TO", "support@bandcoin.io")
 
 # (container, port on this machine, required: a missing container counts as down)
-SERVICES = [("bandcoin-worker", 8080, True), ("wadzzo-worker", 4000, False)]
+# Only this project's container: other projects on the same machine watch their own.
+SERVICES = [("bandcoin-worker", 8080, True)]
 
 DOWN_CHECKS = 2  # bad checks in a row before it is a problem (a deploy takes one)
 REPEAT_AFTER_S = 6 * 3600
@@ -109,7 +110,7 @@ def evaluate(observed, state, now):
         parts.append("Recovered:\n" + "\n".join(f"  - {name}" for name in recovered))
     parts.append(
         f"Server: {socket.gethostname()}\n"
-        "Logs: docker logs bandcoin-worker (or wadzzo-worker). Failed jobs: Admin > Jobs."
+        "Logs: docker logs bandcoin-worker. Failed jobs: Admin > Jobs."
     )
     subject = (
         "[Bandcoin server] " + ", ".join(labels)

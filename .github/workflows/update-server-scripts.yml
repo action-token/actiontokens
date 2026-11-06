@@ -1,0 +1,47 @@
+name: Update server scripts (AWS EC2)
+
+# The watchdog and the monitor are small scripts that run on the server from cron. Changing one
+# doesn't need a new image, so this runs the monitor's tests and copies the scripts over, without
+# touching the running worker. A full worker deploy copies them too.
+# Off unless the repository variable DEPLOY_WORKER is true (same switch as the worker deploy).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/server_monitor.py"
+      - "scripts/test_server_monitor.py"
+      - "scripts/worker-watchdog.sh"
+      - ".github/workflows/update-server-scripts.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: update-server-scripts
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: vars.DEPLOY_WORKER == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test the monitor
+        run: python3 -m unittest scripts/test_server_monitor.py
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key.pem
+          chmod 600 ~/.ssh/deploy_key.pem
+          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Copy the scripts and check the monitor runs there
+        run: |
+          scp -i ~/.ssh/deploy_key.pem scripts/worker-watchdog.sh scripts/server_monitor.py \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:bandcoin/
+          # --dry-run reads the real server and prints what it would say; it sends nothing.
+          ssh -i ~/.ssh/deploy_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
+            'chmod +x ~/bandcoin/worker-watchdog.sh ~/bandcoin/server_monitor.py && ~/bandcoin/server_monitor.py --dry-run'
