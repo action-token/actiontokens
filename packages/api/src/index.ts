@@ -60,7 +60,7 @@ export { agentRouter } from "./routers/artist/agent";
 export { runPinBatch, BATCH_JOB, type BatchDeps } from "./services/agent/batch";
 export type { AgentRunPayload } from "./services/agent/contract";
 export { runAgent } from "./services/agent/runner";
-export { AGENT_JOB } from "./services/agent/conversations";
+export { AGENT_JOB, type AgentMessage } from "./services/agent/conversations";
 export { openaiAgentModel } from "./services/agent/model";
 export { pinTags } from "./services/agent/web";
 export { placePhoto } from "./services/agent/google";

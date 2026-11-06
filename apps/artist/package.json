@@ -40,7 +40,8 @@
     "react-qr-code": "catalog:",
     "react-dom": "catalog:",
     "superjson": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "zustand": "catalog:"
   },
   "devDependencies": {
     "@bandcoin/eslint-config": "workspace:*",

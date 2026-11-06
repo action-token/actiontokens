@@ -6,7 +6,8 @@
   "description": "The tRPC API: context, procedures, the activity log, services (business logic) and one root router per app.",
   "exports": {
     ".": "./src/index.ts",
-    "./app": "./src/root-app.ts"
+    "./app": "./src/root-app.ts",
+    "./agent-contract": "./src/services/agent/contract.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

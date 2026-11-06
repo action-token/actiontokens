@@ -14,6 +14,8 @@ import { Switch } from "@bandcoin/ui/components/switch";
 import { cn } from "@bandcoin/ui/lib/cn";
 import { ConfirmDialog } from "@bandcoin/ui/patterns/confirm-dialog";
 
+import { AgentChat } from "~/features/agent/agent-chat";
+import { AgentMapLayer } from "~/features/agent/agent-map";
 import { setAreaDraft } from "~/features/hotspots/area-draft";
 import {
   SHAPES,
@@ -249,6 +251,7 @@ export function PinsMap() {
               />
             )),
           )}
+        {!drawing && <AgentMapLayer />}
         {drawing && <DrawingLayers draftShape={draw.draftShape} points={draw.points} />}
       </BaseMap>
 
@@ -353,6 +356,8 @@ export function PinsMap() {
         />
       )}
       {!drawing && <PinLegend className="absolute bottom-8 left-14 z-10 hidden sm:block" />}
+
+      {!drawing && <AgentChat />}
 
       {cardOpen && pin && selected && (
         <PinCard
