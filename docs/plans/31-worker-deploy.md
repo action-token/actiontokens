@@ -13,11 +13,11 @@ got **its own server**.
 |---|---|
 | Name / id | `bandcoin-worker` · `i-0945aeab1cc369a1d` |
 | Account / region | Wadzzo AWS account (827022199028) · us-west-2a (Oregon, same region as the Neon database) |
-| Size | t3.small (2 vCPU, 2 GiB) · Ubuntu 24.04 LTS · 20 GiB gp3 · 1 GB swap |
+| Size | t3.small (2 vCPU, 2 GiB) · Ubuntu 24.04 LTS · 30 GiB gp3 (grown from 20 on 2026-11-06) · 1 GB swap |
 | Address | Elastic IP **54.69.28.110** · SSH user `ubuntu` · key pair `bandcoin-worker` (public half of `bandcoin.pem`) |
-| HTTPS name | `54-69-28-110.sslip.io` (free, resolves to the IP; Caddy gets a Let's Encrypt certificate) |
+| HTTPS names | `bandcoin.54-69-28-110.sslip.io` (this worker, host port 8080) and `wadzzo.54-69-28-110.sslip.io` (the Wadzzo task server, host port 4000). Free names that resolve to the IP; Caddy gets a Let's Encrypt certificate for each. The plain `54-69-28-110.sslip.io` is no longer served. |
 | Open ports | 22, 80, 443 (the worker's 8080 is bound to 127.0.0.1 only) |
-| Cost | about **$20.40 a month**: server $15.18 + public IPv4 $3.65 + disk $1.60. About $5.25 while stopped. No free tier in this account. |
+| Cost | about **$21.23 a month**: server $15.18 + public IPv4 $3.65 + 30 GB disk $2.40. About $6 while stopped. No free tier in this account. Both apps share it at no extra cost. |
 
 What takes the 2 GB: Ubuntu ~250 MB, the worker 150–300 MB, ffmpeg while processing a song 200–500 MB
 (bursts), Caddy ~30 MB. Peak is about 1.5 GB; the swap file is the safety net.
@@ -31,7 +31,7 @@ What takes the 2 GB: Ubuntu ~250 MB, the worker 150–300 MB, ffmpeg while proce
    stops the container (up to 120 s so the job in hand finishes), starts the new one and waits
    for `/health`. If it never answers, it starts `previous` again and the workflow fails.
 
-The workflow does nothing until the repository variable `DEPLOY_WORKER` is `true`.
+The workflow does nothing unless the repository variable `DEPLOY_WORKER` is `true` (it is). Deploys of the two apps don't collide: each has its own workflow lock, container name, port and env file.
 
 ## Staying up
 
@@ -42,25 +42,30 @@ The workflow does nothing until the repository variable `DEPLOY_WORKER` is `true
 
 ## Done on the server (2026-11-06)
 
-Swap file, Docker, Caddy (`/etc/caddy/Caddyfile` → `127.0.0.1:8080`, certificate issued),
-password logins off, the watchdog and its cron line, and `~/bandcoin/worker.env` (mode 600): the
-production database, mainnet Stellar and treasury values, Square production, S3, `OPENAI_API_KEY`,
-`GEMINI_API_KEY`, `GOOGLE_MAP_API_KEY`, `NEXTAUTH_SECRET`. **Not set anywhere:** SMTP (no emails),
-`SOCIAL_TOKEN_ENC_KEY` (Facebook sync), `LIVE_TICKET_SECRET` (falls back to `NEXTAUTH_SECRET`).
-Nothing is deployed yet, so Caddy answers 502 until the first deploy.
+Swap file, Docker, Caddy (`/etc/caddy/Caddyfile`: `bandcoin.54-69-28-110.sslip.io` → `127.0.0.1:8080`
+and `wadzzo.54-69-28-110.sslip.io` → `127.0.0.1:4000`, certificates issued), password logins off,
+the watchdog and its cron line, and `~/bandcoin/worker.env` (mode 600): the production database,
+mainnet Stellar and treasury values, Square production, S3, the Firebase web config the shared
+wallet package reads on load, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `GOOGLE_MAP_API_KEY`,
+`NEXTAUTH_SECRET`, `SOCIAL_TOKEN_ENC_KEY` and the Google SMTP settings (login tested; mail still
+needs SPF, DKIM and DMARC records on `bandcoin.io` to avoid spam folders). `LIVE_TICKET_SECRET`
+isn't set (falls back to `NEXTAUTH_SECRET`).
+
+The worker has run in production since 2026-11-06 (first working deploy: run 4, commit `a5da19b`).
+The treasury's spendable XLM is low (about 1.3 XLM above its reserve), which can fail the
+contract-unlock transactions with `tx_insufficient_balance`: top it up.
 
 ## Still to do (owner)
 
-- **GitHub** (`Bandcoin2023/bandcoin` › Settings): secrets `EC2_SSH_KEY` (the whole pem),
-  `EC2_HOST` = `54.69.28.110`, `EC2_USER` = `ubuntu`; an environment named `production`;
-  variable `DEPLOY_WORKER` = `true`. Then push; the first deploy starts the worker on the
-  **production** database.
-- **Studio on Vercel**: `LIVE_WS_URL=wss://54-69-28-110.sslip.io/live`, and `NEXTAUTH_SECRET`
-  identical to the worker's.
-- **Later**: a real name (`worker.bandcoin.io` → A record to 54.69.28.110): change the one line in
-  the Caddyfile and `LIVE_WS_URL`.
+- **Studio on Vercel**: `LIVE_WS_URL=wss://bandcoin.54-69-28-110.sslip.io/live`, and
+  `NEXTAUTH_SECRET` identical to the worker's.
+- **Treasury**: a few XLM, so unlock transactions don't fail.
+- **Email**: SPF, DKIM and DMARC records for `bandcoin.io`.
+- **Later**: real names (`worker.bandcoin.io`, `task.wadzzo.com`…, each an A record to
+  54.69.28.110): change the site name in the Caddyfile, then `LIVE_WS_URL` and the Wadzzo apps'
+  `EXPRESS_SERVER_URL`.
 
 ## Checks after the first deploy
 
-`curl https://54-69-28-110.sslip.io/health` answers 200; a WebSocket opens at `/live`;
+`curl https://bandcoin.54-69-28-110.sslip.io/health` answers 200; a WebSocket opens at `/live`;
 `docker kill bandcoin-worker` brings it back within seconds; a push that touches the worker deploys it.
