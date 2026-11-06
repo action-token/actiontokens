@@ -16,15 +16,20 @@ COPY . .
 RUN pnpm dlx turbo@2.11.10 prune @bandcoin/worker --docker
 
 FROM base AS install
+# Prisma needs OpenSSL to find the right engine for this system.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 COPY --from=prune /repo/out/json/ ./
-RUN pnpm install --frozen-lockfile --filter "@bandcoin/worker..."
+# No install scripts yet: packages/db's postinstall runs `prisma generate`, and its schema is only
+# copied in the next step. The client is generated explicitly below.
+RUN pnpm install --frozen-lockfile --ignore-scripts --filter "@bandcoin/worker..."
 COPY --from=prune /repo/out/full/ ./
-# The Prisma client is generated for this image's system (postinstall ran before the schema was copied).
 RUN pnpm --filter @bandcoin/db generate
 
 FROM node:24-slim AS run
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends ffmpeg ca-certificates \
+  && apt-get install -y --no-install-recommends ffmpeg openssl ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 RUN corepack enable
 ENV NODE_ENV=production PORT=8080
