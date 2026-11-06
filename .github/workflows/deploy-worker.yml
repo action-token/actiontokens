@@ -82,7 +82,9 @@ jobs:
           ssh -i ~/.ssh/deploy_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
             "bash -s -- ${TAG}" < scripts/deploy-worker.sh
 
-      - name: Keep the watchdog current
+      - name: Keep the watchdog and the monitor current
         run: |
-          scp -i ~/.ssh/deploy_key.pem scripts/worker-watchdog.sh \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:bandcoin/worker-watchdog.sh
+          scp -i ~/.ssh/deploy_key.pem scripts/worker-watchdog.sh scripts/server_monitor.py \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:bandcoin/
+          ssh -i ~/.ssh/deploy_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
+            'chmod +x ~/bandcoin/worker-watchdog.sh ~/bandcoin/server_monitor.py'
