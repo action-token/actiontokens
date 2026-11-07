@@ -28,7 +28,14 @@ import { HOTSPOT_FILL, HotspotLayer } from "~/features/hotspots/hotspot-layer";
 import { api } from "~/trpc/react";
 
 import { BaseMap, WORLD_VIEW } from "./map-kit/base-map";
+import { ClusterBillboard } from "./map-kit/cluster-billboard";
 import { PinLegend, PinMarker, pinIcon, pinLook } from "./map-kit/pin-marker";
+import {
+  buildSpotIndex,
+  clusterExpansionZoom,
+  itemsInView,
+  type SpotIndex,
+} from "./map-kit/spot-clusters";
 import { PlaceSearch } from "./map-kit/place-search";
 import { MAPBOX_TOKEN } from "./mapbox";
 import { InViewPanel, type InViewPin } from "./in-view-panel";
@@ -57,6 +64,7 @@ export function PinsMap() {
   const [drawing, setDrawing] = useState(false);
   const [shape, setShape] = useState<AreaShape>("polygon");
   const [bounds, setBounds] = useState<Bounds | null>(null);
+  const [zoom, setZoom] = useState(0);
   const pins = api.pins.pins.useQuery();
   const hotspots = api.hotspots.hotspots.useQuery();
 
@@ -94,6 +102,34 @@ export function PinsMap() {
     [pins.data, showEnded],
   );
   const pin = shown.find((item) => item.id === selected?.pinId) ?? null;
+
+  // A pin can have dozens of spots; drawing each as its own marker froze the page. Group them into
+  // clusters (as the AR map does) and draw only what's in view, never more than a few hundred.
+  const spotIndex = useMemo<SpotIndex>(
+    () =>
+      buildSpotIndex(
+        shown.flatMap((item) =>
+          item.spotPoints.map((spot) => ({
+            pinId: item.id,
+            spotId: spot.id,
+            latitude: spot.latitude,
+            longitude: spot.longitude,
+            image: item.imageUrl,
+          })),
+        ),
+      ),
+    [shown],
+  );
+  const spotLookup = useMemo(
+    () =>
+      new Map(shown.flatMap((item) => item.spotPoints.map((spot) => [spot.id, { item, spot }]))),
+    [shown],
+  );
+  const onScreen = useMemo(
+    () =>
+      bounds ? itemsInView(spotIndex, bounds, zoom, { selectedSpotId: selected?.spotId }) : [],
+    [spotIndex, bounds, zoom, selected?.spotId],
+  );
   const hotspot = hotspots.data?.find((item) => item.id === hotspotId) ?? null;
 
   const refreshBounds = () => {
@@ -105,6 +141,7 @@ export function PinsMap() {
         east: box.getEast(),
         west: box.getWest(),
       });
+    setZoom(map.current?.getZoom() ?? 0);
   };
   const inView = useMemo<InViewPin[]>(() => {
     if (!bounds) return [];
@@ -234,8 +271,28 @@ export function PinsMap() {
       >
         {hotspots.data && <HotspotLayer hotspots={hotspots.data} />}
         {!drawing &&
-          shown.flatMap((item) =>
-            item.spotPoints.map((spot) => (
+          onScreen.map((entry) => {
+            if (entry.kind === "cluster")
+              return (
+                <ClusterBillboard
+                  key={`cluster:${entry.id}`}
+                  latitude={entry.latitude}
+                  longitude={entry.longitude}
+                  count={entry.count}
+                  images={entry.images}
+                  onOpen={() =>
+                    map.current?.easeTo({
+                      center: [entry.longitude, entry.latitude],
+                      zoom: clusterExpansionZoom(spotIndex, entry.id),
+                      duration: 500,
+                    })
+                  }
+                />
+              );
+            const found = spotLookup.get(entry.spotId);
+            if (!found) return null;
+            const { item, spot } = found;
+            return (
               <PinMarker
                 key={`${item.id}:${spot.id}`}
                 lat={spot.latitude}
@@ -249,8 +306,8 @@ export function PinsMap() {
                 selected={spot.id === selected?.spotId}
                 onClick={() => selectPin(item.id, spot.id)}
               />
-            )),
-          )}
+            );
+          })}
         {!drawing && <AgentMapLayer />}
         {drawing && <DrawingLayers draftShape={draw.draftShape} points={draw.points} />}
       </BaseMap>

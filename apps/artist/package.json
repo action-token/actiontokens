@@ -40,6 +40,7 @@
     "react-qr-code": "catalog:",
     "react-dom": "catalog:",
     "superjson": "catalog:",
+    "supercluster": "catalog:",
     "zod": "catalog:",
     "zustand": "catalog:"
   },
@@ -51,6 +52,7 @@
     "@types/qrcode": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "@types/supercluster": "catalog:",
     "eslint": "catalog:",
     "postcss": "catalog:",
     "tailwindcss": "catalog:",
