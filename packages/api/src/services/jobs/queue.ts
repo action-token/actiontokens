@@ -8,8 +8,12 @@ import type { Db, Job, Prisma } from "@bandcoin/db";
  */
 export const RETRY_MINUTES = [1, 5, 15, 60] as const;
 
-/** A job still RUNNING this long after it was taken belonged to a worker that died. */
-export const STALE_AFTER_MS = 15 * 60_000;
+/**
+ * A job still RUNNING this long after its worker last touched it belonged to a worker that died.
+ * A live worker touches its job every HEARTBEAT_MS, however long the job takes.
+ */
+export const STALE_AFTER_MS = 5 * 60_000;
+export const HEARTBEAT_MS = 30_000;
 
 export type JobType =
   | "order.reconcile"
@@ -87,6 +91,11 @@ export async function claimJob(
     )
     RETURNING *`;
   return rows[0] ?? null;
+}
+
+/** The worker says it is still alive and on this job (moves `lockedAt`, which staleness is measured from). */
+export async function heartbeatJob(db: Db, job: Pick<Job, "id">, now = new Date()) {
+  await db.job.updateMany({ where: { id: job.id, status: "RUNNING" }, data: { lockedAt: now } });
 }
 
 export async function completeJob(db: Db, job: Pick<Job, "id">, result?: Prisma.InputJsonValue) {

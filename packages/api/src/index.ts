@@ -32,6 +32,8 @@ export {
   completeJob,
   enqueueJob,
   failJob,
+  HEARTBEAT_MS,
+  heartbeatJob,
   JOB_TYPES,
   type JobType,
   releaseStaleJobs,

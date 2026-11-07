@@ -111,9 +111,15 @@ worker also runs:
 
 Changes made while finishing it:
 
-- **A worker that dies mid-job no longer re-runs a once-only job.** Stale jobs (RUNNING for over 15
-  minutes) used to go back in the queue whatever their attempts; now a job that used its attempts is
+- **A worker that dies mid-job no longer re-runs a once-only job.** Stale jobs (RUNNING for over 5
+  minutes since the worker last touched them) used to go back in the queue whatever their attempts; now a job that used its attempts is
   marked FAILED ("The worker stopped…") and only jobs with attempts left are queued again.
+- **Jobs run in parallel, like the Wadzzo worker.** `WORKER_CONCURRENCY` loops (default 3) take
+  every job type except ffmpeg work, which has its own `WORKER_TRANSCODE_SLOTS` loops (default 1) so
+  two transcodes never fight over the CPU and a long one never holds up an agent reply. A running
+  job touches its row every 30 s (so a long job isn't taken for a dead one), and one running past
+  `JOB_TIMEOUT_MS` (default 15 min) is failed and its loop moves on (the handler itself isn't
+  stopped). Jobs a dead worker left behind are put back by a 30 s timer, not inside the loop.
 - **The worker does sign one thing:** the treasury's NFT unlock records (`TREASURY_SECRET`). The env
   example said it never signs; it now lists every variable the jobs read (Gemini, OpenAI, Google Maps,
   the live-ticket secret) and says which are optional.

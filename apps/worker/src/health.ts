@@ -10,7 +10,7 @@ export const STALE_TICK_MS = IDLE_MS * 30;
 /** What GET /health answers: 200 while the loop is alive, 503 when it isn't. */
 export async function healthOf(db: Db, state: RunnerState, now = Date.now()) {
   const alive =
-    state.running !== null ||
+    state.running.size > 0 ||
     (state.lastTickAt !== null && now - state.lastTickAt.getTime() < STALE_TICK_MS);
   const [queued, failed] = await Promise.all([
     db.job.count({ where: { status: "QUEUED", runAt: { lte: new Date(now) } } }),
@@ -21,7 +21,7 @@ export async function healthOf(db: Db, state: RunnerState, now = Date.now()) {
     body: {
       ok: alive && queued !== null,
       lastTickAt: state.lastTickAt?.toISOString() ?? null,
-      running: state.running,
+      running: [...state.running],
       queued,
       failed,
     },
