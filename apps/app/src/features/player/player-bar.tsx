@@ -164,7 +164,7 @@ export function PlayerBar() {
         role="region"
         aria-label="Player"
         className={cn(
-          "bg-surface sm:bg-surface/95 pointer-events-auto relative z-10 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t px-4 py-1.5 max-sm:pb-[2.5rem] sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:rounded-[1.5rem] sm:border sm:px-5 sm:py-2 sm:shadow-[0_20px_40px_-14px_rgb(0_0_0/0.45)] sm:backdrop-blur",
+          "bg-surface sm:bg-surface/70 pointer-events-auto relative z-10 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t px-4 py-1.5 max-sm:pb-[2.5rem] sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:rounded-[1.5rem] sm:border sm:px-5 sm:py-2 sm:shadow-[0_20px_40px_-14px_rgb(0_0_0/0.45)] sm:backdrop-blur-lg",
           // Open: the bar is the drawer's foot, one surface with it, so no line between them.
           fullOpen && "max-sm:border-t-transparent",
         )}

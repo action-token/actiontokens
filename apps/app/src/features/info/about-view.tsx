@@ -114,8 +114,8 @@ export function AboutView() {
           <Link href="/support">Get help</Link>
         </Button>
       </InfoHero>
-      <PageBody className="grid max-w-5xl gap-10">
-        <p className="mx-auto max-w-3xl text-center text-lg leading-relaxed text-balance">
+      <PageBody className="mx-auto grid max-w-5xl gap-10">
+        <p className="max-w-3xl text-lg leading-relaxed text-pretty">
           Bandcoin is where artists sell music and more straight to the fans who love it, and where
           fans collect, follow and support them. Everything you buy is recorded on the Stellar
           network, so it is yours, not ours.

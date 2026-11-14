@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 /**
  * The top of an info page: a full-width yellow band with the title in big
  * type, a hand-written line under it and room for buttons. Place it above the
- * page body so it runs edge to edge.
+ * page body so it runs edge to edge. The band is full width; its text sits in the same
+ * centred 64rem column as the page body (`PageBody className="mx-auto max-w-5xl"`).
  */
 export function InfoHero({
   eyebrow,
@@ -26,7 +27,9 @@ export function InfoHero({
         aria-hidden
         className="bg-bg/10 absolute right-1/4 -bottom-28 -z-10 size-52 rounded-full sm:size-72"
       />
-      <div className="w-full max-w-[var(--page-max,96rem)] px-4 py-12 sm:px-8 sm:py-16">
+      {/* The same centred column as the page body below (64rem of content plus the side padding),
+          so the title and the text under it share one left edge. */}
+      <div className="mx-auto w-full max-w-[68rem] px-4 py-12 sm:px-8 sm:py-16">
         <p className="text-xs font-bold tracking-[0.18em] uppercase opacity-70">{eyebrow}</p>
         <h1 className="display mt-2 max-w-3xl text-6xl leading-[1.02] text-balance sm:text-8xl">
           {title}

@@ -17,6 +17,7 @@ import {
   sideIconButton,
   type SideAccount,
 } from "@bandcoin/ui/patterns/side-frame";
+import { SiteBackdrop } from "@bandcoin/ui/patterns/site-backdrop";
 import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
 import { api } from "~/trpc/react";
@@ -68,6 +69,7 @@ export function StudioShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="grid min-h-dvh grid-cols-1 sm:grid-cols-[auto_minmax(0,1fr)]">
+      <SiteBackdrop />
       <SideFrame
         label="Studio"
         home={{ href: "/", label: "Studio home", tagline: "studio" }}

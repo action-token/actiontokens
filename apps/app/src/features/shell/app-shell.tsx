@@ -8,6 +8,7 @@ import { type CSSProperties, type ReactNode, useEffect } from "react";
 
 import { cn } from "@bandcoin/ui/lib/cn";
 import { PhoneTabBar } from "@bandcoin/ui/patterns/phone-tab-bar";
+import { SiteBackdrop } from "@bandcoin/ui/patterns/site-backdrop";
 import { usePersistedFlag, useSidebarCollapsed } from "@bandcoin/ui/lib/sidebar-collapsed";
 
 import { AccountButton } from "~/features/account/account-button";
@@ -58,6 +59,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           "in-data-resizing:transition-none motion-reduce:transition-none xl:grid-cols-[auto_minmax(0,1fr)_var(--right-w)] xl:transition-[grid-template-columns] xl:duration-400 xl:ease-[ease]",
       )}
     >
+      <SiteBackdrop />
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       <SearchDialog />
 

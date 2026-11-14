@@ -54,7 +54,7 @@ export function PrivacyView() {
         title="Privacy policy"
         note="what we collect, and why"
       />
-      <PageBody className="grid max-w-5xl gap-8">
+      <PageBody className="mx-auto grid max-w-5xl gap-10">
         {DRAFT && (
           <p
             role="note"
@@ -79,7 +79,7 @@ export function PrivacyView() {
           </ul>
         </section>
 
-        <p className="max-w-3xl text-base leading-relaxed text-pretty">
+        <p className="max-w-3xl text-lg leading-relaxed text-pretty">
           This policy explains what information Bandcoin collects when you use the marketplace, the
           artist portal and the AR app, how it is used, and the choices you have. By using Bandcoin
           you agree to the practices described here.

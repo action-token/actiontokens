@@ -66,7 +66,7 @@ export function SupportView() {
           back to you.
         </p>
       </InfoHero>
-      <PageBody className="grid max-w-5xl gap-10">
+      <PageBody className="mx-auto grid max-w-5xl gap-10">
         <section className="grid gap-4" aria-label="Contact">
           <ul className="grid gap-4 sm:grid-cols-2">
             {CONTACTS.map((contact) => (

@@ -45,6 +45,12 @@
   --bc-info: #60a5fa;
   --bc-overlay: rgb(8 9 6 / 0.72);
   --bc-shadow: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 12px 32px -12px rgb(0 0 0 / 0.6);
+  /* The site backdrop's BANDCOIN mark (SiteBackdrop): the three colours it fades between, and
+     how strongly it shows through. A faint watermark on the dark page. */
+  --bc-mark-a: hsl(61 72% 52%);
+  --bc-mark-b: hsl(172 62% 50%);
+  --bc-mark-c: hsl(268 70% 68%);
+  --bc-mark: 0.016;
   color-scheme: dark;
 }
 
@@ -71,6 +77,10 @@
     --bc-info: #1d5fbf;
     --bc-overlay: rgb(247 247 242 / 0.8);
     --bc-shadow: 0 1px 2px rgb(26 27 20 / 0.06), 0 12px 28px -14px rgb(26 27 20 / 0.18);
+    --bc-mark-a: hsl(61 80% 58%);
+    --bc-mark-b: hsl(172 60% 62%);
+    --bc-mark-c: hsl(268 75% 78%);
+    --bc-mark: 0.045;
     color-scheme: light;
   }
 }
@@ -97,6 +107,10 @@
   --bc-info: #1d5fbf;
   --bc-overlay: rgb(247 247 242 / 0.8);
   --bc-shadow: 0 1px 2px rgb(26 27 20 / 0.06), 0 12px 28px -14px rgb(26 27 20 / 0.18);
+  --bc-mark-a: hsl(61 80% 58%);
+  --bc-mark-b: hsl(172 60% 62%);
+  --bc-mark-c: hsl(268 75% 78%);
+  --bc-mark: 0.045;
   color-scheme: light;
 }
 
@@ -253,6 +267,11 @@
   --animate-reveal: bc-reveal 520ms 120ms var(--ease-out-soft) forwards;
   /* A sideways equalizer bar (the fan app's right rail); each bar sets its own duration */
   --animate-eq-x: bc-eq-x 800ms var(--ease-out-soft) infinite alternate;
+  /* The site backdrop's BANDCOIN mark (SiteBackdrop) shifting colour: two solid copies over a
+     third fade in and out, opacity only, so the browser blends them without repainting. One
+     round (yellow, teal, violet, back to yellow) takes 36 s. */
+  --animate-mark-b: bc-mark-b 36s ease-in-out infinite;
+  --animate-mark-c: bc-mark-c 36s ease-in-out infinite;
 
   @keyframes bc-shimmer {
     from {
@@ -302,6 +321,32 @@
   @keyframes bc-spin {
     to {
       transform: rotate(360deg);
+    }
+  }
+  /* Yellow (the base) → teal (b) → violet (c, over b) → yellow. b drops out at 70% while c
+     still covers it fully, so the step can't be seen. */
+  @keyframes bc-mark-b {
+    0%,
+    100% {
+      opacity: 0;
+    }
+    33%,
+    70% {
+      opacity: 1;
+    }
+    70.1% {
+      opacity: 0;
+    }
+  }
+  @keyframes bc-mark-c {
+    0%,
+    33%,
+    100% {
+      opacity: 0;
+    }
+    62%,
+    74% {
+      opacity: 1;
     }
   }
   @keyframes bc-eq-x {

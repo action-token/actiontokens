@@ -10,6 +10,7 @@ import { useSidebarCollapsed } from "@bandcoin/ui/lib/sidebar-collapsed";
 import { BrandMark } from "@bandcoin/ui/patterns/boot-screen";
 import { PhoneTabBar } from "@bandcoin/ui/patterns/phone-tab-bar";
 import { SideLaunchTiles, SideMenuSheet } from "@bandcoin/ui/patterns/side-frame";
+import { SiteBackdrop } from "@bandcoin/ui/patterns/site-backdrop";
 
 import { AccountButton } from "~/features/account/account-button";
 import {
@@ -46,6 +47,7 @@ export function PortalShell({
 
   return (
     <div className="grid min-h-dvh grid-cols-1 sm:grid-cols-[auto_minmax(0,1fr)]">
+      <SiteBackdrop />
       <Sidebar
         groups={groups}
         pathname={pathname}
