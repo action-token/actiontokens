@@ -74,7 +74,7 @@ export default async function ProfilePage({ params }: Props) {
           aria-hidden
           className="absolute inset-0 -z-10 bg-gradient-to-t from-black/90 via-black/45 to-black/10"
         />
-        <div className="mx-auto grid w-full max-w-[80rem] gap-5 px-4 pt-16 pb-7 sm:px-8">
+        <div className="grid w-full max-w-[var(--page-max,96rem)] gap-5 px-4 pt-16 pb-7 sm:px-8">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end">
             <Avatar
               name={name}

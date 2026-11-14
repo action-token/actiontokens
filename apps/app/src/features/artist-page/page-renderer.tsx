@@ -118,7 +118,7 @@ export function PageRenderer({
         fontFamily: theme.fontPair === "grotesk" ? undefined : "var(--page-font)",
       }}
     >
-      <div className="mx-auto grid w-full max-w-[80rem] grid-cols-1 gap-[var(--page-gap)] px-4 py-6 sm:px-8 md:grid-cols-4">
+      <div className="grid w-full max-w-[var(--page-max,96rem)] grid-cols-1 gap-[var(--page-gap)] px-4 py-6 sm:px-8 md:grid-cols-4">
         {blocksToShow(blocks, artist, editing).map(({ block, empty }) => (
           <div
             key={block.uid}

@@ -22,7 +22,7 @@ export const metadata: Metadata = { title: "Feed" };
  */
 export default function FeedPage() {
   return (
-    <PageBody wide className="grid max-w-[90rem] gap-5">
+    <PageBody wide className="grid gap-5">
       <h1 className="sr-only">Feed</h1>
       <PeopleRow />
       <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,40rem)_minmax(0,1fr)] xl:gap-6">

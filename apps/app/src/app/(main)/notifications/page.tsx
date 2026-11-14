@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Notifications" };
 
 export default function NotificationsPage() {
   return (
-    <PageBody className="grid max-w-2xl gap-6">
+    <PageBody className="grid gap-6">
       <PageHeader title="Notifications" />
       <NotificationsView />
     </PageBody>

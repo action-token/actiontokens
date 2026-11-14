@@ -39,7 +39,7 @@ export function CoinsView() {
 
   const coins = balance.data?.coins;
   return (
-    <div className="mx-auto grid w-full max-w-[80rem] gap-8 px-4 pt-5 pb-10 sm:px-8 lg:pt-8">
+    <div className="grid w-full max-w-[var(--page-max,96rem)] gap-8 px-4 pt-5 pb-10 sm:px-8 lg:pt-8">
       <h1 className="sr-only">Coins</h1>
       <WalletHero
         label="your Studio coins"

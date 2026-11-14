@@ -56,7 +56,7 @@ export function PlaylistView({ playlistId }: { playlistId: string }) {
 
   if (playlist.isPending) {
     return (
-      <div className="mx-auto grid max-w-[80rem] gap-6 px-4 pt-8 sm:px-8">
+      <div className="grid max-w-[var(--page-max,96rem)] gap-6 px-4 pt-5 sm:px-8 lg:pt-8">
         <div className="flex items-end gap-6">
           <Skeleton className="size-48 rounded-xl" />
           <div className="grid flex-1 gap-3">
@@ -103,7 +103,7 @@ export function PlaylistView({ playlistId }: { playlistId: string }) {
           aria-hidden
           className="to-bg absolute inset-0 -z-10 bg-gradient-to-b from-transparent"
         />
-        <div className="mx-auto flex max-w-[80rem] flex-col gap-6 px-4 pt-8 pb-6 sm:flex-row sm:items-end sm:px-8">
+        <div className="flex max-w-[var(--page-max,96rem)] flex-col gap-6 px-4 pt-5 pb-6 sm:flex-row sm:items-end sm:px-8 lg:pt-8">
           <PlaylistCover
             covers={data.covers}
             className="w-48 shrink-0 rounded-xl shadow-[8px_10px_0_0_var(--color-primary)] sm:w-56"
@@ -142,7 +142,7 @@ export function PlaylistView({ playlistId }: { playlistId: string }) {
         </div>
       </section>
 
-      <div className="mx-auto grid max-w-[80rem] gap-5 px-4 pt-6 sm:px-8">
+      <div className="grid max-w-[var(--page-max,96rem)] gap-5 px-4 pt-5 sm:px-8 lg:pt-8">
         <div className="flex items-center gap-3">
           <PlayAllButton tracks={data.tracks} shuffle />
           {data.isOwner && (

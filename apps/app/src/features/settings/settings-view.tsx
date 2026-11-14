@@ -220,7 +220,7 @@ function Hero({ settings, form }: { settings: Settings; form: Form }) {
         )}
       </div>
 
-      <div className="mx-auto grid w-full max-w-[80rem] gap-5 px-4 pt-16 pb-7 sm:px-8">
+      <div className="grid w-full max-w-[var(--page-max,96rem)] gap-5 px-4 pt-16 pb-7 sm:px-8">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end">
           <div className="relative shrink-0">
             <Avatar

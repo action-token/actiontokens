@@ -7,7 +7,7 @@ import { currentTrack, usePlayer } from "../player/player-store";
 /** The right-hand panel on Home while a song is loaded: what's playing and what's next. */
 export function ContextPanel() {
   return (
-    <div className="grid content-start gap-7">
+    <div className="grid grid-cols-[minmax(0,1fr)] content-start gap-7">
       <NowPlaying />
     </div>
   );
@@ -15,7 +15,7 @@ export function ContextPanel() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="grid gap-3">
+    <section className="grid grid-cols-[minmax(0,1fr)] gap-3">
       <h2 className="display text-xl">{title}</h2>
       {children}
     </section>
@@ -31,7 +31,7 @@ function NowPlaying() {
   return (
     <>
       <Section title="Now playing">
-        <Link href={`/item/${track.slug}`} className="grid gap-3">
+        <Link href={`/item/${track.slug}`} className="grid grid-cols-[minmax(0,1fr)] gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
           <img
             src={track.coverUrl}
@@ -46,7 +46,7 @@ function NowPlaying() {
       </Section>
       {upNext.length > 0 && (
         <Section title="Up next">
-          <ul className="grid gap-1">
+          <ul className="grid grid-cols-[minmax(0,1fr)] gap-1">
             {upNext.map((entry, offset) => (
               <li key={entry.id}>
                 <button

@@ -30,7 +30,7 @@ const joined = (date: Date | string) =>
   new Date(date).toLocaleDateString("en", { month: "long", year: "numeric" });
 
 /** The column everything under the cover lines up in. */
-export const SETTINGS_COLUMN = "mx-auto w-full max-w-5xl";
+export const SETTINGS_COLUMN = "w-full max-w-5xl";
 
 /** Cancels the page's own padding so the cover runs edge to edge. */
 export const FULL_BLEED =

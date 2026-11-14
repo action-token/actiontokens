@@ -66,7 +66,7 @@ export type SideAccount =
 
 /** A round button in the sidebar header (Search, the bell): an ink circle on the block. */
 export const sideIconButton =
-  "bg-side-ink text-side relative flex size-10 shrink-0 items-center justify-center rounded-full transition-transform duration-200 hover:scale-110";
+  "bg-side-ink text-side relative flex size-9 shrink-0 items-center justify-center rounded-full transition-transform duration-200 hover:scale-110";
 
 const short = (address: string) => `${address.slice(0, 5)}…${address.slice(-5)}`;
 
@@ -141,7 +141,7 @@ export function SideFrame({
                 {tools && (
                   <div
                     className={cn(
-                      "flex shrink-0 origin-right items-center gap-2 transition-transform duration-300",
+                      "flex shrink-0 origin-right items-center gap-1.5 transition-transform duration-300",
                       scrolled && "scale-[0.85]",
                     )}
                   >
@@ -440,14 +440,15 @@ function SideMark({
       </span>
       {!compact && (
         <span className="min-w-0 leading-none">
-          <Tall
+          {/* never cut short: it is the brand, so the buttons beside it give way, not the name */}
+          <span
             className={cn(
-              "origin-left pb-[0.12em] transition-[font-size] duration-300",
-              shrunk ? "text-[1.4rem]" : "text-[1.9rem]",
+              "display block pt-[0.12em] pb-1.5 leading-[0.9] tracking-normal whitespace-nowrap uppercase transition-[font-size] duration-300",
+              shrunk ? "text-[1.35rem]" : "text-[1.65rem]",
             )}
           >
             Bandcoin
-          </Tall>
+          </span>
           {/* folds up under the wordmark once the links scroll */}
           <span
             className={cn(

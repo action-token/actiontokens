@@ -108,7 +108,7 @@ export default async function ItemPage({ params }: Props) {
           className="absolute inset-0 -z-10 bg-gradient-to-t from-black/80 via-transparent to-transparent"
         />
 
-        <div className="mx-auto max-w-[80rem] px-4 pt-6 pb-10 sm:px-8 lg:pb-12">
+        <div className="max-w-[var(--page-max,96rem)] px-4 pt-5 pb-10 sm:px-8 lg:pt-8 lg:pb-10">
           <nav
             aria-label="Breadcrumb"
             className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-white/70"

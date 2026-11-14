@@ -26,7 +26,7 @@ export function InfoHero({
         aria-hidden
         className="bg-bg/10 absolute right-1/4 -bottom-28 -z-10 size-52 rounded-full sm:size-72"
       />
-      <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
+      <div className="w-full max-w-[var(--page-max,96rem)] px-4 py-12 sm:px-8 sm:py-16">
         <p className="text-xs font-bold tracking-[0.18em] uppercase opacity-70">{eyebrow}</p>
         <h1 className="display mt-2 max-w-3xl text-6xl leading-[1.02] text-balance sm:text-8xl">
           {title}

@@ -39,7 +39,7 @@ export function CoverBanner({
       />
       <div
         className={cn(
-          "mx-auto grid w-full max-w-[80rem] gap-5 px-4 pt-16 pb-7 sm:px-8",
+          "grid w-full max-w-[var(--page-max,96rem)] gap-5 px-4 pt-16 pb-7 sm:px-8",
           centered && "justify-items-center text-center",
         )}
       >

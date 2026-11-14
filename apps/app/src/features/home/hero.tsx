@@ -65,7 +65,7 @@ export function Hero({ items }: { items: HeroItem[] }) {
         className="animate-in fade-in absolute inset-0 -z-10 size-full scale-125 object-cover opacity-25 blur-3xl duration-700"
       />
 
-      <div className="mx-auto grid max-w-[80rem] px-4 pt-6 sm:px-8 lg:pt-8">
+      <div className="grid max-w-[var(--page-max,96rem)] px-4 pt-6 sm:px-8 lg:pt-8">
         <div
           key={item.id}
           role="group"

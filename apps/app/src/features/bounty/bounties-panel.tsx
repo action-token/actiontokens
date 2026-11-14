@@ -16,7 +16,7 @@ type ActivityRow = RouterOutputs["bounty"]["recent"][number];
 /** The right panel on the bounties list. */
 export function BountiesPanel() {
   return (
-    <div className="grid content-start gap-7">
+    <div className="grid grid-cols-[minmax(0,1fr)] content-start gap-7">
       <TopBounties />
       <RecentActivity />
     </div>
@@ -33,11 +33,11 @@ function Panel({
   children: ReactNode;
 }) {
   return (
-    <section className="grid gap-2">
+    <section className="grid grid-cols-[minmax(0,1fr)] gap-2">
       <h2 className="display flex items-center gap-2 text-xl">
         <Icon className="text-primary-text size-4" /> {title}
       </h2>
-      <div className="grid gap-1">{children}</div>
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-1">{children}</div>
     </section>
   );
 }
@@ -109,7 +109,7 @@ function RecentActivity() {
               >
                 <kind.icon className="size-3.5" />
               </span>
-              <span className="grid min-w-0 gap-0.5 text-xs">
+              <span className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-0.5 text-xs">
                 <span>
                   <b className="font-semibold">
                     {row.user.displayName ?? row.user.username ?? "Someone"}
@@ -118,7 +118,7 @@ function RecentActivity() {
                 </span>
                 <Link
                   href={`/bounty/${row.bounty.id}`}
-                  className="line-clamp-2 font-medium hover:underline"
+                  className="line-clamp-2 font-medium break-words hover:underline"
                 >
                   {row.bounty.title}
                 </Link>

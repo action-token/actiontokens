@@ -67,7 +67,7 @@ export function HomeView() {
   );
 
   return (
-    <div className="mx-auto grid w-full max-w-[80rem] gap-14 px-4 pt-5 pb-10 sm:px-8 lg:pt-8">
+    <div className="grid w-full max-w-[var(--page-max,96rem)] gap-14 px-4 pt-5 pb-10 sm:px-8 lg:pt-8">
       <section className="grid justify-items-center gap-6 text-center">
         <p className="marker text-primary-text -rotate-2 text-xl">*make it with AI*</p>
         <TallText center className="pb-[0.12em] text-7xl sm:text-8xl">

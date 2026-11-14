@@ -30,7 +30,7 @@ export function LibraryView() {
   const items = runs.data?.pages.flatMap((p) => p.items) ?? [];
 
   return (
-    <div className="mx-auto grid w-full max-w-[80rem] gap-6 px-4 pt-5 pb-10 sm:px-8 lg:pt-8">
+    <div className="grid w-full max-w-[var(--page-max,96rem)] gap-6 px-4 pt-5 pb-10 sm:px-8 lg:pt-8">
       <header className="grid gap-1">
         <TallText className="pb-0 text-5xl">Library</TallText>
         <p className="marker text-primary-text -rotate-1 text-base">

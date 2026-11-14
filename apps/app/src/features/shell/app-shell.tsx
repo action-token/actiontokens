@@ -85,7 +85,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           className="bg-surface sticky top-0 hidden h-dvh border-l xl:block"
         >
           <ResizeHandle side="right" label="Resize the right panel" />
-          <div className="h-full overflow-y-auto p-4">
+          <div className="h-full overflow-x-hidden overflow-y-auto p-4">
             {panel === "music" ? <ContextPanel /> : <BountiesPanel />}
           </div>
         </aside>

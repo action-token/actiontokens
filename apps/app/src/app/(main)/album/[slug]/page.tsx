@@ -56,7 +56,7 @@ export default async function AlbumPage({ params }: Props) {
           className="absolute inset-0 -z-10 size-full scale-125 object-cover opacity-30 blur-3xl"
         />
         <div aria-hidden className="from-bg/0 to-bg absolute inset-0 -z-10 bg-gradient-to-b" />
-        <div className="mx-auto flex max-w-[80rem] flex-col gap-6 px-4 pt-8 pb-6 sm:flex-row sm:items-end sm:px-8">
+        <div className="flex max-w-[var(--page-max,96rem)] flex-col gap-6 px-4 pt-5 pb-6 sm:flex-row sm:items-end sm:px-8 lg:pt-8">
           {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
           <img
             src={album.coverUrl}
