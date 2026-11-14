@@ -4,7 +4,7 @@ import type { ArSettings, Coords } from "@bandcoin/ar-core/ar/types";
 export const FALLBACK_CENTER: Coords = { lat: 40.7128, lng: -74.006 };
 
 export const DEFAULT_SETTINGS: ArSettings = {
-  autoCollect: false,
+  autoCollect: true,
   followingOnly: false,
   haptics: true,
   sound: true,

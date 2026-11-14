@@ -28,7 +28,7 @@ const fan: SessionUser = {
   walletType: "freighter",
 };
 
-function setup(opts: { trusts?: boolean; xlm?: string } = {}) {
+function setup(opts: { trusts?: boolean; xlm?: string; declined?: { balanceId: string }[] } = {}) {
   const account = Object.assign(new Account(fanKeys.publicKey(), "4"), {
     subentry_count: 0,
     balances: [
@@ -58,6 +58,11 @@ function setup(opts: { trusts?: boolean; xlm?: string } = {}) {
       findUnique: vi.fn().mockResolvedValue({ itemId: "fan-item" }),
     },
     ownership: { upsert: vi.fn().mockResolvedValue({}) },
+    declinedGift: {
+      findMany: vi.fn().mockResolvedValue(opts.declined ?? []),
+      deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
+      upsert: vi.fn().mockResolvedValue({}),
+    },
     user: {
       findMany: vi
         .fn()
@@ -134,6 +139,8 @@ describe("gifts waiting to be claimed", () => {
         create: expect.objectContaining({ quantity: 25, source: "GIFT" }),
       }),
     );
+    // If the fan had declined it first, that is forgotten now.
+    expect(db.declinedGift.deleteMany).toHaveBeenCalledWith({ where: { balanceId: BALANCE } });
 
     // A claim of another balance, or one that also pays someone, is refused.
     const other = buildClaimGift({

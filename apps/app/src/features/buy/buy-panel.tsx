@@ -9,7 +9,6 @@ import { Badge } from "@bandcoin/ui/components/badge";
 import { Button } from "@bandcoin/ui/components/button";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { cn } from "@bandcoin/ui/lib/cn";
-import { CurrencyIcon } from "@bandcoin/ui/patterns/currency-icon";
 import { QuantityStepper } from "@bandcoin/ui/patterns/quantity-stepper";
 import { ToastViewport, TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
 import { useConnectWalletDialogStore } from "@bandcoin/wallet";
@@ -19,6 +18,7 @@ import type { DisplayCurrency } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import { Breakdown, Problem } from "./breakdown";
+import { CURRENCIES, CurrencyPicker } from "./currency-picker";
 import { GuestCheckout } from "./guest-checkout";
 import { useSquareCard } from "./square-card";
 import { usePurchase } from "./use-purchase";
@@ -29,13 +29,6 @@ type Quote = RouterOutputs["order"]["quote"];
 /** Most copies one order can include (the API allows 50; the NFT contract mints up to 20 at once). */
 const MAX_PER_ORDER = 50;
 const MAX_NFT_PER_ORDER = 20;
-
-const CURRENCIES: { value: DisplayCurrency; label: string }[] = [
-  { value: "BANDCOIN", label: "BANDCOIN" },
-  { value: "XLM", label: "XLM" },
-  { value: "USDC", label: "USDC" },
-  { value: "USD", label: "Card" },
-];
 
 /**
  * Buy copies of an item: pick a currency and quantity, read the full price
@@ -136,46 +129,13 @@ export function BuyPanel({
           </Badge>
         </div>
 
-        <div className="grid gap-1.5">
-          <span className="eyebrow">Pay with</span>
-          <div role="group" aria-label="Currency" className="grid grid-cols-2 gap-2">
-            {currencies.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                disabled={busy}
-                aria-pressed={option.value === currency}
-                onClick={() => setCurrency(option.value)}
-                className={cn(
-                  "bg-surface-2 hover:border-border-strong grid min-w-0 gap-0.5 rounded-md border p-2.5 text-left transition-colors",
-                  option.value === currency && "border-primary-text bg-primary-soft",
-                )}
-              >
-                <b className="flex items-center gap-2 text-[13px]">
-                  <CurrencyIcon currency={option.value} />
-                  {option.label}
-                </b>
-                <span
-                  className={cn(
-                    "text-fg-muted truncate text-[11px]",
-                    me.data && option.value !== "USD" && "num",
-                  )}
-                >
-                  {option.value === "USD" ? (
-                    "Debit or credit"
-                  ) : me.data ? (
-                    <>
-                      Balance{" "}
-                      <Money amount={me.data.balances[option.value]} currency={option.value} />
-                    </>
-                  ) : (
-                    "Stellar wallet"
-                  )}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
+        <CurrencyPicker
+          value={currency}
+          onChange={setCurrency}
+          options={currencies}
+          balances={me.data?.balances}
+          disabled={busy}
+        />
 
         {nft && listing.isOwn && (
           <p className="bg-surface-2 text-fg-muted rounded-md p-3 text-xs">

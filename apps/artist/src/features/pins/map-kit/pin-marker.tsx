@@ -1,10 +1,13 @@
 "use client";
 
-import { Calendar, MapPin, Rocket, Star, Target, type LucideIcon } from "lucide-react";
+import { Calendar, MapPin, Rocket, Star, Target, Zap, type LucideIcon } from "lucide-react";
 import { memo } from "react";
 import { Marker } from "react-map-gl/mapbox";
 
+import type { ResolvedPinLook } from "@bandcoin/ar-core/pin-look";
+import { shapeScale } from "@bandcoin/ar-core/shape-size";
 import { cn } from "@bandcoin/ui/lib/cn";
+import { PinGlyph } from "@bandcoin/ui/patterns/pin-glyph";
 
 export type PinLook = "hidden" | "expired" | "collected" | "scheduled" | "active";
 
@@ -43,14 +46,26 @@ export const PIN_LOOK: Record<PinLook, { label: string; opacity: string; border:
   hidden: { label: "Hidden", opacity: "opacity-40", border: "border-dashed border-danger" },
 };
 
-/** A pin on the map: its image (or kind icon), styled by state, with how many fans collected it. */
+/** The outline colour of each state, as CSS colours for the shape's edge. */
+const STATE_RING: Record<PinLook, string> = {
+  active: "var(--color-primary)",
+  collected: "var(--color-warning)",
+  scheduled: "var(--color-info)",
+  expired: "var(--color-fg-faint)",
+  hidden: "var(--color-danger)",
+};
+
+/**
+ * A pin on the map, drawn in its own shape (plan 43): the artist's picture, the pin's picture or a
+ * colour inside it, an outline in its state's colour, a ⚡ badge when it collects itself, and how
+ * many fans collected it.
+ */
 export const PinMarker = memo(function PinMarker({
   lat,
   lng,
-  image,
+  glyph,
   icon: Icon,
   look,
-  autoCollect,
   count,
   selected,
   onClick,
@@ -58,23 +73,21 @@ export const PinMarker = memo(function PinMarker({
 }: {
   lat: number;
   lng: number;
-  image?: string | null;
+  glyph: ResolvedPinLook;
+  /** Shown over a plain colour when the shape has no picture */
   icon: LucideIcon;
   look: PinLook;
-  autoCollect: boolean;
   count: number;
   selected?: boolean;
   onClick?: () => void;
   label: string;
 }) {
   const style = PIN_LOOK[look];
-  const outer = autoCollect ? "rounded-md" : "rounded-full";
-  const inner = autoCollect ? "rounded-[4px]" : "rounded-full";
   return (
     <Marker
       latitude={lat}
       longitude={lng}
-      anchor="center"
+      anchor={glyph.anchor}
       onClick={(event) => {
         event.originalEvent.stopPropagation();
         onClick?.();
@@ -82,38 +95,40 @@ export const PinMarker = memo(function PinMarker({
     >
       <button
         type="button"
-        aria-label={`${label}: ${style.label}, ${autoCollect ? "auto-collect" : "tap to collect"}`}
-        title={`${label} · ${style.label} · ${autoCollect ? "Auto-collect" : "Tap to collect"}`}
+        aria-label={`${label}: ${style.label}${glyph.autoBadge ? ", auto-collect" : ""}`}
+        title={`${label} · ${style.label}${glyph.autoBadge ? " · Auto-collect" : ""}`}
         className={cn(
-          "bg-surface relative flex size-11 items-center justify-center border-[2.5px] p-0.5 shadow-md transition-transform hover:scale-110 hover:opacity-100",
-          outer,
-          style.border,
+          "relative block transition-transform hover:scale-110 hover:opacity-100",
           style.opacity,
           look === "expired" && "grayscale",
-          selected && "ring-primary/40 scale-110 opacity-100 ring-4",
+          selected && "scale-110 opacity-100",
         )}
       >
+        {/* Live pins get a still halo; only the chosen one pulses. A pulse on every pin
+            keeps the GPU busy for as long as the map is open. */}
         {look === "active" && (
           <span
-            className={cn("border-primary/40 absolute -inset-[2.5px] animate-ping border-2", outer)}
+            className={cn(
+              "bg-primary/25 absolute inset-1 rounded-full",
+              selected && "animate-ping",
+            )}
             aria-hidden
           />
         )}
-        {image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={image} alt="" className={cn("relative size-full object-cover", inner)} />
-        ) : (
-          <span
-            className={cn(
-              "bg-surface-2 relative flex size-full items-center justify-center",
-              inner,
-            )}
-          >
-            <Icon className="text-fg-muted size-5" />
-          </span>
-        )}
+        <PinGlyph
+          path={glyph.path}
+          size={Math.round((selected ? 52 : 44) * shapeScale(glyph.path))}
+          color={glyph.color}
+          defaultColor="var(--color-surface-2)"
+          imageUrl={glyph.imageUrl}
+          imageFit={glyph.imageFit}
+          ringColor={selected ? "var(--color-primary)" : STATE_RING[look]}
+          ringWidth={selected ? 3.5 : 2.5}
+          badge={glyph.autoBadge}
+          placeholder={<Icon className="size-5" />}
+        />
         {count > 0 && (
-          <span className="bg-primary text-primary-ink num absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-bold shadow">
+          <span className="bg-primary text-primary-ink num absolute -right-1.5 -bottom-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-bold shadow">
             {count > 99 ? "99+" : count}
           </span>
         )}
@@ -143,13 +158,14 @@ export function PinLegend({ className }: { className?: string }) {
           </li>
         ))}
       </ul>
-      <div className="text-fg-muted mt-2 flex items-center gap-3 border-t pt-2">
-        <span className="flex items-center gap-1.5">
-          <span className="border-fg/60 size-3 rounded-full border-2" aria-hidden /> Tap
+      <div className="text-fg-muted mt-2 flex items-center gap-1.5 border-t pt-2">
+        <span
+          className="flex size-3.5 items-center justify-center rounded-full bg-[#22c55e] text-[#052e16]"
+          aria-hidden
+        >
+          <Zap className="size-2" strokeWidth={3.4} />
         </span>
-        <span className="flex items-center gap-1.5">
-          <span className="border-fg/60 size-3 rounded-[3px] border-2" aria-hidden /> Auto
-        </span>
+        Auto-collect
       </div>
     </div>
   );

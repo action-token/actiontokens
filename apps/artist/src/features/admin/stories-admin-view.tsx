@@ -41,7 +41,7 @@ export function StoriesAdminView() {
   });
 
   return (
-    <PageBody className="grid max-w-4xl gap-6">
+    <PageBody className="grid gap-6">
       <PageHeader
         eyebrow="Admin"
         title="Story review"

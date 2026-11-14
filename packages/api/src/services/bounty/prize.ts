@@ -35,7 +35,9 @@ export function prizeView(
 ) {
   const network = config.name === "mainnet" ? "public" : "testnet";
   const asset = prizeAsset(bounty, config.assets);
-  const currency = bounty.prizeAssetCode ? null : ((bounty.prizeCurrency ?? "BANDCOIN") as PrizeCurrency);
+  const currency = bounty.prizeAssetCode
+    ? null
+    : ((bounty.prizeCurrency ?? "BANDCOIN") as PrizeCurrency);
   return {
     amount: bounty.prizeAmount.toString(),
     /** Null when the prize is another asset: show `code` instead */

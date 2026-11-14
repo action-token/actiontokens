@@ -32,7 +32,13 @@ export const DEFAULT_ALERT_RULES: AlertRules = {
 };
 
 export type AlertKind =
-  "failedPayments" | "signInFailures" | "fastClaims" | "largeOrder" | "stuck" | "studioBalance";
+  | "failedPayments"
+  | "signInFailures"
+  | "fastClaims"
+  | "largeOrder"
+  | "stuck"
+  | "studioBalance"
+  | "brokenDomain";
 
 export type Alert = {
   key: string;
@@ -211,6 +217,33 @@ export async function studioBalances(ctx: Pick<Context, "db">) {
   });
 }
 
+/** Custom domains that were live and now fail (plan 32); one alert per time it broke. */
+async function brokenDomains(ctx: Pick<Context, "db">) {
+  const rows = await ctx.db.customDomain.findMany({
+    where: { status: "BROKEN" },
+    select: {
+      id: true,
+      domain: true,
+      brokenSince: true,
+      lastError: true,
+      createdAt: true,
+      artist: { select: { userId: true, name: true } },
+    },
+    take: 200,
+  });
+  return rows.map((row): Alert => {
+    const since = row.brokenSince ?? row.createdAt;
+    return {
+      key: `brokenDomain:${row.id}:${since.toISOString()}`,
+      kind: "brokenDomain",
+      title: "Custom domain stopped working",
+      detail: `${row.domain} (${row.artist.name}) fails since ${since.toISOString().slice(0, 10)}${row.lastError ? `: ${row.lastError}` : "."} The artist was told; it wasn't removed.`,
+      at: since,
+      userId: row.artist.userId,
+    };
+  });
+}
+
 /** For each person, the fastest jump between two claims in a row, when it beats the limit. */
 async function fastClaims(ctx: Pick<Context, "db">, rules: AlertRules, now: Date) {
   const claims = await ctx.db.pinClaim.findMany({
@@ -266,6 +299,7 @@ export async function listAlerts(ctx: Pick<Context, "db">, now = new Date()) {
       largeOrders(ctx, rules, now),
       stuckPayments(ctx, rules, now),
       studioBalances(ctx),
+      brokenDomains(ctx),
     ])
   ).flat();
   const reviewed = found.length

@@ -1,4 +1,12 @@
+import { checkLayer } from "./layers";
+import { lookColumnsFor, lookData, PIN_LOOK_SELECT } from "./pin-look";
 import { toAmount, toStroops } from "@bandcoin/chain";
+import {
+  columnsToLook,
+  resolvePinLook,
+  type PinLookColumns,
+  type PinLookInput,
+} from "@bandcoin/ar-core/pin-look";
 import type { PinType, Prisma } from "@bandcoin/db";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 import { randomLocation } from "@bandcoin/geo";
@@ -59,6 +67,10 @@ export type PinInput = {
   eventId?: string | null;
   /** Free-form labels; new ones are created on save */
   tags?: string[];
+  /** The artist's map layer to put it in; left out or null is a regular pin */
+  layerId?: string | null;
+  /** How it looks on the maps; left out is the default (circle, the artist's picture) */
+  look?: PinLookInput | null;
 };
 
 /** What an edit may change; where it is, how many spots and what it gives are fixed once created. */
@@ -80,6 +92,8 @@ export type UpdatePinInput = Partial<
     | "eventId"
     | "tags"
     | "reward"
+    | "layerId"
+    | "look"
   >
 > & { pinId: string };
 
@@ -244,6 +258,7 @@ async function ownPin(ctx: ServiceCtx, artist: ArtistRef, pinId: string) {
       rewardAmount: true,
       visibility: true,
       tierId: true,
+      layerId: true,
     },
   });
   if (!pin) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Pin not found" });
@@ -290,6 +305,7 @@ export async function pinOptions(
     ctx.db.artist.findUnique({
       where: { id: artist.id },
       select: {
+        avatarUrl: true,
         fanTokenItem: {
           select: {
             title: true,
@@ -306,6 +322,8 @@ export async function pinOptions(
     tiers: tiers.map((tier) => ({ ...tier, requiredTokens: tier.requiredTokens.toString() })),
     events,
     tags: tags.map((tag) => tag.label),
+    /** The artist's picture, for the pin look preview */
+    artistImage: owner?.avatarUrl ?? null,
     fanToken: owner?.fanTokenItem
       ? {
           title: owner.fanTokenItem.title,
@@ -348,6 +366,9 @@ export async function listPins(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef, n
     include: {
       rewardItem: { select: { title: true, coverUrl: true } },
       event: { select: { title: true } },
+      layer: { select: { id: true, name: true, icon: true, color: true } },
+      pinShape: PIN_LOOK_SELECT.pinShape,
+      artist: { select: { avatarUrl: true } },
       tags: { select: { tag: { select: { label: true } } } },
       spots: {
         where: { isHidden: false },
@@ -387,6 +408,13 @@ export async function listPins(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef, n
     collected: pin.spots.reduce((sum, spot) => sum + spot._count.claims, 0),
     reward: pin.rewardItem?.title ?? (pin.rewardsFanToken ? fanTokenLabel(pin.rewardAmount) : null),
     event: pin.event?.title ?? null,
+    layer: pin.layer,
+    look: resolvePinLook(pin, {
+      customShape: pin.pinShape,
+      artistImage: pin.artist.avatarUrl,
+      pinImage: pin.imageUrl,
+      autoCollect: pin.spots.some((spot) => spot.autoCollect),
+    }),
     tags: pin.tags.map((link) => link.tag.label),
   }));
 }
@@ -446,6 +474,8 @@ export async function getPin(
     isMultiSpot: pin.isMultiSpot,
     isHidden: pin.isHidden,
     eventId: pin.eventId,
+    layerId: pin.layerId,
+    look: columnsToLook(pin),
     tags: pin.tags.map((link) => link.tag.label),
     status: statusOf(pin, now),
     collected,
@@ -462,6 +492,8 @@ export type HotspotDrop = {
   hotspotId?: string;
   spots: { latitude: number; longitude: number }[];
   maxRadius: number;
+  /** The hotspot's look, copied onto the drop */
+  look?: PinLookColumns;
 };
 
 export async function createPin(
@@ -481,6 +513,8 @@ export async function createPin(
   const reward = await resolveReward(ctx, artist, input.reward, input.claimLimit);
   const eventId = await resolveEvent(ctx, artist, input.eventId);
   const tags = cleanTags(input.tags);
+  const layerId = (await checkLayer(ctx.db, artist.id, input.layerId)) ?? null;
+  const look = drop?.look ?? (await lookColumnsFor(ctx.db, artist.id, input.look));
 
   const pin = await ctx.db.$transaction(async (tx) => {
     const created = await tx.pin.create({
@@ -507,6 +541,8 @@ export async function createPin(
         // A hotspot's drops don't (the artist chose the area once).
         approval: drop || options.live ? "APPROVED" : "PENDING",
         hotspotId: drop?.hotspotId ?? null,
+        layerId,
+        ...(look ? lookData(look) : {}),
         spots: {
           createMany: {
             data: (
@@ -615,6 +651,16 @@ export async function updatePin(ctx: ServiceCtx, artist: ArtistRef, input: Updat
     data.rewardAmount = reward.rewardAmount;
     data.claimLimit = claimLimit;
     data.claimsLeft = claimLimit > 0 ? claimLimit - claimed : 0;
+  }
+
+  const layerId = await checkLayer(ctx.db, artist.id, input.layerId, pin.layerId);
+  if (layerId !== undefined)
+    data.layer = layerId ? { connect: { id: layerId } } : { disconnect: true };
+  const look = await lookColumnsFor(ctx.db, artist.id, input.look);
+  if (look) {
+    const { pinShapeId, ...rest } = lookData(look);
+    Object.assign(data, rest);
+    data.pinShape = pinShapeId ? { connect: { id: pinShapeId } } : { disconnect: true };
   }
 
   const tags = input.tags === undefined ? null : cleanTags(input.tags);

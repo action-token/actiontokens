@@ -48,6 +48,7 @@ import { ActivateWallet } from "../recharge/activate-wallet";
 import { RechargeToast } from "../recharge/recharge-toast";
 import { GiftsToClaim } from "./gifts-to-claim";
 import { SendDialog } from "./send-dialog";
+import { SentWaiting } from "./sent-waiting";
 import { SwapForm } from "./swap-form";
 import { useWalletOrder } from "./use-wallet-order";
 
@@ -139,6 +140,7 @@ export function WalletView() {
         <div className="grid grid-cols-[minmax(0,1fr)] content-start gap-4">
           {assets.data?.active && <XlmCard xlm={assets.data.xlm} />}
           <GiftsToClaim />
+          <SentWaiting />
         </div>
       </div>
 

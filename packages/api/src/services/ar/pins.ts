@@ -2,6 +2,8 @@ import type { Horizon } from "@stellar/stellar-sdk";
 
 import { deriveRarity } from "@bandcoin/ar-core/ar/rarity";
 import type { ArPin } from "@bandcoin/ar-core/ar/types";
+import type { MapLayerChip } from "@bandcoin/ar-core/layers";
+import { resolvePinLook } from "@bandcoin/ar-core/pin-look";
 import { site } from "@bandcoin/ar-core/site";
 import type { Db, Prisma } from "@bandcoin/db";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
@@ -43,6 +45,8 @@ export const pinInclude = (viewerId: string | null) =>
         fanTokenItem: { select: { classicToken: { select: { code: true, issuer: true } } } },
       },
     },
+    layer: { select: { id: true, name: true, icon: true, color: true } },
+    pinShape: { select: { path: true, anchor: true } },
     tags: { select: { tag: { select: { label: true } } } },
     spots: {
       where: { isHidden: false },
@@ -201,6 +205,13 @@ export function toArPin(
     lockReason: claim == null ? lockReason : null,
     subscribe: claim == null && lockReason != null ? subscribe : null,
     tags: facts.tags,
+    layer: pin.layer,
+    look: resolvePinLook(pin, {
+      customShape: pin.pinShape,
+      artistImage: pin.artist.avatarUrl ?? site.assets.mark,
+      pinImage: pin.imageUrl,
+      autoCollect: spot.autoCollect,
+    }),
   };
 }
 
@@ -374,4 +385,56 @@ export function searchScore(
     else if (description.includes(term)) score += 1;
   }
   return score;
+}
+
+/**
+ * The fan map's `layer` filter as a where-clause on pins (plan 42):
+ * - undefined: no filter (every pin, as the embed map shows)
+ * - "none": regular pins only
+ * - "id" or "id1,id2": only those layers' pins
+ */
+export function layerFilterWhere(layer: string | undefined): Prisma.PinWhereInput {
+  if (layer === undefined) return {};
+  if (layer === "none") return { layerId: null };
+  const ids = layer
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean)
+    .slice(0, 50);
+  return ids.length > 0 ? { layerId: { in: ids } } : { layerId: null };
+}
+
+/**
+ * The layer chips for the fan map: layers with at least one live pin in `where`, one chip per
+ * artist's layer (two artists' "Hospital" are two chips), by name and then artist.
+ */
+export async function mapLayerChips(
+  db: Pick<Context["db"], "pinLayer" | "pin">,
+  where: Prisma.PinWhereInput,
+): Promise<MapLayerChip[]> {
+  const counts = await db.pin.groupBy({
+    by: ["layerId"],
+    where: { ...where, layerId: { not: null } },
+    _count: { _all: true },
+  });
+  const countOf = new Map(counts.map((row) => [row.layerId ?? "", row._count._all]));
+  if (countOf.size === 0) return [];
+  const layers = await db.pinLayer.findMany({
+    where: { id: { in: [...countOf.keys()] } },
+    select: {
+      id: true,
+      name: true,
+      icon: true,
+      color: true,
+      artist: { select: { name: true, avatarUrl: true } },
+    },
+  });
+  return layers
+    .map(({ artist, ...layer }) => ({
+      ...layer,
+      artist: artist.name,
+      artistImage: artist.avatarUrl ?? null,
+      pinCount: countOf.get(layer.id) ?? 0,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name) || a.artist.localeCompare(b.artist));
 }

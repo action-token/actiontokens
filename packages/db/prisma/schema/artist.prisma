@@ -60,6 +60,9 @@ model Artist {
   pins               Pin[]
   hotspots           Hotspot[]
   pinTags            PinTag[]
+  pinLayers          PinLayer[]
+  pinShapes          PinShape[]
+  pinTemplates       PinTemplate[]
   pinBatchJobs       PinBatchJob[]
   bounties           Bounty[]
   royaltyPayouts     RoyaltyPayout[]
@@ -104,9 +107,9 @@ model MembershipTier {
   createdAt      DateTime @default(now())
 
   items        Item[]
-  posts        Post[] @relation("PostTier")
-  commentPosts Post[] @relation("PostCommentTier")
-  collectPosts Post[] @relation("PostCollectTier")
+  posts        Post[]  @relation("PostTier")
+  commentPosts Post[]  @relation("PostCommentTier")
+  collectPosts Post[]  @relation("PostCollectTier")
   stories      Story[] @relation("StoryTier")
   pins         Pin[]
 
@@ -174,14 +177,36 @@ model VanityPayment {
   @@map("vanity_payments")
 }
 
-model CustomDomain {
-  id         String    @id @default(cuid())
-  artistId   String    @unique
-  artist     Artist    @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  domain     String    @unique
-  verifiedAt DateTime?
-  createdAt  DateTime  @default(now())
+/// Where a custom domain stands (plan 32). Only LIVE domains are served.
+enum CustomDomainStatus {
+  /// Copied from bandfan: not on the host yet, the artist reconnects it
+  NEEDS_SETUP
+  /// On the host, waiting for DNS and SSL
+  PENDING
+  LIVE
+  /// Was live, the host now says it fails (DNS removed, SSL failed)
+  BROKEN
+}
 
+/// An artist's own domain showing their artist page (plan 32). One per artist.
+model CustomDomain {
+  id            String             @id @default(cuid())
+  artistId      String             @unique
+  artist        Artist             @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  /// Lower case, no scheme, no www (a root domain's www is `withWww`)
+  domain        String             @unique
+  status        CustomDomainStatus @default(PENDING)
+  /// Root domains: www.<domain> is on the host too, redirecting to the root
+  withWww       Boolean            @default(false)
+  /// First time it went live
+  verifiedAt    DateTime?
+  lastCheckedAt DateTime?
+  brokenSince   DateTime?
+  /// The host's last complaint, in its words
+  lastError     String?
+  createdAt     DateTime           @default(now())
+
+  @@index([status, lastCheckedAt])
   @@map("custom_domains")
 }
 

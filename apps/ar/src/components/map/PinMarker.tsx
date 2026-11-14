@@ -1,16 +1,17 @@
 import { motion } from "framer-motion";
 import { Check, Lock, Zap } from "lucide-react";
-import { useState } from "react";
 
 import { pinStatus, RARITY_META } from "@bandcoin/ar-core/ar/rarity";
 import type { ArPin } from "@bandcoin/ar-core/ar/types";
+import { shapeScale } from "@bandcoin/ar-core/shape-size";
 import { cn } from "@bandcoin/ui/lib/cn";
+import { PinGlyph } from "@bandcoin/ui/patterns/pin-glyph";
 
 /**
  * ── PinMarker ──────────────────────────────────────────────────────────────
  *
- * A hex medallion carrying the brand's mark, ringed in its rarity colour and
- * standing on a ground shadow so it reads as an object placed on the map
+ * The pin drawn in its own shape (artist's picture, pin picture or a colour inside it), ringed in
+ * its rarity colour and standing on a ground shadow so it reads as an object placed on the map
  * rather than a dot drawn onto it.
  *
  * States read at a glance, with the same opacities as the brand portal:
@@ -18,7 +19,7 @@ import { cn } from "@bandcoin/ui/lib/cn";
  *   collected by you       80%  gold tick
  *   locked (tier)          60%  padlock
  *   expired / all claimed  40%  desaturated, no glow
- * Shape says how it's collected: round = tap to collect, square = auto-collect.
+ * A ⚡ flag says it collects itself (auto-collect).
  *
  * `inRange` is passed in rather than computed here because the map already
  * knows the distance to every pin and recomputing per marker per frame would
@@ -35,7 +36,6 @@ export function PinMarker({
   inRange: boolean;
   onSelect: () => void;
 }) {
-  const [failed, setFailed] = useState(false);
   const rarity = pin.rarity;
   const status = pinStatus(pin);
   const meta = RARITY_META[rarity];
@@ -54,8 +54,7 @@ export function PinMarker({
       : status === "collected"
         ? "opacity-80"
         : "opacity-100";
-  const outer = pin.autoCollect ? "rounded-[10px]" : "rounded-full";
-  const inner = pin.autoCollect ? "rounded-[6px]" : "rounded-full";
+  const outer = "rounded-full";
 
   return (
     <button
@@ -101,50 +100,47 @@ export function PinMarker({
           </>
         )}
 
-        {/* Medallion */}
+        {/* The pin, in its own shape, outlined in its rarity colour (plan 43) */}
         <motion.span
           animate={{ scale: selected ? 1.22 : 1 }}
           transition={{ type: "spring", stiffness: 480, damping: 24 }}
           className={cn(
-            "relative flex h-[42px] w-[42px] items-center justify-center border-2 transition-opacity",
-            outer,
+            "relative block h-[46px] w-[46px] transition-opacity",
             opacity,
             dead && "saturate-0",
           )}
           style={{
-            borderColor: `hsl(${ring})`,
-            background: `linear-gradient(180deg, hsl(var(--ar-surface-3)), hsl(var(--ar-void)))`,
-            boxShadow: selected
-              ? `0 0 0 3px hsl(${ring} / 0.3), 0 0 26px -2px hsl(${ring} / 0.95)`
+            filter: selected
+              ? `drop-shadow(0 0 10px hsl(${ring} / 0.95))`
               : live
-                ? `0 0 16px -3px hsl(${ring} / 0.8)`
-                : "0 4px 10px -4px rgba(0,0,0,0.9)",
+                ? `drop-shadow(0 0 6px hsl(${ring} / 0.7))`
+                : undefined,
           }}
         >
-          {failed ? (
-            <span className="font-hud text-[15px] font-bold" style={{ color: `hsl(${ring})` }}>
-              {pin.artistName.charAt(0)}
-            </span>
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={pin.artistImageUrl}
-              alt=""
-              onError={() => setFailed(true)}
-              loading="lazy"
-              className={cn("h-[30px] w-[30px] object-cover", inner)}
-            />
-          )}
+          <PinGlyph
+            path={pin.look.path}
+            size={Math.round(46 * shapeScale(pin.look.path))}
+            color={pin.look.color}
+            defaultColor="hsl(var(--ar-surface-3))"
+            imageUrl={pin.look.imageUrl}
+            imageFit={pin.look.imageFit}
+            ringColor={`hsl(${ring})`}
+            ringWidth={selected ? 3.5 : 2.5}
+            placeholder={
+              <span className="font-hud text-[15px] font-bold">{pin.artistName.charAt(0)}</span>
+            }
+          />
 
           {/* Corner flag */}
           {status === "collected" && <CornerFlag tone="gold" Icon={Check} />}
           {status === "locked" && <CornerFlag tone="muted" Icon={Lock} />}
-          {live && pin.autoCollect && <CornerFlag tone="accent" Icon={Zap} />}
+          {live && pin.look.autoBadge && <CornerFlag tone="accent" Icon={Zap} />}
         </motion.span>
 
         {/* Stem — the medallion stands on a point, like a map pin should. */}
         <span
           aria-hidden
+          hidden={pin.look.anchor === "bottom"}
           className="absolute -bottom-[5px] left-1/2 h-[9px] w-[2px] -translate-x-1/2 rounded-full"
           style={{
             background: `linear-gradient(180deg, hsl(${ring}), transparent)`,

@@ -7,6 +7,7 @@ import { AppError, ErrorCodes } from "@bandcoin/errors";
 import { draftDesign, publishedDesign } from "../../services/artist/page";
 import { currentSlugFor } from "../../services/artist/profile";
 import { resolveVanity } from "../../services/artist/vanity";
+import { liveDomainArtist } from "../../services/domains";
 import { publicBountyWhere } from "./bounty";
 import { prizeView } from "../../services/bounty/prize";
 import { itemCardSelect, listedItemWhere, toItemCard } from "../../services/catalog/item-card";
@@ -26,6 +27,11 @@ export const artistRouter = createRouter({
   byVanity: publicProcedure
     .input(z.object({ name: z.string().min(1).max(60) }))
     .query(({ ctx, input }) => resolveVanity(ctx, input.name)),
+
+  /** The artist a LIVE custom domain shows (plan 32); null for anything else. */
+  byDomain: publicProcedure
+    .input(z.object({ host: z.string().min(1).max(300) }))
+    .query(({ ctx, input }) => liveDomainArtist(ctx, input.host)),
 
   /**
    * An artist's page: profile, follower count, whether you follow them,

@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Plus } from "lucide-react";
+import { Coins, Loader2, Plus, Sparkles } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
@@ -14,7 +14,7 @@ import { api, type RouterOutputs } from "~/trpc/react";
 
 import { messageOf } from "../murals/model";
 import { coinsFor } from "./studio-price";
-import { SettingsSection } from "../../settings/settings-section";
+import { SettingCard } from "./setting-card";
 
 type Studio = RouterOutputs["admin"]["settings"]["studio"];
 type Pack = Studio["packages"][number];
@@ -58,21 +58,18 @@ function groupsOf(studio: Studio): { title: string; rows: Row[] }[] {
 export function StudioCard() {
   const studio = api.admin.settings.studio.useQuery(undefined, { refetchOnWindowFocus: false });
   return (
-    <SettingsSection
-      title="Studio"
-      description="What each AI model costs and the coin packages. One coin is one cent; BANDCOIN, XLM and USDC follow the live rate."
-    >
+    <div className="grid gap-5">
       {studio.isPending ? (
-        <Skeleton className="h-64 w-full rounded-xl" />
+        <Skeleton className="h-64 w-full rounded-[1.75rem]" />
       ) : studio.data ? (
-        <div className="grid gap-4">
+        <>
           <PricingForm key={JSON.stringify(studio.data.pricing)} studio={studio.data} />
           <Packages packages={studio.data.packages} />
-        </div>
+        </>
       ) : (
         <p className="text-fg-muted text-sm">Couldn&apos;t load the Studio settings.</p>
       )}
-    </SettingsSection>
+    </div>
   );
 }
 
@@ -100,7 +97,11 @@ function PricingForm({ studio }: { studio: Studio }) {
     rows.every((row) => Number(costs[row.key]) >= 0 && (costs[row.key] ?? "").trim() !== "");
 
   return (
-    <div className="bg-surface grid gap-4 rounded-xl border p-4 sm:p-5">
+    <SettingCard
+      icon={Sparkles}
+      title="AI prices"
+      description="What each AI model costs, plus the platform fee on top. One coin is one cent; BANDCOIN, XLM and USDC follow the live rate."
+    >
       <Field
         label="Platform fee (%)"
         htmlFor="studio-fee"
@@ -161,27 +162,32 @@ function PricingForm({ studio }: { studio: Studio }) {
         {save.isPending && <Loader2 className="animate-spin" />}
         Save prices
       </Button>
-    </div>
+    </SettingCard>
   );
 }
 
 function Packages({ packages }: { packages: Pack[] }) {
   const [adding, setAdding] = useState(false);
   return (
-    <div className="bg-surface grid gap-3 rounded-xl border p-4 sm:p-5">
-      <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold">Coin packages</h3>
-        {!adding && (
+    <SettingCard
+      icon={Coins}
+      title="Coin packages"
+      description="What fans and artists can buy Studio coins in. Priced in dollars; a package may add bonus coins."
+      action={
+        !adding && (
           <Button size="sm" variant="outline" onClick={() => setAdding(true)}>
             <Plus /> Add a package
           </Button>
-        )}
+        )
+      }
+    >
+      <div className="grid gap-3">
+        {packages.map((pack) => (
+          <PackageRow key={`${pack.id}-${pack.priceUsd}-${pack.bonusCoins}`} pack={pack} />
+        ))}
+        {adding && <PackageRow onDone={() => setAdding(false)} />}
       </div>
-      {packages.map((pack) => (
-        <PackageRow key={`${pack.id}-${pack.priceUsd}-${pack.bonusCoins}`} pack={pack} />
-      ))}
-      {adding && <PackageRow onDone={() => setAdding(false)} />}
-    </div>
+    </SettingCard>
   );
 }
 

@@ -7,12 +7,15 @@ import type { ArPin, Coords, GeoFix } from "@bandcoin/ar-core/ar/types";
 import {
   mapStyleFor,
   type ResolvedTheme,
+  useMapBase,
   useMapMode,
   useResolvedTheme,
   useThemeRead,
 } from "~/lib/ar/theme";
 import { cn } from "@bandcoin/ui/lib/cn";
 import { ClusterBillboard } from "./ClusterBillboard";
+import { MapViewProbe } from "./MapLayersSheet";
+import { MapTerrain } from "./MapTerrain";
 import { MuralMarker, type MapMural } from "./MuralMarker";
 import { PinMarker } from "./PinMarker";
 import { metersPerPixel, UserPuck } from "./UserPuck";
@@ -190,6 +193,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, Props>(function MapCanvas(
   const theme = useResolvedTheme();
   const themeRead = useThemeRead();
   const mapMode = useMapMode();
+  const mapBase = useMapBase();
   const is3d = mapMode === "3d";
 
   // Imperative handle rather than prop-driven view state: a controlled
@@ -363,7 +367,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, Props>(function MapCanvas(
           pitch: is3d ? 48 : 0,
           bearing: is3d ? -14 : 0,
         }}
-        mapStyle={mapStyleFor(mapMode, theme)}
+        mapStyle={mapStyleFor(mapMode, theme, mapBase)}
         attributionControl={false}
         onLoad={() => {
           setReady(true);
@@ -389,6 +393,9 @@ export const MapCanvas = forwardRef<MapCanvasHandle, Props>(function MapCanvas(
         reuseMaps
         style={{ width: "100%", height: "100%" }}
       >
+        {/* The map style options preview this place; terrain goes under everything below. */}
+        <MapViewProbe />
+        <MapTerrain />
         {muralLayer.groups.map((g) => (
           <Marker
             key={`mg-${g.id}`}

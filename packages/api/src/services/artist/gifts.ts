@@ -18,7 +18,9 @@ import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
 import { type Context, type SessionUser, isCustodial } from "../../context";
 import { transitionOrder } from "../order-state";
 import { finishGift, type NftGiftDetails } from "../orders/finish";
+import { declinedAmong } from "../gifts/decline";
 import { failOrder, ownOrder, userSignature } from "../purchase";
+import { waitingGifts } from "./gift-take-back";
 import { creditLines, freeOf, openedStorage } from "./storage-withdraw";
 
 /**
@@ -55,6 +57,8 @@ export type GiftBreakdown = {
   from?: "STORAGE" | "ISSUER";
   /** The fan claims it later (they didn't trust the token yet) */
   claimable?: boolean;
+  /** Nobody accepted it and the artist took it back (see ./gift-take-back) */
+  takenBack?: { txHash: string; at: string };
 };
 
 const holdsTrustline = (account: Horizon.AccountResponse, code: string, issuer: string) =>
@@ -381,8 +385,17 @@ export async function submitGift(
   return finishGift(ctx, order.id);
 }
 
-/** Gifts the artist has sent (tokens and NFT copies), newest first. */
-export async function listSentGifts(ctx: Pick<ServiceCtx, "db">, user: Pick<SessionUser, "id">) {
+/**
+ * Gifts the artist has sent (tokens and NFT copies), newest first. A token
+ * gift the fan hasn't accepted yet is "waiting" (it can be taken back).
+ */
+export async function listSentGifts(
+  ctx: Pick<ServiceCtx, "db" | "chain">,
+  user: Pick<SessionUser, "id">,
+  artist: Pick<ArtistRef, "storageAccountId">,
+) {
+  const waiting = await waitingGifts(ctx, user, artist);
+  const declined = await declinedAmong(ctx, [...waiting.values()]);
   const orders = await ctx.db.order.findMany({
     where: { kind: { in: ["GIFT", "NFT_GIFT"] }, buyerId: user.id, status: "DELIVERED" },
     orderBy: { createdAt: "desc" },
@@ -409,6 +422,12 @@ export async function listSentGifts(ctx: Pick<ServiceCtx, "db">, user: Pick<Sess
         tokens: breakdown?.giftDetails
           ? { amount: breakdown.giftDetails.amount, code: breakdown.giftDetails.code }
           : null,
+        state: breakdown?.giftDetails?.takenBack
+          ? ("takenBack" as const)
+          : waiting.has(order.id)
+            ? ("waiting" as const)
+            : null,
+        declined: declined.has(waiting.get(order.id) ?? ""),
         copy: breakdown?.nftGift
           ? { title: order.item?.title ?? "NFT", tokenId: breakdown.nftGift.tokenId }
           : null,
@@ -420,7 +439,7 @@ export async function listSentGifts(ctx: Pick<ServiceCtx, "db">, user: Pick<Sess
     select: { id: true, username: true, displayName: true, avatarUrl: true },
   });
   const byId = new Map(people.map((person) => [person.id, person]));
-  return details.map(({ order, recipientId, tokens, copy }) => {
+  return details.map(({ order, recipientId, tokens, copy, state, declined: wasDeclined }) => {
     const person = byId.get(recipientId);
     return {
       id: order.id,
@@ -430,6 +449,10 @@ export async function listSentGifts(ctx: Pick<ServiceCtx, "db">, user: Pick<Sess
       tokens,
       /** An NFT gift: which copy */
       copy,
+      /** "waiting": not accepted yet, can be taken back. "takenBack": the artist took it back. */
+      state,
+      /** A waiting gift the fan said no to */
+      declined: wasDeclined,
       recipient: {
         id: recipientId,
         name: person ? nameOf(person) : null,

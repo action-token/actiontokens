@@ -18,6 +18,7 @@ import { StatusPill, type Tone } from "@bandcoin/ui/patterns/status-pill";
 import { timeAgo } from "~/lib/format";
 import type { RouterOutputs } from "~/trpc/react";
 
+import { LayerTag } from "../../pins/layers/layer-tag";
 import { PIN_TYPES } from "../../pins/pin-summary";
 import { mapsLink, plural } from "../murals/model";
 
@@ -197,6 +198,12 @@ export function PinRow({
               )}
               <span>{plural(pin.spots, "spot")}</span>
               <span aria-hidden>·</span>
+              {pin.layer && (
+                <>
+                  <LayerTag layer={pin.layer} />
+                  <span aria-hidden>·</span>
+                </>
+              )}
               <span>
                 {pin.timing === "upcoming"
                   ? `Starts ${day(pin.startsAt)}`

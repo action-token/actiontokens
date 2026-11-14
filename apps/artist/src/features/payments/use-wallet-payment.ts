@@ -10,8 +10,10 @@ import {
 } from "@bandcoin/ui/patterns/transaction-toast";
 import { getWalletProvider, signTransaction } from "@bandcoin/wallet";
 
-type Started = { orderId: string; xdr: string; signer: "custodial" | "wallet" };
+/** A card payment has nothing to sign: `xdr` is null and `signer` is "card". */
+type Started = { orderId: string; xdr: string | null; signer: "custodial" | "wallet" | "card" };
 type Pending = { orderId: string; xdr: string };
+export type CardToken = { sourceId: string; verificationToken?: string };
 
 const reasonOf = (error: unknown) =>
   isAppError(error) || error instanceof Error
@@ -24,6 +26,7 @@ const reasonOf = (error: unknown) =>
  *
  *   email / Google / Apple accounts: countdown with Cancel → server signs → done
  *   wallet extensions:               "Confirm in Freighter" → wallet signs → done
+ *   card (when `charge` is given):   the server charges the card → done
  *
  * Cancel (or a declined wallet popup) cancels the order, so nothing is signed or sent.
  * The caller supplies the three server calls and what to show when it works.
@@ -31,6 +34,8 @@ const reasonOf = (error: unknown) =>
 export function useWalletPayment(steps: {
   start: () => Promise<Started>;
   submit: (input: { orderId: string; xdr: string }) => Promise<unknown>;
+  /** Payments that also take a card: charges the order (nothing is signed) */
+  charge?: (input: { orderId: string; card: CardToken }) => Promise<unknown>;
   cancel: (input: { orderId: string }) => Promise<unknown>;
   preparing: string;
   sending: string;
@@ -45,7 +50,7 @@ export function useWalletPayment(steps: {
     step !== null &&
     (step.kind === "countdown" || step.kind === "confirm" || step.kind === "submitting");
 
-  async function run(summary: ReactNode) {
+  async function run(summary: ReactNode, card?: CardToken) {
     let started: Started;
     try {
       setStep({
@@ -56,6 +61,10 @@ export function useWalletPayment(steps: {
       started = await steps.start();
     } catch (error) {
       setStep({ kind: "failed", reason: reasonOf(error) });
+      return;
+    }
+    if (started.signer === "card" || started.xdr === null) {
+      await charge(started.orderId, card);
       return;
     }
     pending.current = { orderId: started.orderId, xdr: started.xdr };
@@ -97,6 +106,23 @@ export function useWalletPayment(steps: {
       setStep({ kind: "failed", reason: reasonOf(error) });
     } finally {
       pending.current = null;
+    }
+  }
+
+  /** A card order: charged by the server straight away, no countdown. */
+  async function charge(orderId: string, card: CardToken | undefined) {
+    if (!steps.charge || !card) {
+      setStep({ kind: "failed", reason: "Add a card to pay." });
+      await steps.cancel({ orderId }).catch(() => undefined);
+      return;
+    }
+    setStep({ kind: "submitting", summary: steps.sending });
+    try {
+      await steps.charge({ orderId, card });
+      setStep({ kind: "success", ...steps.success });
+      await steps.onDone();
+    } catch (error) {
+      setStep({ kind: "failed", reason: reasonOf(error) });
     }
   }
 

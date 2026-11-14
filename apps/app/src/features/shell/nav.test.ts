@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { artistEntry, GROUPS, isActive } from "./nav";
+import { artistEntry, GROUPS, isActive, MOBILE_TABS, TAB_LABEL } from "./nav";
 
 const item = (label: string) =>
   GROUPS.flatMap((group) => group.items).find((entry) => entry.label === label)!;
@@ -62,5 +62,21 @@ describe("artistEntry", () => {
       title: "Artist portal",
       hint: "Account status",
     });
+  });
+});
+
+describe("phone tabs", () => {
+  const names = (entries: typeof MOBILE_TABS.left) =>
+    entries.map((entry) => TAB_LABEL[entry.label] ?? entry.label);
+
+  it("run Home, Collection | AR | Marketplace, Playlists", () => {
+    expect(names(MOBILE_TABS.left)).toEqual(["Home", "Collection"]);
+    expect(names(MOBILE_TABS.right)).toEqual(["Marketplace", "Playlists"]);
+  });
+
+  it("keep Marketplace lit on an item page", () => {
+    const market = MOBILE_TABS.right[0]!;
+    expect(isActive(market, "/item/moon-song", null)).toBe(true);
+    expect(isActive(market, "/", null)).toBe(false);
   });
 });

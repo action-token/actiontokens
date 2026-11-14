@@ -16,6 +16,7 @@ const lyria = {
   pause: vi.fn(),
   stop: vi.fn(),
   close: vi.fn(),
+  resetContext: vi.fn(),
 };
 
 beforeEach(async () => {

@@ -6,7 +6,10 @@ import { useWalletPayment } from "../payments/use-wallet-payment";
 
 export type VanityPayInput = RouterInputs["vanity"]["start"];
 
-/** Paying for the link: another month, or a new name (see useWalletPayment for how the payment moves). */
+/**
+ * Paying for the link: another month, or a new name, in crypto or by card
+ * (see useWalletPayment for how the payment moves).
+ */
 export function useVanityPayment(input: VanityPayInput, onDone: () => void) {
   const utils = api.useUtils();
   const start = api.vanity.start.useMutation();
@@ -16,6 +19,7 @@ export function useVanityPayment(input: VanityPayInput, onDone: () => void) {
   return useWalletPayment({
     start: () => start.mutateAsync(input),
     submit: (payload) => submit.mutateAsync(payload),
+    charge: (payload) => submit.mutateAsync(payload),
     cancel: (payload) => cancel.mutateAsync(payload),
     preparing: "Preparing your payment…",
     sending: "Paying. This takes a few seconds.",

@@ -11,13 +11,23 @@ import {
   Moon,
   Settings,
   Sun,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { type CSSProperties, Fragment, type ReactNode, useSyncExternalStore } from "react";
+import {
+  type CSSProperties,
+  Fragment,
+  type ReactNode,
+  type UIEvent,
+  useCallback,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "../components/avatar";
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle } from "../components/sheet";
 import { Skeleton } from "../components/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../components/tooltip";
 import { cn } from "../lib/cn";
@@ -101,144 +111,297 @@ export function SideFrame({
   collapsed: boolean;
   onToggle: () => void;
 }) {
+  const [scrolled, onScroll] = useScrolled();
   return (
     <TooltipProvider delayDuration={200}>
       <aside
         aria-label={label}
         style={{ "--side-nav-size": navSize } as CSSProperties}
-        className={cn(
-          "side-scope bg-side text-side-ink sticky top-0 z-40 hidden h-dvh shrink-0 sm:block",
-          collapsed ? "w-[5.25rem]" : "w-[5.25rem] xl:w-[19.5rem]",
-        )}
+        data-collapsed={collapsed || undefined}
+        // Takes no width: the page runs under it, and pads itself by --side-w (theme.css).
+        className="side-island sticky top-0 z-40 hidden h-dvh w-0 sm:block"
       >
-        <div className={cn("h-full flex-col", collapsed ? "hidden" : "hidden xl:flex")}>
-          <div className="flex shrink-0 items-center justify-between gap-2 px-5 pt-6 pb-4">
-            <SideMark {...home} />
-            {tools && <div className="flex shrink-0 items-center gap-2">{tools}</div>}
-          </div>
-
-          {/* `relative` keeps sr-only children inside the scroll area */}
-          <div className="border-side-ink/25 relative min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain border-y-2 border-dashed px-5 py-5 [scrollbar-width:none]">
-            <nav className="space-y-4" aria-label="Sections">
-              {groups.map((group) => (
-                <div key={group.title}>
-                  <p className="marker mb-1 -rotate-2 text-sm">*{group.title.toLowerCase()}*</p>
-                  <ul>
-                    {group.items.map((item, index) => (
-                      <li key={item.href}>
-                        {index > 0 && <div className="dash-rule my-1" role="separator" />}
-                        <BigNavLink item={item} />
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </nav>
-            {extra}
-            {tiles.length > 0 && (
-              <div className="space-y-2.5">
-                {tiles.map((tile) => (
-                  <LaunchTile key={tile.href} tile={tile} />
-                ))}
-              </div>
-            )}
-            {balance}
-          </div>
-
-          <div className="shrink-0 space-y-2 px-5 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
-            <ProfileRow account={account} />
-            <div className="flex items-center justify-between gap-2">
-              <ThemeSwitch />
-              <div className="flex gap-1">
-                {SOCIALS.map((social) => (
-                  <a
-                    key={social.href}
-                    href={social.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={social.label}
-                    title={social.label}
-                    className="bg-side-ink text-side flex size-6 items-center justify-center rounded-full transition-transform hover:scale-110"
-                  >
-                    <social.icon className="size-3" />
-                  </a>
-                ))}
-              </div>
-            </div>
-            {/* info pages and the copyright share the last row */}
-            <div className="border-side-ink/25 flex items-center justify-between gap-2 border-t-2 border-dashed pt-2 text-[10px] leading-none whitespace-nowrap">
-              <div className="text-side-ink/75 flex gap-1.5 font-medium">
-                {INFO_LINKS.map((info) =>
-                  infoBase ? (
-                    <a
-                      key={info.path}
-                      href={`${infoBase}${info.path}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="hover:text-side-ink hover:underline"
-                    >
-                      {info.label}
-                    </a>
-                  ) : (
-                    <Link
-                      key={info.path}
-                      href={info.path}
-                      className="hover:text-side-ink hover:underline"
-                    >
-                      {info.label}
-                    </Link>
-                  ),
-                )}
-              </div>
-              <span className="text-side-ink/60 font-medium">{copyrightLine()}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className={cn("h-full flex-col", collapsed ? "flex" : "flex xl:hidden")}>
-          <div className="flex shrink-0 flex-col items-center gap-3 px-2 pt-5 pb-3">
-            <SideMark {...home} compact />
-            {tools && <div className="flex flex-col items-center gap-2">{tools}</div>}
-          </div>
-          <div className="border-side-ink/25 relative flex min-h-0 flex-1 flex-col items-center gap-3 overflow-y-auto overscroll-contain border-y-2 border-dashed px-2 py-3 [scrollbar-width:none] [&>*]:shrink-0">
-            <nav className="flex flex-col items-center gap-3" aria-label="Sections">
-              {groups.map((group, index) => (
-                <Fragment key={group.title}>
-                  {index > 0 && <div className="dash-rule w-8" aria-hidden />}
-                  {group.items.map((item) => (
-                    <RailLink key={item.href} item={item} />
-                  ))}
-                </Fragment>
-              ))}
-            </nav>
-            {tiles.length > 0 && <div className="dash-rule w-8" aria-hidden />}
-            {tiles.map((tile) => (
-              <RailTile key={tile.href} tile={tile} />
-            ))}
-            {railBalance}
-          </div>
-          <div className="flex shrink-0 justify-center px-2 pt-3 pb-4">
-            <RailProfile account={account} />
-          </div>
-        </div>
-
-        {/* the chevron on the middle of the edge folds and unfolds it (wide screens only) */}
-        <button
-          type="button"
-          onClick={onToggle}
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          aria-expanded={!collapsed}
-          className="border-side bg-side-ink text-side absolute top-1/2 -right-3.5 z-50 hidden size-7 -translate-y-1/2 items-center justify-center rounded-full border-2 transition-transform hover:scale-110 xl:flex"
-        >
-          {collapsed ? (
-            <ChevronRight className="size-4" strokeWidth={2.6} />
-          ) : (
-            <ChevronLeft className="size-4" strokeWidth={2.6} />
+        <div
+          className={cn(
+            "pointer-events-none absolute inset-y-0 left-0 p-3",
+            collapsed ? "w-(--side-rail-w)" : "w-(--side-rail-w) xl:w-(--side-open-w)",
           )}
-        </button>
+        >
+          {/* the island: a frosted card floating over the page, which shows through blurred.
+            A small blur and a dense fill: the blur is redrawn on every map frame. */}
+          <div className="bg-side/80 ring-side-ink/10 pointer-events-auto relative h-full overflow-hidden rounded-[2rem] shadow-[var(--island-shadow)] ring-1 backdrop-blur-md">
+            <div
+              className={cn(
+                "text-side-ink relative h-full flex-col",
+                collapsed ? "hidden" : "hidden xl:flex",
+              )}
+            >
+              <SideHeader scrolled={scrolled}>
+                <SideMark {...home} shrunk={scrolled} />
+                {tools && (
+                  <div
+                    className={cn(
+                      "flex shrink-0 origin-right items-center gap-2 transition-transform duration-300",
+                      scrolled && "scale-[0.85]",
+                    )}
+                  >
+                    {tools}
+                  </div>
+                )}
+              </SideHeader>
+
+              {/* `relative` keeps sr-only children inside the scroll area */}
+              <div
+                onScroll={onScroll}
+                className="border-side-ink/25 relative min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain border-y-2 border-dashed px-5 py-5 [scrollbar-width:none]"
+              >
+                <SideNavGroups groups={groups} />
+                {extra}
+                {tiles.length > 0 && (
+                  <div className="space-y-2.5">
+                    {tiles.map((tile) => (
+                      <LaunchTile key={tile.href} tile={tile} />
+                    ))}
+                  </div>
+                )}
+                {balance}
+              </div>
+
+              <div className="shrink-0 space-y-2 px-5 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                <ProfileRow account={account} />
+                <SideFooterLinks infoBase={infoBase} />
+              </div>
+            </div>
+
+            <div
+              className={cn(
+                "text-side-ink relative h-full flex-col",
+                collapsed ? "flex" : "flex xl:hidden",
+              )}
+            >
+              <div className="flex shrink-0 flex-col items-center gap-3 px-2 pt-5 pb-3">
+                <SideMark {...home} compact />
+                {tools && <div className="flex flex-col items-center gap-2">{tools}</div>}
+              </div>
+              <div className="border-side-ink/25 relative flex min-h-0 flex-1 flex-col items-center gap-3 overflow-y-auto overscroll-contain border-y-2 border-dashed px-2 py-3 [scrollbar-width:none] [&>*]:shrink-0">
+                <nav className="flex flex-col items-center gap-3" aria-label="Sections">
+                  {groups.map((group, index) => (
+                    <Fragment key={group.title}>
+                      {index > 0 && <div className="dash-rule w-8" aria-hidden />}
+                      {group.items.map((item) => (
+                        <RailLink key={item.href} item={item} />
+                      ))}
+                    </Fragment>
+                  ))}
+                </nav>
+                {tiles.length > 0 && <div className="dash-rule w-8" aria-hidden />}
+                {tiles.map((tile) => (
+                  <RailTile key={tile.href} tile={tile} />
+                ))}
+                {railBalance}
+              </div>
+              <div className="flex shrink-0 justify-center px-2 pt-3 pb-4">
+                <RailProfile account={account} />
+              </div>
+            </div>
+          </div>
+
+          {/* the chevron on the middle of the edge folds and unfolds it (wide screens only) */}
+          <button
+            type="button"
+            onClick={onToggle}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-expanded={!collapsed}
+            className="border-side bg-side-ink text-side pointer-events-auto absolute top-1/2 right-0 z-50 hidden size-7 -translate-y-1/2 items-center justify-center rounded-full border-2 transition-transform hover:scale-110 xl:flex"
+          >
+            {collapsed ? (
+              <ChevronRight className="size-4" strokeWidth={2.6} />
+            ) : (
+              <ChevronLeft className="size-4" strokeWidth={2.6} />
+            )}
+          </button>
+        </div>
       </aside>
     </TooltipProvider>
+  );
+}
+
+/** Theme, socials, the info pages and the copyright: the foot of the sidebar and of the phone menu. */
+function SideFooterLinks({ infoBase }: { infoBase?: string }) {
+  return (
+    <>
+      <div className="flex items-center justify-between gap-2">
+        <ThemeSwitch />
+        <div className="flex gap-1">
+          {SOCIALS.map((social) => (
+            <a
+              key={social.href}
+              href={social.href}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={social.label}
+              title={social.label}
+              className="bg-side-ink text-side flex size-6 items-center justify-center rounded-full transition-transform hover:scale-110"
+            >
+              <social.icon className="size-3" />
+            </a>
+          ))}
+        </div>
+      </div>
+      {/* info pages and the copyright share the last row */}
+      <div className="border-side-ink/25 flex items-center justify-between gap-2 border-t-2 border-dashed pt-2 text-[10px] leading-none whitespace-nowrap">
+        <div className="text-side-ink/75 flex gap-1.5 font-medium">
+          {INFO_LINKS.map((info) =>
+            infoBase ? (
+              <a
+                key={info.path}
+                href={`${infoBase}${info.path}`}
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-side-ink hover:underline"
+              >
+                {info.label}
+              </a>
+            ) : (
+              <Link
+                key={info.path}
+                href={info.path}
+                className="hover:text-side-ink hover:underline"
+              >
+                {info.label}
+              </Link>
+            ),
+          )}
+        </div>
+        <span className="text-side-ink/60 font-medium">{copyrightLine()}</span>
+      </div>
+    </>
+  );
+}
+
+/** True once a scroll area has moved off its top; pass `onScroll` to that area. */
+function useScrolled(threshold = 12) {
+  const [scrolled, setScrolled] = useState(false);
+  const onScroll = useCallback(
+    (event: UIEvent<HTMLElement>) => setScrolled(event.currentTarget.scrollTop > threshold),
+    [threshold],
+  );
+  return [scrolled, onScroll] as const;
+}
+
+/**
+ * The logo row. Once the links scroll it tightens up and drops a soft shadow
+ * onto the dashed rule, so the links read as sliding under it.
+ */
+function SideHeader({ scrolled, children }: { scrolled: boolean; children: ReactNode }) {
+  return (
+    <div
+      className={cn(
+        "relative z-10 flex shrink-0 items-center justify-between gap-2 px-5 transition-[padding,box-shadow] duration-300",
+        scrolled
+          ? "pt-3 pb-2.5 shadow-[0_14px_14px_-14px_rgb(0_0_0/0.45)]"
+          : "pt-6 pb-4 shadow-[0_0_0_0_transparent]",
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** The sections as big words between dashed rules, each under a handwritten *title*. */
+export function SideNavGroups({
+  groups,
+  onNavigate,
+}: {
+  groups: SideGroup[];
+  /** Called when a link is followed (a menu sheet closes itself) */
+  onNavigate?: () => void;
+}) {
+  return (
+    <nav className="space-y-4" aria-label="Sections">
+      {groups.map((group) => (
+        <div key={group.title}>
+          <p className="marker mb-1 -rotate-2 text-sm">*{group.title.toLowerCase()}*</p>
+          <ul>
+            {group.items.map((item, index) => (
+              <li key={item.href}>
+                {index > 0 && <div className="dash-rule my-1" role="separator" />}
+                <BigNavLink item={item} onNavigate={onNavigate} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </nav>
+  );
+}
+
+/**
+ * The phone menu: the sidebar's floating card as a sheet from the right, with
+ * the same header (compact once the links scroll), quick actions under it and
+ * the sections as big words.
+ */
+export function SideMenuSheet({
+  open,
+  onOpenChange,
+  home,
+  description,
+  quick,
+  groups,
+  footer,
+  infoBase,
+  navSize = "1.7rem",
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  home: { href: string; label: string; tagline: string };
+  /** For screen readers: what the menu holds */
+  description: string;
+  /** Under the header: the account, notifications, settings */
+  quick?: ReactNode;
+  groups: SideGroup[];
+  /** Under the links: tiles to the other apps and the like */
+  footer?: ReactNode;
+  /** Where the info pages live, when they are in another app */
+  infoBase?: string;
+  navSize?: string;
+}) {
+  const [scrolled, onScroll] = useScrolled();
+  const close = () => onOpenChange(false);
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="right"
+        showCloseButton={false}
+        style={{ "--side-nav-size": navSize } as CSSProperties}
+        className="side-island bg-side/90 text-side-ink ring-side-ink/10 inset-y-3 right-3 h-auto w-[21rem] max-w-[calc(100vw-1.5rem)] gap-0 overflow-hidden rounded-[2rem] border-0 p-0 shadow-[var(--island-shadow)] ring-1 backdrop-blur-md"
+      >
+        <SheetTitle className="sr-only">Menu</SheetTitle>
+        <SheetDescription className="sr-only">{description}</SheetDescription>
+        <SideHeader scrolled={scrolled}>
+          <SideMark {...home} shrunk={scrolled} onNavigate={close} />
+          <SheetClose
+            aria-label="Close menu"
+            className="bg-side-ink text-side flex size-9 shrink-0 items-center justify-center rounded-full transition-transform hover:scale-110 active:scale-95"
+          >
+            <X className="size-4" strokeWidth={2.8} />
+          </SheetClose>
+        </SideHeader>
+        <div
+          onScroll={onScroll}
+          className="border-side-ink/25 relative min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain border-t-2 border-dashed px-5 pt-4 pb-5 [scrollbar-width:none]"
+        >
+          {quick && <div className="grid gap-2">{quick}</div>}
+          <SideNavGroups groups={groups} onNavigate={close} />
+          {footer}
+        </div>
+        {/* pinned under the links, so it is always in view */}
+        <div className="border-side-ink/25 shrink-0 space-y-2 border-t-2 border-dashed px-5 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <SideFooterLinks infoBase={infoBase} />
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -248,27 +411,53 @@ function SideMark({
   label,
   tagline,
   compact = false,
+  shrunk = false,
+  onNavigate,
 }: {
   href: string;
   label: string;
   tagline: string;
   compact?: boolean;
+  /** Scrolled: a smaller blob and wordmark, the tagline folded away */
+  shrunk?: boolean;
+  onNavigate?: () => void;
 }) {
   return (
     <Link
       href={href}
       aria-label={label}
       title={compact ? label : undefined}
+      onClick={onNavigate}
       className="group flex min-w-0 items-center gap-2.5"
     >
-      <span className="blob bg-side-badge flex size-10 shrink-0 items-center justify-center transition-transform duration-200 group-hover:-rotate-6">
-        <BrandMark className="h-6" />
+      <span
+        className={cn(
+          "blob bg-side-badge flex shrink-0 items-center justify-center transition-all duration-300 group-hover:-rotate-6",
+          shrunk ? "size-8 -rotate-6" : "size-10",
+        )}
+      >
+        <BrandMark className={cn("transition-all duration-300", shrunk ? "h-5" : "h-6")} />
       </span>
       {!compact && (
         <span className="min-w-0 leading-none">
-          <Tall className="pb-[0.12em] text-[1.9rem]">Bandcoin</Tall>
-          <span className="marker text-side-ink/75 -mt-0.5 block -rotate-2 text-[12px] whitespace-nowrap">
-            {tagline}
+          <Tall
+            className={cn(
+              "origin-left pb-[0.12em] transition-[font-size] duration-300",
+              shrunk ? "text-[1.4rem]" : "text-[1.9rem]",
+            )}
+          >
+            Bandcoin
+          </Tall>
+          {/* folds up under the wordmark once the links scroll */}
+          <span
+            className={cn(
+              "grid transition-[grid-template-rows,opacity] duration-300",
+              shrunk ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100",
+            )}
+          >
+            <span className="marker text-side-ink/75 -mt-0.5 block -rotate-2 overflow-hidden text-[12px] whitespace-nowrap">
+              {tagline}
+            </span>
           </span>
         </span>
       )}
@@ -277,7 +466,7 @@ function SideMark({
 }
 
 /** A big word and an arrow in an ink circle; the current page gets a scribbled underline and a pale circle. */
-function BigNavLink({ item }: { item: SideLink }) {
+function BigNavLink({ item, onNavigate }: { item: SideLink; onNavigate?: () => void }) {
   const content = (
     <>
       <span className="min-w-0 flex-1 transition-transform duration-200 group-hover:translate-x-1">
@@ -297,11 +486,16 @@ function BigNavLink({ item }: { item: SideLink }) {
   );
   const className = "group flex items-center justify-between gap-3 py-0.5";
   return item.external ? (
-    <a href={item.href} className={className}>
+    <a href={item.href} onClick={onNavigate} className={className}>
       {content}
     </a>
   ) : (
-    <Link href={item.href} aria-current={item.active ? "page" : undefined} className={className}>
+    <Link
+      href={item.href}
+      onClick={onNavigate}
+      aria-current={item.active ? "page" : undefined}
+      className={className}
+    >
       {content}
     </Link>
   );
@@ -312,7 +506,9 @@ function RailLink({ item }: { item: SideLink }) {
   const Icon = item.icon;
   const className = cn(
     "relative flex size-11 items-center justify-center rounded-full transition-transform duration-200 hover:scale-110",
-    item.active ? "bg-side-mint text-primary-foreground" : "bg-side-ink text-side",
+    item.active
+      ? "bg-side-mint text-primary-foreground"
+      : "bg-side-ink/5 text-side-ink/75 hover:text-side-ink",
   );
   return (
     <Tooltip>
@@ -344,6 +540,17 @@ const tileTone = {
     dot: "bg-primary-foreground text-side-mint",
   },
 };
+
+/** The tiles to the other Bandcoin apps, stacked (the phone menu's footer). */
+export function SideLaunchTiles({ tiles }: { tiles: SideTile[] }) {
+  return (
+    <div className="space-y-2.5">
+      {tiles.map((tile) => (
+        <LaunchTile key={tile.href} tile={tile} />
+      ))}
+    </div>
+  );
+}
 
 /** A tall tile that opens another Bandcoin app in a new tab. */
 function LaunchTile({ tile }: { tile: SideTile }) {

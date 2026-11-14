@@ -295,3 +295,17 @@ model RoyaltyPayoutLine {
   @@index([holderAddress])
   @@map("royalty_payout_lines")
 }
+
+/// A gift waiting on the network (a claimable balance) that the fan said no to (plan 35).
+/// Nothing changes on the network: the fan's lists hide it, and the sender sees "Declined".
+model DeclinedGift {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// The claimable balance's id on Stellar (72 hex characters)
+  balanceId String
+  createdAt DateTime @default(now())
+
+  @@id([userId, balanceId])
+  @@index([balanceId])
+  @@map("declined_gifts")
+}

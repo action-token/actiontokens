@@ -27,6 +27,8 @@ import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
 
 import { usePortal } from "~/features/portal/use-portal";
 import { formatWhen } from "~/lib/datetime";
+import { useActingArtist } from "./acting";
+import { useMapFormCard } from "./map-form-card";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import { QrDialog } from "./qr/qr-dialog";
@@ -64,7 +66,10 @@ export function PinCard({
   onClose: () => void;
 }) {
   const utils = api.useUtils();
-  const artistName = usePortal().artist?.name ?? "Bandcoin artist";
+  const acting = useActingArtist();
+  const portalName = usePortal().artist?.name;
+  // The QR sheets carry the artist's name: the one being acted for, if an admin is.
+  const artistName = acting?.name ?? portalName ?? "Bandcoin artist";
   const [qrOpen, setQrOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [now] = useState(() => Date.now());
@@ -216,10 +221,14 @@ export function PinCard({
             {pin.collected > 0 ? <Users /> : <BarChart3 />} Collectors
           </Link>
         </Button>
-        <Button className="flex-1" asChild>
-          <Link href={`/pins/${pin.id}`}>
-            <Pencil /> Edit pin
-          </Link>
+        <Button
+          className="flex-1"
+          onClick={() => {
+            useMapFormCard.getState().open({ kind: "editPin", id: pin.id });
+            onClose();
+          }}
+        >
+          <Pencil /> Edit pin
         </Button>
       </div>
 

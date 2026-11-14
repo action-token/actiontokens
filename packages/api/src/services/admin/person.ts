@@ -2,11 +2,14 @@ import { fundsOf } from "@bandcoin/chain/server";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import type { Context } from "../../context";
+import { studioUsage } from "../studio/usage";
 
 /**
  * One person for /admin/users/[id]: who they are, their wallet and what's in
  * it, what they did (counts), their artist profile if any, latest orders and
- * what they own. The timeline comes from the activity log separately.
+ * what they own, and their Studio coins (balance now; spent and bought over
+ * all time, as the Studio Coins page counts them). The timeline comes from the
+ * activity log separately.
  */
 type ServiceCtx = Pick<Context, "db" | "chain">;
 
@@ -53,77 +56,81 @@ export async function getPerson(ctx: ServiceCtx, userId: string) {
   });
   if (!user) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "User not found" });
 
-  const [orders, owned, pinClaims, redeemed, account, lastActive] = await Promise.all([
-    db.order.findMany({
-      where: { buyerId: user.id },
-      orderBy: { createdAt: "desc" },
-      take: RECENT,
-      select: {
-        id: true,
-        kind: true,
-        status: true,
-        total: true,
-        currency: true,
-        quantity: true,
-        txHash: true,
-        createdAt: true,
-        item: { select: { id: true, title: true } },
-      },
-    }),
-    db.ownership.findMany({
-      where: { userId: user.id },
-      orderBy: { acquiredAt: "desc" },
-      take: RECENT,
-      select: {
-        quantity: true,
-        source: true,
-        acquiredAt: true,
-        item: { select: { id: true, title: true, coverUrl: true } },
-      },
-    }),
-    db.pinClaim.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: "desc" },
-      take: RECENT,
-      select: {
-        id: true,
-        isRedeemed: true,
-        claimedAt: true,
-        createdAt: true,
-        spot: {
-          select: {
-            pin: {
-              select: {
-                id: true,
-                title: true,
-                type: true,
-                imageUrl: true,
-                artist: { select: { id: true, name: true } },
+  const [orders, owned, pinClaims, redeemed, account, lastActive, coins, usage] = await Promise.all(
+    [
+      db.order.findMany({
+        where: { buyerId: user.id },
+        orderBy: { createdAt: "desc" },
+        take: RECENT,
+        select: {
+          id: true,
+          kind: true,
+          status: true,
+          total: true,
+          currency: true,
+          quantity: true,
+          txHash: true,
+          createdAt: true,
+          item: { select: { id: true, title: true } },
+        },
+      }),
+      db.ownership.findMany({
+        where: { userId: user.id },
+        orderBy: { acquiredAt: "desc" },
+        take: RECENT,
+        select: {
+          quantity: true,
+          source: true,
+          acquiredAt: true,
+          item: { select: { id: true, title: true, coverUrl: true } },
+        },
+      }),
+      db.pinClaim.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: "desc" },
+        take: RECENT,
+        select: {
+          id: true,
+          isRedeemed: true,
+          claimedAt: true,
+          createdAt: true,
+          spot: {
+            select: {
+              pin: {
+                select: {
+                  id: true,
+                  title: true,
+                  type: true,
+                  imageUrl: true,
+                  artist: { select: { id: true, name: true } },
+                },
               },
             },
           },
         },
-      },
-    }),
-    db.redeemClaim.findMany({
-      where: { userId: user.id },
-      orderBy: { claimedAt: "desc" },
-      take: RECENT,
-      select: {
-        id: true,
-        code: true,
-        claimedAt: true,
-        redeem: { select: { item: { select: { id: true, title: true } } } },
-      },
-    }),
-    // A slow or missing network shouldn't stop the page: balances just don't show.
-    user.walletAddress ? ctx.chain.loadAccount(user.walletAddress).catch(() => null) : null,
-    db.activityLog.findFirst({
-      where: { actorId: user.id },
-      orderBy: { id: "desc" },
-      select: { createdAt: true },
-    }),
-  ]);
+      }),
+      db.redeemClaim.findMany({
+        where: { userId: user.id },
+        orderBy: { claimedAt: "desc" },
+        take: RECENT,
+        select: {
+          id: true,
+          code: true,
+          claimedAt: true,
+          redeem: { select: { item: { select: { id: true, title: true } } } },
+        },
+      }),
+      // A slow or missing network shouldn't stop the page: balances just don't show.
+      user.walletAddress ? ctx.chain.loadAccount(user.walletAddress).catch(() => null) : null,
+      db.activityLog.findFirst({
+        where: { actorId: user.id },
+        orderBy: { id: "desc" },
+        select: { createdAt: true },
+      }),
+      db.studioBalance.findUnique({ where: { userId: user.id }, select: { balance: true } }),
+      studioUsage(ctx, user.id),
+    ],
+  );
 
   return {
     id: user.id,
@@ -145,6 +152,12 @@ export async function getPerson(ctx: ServiceCtx, userId: string) {
       redeemed: user._count.redeemClaims,
       following: user._count.follows,
       orders: user._count.orders,
+    },
+    studio: {
+      coins: Number(coins?.balance ?? 0),
+      spent: usage.spent,
+      bought: usage.bought,
+      bonus: usage.bonus,
     },
     artist: user.artist
       ? {

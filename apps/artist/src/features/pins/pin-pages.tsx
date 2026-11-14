@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { ErrorState } from "@bandcoin/ui/patterns/error-state";
+import { useFormCard } from "@bandcoin/ui/patterns/form-card";
 import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
 
 import { api } from "~/trpc/react";
@@ -27,7 +28,15 @@ export function NewPinView() {
 
 export function EditPinView({ pinId }: { pinId: string }) {
   const pin = api.pins.pin.useQuery({ pinId });
+  const card = useFormCard();
   if (pin.data) return <PinForm existing={pin.data} />;
+  // In a map card: a plain placeholder, not a whole page.
+  if (card)
+    return pin.isPending ? (
+      <Skeleton className="h-96 w-full rounded-[1.2rem]" />
+    ) : (
+      <ErrorState message="Couldn't load this pin." onRetry={() => void pin.refetch()} />
+    );
   return (
     <PageBody className="grid gap-6">
       <PageHeader back={{ href: "/pins", label: "Pins" }} eyebrow="Fans" title="Edit pin" />

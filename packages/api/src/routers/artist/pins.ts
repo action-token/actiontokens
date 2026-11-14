@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { pinLookInputSchema } from "@bandcoin/ar-core/pin-look";
+
 import {
   addSpot,
   createPin,
@@ -12,7 +14,7 @@ import {
   setPinHidden,
   updatePin,
 } from "../../services/artist/pins";
-import { artistProcedure, createRouter } from "../../trpc";
+import { actingArtistProcedure, createRouter } from "../../trpc";
 
 export const reward = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("NONE") }),
@@ -36,6 +38,10 @@ export const pinFields = {
   isMultiSpot: z.boolean(),
   eventId: z.string().nullish(),
   tags: z.array(z.string().max(60)).max(20),
+  /** An id, or null for no layer; left out leaves it as it is on an edit */
+  layerId: z.string().min(1).max(64).nullish(),
+  /** How it looks on the maps; left out keeps it on an edit */
+  look: pinLookInputSchema.nullish(),
 };
 
 const pinId = z.object({ pinId: z.string().min(1) });
@@ -47,14 +53,16 @@ const spotPlace = z.object({
 
 /** Pins an artist drops on the map (see services/artist/pins). */
 export const pinsRouter = createRouter({
-  pins: artistProcedure.query(({ ctx }) => listPins(ctx, ctx.artist)),
+  pins: actingArtistProcedure.query(({ ctx }) => listPins(ctx, ctx.artist)),
 
-  pin: artistProcedure.input(pinId).query(({ ctx, input }) => getPin(ctx, ctx.artist, input.pinId)),
+  pin: actingArtistProcedure
+    .input(pinId)
+    .query(({ ctx, input }) => getPin(ctx, ctx.artist, input.pinId)),
 
   /** What the form offers: reward items, tiers, events, the artist's tags, the fan token. */
-  pinOptions: artistProcedure.query(({ ctx }) => pinOptions(ctx, ctx.artist)),
+  pinOptions: actingArtistProcedure.query(({ ctx }) => pinOptions(ctx, ctx.artist)),
 
-  createPin: artistProcedure
+  createPin: actingArtistProcedure
     .input(
       z.object({
         ...pinFields,
@@ -64,9 +72,11 @@ export const pinsRouter = createRouter({
         spotCount: z.number().int(),
       }),
     )
-    .mutation(({ ctx, input }) => createPin(ctx, ctx.artist, input)),
+    .mutation(({ ctx, input }) =>
+      createPin(ctx, ctx.artist, input, new Date(), undefined, { live: ctx.acting }),
+    ),
 
-  updatePin: artistProcedure
+  updatePin: actingArtistProcedure
     .input(
       z
         .object(pinFields)
@@ -75,23 +85,23 @@ export const pinsRouter = createRouter({
     )
     .mutation(({ ctx, input }) => updatePin(ctx, ctx.artist, input)),
 
-  setPinHidden: artistProcedure
+  setPinHidden: actingArtistProcedure
     .input(pinId.extend({ hidden: z.boolean() }))
     .mutation(({ ctx, input }) => setPinHidden(ctx, ctx.artist, input.pinId, input.hidden)),
 
-  removePin: artistProcedure
+  removePin: actingArtistProcedure
     .input(pinId)
     .mutation(({ ctx, input }) => removePin(ctx, ctx.artist, input.pinId)),
 
-  removeSpot: artistProcedure
+  removeSpot: actingArtistProcedure
     .input(z.object({ spotId: z.string().min(1) }))
     .mutation(({ ctx, input }) => removeSpot(ctx, ctx.artist, input.spotId)),
 
-  addSpot: artistProcedure
+  addSpot: actingArtistProcedure
     .input(spotPlace)
     .mutation(({ ctx, input }) => addSpot(ctx, ctx.artist, input)),
 
-  moveSpot: artistProcedure
+  moveSpot: actingArtistProcedure
     .input(spotPlace)
     .mutation(({ ctx, input }) => moveSpot(ctx, ctx.artist, input)),
 });

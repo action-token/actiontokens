@@ -2,10 +2,15 @@ import { describe, expect, it } from "vitest";
 
 import {
   audible,
+  clampEq,
   clipLength,
   clock,
   duplicateClip,
+  emptyProject,
+  EQ_BANDS,
   fadePoints,
+  FLAT_EQ,
+  isFlat,
   mixLength,
   moveTo,
   newTrack,
@@ -221,5 +226,27 @@ describe("WAV export", () => {
     expect(wav.getInt16(44 + 2 * 2, true)).toBe(0x7fff); // left, frame 1
     expect(wav.getInt16(44 + 3 * 2, true)).toBe(0x7fff); // right clamped from 2
     expect(wav.getInt16(44 + 4 * 2, true)).toBe(-0x8000);
+  });
+});
+
+describe("the EQ", () => {
+  it("is flat when missing or all zero, so older projects sound the same", () => {
+    expect(isFlat(undefined)).toBe(true);
+    expect(isFlat(FLAT_EQ)).toBe(true);
+    expect(isFlat({ low: 0, mid: 0.5, high: 0 })).toBe(false);
+    const saved = { version: 2, bpm: 90, masterVolume: 1, snap: false, tracks: [] };
+    expect(normalizeProject(saved).masterEq).toBeUndefined();
+    expect(emptyProject().masterEq).toBeUndefined();
+  });
+
+  it("keeps a band within 12 dB either way, in half steps", () => {
+    expect(clampEq(20)).toBe(12);
+    expect(clampEq(-20)).toBe(-12);
+    expect(clampEq(3.3)).toBe(3.5);
+    expect(EQ_BANDS.map((band) => [band.key, band.type, band.frequency])).toEqual([
+      ["low", "lowshelf", 100],
+      ["mid", "peaking", 1000],
+      ["high", "highshelf", 8000],
+    ]);
   });
 });

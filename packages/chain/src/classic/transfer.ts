@@ -109,6 +109,33 @@ export function buildStorageGift(input: {
   return finish(builder, [input.storage]);
 }
 
+/**
+ * An artist takes back a gift nobody accepted yet. The artist's wallet is the
+ * source and pays the fee; storage claims its own balance (the tokens return
+ * to storage) and pays the artist back the XLM the balance had locked.
+ * Storage co-signs.
+ */
+export function buildStorageTakeBack(input: {
+  sender: Account;
+  network: NetworkParams;
+  storage: string;
+  balanceId: string;
+}) {
+  const builder = startTransaction(input.sender, input.network)
+    .addOperation(
+      Operation.claimClaimableBalance({ source: input.storage, balanceId: input.balanceId }),
+    )
+    .addOperation(
+      Operation.payment({
+        source: input.storage,
+        destination: input.sender.accountId(),
+        asset: Asset.native(),
+        amount: CLAIMABLE_RESERVE_XLM,
+      }),
+    );
+  return finish(builder, [input.storage]);
+}
+
 /** What a claimable balance locks in its creator's account: one base reserve per claimant. */
 export const CLAIMABLE_RESERVE_XLM = "1";
 

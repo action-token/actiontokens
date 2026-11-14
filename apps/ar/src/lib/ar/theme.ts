@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { site } from "@bandcoin/ar-core/site";
+import { createMapPrefs } from "@bandcoin/map/prefs";
+import { mapStyleFor } from "@bandcoin/map/style";
+import {
+  onTabReturn,
+  readSharedTheme,
+  writeSharedTheme,
+  type SharedTheme,
+} from "@bandcoin/ui/lib/shared-theme";
 
 /**
  * ── Theme ──────────────────────────────────────────────────────────────────
@@ -30,79 +38,41 @@ const THEME_COLOR: Record<ResolvedTheme, string> = {
 };
 
 /**
- * The 3D look, per theme, from Wadzzo: "Wadzzo 3D Dark/Light" in Mapbox Studio
- * (account: wadzzo), Mapbox Standard with 3D buildings, landmarks and lighting
- * and a colour theme of its own. Needs Wadzzo's Mapbox token
- * (NEXT_PUBLIC_MAPBOX_API), which owns the styles.
- */
-export const MAP_STYLE_3D: Record<ResolvedTheme, string> = {
-  dark: "mapbox://styles/wadzzo/cmuwbonsf00rv01sdcun4fhdu",
-  light: "mapbox://styles/wadzzo/cmuwc16ut00gz01sd6359b3sw",
-};
-
-/**
- * ── Map mode: 2D / 3D ──────────────────────────────────────────────────────
+ * ── Map style: 2D / 3D, map type, terrain ─────────────────────────────────
  *
- * "2d" is the default: a flat Mapbox Light (day) / Dark (night) basemap seen
- * straight down. "3d" is the Wadzzo 3D style above (Mapbox Standard with 3D buildings), tilted. The choice is stored per device and shared by every map
- * in the app, so flipping it on the main map also applies to directions, a
- * collected card's mini-map and the embed.
+ * The styles, the stored choices and how a style URL is picked are shared with the artist portal
+ * (`@bandcoin/map`); AR keeps its own saved choices under `bandcoin-ar-map-*`. Every map in the
+ * app follows them, so flipping 2D/3D on the main map also applies to directions, a collected
+ * card's mini-map and the embed.
  */
-export type MapMode = "2d" | "3d";
+export {
+  isStandardStyle,
+  MAP_BASE_LABEL,
+  MAP_BASES,
+  mapStyleFor,
+  type MapBase,
+  type MapMode,
+} from "@bandcoin/map/style";
+export { storedChoice } from "@bandcoin/map/prefs";
 
-export const MAP_MODE_STORAGE_KEY = "bandcoin-ar-map-mode";
+const prefs = createMapPrefs("bandcoin-ar");
 
-export const MAP_STYLE_2D: Record<ResolvedTheme, string> = {
-  dark: "mapbox://styles/mapbox/dark-v11",
-  light: "mapbox://styles/mapbox/light-v11",
-};
-
-/** The basemap style for a mode + live theme. */
-export function mapStyleFor(mode: MapMode, theme: ResolvedTheme): string {
-  return mode === "3d" ? MAP_STYLE_3D[theme] : MAP_STYLE_2D[theme];
-}
-
-const mapModeListeners = new Set<() => void>();
-/** Holds the choice when localStorage is unavailable, so the toggle still works for the session. */
-let memoryMapMode: MapMode | null = null;
-
-function readMapMode(): MapMode {
-  if (memoryMapMode) return memoryMapMode;
-  try {
-    return window.localStorage.getItem(MAP_MODE_STORAGE_KEY) === "3d" ? "3d" : "2d";
-  } catch {
-    return "2d";
-  }
-}
-
-function subscribeMapMode(listener: () => void) {
-  mapModeListeners.add(listener);
-  const onStorage = (e: StorageEvent) => {
-    if (e.key === MAP_MODE_STORAGE_KEY) {
-      memoryMapMode = null;
-      listener();
-    }
-  };
-  window.addEventListener("storage", onStorage);
-  return () => {
-    mapModeListeners.delete(listener);
-    window.removeEventListener("storage", onStorage);
-  };
-}
-
-export function setMapMode(mode: MapMode) {
-  memoryMapMode = mode;
-  try {
-    window.localStorage.setItem(MAP_MODE_STORAGE_KEY, mode);
-  } catch {
-    // Storage blocked: the choice lasts until the page is closed.
-  }
-  mapModeListeners.forEach((l) => l());
-}
-
+export const MAP_MODE_STORAGE_KEY = prefs.keys.mode;
+export const useMapBase = prefs.useMapBase;
+export const setMapBase = prefs.setMapBase;
+/** Hill shading and contours over the map. */
+export const useMapTerrain = prefs.useMapTerrain;
+export const setMapTerrain = prefs.setMapTerrain;
+export const setMapMode = prefs.setMapMode;
 /** The shared 2D/3D choice. "2d" on the server and until hydrated, like `useResolvedTheme`. */
-export function useMapMode(): MapMode {
-  return useSyncExternalStore(subscribeMapMode, readMapMode, () => "2d" as MapMode);
+export const useMapMode = prefs.useMapMode;
+
+/** The style URL for the live mode, theme and map type. */
+export function useMapStyle(): string {
+  const mode = useMapMode();
+  const theme = useResolvedTheme();
+  const base = useMapBase();
+  return mapStyleFor(mode, theme, base);
 }
 
 function isThemePreference(value: unknown): value is ThemePreference {
@@ -119,6 +89,14 @@ export function readStoredPreference(): ThemePreference {
     return "auto";
   }
 }
+
+/**
+ * The theme is shared with the other Bandcoin sites through a cookie (`@bandcoin/ui/lib/shared-theme`),
+ * whose word for "auto" is "system".
+ */
+export const toShared = (pref: ThemePreference): SharedTheme => (pref === "auto" ? "system" : pref);
+export const fromShared = (theme: SharedTheme): ThemePreference =>
+  theme === "system" ? "auto" : theme;
 
 function writeStoredPreference(pref: ThemePreference) {
   try {
@@ -227,9 +205,23 @@ export function useTheme() {
   const setPreference = useCallback((pref: ThemePreference) => {
     setPreferenceState(pref);
     writeStoredPreference(pref);
+    writeSharedTheme(toShared(pref));
     const next = resolveTheme(pref);
     setResolved(next);
     applyTheme(next);
+  }, []);
+
+  // A change picked up from another Bandcoin site (see `useSharedThemeSync`).
+  useEffect(() => {
+    const onChange = () => {
+      const pref = readStoredPreference();
+      setPreferenceState(pref);
+      setResolved(resolveTheme(pref));
+    };
+    themeListeners.add(onChange);
+    return () => {
+      themeListeners.delete(onChange);
+    };
   }, []);
 
   // Follow the OS live while — and only while — nothing's been chosen
@@ -250,4 +242,27 @@ export function useTheme() {
   }, [preference]);
 
   return { preference, resolved, setPreference };
+}
+
+const themeListeners = new Set<() => void>();
+
+/**
+ * Keeps the theme in step with the other Bandcoin sites (mounted once, in the shell layout). The
+ * seed script already applied the shared cookie on load; this takes over afterwards: the stored
+ * choice is written to the cookie once (an older device that only had it in localStorage), and
+ * when the tab comes back into view a change made on another site is applied here.
+ */
+export function useSharedThemeSync() {
+  useEffect(() => {
+    if (!readSharedTheme()) writeSharedTheme(toShared(readStoredPreference()));
+    return onTabReturn(() => {
+      const shared = readSharedTheme();
+      if (!shared) return;
+      const pref = fromShared(shared);
+      if (pref === readStoredPreference()) return;
+      writeStoredPreference(pref);
+      applyTheme(resolveTheme(pref));
+      themeListeners.forEach((listener) => listener());
+    });
+  }, []);
 }

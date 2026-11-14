@@ -14,7 +14,8 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "date-fns": "catalog:"
+    "date-fns": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@bandcoin/eslint-config": "workspace:*",

@@ -7,6 +7,8 @@ import toast from "react-hot-toast";
 import type { FillForm, FillResult } from "@bandcoin/api";
 import { Button } from "@bandcoin/ui/components/button";
 import { Textarea } from "@bandcoin/ui/components/textarea";
+import { cn } from "@bandcoin/ui/lib/cn";
+import { useFormCard } from "@bandcoin/ui/patterns/form-card";
 
 import { api } from "~/trpc/react";
 
@@ -29,6 +31,8 @@ export function AiFillCard<F extends FillForm>({
   apply: (result: FillResult<F>) => (() => void) | void;
   examples?: string[];
 }) {
+  // In a map card it is tighter, so the form fields show on the first screen (as Wadzzo's).
+  const inCard = Boolean(useFormCard());
   const [prompt, setPrompt] = useState("");
   const [undo, setUndo] = useState<(() => void) | null>(null);
   const fill = api.ai.fillForm.useMutation({
@@ -43,12 +47,17 @@ export function AiFillCard<F extends FillForm>({
   const run = () => fill.mutate({ form, prompt, ...localNow(), context: context ?? {} });
 
   return (
-    <section className="border-primary/30 from-primary/10 via-surface to-surface relative overflow-hidden rounded-[1.4rem] border-2 bg-linear-to-br p-5">
+    <section
+      className={cn(
+        "border-primary/30 from-primary/10 via-surface to-surface relative overflow-hidden border-2 bg-linear-to-br",
+        inCard ? "rounded-xl p-3" : "rounded-[1.4rem] p-5",
+      )}
+    >
       <div className="mb-3 flex items-center gap-2">
         <span className="bg-primary text-primary-foreground flex size-7 -rotate-6 items-center justify-center rounded-lg">
           <Sparkles className="size-4" />
         </span>
-        <h2 className="display text-2xl">Fill with AI</h2>
+        <h2 className={cn("display", inCard ? "text-lg" : "text-2xl")}>Fill with AI</h2>
         <AiQuota kind="text" className="ml-auto" />
       </div>
       <Textarea
@@ -60,20 +69,23 @@ export function AiFillCard<F extends FillForm>({
             run();
           }
         }}
-        rows={2}
+        rows={inCard ? 1 : 2}
         maxLength={2000}
         placeholder="Describe what you want in a sentence or two…"
-        className="bg-surface resize-none"
+        className={cn("bg-surface resize-none", inCard && "min-h-10 py-2")}
         aria-label="Describe what you want the AI to fill in"
       />
-      {examples && !prompt && (
+      {examples && !prompt && (inCard ? examples.slice(0, 1) : examples).length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1.5">
-          {examples.map((example) => (
+          {(inCard ? examples.slice(0, 1) : examples).map((example) => (
             <button
               key={example}
               type="button"
               onClick={() => setPrompt(example)}
-              className="bg-surface text-fg-muted hover:border-primary/40 hover:text-fg rounded-full border px-2.5 py-1 text-xs transition-colors"
+              className={cn(
+                "bg-surface text-fg-muted hover:border-primary/40 hover:text-fg rounded-full border px-2.5 py-1 text-xs transition-colors",
+                inCard && "max-w-full truncate",
+              )}
             >
               {example}
             </button>
@@ -81,7 +93,7 @@ export function AiFillCard<F extends FillForm>({
         </div>
       )}
       <div className="mt-3 flex items-center gap-2">
-        <p className="text-fg-muted hidden text-xs sm:block">
+        <p className={cn("text-fg-muted hidden text-xs", !inCard && "sm:block")}>
           Nothing is saved. You review every field first.
         </p>
         <div className="ml-auto flex gap-2">

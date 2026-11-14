@@ -3,6 +3,7 @@ import { z } from "zod";
 import { AR_CAPTURE_RADIUS, distanceMeters } from "@bandcoin/ar-core/ar/geo";
 import { pinStatus, RARITY_ORDER } from "@bandcoin/ar-core/ar/rarity";
 import type { ArPin, Rarity } from "@bandcoin/ar-core/ar/types";
+import type { MapLayerChip } from "@bandcoin/ar-core/layers";
 import { PinType, type Prisma } from "@bandcoin/db";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
@@ -17,6 +18,8 @@ import {
   spotsOf,
   toArPin,
   writeCollect,
+  layerFilterWhere,
+  mapLayerChips,
 } from "../../services/ar/pins";
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 import { unlockAfterCollect } from "../../services/catalog/unlock-chain";
@@ -40,6 +43,8 @@ export const pinRouter = createRouter({
           /** Only these pin types (website embeds); empty = all */
           types: z.array(z.enum(PinType)).max(6).optional(),
           artistId: z.string().min(1).optional(),
+          /** "none" = regular pins; an id, or ids with commas = those layers; left out = all */
+          layer: z.string().max(2000).optional(),
         })
         .optional(),
     )
@@ -60,6 +65,7 @@ export const pinRouter = createRouter({
           ...livePinWhere(viewerId),
           ...(input?.types?.length ? { type: { in: input.types } } : {}),
           ...(input?.artistId ? { artistId: input.artistId } : {}),
+          ...layerFilterWhere(input?.layer),
           spots: { some: spotWhere },
         },
         include: { ...include, spots: { ...include.spots, where: spotWhere } },
@@ -69,6 +75,31 @@ export const pinRouter = createRouter({
       return area
         ? spots.filter((spot) => distanceMeters(area, spot) <= area.radiusKm * 1000)
         : spots;
+    }),
+
+  /**
+   * The layers with a live drop in the area (or anywhere), for the map's Layers sheet: one
+   * chip per artist's layer, by name then artist.
+   */
+  layers: publicProcedure
+    .input(
+      z
+        .object({
+          lat: lat.optional(),
+          lng: lng.optional(),
+          radiusKm: z.number().positive().max(2000).optional(),
+        })
+        .optional(),
+    )
+    .query(({ ctx, input }): Promise<MapLayerChip[]> => {
+      const area =
+        input?.lat != null && input.lng != null && input.radiusKm != null
+          ? { lat: input.lat, lng: input.lng, radiusKm: input.radiusKm }
+          : null;
+      return mapLayerChips(ctx.db, {
+        ...livePinWhere(ctx.session?.user.id ?? null),
+        spots: { some: { isHidden: false, ...(area ? boundingBox(area) : {}) } },
+      });
     }),
 
   /**

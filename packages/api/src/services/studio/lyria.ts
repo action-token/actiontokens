@@ -67,12 +67,48 @@ export function lyriaProvider(apiKey = process.env.GEMINI_API_KEY): MusicProvide
   };
 }
 
+/** The keys Lyria RealTime can hold the music to; the first lets the model choose. */
+export const LIVE_SCALES = [
+  "SCALE_UNSPECIFIED",
+  "C_MAJOR_A_MINOR",
+  "D_FLAT_MAJOR_B_FLAT_MINOR",
+  "D_MAJOR_B_MINOR",
+  "E_FLAT_MAJOR_C_MINOR",
+  "E_MAJOR_D_FLAT_MINOR",
+  "F_MAJOR_D_MINOR",
+  "G_FLAT_MAJOR_E_FLAT_MINOR",
+  "G_MAJOR_E_MINOR",
+  "A_FLAT_MAJOR_F_MINOR",
+  "A_MAJOR_G_FLAT_MINOR",
+  "B_FLAT_MAJOR_G_MINOR",
+  "B_MAJOR_A_FLAT_MINOR",
+] as const;
+export type LiveScale = (typeof LIVE_SCALES)[number];
+
+/**
+ * How the live music is steered. Lyria takes the whole of it every time:
+ * anything left out goes back to the model's default.
+ */
+export type LiveMusicConfig = {
+  bpm?: number;
+  density?: number;
+  brightness?: number;
+  /** How closely the music follows the prompts (0 to 6) */
+  guidance?: number;
+  /** How much it varies (0 to 3) */
+  temperature?: number;
+  scale?: LiveScale;
+  muteBass?: boolean;
+  muteDrums?: boolean;
+  onlyBassAndDrums?: boolean;
+};
+
 /** What the live relay needs from a Lyria RealTime session. */
 export type LiveLyria = {
   setWeightedPrompts(input: { weightedPrompts: { text: string; weight: number }[] }): Promise<void>;
-  setMusicGenerationConfig(input: {
-    musicGenerationConfig: { bpm?: number; density?: number; brightness?: number };
-  }): Promise<void>;
+  setMusicGenerationConfig(input: { musicGenerationConfig: LiveMusicConfig }): Promise<void>;
+  /** Needed for a new tempo or key to be heard: the stream goes on, with a hard jump */
+  resetContext(): void;
   play(): void;
   pause(): void;
   stop(): void;

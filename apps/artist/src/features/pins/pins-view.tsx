@@ -39,6 +39,7 @@ import { usePortal } from "~/features/portal/use-portal";
 import { formatWhen } from "~/lib/datetime";
 import { api, type RouterOutputs } from "~/trpc/react";
 
+import { LayerTag } from "./layers/layer-tag";
 import { QrButton, QrDownloadAllButton } from "./qr/qr-buttons";
 import { usePinQrs } from "./qr/use-pin-qrs";
 
@@ -131,6 +132,12 @@ export function PinsView() {
           <>
             <Button variant="outline" asChild>
               <Link href="/pins">Map</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/pins/shapes">Pin shapes</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/pins/templates">Templates</Link>
             </Button>
             <Button asChild>
               <Link href="/pins/new">
@@ -399,6 +406,11 @@ function PinRow({
             {pin.collected.toLocaleString()} collected
             {pin.claimLimit > 0 ? ` · ${pin.claimsLeft} of ${pin.claimLimit} left` : ""}
           </span>
+          {pin.layer && (
+            <span className="mt-0.5 block">
+              <LayerTag layer={pin.layer} />
+            </span>
+          )}
         </button>
         <Button variant="ghost" size="icon-sm" asChild className="hidden sm:inline-flex">
           <Link href={`/pins/${pin.id}`} aria-label={`Edit ${pin.title}`}>

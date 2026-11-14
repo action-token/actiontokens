@@ -11,7 +11,7 @@ import {
   setHotspotPaused,
   updateHotspot,
 } from "../../services/artist/hotspots";
-import { artistProcedure, createRouter } from "../../trpc";
+import { actingArtistProcedure, createRouter } from "../../trpc";
 import { pinFields } from "./pins";
 
 const point = z.tuple([z.number(), z.number()]);
@@ -44,6 +44,8 @@ const hotspotFields = {
   autoCollect: pinFields.autoCollect,
   isMultiSpot: pinFields.isMultiSpot,
   tags: pinFields.tags,
+  layerId: pinFields.layerId,
+  look: pinFields.look,
   area,
   dropEveryDays: z.number().int(),
   pinDurationDays: z.number().int(),
@@ -61,18 +63,18 @@ const hotspotId = z.object({ hotspotId: z.string().min(1) });
 
 /** Hotspots: areas where pins drop on a schedule (see services/artist/hotspots). */
 export const hotspotsRouter = createRouter({
-  hotspots: artistProcedure.query(({ ctx }) => listHotspots(ctx, ctx.artist)),
+  hotspots: actingArtistProcedure.query(({ ctx }) => listHotspots(ctx, ctx.artist)),
 
-  hotspot: artistProcedure
+  hotspot: actingArtistProcedure
     .input(hotspotId)
     .query(({ ctx, input }) => getHotspot(ctx, ctx.artist, input.hotspotId)),
 
-  createHotspot: artistProcedure.input(z.object(hotspotFields)).mutation(({ ctx, input }) => {
+  createHotspot: actingArtistProcedure.input(z.object(hotspotFields)).mutation(({ ctx, input }) => {
     const stored = asStored(input);
     return createHotspot(ctx, ctx.artist, { ...stored, area: stored.area });
   }),
 
-  updateHotspot: artistProcedure
+  updateHotspot: actingArtistProcedure
     .input(
       z
         .object(hotspotFields)
@@ -81,15 +83,15 @@ export const hotspotsRouter = createRouter({
     )
     .mutation(({ ctx, input }) => updateHotspot(ctx, ctx.artist, asStored(input))),
 
-  setPaused: artistProcedure
+  setPaused: actingArtistProcedure
     .input(hotspotId.extend({ paused: z.boolean() }))
     .mutation(({ ctx, input }) => setHotspotPaused(ctx, ctx.artist, input)),
 
-  dropNow: artistProcedure
+  dropNow: actingArtistProcedure
     .input(hotspotId)
     .mutation(({ ctx, input }) => dropHotspotNow(ctx, ctx.artist, input.hotspotId)),
 
-  removeHotspot: artistProcedure
+  removeHotspot: actingArtistProcedure
     .input(hotspotId)
     .mutation(({ ctx, input }) => removeHotspot(ctx, ctx.artist, input.hotspotId)),
 });

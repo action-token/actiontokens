@@ -626,6 +626,14 @@ describe("the pin list", () => {
     rewardItem: null,
     rewardsFanToken: false,
     event: null,
+    layer: null,
+    pinShape: null,
+    artist: { avatarUrl: "https://cdn.example/artist.png" },
+    markerShape: null,
+    markerFill: "ARTIST",
+    markerColor: null,
+    markerImageFit: null,
+    markerAutoBadge: true,
     tags: [{ tag: { label: "live" } }],
     spots: [
       { id: "s1", latitude: 1, longitude: 2, autoCollect: true, _count: { claims: 2 } },
@@ -645,6 +653,22 @@ describe("the pin list", () => {
     db.pin.findMany.mockResolvedValue([row(over)]);
     const [pin] = await listPins(ctx, artist, new Date(at));
     expect(pin).toMatchObject({ status, spots: 2, collected: 3, tags: ["live"], reward: null });
+  });
+
+  it("draws a pin made before looks existed as a circle with the artist's picture and a badge", async () => {
+    const { ctx, db } = setup();
+    db.pin.findMany.mockResolvedValue([row({})]);
+    const [pin] = await listPins(ctx, artist, now);
+    expect(pin?.look).toMatchObject({
+      anchor: "center",
+      imageUrl: "https://cdn.example/artist.png",
+      autoBadge: true,
+    });
+    db.pin.findMany.mockResolvedValue([
+      row({ markerShape: "hexagon", markerFill: "PIN", imageUrl: "https://cdn.example/pin.png" }),
+    ]);
+    const [own] = await listPins(ctx, artist, now);
+    expect(own?.look.imageUrl).toBe("https://cdn.example/pin.png");
   });
 
   it("gives the map each spot's place and whether the pin collects itself", async () => {
@@ -688,6 +712,7 @@ describe("AI tag suggestions", () => {
     fill: vi.fn().mockResolvedValue(tags ? { tags } : null),
     write: vi.fn(),
     image: vi.fn(),
+    edit: vi.fn(),
   });
 
   it("cleans the tags, caches them and counts one generation", async () => {

@@ -2,27 +2,25 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Settings } from "lucide-react";
+import { Bell, Menu, ScanLine, Settings, Store } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@bandcoin/ui/components/sheet";
 import { cn } from "@bandcoin/ui/lib/cn";
 import { useSidebarCollapsed } from "@bandcoin/ui/lib/sidebar-collapsed";
+import { BrandMark } from "@bandcoin/ui/patterns/boot-screen";
+import { PhoneTabBar } from "@bandcoin/ui/patterns/phone-tab-bar";
+import { SideLaunchTiles, SideMenuSheet } from "@bandcoin/ui/patterns/side-frame";
 
 import { AccountButton } from "~/features/account/account-button";
 import {
+  MENU_ROW,
   NotificationsMenuLink,
   useUnreadNotifications,
 } from "~/features/notifications/notifications-link";
 import { type PortalStatus, usePortal } from "~/features/portal/use-portal";
 
-import { isActive, type NavGroup, navFor, phoneTabs } from "./nav";
+import { AR_URL, FAN_APP_URL } from "./links";
+import { isActive, type NavGroup, type NavItem, navFor, phoneLabel, phoneTabs } from "./nav";
 import { Sidebar } from "./sidebar";
 import { SignInCard } from "./sign-in-card";
 
@@ -57,16 +55,20 @@ export function PortalShell({
         onToggle={() => setCollapsed(!collapsed)}
       />
 
-      <main className="min-w-0 pt-4 pb-24 sm:pt-0 sm:pb-12">
+      <MobileTabs groups={groups} pathname={pathname} signedIn={signedIn} />
+
+      <main className="min-w-0 pb-[var(--phone-bar-space)] sm:pb-12 sm:pl-(--side-w)">
         {signedOut ? <SignInCard /> : children}
       </main>
-
-      <MobileTabs groups={groups} pathname={pathname} signedIn={signedIn} />
     </div>
   );
 }
 
-/** On phones the first links are tabs and the rest sit behind "More". */
+/**
+ * Phones, as in Wadzzo's brand portal: a header with the wordmark, notifications, the account and
+ * Menu (every page, as a drawer from the right), and the shared bottom bar: Map, Store | AR |
+ * Bounties, Pins.
+ */
 function MobileTabs({
   groups,
   pathname,
@@ -78,53 +80,57 @@ function MobileTabs({
 }) {
   const [open, setOpen] = useState(false);
   const unread = useUnreadNotifications();
-  const { tabs, more } = phoneTabs(groups, signedIn);
-  if (tabs.length === 0 && !more) return null;
-  const tabClass =
-    "text-fg-faint aria-[current=page]:text-fg grid min-w-0 flex-1 justify-items-center gap-0.5 py-2 text-[10px] font-medium";
-  const hiddenActive = more && !tabs.some((entry) => isActive(entry, pathname));
+  const { left, right } = phoneTabs(groups);
+  const tabOf = (entry: NavItem) => ({
+    href: entry.href,
+    label: phoneLabel(entry),
+    icon: entry.icon,
+    active: isActive(entry, pathname),
+  });
   return (
     <>
-      <nav
-        aria-label="Tabs"
-        className="bg-surface fixed inset-x-0 bottom-0 z-40 flex border-t pb-[env(safe-area-inset-bottom)] sm:hidden"
-      >
-        {tabs.map((entry) => (
+      <header className="bg-bg/95 sticky top-0 z-30 flex h-14 items-center gap-2 border-b pr-3 pl-4 sm:hidden">
+        <Link
+          href="/"
+          aria-label="Artist portal home"
+          className="flex min-w-0 flex-1 items-center gap-2"
+        >
+          <BrandMark className="h-7" />
+          <span className="marker text-primary-text truncate text-sm">artist portal</span>
+        </Link>
+        {signedIn && (
           <Link
-            key={entry.href}
-            href={entry.href}
-            aria-current={isActive(entry, pathname) ? "page" : undefined}
-            className={tabClass}
+            href="/notifications"
+            aria-label={unread > 0 ? `Notifications (${unread} new)` : "Notifications"}
+            className="bg-surface relative flex size-9 shrink-0 items-center justify-center rounded-full border"
           >
-            <entry.icon className="size-5" />
-            {entry.shortLabel ?? entry.label}
-          </Link>
-        ))}
-        {more && (
-          <button
-            type="button"
-            aria-current={hiddenActive ? "page" : undefined}
-            onClick={() => setOpen(true)}
-            className={cn(tabClass, "relative")}
-          >
-            <Menu className="size-5" />
+            <Bell className="size-[18px]" />
             {unread > 0 && (
-              <span
-                aria-label={`${unread} new notifications`}
-                className="bg-danger ring-surface absolute top-1.5 left-[calc(50%+6px)] size-2 rounded-full ring-2"
-              />
+              <span className="bg-danger ring-bg absolute top-0.5 right-0.5 size-2.5 rounded-full ring-2" />
             )}
-            More
-          </button>
+          </Link>
         )}
-      </nav>
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="bottom" className="max-h-[80dvh] overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>Menu</SheetTitle>
-            <SheetDescription className="sr-only">Every page in the artist portal</SheetDescription>
-          </SheetHeader>
-          <div className="grid gap-4 px-4 pb-6">
+        <AccountButton compact />
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="Menu"
+          className="bg-primary text-primary-ink flex size-9 shrink-0 items-center justify-center rounded-full active:scale-95"
+        >
+          <Menu className="size-5" />
+        </button>
+      </header>
+      {left.length + right.length > 0 && (
+        <PhoneTabBar left={left.map(tabOf)} right={right.map(tabOf)} arHref={AR_URL} />
+      )}
+      <SideMenuSheet
+        open={open}
+        onOpenChange={setOpen}
+        home={{ href: "/", label: "Portal home", tagline: "artist portal" }}
+        description="Every page in the artist portal"
+        infoBase={FAN_APP_URL}
+        quick={
+          <>
             <AccountButton />
             {signedIn && (
               <NotificationsMenuLink
@@ -136,32 +142,42 @@ function MobileTabs({
               href="/settings"
               onClick={() => setOpen(false)}
               aria-current={pathname.startsWith("/settings") ? "page" : undefined}
-              className="text-fg-muted aria-[current=page]:bg-surface-2 aria-[current=page]:text-fg flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium"
+              className={MENU_ROW}
             >
               <Settings className="size-[18px]" /> Settings
             </Link>
-            {groups.map((group) => (
-              <div key={group.title} className="grid gap-1">
-                <span className="text-fg-faint text-[11px] font-semibold tracking-wider uppercase">
-                  {group.title}
-                </span>
-                {group.items.map((entry) => (
-                  <Link
-                    key={entry.href}
-                    href={entry.href}
-                    onClick={() => setOpen(false)}
-                    aria-current={isActive(entry, pathname) ? "page" : undefined}
-                    className="text-fg-muted aria-[current=page]:bg-surface-2 aria-[current=page]:text-fg flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium"
-                  >
-                    <entry.icon className="size-[18px]" />
-                    {entry.label}
-                  </Link>
-                ))}
-              </div>
-            ))}
-          </div>
-        </SheetContent>
-      </Sheet>
+          </>
+        }
+        groups={groups.map((group) => ({
+          title: group.title,
+          items: group.items.map((entry) => ({
+            href: entry.href,
+            label: entry.label,
+            icon: entry.icon,
+            active: isActive(entry, pathname),
+          })),
+        }))}
+        footer={
+          <SideLaunchTiles
+            tiles={[
+              {
+                href: AR_URL,
+                title: "Go to AR",
+                hint: "Your drops on the map",
+                icon: ScanLine,
+                tone: "ink",
+              },
+              {
+                href: FAN_APP_URL,
+                title: "Marketplace",
+                hint: "See it as fans do",
+                icon: Store,
+                tone: "mint",
+              },
+            ]}
+          />
+        }
+      />
     </>
   );
 }

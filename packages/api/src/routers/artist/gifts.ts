@@ -14,6 +14,7 @@ import {
   startCollectibleGift,
   submitCollectibleGift,
 } from "../../services/artist/collectible-gifts";
+import { prepareGiftTakeBack, submitGiftTakeBack } from "../../services/artist/gift-take-back";
 import { cancelPurchase } from "../../services/purchase";
 import { artistProcedure, createRouter } from "../../trpc";
 
@@ -61,7 +62,18 @@ export const giftsRouter = createRouter({
     .input(z.object({ orderId: z.string().min(1), xdr: z.string().min(1) }))
     .mutation(({ ctx, input }) => submitCollectibleGift(ctx, ctx.session.user, input)),
 
-  sent: artistProcedure.query(({ ctx }) => listSentGifts(ctx, ctx.session.user)),
+  sent: artistProcedure.query(({ ctx }) => listSentGifts(ctx, ctx.session.user, ctx.artist)),
+
+  /** Take back a gift the fan hasn't accepted yet (see services/artist/gift-take-back) */
+  prepareTakeBack: artistProcedure
+    .input(z.object({ orderId: z.string().min(1) }))
+    .mutation(({ ctx, input }) =>
+      prepareGiftTakeBack(ctx, ctx.session.user, ctx.artist, input.orderId),
+    ),
+
+  submitTakeBack: artistProcedure
+    .input(z.object({ orderId: z.string().min(1), xdr: z.string().min(1) }))
+    .mutation(({ ctx, input }) => submitGiftTakeBack(ctx, ctx.session.user, ctx.artist, input)),
 
   followers: artistProcedure
     .input(z.object({ search: z.string().max(60).optional() }))

@@ -6,6 +6,9 @@
  * fields (rarity, status, lock) the database doesn't store.
  */
 
+import type { PinLayerRef } from "../layers";
+import type { ResolvedPinLook } from "../pin-look";
+
 /** How a pin proves you're there: GPS near the spot, or its printed QR code. */
 export type DetectionMethod = "gps" | "qr" | "image";
 
@@ -72,6 +75,12 @@ export interface ArPin {
 
   /** This pin's own tag labels (`ArArtist.categories` is the union across an artist's pins). */
   tags: string[];
+
+  /** The artist's map layer it is in (plan 42); null is a regular pin. */
+  layer: PinLayerRef | null;
+
+  /** How the pin is drawn on the maps (plan 43), every fallback already applied. */
+  look: ResolvedPinLook;
 }
 
 export interface ArArtist {

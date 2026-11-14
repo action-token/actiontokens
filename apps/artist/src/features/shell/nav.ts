@@ -9,6 +9,8 @@ import {
   FileText,
   Aperture,
   Frame,
+  Globe,
+  LayoutDashboard,
   Gift,
   LayoutTemplate,
   List,
@@ -42,8 +44,6 @@ export type NavItem = {
   also?: string[];
   /** Pages under this entry that belong to another entry instead. */
   except?: string[];
-  /** One of the four tabs on a phone's bottom bar. */
-  tab?: boolean;
 };
 export type NavGroup = { title: string; items: NavItem[] };
 export type SectionTab = Pick<NavItem, "href" | "label" | "exact">;
@@ -70,14 +70,17 @@ export type PortalNavInput = {
 const ADMIN: NavGroup = {
   title: "Admin",
   items: [
+    { href: "/admin", icon: LayoutDashboard, label: "Overview", exact: true },
     { href: "/admin/artists", icon: Mic2, label: "Artists" },
     { href: "/admin/users", icon: Users, label: "Users" },
     { href: "/admin/admins", icon: ShieldCheck, label: "Admins" },
     { href: "/admin/pins", icon: MapPinned, label: "Pin review" },
+    { href: "/admin/maps", icon: Map, label: "All maps" },
     { href: "/admin/murals", icon: Frame, label: "Mural review" },
     { href: "/admin/stories", icon: Aperture, label: "Story review" },
     { href: "/admin/bounties", icon: Trophy, label: "Bounties" },
     { href: "/admin/items", icon: Package, label: "Items" },
+    { href: "/admin/domains", icon: Globe, label: "Domains" },
     { href: "/admin/reports", icon: BarChart3, label: "Collection reports" },
     { href: "/admin/alerts", icon: BellRing, label: "Alerts" },
     { href: "/admin/jobs", icon: Workflow, label: "Jobs" },
@@ -101,11 +104,16 @@ const READY_TOOLS: NavGroup[] = [
         label: "Map & pins",
         shortLabel: "Map",
         also: ["/hotspots"],
-        except: ["/pins/manage"],
-        tab: true,
+        except: ["/pins/manage", "/pins/shapes", "/pins/templates"],
       },
-      { href: "/pins/manage", icon: List, label: "Pin management", shortLabel: "Manage" },
-      { href: "/events", icon: CalendarDays, label: "Events", tab: true },
+      {
+        href: "/pins/manage",
+        icon: List,
+        label: "Pin management",
+        shortLabel: "Manage",
+        also: ["/pins/shapes", "/pins/templates"],
+      },
+      { href: "/events", icon: CalendarDays, label: "Events" },
       { href: "/embeds", icon: Code2, label: "Website map" },
       { href: "/reports", icon: BarChart3, label: "Pin reports" },
       { href: "/redeem", icon: TicketCheck, label: "Redeem" },
@@ -121,9 +129,8 @@ const READY_TOOLS: NavGroup[] = [
         label: "Posts & stories",
         shortLabel: "Posts",
         also: ["/stories"],
-        tab: true,
       },
-      { href: "/bounties", icon: Trophy, label: "Bounties", tab: true },
+      { href: "/bounties", icon: Trophy, label: "Bounties" },
     ],
   },
   {
@@ -177,14 +184,32 @@ export function isActive(
   return [entry.href, ...(entry.also ?? [])].some((prefix) => under(prefix, pathname));
 }
 
-const PHONE_TABS = 4;
+/** The phone bar, either side of the raised AR key: Map, Store (Items) | AR | Bounties, Pins (Pin management). */
+const PHONE_LEFT = ["/pins", "/items"];
+const PHONE_RIGHT = ["/bounties", "/pins/manage"];
 
-/** A phone's tab bar shows the items marked `tab` (else the first few); "More" opens the rest and the account. */
-export function phoneTabs(
-  groups: NavGroup[],
-  signedIn: boolean,
-): { tabs: NavItem[]; more: boolean } {
+/**
+ * The phone bar's tabs. A tab the artist can't open yet (onboarding, or an admin who isn't an
+ * artist) is swapped for the next entry they can, so the bar never has dead tabs; everything else is
+ * in the header's Menu.
+ */
+export function phoneTabs(groups: NavGroup[]): { left: NavItem[]; right: NavItem[] } {
   const all = groups.flatMap((group) => group.items);
-  const marked = all.filter((entry) => entry.tab);
-  return { tabs: (marked.length > 0 ? marked : all).slice(0, PHONE_TABS), more: signedIn };
+  const wanted = new Set([...PHONE_LEFT, ...PHONE_RIGHT]);
+  const fallback = all.filter((entry) => !wanted.has(entry.href));
+  const fill = (hrefs: string[]) =>
+    hrefs
+      .map((href) => all.find((entry) => entry.href === href) ?? fallback.shift())
+      .filter((entry): entry is NavItem => Boolean(entry));
+  return { left: fill(PHONE_LEFT), right: fill(PHONE_RIGHT) };
 }
+
+/** What the phone bar calls a tab: the portal's own names for the four around the AR key. */
+const PHONE_LABEL: Record<string, string> = {
+  "/pins": "Map",
+  "/items": "Store",
+  "/bounties": "Bounties",
+  "/pins/manage": "Pins",
+};
+export const phoneLabel = (entry: Pick<NavItem, "href" | "label" | "shortLabel">) =>
+  PHONE_LABEL[entry.href] ?? entry.shortLabel ?? entry.label;

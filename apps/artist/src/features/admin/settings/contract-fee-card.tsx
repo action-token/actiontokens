@@ -1,5 +1,6 @@
 "use client";
 
+import { Gem } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
@@ -14,7 +15,7 @@ import { Field } from "@bandcoin/ui/patterns/form-page";
 import { api } from "~/trpc/react";
 
 import { messageOf } from "../murals/model";
-import { SettingsSection } from "../../settings/settings-section";
+import { SettingCard, SettingFact } from "./setting-card";
 
 const MAX_PERCENT = 10;
 const ACCOUNT = /^G[A-Z2-7]{55}$/;
@@ -33,21 +34,22 @@ export function ContractFeeCard() {
   const onChain = data?.onChain;
 
   return (
-    <SettingsSection
+    <SettingCard
+      icon={Gem}
       title="Contract-NFT fee"
       description="What the NFT contract takes from every NFT sale. Changing it is a transaction the platform treasury signs and pays for."
     >
-      <div className="bg-surface border-border grid gap-4 rounded-xl border p-4 sm:p-5">
+      <div className="grid gap-5">
         {current.isPending ? (
           <Skeleton className="h-16 w-full rounded-lg" />
         ) : !onChain ? (
           <p className="text-fg-muted text-sm">{data?.error ?? "Couldn't read the contract."}</p>
         ) : (
           <>
-            <dl className="grid gap-2 text-sm sm:grid-cols-3">
-              <Fact label="Now on the contract" value={`${onChain.feeBps / 100}%`} />
-              <Fact label="Goes to" value={short(onChain.treasury)} />
-              <Fact label="Owner" value={short(onChain.owner)} />
+            <dl className="grid gap-2 sm:grid-cols-3">
+              <SettingFact label="Now on the contract" value={`${onChain.feeBps / 100}%`} />
+              <SettingFact label="Goes to" value={short(onChain.treasury)} />
+              <SettingFact label="Owner" value={short(onChain.owner)} />
             </dl>
             {data.canChange ? (
               <ChangeFee
@@ -64,16 +66,7 @@ export function ContractFeeCard() {
           </>
         )}
       </div>
-    </SettingsSection>
-  );
-}
-
-function Fact({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <dt className="text-fg-faint text-xs">{label}</dt>
-      <dd className="num font-medium">{value}</dd>
-    </div>
+    </SettingCard>
   );
 }
 
@@ -116,7 +109,7 @@ function ChangeFee({ feeBps, treasury }: { feeBps: number; treasury: string }) {
   });
 
   return (
-    <div className="border-border grid gap-4 border-t pt-4">
+    <div className="grid gap-4 border-t border-dashed pt-5">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-[8rem_minmax(0,1fr)]">
         <Field label="New fee (%)" htmlFor="contract-fee" error={percentError}>
           <Input

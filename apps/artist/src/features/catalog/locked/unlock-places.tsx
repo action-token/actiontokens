@@ -71,6 +71,7 @@ export function UnlockPlaces({
         <div className="bg-surface-2 relative h-64 overflow-hidden rounded-xl border">
           <BaseMap
             ref={map}
+            controls="zoom"
             initialViewState={
               first ? { latitude: first.lat, longitude: first.lng, zoom: 14 } : WORLD_VIEW
             }

@@ -1,3 +1,4 @@
+import { sharedThemeSeedScript } from "@bandcoin/ui/lib/shared-theme";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "~/styles/globals.css";
 // After globals, so the arcade palette wins on equal specificity.
@@ -56,6 +57,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     // The boot script may change the theme before hydration.
     <html lang="en" className={`dark ${fontVariables}`} data-theme="dark" suppressHydrationWarning>
       <head>
+        {/* The theme the other Bandcoin sites chose goes into this app's own key first. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: sharedThemeSeedScript("bandcoin-ar-theme", { system: "auto" }),
+          }}
+        />
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       </head>
       <body className="bg-ar-void">

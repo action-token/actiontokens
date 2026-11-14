@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { AR_CAPTURE_RADIUS, distanceMeters, formatDistance, offsetBy } from "../ar/geo";
 import { deriveRarity, pinStatus, timeRemaining } from "../ar/rarity";
+import { BUILTIN_SHAPES } from "../pin-look";
 import type { ArPin } from "../ar/types";
 
 describe("deriveRarity", () => {
@@ -61,6 +62,15 @@ const pin = (over: Partial<ArPin> = {}): ArPin => ({
   lockReason: null,
   subscribe: null,
   tags: [],
+  layer: null,
+  look: {
+    path: BUILTIN_SHAPES.circle.path,
+    anchor: "center",
+    color: null,
+    imageUrl: null,
+    imageFit: null,
+    autoBadge: false,
+  },
   ...over,
 });
 

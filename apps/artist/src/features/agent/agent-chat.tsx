@@ -24,7 +24,7 @@ import { useStored } from "./use-stored";
 
 /**
  * The map assistant: a floating chat over the Pins map, working for the
- * signed-in artist. Pair with <AgentMapLayer /> inside the map so its results
+ * signed-in artist (or, on Admin › All maps, for the artist the admin is acting as). Pair with <AgentMapLayer /> inside the map so its results
  * appear there.
  */
 export function AgentChat() {

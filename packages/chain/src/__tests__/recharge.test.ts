@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { toAmount, toStroops } from "../money";
+import { toStroops } from "../money";
 import {
   ACTIVATION_PRICE_USD,
   quoteActivation,
   quoteTopUp,
   quoteSwap,
-  quoteXlmSwap,
+  quoteFanTokenTrust,
   RECHARGE_PACKAGES_USD,
 } from "../recharge";
 
@@ -83,47 +83,109 @@ describe("quoteTopUp", () => {
   });
 });
 
-describe("quoteXlmSwap", () => {
-  it("prices 1 XLM in BANDCOIN with the 2% margin as its own line", () => {
-    // 1 XLM = $0.10 = 50 BANDCOIN at $0.002; 2% margin = 1 BANDCOIN
-    const quote = quoteXlmSwap({
-      ...rates,
-      xlm: "1",
-      bandcoinBalance: toAmount(toStroops("500")),
-      networkFeeXlm: "0.00001",
-    });
+describe("quoteFanTokenTrust", () => {
+  // 1 XLM = $0.10, 1 BANDCOIN = $0.002, USDC = $1; 0.5 XLM = $0.05
+  const base = {
+    ...rates,
+    usdcUsd: toStroops("1"),
+    feeBps: 250,
+    networkFeeXlm: "0.00003",
+    funds: { BANDCOIN: "500", USDC: "10", XLM: "10" },
+    hasBandcoinLine: true,
+  };
+
+  it("BANDCOIN: the reserve at today's price, the 2% cushion, then the fee on top", () => {
+    // 0.5 XLM = 25 BANDCOIN; cushion 0.5; fee 2.5% of 25.5 = 0.6375
+    const quote = quoteFanTokenTrust({ ...base, currency: "BANDCOIN" });
     expect(quote.ok).toBe(true);
     expect(quote.lines.map((line) => [line.key, line.amount])).toEqual([
-      ["market", "50"],
-      ["margin", "1"],
-      ["networkFee", "0.00001"],
-      ["total", "51"],
+      ["market", "25"],
+      ["margin", "0.5"],
+      ["platformFee", "0.6375"],
+      ["networkFee", "0.00003"],
+      ["total", "26.1375"],
     ]);
-    expect(quote.total).toBe("51.0000000");
-    expect(quote.receiveXlm).toBe("1.0000000");
+    expect(quote).toMatchObject({
+      platformPays: "25.5000000",
+      fee: "0.6375000",
+      sendXlm: "0.5",
+      card: null,
+    });
   });
 
-  it("says exactly how much BANDCOIN is missing and never swaps anything else", () => {
-    const quote = quoteXlmSwap({
-      ...rates,
-      xlm: "1",
-      bandcoinBalance: "20",
-      networkFeeXlm: "0.00001",
+  it("USDC works the same way in USDC", () => {
+    const quote = quoteFanTokenTrust({ ...base, currency: "USDC" });
+    // $0.05 + 2% = 0.051; fee 0.001275
+    expect(quote.total).toBe("0.0522750");
+    expect(quote.lines[0]).toMatchObject({ currency: "USDC", amount: "0.05" });
+  });
+
+  it("XLM: the fan's own 0.5 XLM is locked and only the fee is paid", () => {
+    const quote = quoteFanTokenTrust({ ...base, currency: "XLM" });
+    expect(quote).toMatchObject({ total: "0.0125000", platformPays: "0", sendXlm: "0" });
+    // They still need the reserve, the fee and the network fee spendable.
+    const short = quoteFanTokenTrust({
+      ...base,
+      currency: "XLM",
+      funds: { ...base.funds, XLM: "0.5" },
     });
-    expect(quote.ok).toBe(false);
-    expect(quote.problems).toEqual([
+    expect(short.problems).toEqual([
       {
         code: "INSUFFICIENT_FUNDS",
-        message: "You need 31 more BANDCOIN.",
-        shortfall: { currency: "BANDCOIN", need: "51", have: "20", short: "31" },
+        message: "You need 0.01253 more XLM.",
+        shortfall: { currency: "XLM", need: "0.51253", have: "0.5", short: "0.01253" },
       },
     ]);
   });
 
-  it("asks to sign in when there are no balances", () => {
+  it("card: never under $1, the rest arrives as BANDCOIN", () => {
+    const quote = quoteFanTokenTrust({ ...base, currency: "USD" });
+    // cost 0.50003 XLM = $0.050003, fee $0.0012501 (rounded up); charge $1.00, the rest / $0.002
+    expect(quote.total).toBe("1.0000000");
+    expect(quote.sendXlm).toBe("0.5000000");
+    expect(quote.card).toEqual({ extraBandcoin: "474.3734500", openBandcoinLine: false });
+    expect(quote.lines.map((line) => line.key)).toEqual([
+      "reserve",
+      "networkFee",
+      "platformFee",
+      "extra",
+      "total",
+    ]);
+  });
+
+  it("card without a BANDCOIN line: the line is opened and its reserve paid out of the $1", () => {
+    const quote = quoteFanTokenTrust({ ...base, currency: "USD", hasBandcoinLine: false });
+    expect(quote.sendXlm).toBe("1.0000000");
+    expect(quote.card?.openBandcoinLine).toBe(true);
+    expect(quote.lines.map((line) => line.key)).toContain("bandcoinReserve");
+    expect(Number(quote.card?.extraBandcoin)).toBeLessThan(474.37335);
+  });
+
+  it("card above the minimum charges the cost and the fee, rounded up to the cent", () => {
+    const quote = quoteFanTokenTrust({ ...base, currency: "USD", xlmUsd: toStroops("3") });
+    // 0.50003 XLM = $1.50009, fee $0.03750225 → $1.53759225 → $1.54
+    expect(quote.total).toBe("1.5400000");
+  });
+
+  it("says exactly what's missing and asks signed-out fans to sign in", () => {
+    const short = quoteFanTokenTrust({
+      ...base,
+      currency: "BANDCOIN",
+      funds: { ...base.funds, BANDCOIN: "20" },
+    });
+    expect(short.problems[0]).toMatchObject({
+      code: "INSUFFICIENT_FUNDS",
+      message: "You need 6.1375 more BANDCOIN.",
+    });
+    expect(quoteFanTokenTrust({ ...base, currency: "BANDCOIN", funds: null }).problems).toEqual([
+      { code: "SIGN_IN", message: "Sign in to subscribe." },
+    ]);
+  });
+
+  it("won't price without today's rates", () => {
     expect(
-      quoteXlmSwap({ ...rates, xlm: "1", bandcoinBalance: null, networkFeeXlm: "0" }).problems,
-    ).toEqual([{ code: "SIGN_IN", message: "Sign in to pay." }]);
+      quoteFanTokenTrust({ ...base, currency: "BANDCOIN", bandcoinUsd: 0n }).problems[0]?.code,
+    ).toBe("RATE_UNAVAILABLE");
   });
 });
 

@@ -4,6 +4,8 @@ import { toDisplay, toStroops } from "@bandcoin/chain";
 import type { OrderKind, OrderStatus } from "@bandcoin/db";
 
 import { listGifts, prepareGiftClaim, submitGiftClaim } from "../../services/gifts/claim";
+import { declineGift, undoDecline } from "../../services/gifts/decline";
+import { listSentWaiting, prepareTakeBack, submitTakeBack } from "../../services/gifts/take-back";
 import { cancelPurchase } from "../../services/purchase";
 import { walletAssets } from "../../services/wallet/assets";
 import { ownSendOrder, quoteSend, startSend, submitSend } from "../../services/wallet/send";
@@ -26,6 +28,8 @@ type SendDetails = {
   code: string;
   amount: string;
   mode: "payment" | "gift" | "create";
+  /** A gift nobody accepted, claimed back by the sender */
+  takenBack?: { txHash: string };
 };
 type Breakdown = { sendDetails?: SendDetails; receive?: { currency: string; amount: string } };
 
@@ -62,6 +66,7 @@ function orderTitle(
       const send = breakdown?.sendDetails;
       if (!send) return "Sent";
       const to = send.username ? `@${send.username}` : short(send.to);
+      if (send.takenBack) return `Sent to ${to} as a gift, then taken back`;
       return `Sent to ${to}${send.mode === "gift" ? " as a gift" : ""}`;
     }
     case "TOKEN_TRUST":
@@ -76,6 +81,7 @@ function orderTitle(
 const amountOf = (value: { toString(): string }) => toDisplay(toStroops(value));
 
 const orderInput = z.object({ orderId: z.string().min(1) });
+const balanceInput = z.object({ balanceId: z.string().regex(/^[0-9a-f]{72}$/) });
 const amount = z.string().trim().min(1).max(24);
 const sendInput = z.object({
   to: z.string().trim().min(1).max(80),
@@ -133,6 +139,23 @@ export const walletRouter = createRouter({
   submitGiftClaim: authedProcedure
     .input(z.object({ balanceId: z.string().regex(/^[0-9a-f]{72}$/), xdr: z.string().min(1) }))
     .mutation(({ ctx, input }) => submitGiftClaim(ctx, ctx.session.user, input)),
+
+  /** Say no to a waiting gift: it's hidden here and the sender sees "Declined" (services/gifts/decline). */
+  declineGift: authedProcedure
+    .input(balanceInput)
+    .mutation(({ ctx, input }) => declineGift(ctx, ctx.session.user, input.balanceId)),
+  undoDecline: authedProcedure
+    .input(balanceInput)
+    .mutation(({ ctx, input }) => undoDecline(ctx, ctx.session.user, input.balanceId)),
+
+  /** Tokens this user sent that nobody accepted yet: they can take them back (services/gifts/take-back). */
+  sentWaiting: authedProcedure.query(({ ctx }) => listSentWaiting(ctx, ctx.session.user)),
+  prepareTakeBack: authedProcedure
+    .input(balanceInput)
+    .mutation(({ ctx, input }) => prepareTakeBack(ctx, ctx.session.user, input.balanceId)),
+  submitTakeBack: authedProcedure
+    .input(balanceInput.extend({ xdr: z.string().min(1) }))
+    .mutation(({ ctx, input }) => submitTakeBack(ctx, ctx.session.user, input)),
 
   /** What went in and out of the fan's wallet through Bandcoin, newest first. */
   history: authedProcedure.query(async ({ ctx }) => {

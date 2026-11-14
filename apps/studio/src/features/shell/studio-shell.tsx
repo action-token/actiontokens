@@ -10,6 +10,7 @@ import { Button } from "@bandcoin/ui/components/button";
 import { cn } from "@bandcoin/ui/lib/cn";
 import { useSidebarCollapsed } from "@bandcoin/ui/lib/sidebar-collapsed";
 import { BrandMark } from "@bandcoin/ui/patterns/boot-screen";
+import { PhoneTabBar } from "@bandcoin/ui/patterns/phone-tab-bar";
 import {
   SideBalance,
   SideFrame,
@@ -20,7 +21,7 @@ import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
 import { api } from "~/trpc/react";
 
-import { APP_URL, ARTIST_URL, isActive, NAV_GROUPS, PHONE_TABS, TOOL_PAGES } from "./nav";
+import { APP_URL, AR_URL, ARTIST_URL, isActive, NAV_GROUPS, PHONE_TABS, TOOL_PAGES } from "./nav";
 
 /**
  * Studio's frame, the same as the marketplace's and the artist portal's: the
@@ -57,6 +58,14 @@ export function StudioShell({ children }: { children: ReactNode }) {
           };
 
   const coins = balance.data?.coins;
+  const tabOf = (entry: (typeof PHONE_TABS.left)[number] & { external?: boolean }) => ({
+    href: entry.href,
+    label: entry.label,
+    icon: entry.icon,
+    active: !entry.external && isActive(entry, pathname),
+    external: entry.external,
+  });
+
   return (
     <div className="grid min-h-dvh grid-cols-1 sm:grid-cols-[auto_minmax(0,1fr)]">
       <SideFrame
@@ -135,7 +144,7 @@ export function StudioShell({ children }: { children: ReactNode }) {
             </Button>
           )}
         </header>
-        <main className="relative isolate min-w-0 flex-1 pb-20 sm:pb-0">
+        <main className="relative isolate min-w-0 flex-1 pb-[var(--phone-bar-space)] sm:pb-0 sm:pl-(--side-w)">
           {/* soft colour glows behind every page, as on Gemini */}
           <div
             aria-hidden
@@ -150,22 +159,11 @@ export function StudioShell({ children }: { children: ReactNode }) {
         </main>
       </div>
 
-      <nav
-        aria-label="Tabs"
-        className="bg-surface fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t pb-[env(safe-area-inset-bottom)] sm:hidden"
-      >
-        {PHONE_TABS.map((entry) => (
-          <Link
-            key={entry.href}
-            href={entry.href}
-            aria-current={isActive(entry, pathname) ? "page" : undefined}
-            className="text-fg-faint aria-[current=page]:text-fg grid justify-items-center gap-0.5 py-2 text-[10px] font-medium"
-          >
-            <entry.icon className="size-5" />
-            {entry.label}
-          </Link>
-        ))}
-      </nav>
+      <PhoneTabBar
+        left={PHONE_TABS.left.map(tabOf)}
+        right={PHONE_TABS.right.map(tabOf)}
+        arHref={AR_URL}
+      />
     </div>
   );
 }

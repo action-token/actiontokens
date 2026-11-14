@@ -12,6 +12,7 @@ import type { ArArtist } from "@bandcoin/ar-core/ar/types";
 import { ArtistRowSkeleton } from "~/components/ui/Skeleton";
 import { useArtistsQuery, useToggleFollow } from "~/lib/ar/usePins";
 import { ArtistAvatar } from "~/components/artist/ArtistAvatar";
+import { SubscribeSheet } from "~/components/artist/SubscribeSheet";
 
 const compact = (n: number) =>
   n >= 1_000 ? `${(n / 1_000).toFixed(n >= 10_000 ? 0 : 1)}k` : String(n);
@@ -36,6 +37,9 @@ export default function ArtistsScreen() {
     error: followError,
   } = useToggleFollow();
   const requireAuth = useAuth((s) => s.requireAuth);
+  /** The artist the Subscribe sheet is for; it stays set while the sheet closes */
+  const [subscribingTo, setSubscribingTo] = useState<ArArtist | null>(null);
+  const [subscribing, setSubscribing] = useState(false);
 
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<"all" | "following">("all");
@@ -122,7 +126,16 @@ export default function ArtistsScreen() {
               key={artist.id}
               artist={artist}
               busy={followPendingId === artist.id}
-              label={followLabel(artist)}
+              label={
+                artist.subscribed && followPendingId !== artist.id
+                  ? "Subscribed"
+                  : followLabel(artist)
+              }
+              onSubscribe={() => {
+                if (!requireAuth("follow")) return;
+                setSubscribingTo(artist);
+                setSubscribing(true);
+              }}
               onToggle={() => {
                 if (!requireAuth("follow")) return;
                 toggleFollow(artist);
@@ -144,6 +157,16 @@ export default function ArtistsScreen() {
           )}
         </div>
       </div>
+
+      {subscribingTo?.fanToken && (
+        <SubscribeSheet
+          open={subscribing}
+          onClose={() => setSubscribing(false)}
+          artistId={subscribingTo.id}
+          artistName={subscribingTo.name}
+          code={subscribingTo.fanToken}
+        />
+      )}
     </AppShell>
   );
 }
@@ -151,11 +174,14 @@ export default function ArtistsScreen() {
 function ArtistRow({
   artist,
   onToggle,
+  onSubscribe,
   busy = false,
   label,
 }: {
   artist: ArArtist;
   onToggle: () => void;
+  /** Opens the Subscribe sheet (shown once they follow, when the artist has a fan token) */
+  onSubscribe: () => void;
   /** This artist's follow is in flight — other rows stay live. */
   busy?: boolean;
   /** Carries the phase text while busy ("Approve in wallet", …). */
@@ -216,15 +242,23 @@ function ArtistRow({
           </p>
         </Link>
 
-        <ArButton
-          size="sm"
-          variant={artist.followed ? "outline" : "primary"}
-          onClick={onToggle}
-          busy={busy}
-          className="min-w-[92px] shrink-0"
-        >
-          {label}
-        </ArButton>
+        <div className="flex shrink-0 flex-col gap-1.5">
+          <ArButton
+            size="sm"
+            variant={artist.followed ? "outline" : "primary"}
+            onClick={onToggle}
+            busy={busy}
+            className="min-w-[92px]"
+          >
+            {label}
+          </ArButton>
+          {/* As on the artist's page: Subscribe once they follow, when there's a fan token. */}
+          {artist.followed && !artist.subscribed && artist.fanToken && (
+            <ArButton size="sm" variant="primary" onClick={onSubscribe} className="min-w-[92px]">
+              Subscribe
+            </ArButton>
+          )}
+        </div>
       </div>
     </div>
   );

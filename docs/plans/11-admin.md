@@ -26,7 +26,7 @@ Bounties, Items, Collection reports (every artist or one), Alerts, Settings
 (fees, short link prices, pin radius, alert thresholds, contract-NFT fee
 server-signed by the treasury), Activity. Changed from the plan below:
 
-- **Overview** not built: `/admin` opens Artists, as in Wadzzo.
+- **Overview** not built then (`/admin` opened Artists, as in Wadzzo); built 2026-11-13, see plan 36.
 - **Pins** need approval first (not "live without review").
 - **Wallet asset list** dropped: admins don't curate Stellar assets in this app (asked 2026-10-31).
 

@@ -54,6 +54,7 @@ import { FAN_APP_URL } from "../shell/links";
 import { GiftsToClaim } from "./gifts-to-claim";
 import { orderStorage, pageList, storagePreview } from "./holdings-order";
 import { SendDialog } from "./send-dialog";
+import { SentWaiting } from "./sent-waiting";
 import { SwapForm } from "./swap-form";
 import { useWalletOrder } from "./use-wallet-order";
 
@@ -179,6 +180,7 @@ export function WalletView() {
           {assets.data?.active && <XlmCard xlm={assets.data.xlm} />}
           <StorageCard />
           <GiftsToClaim />
+          <SentWaiting />
         </div>
       </div>
 

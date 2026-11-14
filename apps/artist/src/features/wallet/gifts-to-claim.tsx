@@ -1,30 +1,19 @@
 "use client";
 
 import { Gift, Loader2 } from "lucide-react";
-import { useSession } from "next-auth/react";
-import { useRef, useState } from "react";
+import type { ReactNode } from "react";
 
-import { isAppError } from "@bandcoin/errors";
 import { Button } from "@bandcoin/ui/components/button";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import {
-  CUSTODIAL_COUNTDOWN_SECONDS,
-  ToastViewport,
-  TransactionToast,
-  type TransactionStep,
-} from "@bandcoin/ui/patterns/transaction-toast";
+import { cn } from "@bandcoin/ui/lib/cn";
 import { WalletPanel } from "@bandcoin/ui/patterns/wallet-blocks";
-import { getWalletProvider, signTransaction } from "@bandcoin/wallet";
 
 import { Money } from "~/components/money";
 import { api, type RouterOutputs } from "~/trpc/react";
 
-type WaitingGift = RouterOutputs["wallet"]["gifts"][number];
+import { ClaimToast, useClaimFlow } from "./use-claim-flow";
 
-const reasonOf = (error: unknown) =>
-  isAppError(error) || error instanceof Error
-    ? error.message
-    : "Couldn't claim the gift. Nothing was sent.";
+type WaitingGift = RouterOutputs["wallet"]["gifts"][number];
 
 const tokens = (amount: string) =>
   Number(amount).toLocaleString("en-US", { maximumFractionDigits: 7 });
@@ -35,11 +24,18 @@ const tokens = (amount: string) =>
  * fan couldn't hold yet. Each shows what accepting costs first; accepting
  * moves through the usual toast: countdown with Cancel for email/Google/Apple
  * accounts, "Confirm in your wallet" for wallet extensions.
+ *
+ * Decline costs nothing and signs nothing: the gift moves to "Declined" (the
+ * sender sees that and can take it back). It can be put back or accepted for
+ * as long as it's still waiting.
  */
 export function GiftsToClaim() {
   const gifts = api.wallet.gifts.useQuery();
   const flow = useGiftClaim();
-  const count = gifts.data?.length ?? 0;
+  const decline = useDecline();
+  const waiting = gifts.data?.filter((gift) => !gift.declined) ?? [];
+  const declined = gifts.data?.filter((gift) => gift.declined) ?? [];
+  const count = waiting.length;
 
   return (
     <WalletPanel
@@ -62,57 +58,105 @@ export function GiftsToClaim() {
         </p>
       ) : (
         <ul className="space-y-2">
-          {gifts.data!.map((gift) => (
-            <li
-              key={gift.balanceId}
-              className="bg-surface-2 flex items-center gap-3 rounded-xl p-3"
-            >
-              <span className="blob bg-primary text-primary-foreground flex size-10 shrink-0 -rotate-6 items-center justify-center">
-                <Gift className="size-5" strokeWidth={2.4} />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">
-                  <span className="num">{tokens(gift.amount)}</span> {gift.code}
-                  {gift.title !== gift.code && (
-                    <span className="text-fg-muted font-normal"> · {gift.title}</span>
-                  )}
-                </p>
-                <p className="text-fg-muted truncate text-xs">
-                  From {senderOf(gift)} · accepting costs{" "}
-                  <Money amount={gift.cost.total} currency="XLM" />
-                </p>
-              </div>
-              <Button size="sm" disabled={flow.busy} onClick={() => flow.claim(gift)}>
-                {flow.busy && flow.current === gift.balanceId && (
-                  <Loader2 className="size-4 animate-spin" />
-                )}
-                Accept
+          {waiting.map((gift) => (
+            <GiftRow key={gift.balanceId} gift={gift}>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={flow.busy || decline.busy}
+                onClick={() => decline.decline(gift.balanceId)}
+              >
+                Decline
               </Button>
-            </li>
+              <AcceptButton gift={gift} flow={flow} disabled={decline.busy} />
+            </GiftRow>
           ))}
         </ul>
       )}
-      {flow.step && (
-        <ToastViewport>
-          <TransactionToast
-            key={flow.step.kind}
-            step={flow.step}
-            onSend={flow.send}
-            onCancel={flow.stop}
-            actions={
-              <Button
-                size="sm"
-                variant={flow.step.kind === "confirm" ? "secondary" : "ghost"}
-                className="h-8 px-3 text-[13px]"
-                onClick={flow.step.kind === "confirm" ? flow.stop : flow.close}
-              >
-                {flow.step.kind === "confirm" ? "Cancel" : "Close"}
-              </Button>
-            }
-          />
-        </ToastViewport>
+      {declined.length > 0 && (
+        <div className="grid gap-2">
+          <span className="eyebrow">Declined</span>
+          <ul className="space-y-2">
+            {declined.map((gift) => (
+              <GiftRow key={gift.balanceId} gift={gift} muted>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={flow.busy || decline.busy}
+                  onClick={() => decline.putBack(gift.balanceId)}
+                >
+                  Put back
+                </Button>
+                <AcceptButton gift={gift} flow={flow} disabled={decline.busy} />
+              </GiftRow>
+            ))}
+          </ul>
+        </div>
       )}
+      {decline.error && (
+        <p role="alert" className="text-danger text-xs">
+          {decline.error}
+        </p>
+      )}
+      <ClaimToast flow={flow} />
     </WalletPanel>
+  );
+}
+
+function GiftRow({
+  gift,
+  muted,
+  children,
+}: {
+  gift: WaitingGift;
+  muted?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <li className="bg-surface-2 flex flex-wrap items-center gap-3 rounded-xl p-3">
+      <span
+        className={cn(
+          "blob flex size-10 shrink-0 -rotate-6 items-center justify-center",
+          muted ? "bg-surface-3 text-fg-muted" : "bg-primary text-primary-foreground",
+        )}
+      >
+        <Gift className="size-5" strokeWidth={2.4} />
+      </span>
+      <div className={cn("min-w-0 flex-1", muted && "text-fg-muted")}>
+        <p className="truncate text-sm font-semibold">
+          <span className="num">{tokens(gift.amount)}</span> {gift.code}
+          {gift.title !== gift.code && (
+            <span className="text-fg-muted font-normal"> · {gift.title}</span>
+          )}
+        </p>
+        <p className="text-fg-muted truncate text-xs">
+          From {senderOf(gift)} · accepting costs <Money amount={gift.cost.total} currency="XLM" />
+        </p>
+      </div>
+      <div className="flex shrink-0 items-center gap-1">{children}</div>
+    </li>
+  );
+}
+
+function AcceptButton({
+  gift,
+  flow,
+  disabled,
+}: {
+  gift: WaitingGift;
+  flow: ReturnType<typeof useGiftClaim>;
+  disabled: boolean;
+}) {
+  return (
+    <Button
+      size="sm"
+      variant={gift.declined ? "secondary" : "default"}
+      disabled={flow.busy || disabled}
+      onClick={() => flow.claim(gift)}
+    >
+      {flow.busy && flow.current === gift.balanceId && <Loader2 className="size-4 animate-spin" />}
+      Accept
+    </Button>
   );
 }
 
@@ -126,91 +170,55 @@ function senderOf(gift: WaitingGift) {
 }
 
 function useGiftClaim() {
-  const session = useSession();
   const utils = api.useUtils();
   const prepare = api.wallet.prepareGiftClaim.useMutation();
   const submit = api.wallet.submitGiftClaim.useMutation();
-  const [step, setStep] = useState<TransactionStep | null>(null);
-  const [current, setCurrent] = useState<string | null>(null);
-  const pending = useRef<string | null>(null);
-
-  const busy =
-    step !== null &&
-    (step.kind === "countdown" || step.kind === "confirm" || step.kind === "submitting");
-
-  async function claim(gift: WaitingGift) {
-    setCurrent(gift.balanceId);
-    const summary = (
-      <>
-        Claim {tokens(gift.amount)} {gift.code}. You pay{" "}
-        <Money amount={gift.cost.total} currency="XLM" />.
-      </>
-    );
-    let prepared;
-    try {
-      setStep({ kind: "submitting", title: "Preparing your claim…", summary });
-      prepared = await prepare.mutateAsync({ balanceId: gift.balanceId });
-    } catch (error) {
-      setStep({ kind: "failed", reason: reasonOf(error) });
-      return;
-    }
-    pending.current = prepared.xdr;
-    if (prepared.signer === "custodial") {
-      setStep({ kind: "countdown", summary, seconds: CUSTODIAL_COUNTDOWN_SECONDS });
-      return;
-    }
-    const user = session.data?.user;
-    setStep({
-      kind: "confirm",
-      summary,
-      walletName: getWalletProvider(user?.walletType ?? "")?.label ?? "your wallet",
-    });
-    let signed: string;
-    try {
-      signed = await signTransaction({
-        xdr: prepared.xdr,
-        publicKey: user?.walletAddress ?? "",
-        walletType: user?.walletType ?? "",
-      });
-    } catch {
-      if (pending.current === prepared.xdr) stop();
-      return;
-    }
-    // Canceled while the wallet was open: the late signature is thrown away.
-    if (pending.current !== prepared.xdr) return;
-    await send(signed);
-  }
-
-  async function send(xdr = pending.current) {
-    if (!xdr || !current) return;
-    setStep({ kind: "submitting", summary: "Claiming your gift. This takes a few seconds." });
-    try {
-      await submit.mutateAsync({ balanceId: current, xdr });
-      setStep({ kind: "success", title: "Gift accepted", body: "It's in your wallet now." });
-      await Promise.all([
+  const flow = useClaimFlow({
+    prepare: (balanceId) => prepare.mutateAsync({ balanceId }),
+    submit: ({ id, xdr }) => submit.mutateAsync({ balanceId: id, xdr }),
+    preparing: "Preparing your claim…",
+    sending: "Claiming your gift. This takes a few seconds.",
+    success: { title: "Gift accepted", body: "It's in your wallet now." },
+    failed: "Couldn't claim the gift. Nothing was sent.",
+    onDone: () =>
+      Promise.all([
         utils.wallet.gifts.invalidate(),
         utils.wallet.assets.invalidate(),
         utils.account.me.invalidate(),
-      ]);
-    } catch (error) {
-      setStep({ kind: "failed", reason: reasonOf(error) });
-    } finally {
-      pending.current = null;
-    }
-  }
-
-  function stop() {
-    pending.current = null;
-    setStep({ kind: "canceled" });
-  }
-
+      ]),
+  });
   return {
-    step,
-    busy,
-    current,
-    claim: (gift: WaitingGift) => void claim(gift),
-    send: () => void send(),
-    stop,
-    close: () => setStep(null),
+    ...flow,
+    claim: (gift: WaitingGift) =>
+      flow.run(
+        gift.balanceId,
+        <>
+          Claim {tokens(gift.amount)} {gift.code}. You pay{" "}
+          <Money amount={gift.cost.total} currency="XLM" />.
+        </>,
+      ),
+  };
+}
+
+/** Decline and its undo: no signature, the row just moves. */
+function useDecline() {
+  const utils = api.useUtils();
+  const options = {
+    onSuccess: () => utils.wallet.gifts.invalidate(),
+  };
+  const decline = api.wallet.declineGift.useMutation(options);
+  const putBack = api.wallet.undoDecline.useMutation(options);
+  const failure = decline.error ?? putBack.error;
+  return {
+    busy: decline.isPending || putBack.isPending,
+    error: failure?.message ?? null,
+    decline: (balanceId: string) => {
+      putBack.reset();
+      decline.mutate({ balanceId });
+    },
+    putBack: (balanceId: string) => {
+      decline.reset();
+      putBack.mutate({ balanceId });
+    },
   };
 }

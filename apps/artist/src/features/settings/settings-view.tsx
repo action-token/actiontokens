@@ -6,6 +6,7 @@ import {
   Coins,
   Copy,
   ExternalLink,
+  Globe,
   Link2,
   Share2,
   UserRound,
@@ -23,6 +24,7 @@ import { PageBody } from "@bandcoin/ui/patterns/page-header";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 
+import { CustomDomainPanel } from "../domain/custom-domain-panel";
 import { ShortLinkPanel } from "../domain/short-link-panel";
 import { VANITY_HOST } from "../domain/host";
 import { FAN_APP_URL } from "../shell/links";
@@ -41,6 +43,7 @@ const TABS = [
   { id: "profile", label: "Profile", icon: UserRound },
   { id: "fan-token", label: "Fan token", icon: Coins },
   { id: "short-link", label: "Short link", icon: Link2 },
+  { id: "custom-domain", label: "Custom domain", icon: Globe },
   { id: "accounts", label: "Accounts", icon: Wallet },
   { id: "balances", label: "Balances", icon: Coins },
   { id: "facebook", label: "Facebook", icon: Share2 },
@@ -137,6 +140,14 @@ function Settings({ profile }: { profile: Profile }) {
               description={`A short address for your page, like ${VANITY_HOST}/yourname. Easy to say, print and share.`}
             >
               <ShortLinkPanel />
+            </SettingsSection>
+          </TabsContent>
+          <TabsContent value="custom-domain">
+            <SettingsSection
+              title="Custom domain"
+              description="Your own domain, like yourname.com, showing your artist page. Free. Links on the page open on Bandcoin."
+            >
+              <CustomDomainPanel />
             </SettingsSection>
           </TabsContent>
           <TabsContent value="accounts">

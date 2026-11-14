@@ -1,5 +1,7 @@
 import { Suspense, type ReactNode } from "react";
 
+import { SharedThemeSync } from "~/components/shell/SharedThemeSync";
+
 import { AppFrame } from "./AppFrame";
 
 /**
@@ -11,6 +13,7 @@ import { AppFrame } from "./AppFrame";
 export default function ShellLayout({ children }: { children: ReactNode }) {
   return (
     <AppFrame>
+      <SharedThemeSync />
       <Suspense>{children}</Suspense>
     </AppFrame>
   );

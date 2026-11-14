@@ -2,8 +2,8 @@ import { AppError, ErrorCodes } from "@bandcoin/errors";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { liveTicket, readTicket, saveLiveRecording } from "../services/studio/live";
-import { LiveSession, type LiveOut } from "../services/studio/live-session";
-import type { LiveEvents, LiveLyria } from "../services/studio/lyria";
+import { liveConfigOf, LiveSession, type LiveOut } from "../services/studio/live-session";
+import { LIVE_SCALES, type LiveEvents, type LiveLyria } from "../services/studio/lyria";
 
 vi.mock("@bandcoin/storage", () => ({
   isOwnS3Url: (url: string) => url.startsWith("https://bucket/"),
@@ -78,6 +78,7 @@ function setup(over: { holdFails?: boolean } = {}) {
   const lyria: LiveLyria = {
     setWeightedPrompts: vi.fn().mockResolvedValue(undefined),
     setMusicGenerationConfig: vi.fn().mockResolvedValue(undefined),
+    resetContext: vi.fn(),
     play: vi.fn(),
     pause: vi.fn(),
     stop: vi.fn(),
@@ -234,6 +235,79 @@ describe("a live session's billing", () => {
     expect(lyria.setMusicGenerationConfig).toHaveBeenCalledWith({
       musicGenerationConfig: { bpm: 200, density: 0, brightness: 0.5 },
     });
+    await session.close();
+  });
+
+  const lastConfig = (lyria: LiveLyria) =>
+    vi.mocked(lyria.setMusicGenerationConfig).mock.calls.at(-1)![0].musicGenerationConfig;
+
+  it("sends the whole of the settings every time, each kept in range", async () => {
+    const { session, lyria } = setup();
+    await session.open();
+    await session.handle({
+      type: "config",
+      bpm: 120.4,
+      density: 0.3,
+      brightness: 0.6,
+      guidance: 9,
+      temperature: -1,
+      scale: "D_MAJOR_B_MINOR",
+      muteBass: true,
+      muteDrums: false,
+      onlyBassAndDrums: false,
+    });
+    const full = {
+      bpm: 120,
+      density: 0.3,
+      brightness: 0.6,
+      guidance: 6,
+      temperature: 0,
+      scale: "D_MAJOR_B_MINOR",
+      muteBass: true,
+      muteDrums: false,
+      onlyBassAndDrums: false,
+    };
+    expect(lastConfig(lyria)).toEqual(full);
+    // Only one thing sent: the rest goes again as it was, or Lyria would reset it.
+    await session.handle({ type: "config", guidance: 2 });
+    expect(lastConfig(lyria)).toEqual({ ...full, guidance: 2 });
+    await session.close();
+  });
+
+  it("leaves an unknown key to the model, and lets bass-and-drums win over the mutes", () => {
+    expect(liveConfigOf({ scale: "H_MAJOR" })).toEqual({ scale: "SCALE_UNSPECIFIED" });
+    expect(liveConfigOf({ scale: "A_FLAT_MAJOR_F_MINOR" })).toEqual({
+      scale: "A_FLAT_MAJOR_F_MINOR",
+    });
+    expect(liveConfigOf({ muteBass: true, muteDrums: true, onlyBassAndDrums: true })).toEqual({
+      muteBass: false,
+      muteDrums: false,
+      onlyBassAndDrums: true,
+    });
+    expect(liveConfigOf({ muteBass: "yes", guidance: "loud", bpm: Number.NaN })).toEqual({});
+    expect(LIVE_SCALES).toHaveLength(13);
+  });
+
+  it("restarts the groove for a new tempo or key, but only once music has played", async () => {
+    const { session, lyria } = setup();
+    await session.open();
+    // Before the first Play there is nothing to restart.
+    await session.handle({ type: "config", bpm: 100, scale: "SCALE_UNSPECIFIED" });
+    expect(lyria.resetContext).not.toHaveBeenCalled();
+    await session.handle({ type: "play" });
+
+    await session.handle({ type: "config", density: 0.9, guidance: 3, muteDrums: true });
+    expect(lyria.resetContext).not.toHaveBeenCalled();
+    await session.handle({ type: "config", bpm: 140 });
+    expect(lyria.resetContext).toHaveBeenCalledTimes(1);
+    await session.handle({ type: "config", bpm: 140 });
+    expect(lyria.resetContext).toHaveBeenCalledTimes(1);
+    await session.handle({ type: "config", scale: "G_MAJOR_E_MINOR" });
+    expect(lyria.resetContext).toHaveBeenCalledTimes(2);
+    // Paused counts too: the groove is still there when Play comes back.
+    await session.handle({ type: "pause" });
+    await session.handle({ type: "config", bpm: 90 });
+    expect(lyria.resetContext).toHaveBeenCalledTimes(3);
     await session.close();
   });
 });

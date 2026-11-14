@@ -83,38 +83,92 @@ export function buildSwap(input: {
 }
 
 /**
- * Holding an artist's fan token: the buyer pays BANDCOIN for exactly the XLM
- * the trustline locks, the platform sends that XLM, and the buyer's own account
- * opens the line with it, all together or not at all. The buyer pays the
- * network fee as the source.
+ * Subscribing with BANDCOIN, USDC or XLM (plan 33): the fan pays the platform
+ * for the XLM it sends (not when paying in XLM), the platform fee goes to the
+ * treasury, and the fan's own account opens the fan-token line, all together
+ * or not at all. The fan is the source and pays the network fee.
  */
-export function buildTrustWithSwap(input: {
+export function buildTrustWithPayment(input: {
   buyer: Account;
   network: NetworkParams;
   orderId: string;
-  asset: Asset;
   /** The artist's fan token */
   token: Asset;
+  /** What the fan pays in */
+  asset: Asset;
+  /** The platform account that sells the XLM (BANDCOIN, USDC) */
   platform: string;
+  /** To the platform for the XLM; "0" when paying in XLM */
   pay: string;
-  xlm: string;
+  /** XLM the platform sends; "0" when paying in XLM */
+  sendXlm: string;
+  treasury: string;
+  fee: string;
 }) {
-  if (isZero(input.pay) || isZero(input.xlm))
-    throw new RangeError("Opening a line must move something both ways");
-  const builder = startTransaction(input.buyer, input.network, { memo: input.orderId })
-    .addOperation(
+  if (isZero(input.pay) !== isZero(input.sendXlm))
+    throw new RangeError("XLM is sent only when it is paid for");
+  const builder = startTransaction(input.buyer, input.network, { memo: input.orderId });
+  if (!isZero(input.pay))
+    builder.addOperation(
       Operation.payment({ destination: input.platform, asset: input.asset, amount: input.pay }),
-    )
-    .addOperation(
+    );
+  if (!isZero(input.fee))
+    builder.addOperation(
+      Operation.payment({ destination: input.treasury, asset: input.asset, amount: input.fee }),
+    );
+  if (!isZero(input.sendXlm))
+    builder.addOperation(
       Operation.payment({
         source: input.platform,
         destination: input.buyer.accountId(),
         asset: Asset.native(),
-        amount: input.xlm,
+        amount: input.sendXlm,
       }),
-    )
-    .addOperation(Operation.changeTrust({ asset: input.token }));
-  return finish(builder, [input.platform]);
+    );
+  builder.addOperation(Operation.changeTrust({ asset: input.token }));
+  return finish(builder, isZero(input.sendXlm) ? [] : [input.platform]);
+}
+
+/**
+ * Subscribing by card (plan 33): the card paid in USD, so the platform sends
+ * the XLM the line(s) lock, the fan opens a BANDCOIN line when one is needed
+ * and the fan-token line, and what's left of the charge arrives as BANDCOIN.
+ * The fan is the source; the platform fee-bumps it on submit.
+ */
+export function buildTrustByCard(input: {
+  buyer: Account;
+  network: NetworkParams;
+  orderId: string;
+  token: Asset;
+  /** The platform account that sends the XLM and BANDCOIN */
+  from: string;
+  sendXlm: string;
+  bandcoin: { asset: Asset; amount: string; openLine: boolean };
+}) {
+  if (isZero(input.sendXlm)) throw new RangeError("The line's reserve must be sent");
+  const builder = startTransaction(input.buyer, input.network, {
+    memo: input.orderId,
+  }).addOperation(
+    Operation.payment({
+      source: input.from,
+      destination: input.buyer.accountId(),
+      asset: Asset.native(),
+      amount: input.sendXlm,
+    }),
+  );
+  if (input.bandcoin.openLine)
+    builder.addOperation(Operation.changeTrust({ asset: input.bandcoin.asset }));
+  builder.addOperation(Operation.changeTrust({ asset: input.token }));
+  if (!isZero(input.bandcoin.amount))
+    builder.addOperation(
+      Operation.payment({
+        source: input.from,
+        destination: input.buyer.accountId(),
+        asset: input.bandcoin.asset,
+        amount: input.bandcoin.amount,
+      }),
+    );
+  return finish(builder, [input.from]);
 }
 
 /**

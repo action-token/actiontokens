@@ -33,7 +33,7 @@ export function NotificationsMenuLink({
       href="/notifications"
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
-      className="text-fg-muted aria-[current=page]:bg-surface-2 aria-[current=page]:text-fg flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium"
+      className={MENU_ROW}
     >
       <Bell className="size-[18px]" /> Notifications
       {unread > 0 && (
@@ -44,3 +44,7 @@ export function NotificationsMenuLink({
     </Link>
   );
 }
+
+/** A quick row in the phone menu (the floating card): an ink chip, yellow when current. */
+export const MENU_ROW =
+  "bg-side-ink/[0.06] text-side-ink aria-[current=page]:bg-side-mint aria-[current=page]:text-primary-foreground flex h-11 items-center gap-3 rounded-2xl px-3.5 text-sm font-semibold transition-colors hover:bg-side-ink/10";

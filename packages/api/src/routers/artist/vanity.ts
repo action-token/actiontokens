@@ -14,7 +14,8 @@ import { artistProcedure, createRouter } from "../../trpc";
 const payInput = z.object({
   purpose: z.enum(["RENEWAL", "NAME_CHANGE"]),
   name: z.string().max(60).optional(),
-  currency: z.enum(["BANDCOIN", "XLM", "USDC"]),
+  /** USD: by card (plan 33) */
+  currency: z.enum(["BANDCOIN", "XLM", "USDC", "USD"]),
 });
 
 /** The artist's short link, bandcoin.io/name (see services/artist/vanity). */
@@ -40,7 +41,15 @@ export const vanityRouter = createRouter({
     .mutation(({ ctx, input }) => startVanity(ctx, ctx.session.user, ctx.artist, input)),
 
   submit: artistProcedure
-    .input(z.object({ orderId: z.string().min(1), xdr: z.string().min(1) }))
+    .input(
+      z.object({
+        orderId: z.string().min(1),
+        xdr: z.string().min(1).optional(),
+        card: z
+          .object({ sourceId: z.string().min(1), verificationToken: z.string().optional() })
+          .optional(),
+      }),
+    )
     .mutation(({ ctx, input }) => submitVanity(ctx, ctx.session.user, input)),
 
   cancel: artistProcedure

@@ -3,7 +3,8 @@
 import { CalendarClock, Layers, Loader2, Map as MapIcon, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { type FormEvent, useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 import { Button } from "@bandcoin/ui/components/button";
@@ -17,7 +18,10 @@ import {
 } from "@bandcoin/ui/components/select";
 import { Textarea } from "@bandcoin/ui/components/textarea";
 import { cn } from "@bandcoin/ui/lib/cn";
+import { useFormCard } from "@bandcoin/ui/patterns/form-card";
+import { useActingArtist } from "../pins/acting";
 import {
+  CardTab,
   Field,
   FormPage,
   FormSection,
@@ -34,9 +38,18 @@ import { FileField, type PickedFile } from "../catalog/file-field";
 import { Note } from "../catalog/form-parts";
 import { PIN_TYPES, type PinTypeName } from "../pins/pin-summary";
 import { PinRewardFields, type RewardState } from "../pins/pin-reward-fields";
+import { LayerField, LayerNote } from "../pins/layers/layer-field";
+import { loadLastLook, saveLastLook, toLookValue } from "../pins/look/look-value";
+import { PinLookSection } from "../pins/look/pin-look-section";
+import { hotspotFormToTemplate, templateToHotspotForm } from "../pins/templates/mapping";
+import { SaveTemplateDialog } from "../pins/templates/save-template-dialog";
+import { TemplatePicker, type HotspotTemplateRow } from "../pins/templates/template-picker";
+import { useFormTemplate } from "../pins/templates/use-template-param";
 import { PinTagsField } from "../pins/pin-tags-field";
 import { amountProblem } from "../pins/reward-amount";
 import { AreaDraw, type DrawnArea } from "./area-draw";
+import { useMapFormCard } from "~/features/pins/map-form-card";
+
 import { clearAreaDraft, peekAreaDraft } from "./area-draft";
 import { HotspotManage } from "./hotspot-manage";
 import { dropPlan } from "./schedule";
@@ -48,6 +61,12 @@ const messageOf = (error: unknown) =>
   error instanceof Error ? error.message : "Something went wrong.";
 const asCover = (url: string): PickedFile => ({ url, name: "cover", mime: "image" });
 const digits = (value: string, max: number) => value.replace(/\D/g, "").slice(0, max);
+
+const CARD_TABS = [
+  { id: "details", label: "Details" },
+  { id: "rules", label: "Rules" },
+  { id: "look", label: "Look" },
+];
 
 /**
  * One form for a new hotspot and for editing one: the area, what each drop's
@@ -87,22 +106,76 @@ export function HotspotForm({ existing }: { existing?: Existing }) {
   const [autoCollect, setAutoCollect] = useState(template?.autoCollect ?? false);
   const [isMultiSpot, setIsMultiSpot] = useState(template?.isMultiSpot ?? false);
   const [tags, setTags] = useState<string[]>(template?.tags ?? []);
+  // A new hotspot starts from the look you chose last (this browser); an existing one from its own.
+  const [look, setLook] = useState(() => toLookValue(existing?.look));
+  useEffect(() => {
+    if (!existing) setLook(loadLastLook());
+  }, [existing]);
+  // The layer picked on the Pins map arrives as ?layer=; a new hotspot goes in it.
+  const layerParam = useSearchParams()?.get("layer") ?? null;
+  const card = useFormCard();
+  // In a map card the area is drawn on the map itself (it has no map of its own here).
+  const areaFeature = area?.feature ?? null;
+  const inCard = Boolean(card);
+  useEffect(() => {
+    if (!inCard || existing) return;
+    useMapFormCard.getState().setDraftArea(areaFeature ? { feature: areaFeature } : null);
+    return () => useMapFormCard.getState().setDraftArea(null);
+  }, [inCard, existing, areaFeature]);
+  // An admin acting as the artist: templates are the admin's own, so none are offered.
+  const acting = useActingArtist();
+  const [layerId, setLayerId] = useState<string | null>(
+    existing ? existing.layerId : card ? (card.layerId ?? null) : layerParam,
+  );
+  // In a map card, a new hotspot goes in the layer picked on the map.
+  const layer = !existing && card ? (card.layerId ?? null) : layerId;
   const [startsAt, setStartsAt] = useState(existing ? toLocalInput(existing.startsAt) : "");
   const [endsAt, setEndsAt] = useState(existing ? toLocalInput(existing.endsAt) : "");
   const [every, setEvery] = useState(String(existing?.dropEveryDays ?? 7));
   const [lasts, setLasts] = useState(String(existing?.pinDurationDays ?? 3));
   const [spots, setSpots] = useState(String(existing?.spotsPerDrop ?? 3));
+  const [saveTemplate, setSaveTemplate] = useState(false);
+
+  // Fills what the template has; everything else stays as it is. The schedule comes back as a
+  // fresh end date, counted from now.
+  const applyTemplate = useCallback((saved: HotspotTemplateRow) => {
+    const fill = templateToHotspotForm(saved.data);
+    if (fill.title !== undefined) setTitle(fill.title);
+    if (fill.description !== undefined) setDescription(fill.description);
+    if (fill.imageUrl !== undefined) setCover(fill.imageUrl ? asCover(fill.imageUrl) : null);
+    if (fill.link !== undefined) setLink(fill.link);
+    if (fill.type !== undefined) setType(fill.type);
+    if (fill.visibility !== undefined) setVisibility(fill.visibility);
+    if (fill.tierId !== undefined) setTierId(fill.tierId);
+    if (fill.reward !== undefined) setReward(fill.reward);
+    if (fill.autoCollect !== undefined) setAutoCollect(fill.autoCollect);
+    if (fill.isMultiSpot !== undefined) setIsMultiSpot(fill.isMultiSpot);
+    if (fill.tags !== undefined) setTags(fill.tags);
+    if (fill.look !== undefined) setLook(fill.look);
+    if (fill.every !== undefined) setEvery(fill.every);
+    if (fill.lasts !== undefined) setLasts(fill.lasts);
+    if (fill.spots !== undefined) setSpots(fill.spots);
+    if (fill.end !== undefined) {
+      setStartsAt("");
+      setEndsAt(toLocalInput(fill.end));
+    }
+    if (fill.area) setArea(fill.area);
+  }, []);
+  const fromTemplate = useFormTemplate("HOTSPOT", applyTemplate);
 
   const done = (message: string) => {
     toast.success(message);
     clearAreaDraft();
     void utils.hotspots.invalidate();
     void utils.pins.invalidate();
-    router.push("/hotspots");
+    if (card) card.onDone();
+    else router.push("/hotspots");
   };
   const create = api.hotspots.createHotspot.useMutation({
-    onSuccess: (result) =>
-      done(result.dropped ? "Hotspot is live: the first pins just dropped" : "Hotspot saved"),
+    onSuccess: (result) => {
+      saveLastLook(look);
+      done(result.dropped ? "Hotspot is live: the first pins just dropped" : "Hotspot saved");
+    },
     onError: (error) => toast.error(messageOf(error)),
   });
   const update = api.hotspots.updateHotspot.useMutation({
@@ -164,6 +237,8 @@ export function HotspotForm({ existing }: { existing?: Existing }) {
       autoCollect,
       isMultiSpot,
       tags,
+      layerId: layer,
+      look,
       area: area as never,
       dropEveryDays,
       pinDurationDays,
@@ -181,10 +256,26 @@ export function HotspotForm({ existing }: { existing?: Existing }) {
 
   const actions = (
     <>
-      {problem && <p className="text-fg-muted mr-auto text-xs">{problem}</p>}
-      <Button asChild type="button" variant="ghost">
-        <Link href="/hotspots">Cancel</Link>
-      </Button>
+      <span className="mr-auto flex flex-wrap items-center gap-2">
+        {!existing && !card && !acting && (
+          <TemplatePicker formType="HOTSPOT" onPick={fromTemplate.use} />
+        )}
+        {!acting && (
+          <Button type="button" variant="outline" onClick={() => setSaveTemplate(true)}>
+            {card ? "Template" : "Save as template"}
+          </Button>
+        )}
+        {problem && <span className="text-fg-muted text-xs">{problem}</span>}
+      </span>
+      {card ? (
+        <Button type="button" variant="ghost" onClick={card.onClose}>
+          Cancel
+        </Button>
+      ) : (
+        <Button asChild type="button" variant="ghost">
+          <Link href="/hotspots">Cancel</Link>
+        </Button>
+      )}
       <Button type="submit" disabled={Boolean(problem) || saving}>
         {saving && <Loader2 className="animate-spin" />}
         {existing ? "Save changes" : "Create hotspot"}
@@ -199,6 +290,18 @@ export function HotspotForm({ existing }: { existing?: Existing }) {
       back={{ href: "/hotspots", label: "Hotspots" }}
       onSubmit={submit}
       actions={actions}
+      cardTabs={CARD_TABS}
+      cardHeaderAction={
+        card && !acting ? (
+          existing ? (
+            <Button asChild variant="outline">
+              <Link href={`/hotspots/${existing.id}`}>Full page</Link>
+            </Button>
+          ) : (
+            <TemplatePicker formType="HOTSPOT" label="Template" onPick={fromTemplate.use} />
+          )
+        ) : undefined
+      }
       aside={
         <>
           <FormSection
@@ -212,7 +315,7 @@ export function HotspotForm({ existing }: { existing?: Existing }) {
         </>
       }
     >
-      <FormSection title="Each drop's pin" icon={Sparkles}>
+      <FormSection title="Each drop's pin" icon={Sparkles} tab="details">
         <Field label="Title" htmlFor="hotspot-title" required>
           <Input
             id="hotspot-title"
@@ -243,8 +346,8 @@ export function HotspotForm({ existing }: { existing?: Existing }) {
         </Field>
       </FormSection>
 
-      <FormSection title="Schedule" icon={CalendarClock} description={plan}>
-        <div className="grid gap-5 sm:grid-cols-2">
+      <FormSection title="Schedule" icon={CalendarClock} description={plan} tab="rules">
+        <div className="grid gap-5 @md:grid-cols-2">
           <Field
             label="Starts"
             htmlFor="hotspot-starts"
@@ -304,6 +407,7 @@ export function HotspotForm({ existing }: { existing?: Existing }) {
       <FormSection
         title="Who can collect each drop"
         icon={Users}
+        tab="rules"
         description="How many fans per drop, and what they get."
       >
         <Field label="Open to" htmlFor="hotspot-who">
@@ -349,9 +453,34 @@ export function HotspotForm({ existing }: { existing?: Existing }) {
         )}
       </FormSection>
 
-      <MoreOptions hint="How fans collect it, pin type, link, tags">
+      <PinLookSection
+        tab="look"
+        value={look}
+        onChange={setLook}
+        autoCollect={autoCollect}
+        pinImage={cover?.url ?? null}
+        artistImage={options.data?.artistImage ?? null}
+      />
+
+      <CardTab tab="look">
+        {existing ? (
+          <LayerField
+            value={layerId}
+            onChange={setLayerId}
+            hint="Its drops go in this layer, the ones already made too."
+          />
+        ) : (
+          <LayerNote layerId={layer} what="hotspot" />
+        )}
+      </CardTab>
+
+      <MoreOptions tab="rules" hint="How fans collect it, pin type, link, tags">
         <OptionGroup title="How fans collect it">
-          <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Collection mode">
+          <div
+            className="grid gap-2 @md:grid-cols-2"
+            role="radiogroup"
+            aria-label="Collection mode"
+          >
             {(
               [
                 [false, "Tap to collect", "Fans tap to collect when they're in range."],
@@ -376,7 +505,7 @@ export function HotspotForm({ existing }: { existing?: Existing }) {
           </div>
         </OptionGroup>
         <OptionGroup title="Type and link">
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-5 @md:grid-cols-2">
             <Field label="Pin type" htmlFor="hotspot-type">
               <Select value={type} onValueChange={(value) => setType(value as PinTypeName)}>
                 <SelectTrigger id="hotspot-type" className="w-full">
@@ -420,6 +549,40 @@ export function HotspotForm({ existing }: { existing?: Existing }) {
           </OptionList>
         </OptionGroup>
       </MoreOptions>
+
+      <SaveTemplateDialog
+        open={saveTemplate}
+        onOpenChange={setSaveTemplate}
+        formType="HOTSPOT"
+        defaultName={fromTemplate.active?.name ?? title.trim()}
+        from={fromTemplate.active}
+        location={area ? `${area.shape} area` : null}
+        build={(includeArea) =>
+          hotspotFormToTemplate(
+            {
+              title,
+              description,
+              imageUrl: cover?.url ?? null,
+              link,
+              type,
+              visibility,
+              tierId,
+              reward,
+              autoCollect,
+              isMultiSpot,
+              tags,
+              look,
+              every,
+              lasts,
+              spots,
+              start: fromLocalInput(startsAt),
+              end: fromLocalInput(endsAt),
+              area,
+            },
+            { includeArea },
+          )
+        }
+      />
     </FormPage>
   );
 }

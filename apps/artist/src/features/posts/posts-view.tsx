@@ -30,7 +30,7 @@ export function PostsView() {
   );
 
   return (
-    <PageBody className="grid max-w-3xl gap-6">
+    <PageBody className="grid gap-6">
       <PageHeader
         eyebrow="Content"
         title="Posts & stories"

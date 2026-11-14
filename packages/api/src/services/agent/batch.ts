@@ -2,6 +2,7 @@ import { randomLocation } from "@bandcoin/geo";
 
 import type { Context } from "../../context";
 import { enqueueJob } from "../jobs/queue";
+import { checkLayer } from "../artist/layers";
 import { createPin, MAX_RADIUS_METERS, type PinInput } from "../artist/pins";
 import { UNLIMITED_COLLECTIONS, type PinDefaults } from "./contract";
 
@@ -38,7 +39,10 @@ export type BatchPayload = {
   options: Pick<
     PinDefaults,
     "type" | "autoCollect" | "pinNumber" | "radius" | "collectionLimit" | "grouping"
-  >;
+  > & {
+    /** The map layer the pins go in (the artist's own, checked when the batch starts); none = regular */
+    layerId?: string | null;
+  };
 };
 
 export type BatchLog = { title: string; status: "ok" | "error"; error?: string };
@@ -50,6 +54,9 @@ export type BatchDeps = {
 };
 
 export async function startPinBatch(ctx: ServiceCtx, artist: ArtistRef, payload: BatchPayload) {
+  // A layer that isn't the artist's own is refused here, before anything is queued.
+  const layerId = (await checkLayer(ctx.db, artist.id, payload.options.layerId)) ?? null;
+  payload = { ...payload, options: { ...payload.options, layerId } };
   const job = await ctx.db.pinBatchJob.create({
     data: {
       artistId: artist.id,
@@ -91,6 +98,7 @@ function pinInput(place: BatchPlace, options: BatchPayload["options"], tags: str
     autoCollect: options.autoCollect,
     isMultiSpot: false,
     tags,
+    layerId: options.layerId ?? null,
   };
 }
 

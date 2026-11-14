@@ -1,6 +1,8 @@
 import type { NotificationType } from "@bandcoin/db";
 import { VANITY_GRACE_DAYS, VANITY_RESERVE_DAYS } from "@bandcoin/utils/vanity";
 
+import { describeDomain, type DomainNotice } from "../domains/notice";
+
 export type NotificationSubject = {
   actor: { name: string; username: string | null; artistSlug: string | null };
   /** What the event is about, when it still exists */
@@ -10,6 +12,8 @@ export type NotificationSubject = {
   postId?: string | null;
   /** A short-link reminder: which one, for which month, which name */
   vanity?: { stage: "SOON" | "GRACE" | "LAPSED"; paidUntil: Date; name: string } | null;
+  /** A custom-domain note: live, stopped working, or removed by an admin */
+  domain?: DomainNotice | null;
 };
 
 const shortDay = (date: Date) =>
@@ -98,6 +102,8 @@ export function describeNotification(
       return { text: `${name} bought something.`, href: item ? `/item/${item.slug}` : actorPage };
     case "VANITY":
       return { text: describeVanity(null).text, href: null };
+    case "DOMAIN":
+      return { text: describeDomain(null).text, href: null };
   }
 }
 
@@ -169,6 +175,8 @@ export function describeForArtist(
       return { text: `${name} commented on your bounty.`, href: bountyPage };
     case "VANITY":
       return describeVanity(rest.vanity);
+    case "DOMAIN":
+      return describeDomain(rest.domain ?? null);
     default:
       return { ...describeNotification(type, { actor, bounty, item }), href: null };
   }

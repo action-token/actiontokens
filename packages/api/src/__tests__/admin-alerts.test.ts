@@ -23,6 +23,7 @@ function setup(
     paidOrders?: Row[];
     stuckOrders?: Row[];
     claims?: Row[];
+    brokenDomains?: Row[];
     reviewed?: string[];
   } = {},
 ) {
@@ -40,6 +41,7 @@ function setup(
     pinClaim: { findMany: vi.fn().mockResolvedValue(opts.claims ?? []) },
     studioBalance: { findMany: vi.fn().mockResolvedValue([]) },
     studioLedgerEntry: { groupBy: vi.fn().mockResolvedValue([]) },
+    customDomain: { findMany: vi.fn().mockResolvedValue(opts.brokenDomains ?? []) },
     adminAlertReview: {
       findMany: vi.fn(() => Promise.resolve((opts.reviewed ?? []).map((key) => ({ key })))),
       upsert: vi.fn().mockResolvedValue({}),
@@ -158,6 +160,35 @@ describe("listAlerts", () => {
       ["stuck", "o4"],
       ["largeOrder", "o1"],
     ]);
+  });
+
+  it("flags a custom domain that stopped working, once per time it broke", async () => {
+    const since = minutesAgo(90);
+    const { ctx, db } = setup({
+      brokenDomains: [
+        {
+          id: "d1",
+          domain: "coldplay.com",
+          brokenSince: since,
+          lastError: "The DNS records aren't pointing at Bandcoin yet.",
+          createdAt: since,
+          artist: { userId: "artist1", name: "Luna" },
+        },
+      ],
+    });
+    const { alerts } = await listAlerts(ctx, now);
+    expect(alerts).toEqual([
+      expect.objectContaining({
+        key: `brokenDomain:d1:${since.toISOString()}`,
+        kind: "brokenDomain",
+        title: "Custom domain stopped working",
+        userId: "artist1",
+      }),
+    ]);
+    expect(alerts[0]!.detail).toContain("coldplay.com (Luna)");
+    expect(db.customDomain.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { status: "BROKEN" } }),
+    );
   });
 
   it("hides alerts already marked reviewed", async () => {

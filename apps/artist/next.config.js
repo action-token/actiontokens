@@ -9,6 +9,7 @@ const config = {
     "jose",
     "@bandcoin/api",
     "@bandcoin/ar-core",
+    "@bandcoin/map",
     "@bandcoin/auth",
     "@bandcoin/chain",
     "@bandcoin/db",

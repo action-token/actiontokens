@@ -9,7 +9,20 @@ import { api } from "~/trpc/react";
 import { channelOf, decodePcm, LIVE_CHANNELS, LIVE_RATE, recordingWav } from "./pcm";
 
 export type LivePrompt = { text: string; weight: number };
-export type LiveSettings = { bpm: number; density: number; brightness: number };
+export type LiveSettings = {
+  bpm: number;
+  density: number;
+  brightness: number;
+  /** How closely the music follows your ideas (0 to 6) */
+  guidance: number;
+  /** How much it varies (0 to 3) */
+  temperature: number;
+  /** A key from ./keys, or "SCALE_UNSPECIFIED" to let the music choose */
+  scale: string;
+  muteBass: boolean;
+  muteDrums: boolean;
+  onlyBassAndDrums: boolean;
+};
 export type LiveStatus = "idle" | "connecting" | "ready" | "playing" | "paused" | "ended";
 
 type Server =

@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import OpenAI, { toFile } from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import type { z } from "zod";
 
@@ -20,7 +20,16 @@ export type AiModel = {
   }) => Promise<z.infer<S> | null>;
   write: (input: { system: string; user: string }) => Promise<string>;
   /** PNG bytes, or null when no image came back. */
-  image: (input: { prompt: string; size: ImageSize }) => Promise<Buffer | null>;
+  image: (input: {
+    prompt: string;
+    size: ImageSize;
+    quality?: "low" | "medium";
+  }) => Promise<Buffer | null>;
+  /** A picture redrawn from reference pictures (PNG, JPG or WebP); PNG bytes, or null. */
+  edit: (input: {
+    prompt: string;
+    images: { bytes: Buffer; type: string }[];
+  }) => Promise<Buffer | null>;
 };
 
 let client: OpenAI | undefined;
@@ -56,12 +65,29 @@ export const openaiModel: AiModel = {
     });
     return res.output_text;
   },
-  async image({ prompt, size }) {
+  async image({ prompt, size, quality = "medium" }) {
     const res = await openai().images.generate({
       model: IMAGE_MODEL,
       prompt,
       size,
-      quality: "medium",
+      quality,
+      n: 1,
+    });
+    const b64 = res.data?.[0]?.b64_json;
+    return b64 ? Buffer.from(b64, "base64") : null;
+  },
+  async edit({ prompt, images }) {
+    const files = await Promise.all(
+      images.map((image, index) =>
+        toFile(image.bytes, `reference-${index}.${image.type.split("/")[1]}`, { type: image.type }),
+      ),
+    );
+    const res = await openai().images.edit({
+      model: IMAGE_MODEL,
+      image: files,
+      prompt,
+      size: "1024x1024",
+      quality: "low",
       n: 1,
     });
     const b64 = res.data?.[0]?.b64_json;

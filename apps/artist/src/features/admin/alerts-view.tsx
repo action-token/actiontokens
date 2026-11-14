@@ -11,6 +11,7 @@ import {
   TriangleAlert,
   type LucideIcon,
   Coins,
+  Globe,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -74,6 +75,11 @@ const KIND: Record<
     icon: Coins,
     tone: "bg-danger-soft text-danger",
     rule: () => "A Studio balance that doesn't match its coin history",
+  },
+  brokenDomain: {
+    icon: Globe,
+    tone: "bg-warning/12 text-warning",
+    rule: () => "A custom domain that was live and now fails",
   },
 };
 

@@ -14,7 +14,8 @@
     "./ipfs": "./src/ipfs.ts",
     "./blank": "./src/blank.ts",
     "./redeem-code": "./src/redeem-code.ts",
-    "./download-file": "./src/download-file.ts"
+    "./download-file": "./src/download-file.ts",
+    "./domain": "./src/domain.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

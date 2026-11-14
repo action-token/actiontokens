@@ -161,7 +161,10 @@ export type ClaimableToken = {
   code: string;
   issuer: string;
   amount: string;
+  /** The account that made the balance (the sender) */
   sponsor: string;
+  /** Everyone who can claim it: the receiver, and the sender who can take it back */
+  claimants: string[];
 };
 
 /** Claimable balances the account can accept now: tokens only (not XLM), up to 50. */
@@ -176,7 +179,16 @@ export async function claimableFor(address: string): Promise<ClaimableToken[]> {
         claimant.predicate.unconditional === true,
     );
     if (!code || !issuer || !unconditional) return [];
-    return [{ id: record.id, code, issuer, amount: record.amount, sponsor: record.sponsor ?? "" }];
+    return [
+      {
+        id: record.id,
+        code,
+        issuer,
+        amount: record.amount,
+        sponsor: record.sponsor ?? "",
+        claimants: record.claimants.map((claimant) => claimant.destination),
+      },
+    ];
   });
 }
 

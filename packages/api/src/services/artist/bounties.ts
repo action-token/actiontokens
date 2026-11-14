@@ -197,9 +197,15 @@ export async function createBounty(ctx: ServiceCtx, artist: ArtistRef, input: Bo
     { currency: input.prizeCurrency, asset: input.prizeAsset },
     ctx.chain.config.assets,
   );
-  if (!prize || (prize.prizeCurrency && !PRIZE_CURRENCIES.includes(prize.prizeCurrency as PrizeCurrency)))
+  if (
+    !prize ||
+    (prize.prizeCurrency && !PRIZE_CURRENCIES.includes(prize.prizeCurrency as PrizeCurrency))
+  )
     throw invalid("Choose what the prize is paid in.");
-  if (prize.prizeAssetCode && !(await ctx.chain.assetExists(prize.prizeAssetCode, prize.prizeAssetIssuer!)))
+  if (
+    prize.prizeAssetCode &&
+    !(await ctx.chain.assetExists(prize.prizeAssetCode, prize.prizeAssetIssuer!))
+  )
     throw invalid("That asset isn't on Stellar. Pick one you hold.");
   if (!Number.isInteger(input.maxWinners) || input.maxWinners < 1 || input.maxWinners > MAX_WINNERS)
     throw invalid(`Choose 1 to ${MAX_WINNERS} winners.`);

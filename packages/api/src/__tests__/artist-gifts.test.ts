@@ -458,7 +458,7 @@ describe("lists", () => {
       },
       { id: "o2", createdAt: new Date(), txHash: "h2", item: null, breakdown: null },
     ]);
-    const sent = await listSentGifts(ctx, me);
+    const sent = await listSentGifts(ctx, me, artist);
     const recipient = { id: "u-fan", name: "Ana B", image: null };
     expect(sent).toEqual([
       {
@@ -467,6 +467,8 @@ describe("lists", () => {
         txHash: "h1",
         tokens: { amount: 10, code: "LUNA" },
         copy: null,
+        state: null,
+        declined: false,
         recipient,
       },
       {
@@ -475,6 +477,8 @@ describe("lists", () => {
         txHash: "h3",
         tokens: null,
         copy: { title: "Night Drive", tokenId: "12" },
+        state: null,
+        declined: false,
         recipient,
       },
     ]);

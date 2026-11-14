@@ -2,10 +2,30 @@
 
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
-import { audible, fadePoints, mixLength, type MixTrack, playSlice } from "./mix";
+import {
+  audible,
+  EQ_BANDS,
+  fadePoints,
+  FLAT_EQ,
+  isFlat,
+  type MixEq,
+  mixLength,
+  type MixTrack,
+  playSlice,
+} from "./mix";
 import { encodeWav } from "./wav";
 
 const EXPORT_RATE = 44_100;
+
+/** The filters of one EQ, by band (a band left out isn't in the chain). */
+type EqFilters = Partial<Record<keyof MixEq, BiquadFilterNode>>;
+
+const tune = (filters: EqFilters, eq: MixEq) => {
+  for (const band of EQ_BANDS) {
+    const filter = filters[band.key];
+    if (filter) filter.gain.value = eq[band.key];
+  }
+};
 
 /**
  * The mixer's sound, on the browser's Web Audio. Files are fetched and decoded
@@ -20,6 +40,8 @@ export class MixEngine {
   private playing: {
     sources: AudioBufferSourceNode[];
     master: GainNode;
+    /** The EQ filters now sounding, so a slider can move them while playing */
+    eq: { master: EqFilters; tracks: Map<string, EqFilters> };
     startedAt: number;
     from: number;
   } | null = null;
@@ -54,8 +76,39 @@ export class MixEngine {
   }
 
   /**
+   * A 3-band EQ in front of `destination`: what to connect into, and its
+   * filters. A flat EQ adds nothing (the sound is untouched), unless `live`:
+   * while playing, the filters are always there (at 0 dB they change nothing)
+   * so a slider can move them without restarting.
+   */
+  private equalize(
+    context: BaseAudioContext,
+    eq: MixEq | undefined,
+    destination: AudioNode,
+    live: boolean,
+  ): { input: AudioNode; filters: EqFilters } {
+    if (!live && isFlat(eq)) return { input: destination, filters: {} };
+    const values = eq ?? FLAT_EQ;
+    const filters: EqFilters = {};
+    let input = destination;
+    // Built back to front, so the sound runs low → mid → high → destination.
+    for (const band of [...EQ_BANDS].reverse()) {
+      if (!live && values[band.key] === 0) continue;
+      const filter = context.createBiquadFilter();
+      filter.type = band.type;
+      filter.frequency.value = band.frequency;
+      if (band.q !== null) filter.Q.value = band.q;
+      filter.gain.value = values[band.key];
+      filter.connect(input);
+      filters[band.key] = filter;
+      input = filter;
+    }
+    return { input, filters };
+  }
+
+  /**
    * Starts every clip of `tracks` from `from` on the timeline, `at` on the
-   * context's clock: each through its fades, then its track's volume and pan.
+   * context's clock: each through its fades, then its track's EQ, volume and pan.
    */
   private async schedule(
     context: BaseAudioContext,
@@ -63,6 +116,8 @@ export class MixEngine {
     from: number,
     at: number,
     destination: AudioNode,
+    /** Playing (not exporting): each track's filters are kept here, to move while it plays */
+    liveEq?: Map<string, EqFilters>,
   ) {
     const sources: AudioBufferSourceNode[] = [];
     for (const track of tracks) {
@@ -71,6 +126,8 @@ export class MixEngine {
       const pan = context.createStereoPanner();
       pan.pan.value = track.pan;
       gain.connect(pan).connect(destination);
+      const eq = this.equalize(context, track.eq, gain, liveEq !== undefined);
+      liveEq?.set(track.id, eq.filters);
       for (const clip of track.clips) {
         const slice = playSlice(clip, from);
         if (!slice) continue;
@@ -82,7 +139,7 @@ export class MixEngine {
           if (index === 0) fade.gain.setValueAtTime(point.gain, at + point.at);
           else fade.gain.linearRampToValueAtTime(point.gain, at + point.at);
         });
-        source.connect(fade).connect(gain);
+        source.connect(fade).connect(eq.input);
         source.start(at + slice.wait, slice.offset, slice.length);
         sources.push(source);
       }
@@ -124,18 +181,31 @@ export class MixEngine {
   }
 
   /** Plays the mix from `from` seconds. Calls `onEnd` when the last clip finishes. */
-  async play(tracks: MixTrack[], from: number, masterVolume: number, onEnd: () => void) {
+  async play(
+    tracks: MixTrack[],
+    from: number,
+    master: { volume: number; eq?: MixEq },
+    onEnd: () => void,
+  ) {
     this.stop();
     const context = this.audio();
     if (context.state === "suspended") await context.resume();
     const heard = audible(tracks);
     await this.loadAll(heard);
-    const master = context.createGain();
-    master.gain.value = masterVolume;
-    master.connect(context.destination);
+    const volume = context.createGain();
+    volume.gain.value = master.volume;
+    volume.connect(context.destination);
+    const masterEq = this.equalize(context, master.eq, volume, true);
+    const trackEq = new Map<string, EqFilters>();
     const now = context.currentTime + 0.05;
-    const sources = await this.schedule(context, heard, from, now, master);
-    this.playing = { sources, master, startedAt: now, from };
+    const sources = await this.schedule(context, heard, from, now, masterEq.input, trackEq);
+    this.playing = {
+      sources,
+      master: volume,
+      eq: { master: masterEq.filters, tracks: trackEq },
+      startedAt: now,
+      from,
+    };
     const ends = Math.max(0, mixLength(heard) - from);
     const timer = window.setTimeout(
       () => {
@@ -156,6 +226,17 @@ export class MixEngine {
     if (this.playing) this.playing.master.gain.value = volume;
   }
 
+  /** Moves the whole mix's EQ while it plays. */
+  setMasterEq(eq: MixEq) {
+    if (this.playing) tune(this.playing.eq.master, eq);
+  }
+
+  /** Moves one track's EQ while it plays. */
+  setTrackEq(trackId: string, eq: MixEq) {
+    const filters = this.playing?.eq.tracks.get(trackId);
+    if (filters) tune(filters, eq);
+  }
+
   stop() {
     this.stopTimer();
     if (!this.playing) return;
@@ -170,32 +251,34 @@ export class MixEngine {
     this.playing = null;
   }
 
-  /** The whole mix as a WAV file (what you hear: mutes, solos and volumes applied). */
-  exportWav(tracks: MixTrack[], masterVolume: number) {
+  /** The whole mix as a WAV file (what you hear: mutes, solos, volumes and EQ applied). */
+  exportWav(tracks: MixTrack[], master: { volume: number; eq?: MixEq }) {
     const heard = audible(tracks);
-    return this.render(heard, mixLength(heard), masterVolume);
+    return this.render(heard, mixLength(heard), master);
   }
 
   /**
    * One track alone (all its clips) as a WAV as long as `length`: it plays
-   * exactly where it does in the mix, so stems line up with the song.
+   * exactly where it does in the mix, so stems line up with the song. It
+   * keeps its own EQ; the whole mix's volume and EQ are left out.
    */
   stemWav(track: MixTrack, length: number) {
-    return this.render([{ ...track, muted: false, soloed: false }], length, 1);
+    return this.render([{ ...track, muted: false, soloed: false }], length, { volume: 1 });
   }
 
   /** Renders tracks offline (faster than real time) into a stereo WAV of `length` seconds. */
-  private async render(tracks: MixTrack[], length: number, masterVolume: number) {
+  private async render(tracks: MixTrack[], length: number, master: { volume: number; eq?: MixEq }) {
     if (length <= 0)
       throw new AppError(ErrorCodes.VALIDATION_FAILED, {
         message: "Add a track before exporting.",
       });
     await this.loadAll(tracks);
     const offline = new OfflineAudioContext(2, Math.ceil(length * EXPORT_RATE), EXPORT_RATE);
-    const master = offline.createGain();
-    master.gain.value = masterVolume;
-    master.connect(offline.destination);
-    await this.schedule(offline, tracks, 0, 0, master);
+    const volume = offline.createGain();
+    volume.gain.value = master.volume;
+    volume.connect(offline.destination);
+    const masterEq = this.equalize(offline, master.eq, volume, false);
+    await this.schedule(offline, tracks, 0, 0, masterEq.input);
     const rendered = await offline.startRendering();
     const channels = [rendered.getChannelData(0), rendered.getChannelData(1)];
     return new Blob([encodeWav(channels, EXPORT_RATE)], { type: "audio/wav" });

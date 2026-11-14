@@ -1,6 +1,6 @@
 /**
  * The mixer's model, kept apart from audio so it can be tested. A project is
- * tracks (name, colour, volume, pan, mute, solo), each holding clips: a piece
+ * tracks (name, colour, volume, pan, EQ, mute, solo), each holding clips: a piece
  * of an audio file placed on the timeline (where it starts, how much of the
  * file is trimmed off each end, its fades). Times are seconds.
  */
@@ -15,6 +15,24 @@ export type MixClip = {
   fadeIn: number;
   fadeOut: number;
 };
+/** A 3-band EQ: how much each band is lifted or cut, in dB (0 = untouched). */
+export type MixEq = { low: number; mid: number; high: number };
+/** The furthest a band goes, up or down, in dB. */
+export const EQ_RANGE = 12;
+/** The three bands, as on the old Bandcoin mixer. */
+export const EQ_BANDS = [
+  { key: "low", label: "Low", hint: "100 Hz", type: "lowshelf", frequency: 100, q: null },
+  { key: "mid", label: "Mid", hint: "1 kHz", type: "peaking", frequency: 1000, q: 1 },
+  { key: "high", label: "High", hint: "8 kHz", type: "highshelf", frequency: 8000, q: null },
+] as const;
+export const FLAT_EQ: MixEq = { low: 0, mid: 0, high: 0 };
+/** No band lifted or cut (also a project saved before the EQ existed). */
+export const isFlat = (eq: MixEq | null | undefined) =>
+  !eq || (eq.low === 0 && eq.mid === 0 && eq.high === 0);
+/** A band's value kept inside the range, in half-dB steps. */
+export const clampEq = (db: number) =>
+  Math.round(Math.min(EQ_RANGE, Math.max(-EQ_RANGE, db)) * 2) / 2;
+
 export type MixTrack = {
   id: string;
   name: string;
@@ -24,6 +42,8 @@ export type MixTrack = {
   pan: number;
   muted: boolean;
   soloed: boolean;
+  /** This track's EQ; missing means flat */
+  eq?: MixEq;
   clips: MixClip[];
 };
 export type MixPublish = {
@@ -34,6 +54,8 @@ export type MixProject = {
   version: 2;
   bpm: number;
   masterVolume: number;
+  /** The EQ on the whole mix; missing means flat */
+  masterEq?: MixEq;
   /** Moves and trims land on beats */
   snap: boolean;
   tracks: MixTrack[];

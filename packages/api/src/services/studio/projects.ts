@@ -34,6 +34,8 @@ export type MixClip = {
   fadeIn: number;
   fadeOut: number;
 };
+/** A 3-band EQ in dB (0 = untouched); missing means flat */
+export type MixEq = { low: number; mid: number; high: number };
 export type MixTrack = {
   id: string;
   name: string;
@@ -43,6 +45,7 @@ export type MixTrack = {
   pan: number;
   muted: boolean;
   soloed: boolean;
+  eq?: MixEq;
   clips: MixClip[];
 };
 /** What "Publish as a song" rendered: the mix, and each heard track lined up with it (stems). */
@@ -59,6 +62,7 @@ export type MixProject = {
   bpm: number;
   snap: boolean;
   masterVolume: number;
+  masterEq?: MixEq;
   tracks: MixTrack[];
   publish?: MixPublish | null;
 };

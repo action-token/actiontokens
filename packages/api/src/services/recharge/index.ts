@@ -3,15 +3,16 @@ import { Account, Asset } from "@stellar/stellar-sdk";
 import {
   assetFor,
   buildTopUp,
-  buildTrustWithSwap,
+  buildTrustByCard,
+  buildTrustWithPayment,
   networkFeeXlm,
+  quoteFanTokenTrust,
   quoteTopUp,
-  quoteXlmSwap,
+  signersNeeded,
   toCents,
   toStroops,
-  TRUST_RESERVE_XLM,
+  type TrustCurrency,
   wrapInFeeBump,
-  type RechargeProblem,
 } from "@bandcoin/chain";
 import { QUOTE_TTL_SECONDS } from "@bandcoin/chain/quote";
 import { fundsOf } from "@bandcoin/chain/server";
@@ -33,21 +34,23 @@ import { deliverOrder, failOrder, holdsLine, ownOrder, userSignature } from "../
  *
  * Separate things, never one triggering the other:
  *   TOP_UP    card → BANDCOIN from the mother account
- *   TOKEN_TRUST  BANDCOIN → the 0.5 XLM a fan-token trustline locks, and the line
- *             is opened in the same transaction (offered after following an artist)
+ *   TOKEN_TRUST  subscribing: the fan-token line, paid in BANDCOIN, USDC, XLM or by
+ *             card (plan 33, chain's quoteFanTokenTrust), opened in one transaction
  * Swapping BANDCOIN and XLM is the wallet's Swap (services/wallet/swap).
  */
 
 export type RechargeInput =
-  { kind: "TOP_UP"; packageUsd: string } | { kind: "TOKEN_TRUST"; artistId: string };
+  | { kind: "TOP_UP"; packageUsd: string }
+  | { kind: "TOKEN_TRUST"; artistId: string; currency: TrustCurrency };
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 
 async function priceRecharge(ctx: ServiceCtx, user: SessionUser | null, input: RechargeInput) {
   const { chain } = ctx;
-  const [bandcoinUsd, rates, account] = await Promise.all([
+  const [bandcoinUsd, rates, account, settings] = await Promise.all([
     chain.bandcoinUsd().catch(rateFailure),
     chain.rates().catch(rateFailure),
     user ? chain.loadAccount(user.walletAddress) : null,
+    ctx.db.appSetting.findUnique({ where: { id: 1 }, select: { platformFeeBps: true } }),
   ]);
   const funds = user ? fundsOf(account, chain.config.assets) : null;
   const asset = assetFor("BANDCOIN", chain.config.assets);
@@ -77,15 +80,18 @@ async function priceRecharge(ctx: ServiceCtx, user: SessionUser | null, input: R
           token: token
             ? { code: token.code, artistName: token.artistName, artistId: input.artistId }
             : null,
-          ...quoteXlmSwap({
+          ...quoteFanTokenTrust({
+            currency: input.currency,
             ...rate,
-            xlm: TRUST_RESERVE_XLM,
-            bandcoinBalance: funds?.BANDCOIN ?? null,
-            networkFeeXlm: networkFeeXlm(3, baseFee),
+            usdcUsd: rates ? toStroops(rates.usdcUsd) : 0n,
+            feeBps: settings?.platformFeeBps ?? 0,
+            networkFeeXlm: networkFeeXlm(trustOperations(input.currency, openTrustline), baseFee),
+            funds: funds ? { BANDCOIN: funds.BANDCOIN, USDC: funds.USDC, XLM: funds.XLM } : null,
+            hasBandcoinLine: !openTrustline,
           }),
         };
 
-  const extra: RechargeProblem[] = [];
+  const extra: { code: "UNAVAILABLE"; message: string }[] = [];
   if (input.kind === "TOKEN_TRUST") {
     if (!token)
       extra.push({ code: "UNAVAILABLE", message: "This artist has no fan token to hold." });
@@ -113,6 +119,16 @@ async function priceRecharge(ctx: ServiceCtx, user: SessionUser | null, input: R
     bandcoinUsd,
     token,
   };
+}
+
+/**
+ * Operations in a Subscribe transaction, for its network fee: BANDCOIN/USDC pay,
+ * fee, XLM, line; XLM fee, line; card XLM, line, BANDCOIN (+ its line) and the fee bump.
+ */
+function trustOperations(currency: TrustCurrency, noBandcoinLine: boolean) {
+  if (currency === "XLM") return 2;
+  if (currency === "USD") return 4 + Number(noBandcoinLine);
+  return 4;
 }
 
 /** The artist's fan token, if they have one on Stellar that Bandcoin issued or tracks. */
@@ -153,19 +169,20 @@ export async function startRecharge(ctx: ServiceCtx, user: SessionUser, input: R
     });
   }
 
-  const card = quote.kind === "TOP_UP";
+  const card = quote.kind === "TOP_UP" || quote.currency === "USD";
   const total = quote.kind === "TOP_UP" ? input.kind === "TOP_UP" && input.packageUsd : quote.total;
+  const currency = quote.kind === "TOP_UP" ? "USD" : quote.currency;
   if (quote.kind === "TOKEN_TRUST" && !priced.token)
     throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, {
       message: "This artist has no fan token to hold.",
     });
   const order = await ctx.db.order.create({
     data: {
-      kind: card ? "RECHARGE" : "TOKEN_TRUST",
+      kind: quote.kind === "TOP_UP" ? "RECHARGE" : "TOKEN_TRUST",
       buyerId: user.id,
-      currency: card ? "USD" : "BANDCOIN",
+      currency,
       unitPrice: total as string,
-      platformFee: "0",
+      platformFee: quote.kind === "TOKEN_TRUST" ? quote.fee : "0",
       total: total as string,
       method: card ? "CARD" : "WALLET",
       quoteExpiresAt: new Date(quote.expiresAt),
@@ -177,10 +194,10 @@ export async function startRecharge(ctx: ServiceCtx, user: SessionUser, input: R
     targetType: "Order",
     targetId: order.id,
     amount: String(total),
-    currency: card ? "USD" : "BANDCOIN",
+    currency,
   });
 
-  const { network, assets } = ctx.chain.config;
+  const { network, assets, treasury } = ctx.chain.config;
   const buyer = new Account(account.accountId(), account.sequenceNumber());
   const asset = assetFor("BANDCOIN", assets);
   const built =
@@ -194,16 +211,32 @@ export async function startRecharge(ctx: ServiceCtx, user: SessionUser, input: R
           amount: quote.receive,
           openTrustline: priced.openTrustline,
         })
-      : buildTrustWithSwap({
-          buyer,
-          network,
-          orderId: order.id,
-          asset,
-          token: new Asset(priced.token!.code, priced.token!.issuer),
-          platform: mother,
-          pay: quote.total,
-          xlm: TRUST_RESERVE_XLM,
-        });
+      : quote.currency === "USD"
+        ? buildTrustByCard({
+            buyer,
+            network,
+            orderId: order.id,
+            token: new Asset(priced.token!.code, priced.token!.issuer),
+            from: mother,
+            sendXlm: quote.sendXlm,
+            bandcoin: {
+              asset,
+              amount: quote.card?.extraBandcoin ?? "0",
+              openLine: quote.card?.openBandcoinLine ?? false,
+            },
+          })
+        : buildTrustWithPayment({
+            buyer,
+            network,
+            orderId: order.id,
+            token: new Asset(priced.token!.code, priced.token!.issuer),
+            asset: assetFor(quote.currency, assets),
+            platform: mother,
+            pay: quote.platformPays,
+            sendXlm: quote.sendXlm,
+            treasury,
+            fee: quote.fee,
+          });
 
   // The hash doesn't change when signatures are added, so it pins the exact transaction.
   await transitionOrder(ctx.db, order.id, "AWAITING_SIGNATURE", { txHash: built.hash });
@@ -260,7 +293,9 @@ export async function submitRecharge(
     throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "Add a card to pay." });
 
   let xdr = await userSignature(ctx, user, order.txHash, input.xdr);
-  xdr = await chain.signWithServerKeys(xdr, [mother]);
+  // Subscribing in XLM moves nothing from the platform, so it doesn't sign.
+  if (signersNeeded(xdr, chain.config.network.passphrase).has(mother))
+    xdr = await chain.signWithServerKeys(xdr, [mother]);
   if (card)
     xdr = await chain.signWithServerKeys(wrapInFeeBump(xdr, mother, chain.config.network), [
       mother,

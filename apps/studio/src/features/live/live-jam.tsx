@@ -6,6 +6,16 @@ import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Input } from "@bandcoin/ui/components/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@bandcoin/ui/components/select";
+import { Switch } from "@bandcoin/ui/components/switch";
+
+import { AUTO_KEY, flipSwitch, LIVE_KEYS } from "./keys";
 
 import { type LivePrompt, type LiveSettings, useLive } from "./use-live";
 
@@ -13,20 +23,71 @@ const START: LivePrompt[] = [
   { text: "Warm lo-fi hip hop, soft piano", weight: 1 },
   { text: "", weight: 1 },
 ];
+type SliderKey = "bpm" | "density" | "brightness" | "guidance" | "temperature";
 const SETTINGS: {
-  key: keyof LiveSettings;
+  key: SliderKey;
   label: string;
+  /** What moving it does, as the slider's tooltip */
+  hint: string;
   min: number;
   max: number;
   step: number;
 }[] = [
-  { key: "bpm", label: "Tempo", min: 60, max: 200, step: 1 },
-  { key: "density", label: "Busy-ness", min: 0, max: 1, step: 0.05 },
-  { key: "brightness", label: "Brightness", min: 0, max: 1, step: 0.05 },
+  { key: "bpm", label: "Tempo", hint: "Beats a minute", min: 60, max: 200, step: 1 },
+  {
+    key: "density",
+    label: "Busy-ness",
+    hint: "How many notes and sounds at once",
+    min: 0,
+    max: 1,
+    step: 0.05,
+  },
+  {
+    key: "brightness",
+    label: "Brightness",
+    hint: "Higher sounds brighter",
+    min: 0,
+    max: 1,
+    step: 0.05,
+  },
+  {
+    key: "guidance",
+    label: "Guidance",
+    hint: "How closely the music follows your ideas",
+    min: 0,
+    max: 6,
+    step: 0.1,
+  },
+  {
+    key: "temperature",
+    label: "Temperature",
+    hint: "How much the music varies",
+    min: 0,
+    max: 3,
+    step: 0.1,
+  },
 ];
+const SWITCHES = [
+  { key: "muteDrums", label: "Mute drums" },
+  { key: "muteBass", label: "Mute bass" },
+  { key: "onlyBassAndDrums", label: "Only bass and drums" },
+] as const;
+/** Bandfan's starting values for the new controls; tempo, busy-ness and brightness as before. */
+const START_SETTINGS: LiveSettings = {
+  bpm: 100,
+  density: 0.5,
+  brightness: 0.5,
+  guidance: 4,
+  temperature: 1.1,
+  scale: AUTO_KEY,
+  muteBass: false,
+  muteDrums: false,
+  onlyBassAndDrums: false,
+};
 
 function Slider({
   label,
+  hint,
   value,
   min,
   max,
@@ -34,6 +95,7 @@ function Slider({
   onChange,
 }: {
   label: string;
+  hint?: string;
   value: number;
   min: number;
   max: number;
@@ -41,9 +103,10 @@ function Slider({
   onChange: (value: number) => void;
 }) {
   return (
-    <label className="text-fg-muted grid min-w-0 gap-1 text-xs">
+    <label className="text-fg-muted grid min-w-0 gap-1 text-xs" title={hint}>
       <span className="flex justify-between">
-        {label} <span className="text-fg">{step < 1 ? value.toFixed(2) : value}</span>
+        {label}{" "}
+        <span className="text-fg">{step >= 1 ? value : value.toFixed(step < 0.1 ? 2 : 1)}</span>
       </span>
       <input
         type="range"
@@ -66,11 +129,7 @@ function Slider({
 export function LiveJam({ balance }: { balance: number | null }) {
   const live = useLive();
   const [prompts, setPrompts] = useState<LivePrompt[]>(START);
-  const [settings, setSettings] = useState<LiveSettings>({
-    bpm: 100,
-    density: 0.5,
-    brightness: 0.5,
-  });
+  const [settings, setSettings] = useState<LiveSettings>(START_SETTINGS);
   const sent = useRef(false);
 
   const open = live.status !== "idle" && live.status !== "ended";
@@ -184,6 +243,7 @@ export function LiveJam({ balance }: { balance: number | null }) {
               <Slider
                 key={entry.key}
                 label={entry.label}
+                hint={entry.hint}
                 min={entry.min}
                 max={entry.max}
                 step={entry.step}
@@ -191,7 +251,39 @@ export function LiveJam({ balance }: { balance: number | null }) {
                 onChange={(value) => setSettings({ ...settings, [entry.key]: value })}
               />
             ))}
+            <label className="text-fg-muted grid min-w-0 gap-1 text-xs">
+              Key
+              <Select
+                value={settings.scale}
+                onValueChange={(scale) => setSettings({ ...settings, scale })}
+              >
+                <SelectTrigger size="sm" aria-label="Key" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {LIVE_KEYS.map((key) => (
+                    <SelectItem key={key.value} value={key.value}>
+                      {key.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </label>
           </div>
+          <div className="flex flex-wrap gap-x-5 gap-y-2">
+            {SWITCHES.map((entry) => (
+              <label key={entry.key} className="flex items-center gap-2 text-xs font-semibold">
+                <Switch
+                  checked={settings[entry.key]}
+                  onCheckedChange={(on) => setSettings(flipSwitch(settings, entry.key, on))}
+                />
+                {entry.label}
+              </label>
+            ))}
+          </div>
+          <p className="text-fg-faint text-xs">
+            Changing the tempo or key restarts the groove: you&apos;ll hear a jump.
+          </p>
           <div className="flex flex-wrap items-center gap-3">
             {live.status === "playing" ? (
               <Button onClick={live.pause}>

@@ -2,13 +2,15 @@
 
 import { keepPreviousData } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { CalendarDays, HelpCircle, Satellite } from "lucide-react";
+import { CalendarDays, Trophy } from "lucide-react";
 import { useQueryParams, useRouter } from "~/lib/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { MapCanvas, type MapCanvasHandle } from "~/components/map/MapCanvas";
 import { FilterMenu } from "~/components/map/FilterMenu";
 import { MapSearch, MapSearchButton } from "~/components/map/MapSearch";
+import { HudShortcut } from "~/components/map/HudShortcut";
+import { LayerSheetButton } from "~/components/map/LayerSheet";
 import { MapControls } from "~/components/map/MapControls";
 import { MuralSheet } from "~/components/map/MuralSheet";
 import { NearbyStrip } from "~/components/map/NearbyStrip";
@@ -16,18 +18,18 @@ import { PinSheet } from "~/components/map/PinSheet";
 import { AppShell } from "~/components/shell/AppShell";
 import { NotificationsButton } from "~/components/shell/NotificationsButton";
 import { ProfileButton } from "~/components/shell/ProfileButton";
-import { ArIconButton } from "~/components/ui/ArButton";
 import { CollectCelebration } from "~/components/fx/CollectCelebration";
 import { AR_CAPTURE_RADIUS, distanceMeters } from "@bandcoin/ar-core/ar/geo";
 import { LocationGate } from "~/components/shell/LocationGate";
 import { FALLBACK_CENTER } from "~/lib/ar/defaults";
 import { pinStatus } from "@bandcoin/ar-core/ar/rarity";
+import { useMapLayer } from "~/lib/ar/layers";
 import { useFeedback } from "~/lib/ar/feedback";
-import { setMapMode, useMapMode } from "~/lib/ar/theme";
 import { useDeviceHeading } from "~/lib/ar/useDeviceHeading";
+import { useMuralLayer } from "~/lib/ar/mural-layer";
 import { useAuth, useSettings } from "~/lib/ar/store";
 import type { ArPin, TravelMode } from "@bandcoin/ar-core/ar/types";
-import { GEO_REASON_TEXT, useGeolocation, type GeoReason } from "~/lib/ar/useGeolocation";
+import { useGeolocation } from "~/lib/ar/useGeolocation";
 import {
   filterPins,
   PIN_FILTERS,
@@ -98,7 +100,6 @@ export default function MapScreen() {
   const signedIn = useAuth((s) => Boolean(s.user));
 
   const mapRef = useRef<MapCanvasHandle>(null);
-  const mapMode = useMapMode();
   const [filter, setFilter] = useState<PinFilterId>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [following, setFollowing] = useState(true);
@@ -254,21 +255,21 @@ export default function MapScreen() {
   }, [toast]);
 
   // ── Controls ───────────────────────────────────────────────────────────
+  // One button, "put me back and tell me what's here": recenter on you and refetch the pins.
   const handleRecenter = useCallback(() => {
     setFollowing(true);
     mapRef.current?.recenter(fix ?? center ?? FALLBACK_CENTER);
-  }, [fix, center]);
-
-  const handleRefetch = useCallback(() => {
+    if (refetching) return;
     setRefetching(true);
     void refetchPins()
       .then(() => setToast("Pins up to date"))
       .catch(() => setToast("Couldn't reach the drop server"))
       .finally(() => setRefetching(false));
-  }, [refetchPins]);
+  }, [fix, center, refetching, refetchPins]);
 
   // ── Murals layer (docs/murals/plan.md §7) ────────────────────────────────
-  const [muralLayer, setMuralLayer] = useState<"all" | "verified" | "off">("all");
+  // All / verified only / hidden: Profile › Settings › Murals on map.
+  const muralLayer = useMuralLayer((state) => state.layer);
   const [selectedMuralId, setSelectedMuralId] = useState<string | null>(null);
   const [bounds, setBounds] = useState<{
     north: number;
@@ -322,19 +323,6 @@ export default function MapScreen() {
     }, 0);
     return () => clearTimeout(t);
   }, [focusMural, murals, selectMural]);
-
-  const cycleMuralLayer = useCallback(() => {
-    const next = muralLayer === "all" ? "verified" : muralLayer === "verified" ? "off" : "all";
-    setMuralLayer(next);
-    setToast(
-      next === "all"
-        ? "Murals: all, incl. unverified"
-        : next === "verified"
-          ? "Murals: verified only"
-          : "Murals hidden",
-    );
-    setSelectedMuralId(null);
-  }, [muralLayer]);
 
   const handleSelect = useCallback(
     (id: string | null) => {
@@ -410,66 +398,60 @@ export default function MapScreen() {
         {!fix && <LocationGate status={status} reason={geoReason} onRetry={retryLocation} />}
 
         {/* ── Top HUD ──────────────────────────────────────────────────
-            GPS status and the filter chips share one row rather than the
-            status pill getting a full-width strip of its own above them —
-            on its own line it read as a stray badge floating in empty
-            space, isolated from everything else in the HUD. The auto-collect
-            "Auto" badge that used to sit opposite it is gone entirely rather
-            than moved: the lightning-bolt toggle in the side rail already
-            glows and pulses while it's on, so a second "Auto" label was
-            confirming information the icon already gives. */}
+            The All / Following filter leads the row, then search, the bell, and the profile
+            capsule (balance and avatar) on the right with Events and Bounty under it. With no
+            fix the location gate covers the map, so there is no GPS pill. Map layers are in
+            the Layers button on the right-hand rail. */}
         <div
           className="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-center gap-2 px-4"
           style={{ paddingTop: "calc(var(--ar-top-inset) + 14px)" }}
         >
-          <GpsPill status={status} reason={geoReason} onExplain={setToast} />
-
-          <MapSearchButton onClick={() => setSearchOpen(true)} className="pointer-events-auto" />
-
           <FilterMenu
             filters={filters}
             value={filter}
             onChange={setFilter}
+            className="pointer-events-auto"
+          />
+
+          <MapSearchButton
+            onClick={() => setSearchOpen(true)}
             className="pointer-events-auto mr-auto"
           />
 
           <NotificationsButton className="pointer-events-auto" />
-          {/* Events sits just under the avatar, centred on it. */}
           <div className="relative">
-            <ProfileButton className="pointer-events-auto" />
-            <ArIconButton
-              icon={CalendarDays}
-              label="Events"
-              onClick={() => void router.push("/events")}
-              className="pointer-events-auto absolute top-[calc(100%+8px)] right-0 h-9 w-9"
-            />
+            {/* Balance and avatar in one capsule (signed in), opening the profile. */}
+            <ProfileButton balance className="pointer-events-auto" />
+            {/* Events, then Bounty, under it: icon and name on one line. */}
+            <div className="pointer-events-auto absolute top-[calc(100%+8px)] right-0 flex flex-col items-end gap-1.5">
+              <HudShortcut
+                icon={CalendarDays}
+                label="Events"
+                onClick={() => void router.push("/events")}
+              />
+              <HudShortcut
+                icon={Trophy}
+                label="Bounty"
+                onClick={() => void router.push("/bounty")}
+              />
+            </div>
           </div>
         </div>
 
         <MapControls
           onRecenter={handleRecenter}
-          onRefetch={handleRefetch}
           compassMode={settings.compassMode}
           onToggleCompass={handleToggleCompass}
           refetching={refetching}
           following={following}
-          autoCollect={settings.autoCollect}
-          muralLayer={muralLayer}
-          onCycleMuralLayer={cycleMuralLayer}
-          mapMode={mapMode}
-          onToggleMapMode={() => setMapMode(mapMode === "3d" ? "2d" : "3d")}
-          onToggleAutoCollect={() => {
-            if (!requireAuth("settings")) return;
-            const turningOn = !settings.autoCollect;
-            settings.toggle("autoCollect");
-            setToast(
-              turningOn ? "Auto-collect on — nearby drops claim themselves" : "Auto-collect off",
-            );
-          }}
+          layers={<LayerSheetButton bare />}
         />
 
         {/* ── Nearby rail ──────────────────────────────────────────── */}
-        <div className="absolute inset-x-0 bottom-0 z-30 pb-2">
+        <div
+          className="absolute inset-x-0 z-30 pb-2"
+          style={{ bottom: "var(--ar-tabbar-space, 0px)" }}
+        >
           <NearbyStrip
             items={nearby}
             selectedId={selectedId}
@@ -520,6 +502,8 @@ export default function MapScreen() {
         onClose={() => setSearchOpen(false)}
         fix={fix}
         onPickPin={(pin) => {
+          // A match the Layers sheet hides would open a sheet with no marker.
+          useMapLayer.getState().reveal(pin.layer?.id ?? null);
           // A match the current filter hides would open a sheet with no marker.
           if (filterPins([pin], filter, followedIds).length === 0 && !settings.followingOnly) {
             setFilter("all");
@@ -564,68 +548,5 @@ export default function MapScreen() {
         )}
       </AnimatePresence>
     </AppShell>
-  );
-}
-
-/**
- * Says whether the puck is real. When it isn't, the pill becomes tappable and
- * explains itself — "Demo walk" on its own prompts exactly one question, and
- * the answer differs by cause: a blocked permission is fixed in the browser, a
- * missing fix is fixed in the OS.
- */
-function GpsPill({
-  status,
-  reason,
-  onExplain,
-}: {
-  status: string;
-  reason: GeoReason | null;
-  onExplain: (text: string) => void;
-}) {
-  const live = status === "tracking";
-  const label =
-    status === "tracking"
-      ? "Live"
-      : status === "prompting"
-        ? "Locating…"
-        : status === "denied"
-          ? "Location off"
-          : "No signal";
-
-  const explanation = reason ? GEO_REASON_TEXT[reason] : null;
-
-  const content = (
-    <>
-      <Satellite
-        size={11}
-        strokeWidth={2.6}
-        className={live ? "text-ar-accent-hot" : "text-ar-faint"}
-      />
-      <span
-        className={`font-hud text-[9.5px] font-semibold tracking-[0.14em] uppercase ${
-          live ? "text-ar-text" : "text-ar-dim"
-        }`}
-      >
-        {label}
-      </span>
-      {explanation && <HelpCircle size={10} strokeWidth={2.6} className="text-ar-faint" />}
-    </>
-  );
-
-  const className =
-    "ar-glass pointer-events-auto flex h-7 shrink-0 items-center gap-1.5 rounded-full px-2.5";
-
-  if (!explanation) return <span className={className}>{content}</span>;
-
-  return (
-    <button
-      type="button"
-      className={className}
-      title={explanation}
-      aria-label={`${label}. Tap to find out why.`}
-      onClick={() => onExplain(explanation)}
-    >
-      {content}
-    </button>
   );
 }

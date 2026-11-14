@@ -13,7 +13,7 @@ type Problem_ =
   | {
       code: "INSUFFICIENT_FUNDS";
       message: string;
-      shortfall: { currency: "BANDCOIN" | "XLM"; short: string };
+      shortfall: { currency: DisplayCurrency; short: string };
     }
   | { code: string; message: string };
 
@@ -35,7 +35,7 @@ export function QuoteBreakdown({
   loading: boolean;
   error?: string;
   /** Shown under the total when the fan pays from a balance */
-  balance?: { currency: "BANDCOIN" | "XLM"; amount: string };
+  balance?: { currency: Exclude<DisplayCurrency, "USD">; amount: string };
 }) {
   if (loading) {
     return (

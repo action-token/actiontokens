@@ -16,7 +16,7 @@ export function AboutBlock({ block, empty }: { block: Block; empty: boolean }) {
         <EmptyLine>No bio yet.</EmptyLine>
       ) : (
         <div className="bg-surface rounded-[var(--page-radius)] border-2 p-5">
-          <p className="text-fg-muted max-w-prose text-[15px] leading-relaxed whitespace-pre-line">
+          <p className="text-fg-muted w-full text-[15px] leading-relaxed whitespace-pre-line">
             {textSetting(block, "body")}
           </p>
         </div>

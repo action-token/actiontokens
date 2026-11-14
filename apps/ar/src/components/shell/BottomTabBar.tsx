@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { LayoutGrid, Map as MapIcon, Music2, Trophy } from "lucide-react";
+import { LayoutGrid, Map as MapIcon, Music2, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "~/lib/navigation";
 import { useState } from "react";
@@ -15,15 +15,16 @@ type Tab = {
   icon: typeof MapIcon;
 };
 
-const LEFT: Tab[] = [
+export const LEFT: Tab[] = [
   { href: "/map", label: "Map", icon: MapIcon },
   { href: "/collection", label: "Collection", icon: LayoutGrid },
 ];
 
 // Profile is not a tab — it's the avatar in each screen's header
-// (`ProfileButton`), which freed this slot for Bounty.
-const RIGHT: Tab[] = [
-  { href: "/bounty", label: "Bounty", icon: Trophy },
+// (`ProfileButton`), which freed this slot. Marketplace (plan 49) took Bounty's;
+// Bounty is the map's pill.
+export const RIGHT: Tab[] = [
+  { href: "/marketplace", label: "Market", icon: ShoppingBag },
   { href: "/artists", label: "Artists", icon: Music2 },
 ];
 

@@ -1282,6 +1282,19 @@ body {
   display: none;
 }
 
+/* Screens with the tab bar: content runs underneath it (no reserved strip of page background behind
+   the bar), so each screen's outer scroll pane ends with a spacer the bar's height, letting its last
+   row scroll clear of it. The bar is a 64px row plus its bottom padding. Nested panes don't get one. */
+.ar-tabbed {
+  --ar-tabbar-space: calc(64px + max(12px, var(--ar-safe-bottom)));
+}
+.ar-tabbed .ar-scroll:not(.ar-scroll .ar-scroll)::after {
+  content: "";
+  display: block;
+  flex-shrink: 0;
+  height: var(--ar-tabbar-space);
+}
+
 .ar-scroll-x {
   overflow-x: auto;
   overflow-y: hidden;

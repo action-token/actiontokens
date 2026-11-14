@@ -52,3 +52,30 @@ export function HotspotLayer({
     </Source>
   );
 }
+
+/**
+ * The area of a hotspot being made, while its form is open as a card on the map: the same colour as
+ * a saved hotspot, with a dashed edge so it reads as not saved yet.
+ */
+export function DraftAreaLayer({ feature }: { feature: unknown }) {
+  const data = useMemo(() => {
+    const mapbox = toMapboxFeature(feature as Parameters<typeof toMapboxFeature>[0], {
+      live: true,
+    });
+    return { type: "FeatureCollection" as const, features: mapbox ? [mapbox] : [] };
+  }, [feature]);
+  return (
+    <Source id="hotspot-draft" type="geojson" data={data}>
+      <Layer
+        id="hotspot-draft-fill"
+        type="fill"
+        paint={{ "fill-color": AREA, "fill-opacity": 0.2 }}
+      />
+      <Layer
+        id="hotspot-draft-line"
+        type="line"
+        paint={{ "line-color": AREA, "line-width": 2.5, "line-dasharray": [2, 1.5] }}
+      />
+    </Source>
+  );
+}

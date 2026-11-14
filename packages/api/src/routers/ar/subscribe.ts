@@ -7,7 +7,14 @@ import { cancelPurchase, ownOrder } from "../../services/purchase";
 import { quoteRecharge, startRecharge, submitRecharge } from "../../services/recharge";
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 
-const artist = z.object({ artistId: z.string().min(1) });
+const artist = z.object({
+  artistId: z.string().min(1),
+  /** BANDCOIN, USDC, XLM or card (plan 33) */
+  currency: z.enum(["BANDCOIN", "USDC", "XLM", "USD"]),
+});
+const card = z
+  .object({ sourceId: z.string().min(1), verificationToken: z.string().optional() })
+  .optional();
 const order = z.object({ orderId: z.string().min(1) });
 
 /** The viewer's own fan-token order; any other order reads as not found. */
@@ -23,26 +30,27 @@ async function ownTrustOrder(ctx: Context, user: SessionUser, orderId: string) {
  * in the fan app.
  */
 export const subscribeRouter = createRouter({
-  quote: publicProcedure
-    .input(artist)
-    .query(({ ctx, input }) =>
-      quoteRecharge(ctx, ctx.session?.user ?? null, {
-        kind: "TOKEN_TRUST",
-        artistId: input.artistId,
-      }),
-    ),
+  quote: publicProcedure.input(artist).query(({ ctx, input }) =>
+    quoteRecharge(ctx, ctx.session?.user ?? null, {
+      kind: "TOKEN_TRUST",
+      artistId: input.artistId,
+      currency: input.currency,
+    }),
+  ),
 
-  start: authedProcedure
-    .input(artist)
-    .mutation(({ ctx, input }) =>
-      startRecharge(ctx, ctx.session.user, { kind: "TOKEN_TRUST", artistId: input.artistId }),
-    ),
+  start: authedProcedure.input(artist).mutation(({ ctx, input }) =>
+    startRecharge(ctx, ctx.session.user, {
+      kind: "TOKEN_TRUST",
+      artistId: input.artistId,
+      currency: input.currency,
+    }),
+  ),
 
   submit: authedProcedure
-    .input(order.extend({ xdr: z.string().min(1) }))
+    .input(order.extend({ xdr: z.string().min(1), card }))
     .mutation(async ({ ctx, input }) => {
       await ownTrustOrder(ctx, ctx.session.user, input.orderId);
-      return submitRecharge(ctx, ctx.session.user, { orderId: input.orderId, xdr: input.xdr });
+      return submitRecharge(ctx, ctx.session.user, input);
     }),
 
   cancel: authedProcedure.input(order).mutation(async ({ ctx, input }) => {

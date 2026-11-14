@@ -3,6 +3,7 @@ import {
   createContext,
   dropDueHotspots,
   expireVanityLinks,
+  checkDomains,
   lyriaProvider,
   generateInput,
   importFacebookPost,
@@ -138,6 +139,8 @@ export function handlersFor(deps: WorkerDeps): Record<string, JobHandler> {
     "follows.sync": async () => ({ result: await syncAllSubscribers(context()) }),
     // Short-link reminders and freed names (see artist/vanity-expire); not a payment.
     "vanity.expire": async () => ({ result: await expireVanityLinks(context()) }),
+    // Custom domains: ask the host, move status, ring the artist's bell (see services/domains).
+    "domains.check": async () => ({ result: await checkDomains(context()) }),
     // Drop pins in hotspots whose next drop is due; a failed drop is reported, the rest carry on.
     "hotspot.drop": async () => ({ result: await dropDueHotspots(context()) }),
     // Keep the contract's unlock records from being archived.

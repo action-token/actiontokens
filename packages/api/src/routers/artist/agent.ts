@@ -12,21 +12,21 @@ import {
   pollRun,
   sendMessage,
 } from "../../services/agent/conversations";
-import { artistProcedure, createRouter } from "../../trpc";
+import { actingArtistProcedure, createRouter } from "../../trpc";
 
 /** The map agent chat (Studio and the portal): conversations, messages, proposals. */
 export const agentRouter = createRouter({
-  overview: artistProcedure.query(({ ctx }) => overview(ctx.artist)),
+  overview: actingArtistProcedure.query(({ ctx }) => overview(ctx.artist)),
 
-  conversations: artistProcedure.query(({ ctx }) =>
+  conversations: actingArtistProcedure.query(({ ctx }) =>
     listConversations(ctx, ctx.artist, ctx.session.user),
   ),
 
-  conversation: artistProcedure
+  conversation: actingArtistProcedure
     .input(z.object({ id: z.string().min(1) }))
     .query(({ ctx, input }) => getConversation(ctx, ctx.artist, ctx.session.user, input.id)),
 
-  deleteConversation: artistProcedure
+  deleteConversation: actingArtistProcedure
     .input(z.object({ id: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
       const removed = await deleteConversation(ctx, ctx.artist, ctx.session.user, input.id);
@@ -34,7 +34,7 @@ export const agentRouter = createRouter({
       return removed;
     }),
 
-  send: artistProcedure
+  send: actingArtistProcedure
     .input(
       z.object({
         conversationId: z.string().min(1).optional(),
@@ -51,19 +51,26 @@ export const agentRouter = createRouter({
     )
     .mutation(({ ctx, input }) => sendMessage(ctx, ctx.artist, ctx.session.user, input)),
 
-  poll: artistProcedure
+  poll: actingArtistProcedure
     .input(z.object({ jobId: z.string().min(1) }))
     .query(({ ctx, input }) => pollRun(ctx, ctx.artist, ctx.session.user, input.jobId)),
 
-  confirm: artistProcedure
-    .input(z.object({ actionId: z.string().min(1), edits: ActionEditsInput.optional() }))
+  confirm: actingArtistProcedure
+    .input(
+      z.object({
+        actionId: z.string().min(1),
+        edits: ActionEditsInput.optional(),
+        /** The map layer the artist is in; new pins and hotspots go in it (checked server-side). */
+        layerId: z.string().min(1).nullable().optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const done = await confirmAction(ctx, ctx.artist, ctx.session.user, input);
       ctx.activity.set({ targetType: "AgentAction", targetId: input.actionId });
       return done;
     }),
 
-  cancel: artistProcedure
+  cancel: actingArtistProcedure
     .input(z.object({ actionId: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
       const done = await cancelAction(ctx, ctx.artist, ctx.session.user, input.actionId);
@@ -71,7 +78,7 @@ export const agentRouter = createRouter({
       return done;
     }),
 
-  pinJob: artistProcedure
+  pinJob: actingArtistProcedure
     .input(z.object({ jobId: z.string().min(1) }))
     .query(({ ctx, input }) => pinJobStatus(ctx, ctx.artist, input.jobId)),
 });

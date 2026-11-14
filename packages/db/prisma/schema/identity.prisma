@@ -34,6 +34,7 @@ model User {
   artist               Artist?
   chainAccounts        ChainAccount[]
   follows              Follow[]
+  declinedGifts        DeclinedGift[]
   lastFmAccount        LastFmAccount?
   createdItems         Item[]                @relation("ItemCreatedBy")
   ownerships           Ownership[]

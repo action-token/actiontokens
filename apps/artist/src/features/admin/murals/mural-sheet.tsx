@@ -299,6 +299,7 @@ function Body({
                 <div className="h-56 overflow-hidden rounded-xl border">
                   <BaseMap
                     key={query.data.id}
+                    controls="zoom"
                     initialViewState={{
                       latitude: query.data.latitude,
                       longitude: query.data.longitude,

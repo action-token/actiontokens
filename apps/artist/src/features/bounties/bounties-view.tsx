@@ -96,7 +96,7 @@ export function BountiesView() {
           action={add}
         />
       ) : (
-        <ul className="grid max-w-3xl gap-3">
+        <ul className="grid gap-3">
           {bounties.data.map((row) => (
             <li key={row.id}>
               <Link

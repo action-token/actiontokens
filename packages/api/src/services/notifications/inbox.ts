@@ -1,5 +1,6 @@
 import type { Context } from "../../context";
 import { parseVanityKey } from "../artist/vanity-expire";
+import { parseDomainKey } from "../domains/notice";
 import { describeForArtist, describeNotification } from "./describe";
 
 /** The fan app (and AR) shows the fan's notifications; the portal shows the artist's. */
@@ -84,6 +85,7 @@ export async function loadInbox(
               ...subject,
               post: entityId ? postById.get(entityId) : null,
               vanity: type === "VANITY" ? parseVanityKey(entityId) : null,
+              domain: type === "DOMAIN" ? parseDomainKey(entityId) : null,
             })
           : describeNotification(type, {
               ...subject,

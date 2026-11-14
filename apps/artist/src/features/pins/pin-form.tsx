@@ -1,11 +1,24 @@
 "use client";
 
-import { CalendarClock, Layers, Loader2, MapPin, Sparkles, Users } from "lucide-react";
+import {
+  CalendarClock,
+  CalendarDays,
+  CalendarRange,
+  Layers,
+  Loader2,
+  MapPin,
+  PartyPopper,
+  Sparkles,
+  Sun,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
+import type { PinTemplateData } from "@bandcoin/ar-core/pin-template";
 import { Button } from "@bandcoin/ui/components/button";
 import { Input } from "@bandcoin/ui/components/input";
 import {
@@ -17,7 +30,9 @@ import {
 } from "@bandcoin/ui/components/select";
 import { Textarea } from "@bandcoin/ui/components/textarea";
 import { cn } from "@bandcoin/ui/lib/cn";
+import { useFormCard } from "@bandcoin/ui/patterns/form-card";
 import {
+  CardTab,
   Field,
   FormPage,
   FormSection,
@@ -36,15 +51,35 @@ import { AiImagePanel } from "../ai/ai-image-panel";
 import { AiTextButton } from "../ai/ai-text-button";
 import { FileField, type PickedFile } from "../catalog/file-field";
 import { Note } from "../catalog/form-parts";
+import { LayerField, LayerNote } from "./layers/layer-field";
+import { loadLastLook, saveLastLook, toLookValue } from "./look/look-value";
+import { PinLookSection, usePinLookMarker } from "./look/pin-look-section";
+import { useMapFormCard } from "./map-form-card";
+import { PinCardSummary } from "./pin-card-summary";
+import { describeRun, quickEnds, type QuickEnd } from "./schedule-quick";
+import { useActingArtist } from "./acting";
+import { useLastPin } from "./last-pin";
 import { MapPicker } from "./map-kit/map-picker";
 import { PIN_TYPES, PinSummary, type PinTypeName } from "./pin-summary";
 import { PinRewardFields, type RewardState } from "./pin-reward-fields";
 import { amountProblem } from "./reward-amount";
+import { pinFormToTemplate, templateToPinForm, type PinFormValues } from "./templates/mapping";
+import { SaveTemplateDialog } from "./templates/save-template-dialog";
+import { TemplatePicker, type PinTemplateRow } from "./templates/template-picker";
+import { useFormTemplate } from "./templates/use-template-param";
 import { PinSpotsCard } from "./pin-spots-card";
 import { PinTagsField } from "./pin-tags-field";
 
 type Existing = RouterOutputs["pins"]["pin"];
 type Visibility = "PUBLIC" | "FOLLOWERS" | "SUBSCRIBERS" | "MEMBERS" | "TIER";
+
+// As in Wadzzo's pin card: Details, Look, Collect (who and how), Schedule.
+const CARD_TABS = [
+  { id: "details", label: "Details" },
+  { id: "look", label: "Look" },
+  { id: "collect", label: "Collect" },
+  { id: "schedule", label: "Schedule" },
+];
 
 const NO_EVENT = "none";
 const messageOf = (error: unknown) =>
@@ -58,6 +93,13 @@ const DURATIONS = [
   { label: "1 month", days: 30 },
 ];
 
+const QUICK_ICON: Record<QuickEnd["id"], LucideIcon> = {
+  today: Sun,
+  weekend: PartyPopper,
+  week: CalendarDays,
+  month: CalendarRange,
+};
+
 /** One form for a new pin (blank, from a map click, or a duplicate of another) and for editing one: where it is, what it gives, who can collect it and for how long. */
 export function PinForm({ existing, copyOf }: { existing?: Existing; copyOf?: Existing }) {
   const router = useRouter();
@@ -69,6 +111,8 @@ export function PinForm({ existing, copyOf }: { existing?: Existing; copyOf?: Ex
   // Clicking the map on /pins starts a pin right there.
   const search = useSearchParams();
   const fromMap = { lat: search?.get("lat") ?? "", lng: search?.get("lng") ?? "" };
+  // The layer picked on the Pins map arrives as ?layer=; a new pin goes in it.
+  const layerParam = search?.get("layer") ?? null;
 
   const [title, setTitle] = useState(source?.title ?? "");
   const [description, setDescription] = useState(source?.description ?? "");
@@ -91,6 +135,8 @@ export function PinForm({ existing, copyOf }: { existing?: Existing; copyOf?: Ex
   });
   const [startsAt, setStartsAt] = useState(existing ? toLocalInput(existing.startsAt) : "");
   const [endsAt, setEndsAt] = useState(existing ? toLocalInput(existing.endsAt) : "");
+  // The quick end picked on the Schedule tab (cleared when the dates are typed by hand).
+  const [quick, setQuick] = useState<QuickEnd["id"] | null>(null);
   const [lat, setLat] = useState(
     source ? String(source.latitude) : Number.isFinite(Number(fromMap.lat)) ? fromMap.lat : "",
   );
@@ -105,16 +151,92 @@ export function PinForm({ existing, copyOf }: { existing?: Existing; copyOf?: Ex
   const [isMultiSpot, setIsMultiSpot] = useState(source?.isMultiSpot ?? false);
   const [eventId, setEventId] = useState(source?.eventId ?? NO_EVENT);
   const [tags, setTags] = useState<string[]>(source?.tags ?? []);
+  // A new pin starts from the look you chose last (this browser); an existing one from its own.
+  const [look, setLook] = useState(() => toLookValue(source?.look));
+  useEffect(() => {
+    if (!source) setLook(loadLastLook());
+  }, [source]);
+  const card = useFormCard();
+  // An admin acting as the artist: templates are the admin's own, so none are offered.
+  const acting = useActingArtist();
+  const [layerId, setLayerId] = useState<string | null>(
+    existing
+      ? existing.layerId
+      : card
+        ? (card.layerId ?? null)
+        : (layerParam ?? copyOf?.layerId ?? null),
+  );
+  // In a map card a new pin goes in the layer picked on the map.
+  const layer = !editing && card ? (card.layerId ?? null) : layerId;
+  // In a map card the pin goes where the map was clicked (adjusted during render, as MapPicker does).
+  const cardAt = card?.at;
+  const [seenAt, setSeenAt] = useState(cardAt);
+  if (cardAt !== seenAt) {
+    setSeenAt(cardAt);
+    if (cardAt && !editing) {
+      setLat(String(cardAt.lat));
+      setLng(String(cardAt.lng));
+    }
+  }
   const [place, setPlace] = useState("");
+  const [saveTemplate, setSaveTemplate] = useState(false);
+
+  // Fills what the template has; everything else stays as it is. Dates come back as a fresh end.
+  const applyData = useCallback((data: PinTemplateData) => {
+    const fill = templateToPinForm(data);
+    if (fill.title !== undefined) setTitle(fill.title);
+    if (fill.description !== undefined) setDescription(fill.description);
+    if (fill.imageUrl !== undefined) setCover(fill.imageUrl ? asCover(fill.imageUrl) : null);
+    if (fill.link !== undefined) setLink(fill.link);
+    if (fill.type !== undefined) setType(fill.type);
+    if (fill.visibility !== undefined) setVisibility(fill.visibility);
+    if (fill.tierId !== undefined) setTierId(fill.tierId);
+    if (fill.reward !== undefined) setReward(fill.reward);
+    if (fill.autoCollect !== undefined) setAutoCollect(fill.autoCollect);
+    if (fill.isMultiSpot !== undefined) setIsMultiSpot(fill.isMultiSpot);
+    if (fill.tags !== undefined) setTags(fill.tags);
+    if (fill.look !== undefined) setLook(fill.look);
+    if (fill.radius !== undefined) setRadius(fill.radius);
+    if (fill.spotCount !== undefined) setSpotCount(fill.spotCount);
+    if (fill.end !== undefined) {
+      setStartsAt("");
+      setEndsAt(toLocalInput(fill.end));
+    }
+    if (fill.point) {
+      setLat(String(fill.point.lat));
+      setLng(String(fill.point.lng));
+    }
+  }, []);
+  const applyTemplate = useCallback((saved: PinTemplateRow) => applyData(saved.data), [applyData]);
+  const template = useFormTemplate("PIN", applyTemplate);
+
+  // A new-pin card starts from the last pin made in a card (Clear starts blank).
+  const [fromLast, setFromLast] = useState(false);
+  const startedFromLast = useRef(false);
+  useEffect(() => {
+    if (!card || source || startedFromLast.current) return;
+    startedFromLast.current = true;
+    const last = useLastPin.getState().last;
+    if (!last) return;
+    applyData(last);
+    setFromLast(true);
+  }, [card, source, applyData]);
 
   const done = (message: string) => {
     toast.success(message);
     void utils.pins.invalidate();
-    router.push("/pins");
+    if (card) card.onDone();
+    else router.push("/pins");
   };
   const fail = (error: unknown) => toast.error(messageOf(error));
   const create = api.pins.createPin.useMutation({
-    onSuccess: () => done("Pin is live"),
+    onSuccess: () => {
+      saveLastLook(look);
+      // The next card starts from this pin (but not its spot or layer).
+      if (card)
+        useLastPin.getState().remember(pinFormToTemplate(values, { includeLocation: false }));
+      done("Pin is live");
+    },
     onError: fail,
   });
   const update = api.pins.updatePin.useMutation({ onSuccess: () => done("Saved"), onError: fail });
@@ -127,6 +249,30 @@ export function PinForm({ existing, copyOf }: { existing?: Existing; copyOf?: Ex
     onError: fail,
   });
   const saving = create.isPending || update.isPending;
+  const lookMarker = usePinLookMarker(look, {
+    autoCollect,
+    pinImage: cover?.url ?? null,
+    artistImage: options.data?.artistImage ?? null,
+  });
+
+  // In a map card, the map draws the pin where it was clicked, as the Look tab has it so far.
+  const inCard = Boolean(card);
+  const { glyph } = lookMarker;
+  const imageFit = JSON.stringify(look.imageFit);
+  useEffect(() => {
+    if (!inCard) return;
+    useMapFormCard.getState().setDraft({
+      path: glyph.path,
+      anchor: glyph.anchor,
+      color: glyph.color,
+      imageUrl: glyph.imageUrl,
+      imageFit: look.imageFit,
+      badge: glyph.badge,
+    });
+    return () => useMapFormCard.getState().setDraft(null);
+    // look.imageFit is covered by its JSON, so a new object with the same fit doesn't redraw
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inCard, glyph.path, glyph.anchor, glyph.color, glyph.imageUrl, glyph.badge, imageFit]);
 
   const latitude = number(lat);
   const longitude = number(lng);
@@ -169,6 +315,7 @@ export function PinForm({ existing, copyOf }: { existing?: Existing; copyOf?: Ex
           SUBSCRIBERS: "Subscribers",
           MEMBERS: "Members",
         }[visibility];
+  const runWords = timeProblem ? null : describeRun(start, end, new Date());
   const aiContext = { title, description, type, place };
   const imagePrompt = imageBrief || [title, description.slice(0, 400)].filter(Boolean).join(". ");
 
@@ -200,6 +347,8 @@ export function PinForm({ existing, copyOf }: { existing?: Existing; copyOf?: Ex
       isMultiSpot,
       eventId: eventId === NO_EVENT ? null : eventId,
       tags,
+      layerId: layer,
+      look,
     };
     if (existing) return void update.mutate({ pinId: existing.id, ...fields });
     if (point)
@@ -212,11 +361,59 @@ export function PinForm({ existing, copyOf }: { existing?: Existing; copyOf?: Ex
       });
   }
 
+  /** The form as it stands, for Save as template and for the last pin a card remembers. */
+  const values: PinFormValues = {
+    title,
+    description,
+    imageUrl: cover?.url ?? null,
+    link,
+    type,
+    visibility,
+    tierId,
+    reward,
+    autoCollect,
+    isMultiSpot,
+    tags,
+    look,
+    radius,
+    spotCount,
+    start: fromLocalInput(startsAt),
+    end: fromLocalInput(endsAt),
+    point,
+  };
+
   const actions = (
     <>
-      <Button asChild type="button" variant="ghost">
-        <Link href="/pins">Cancel</Link>
-      </Button>
+      <span className="mr-auto flex gap-2">
+        {!editing && !card && !acting && <TemplatePicker formType="PIN" onPick={template.use} />}
+        {!acting && (
+          <Button type="button" variant="outline" onClick={() => setSaveTemplate(true)}>
+            {card ? "Template" : "Save as template"}
+          </Button>
+        )}
+        {card && fromLast && (
+          <Button
+            type="button"
+            variant="ghost"
+            title="Start from a blank pin"
+            onClick={() => {
+              useLastPin.getState().forget();
+              card.restart?.();
+            }}
+          >
+            Clear
+          </Button>
+        )}
+      </span>
+      {card ? (
+        <Button type="button" variant="ghost" onClick={card.onClose}>
+          Cancel
+        </Button>
+      ) : (
+        <Button asChild type="button" variant="ghost">
+          <Link href="/pins">Cancel</Link>
+        </Button>
+      )}
       <Button type="submit" disabled={!ready || saving}>
         {saving && <Loader2 className="animate-spin" />}
         {existing ? "Save changes" : "Create pin"}
@@ -231,6 +428,31 @@ export function PinForm({ existing, copyOf }: { existing?: Existing; copyOf?: Ex
       back={{ href: "/pins", label: "Map & pins" }}
       onSubmit={submit}
       actions={actions}
+      cardTabs={CARD_TABS}
+      cardSteps={!editing}
+      cardTabDone={{ details: title.trim().length >= 3, schedule: Boolean(end) && !timeProblem }}
+      cardSummary={
+        card ? (
+          <PinCardSummary
+            marker={lookMarker.marker}
+            title={title}
+            who={who}
+            reward={rewardName}
+            when={runWords}
+          />
+        ) : undefined
+      }
+      cardHeaderAction={
+        card && !acting ? (
+          editing ? (
+            <Button asChild variant="outline">
+              <Link href={`/pins/${existing?.id}`}>Full page</Link>
+            </Button>
+          ) : (
+            <TemplatePicker formType="PIN" label="Template" onPick={template.use} />
+          )
+        ) : undefined
+      }
       aside={
         <>
           <FormSection
@@ -243,6 +465,7 @@ export function PinForm({ existing, copyOf }: { existing?: Existing; copyOf?: Ex
             }
           >
             <MapPicker
+              marker={{ node: lookMarker.marker, anchor: lookMarker.anchor }}
               value={point}
               radiusMetres={radiusMeters}
               spots={existing?.spots.map((spot) => ({
@@ -327,59 +550,69 @@ export function PinForm({ existing, copyOf }: { existing?: Existing; copyOf?: Ex
         </>
       }
     >
-      {!editing && (
-        <AiFillCard
-          form="pin"
-          context={aiContext}
-          examples={[
-            "A signed poster hidden near the old fountain this weekend, 30 fans can collect it",
-            "Album launch pin outside the venue on Friday night",
-            "Five street-art stickers around the city centre for the next two weeks",
-          ]}
-          apply={(result) => {
-            const before = {
-              title,
-              description,
-              type,
-              startsAt,
-              endsAt,
-              reward,
-              spotCount,
-              radius,
-              link,
-              tags,
-              imageBrief,
-            };
-            setTitle(result.title);
-            setDescription(result.description);
-            setType(result.type);
-            if (result.startsAt) setStartsAt(result.startsAt);
-            if (result.endsAt) setEndsAt(result.endsAt);
-            if (result.claimLimit)
-              setReward((current) => ({ ...current, claimLimit: String(result.claimLimit) }));
-            if (result.spotCount) setSpotCount(String(result.spotCount));
-            if (result.radiusMeters) setRadius(String(result.radiusMeters));
-            if (result.link) setLink(result.link);
-            setTags((current) => [...new Set([...current, ...result.tags])].slice(0, 10));
-            setImageBrief(result.imagePrompt);
-            return () => {
-              setTitle(before.title);
-              setDescription(before.description);
-              setType(before.type);
-              setStartsAt(before.startsAt);
-              setEndsAt(before.endsAt);
-              setReward(before.reward);
-              setSpotCount(before.spotCount);
-              setRadius(before.radius);
-              setLink(before.link);
-              setTags(before.tags);
-              setImageBrief(before.imageBrief);
-            };
-          }}
-        />
+      {card && !editing && (
+        <p className="text-fg-muted text-xs" role="note">
+          {point
+            ? `The pin is at ${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}. Click the map to move it.`
+            : "Click the map where the pin goes."}
+        </p>
       )}
 
-      <FormSection title="Details" icon={Sparkles}>
+      {!editing && (
+        <CardTab tab="details">
+          <AiFillCard
+            form="pin"
+            context={aiContext}
+            examples={[
+              "A signed poster hidden near the old fountain this weekend, 30 fans can collect it",
+              "Album launch pin outside the venue on Friday night",
+              "Five street-art stickers around the city centre for the next two weeks",
+            ]}
+            apply={(result) => {
+              const before = {
+                title,
+                description,
+                type,
+                startsAt,
+                endsAt,
+                reward,
+                spotCount,
+                radius,
+                link,
+                tags,
+                imageBrief,
+              };
+              setTitle(result.title);
+              setDescription(result.description);
+              setType(result.type);
+              if (result.startsAt) setStartsAt(result.startsAt);
+              if (result.endsAt) setEndsAt(result.endsAt);
+              if (result.claimLimit)
+                setReward((current) => ({ ...current, claimLimit: String(result.claimLimit) }));
+              if (result.spotCount) setSpotCount(String(result.spotCount));
+              if (result.radiusMeters) setRadius(String(result.radiusMeters));
+              if (result.link) setLink(result.link);
+              setTags((current) => [...new Set([...current, ...result.tags])].slice(0, 10));
+              setImageBrief(result.imagePrompt);
+              return () => {
+                setTitle(before.title);
+                setDescription(before.description);
+                setType(before.type);
+                setStartsAt(before.startsAt);
+                setEndsAt(before.endsAt);
+                setReward(before.reward);
+                setSpotCount(before.spotCount);
+                setRadius(before.radius);
+                setLink(before.link);
+                setTags(before.tags);
+                setImageBrief(before.imageBrief);
+              };
+            }}
+          />
+        </CardTab>
+      )}
+
+      <FormSection title="Details" icon={Sparkles} tab="details">
         <Field
           label="Title"
           htmlFor="pin-title"
@@ -440,9 +673,10 @@ export function PinForm({ existing, copyOf }: { existing?: Existing; copyOf?: Ex
       <FormSection
         title="Who can collect it"
         icon={Users}
+        tab="collect"
         description="How many fans, and what they get."
       >
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-5 @md:grid-cols-2">
           <Field label="Open to" htmlFor="pin-who">
             <Select
               value={visibility}
@@ -495,14 +729,77 @@ export function PinForm({ existing, copyOf }: { existing?: Existing; copyOf?: Ex
         />
       </FormSection>
 
-      <FormSection title="Schedule" icon={CalendarClock}>
-        <div className="grid gap-5 sm:grid-cols-2">
+      <FormSection title="Schedule" icon={CalendarClock} tab="schedule">
+        {card && (
+          <>
+            <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="How long it runs">
+              {quickEnds(start ?? new Date()).map((option) => {
+                const Icon = QUICK_ICON[option.id];
+                const on = quick === option.id;
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    onClick={() => {
+                      setQuick(option.id);
+                      setEndsAt(toLocalInput(option.end));
+                    }}
+                    className={cn(
+                      "flex items-center gap-2.5 rounded-xl border p-2.5 text-left transition-colors",
+                      on ? "border-primary bg-primary/10" : "hover:border-fg/30 bg-surface",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "flex size-8 shrink-0 items-center justify-center rounded-lg",
+                        on ? "bg-primary text-primary-ink" : "bg-surface-2 text-fg-muted",
+                      )}
+                    >
+                      <Icon className="size-4" strokeWidth={2.2} />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold">{option.label}</span>
+                      <span className="text-fg-muted block truncate text-[11px]">
+                        Ends{" "}
+                        {option.end.toLocaleDateString(undefined, {
+                          weekday: "short",
+                          day: "numeric",
+                          month: "short",
+                        })}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <p
+              className={cn(
+                "rounded-xl px-3 py-2 text-xs",
+                runWords
+                  ? "bg-primary/10 text-fg"
+                  : "bg-surface text-fg-muted border border-dashed",
+              )}
+              aria-live="polite"
+            >
+              {runWords ?? "Pick one above, or set exact dates below. A pin needs an end."}
+            </p>
+            <p className="text-fg-muted text-[11px] font-semibold tracking-wider uppercase">
+              Exact dates
+            </p>
+          </>
+        )}
+        <div className="grid gap-5 @md:grid-cols-2">
           <Field label="Starts" htmlFor="pin-starts" hint="Empty starts it as soon as you save.">
             <Input
               id="pin-starts"
               type="datetime-local"
               value={startsAt}
-              onChange={(event) => setStartsAt(event.target.value)}
+              onChange={(event) => {
+                setQuick(null);
+                setStartsAt(event.target.value);
+              }}
             />
           </Field>
           <Field label="Ends" htmlFor="pin-ends" required error={timeProblem}>
@@ -511,29 +808,55 @@ export function PinForm({ existing, copyOf }: { existing?: Existing; copyOf?: Ex
               type="datetime-local"
               value={endsAt}
               aria-invalid={Boolean(timeProblem)}
-              onChange={(event) => setEndsAt(event.target.value)}
+              onChange={(event) => {
+                setQuick(null);
+                setEndsAt(event.target.value);
+              }}
             />
           </Field>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-fg-muted text-xs">Run it for</span>
-          {DURATIONS.map((duration) => (
-            <Button
-              key={duration.days}
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => endIn(duration.days)}
-            >
-              {duration.label}
-            </Button>
-          ))}
-        </div>
+        {!card && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-fg-muted text-xs">Run it for</span>
+            {DURATIONS.map((duration) => (
+              <Button
+                key={duration.days}
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => endIn(duration.days)}
+              >
+                {duration.label}
+              </Button>
+            ))}
+          </div>
+        )}
       </FormSection>
 
-      <MoreOptions hint="How fans collect it, pin type, link, event, tags">
+      <PinLookSection
+        tab="look"
+        value={look}
+        onChange={setLook}
+        autoCollect={autoCollect}
+        pinImage={cover?.url ?? null}
+        artistImage={options.data?.artistImage ?? null}
+      />
+
+      <CardTab tab="look">
+        {editing ? (
+          <LayerField value={layerId} onChange={setLayerId} />
+        ) : (
+          <LayerNote layerId={layer} what="pin" />
+        )}
+      </CardTab>
+
+      <MoreOptions tab="collect" hint="How fans collect it, pin type, link, event, tags">
         <OptionGroup title="How fans collect it">
-          <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Collection mode">
+          <div
+            className="grid gap-2 @md:grid-cols-2"
+            role="radiogroup"
+            aria-label="Collection mode"
+          >
             {(
               [
                 [false, "Tap to collect", "Fans tap to collect when they're in range."],
@@ -558,7 +881,7 @@ export function PinForm({ existing, copyOf }: { existing?: Existing; copyOf?: Ex
           </div>
         </OptionGroup>
         <OptionGroup title="Type, link and event">
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-5 @md:grid-cols-2">
             <Field label="Pin type" htmlFor="pin-type">
               <Select value={type} onValueChange={(value) => setType(value as PinTypeName)}>
                 <SelectTrigger id="pin-type" className="w-full">
@@ -621,6 +944,43 @@ export function PinForm({ existing, copyOf }: { existing?: Existing; copyOf?: Ex
           </OptionList>
         </OptionGroup>
       </MoreOptions>
+
+      <SaveTemplateDialog
+        open={saveTemplate}
+        onOpenChange={setSaveTemplate}
+        formType="PIN"
+        defaultName={template.active?.name ?? title.trim()}
+        from={template.active}
+        location={
+          lat.trim() !== "" && lng.trim() !== "" && point
+            ? `${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}`
+            : null
+        }
+        build={(includeLocation) =>
+          pinFormToTemplate(
+            {
+              title,
+              description,
+              imageUrl: cover?.url ?? null,
+              link,
+              type,
+              visibility,
+              tierId,
+              reward,
+              autoCollect,
+              isMultiSpot,
+              tags,
+              look,
+              radius,
+              spotCount,
+              start: fromLocalInput(startsAt),
+              end: fromLocalInput(endsAt),
+              point,
+            },
+            { includeLocation },
+          )
+        }
+      />
     </FormPage>
   );
 }

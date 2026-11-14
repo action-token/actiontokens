@@ -105,6 +105,7 @@ export function useWalletOrder() {
         utils.account.me.invalidate(),
         utils.wallet.assets.invalidate(),
         utils.wallet.history.invalidate(),
+        utils.wallet.sentWaiting.invalidate(),
       ]);
     } catch (error) {
       setStep({ kind: "failed", reason: reasonOf(error) });

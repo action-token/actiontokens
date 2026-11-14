@@ -49,7 +49,7 @@ export function NotificationsView() {
   const items = list.data?.pages.flatMap((page) => page.items) ?? [];
 
   return (
-    <PageBody className="grid max-w-3xl gap-6">
+    <PageBody className="grid gap-6">
       <PageHeader
         eyebrow="Fans"
         title="Notifications"

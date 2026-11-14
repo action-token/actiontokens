@@ -13,7 +13,13 @@ import Supercluster from "supercluster";
 import { MuralMarker, type MapMural } from "~/components/map/MuralMarker";
 import { PinMarker } from "~/components/map/PinMarker";
 import { distanceMeters } from "@bandcoin/ar-core/ar/geo";
-import { mapStyleFor, useMapMode, useResolvedTheme, useThemeRead } from "~/lib/ar/theme";
+import {
+  mapStyleFor,
+  useMapBase,
+  useMapMode,
+  useResolvedTheme,
+  useThemeRead,
+} from "~/lib/ar/theme";
 import type { ArPin, Coords } from "@bandcoin/ar-core/ar/types";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_API;
@@ -80,6 +86,7 @@ export const EmbedMap = forwardRef<
   const theme = useResolvedTheme();
   const themeRead = useThemeRead();
   const mapMode = useMapMode();
+  const mapBase = useMapBase();
   const is3d = mapMode === "3d";
   const [view, setView] = useState<{ bounds: Bounds; zoom: number } | null>(null);
 
@@ -189,7 +196,7 @@ export const EmbedMap = forwardRef<
           zoom: initial.zoom,
           pitch: is3d ? 45 : 0,
         }}
-        mapStyle={mapStyleFor(mapMode, theme)}
+        mapStyle={mapStyleFor(mapMode, theme, mapBase)}
         maxPitch={is3d ? 60 : 0}
         cooperativeGestures={cooperative}
         attributionControl={false}

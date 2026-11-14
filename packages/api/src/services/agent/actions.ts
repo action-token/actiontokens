@@ -77,10 +77,12 @@ export async function executeAction(
   artist: ArtistRef,
   action: ProposedAction,
   edits: ActionEdits = {},
+  /** The map layer the artist is in: new pins and hotspots go in it (checked by the services). */
+  layerId: string | null = null,
 ): Promise<ActionResult> {
   switch (action.type) {
     case "create_pins":
-      return createPins(ctx, artist, action, edits);
+      return createPins(ctx, artist, action, edits, layerId);
     case "update_pins":
       return updatePins(ctx, artist, action);
     case "hide_pins": {
@@ -112,7 +114,7 @@ export async function executeAction(
       return { message: `Updated hotspot “${action.hotspot.title}”.` };
     }
     case "create_hotspot":
-      return makeHotspot(ctx, artist, { ...action.hotspot, ...edits.draft });
+      return makeHotspot(ctx, artist, { ...action.hotspot, ...edits.draft }, layerId);
     case "create_event":
       return makeEvent(ctx, artist, { ...action.event, ...edits.draft });
     case "update_event": {
@@ -152,6 +154,7 @@ async function createPins(
   artist: ArtistRef,
   action: Extract<ProposedAction, { type: "create_pins" }>,
   edits: ActionEdits,
+  layerId: string | null,
 ): Promise<ActionResult> {
   const defaults = parse(ActionEditsInput.shape.defaults.unwrap().required(), {
     ...action.defaults,
@@ -192,6 +195,7 @@ async function createPins(
       radius: defaults.radius,
       collectionLimit: defaults.collectionLimit,
       grouping: defaults.grouping,
+      layerId,
     },
   });
   return { message: `Creating ${plural(places.length, "pin")}…`, pinJobId };
@@ -246,6 +250,7 @@ async function makeHotspot(
   ctx: ServiceCtx,
   artist: ArtistRef,
   raw: unknown,
+  layerId: string | null,
 ): Promise<ActionResult> {
   const h = parse(HotspotDraftInput, raw);
   const { hotspotId } = await createHotspot(ctx, artist, {
@@ -263,6 +268,7 @@ async function makeHotspot(
     startsAt: new Date(h.startDate),
     endsAt: endOfDay(h.endDate),
     spotsPerDrop: h.pinNumber,
+    layerId,
   });
   return { message: `Hotspot “${h.title}” created.`, id: hotspotId };
 }

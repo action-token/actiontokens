@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 
 import type { ActionEdits, ActionStatus, AgentStep } from "@bandcoin/api/agent-contract";
 import type { AgentMessage } from "@bandcoin/api";
+import { useSelectedLayer } from "~/features/pins/layers/selected-layer";
 import { api } from "~/trpc/react";
 
 import { useStored } from "./use-stored";
@@ -166,6 +167,8 @@ export function useAgentChat() {
         const r = await confirmMutation.mutateAsync({
           actionId,
           edits,
+          // New pins and hotspots go in the layer the artist is in on the map, as in Wadzzo.
+          layerId: useSelectedLayer.getState().id,
         });
         setActionState(actionId, {
           status: "done",
@@ -175,6 +178,7 @@ export function useAgentChat() {
         // Pins, hotspots, events and announcements may have changed.
         void utils.pins.invalidate();
         void utils.hotspots.invalidate();
+        void utils.layers.invalidate();
         void utils.engage.invalidate();
         return true;
       } catch (err) {

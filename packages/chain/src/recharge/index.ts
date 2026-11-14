@@ -1,11 +1,11 @@
-import { applyBps, toAmount, toDisplay, toStroops, toUsd, usdTo } from "../money";
+import { applyBps, toAmount, toDisplay, toStroops, toUsd } from "../money";
 
 /**
  * Recharge and swap: separate things a fan can do, never automatic.
  *
  *   top-up    pay by card, receive BANDCOIN from the platform (quoteTopUp)
  *   swap      any amount of BANDCOIN for XLM, or XLM for BANDCOIN (quoteSwap)
- *   fan token BANDCOIN for the XLM a fan-token line locks (quoteXlmSwap)
+ *   fan token the four ways to open a fan-token line (fan-token.ts)
  *
  * Pure, like the purchase quote: the server feeds it live rates and balances,
  * the screen only shows what comes back.
@@ -129,75 +129,6 @@ export function quoteTopUp(
           ]
         : []),
       { key: "receive", label: "You receive", currency: "BANDCOIN", amount: toDisplay(receive) },
-    ] satisfies RechargeLine[],
-  };
-}
-
-/** XLM the platform hands over so a fan can open a fan-token trustline: exactly the reserve it locks. */
-export const TRUST_RESERVE_XLM = "0.5";
-
-/** BANDCOIN for some XLM at the live price plus the cushion (the fan-token reserve). */
-export function quoteXlmSwap(
-  input: Rates & { bandcoinBalance: string | null; networkFeeXlm: string; xlm: string },
-) {
-  const problems = rateProblem(input);
-  if (problems.length > 0)
-    return {
-      ok: false as const,
-      problems,
-      lines: [] as RechargeLine[],
-      total: "0",
-      receiveXlm: "0",
-    };
-
-  const xlm = toStroops(input.xlm);
-  // Rounded up: the platform never gives XLM away below its price.
-  const market = usdTo(toUsd(xlm, input.xlmUsd), input.bandcoinUsd);
-  const margin = applyBps(market, XLM_SWAP_MARGIN_BPS);
-  const total = market + margin;
-
-  if (input.bandcoinBalance === null)
-    problems.push({ code: "SIGN_IN", message: "Sign in to pay." });
-  else {
-    const have = toStroops(input.bandcoinBalance);
-    if (have < total) {
-      problems.push({
-        code: "INSUFFICIENT_FUNDS",
-        message: `You need ${toDisplay(total - have)} more BANDCOIN.`,
-        shortfall: {
-          currency: "BANDCOIN",
-          need: toDisplay(total),
-          have: toDisplay(have),
-          short: toDisplay(total - have),
-        },
-      });
-    }
-  }
-  return {
-    ok: problems.length === 0,
-    problems,
-    total: toAmount(total),
-    receiveXlm: toAmount(xlm),
-    lines: [
-      {
-        key: "market",
-        label: `${input.xlm} XLM at today's price`,
-        currency: "BANDCOIN",
-        amount: toDisplay(market),
-      },
-      {
-        key: "margin",
-        label: "Price cushion (2%)",
-        currency: "BANDCOIN",
-        amount: toDisplay(margin),
-      },
-      {
-        key: "networkFee",
-        label: "Network fee",
-        currency: "XLM",
-        amount: toDisplay(toStroops(input.networkFeeXlm)),
-      },
-      { key: "total", label: "You pay", currency: "BANDCOIN", amount: toDisplay(total) },
     ] satisfies RechargeLine[],
   };
 }
@@ -383,3 +314,5 @@ export function quoteActivation(input: { xlmUsd: bigint; networkFeeXlm: string }
     ] satisfies RechargeLine[],
   };
 }
+
+export * from "./fan-token";

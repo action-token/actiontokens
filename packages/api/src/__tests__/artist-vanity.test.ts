@@ -46,6 +46,7 @@ function setup(
     links?: Row[];
     trialUsed?: boolean;
     prices?: boolean;
+    feeBps?: number;
     bandcoin?: string;
     submit?: () => Promise<{ hash: string }>;
   } = {},
@@ -66,6 +67,7 @@ function setup(
           vanityMonthlyUsd: "1",
           vanityNameChangeBandcoin: "200",
           vanityNameChangeUsd: "4",
+          platformFeeBps: opts.feeBps ?? 0,
         };
 
   const db = {
@@ -157,6 +159,10 @@ function setup(
     loadAccount: vi.fn(() => Promise.resolve(account)),
     rates: vi.fn().mockResolvedValue({ xlmUsd: "0.1", usdcUsd: "1" }),
     submit: vi.fn((_xdr: string) => (opts.submit ?? (() => Promise.resolve({ hash: "txhash" })))()),
+    card: {
+      charge: vi.fn().mockResolvedValue({ paymentId: "pay1" }),
+      refund: vi.fn().mockResolvedValue(undefined),
+    },
   };
   const activity = { set: vi.fn(), facts: () => ({}) };
   return {
@@ -252,10 +258,10 @@ describe("getVanity", () => {
 describe("quoteVanity", () => {
   const link = { artistId: "a1", name: "luna", status: "ACTIVE", paidUntil: days(10) };
 
-  it("prices a month in BANDCOIN with only the network fee on top, and no platform fee", async () => {
+  it("prices a month in BANDCOIN with the platform fee and the network fee on top", async () => {
     const quote = await quoteVanity(setup({ links: [link] }).ctx, me, artist, renew);
     expect(quote.ok).toBe(true);
-    expect(quote.lines.map((line) => line.key)).toEqual(["price", "networkFee"]);
+    expect(quote.lines.map((line) => line.key)).toEqual(["price", "platformFee", "networkFee"]);
     expect(quote.lines[0]).toMatchObject({ label: "One more month", amount: "50.0000000" });
     expect(quote.name).toBe("luna");
   });
@@ -326,7 +332,8 @@ describe("pay for the link", () => {
   async function started(opts: Parameters<typeof setup>[0], input = renew) {
     const env = setup({ links: [link], ...opts });
     const result = await startVanity(env.ctx, me, artist, input);
-    return { ...env, result };
+    // Crypto orders always come with a transaction; card ones are tested on their own.
+    return { ...env, result: { ...result, xdr: result.xdr ?? "" } };
   }
 
   it("builds one payment to the platform, memo = the order, and pins its hash", async () => {
@@ -340,7 +347,7 @@ describe("pay for the link", () => {
       status: "AWAITING_SIGNATURE",
       currency: "BANDCOIN",
       total: "50.0000000",
-      platformFee: "0",
+      platformFee: "0.0000000",
       txHash: Buffer.from(tx.hash()).toString("hex"),
     });
     expect(result.signer).toBe("wallet");
@@ -380,7 +387,7 @@ describe("pay for the link", () => {
   it("a renewal after the free month was used creates the link", async () => {
     const env = setup({ trialUsed: true });
     const result = await startVanity(env.ctx, me, artist, { ...renew, name: "luna" });
-    await submitVanity(env.ctx, me, { orderId: result.orderId, xdr: result.xdr });
+    await submitVanity(env.ctx, me, { orderId: result.orderId, xdr: result.xdr ?? "" });
     expect(env.links.get("a1")).toMatchObject({ name: "luna", status: "ACTIVE" });
   });
 
@@ -430,6 +437,90 @@ describe("pay for the link", () => {
     await expect(
       submitVanity(ctx, me, { orderId: result.orderId, xdr: result.xdr }),
     ).rejects.toThrow(/already/);
+  });
+});
+
+describe("pay for the link by card, with the platform fee (plan 33)", () => {
+  const link = { artistId: "a1", name: "luna", status: "TRIAL", paidUntil: days(10) };
+  const byCard: VanityPayInput = { purpose: "RENEWAL", currency: "USD" };
+
+  it("adds the platform fee to a crypto payment", async () => {
+    const env = setup({ links: [link], feeBps: 250 });
+    const result = await startVanity(env.ctx, me, artist, renew);
+    const tx = TransactionBuilder.fromXDR(result.xdr ?? "", Networks.TESTNET) as Transaction;
+    expect((tx.operations[0] as Operation.Payment).amount).toBe("51.2500000");
+    expect(env.orders.get(ORDER)).toMatchObject({
+      unitPrice: "50.0000000",
+      platformFee: "1.2500000",
+      total: "51.2500000",
+    });
+  });
+
+  it("builds nothing to sign, charges the price + fee once, then delivers", async () => {
+    const env = setup({ links: [link], feeBps: 250 });
+    const result = await startVanity(env.ctx, me, artist, byCard);
+    expect(result).toMatchObject({ xdr: null, signer: "card" });
+    expect(env.orders.get(ORDER)).toMatchObject({ method: "CARD", currency: "USD" });
+    expect(result.quote.lines.map((line) => line.key)).not.toContain("networkFee");
+
+    const card = { sourceId: "cnon:card" };
+    await expect(
+      submitVanity(env.ctx, me, { orderId: result.orderId, card }),
+    ).resolves.toMatchObject({ status: "DELIVERED", name: "luna" });
+    expect(env.chain.card.charge).toHaveBeenCalledOnce();
+    expect(env.chain.card.charge).toHaveBeenCalledWith(
+      expect.objectContaining({ orderId: ORDER, cents: 103 }),
+    );
+    expect(env.chain.submit).not.toHaveBeenCalled();
+    expect(env.payments.at(-1)).toMatchObject({ kind: "RENEWAL", currency: "USD" });
+    await expect(submitVanity(env.ctx, me, { orderId: result.orderId, card })).rejects.toThrow(
+      /already/,
+    );
+    expect(env.chain.card.charge).toHaveBeenCalledOnce();
+  });
+
+  it("needs a card", async () => {
+    const env = setup({ links: [link] });
+    const result = await startVanity(env.ctx, me, artist, byCard);
+    await expect(submitVanity(env.ctx, me, { orderId: result.orderId })).rejects.toThrow(/card/);
+    expect(env.chain.card.charge).not.toHaveBeenCalled();
+  });
+
+  it("checks the name before charging", async () => {
+    const env = setup({ links: [link] });
+    const result = await startVanity(env.ctx, me, artist, {
+      ...byCard,
+      purpose: "NAME_CHANGE",
+      name: "luna-vale",
+    });
+    env.db.vanityUrl.findUnique.mockImplementation(
+      ({ where }: { where: { name?: string; artistId?: string } }) =>
+        Promise.resolve(
+          where.name
+            ? { artistId: "b2", name: where.name, status: "ACTIVE", paidUntil: days(9) }
+            : link,
+        ),
+    );
+    await expect(
+      submitVanity(env.ctx, me, { orderId: result.orderId, card: { sourceId: "c" } }),
+    ).rejects.toThrow(/taken/);
+    expect(env.chain.card.charge).not.toHaveBeenCalled();
+    expect(env.orders.get(ORDER)?.status).toBe("CANCELED");
+  });
+
+  it("refunds the card when the link can't be updated", async () => {
+    const env = setup({ links: [link] });
+    const result = await startVanity(env.ctx, me, artist, byCard);
+    env.db.vanityUrl.update.mockRejectedValueOnce(new Error("db down"));
+    await expect(
+      submitVanity(env.ctx, me, { orderId: result.orderId, card: { sourceId: "c" } }),
+    ).rejects.toThrow("db down");
+    expect(env.chain.card.refund).toHaveBeenCalledWith({
+      orderId: ORDER,
+      paymentId: "pay1",
+      cents: 100,
+    });
+    expect(env.orders.get(ORDER)?.status).toBe("REFUNDED");
   });
 });
 

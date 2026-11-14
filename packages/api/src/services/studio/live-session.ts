@@ -10,12 +10,18 @@ import {
   refundLiveMinute,
   startLiveRun,
 } from "./live";
-import type { LiveConnect, LiveLyria } from "./lyria";
+import {
+  LIVE_SCALES,
+  type LiveConnect,
+  type LiveLyria,
+  type LiveMusicConfig,
+  type LiveScale,
+} from "./lyria";
 
 /** What the browser sends. */
 export type LiveIn =
   | { type: "prompts"; prompts: { text: string; weight: number }[] }
-  | { type: "config"; bpm?: number; density?: number; brightness?: number }
+  | ({ type: "config" } & { [Key in keyof LiveMusicConfig]?: unknown })
   | { type: "play" }
   | { type: "pause" }
   | { type: "stop" };
@@ -35,6 +41,38 @@ const clamp = (value: unknown, min: number, max: number) =>
     ? Math.min(max, Math.max(min, value))
     : undefined;
 
+const flag = (value: unknown) => (typeof value === "boolean" ? value : undefined);
+
+/**
+ * The settings from the browser, each checked: numbers kept in Lyria's ranges,
+ * an unknown key left to the model, and "only bass and drums" winning over the
+ * two mutes (they can't both hold). Anything missing or wrong is left out.
+ */
+export function liveConfigOf(message: {
+  [Key in keyof LiveMusicConfig]?: unknown;
+}): LiveMusicConfig {
+  const onlyBassAndDrums = flag(message.onlyBassAndDrums);
+  const mute = (value: unknown) => (onlyBassAndDrums ? false : flag(value));
+  const config: LiveMusicConfig = {
+    bpm: clamp(message.bpm, 60, 200),
+    density: clamp(message.density, 0, 1),
+    brightness: clamp(message.brightness, 0, 1),
+    guidance: clamp(message.guidance, 0, 6),
+    temperature: clamp(message.temperature, 0, 3),
+    scale:
+      message.scale === undefined
+        ? undefined
+        : LIVE_SCALES.includes(message.scale as LiveScale)
+          ? (message.scale as LiveScale)
+          : "SCALE_UNSPECIFIED",
+    muteBass: mute(message.muteBass),
+    muteDrums: mute(message.muteDrums),
+    onlyBassAndDrums,
+  };
+  if (config.bpm !== undefined) config.bpm = Math.round(config.bpm);
+  return Object.fromEntries(Object.entries(config).filter(([, value]) => value !== undefined));
+}
+
 /**
  * One browser's live jam, start to finish. Billing: a minute's coins are held
  * when playing reaches it and kept once music arrives in it; a minute that
@@ -52,6 +90,10 @@ export class LiveSession {
   private pending: string | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
   private closed = false;
+  /** The settings Lyria has now (it takes the whole of them every time) */
+  private config: LiveMusicConfig = {};
+  /** Music has played, so there is a groove a new tempo or key has to restart */
+  private started = false;
   private charging: Promise<void> | null = null;
 
   constructor(
@@ -112,19 +154,21 @@ export class LiveSession {
         if (prompts.length > 0) await this.lyria.setWeightedPrompts({ weightedPrompts: prompts });
         return;
       }
-      case "config":
-        await this.lyria.setMusicGenerationConfig({
-          musicGenerationConfig: {
-            bpm: clamp(message.bpm, 60, 200),
-            density: clamp(message.density, 0, 1),
-            brightness: clamp(message.brightness, 0, 1),
-          },
-        });
+      case "config": {
+        const before = this.config;
+        // What isn't sent this time stays as it was: Lyria would otherwise drop it.
+        this.config = { ...before, ...liveConfigOf(message) };
+        await this.lyria.setMusicGenerationConfig({ musicGenerationConfig: this.config });
+        // A new tempo or key is only heard after a reset (the stream goes on, with a jump).
+        const moved = before.bpm !== this.config.bpm || before.scale !== this.config.scale;
+        if (moved && this.started) this.lyria.resetContext();
         return;
+      }
       case "play":
         if (this.playingSince !== null) return;
         if (!(await this.chargeIfDue())) return;
         this.playingSince = this.now();
+        this.started = true;
         this.lyria.play();
         this.timer ??= setInterval(() => void this.tick(), this.deps.tickMs ?? 1000);
         return;

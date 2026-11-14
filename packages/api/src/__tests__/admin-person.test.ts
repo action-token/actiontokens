@@ -8,7 +8,9 @@ import { getPerson } from "../services/admin/person";
 const bandcoin = { code: "BANDCOIN", issuer: "GBAND" };
 const usdc = { code: "USDC", issuer: "GUSDC" };
 
-function setup(opts: { user?: Record<string, unknown> | null; offline?: boolean } = {}) {
+function setup(
+  opts: { user?: Record<string, unknown> | null; offline?: boolean; studio?: boolean } = {},
+) {
   const user =
     opts.user === null
       ? null
@@ -104,6 +106,37 @@ function setup(opts: { user?: Record<string, unknown> | null; offline?: boolean 
     activityLog: {
       findFirst: vi.fn(() => Promise.resolve({ createdAt: new Date("2026-10-30") })),
     },
+    studioBalance: {
+      findUnique: vi.fn(() => Promise.resolve(opts.studio ? { balance: 320 } : null)),
+    },
+    studioLedgerEntry: {
+      findMany: vi.fn(() =>
+        Promise.resolve(
+          opts.studio
+            ? [
+                { kind: "SPEND", amount: -50, generation: { type: "IMAGE" } },
+                { kind: "SPEND", amount: -30, generation: { type: "MUSIC" } },
+                { kind: "REFUND", amount: 30, generation: { type: "MUSIC" } },
+              ]
+            : [],
+        ),
+      ),
+      groupBy: vi.fn(() =>
+        Promise.resolve(
+          opts.studio
+            ? [
+                { kind: "DEPOSIT", _sum: { amount: 500 } },
+                { kind: "BONUS", _sum: { amount: 25 } },
+              ]
+            : [],
+        ),
+      ),
+    },
+    generation: {
+      groupBy: vi.fn(() =>
+        Promise.resolve(opts.studio ? [{ type: "IMAGE", _count: { _all: 1 } }] : []),
+      ),
+    },
   };
   const account = {
     subentry_count: 0,
@@ -137,6 +170,22 @@ describe("person page", () => {
       redeemed: [{ code: "ABC123", item: { title: "Song" } }],
     });
     expect(person.balances?.XLM).toBeDefined();
+  });
+
+  it("shows their Studio coins: balance now, spent after refunds and bought, all time", async () => {
+    expect((await getPerson(setup({ studio: true }).ctx, "u1")).studio).toEqual({
+      coins: 320,
+      spent: 50,
+      bought: 500,
+      bonus: 25,
+    });
+    // Never used Studio: zeros, not an error.
+    expect((await getPerson(setup().ctx, "u1")).studio).toEqual({
+      coins: 0,
+      spent: 0,
+      bought: 0,
+      bonus: 0,
+    });
   });
 
   it("still shows the person when the network can't be reached", async () => {

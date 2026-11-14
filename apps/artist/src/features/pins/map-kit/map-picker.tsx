@@ -1,7 +1,7 @@
 "use client";
 
 import { LocateFixed, MapPin, MapPinOff } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Layer, Marker, Source, type MapRef } from "react-map-gl/mapbox";
 import toast from "react-hot-toast";
 
@@ -33,6 +33,7 @@ export function MapPicker({
   className,
   showInputs = true,
   onPlace,
+  marker,
 }: {
   value: LatLng | null;
   onChange?: (point: LatLng) => void;
@@ -42,6 +43,8 @@ export function MapPicker({
   showInputs?: boolean;
   /** Called with a name for the chosen point, for AI tag suggestions. */
   onPlace?: (name: string) => void;
+  /** The pin as it will look (its shape and picture), and where it touches the map */
+  marker?: { node: ReactNode; anchor: "center" | "bottom" };
 }) {
   const map = useRef<MapRef>(null);
   const editable = Boolean(onChange);
@@ -126,6 +129,7 @@ export function MapPicker({
         <div className="bg-surface-2 relative h-72 overflow-hidden rounded-xl border">
           <BaseMap
             ref={map}
+            controls="zoom"
             initialViewState={
               value ? { latitude: value.lat, longitude: value.lng, zoom: 15 } : WORLD_VIEW
             }
@@ -169,14 +173,16 @@ export function MapPicker({
               <Marker
                 latitude={value.lat}
                 longitude={value.lng}
-                anchor="bottom"
+                anchor={marker?.anchor ?? "bottom"}
                 draggable={editable}
                 onDragEnd={(event) => set({ lat: event.lngLat.lat, lng: event.lngLat.lng })}
               >
-                <MapPin
-                  className="fill-primary text-primary-ink size-9 drop-shadow-md"
-                  strokeWidth={1.5}
-                />
+                {marker?.node ?? (
+                  <MapPin
+                    className="fill-primary text-primary-ink size-9 drop-shadow-md"
+                    strokeWidth={1.5}
+                  />
+                )}
               </Marker>
             )}
           </BaseMap>

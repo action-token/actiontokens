@@ -40,6 +40,11 @@ export type Context = {
   ip: string | null;
   userAgent: string | null;
   requestId: string;
+  /**
+   * The artist an admin asks to act as (the `x-acting-artist` header, sent only by Admin › All
+   * maps). Only `actingArtistProcedure` reads it, and only an admin may use it.
+   */
+  actAs: string | null;
   activity: { set(facts: ActivityFacts): void; facts(): ActivityFacts };
 };
 
@@ -88,6 +93,7 @@ export function createContext(input: {
     ip: headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? headers.get("x-real-ip"),
     userAgent: headers.get("user-agent"),
     requestId: headers.get("x-request-id") ?? randomUUID(),
+    actAs: headers.get("x-acting-artist")?.trim() || null,
     activity: createActivityRecorder(),
   };
 }

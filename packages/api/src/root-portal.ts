@@ -13,6 +13,9 @@ import { embedsRouter } from "./routers/artist/embeds";
 import { engageRouter } from "./routers/artist/engage";
 import { giftsRouter } from "./routers/artist/gifts";
 import { hotspotsRouter } from "./routers/artist/hotspots";
+import { layersRouter } from "./routers/artist/layers";
+import { shapesRouter } from "./routers/artist/shapes";
+import { templatesRouter } from "./routers/artist/templates";
 import { membershipsRouter } from "./routers/artist/memberships";
 import { musicRouter } from "./routers/artist/music";
 import { notificationsRouter } from "./routers/artist/notifications";
@@ -26,6 +29,7 @@ import { reportsRouter } from "./routers/artist/reports";
 import { profileRouter } from "./routers/artist/profile";
 import { royaltyRouter } from "./routers/artist/royalty";
 import { vanityRouter } from "./routers/artist/vanity";
+import { domainRouter } from "./routers/artist/domain";
 import { portalStatusRouter } from "./routers/artist/portal";
 import { createRouter } from "./trpc";
 
@@ -33,6 +37,9 @@ import { createRouter } from "./trpc";
 export const portalRouter = createRouter({
   notifications: notificationsRouter,
   hotspots: hotspotsRouter,
+  layers: layersRouter,
+  shapes: shapesRouter,
+  templates: templatesRouter,
   account: accountRouter,
   /** Recharge and wallet activation, the same as the fan app's (one account, one flow) */
   recharge: rechargeRouter,
@@ -62,6 +69,7 @@ export const portalRouter = createRouter({
   profile: profileRouter,
   royalty: royaltyRouter,
   vanity: vanityRouter,
+  domain: domainRouter,
 });
 
 export type PortalRouter = typeof portalRouter;

@@ -137,14 +137,12 @@ function fakeAgent(over: Record<string, unknown> = {}) {
       .mockResolvedValue({ artist: { id: "a1", name: "Nova" }, suggestions: ["Find parks"] }),
     send: vi.fn().mockResolvedValue({ conversationId: "c1", jobId: "j1", userMessage: {} }),
     poll: vi.fn().mockResolvedValue({ status: "SUCCEEDED", steps: [], message }),
-    conversation: vi
-      .fn()
-      .mockResolvedValue({
-        id: "c1",
-        title: "Parks",
-        messages: [message],
-        actions: { act1: { status: "pending", result: null } },
-      }),
+    conversation: vi.fn().mockResolvedValue({
+      id: "c1",
+      title: "Parks",
+      messages: [message],
+      actions: { act1: { status: "pending", result: null } },
+    }),
     conversations: vi
       .fn()
       .mockResolvedValue([
@@ -155,15 +153,13 @@ function fakeAgent(over: Record<string, unknown> = {}) {
       .fn()
       .mockResolvedValue({ status: "done", message: "Creating 2 pins…", pinJobId: "b1" }),
     cancel: vi.fn().mockResolvedValue({ status: "cancelled" }),
-    pinJob: vi
-      .fn()
-      .mockResolvedValue({
-        status: "RUNNING",
-        total: 2,
-        completed: 1,
-        failed: ["Bad"],
-        error: null,
-      }),
+    pinJob: vi.fn().mockResolvedValue({
+      status: "RUNNING",
+      total: 2,
+      completed: 1,
+      failed: ["Bad"],
+      error: null,
+    }),
     ...over,
   };
   return agent;
@@ -217,13 +213,11 @@ describe("the MCP server", () => {
 
   it("says when the agent is still working, with a job to wait on", async () => {
     const agent = fakeAgent({
-      poll: vi
-        .fn()
-        .mockResolvedValue({
-          status: "RUNNING",
-          steps: [{ id: "s", label: "Searching parks", status: "running" }],
-          message: null,
-        }),
+      poll: vi.fn().mockResolvedValue({
+        status: "RUNNING",
+        steps: [{ id: "s", label: "Searching parks", status: "running" }],
+        message: null,
+      }),
     });
     const { call } = await connect(agent);
     const out = await call("ask_agent", { text: "Find parks" });
@@ -233,27 +227,23 @@ describe("the MCP server", () => {
 
   it("returns a failed run and an API refusal as an error the AI can read", async () => {
     const failed = fakeAgent({
-      poll: vi
-        .fn()
-        .mockResolvedValue({
-          status: "FAILED",
-          steps: [],
-          error: "The assistant couldn't finish.",
-          message: null,
-        }),
+      poll: vi.fn().mockResolvedValue({
+        status: "FAILED",
+        steps: [],
+        error: "The assistant couldn't finish.",
+        message: null,
+      }),
     });
     expect(await (await connect(failed)).call("ask_agent", { text: "hi" })).toEqual({
       error: true,
       text: "The assistant couldn't finish.",
     });
     const limited = fakeAgent({
-      send: vi
-        .fn()
-        .mockRejectedValue(
-          new AppError(ErrorCodes.RATE_LIMITED, {
-            message: "You've used today's 50 AI generations.",
-          }),
-        ),
+      send: vi.fn().mockRejectedValue(
+        new AppError(ErrorCodes.RATE_LIMITED, {
+          message: "You've used today's 50 AI generations.",
+        }),
+      ),
     });
     expect(await (await connect(limited)).call("ask_agent", { text: "hi" })).toEqual({
       error: true,

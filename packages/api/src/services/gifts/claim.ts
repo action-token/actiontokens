@@ -2,10 +2,11 @@ import { Account, Asset, type Transaction, TransactionBuilder } from "@stellar/s
 
 import { buildClaimGift, networkFeeXlm, toAmount, toDisplay, toStroops } from "@bandcoin/chain";
 import { TRUSTLINE_RESERVE_XLM } from "@bandcoin/chain/quote";
-import { fundsOf } from "@bandcoin/chain/server";
+import { type ClaimableToken, fundsOf } from "@bandcoin/chain/server";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import { type Context, isCustodial, type SessionUser } from "../../context";
+import { declinedBy, forgetDeclined } from "./decline";
 
 /**
  * A fan accepts a gift waiting as a claimable balance (they didn't hold the
@@ -18,9 +19,9 @@ import { type Context, isCustodial, type SessionUser } from "../../context";
  *   submit  → checks it's exactly that claim, signs for custodial, sends it,
  *             and records the fan's new tokens
  */
-type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
+export type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 
-const holds = (
+export const holds = (
   account: Awaited<ReturnType<ServiceCtx["chain"]["loadAccount"]>>,
   code: string,
   issuer: string,
@@ -32,7 +33,7 @@ const holds = (
   );
 
 /** The cost of claiming: the network fee, plus the trustline reserve when the fan doesn't hold the token yet. */
-function costOf(ctx: ServiceCtx, openTrustline: boolean) {
+export function costOf(ctx: ServiceCtx, openTrustline: boolean) {
   const fee = toStroops(networkFeeXlm(openTrustline ? 2 : 1, ctx.chain.config.network.baseFee));
   const reserve = openTrustline ? toStroops(TRUSTLINE_RESERVE_XLM) : 0n;
   return {
@@ -59,15 +60,23 @@ function costOf(ctx: ServiceCtx, openTrustline: boolean) {
   };
 }
 
+/**
+ * Every balance the wallet can claim is either for them (someone else made it)
+ * or one they sent that nobody accepted yet (see ./take-back).
+ */
+export const sentBy = (gift: Pick<ClaimableToken, "sponsor">, address: string) =>
+  gift.sponsor === address;
+
 /** Gifts waiting for the fan: tokens Bandcoin knows (an artist's fan token or item), newest first. */
-export async function listGifts(ctx: ServiceCtx, user: Pick<SessionUser, "walletAddress">) {
+export async function listGifts(ctx: ServiceCtx, user: Pick<SessionUser, "id" | "walletAddress">) {
   if (!user.walletAddress) return [];
-  const [waiting, account] = await Promise.all([
+  const [claimable, account] = await Promise.all([
     ctx.chain.claimableFor(user.walletAddress),
     ctx.chain.loadAccount(user.walletAddress),
   ]);
+  const waiting = claimable.filter((gift) => !sentBy(gift, user.walletAddress));
   if (waiting.length === 0) return [];
-  const [tokens, senders] = await Promise.all([
+  const [tokens, senders, declined] = await Promise.all([
     ctx.db.classicToken.findMany({
       where: { OR: waiting.map((gift) => ({ code: gift.code, issuer: gift.issuer })) },
       select: {
@@ -80,6 +89,11 @@ export async function listGifts(ctx: ServiceCtx, user: Pick<SessionUser, "wallet
       where: { walletAddress: { in: [...new Set(waiting.map((gift) => gift.sponsor))] } },
       select: { walletAddress: true, username: true, displayName: true },
     }),
+    declinedBy(
+      ctx,
+      user.id,
+      waiting.map((gift) => gift.id),
+    ),
   ]);
   return waiting.map((gift) => {
     const token = tokens.find((row) => row.code === gift.code && row.issuer === gift.issuer);
@@ -98,6 +112,8 @@ export async function listGifts(ctx: ServiceCtx, user: Pick<SessionUser, "wallet
         name: sender?.displayName ?? null,
       },
       cost: costOf(ctx, !holds(account, gift.code, gift.issuer)),
+      /** The fan said no to it (see ./decline); they can still accept it or put it back */
+      declined: declined.has(gift.id),
     };
   });
 }
@@ -105,7 +121,7 @@ export async function listGifts(ctx: ServiceCtx, user: Pick<SessionUser, "wallet
 /** The waiting gift, checked against the network: never trusted from the request. */
 async function waitingGift(ctx: ServiceCtx, user: SessionUser, balanceId: string) {
   const gift = (await ctx.chain.claimableFor(user.walletAddress)).find(
-    (entry) => entry.id === balanceId,
+    (entry) => entry.id === balanceId && !sentBy(entry, user.walletAddress),
   );
   if (!gift)
     throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, {
@@ -115,18 +131,27 @@ async function waitingGift(ctx: ServiceCtx, user: SessionUser, balanceId: string
 }
 
 export async function prepareGiftClaim(ctx: ServiceCtx, user: SessionUser, balanceId: string) {
-  const gift = await waitingGift(ctx, user, balanceId);
+  return prepareClaim(ctx, user, await waitingGift(ctx, user, balanceId), "claim this");
+}
+
+/** The transaction that claims a balance into the user's wallet (a gift, or their own send coming back). */
+export async function prepareClaim(
+  ctx: ServiceCtx,
+  user: SessionUser,
+  gift: ClaimableToken,
+  purpose: string,
+) {
   const account = await ctx.chain.loadAccount(user.walletAddress);
   if (!account)
     throw new AppError(ErrorCodes.WALLET_NEEDS_SETUP, {
-      message: "Your wallet needs a little XLM before it can claim.",
+      message: `Your wallet needs a little XLM before it can ${purpose}.`,
     });
   const openTrustline = !holds(account, gift.code, gift.issuer);
   const cost = costOf(ctx, openTrustline);
   const have = toStroops(fundsOf(account, ctx.chain.config.assets).XLM);
   if (have < toStroops(cost.total))
     throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, {
-      message: `You need ${toDisplay(toStroops(cost.total) - have)} more XLM to claim this.`,
+      message: `You need ${toDisplay(toStroops(cost.total) - have)} more XLM to ${purpose}.`,
     });
 
   const built = buildClaimGift({
@@ -177,20 +202,29 @@ function assertIsClaim(
     });
 }
 
+/** Checks the transaction is exactly the prepared claim, signs for custodial accounts and sends it. */
+export async function sendClaim(
+  ctx: ServiceCtx,
+  user: SessionUser,
+  gift: Pick<ClaimableToken, "id" | "code" | "issuer">,
+  signedXdr: string,
+) {
+  assertIsClaim(signedXdr, ctx.chain.config.network.passphrase, user.walletAddress, gift);
+  let xdr = signedXdr;
+  if (isCustodial(user)) {
+    if (!user.email) throw new AppError(ErrorCodes.WALLET_NOT_CONNECTED);
+    xdr = await ctx.chain.signForCustodialUser(xdr, user.email);
+  }
+  return (await ctx.chain.submit(xdr)).hash;
+}
+
 export async function submitGiftClaim(
   ctx: ServiceCtx,
   user: SessionUser,
   input: { balanceId: string; xdr: string },
 ) {
   const gift = await waitingGift(ctx, user, input.balanceId);
-  const { passphrase } = ctx.chain.config.network;
-  assertIsClaim(input.xdr, passphrase, user.walletAddress, gift);
-  let xdr = input.xdr;
-  if (isCustodial(user)) {
-    if (!user.email) throw new AppError(ErrorCodes.WALLET_NOT_CONNECTED);
-    xdr = await ctx.chain.signForCustodialUser(xdr, user.email);
-  }
-  const { hash } = await ctx.chain.submit(xdr);
+  const hash = await sendClaim(ctx, user, gift, input.xdr);
 
   const token = await ctx.db.classicToken.findUnique({
     where: { code_issuer: { code: gift.code, issuer: gift.issuer } },
@@ -212,5 +246,6 @@ export async function submitGiftClaim(
       },
       update: { quantity: { increment: Math.floor(Number(gift.amount)) } },
     });
+  await forgetDeclined(ctx, gift.id);
   return { txHash: hash, code: gift.code, amount: gift.amount };
 }

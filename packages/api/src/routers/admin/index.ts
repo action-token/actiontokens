@@ -4,6 +4,7 @@ import { NFT_MAX_PLATFORM_FEE_BPS } from "@bandcoin/chain";
 
 import { ACTIVITY_KINDS, listActivity } from "../../services/admin/activity";
 import { listAlerts, listReviewedAlerts, reviewAlert } from "../../services/admin/alerts";
+import { getOverview } from "../../services/admin/overview";
 import {
   decideMural,
   editMural,
@@ -32,6 +33,7 @@ import {
 } from "../../services/admin/users";
 import { listBounties, setBountyHidden } from "../../services/admin/bounties";
 import { listLiveStories, takeDownStory } from "../../services/admin/stories";
+import { listDomainsForAdmin, removeDomainAsAdmin } from "../../services/domains";
 import { listItems, setItemHidden } from "../../services/admin/items";
 import { listJobs, retryAdminJob } from "../../services/admin/jobs";
 import { changeContractFee, readContractFee } from "../../services/admin/contract-fee";
@@ -177,6 +179,18 @@ export const adminRouter = createRouter({
       )
       .mutation(({ ctx, input }) => takeDownStory(ctx, input)),
   }),
+  /** Custom domains (plan 32): every artist's, and removing one with a reason. */
+  domains: createRouter({
+    list: adminProcedure.query(({ ctx }) => listDomainsForAdmin(ctx)),
+    remove: adminProcedure
+      .input(
+        z.object({
+          id: z.string().min(1),
+          reason: z.string().trim().min(3, "Say why, in a few words").max(300),
+        }),
+      )
+      .mutation(({ ctx, input }) => removeDomainAsAdmin(ctx, input)),
+  }),
   items: createRouter({
     list: adminProcedure
       .input(
@@ -247,6 +261,8 @@ export const adminRouter = createRouter({
       .input(z.object({ pinId: z.string().min(1) }))
       .query(({ ctx, input }) => pinReport(ctx, null, input.pinId)),
   }),
+  /** What needs a look, and a few totals, for /admin (services/admin/overview) */
+  overview: adminProcedure.query(({ ctx }) => getOverview(ctx)),
   alerts: createRouter({
     list: adminProcedure.query(({ ctx }) => listAlerts(ctx)),
     reviewed: adminProcedure.query(({ ctx }) => listReviewedAlerts(ctx)),
@@ -261,6 +277,7 @@ export const adminRouter = createRouter({
             "largeOrder",
             "stuck",
             "studioBalance",
+            "brokenDomain",
           ]),
           note: z.string().max(300).optional(),
         }),

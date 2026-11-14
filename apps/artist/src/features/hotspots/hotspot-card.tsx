@@ -1,7 +1,6 @@
 "use client";
 
 import { Loader2, Pause, Pencil, Play, X, Zap } from "lucide-react";
-import Link from "next/link";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
@@ -9,6 +8,7 @@ import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
 import { formatWhen } from "~/lib/datetime";
 import type { RouterOutputs } from "~/trpc/react";
 
+import { useMapFormCard } from "../pins/map-form-card";
 import { HOTSPOT_STATUS } from "./status";
 import { useHotspotActions } from "./use-hotspot-actions";
 
@@ -70,10 +70,14 @@ export function HotspotCard({ hotspot, onClose }: { hotspot: Hotspot; onClose: (
             {dropNow.isPending ? <Loader2 className="animate-spin" /> : <Zap />} Drop now
           </Button>
         )}
-        <Button asChild className="flex-1">
-          <Link href={`/hotspots/${hotspot.id}`}>
-            <Pencil /> Edit
-          </Link>
+        <Button
+          className="flex-1"
+          onClick={() => {
+            useMapFormCard.getState().open({ kind: "editHotspot", id: hotspot.id });
+            onClose();
+          }}
+        >
+          <Pencil /> Edit
         </Button>
       </div>
     </section>

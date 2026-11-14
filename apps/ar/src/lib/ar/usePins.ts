@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { api } from "~/trpc/react";
 import { distanceMeters } from "@bandcoin/ar-core/ar/geo";
 import { pinStatus } from "@bandcoin/ar-core/ar/rarity";
+import { inLayers } from "@bandcoin/ar-core/layers";
+import { useMapLayer } from "./layers";
 import { useSettings } from "./store";
 import type { ArArtist, ArPin, GeoFix, Rarity } from "@bandcoin/ar-core/ar/types";
 
@@ -312,12 +314,16 @@ export function useDiscoveryPinsQuery(): DiscoveryPinsResult {
   const { pins, isLoading, isError, refetch } = usePinsQuery();
   const followingOnly = useSettings((s) => s.followingOnly);
   const { artists, isLoading: artistsLoading } = useArtistsQuery();
+  // The Layers sheet's choice: the map and the camera show the same drops.
+  const layerView = useMapLayer((s) => s.view);
 
   const discovered = useMemo(() => {
-    if (!followingOnly || artistsLoading) return pins;
+    const ticked = new Set(layerView.layers);
+    const inLayer = pins.filter((p) => inLayers(p, layerView.regular, ticked));
+    if (!followingOnly || artistsLoading) return inLayer;
     const followed = new Set(artists.filter((a) => a.followed).map((a) => a.id));
-    return pins.filter((p) => followed.has(p.artistId));
-  }, [pins, followingOnly, artists, artistsLoading]);
+    return inLayer.filter((p) => followed.has(p.artistId));
+  }, [pins, layerView, followingOnly, artists, artistsLoading]);
 
   return { pins: discovered, isLoading, isError, refetch };
 }

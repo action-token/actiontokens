@@ -20,6 +20,7 @@ import type { ReactNode } from "react";
 
 import { cn } from "@bandcoin/ui/lib/cn";
 
+import { EqPopover } from "./eq-popover";
 import { clock } from "./mix";
 import type { Mixer } from "./use-mixer";
 
@@ -28,7 +29,7 @@ const MOD = typeof navigator !== "undefined" && /Mac|iP/.test(navigator.platform
 /**
  * The bar under the timeline, like the prompt box on the other tools: play,
  * stop, loop and the time; undo, redo, split and duplicate; snapping and the
- * tempo; zoom, master volume and Export WAV.
+ * tempo; zoom, master volume, the mix's EQ and Export WAV.
  */
 export function Transport({ mixer }: { mixer: Mixer }) {
   const empty = mixer.length === 0;
@@ -129,6 +130,7 @@ export function Transport({ mixer }: { mixer: Mixer }) {
         />
         <span className="w-8 tabular-nums">{Math.round(mixer.project.masterVolume * 100)}%</span>
       </label>
+      <EqPopover name="Mix" eq={mixer.project.masterEq} onChange={mixer.setMasterEq} />
       <button
         type="button"
         disabled={empty || mixer.exporting}

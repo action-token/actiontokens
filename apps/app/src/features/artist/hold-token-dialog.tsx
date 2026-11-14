@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
+import { cn } from "@bandcoin/ui/lib/cn";
 import {
   Dialog,
   DialogContent,
@@ -15,9 +16,12 @@ import {
 } from "@bandcoin/ui/components/dialog";
 
 import { Money } from "~/components/money";
+import type { DisplayCurrency } from "~/lib/format";
 import { payOf, shownLines } from "~/lib/recharge";
 import { api } from "~/trpc/react";
 
+import { CurrencyPicker } from "../buy/currency-picker";
+import { useSquareCard } from "../buy/square-card";
 import { QuoteBreakdown } from "../recharge/quote-breakdown";
 import { RechargeToast } from "../recharge/recharge-toast";
 import { useRecharge } from "../recharge/use-recharge";
@@ -25,10 +29,11 @@ import { useRecharge } from "../recharge/use-recharge";
 export type TokenOffer = { code: string; artistId: string };
 
 /**
- * After following an artist who has a fan token: "Hold NOVA too?". The fan sees
- * the server's price first (about 0.5 XLM worth of BANDCOIN, which the line
- * locks and they get back if they remove it) and nothing happens unless they
- * tap Hold. Following never waits on this.
+ * After following an artist who has a fan token: "Subscribe with NOVA?". The fan
+ * picks BANDCOIN, XLM, USDC or a card (plan 33) and sees the server's price
+ * first: the 0.5 XLM the line locks (theirs back if they remove it), the
+ * platform fee and, by card, the rest of the $1 minimum as BANDCOIN. Nothing
+ * happens unless they tap Subscribe. Following never waits on this.
  */
 export function HoldTokenDialog({
   offer,
@@ -42,11 +47,18 @@ export function HoldTokenDialog({
 }) {
   const { status } = useSession();
   const flow = useRecharge();
+  const [currency, setCurrency] = useState<DisplayCurrency>("BANDCOIN");
+  const byCard = currency === "USD";
+  const me = api.account.me.useQuery(undefined, { enabled: status === "authenticated" });
+  const { container: cardField, ...card } = useSquareCard(Boolean(offer) && byCard);
   const quote = api.recharge.quote.useQuery(
-    { kind: "TOKEN_TRUST", artistId: offer?.artistId ?? "" },
+    { kind: "TOKEN_TRUST", artistId: offer?.artistId ?? "", currency },
     {
       enabled: Boolean(offer) && status === "authenticated",
-      placeholderData: (previous) => previous,
+      refetchInterval: 30_000,
+      // Never show another currency's price while the new one loads.
+      placeholderData: (previous) =>
+        previous?.kind === "TOKEN_TRUST" && previous.currency === currency ? previous : undefined,
     },
   );
   const data = quote.data?.kind === "TOKEN_TRUST" ? quote.data : null;
@@ -70,13 +82,18 @@ export function HoldTokenDialog({
 
   async function hold() {
     if (!offer || !data?.ok) return;
+    // The card field lives in the dialog: take its token before closing it.
+    const cardToken = byCard ? await card.tokenize() : undefined;
+    if (byCard && !cardToken) return;
     onClose();
     await flow.run({
       kind: "TOKEN_TRUST",
       artistId: offer.artistId,
+      currency: data.currency,
+      card: cardToken ?? undefined,
       summary: (
         <>
-          <Money amount={data.total} currency="BANDCOIN" /> to hold {offer.code}
+          <Money amount={data.total} currency={data.currency} /> to subscribe with {offer.code}
         </>
       ),
       success: {
@@ -99,6 +116,12 @@ export function HoldTokenDialog({
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
+            <CurrencyPicker
+              value={currency}
+              onChange={setCurrency}
+              balances={me.data?.balances}
+              disabled={flow.busy}
+            />
             <QuoteBreakdown
               lines={data ? shownLines(data) : []}
               pay={data ? payOf(data) : null}
@@ -106,6 +129,18 @@ export function HoldTokenDialog({
               loading={quote.isPending}
               error={quote.error?.message}
             />
+            {byCard && (
+              <div className="grid gap-1.5">
+                <div
+                  ref={cardField}
+                  className={cn(
+                    "min-h-[90px]",
+                    card.loading && "bg-surface-2 animate-pulse rounded-md",
+                  )}
+                />
+                {card.error && <p className="text-danger text-xs">{card.error}</p>}
+              </div>
+            )}
           </div>
           <DialogFooter className="gap-2 sm:justify-between">
             <Button variant="ghost" onClick={onClose}>
@@ -113,11 +148,15 @@ export function HoldTokenDialog({
             </Button>
             {needsFunds ? (
               <Button asChild>
-                <Link href="/recharge">Add BANDCOIN</Link>
+                <Link href="/recharge">
+                  {currency === "BANDCOIN" ? "Add BANDCOIN" : "Add funds"}
+                </Link>
               </Button>
             ) : (
               <Button
-                disabled={!data?.ok || blocked || flow.busy || quote.isFetching}
+                disabled={
+                  !data?.ok || blocked || flow.busy || quote.isFetching || (byCard && !card.ready)
+                }
                 onClick={() => void hold()}
               >
                 Subscribe

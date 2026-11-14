@@ -145,3 +145,148 @@ describe("scheduling a mix", () => {
     expect(fade.setValueAtTime).not.toHaveBeenCalled();
   });
 });
+
+describe("the EQ", () => {
+  /** Web Audio with nodes that remember what they were connected to. */
+  function wiredAudio() {
+    type Node = { kind: string; to?: Node; [key: string]: unknown };
+    const filters: Node[] = [];
+    const node = (kind: string, extra: Record<string, unknown> = {}): Node => {
+      const made: Node = {
+        kind,
+        ...extra,
+        connect: (next: Node) => {
+          made.to = next;
+          return next;
+        },
+        disconnect: () => undefined,
+      };
+      return made;
+    };
+    const param = (value = 0) => ({
+      value,
+      setValueAtTime: vi.fn(),
+      linearRampToValueAtTime: vi.fn(),
+    });
+    const sources: Node[] = [];
+    const context = {
+      currentTime: 0,
+      state: "running",
+      destination: node("out"),
+      createGain: () => node("gain", { gain: param(1) }),
+      createStereoPanner: () => node("pan", { pan: param() }),
+      createBiquadFilter: () => {
+        const filter = node("filter", { type: "", frequency: param(), Q: param(), gain: param() });
+        filters.push(filter);
+        return filter;
+      },
+      createBufferSource: () => {
+        const source = node("source", { buffer: null, start: vi.fn(), stop: vi.fn() });
+        sources.push(source);
+        return source;
+      },
+    };
+    /** The kinds of node the sound passes through from `from` to the output. */
+    const path = (from: Node) => {
+      const kinds: string[] = [];
+      for (let at: Node | undefined = from; at; at = at.to)
+        kinds.push(at.kind === "filter" ? (at.type as string) : at.kind);
+      return kinds;
+    };
+    return { context, filters, sources, path };
+  }
+
+  function playable() {
+    const engine = new MixEngine();
+    const inner = engine as unknown as {
+      buffers: Map<string, Promise<unknown>>;
+      context: unknown;
+      schedule: (...args: unknown[]) => Promise<unknown>;
+      equalize: (...args: unknown[]) => { input: unknown; filters: Record<string, unknown> };
+    };
+    inner.buffers.set("https://bucket/a.wav", Promise.resolve({ duration: 8 }));
+    return { engine, inner };
+  }
+
+  it("adds no filters to a flat track or mix when exporting", async () => {
+    const { context, filters, sources, path } = wiredAudio();
+    const { inner } = playable();
+    await inner.schedule(context, [track([clip()])], 0, 0, context.destination);
+    expect(filters).toHaveLength(0);
+    // source → fade → volume → pan → out, as before the EQ existed
+    expect(path(sources[0] as never)).toEqual(["source", "gain", "gain", "pan", "out"]);
+    expect(inner.equalize(context, undefined, context.destination, false).input).toBe(
+      context.destination,
+    );
+  });
+
+  it("runs a track through only the bands it uses, before its volume", async () => {
+    const { context, filters, sources, path } = wiredAudio();
+    const { inner } = playable();
+    const eq = { low: 4, mid: 0, high: -6 };
+    await inner.schedule(context, [track([clip()], { eq })], 0, 0, context.destination);
+    expect(path(sources[0] as never)).toEqual([
+      "source",
+      "gain",
+      "lowshelf",
+      "highshelf",
+      "gain",
+      "pan",
+      "out",
+    ]);
+    const byType = Object.fromEntries(filters.map((filter) => [filter.type, filter]));
+    expect(byType.lowshelf).toMatchObject({ frequency: { value: 100 }, gain: { value: 4 } });
+    expect(byType.highshelf).toMatchObject({ frequency: { value: 8000 }, gain: { value: -6 } });
+  });
+
+  it("gives the mid band its peak at 1 kHz", () => {
+    const { context, filters } = wiredAudio();
+    const { inner } = playable();
+    inner.equalize(context, { low: 0, mid: 5, high: 0 }, context.destination, false);
+    expect(filters).toHaveLength(1);
+    expect(filters[0]).toMatchObject({
+      type: "peaking",
+      frequency: { value: 1000 },
+      Q: { value: 1 },
+      gain: { value: 5 },
+    });
+  });
+
+  it("keeps every band in the chain while playing, and moves them with the sliders", async () => {
+    const { context, filters } = wiredAudio();
+    const { engine, inner } = playable();
+    inner.context = context;
+    vi.stubGlobal("window", { setTimeout: () => 1, clearTimeout: () => undefined });
+    await engine.play([track([clip()])], 0, { volume: 0.9 }, () => undefined);
+    // three for the track, three for the mix, all at 0 dB
+    expect(filters).toHaveLength(6);
+    expect(filters.every((filter) => (filter.gain as { value: number }).value === 0)).toBe(true);
+
+    engine.setTrackEq("t1", { low: 2, mid: 3, high: 4 });
+    engine.setMasterEq({ low: -1, mid: -2, high: -3 });
+    const gains = (type: string) =>
+      filters
+        .filter((filter) => filter.type === type)
+        .map((filter) => (filter.gain as { value: number }).value)
+        .sort((a, b) => a - b);
+    expect(gains("lowshelf")).toEqual([-1, 2]);
+    expect(gains("peaking")).toEqual([-2, 3]);
+    expect(gains("highshelf")).toEqual([-3, 4]);
+    engine.stop();
+    vi.unstubAllGlobals();
+  });
+
+  it("renders a stem with its own EQ but not the mix's volume or EQ", async () => {
+    const { engine } = playable();
+    const render = vi
+      .spyOn(engine as unknown as { render: (...args: unknown[]) => Promise<Blob> }, "render")
+      .mockResolvedValue(new Blob());
+    const eq = { low: 1, mid: 2, high: 3 };
+    await engine.stemWav(track([clip()], { eq, muted: true }), 10);
+    expect(render).toHaveBeenCalledWith([expect.objectContaining({ eq, muted: false })], 10, {
+      volume: 1,
+    });
+    await engine.exportWav([track([clip()])], { volume: 0.5, eq });
+    expect(render).toHaveBeenLastCalledWith(expect.any(Array), 8, { volume: 0.5, eq });
+  });
+});

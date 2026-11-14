@@ -13,8 +13,19 @@ import { describe, expect, it } from "vitest";
 import { buildClassicPurchase, classicPurchaseOperations } from "../classic/purchase";
 import { buildIssuerSetup, ISSUER_STARTING_XLM } from "../classic/issuer";
 import { buildResaleList } from "../classic/resale";
-import { buildActivation, buildSwap, buildTopUp, buildTrustWithSwap } from "../classic/recharge";
-import { buildIssueTokens, buildStorageGift, buildTransfer } from "../classic/transfer";
+import {
+  buildActivation,
+  buildSwap,
+  buildTopUp,
+  buildTrustByCard,
+  buildTrustWithPayment,
+} from "../classic/recharge";
+import {
+  buildIssueTokens,
+  buildStorageGift,
+  buildStorageTakeBack,
+  buildTransfer,
+} from "../classic/transfer";
 import { toStellarError } from "../errors";
 import { buildBountyFund } from "../escrow/calls";
 import {
@@ -300,43 +311,111 @@ describe("recharge builders", () => {
     expect(tx.operations[2]).toMatchObject({ source: mother, amount: "98.0000000" });
   });
 
-  it("holding a fan token: the buyer pays BANDCOIN, gets exactly the reserve, and opens the line", () => {
+  it("subscribing with BANDCOIN: pays for the reserve, the fee to the treasury, gets the XLM, opens the line", () => {
     const fanToken = new Asset("NOVA", creator);
-    const built = buildTrustWithSwap({
+    const built = buildTrustWithPayment({
       buyer: account(),
       network,
       orderId,
-      asset: bandcoin,
       token: fanToken,
+      asset: bandcoin,
       platform: mother,
       pay: "25.5",
-      xlm: "0.5",
+      sendXlm: "0.5",
+      treasury,
+      fee: "0.64",
     });
     const tx = parse(built.xdr);
-    expect(tx.operations.map((op) => op.type)).toEqual(["payment", "payment", "changeTrust"]);
+    expect(tx.operations.map((op) => op.type)).toEqual([
+      "payment",
+      "payment",
+      "payment",
+      "changeTrust",
+    ]);
     expect(tx.operations[0]).toMatchObject({ destination: mother, amount: "25.5000000" });
-    expect(tx.operations[1]).toMatchObject({
+    expect(tx.operations[1]).toMatchObject({ destination: treasury, amount: "0.6400000" });
+    expect(tx.operations[2]).toMatchObject({
       source: mother,
       destination: buyerKey,
       amount: "0.5000000",
     });
-    expect(tx.operations[2]).toMatchObject({
+    expect(tx.operations[3]).toMatchObject({
       line: expect.objectContaining({ code: "NOVA", issuer: creator }),
     });
-    // The platform's one operation needs its signature; the buyer's two are the source's.
+    // The platform's one operation needs its signature; the rest are the fan's.
     expect(built.serverSigners).toEqual([mother]);
+  });
+
+  it("subscribing with XLM: only the fee is paid, the fan's own XLM opens the line", () => {
+    const built = buildTrustWithPayment({
+      buyer: account(),
+      network,
+      orderId,
+      token: new Asset("NOVA", creator),
+      asset: Asset.native(),
+      platform: mother,
+      pay: "0",
+      sendXlm: "0",
+      treasury,
+      fee: "0.0125",
+    });
+    const tx = parse(built.xdr);
+    expect(tx.operations.map((op) => op.type)).toEqual(["payment", "changeTrust"]);
+    expect(tx.operations[0]).toMatchObject({ destination: treasury, amount: "0.0125000" });
+    expect(built.serverSigners).toEqual([]);
     expect(() =>
-      buildTrustWithSwap({
+      buildTrustWithPayment({
         buyer: account(),
         network,
         orderId,
+        token: new Asset("NOVA", creator),
         asset: bandcoin,
-        token: fanToken,
         platform: mother,
         pay: "0",
-        xlm: "0.5",
+        sendXlm: "0.5",
+        treasury,
+        fee: "1",
       }),
     ).toThrow(RangeError);
+  });
+
+  it("subscribing by card: the platform sends the reserves, the fan opens both lines, the rest arrives as BANDCOIN", () => {
+    const built = buildTrustByCard({
+      buyer: account(),
+      network,
+      orderId,
+      token: new Asset("NOVA", creator),
+      from: mother,
+      sendXlm: "1",
+      bandcoin: { asset: bandcoin, amount: "300", openLine: true },
+    });
+    const tx = parse(built.xdr);
+    expect(tx.operations.map((op) => op.type)).toEqual([
+      "payment",
+      "changeTrust",
+      "changeTrust",
+      "payment",
+    ]);
+    expect(tx.operations[0]).toMatchObject({ source: mother, amount: "1.0000000" });
+    expect(tx.operations[1]).toMatchObject({
+      line: expect.objectContaining({ code: bandcoin.code }),
+    });
+    expect(tx.operations[2]).toMatchObject({ line: expect.objectContaining({ code: "NOVA" }) });
+    expect(tx.operations[3]).toMatchObject({ source: mother, amount: "300.0000000" });
+    expect(built.serverSigners).toEqual([mother]);
+
+    const noExtra = parse(
+      buildTrustByCard({
+        buyer: account(),
+        network,
+        orderId,
+        token: new Asset("NOVA", creator),
+        from: mother,
+        sendXlm: "0.5",
+        bandcoin: { asset: bandcoin, amount: "0", openLine: false },
+      }).xdr,
+    );
+    expect(noExtra.operations.map((op) => op.type)).toEqual(["payment", "changeTrust"]);
   });
 
   it("resale listing: opens storage and the payout line, trusts the token, and moves the copies, in one transaction", () => {
@@ -808,5 +887,23 @@ describe("buildStorageGift", () => {
     expect(reserve).toMatchObject({ type: "payment", destination: storage, amount: "1.0000000" });
     expect(balance).toMatchObject({ type: "createClaimableBalance", source: storage });
     expect(balance.claimants.map((claimant) => claimant.destination)).toEqual([fan, storage]);
+  });
+
+  it("takes an unclaimed gift back: storage claims it and returns the artist's 1 XLM", () => {
+    const balanceId = `00000000${"ab".repeat(32)}`;
+    const built = buildStorageTakeBack({
+      sender: new Account(sender, "1"),
+      network: net,
+      storage,
+      balanceId,
+    });
+    expect(ops(built.xdr)).toMatchObject([
+      { type: "claimClaimableBalance", source: storage, balanceId },
+      { type: "payment", source: storage, destination: sender, amount: "1.0000000" },
+    ]);
+    expect(TransactionBuilder.fromXDR(built.xdr, Networks.TESTNET)).toMatchObject({
+      source: sender,
+    });
+    expect(built.serverSigners).toEqual([storage]);
   });
 });

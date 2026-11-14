@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
-import type { ReactNode } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 
 import { cn } from "../lib/cn";
 import { pageContainerClass } from "./page-layout";
@@ -59,15 +59,27 @@ export function PageHeader({
   );
 }
 
-/** Standard page body: max width and padding (sizes come from the app's `--page-*` variables). */
+/**
+ * Standard page body: the shared frame (same width and padding on every page),
+ * then the page's own content. A width in `className` (max-w-3xl…) narrows the
+ * content inside the frame, left-aligned, so every page starts at the same edge.
+ */
 export function PageBody({
   children,
   className,
-  wide = false,
+  wide: _wide,
+  ...attrs
 }: {
   children: ReactNode;
   className?: string;
+  /** @deprecated every page has the same width now */
   wide?: boolean;
-}) {
-  return <div className={pageContainerClass({ wide, className })}>{children}</div>;
+} & Omit<HTMLAttributes<HTMLDivElement>, "children" | "className">) {
+  return (
+    <div className={pageContainerClass()}>
+      <div {...attrs} className={cn("w-full", className)}>
+        {children}
+      </div>
+    </div>
+  );
 }

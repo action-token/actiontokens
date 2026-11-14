@@ -57,6 +57,30 @@ export const artistProcedure = authedProcedure.use(async ({ ctx, next }) => {
   return next({ ctx: { artist } });
 });
 
+/**
+ * Like `artistProcedure`, for the pin, hotspot, layer, shape and map assistant APIs (plan 45), but an
+ * admin may act as another artist: Admin › All maps sends `x-acting-artist`. Then `ctx.artist` is
+ * that (approved) artist and `ctx.acting` is true. For anyone else, or without the header, it is
+ * the caller's own artist. Nothing else honours the header, so acting can't reach money or settings.
+ */
+export const actingArtistProcedure = authedProcedure.use(async ({ ctx, next }) => {
+  const own = await ctx.db.artist.findUnique({ where: { userId: ctx.session.user.id } });
+  if (ctx.actAs && ctx.actAs !== own?.id) {
+    if (ctx.session.user.role !== "ADMIN") throw new AppError(ErrorCodes.AUTH_ADMIN_ONLY);
+    const artist = await ctx.db.artist.findUnique({ where: { id: ctx.actAs } });
+    if (artist?.status !== "APPROVED")
+      throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Artist not found" });
+    return next({ ctx: { artist, acting: true } });
+  }
+  if (!own) throw new AppError(ErrorCodes.AUTH_NOT_A_CREATOR);
+  if (own.status !== "APPROVED") {
+    throw new AppError(ErrorCodes.AUTH_FORBIDDEN, {
+      message: "Your artist profile is waiting for approval.",
+    });
+  }
+  return next({ ctx: { artist: own, acting: false } });
+});
+
 export const adminProcedure = authedProcedure.use(({ ctx, next }) => {
   if (ctx.session.user.role !== "ADMIN") throw new AppError(ErrorCodes.AUTH_ADMIN_ONLY);
   return next();

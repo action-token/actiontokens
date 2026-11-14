@@ -4,6 +4,7 @@ import {
   ChevronRight,
   Coins,
   Footprints,
+  Frame,
   LogOut,
   Moon,
   MonitorSmartphone,
@@ -21,6 +22,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { HoloCard } from "~/components/cards/HoloCard";
 import { DeleteAccountPanel } from "~/components/profile/DeleteAccountPanel";
+import { lastMapView, MapStyleOptions } from "~/components/map/MapLayersSheet";
 import { MuralPackSettings } from "~/components/murals/MuralPackSettings";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { AppShell, BackButton, ScreenHeader } from "~/components/shell/AppShell";
@@ -28,6 +30,7 @@ import { ArButton, ArLinkButton } from "~/components/ui/ArButton";
 import { StatBlock } from "~/components/ui/Badges";
 import { CHIME_NOTE_MS, useFeedback, type FeedbackReport } from "~/lib/ar/feedback";
 import { RARITY_META, RARITY_ORDER } from "@bandcoin/ar-core/ar/rarity";
+import { type MuralLayer, useMuralLayer } from "~/lib/ar/mural-layer";
 import { useAuth, useSettings } from "~/lib/ar/store";
 import { api } from "~/trpc/react";
 import { type ThemePreference, useTheme } from "~/lib/ar/theme";
@@ -54,6 +57,12 @@ const THEME_OPTIONS: {
  * something a viewer needs to see on every visit to Settings.
  */
 const SHOW_FEEDBACK_TEST = false;
+
+const MURAL_OPTIONS: { value: MuralLayer; label: string; body: string }[] = [
+  { value: "all", label: "All", body: "Every mural on the map, unverified ones included." },
+  { value: "verified", label: "Verified", body: "Only murals that have been verified." },
+  { value: "off", label: "Off", body: "No murals on the map." },
+];
 
 const TOGGLES: {
   key: keyof ArSettings;
@@ -388,7 +397,19 @@ export default function ProfileScreen() {
               );
             })}
 
+            <MuralLayerSetting />
+
             {SHOW_FEEDBACK_TEST && <FeedbackTest />}
+          </div>
+        </section>
+
+        {/* ── Map: type, 2D / 3D, terrain ───────────────────────────── */}
+        <section className="mt-5 px-5">
+          <h2 className="font-hud text-ar-faint mb-2.5 text-[9.5px] font-semibold tracking-[0.24em] uppercase">
+            Map
+          </h2>
+          <div className="ar-bevel rounded-ar px-3.5 pt-0.5 pb-3.5">
+            <MapStyleOptions view={lastMapView()} />
           </div>
         </section>
 
@@ -616,5 +637,62 @@ function SignedOut({ onSignIn }: { onSignIn: () => void }) {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+/**
+ * Which murals the map shows (it used to be a button on the map that cycled through these). A
+ * three-way choice, so a small segmented control rather than a switch. Saved on this device.
+ */
+function MuralLayerSetting() {
+  const layer = useMuralLayer((state) => state.layer);
+  const setLayer = useMuralLayer((state) => state.setLayer);
+  const current = MURAL_OPTIONS.find((option) => option.value === layer) ?? MURAL_OPTIONS[0]!;
+  const on = layer !== "off";
+  return (
+    <div className="flex w-full items-start gap-3 p-3.5">
+      <span
+        className={cn(
+          "mt-[1px] flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border transition-colors",
+          on
+            ? "border-ar-accent/50 bg-ar-accent/14 text-ar-accent-hot"
+            : "border-ar-line text-ar-faint bg-white/[0.04]",
+        )}
+      >
+        <Frame size={15} strokeWidth={2.2} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <span className="font-hud text-ar-text block text-[12.5px] font-bold tracking-[0.1em] uppercase">
+          Murals on map
+        </span>
+        <span className="text-ar-faint mt-1 block text-[11.5px] leading-relaxed">
+          {current.body}
+        </span>
+        <div
+          role="radiogroup"
+          aria-label="Murals on map"
+          className="border-ar-line mt-3 grid grid-cols-3 gap-1 rounded-[12px] border bg-white/[0.04] p-1"
+        >
+          {MURAL_OPTIONS.map(({ value, label }) => {
+            const active = layer === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => setLayer(value)}
+                className={cn(
+                  "font-hud rounded-[9px] py-2 text-[10px] font-bold tracking-[0.08em] uppercase transition-colors",
+                  active ? "bg-ar-accent/18 text-ar-accent-hot" : "text-ar-faint",
+                )}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 }

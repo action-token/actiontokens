@@ -128,6 +128,48 @@
   --side-chip: #3d3f2e;
 }
 
+/* The floating sidebar takes no width; pages pad themselves by --side-w
+   (0 on phones, the rail, or the open card on wide screens). */
+:root {
+  --side-rail-w: 6.5rem;
+  --side-open-w: 20.5rem;
+  --side-w: 0px;
+}
+@media (min-width: 40rem) {
+  :root:has(.side-island) {
+    --side-w: var(--side-rail-w);
+  }
+}
+@media (min-width: 80rem) {
+  :root:has(.side-island:not([data-collapsed])) {
+    --side-w: var(--side-open-w);
+  }
+}
+
+/* The floating island sidebar: a card that floats over the page; the
+   current page is a brand-yellow pill. Follows the theme by itself. */
+.side-island {
+  /* lifted: a lighter card than the page, a deep drop shadow and a lit top edge */
+  --side: #22241b;
+  --island-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 20px 40px -12px rgb(0 0 0 / 0.7);
+  --side-ink: var(--bc-fg);
+  --side-mint: var(--bc-primary);
+  --side-badge: var(--bc-primary-ink);
+  --side-chip: var(--bc-surface);
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .side-island {
+    --side: #ffffff;
+    --island-shadow:
+      0 1px 2px rgb(26 27 20 / 0.08), 0 12px 24px -8px rgb(26 27 20 / 0.14),
+      0 32px 64px -16px rgb(26 27 20 / 0.28);
+  }
+}
+:root[data-theme="light"] .side-island {
+  --side: #ffffff;
+  --island-shadow: 0 1px 2px rgb(26 27 20 / 0.08), 0 20px 40px -14px rgb(26 27 20 / 0.28);
+}
+
 /* ── Tailwind mapping ───────────────────────────────────────────────────── */
 @theme inline {
   --font-display: "Bricolage Grotesque Variable", "Arial Narrow", system-ui, sans-serif;
@@ -206,6 +248,40 @@
     }
     to {
       height: 100%;
+    }
+  }
+  /* The phone bar's AR key: a hop and a ping every ~5.5s, a spinning arc */
+  @keyframes bc-hop {
+    0%,
+    12%,
+    100% {
+      transform: translateY(0);
+    }
+    4% {
+      transform: translateY(-6px);
+    }
+    8% {
+      transform: translateY(0);
+    }
+  }
+  @keyframes bc-ping {
+    0%,
+    100% {
+      opacity: 0;
+      transform: scale(1);
+    }
+    2% {
+      opacity: 0.6;
+      transform: scale(1);
+    }
+    16% {
+      opacity: 0;
+      transform: scale(1.55);
+    }
+  }
+  @keyframes bc-spin {
+    to {
+      transform: rotate(360deg);
     }
   }
   @keyframes bc-reveal {
@@ -365,4 +441,14 @@
   background-image: linear-gradient(90deg, currentColor 55%, transparent 0);
   background-size: 22px 2px;
   opacity: 0.35;
+}
+
+/* Space for the phone tab bar: its height plus the safe area. Pages pad their bottom with it. */
+:root {
+  --phone-bar-space: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+}
+@media (prefers-reduced-motion: reduce) {
+  .bc-tab-motion {
+    animation: none !important;
+  }
 }

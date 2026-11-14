@@ -28,17 +28,24 @@ export const GROUPS: { title: string; items: NavItem[] }[] = [
     title: "Library",
     items: [
       { href: "/collection", icon: Layers, label: "My collection" },
-      { href: "/selling", icon: Tag, label: "Selling" },
+      { href: "/selling", icon: Tag, label: "MY LISTING" },
       { href: "/collection?tab=favorites", icon: Star, label: "Favourites", tab: "favorites" },
       { href: "/playlists", icon: ListMusic, label: "Playlists", also: ["/playlist"] },
     ],
   },
 ];
 
-/** Bottom tabs on phones: the entries people use most. */
-export const MOBILE_TABS = ["Home", "Marketplace", "Bounties", "My collection", "Playlists"]
-  .map((label) => GROUPS.flatMap((group) => group.items).find((entry) => entry.label === label))
-  .filter((entry): entry is NavItem => Boolean(entry));
+const entryNamed = (label: string) =>
+  GROUPS.flatMap((group) => group.items).find((entry) => entry.label === label);
+
+/** Bottom tabs on phones, either side of the raised AR key: Home, Collection | AR | Marketplace, Playlists. */
+export const MOBILE_TABS = {
+  left: ["Home", "My collection"].map(entryNamed).filter((entry): entry is NavItem => !!entry),
+  right: ["Marketplace", "Playlists"].map(entryNamed).filter((entry): entry is NavItem => !!entry),
+};
+
+/** The phone bar's short labels. */
+export const TAB_LABEL: Record<string, string> = { "My collection": "Collection" };
 
 /** Is this entry the page you're on? `tab` is the page's ?tab= value (My collection and Favourites share a page). */
 export function isActive(entry: NavItem, pathname: string, tab: string | null) {

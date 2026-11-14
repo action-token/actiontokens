@@ -35,6 +35,7 @@ const fakeModel = (over: Partial<AiModel> = {}): AiModel => ({
   fill: vi.fn().mockResolvedValue({ title: "Album launch" }),
   write: vi.fn().mockResolvedValue("  A better line  "),
   image: vi.fn().mockResolvedValue(Buffer.from("png")),
+  edit: vi.fn().mockResolvedValue(Buffer.from("png")),
   ...over,
 });
 

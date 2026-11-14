@@ -4,6 +4,7 @@ import { catalog, coinsForUsd, loadPricing, musicPrices } from "../../services/s
 import { studioBalance, studioLedger } from "../../services/studio/balance";
 import { cancelPurchase } from "../../services/purchase";
 import { quoteTopUp, startTopUp, submitTopUp } from "../../services/studio/topup";
+import { studioUsage } from "../../services/studio/usage";
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 
 const topUp = z
@@ -25,6 +26,11 @@ export const coinsRouter = createRouter({
   ledger: authedProcedure
     .input(z.object({ cursor: z.string().min(1).nullish() }))
     .query(({ ctx, input }) => studioLedger(ctx, ctx.session.user.id, input.cursor ?? null)),
+
+  /** Your own totals for a period: spent, bought, creations, and each by tool (services/studio/usage). */
+  usage: authedProcedure
+    .input(z.object({ days: z.union([z.literal(7), z.literal(30), z.literal(90)]).optional() }))
+    .query(({ ctx, input }) => studioUsage(ctx, ctx.session.user.id, { days: input.days })),
 
   /** Every model with its options and price for one plain run, and music's prices. */
   prices: publicProcedure.query(async ({ ctx }) => {

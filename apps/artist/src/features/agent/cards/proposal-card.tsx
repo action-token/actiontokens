@@ -13,6 +13,8 @@ import type {
   ProposedAction,
 } from "@bandcoin/api/agent-contract";
 import { cn } from "@bandcoin/ui/lib/cn";
+import { LayerNote } from "~/features/pins/layers/layer-field";
+import { useSelectedLayer } from "~/features/pins/layers/selected-layer";
 import { api } from "~/trpc/react";
 
 import type { ActionState } from "../use-agent-chat";
@@ -104,6 +106,17 @@ export function ProposalCard({
     void onConfirm(edits);
   };
 
+  // New pins and hotspots go in the layer picked on the map; the note follows a switch until Confirm.
+  const layerId = useSelectedLayer((state) => state.id);
+  const layerWhat =
+    action.type === "create_pins"
+      ? keep.size === 1
+        ? "pin"
+        : "batch of pins"
+      : action.type === "create_hotspot"
+        ? "hotspot"
+        : null;
+
   return (
     <Card
       icon={ClipboardCheck}
@@ -120,6 +133,12 @@ export function ProposalCard({
         setDraft={setDraft}
         locked={locked}
       />
+
+      {open && layerWhat && (
+        <div className="px-3 pb-1">
+          <LayerNote layerId={layerId} what={layerWhat} />
+        </div>
+      )}
 
       <footer className="flex flex-wrap items-center gap-2 px-3 py-2.5">
         {status === "pending" && (

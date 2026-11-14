@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { SessionUser } from "../context";
+import type { Db } from "@bandcoin/db";
+
+import { createContext, type SessionUser } from "../context";
+import { studioRouter } from "../root-studio";
+import type { ChainGateway } from "../services/chain-gateway";
 import {
   getProject,
   type MixClip,
@@ -9,6 +13,8 @@ import {
   saveProject,
   signStudioAudio,
 } from "../services/studio/projects";
+
+import { createCallerFactory } from "../trpc";
 
 vi.mock("@bandcoin/storage", () => ({
   isOwnS3Url: (url: string) => url.startsWith("https://bucket/"),
@@ -136,5 +142,53 @@ describe("mixer projects", () => {
     await expect(saveProject(ctx, user, { name: "Mix", data: project([]) })).rejects.toThrow(
       /100 projects/,
     );
+  });
+});
+
+describe("mixer EQ", () => {
+  const callerFor = (db: unknown) =>
+    createCallerFactory(studioRouter)(
+      createContext({
+        db: db as Db,
+        chain: {} as ChainGateway,
+        app: "studio",
+        session: { user },
+      }),
+    );
+  const dbFor = () => ({
+    ...setup().db,
+    activityLog: { create: vi.fn().mockResolvedValue({}) },
+  });
+
+  it("saves the mix's EQ and each track's with the project", async () => {
+    const db = dbFor();
+    const eq = { low: 3, mid: -12, high: 12 };
+    const data = { ...project([track({ eq })]), masterEq: { low: -2.5, mid: 0, high: 1 } };
+    await expect(callerFor(db).projects.save({ name: "Mix", data })).resolves.toEqual({
+      projectId: "p9",
+    });
+    expect(db.stemProject.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          data: expect.objectContaining({
+            masterEq: { low: -2.5, mid: 0, high: 1 },
+            tracks: [expect.objectContaining({ eq })],
+          }),
+        }),
+      }),
+    );
+  });
+
+  it("still saves a project with no EQ, and refuses a band past 12 dB", async () => {
+    const db = dbFor();
+    const caller = callerFor(db);
+    await expect(caller.projects.save({ name: "Mix", data: project([track()]) })).resolves.toEqual({
+      projectId: "p9",
+    });
+    const loud = project([track({ eq: { low: 12.5, mid: 0, high: 0 } })]);
+    await expect(caller.projects.save({ name: "Mix", data: loud })).rejects.toThrow();
+    const master = { ...project([track()]), masterEq: { low: 0, mid: 0, high: -13 } };
+    await expect(caller.projects.save({ name: "Mix", data: master })).rejects.toThrow();
+    expect(db.stemProject.create).toHaveBeenCalledTimes(1);
   });
 });

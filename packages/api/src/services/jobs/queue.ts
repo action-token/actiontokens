@@ -30,7 +30,8 @@ export type JobType =
   | "studio.sweep"
   | "stories.sweep"
   | "resale.verify"
-  | "follows.sync";
+  | "follows.sync"
+  | "domains.check";
 export const JOB_TYPES: readonly JobType[] = [
   "order.reconcile",
   "media.transcode",
@@ -47,6 +48,7 @@ export const JOB_TYPES: readonly JobType[] = [
   "stories.sweep",
   "resale.verify",
   "follows.sync",
+  "domains.check",
 ];
 
 /**

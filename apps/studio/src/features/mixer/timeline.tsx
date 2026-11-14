@@ -11,6 +11,7 @@ import {
 
 import { cn } from "@bandcoin/ui/lib/cn";
 
+import { EqPopover } from "./eq-popover";
 import {
   audible,
   clipEnd,
@@ -215,6 +216,12 @@ function TrackHeader({ track, mixer }: { track: MixTrack; mixer: Mixer }) {
           >
             S
           </Toggle>
+          <EqPopover
+            small
+            name={track.name}
+            eq={track.eq}
+            onChange={(eq) => mixer.setTrackEq(track.id, eq)}
+          />
           <button
             type="button"
             aria-label={`Remove ${track.name}`}

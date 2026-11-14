@@ -12,17 +12,24 @@ import { ToastViewport, TransactionToast } from "@bandcoin/ui/patterns/transacti
 import { Money } from "~/components/money";
 import { api } from "~/trpc/react";
 
+import { useSquareCard } from "../recharge/square-card";
 import { FAN_APP_URL } from "../shell/links";
 
 import { useVanityPayment, type VanityPayInput } from "./use-vanity-payment";
 
 type Currency = VanityPayInput["currency"];
-const CURRENCIES: Currency[] = ["BANDCOIN", "XLM", "USDC"];
+const CURRENCIES: { value: Currency; label: string }[] = [
+  { value: "BANDCOIN", label: "BANDCOIN" },
+  { value: "XLM", label: "XLM" },
+  { value: "USDC", label: "USDC" },
+  { value: "USD", label: "Card" },
+];
 
 /**
- * Pay for the link: pick BANDCOIN, XLM or USDC, see the whole price (a month or
- * a new name, plus the network fee), and pay. The server does the money math;
- * nothing is signed until the button is pressed.
+ * Pay for the link: pick BANDCOIN, XLM, USDC or a card, see the whole price (a
+ * month or a new name, the platform fee and, on-chain, the network fee), and
+ * pay. The server does the money math; nothing is signed or charged until the
+ * button is pressed.
  */
 export function PayPanel({
   purpose,
@@ -42,6 +49,8 @@ export function PayPanel({
   });
   const me = api.account.me.useQuery();
   const flow = useVanityPayment(input, onDone);
+  const byCard = currency === "USD";
+  const { container: cardField, ...card } = useSquareCard(byCard);
 
   const data = quote.data;
   const main = data?.totals.find((total) => total.currency === currency);
@@ -49,25 +58,32 @@ export function PayPanel({
     problem.code === "INSUFFICIENT_FUNDS" ? [problem.shortfall] : [],
   );
   const notices = data?.problems.filter((problem) => problem.code === "UNAVAILABLE") ?? [];
-  const balance = me.data?.balances[currency];
+  const balance = byCard ? undefined : me.data?.balances[currency];
+
+  async function pay() {
+    const summary = main ? <Money amount={main.amount} currency={currency} /> : null;
+    if (!byCard) return flow.run(summary);
+    const token = await card.tokenize();
+    if (token) await flow.run(summary, token);
+  }
 
   return (
     <div className="grid gap-4">
       <div role="radiogroup" aria-label="Pay with" className="flex flex-wrap gap-2">
         {CURRENCIES.map((option) => (
           <button
-            key={option}
+            key={option.value}
             type="button"
             role="radio"
-            aria-checked={currency === option}
+            aria-checked={currency === option.value}
             disabled={flow.busy}
-            onClick={() => setCurrency(option)}
+            onClick={() => setCurrency(option.value)}
             className={cn(
               "rounded-full border-2 px-3.5 py-1.5 text-sm font-medium transition-colors",
-              currency === option ? "border-primary bg-primary-soft" : "hover:bg-surface-2",
+              currency === option.value ? "border-primary bg-primary-soft" : "hover:bg-surface-2",
             )}
           >
-            {option}
+            {option.label}
           </button>
         ))}
       </div>
@@ -130,11 +146,19 @@ export function PayPanel({
         </>
       )}
 
+      {byCard && (
+        <div className="grid gap-1.5">
+          <div
+            ref={cardField}
+            className={cn("min-h-[90px]", card.loading && "bg-surface-2 animate-pulse rounded-md")}
+          />
+          {card.error && <p className="text-danger text-xs">{card.error}</p>}
+        </div>
+      )}
+
       <Button
-        disabled={!data?.ok || flow.busy}
-        onClick={() =>
-          void flow.run(main ? <Money amount={main.amount} currency={currency} /> : null)
-        }
+        disabled={!data?.ok || flow.busy || (byCard && !card.ready)}
+        onClick={() => void pay()}
         className="justify-self-start"
       >
         {flow.busy ? (

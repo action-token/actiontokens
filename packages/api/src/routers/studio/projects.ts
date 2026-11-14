@@ -22,6 +22,9 @@ const clip = z.object({
   fadeIn: seconds,
   fadeOut: seconds,
 });
+/** A 3-band EQ, each band lifted or cut by up to 12 dB (missing = flat) */
+const band = z.number().min(-12).max(12);
+const eq = z.object({ low: band, mid: band, high: band });
 const track = z.object({
   id: z.string().min(1).max(40),
   name: z.string().trim().min(1).max(80),
@@ -30,6 +33,7 @@ const track = z.object({
   pan: z.number().min(-1).max(1),
   muted: z.boolean(),
   soloed: z.boolean(),
+  eq: eq.optional(),
   clips: z.array(clip).max(MAX_CLIPS),
 });
 const rendered = z.object({
@@ -41,6 +45,7 @@ const project = z.object({
   bpm: z.number().min(40).max(240),
   snap: z.boolean(),
   masterVolume: z.number().min(0).max(1.5),
+  masterEq: eq.optional(),
   tracks: z.array(track).max(MAX_TRACKS),
   publish: z
     .object({

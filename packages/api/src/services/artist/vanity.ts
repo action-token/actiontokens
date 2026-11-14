@@ -5,6 +5,8 @@ import {
   buildPlatformPayment,
   networkFeeXlm,
   type OnChainCurrency,
+  toCents,
+  toStroops,
 } from "@bandcoin/chain";
 import { buildQuote, type Quote, type QuoteProblem } from "@bandcoin/chain/quote";
 import { fundsOf } from "@bandcoin/chain/server";
@@ -32,15 +34,17 @@ import { failOrder, ownOrder, userSignature } from "../purchase";
  * A link that isn't renewed works for 7 more days (grace), then sends visitors
  * to the artist's normal page; the name stays theirs for 30 days after that.
  * Prices are the platform's (AppSetting), in BANDCOIN or USD; XLM and USDC
- * follow the USD price at the live rate. The platform is the seller, so there
- * is no platform fee on top. Whatever state a link is in comes from its dates
+ * follow the USD price at the live rate, and a card pays the USD price. The
+ * platform fee (AppSetting.platformFeeBps) is added on top in every currency
+ * (plan 33). Whatever state a link is in comes from its dates
  * (`vanityTimeline`), so it is right without a background job.
  */
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 type ArtistRef = { id: string };
 
 export type VanityPurpose = "RENEWAL" | "NAME_CHANGE";
-export type VanityPayInput = { purpose: VanityPurpose; name?: string; currency: OnChainCurrency };
+export type VanityCurrency = OnChainCurrency | "USD";
+export type VanityPayInput = { purpose: VanityPurpose; name?: string; currency: VanityCurrency };
 
 /** What the order remembers, so delivering it needs nothing from the request. */
 type VanityOrder = { artistId: string; purpose: VanityPurpose; name: string | null };
@@ -163,6 +167,7 @@ async function price(
     user ? chain.loadAccount(user.walletAddress) : null,
   ]);
   const timeline = link ? vanityTimeline(link, new Date()) : null;
+  const card = input.currency === "USD";
 
   let name: string | null = null;
   if (input.purpose === "RENEWAL") {
@@ -193,13 +198,14 @@ async function price(
     quantity: 1,
     unitPrice: { bandcoin: unit.bandcoin?.toString() ?? "0", usd: unit.usd?.toString() ?? "0" },
     rates: input.currency === "BANDCOIN" ? {} : await chain.rates(),
-    platformFeeBps: 0,
+    platformFeeBps: settings?.platformFeeBps ?? 0,
     newTrustlines: 0,
-    networkFeeXlm: networkFeeXlm(1, network.baseFee),
+    // A card has nothing to send on Stellar.
+    networkFeeXlm: card ? "0" : networkFeeXlm(1, network.baseFee),
     funds: user ? fundsOf(account, assets) : null,
     now: new Date(),
   });
-  if (user && !account)
+  if (user && !account && !card)
     problems.push(unavailable("Your wallet needs its first XLM before it can pay."));
 
   const all = [...problems, ...quote.problems];
@@ -213,10 +219,10 @@ async function price(
   };
 }
 
-/** The shared quote speaks of items; this is a link, so the lines say so and the empty fee line goes. */
+/** The shared quote speaks of items; this is a link, so the lines say so. A card has no network fee. */
 function relabel(quote: Quote, purpose: VanityPurpose, problems: QuoteProblem[]) {
   const lines = quote.lines
-    .filter((line) => line.key !== "platformFee")
+    .filter((line) => !(line.key === "networkFee" && quote.currency === "USD"))
     .map((line) =>
       line.key === "price"
         ? {
@@ -248,24 +254,29 @@ export async function startVanity(
 ) {
   const priced = await price(ctx, user, artist, input);
   const { quote, account, name } = priced;
-  if (!quote.ok || !account) {
+  const card = input.currency === "USD";
+  if (!quote.ok || (!account && !card)) {
     throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, {
       message: quote.problems[0]?.message ?? "This can't go through right now.",
       details: { problems: quote.problems },
     });
   }
 
-  const amount = quote.lines.find((line) => line.key === "price")?.amount ?? "0";
+  const linePrice = quote.lines.find((line) => line.key === "price")?.amount ?? "0";
+  const fee = quote.lines.find((line) => line.key === "platformFee")?.amount ?? "0";
+  // Price and fee go to the treasury together, in the chosen currency.
+  const amount =
+    quote.totals.find((total) => total.currency === input.currency)?.amount ?? linePrice;
   const vanity: VanityOrder = { artistId: artist.id, purpose: input.purpose, name };
   const order = await ctx.db.order.create({
     data: {
       kind: "VANITY",
       buyerId: user.id,
       currency: input.currency,
-      unitPrice: amount,
-      platformFee: "0",
+      unitPrice: linePrice,
+      platformFee: fee,
       total: amount,
-      method: "WALLET",
+      method: card ? "CARD" : "WALLET",
       quoteExpiresAt: new Date(quote.expiresAt),
       breakdown: { ...quote, vanity },
       rateUsd: quote.rateUsd,
@@ -273,13 +284,18 @@ export async function startVanity(
   });
   ctx.activity.set({ targetType: "Order", targetId: order.id, amount, currency: input.currency });
 
+  if (card || !account) {
+    // A card has nothing to sign: the form charges it on submit.
+    await transitionOrder(ctx.db, order.id, "AWAITING_SIGNATURE");
+    return { orderId: order.id, quote, xdr: null, signer: "card" as const };
+  }
   const { network, assets, treasury } = ctx.chain.config;
   const built = buildPlatformPayment({
     payer: new Account(account.accountId(), account.sequenceNumber()),
     network,
     orderId: order.id,
     to: treasury,
-    asset: assetFor(input.currency, assets),
+    asset: assetFor(input.currency as OnChainCurrency, assets),
     amount,
   });
   // The hash doesn't change when signatures are added, so it pins the exact transaction.
@@ -292,11 +308,11 @@ export async function startVanity(
   };
 }
 
-/** Sends the payment, then gives the artist what they paid for. */
+/** Sends the payment (or charges the card), then gives the artist what they paid for. */
 export async function submitVanity(
   ctx: ServiceCtx,
   user: SessionUser,
-  input: { orderId: string; xdr: string },
+  input: { orderId: string; xdr?: string; card?: { sourceId: string; verificationToken?: string } },
 ) {
   const { chain, db } = ctx;
   const order = await ownOrder(ctx, user, input.orderId);
@@ -308,7 +324,8 @@ export async function submitVanity(
     amount: order.total.toString(),
     currency: order.currency,
   });
-  if (order.status !== "AWAITING_SIGNATURE" || !order.txHash)
+  const card = order.method === "CARD";
+  if (order.status !== "AWAITING_SIGNATURE" || (!card && !order.txHash))
     throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
       message: `This order is already ${order.status.toLowerCase()}.`,
     });
@@ -328,6 +345,27 @@ export async function submitVanity(
     }
   }
 
+  if (card) {
+    if (!input.card)
+      throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "Add a card to pay." });
+    const { paymentId } = await chain.card.charge({
+      orderId: order.id,
+      sourceId: input.card.sourceId,
+      verificationToken: input.card.verificationToken,
+      cents: toCents(toStroops(order.total.toString())),
+    });
+    await transitionOrder(db, order.id, "SUBMITTED", { cardPaymentId: paymentId });
+    try {
+      return await deliverVanity(ctx, order.id);
+    } catch (error) {
+      // Charged, but the link couldn't be updated: refund the card.
+      await failOrder(ctx, order.id, error, { paymentId, total: order.total.toString() });
+      throw error;
+    }
+  }
+
+  if (!order.txHash)
+    throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "This order has no payment." });
   const xdr = await userSignature(ctx, user, order.txHash, input.xdr);
   await transitionOrder(db, order.id, "SUBMITTED");
   try {

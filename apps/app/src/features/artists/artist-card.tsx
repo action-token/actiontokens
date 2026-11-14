@@ -22,7 +22,8 @@ const count = (value: number) =>
 /**
  * An artist as a poster: the cover fills the card, with a "Story" badge while
  * they have a live story, their fan token's code, and a frosted panel with the
- * avatar, name, bio, three counts, Follow and Share. The whole card opens the
+ * avatar, name, bio, three counts, Follow (then Subscribe, when the artist has a
+ * fan token) and Share. The whole card opens the
  * artist's page; the buttons sit above that link.
  */
 export function ArtistCard({ artist, className }: { artist: ArtistCardData; className?: string }) {
@@ -120,7 +121,13 @@ export function ArtistCard({ artist, className }: { artist: ArtistCardData; clas
           </ul>
 
           <div className="relative z-10 flex items-center gap-2">
-            <FollowButton compact slug={artist.slug} initial={artist.following} />
+            <FollowButton
+              compact
+              slug={artist.slug}
+              initial={artist.following}
+              initialSubscribed={artist.subscribed}
+              token={artist.tokenCode ? { code: artist.tokenCode, artistId: artist.id } : null}
+            />
             <button
               type="button"
               onClick={() => void share()}

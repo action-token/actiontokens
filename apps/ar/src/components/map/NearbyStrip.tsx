@@ -8,6 +8,7 @@ import { pinStatus, RARITY_META } from "@bandcoin/ar-core/ar/rarity";
 import type { ArPin } from "@bandcoin/ar-core/ar/types";
 import { useDragScroll } from "~/lib/ar/useDragScroll";
 import { cn } from "@bandcoin/ui/lib/cn";
+import { PinGlyph } from "@bandcoin/ui/patterns/pin-glyph";
 
 export interface NearbyPin {
   pin: ArPin;
@@ -108,21 +109,18 @@ export function NearbyStrip({
             )}
             style={active ? { boxShadow: `0 0 22px -6px hsl(${meta.hsl} / 0.9)` } : undefined}
           >
-            <div
-              className="relative h-[46px] w-[34px] shrink-0 overflow-hidden rounded-[8px] border"
-              style={{ borderColor: `hsl(${meta.hsl} / 0.55)` }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={pin.imageUrl}
-                alt=""
-                loading="lazy"
-                className={cn(
-                  "h-full w-full object-cover",
-                  status !== "collectible" && "brightness-[0.6] saturate-0",
-                )}
-              />
-            </div>
+            {/* The pin in its own shape, as on the map; dimmed when it can't be collected. */}
+            <PinGlyph
+              path={pin.look.path}
+              size={40}
+              color={pin.look.color}
+              defaultColor="hsl(var(--ar-surface-3))"
+              imageUrl={pin.look.imageUrl}
+              imageFit={pin.look.imageFit}
+              ringColor={`hsl(${meta.hsl})`}
+              ringWidth={2}
+              className={cn("shrink-0", status !== "collectible" && "opacity-60 saturate-0")}
+            />
 
             <div className="min-w-0 flex-1">
               <p className="font-hud text-ar-text truncate text-[11.5px] leading-tight font-bold">
@@ -135,7 +133,7 @@ export function NearbyStrip({
                   inRange && status === "collectible" ? "text-ar-accent-hot" : "text-ar-dim",
                 )}
               >
-                {pin.autoCollect && status === "collectible" && (
+                {pin.look.autoBadge && status === "collectible" && (
                   <Zap size={9} strokeWidth={3} className="text-ar-accent-hot" />
                 )}
                 {formatDistance(distance)}

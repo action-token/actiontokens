@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isActive, navFor, phoneTabs, type PortalNavInput } from "./nav";
+import { isActive, navFor, phoneLabel, phoneTabs, type PortalNavInput } from "./nav";
 
 const labels = (input: PortalNavInput) =>
   navFor(input).flatMap((group) => group.items.map((entry) => entry.label));
@@ -73,14 +73,17 @@ describe("portal navigation", () => {
       "Gifts",
       "Royalties",
       "Wallet",
+      "Overview",
       "Artists",
       "Users",
       "Admins",
       "Pin review",
+      "All maps",
       "Mural review",
       "Story review",
       "Bounties",
       "Items",
+      "Domains",
       "Collection reports",
       "Alerts",
       "Jobs",
@@ -114,6 +117,8 @@ describe("portal navigation", () => {
     expect(entries.length).toBeLessThanOrEqual(15);
     expect(lit("/pins")).toEqual(["Map & pins"]);
     expect(lit("/pins/manage")).toEqual(["Pin management"]);
+    expect(lit("/pins/shapes")).toEqual(["Pin management"]);
+    expect(lit("/pins/templates")).toEqual(["Pin management"]);
     expect(lit("/pins/new")).toEqual(["Map & pins"]);
     expect(lit("/pins/p1")).toEqual(["Map & pins"]);
     expect(lit("/hotspots/new")).toEqual(["Map & pins"]);
@@ -136,20 +141,26 @@ describe("portal navigation", () => {
     expect(isActive(activity!, "/admin/activity")).toBe(true);
   });
 
-  it("keeps four tabs on a phone and puts the rest and the account behind More", () => {
-    const apply = phoneTabs(navFor({ signedIn: true, step: "OPEN_ISSUER", isAdmin: false }), true);
-    expect(apply).toEqual({
-      tabs: [expect.objectContaining({ label: "Get started" })],
-      more: true,
-    });
-    const ready = phoneTabs(navFor({ signedIn: true, step: "READY", isAdmin: true }), true);
-    expect(ready.tabs.map((entry) => entry.shortLabel ?? entry.label)).toEqual([
-      "Map",
-      "Events",
-      "Posts",
-      "Bounties",
-    ]);
-    expect(ready.more).toBe(true);
-    expect(phoneTabs([], false)).toEqual({ tabs: [], more: false });
+  it("lights Overview only on /admin itself", () => {
+    const admin = navFor({ signedIn: true, step: "READY", isAdmin: true }).at(-1);
+    const overview = admin!.items[0]!;
+    expect(overview).toMatchObject({ label: "Overview", href: "/admin" });
+    expect(isActive(overview, "/admin")).toBe(true);
+    expect(isActive(overview, "/admin/artists")).toBe(false);
+  });
+
+  it("puts Map, Store | AR | Bounties, Pins on a phone's bar, swapping what isn't open yet", () => {
+    const label = phoneLabel;
+    const ready = phoneTabs(navFor({ signedIn: true, step: "READY", isAdmin: true }));
+    expect(ready.left.map(label)).toEqual(["Map", "Store"]);
+    expect(ready.right.map(label)).toEqual(["Bounties", "Pins"]);
+    // Onboarding: only the step's own entry exists, so it takes the first slot.
+    const apply = phoneTabs(navFor({ signedIn: true, step: "OPEN_ISSUER", isAdmin: false }));
+    expect(apply.left.map(label)).toEqual(["Get started"]);
+    expect(apply.right).toEqual([]);
+    // An admin who isn't an artist gets the first admin entries in the open slots.
+    const admin = phoneTabs(navFor({ signedIn: true, step: null, isAdmin: true }));
+    expect([...admin.left, ...admin.right]).toHaveLength(4);
+    expect(phoneTabs([])).toEqual({ left: [], right: [] });
   });
 });

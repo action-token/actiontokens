@@ -3,9 +3,12 @@
 import { Hexagon, MapPinOff, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import type { MapRef } from "react-map-gl/mapbox";
+import { Marker, type MapRef } from "react-map-gl/mapbox";
+
+import { shapeScale } from "@bandcoin/ar-core/shape-size";
+import { PinGlyph } from "@bandcoin/ui/patterns/pin-glyph";
 
 import { toMapboxFeature } from "@bandcoin/geo/map-geometry";
 import { Button } from "@bandcoin/ui/components/button";
@@ -19,14 +22,24 @@ import { AgentMapLayer } from "~/features/agent/agent-map";
 import { setAreaDraft } from "~/features/hotspots/area-draft";
 import {
   SHAPES,
+  DrawButtons,
   DrawingLayers,
+  drawMessage,
+  DrawStartMarker,
   useAreaDrawing,
   type AreaShape,
 } from "~/features/hotspots/area-draw";
 import { HotspotCard } from "~/features/hotspots/hotspot-card";
-import { HOTSPOT_FILL, HotspotLayer } from "~/features/hotspots/hotspot-layer";
+import { EditHotspotView, NewHotspotView } from "~/features/hotspots/hotspot-pages";
+import { DraftAreaLayer, HOTSPOT_FILL, HotspotLayer } from "~/features/hotspots/hotspot-layer";
 import { api } from "~/trpc/react";
 
+import { FormCardProvider } from "@bandcoin/ui/patterns/form-card";
+
+import { LayerSwitcher } from "./layers/layer-switcher";
+import { type MapFormCard, useMapFormCard } from "./map-form-card";
+import { onSelectedLayer } from "./layers/layer-view";
+import { useSelectedLayer } from "./layers/selected-layer";
 import { BaseMap, WORLD_VIEW } from "./map-kit/base-map";
 import { ClusterBillboard } from "./map-kit/cluster-billboard";
 import { PinLegend, PinMarker, pinIcon, pinLook } from "./map-kit/pin-marker";
@@ -40,6 +53,7 @@ import { PlaceSearch } from "./map-kit/place-search";
 import { MAPBOX_TOKEN } from "./mapbox";
 import { InViewPanel, type InViewPin } from "./in-view-panel";
 import { PinCard } from "./pin-card";
+import { EditPinView, NewPinView } from "./pin-pages";
 
 type Placing = { mode: "copy" | "move"; spotId: string };
 type Bounds = { north: number; south: number; east: number; west: number };
@@ -48,9 +62,10 @@ type Bounds = { north: number; south: number; east: number; west: number };
  * Pins › Map. Your pins and hotspot areas as fans find them: click the map to
  * start a pin there, draw an area to start a hotspot, click a pin or an area
  * to see it and act on it. Managing pins as a list is its own page
- * (/pins/manage, in the sidebar).
+ * (/pins/manage, in the sidebar). On Admin › All maps it is an artist's map an admin works on as
+ * them, with `toolbarStart` holding the artist picker.
  */
-export function PinsMap() {
+export function PinsMap({ toolbarStart }: { toolbarStart?: ReactNode } = {}) {
   const router = useRouter();
   const utils = api.useUtils();
   const map = useRef<MapRef>(null);
@@ -66,12 +81,33 @@ export function PinsMap() {
   const [bounds, setBounds] = useState<Bounds | null>(null);
   const [zoom, setZoom] = useState(0);
   const pins = api.pins.pins.useQuery();
-  const hotspots = api.hotspots.hotspots.useQuery();
+  const allHotspots = api.hotspots.hotspots.useQuery();
+  // The layer you work in, plus any switched on with an eye; what is made goes in the layer picked.
+  const layer = useSelectedLayer((state) => state.id);
+  const layersShown = useSelectedLayer((state) => state.shown);
+  const layerQuery = layer ? `?layer=${layer}` : "";
+  const hotspots = useMemo(
+    () => ({
+      ...allHotspots,
+      data: allHotspots.data?.filter((item) => onSelectedLayer(item.layerId, layer, layersShown)),
+    }),
+    [allHotspots, layer, layersShown],
+  );
 
-  const draw = useAreaDrawing(map, shape, (feature) => {
-    setAreaDraft({ shape, feature });
-    router.push("/hotspots/new");
-  });
+  const draw = useAreaDrawing(
+    map,
+    shape,
+    (feature) => {
+      setAreaDraft({ shape, feature });
+      stopDrawing();
+      // The new hotspot opens as a card beside the map, keeping the area just drawn.
+      setSelected(null);
+      setHotspotId(null);
+      useMapFormCard.getState().open({ kind: "newHotspot" });
+    },
+    // Esc cancels, Enter finishes, Backspace undoes, while the drawing tool is open.
+    { keys: drawing, onCancel: () => stopDrawing() },
+  );
   const stopDrawing = () => {
     draw.reset();
     setDrawing(false);
@@ -98,8 +134,13 @@ export function PinsMap() {
   });
 
   const shown = useMemo(
-    () => pins.data?.filter((pin) => showEnded || pin.status !== "ENDED") ?? [],
-    [pins.data, showEnded],
+    () =>
+      pins.data?.filter(
+        (pin) =>
+          (showEnded || pin.status !== "ENDED") &&
+          onSelectedLayer(pin.layer?.id, layer, layersShown),
+      ) ?? [],
+    [pins.data, showEnded, layer, layersShown],
   );
   const pin = shown.find((item) => item.id === selected?.pinId) ?? null;
 
@@ -131,6 +172,12 @@ export function PinsMap() {
     [spotIndex, bounds, zoom, selected?.spotId],
   );
   const hotspot = hotspots.data?.find((item) => item.id === hotspotId) ?? null;
+  const formCard = useMapFormCard((state) => state.card);
+  const cardAt = useMapFormCard((state) => state.at);
+  const draftPin = useMapFormCard((state) => state.draft);
+  const draftArea = useMapFormCard((state) => state.draftArea);
+  // Leaving the map closes the card.
+  useEffect(() => () => useMapFormCard.getState().close(), []);
 
   const refreshBounds = () => {
     const box = map.current?.getBounds();
@@ -236,81 +283,130 @@ export function PinsMap() {
     });
 
   const cardOpen = !drawing && !placing;
-  const SHAPE_HINT = SHAPES.find((entry) => entry.value === shape)!.hint;
+  const message = drawMessage(draw);
 
   return (
-    // The portal pads its pages; cancel that so the map fills the space beside the sidebar.
+    // The portal pads its pages; cancel that so the map fills the page. The canvas runs on
+    // under the floating sidebar, which shows it blurred; the overlays stay beside it.
     <div className="relative -mt-4 -mb-24 h-[calc(100dvh-3.75rem-env(safe-area-inset-bottom))] sm:mt-0 sm:-mb-12 sm:h-dvh">
-      <BaseMap
-        ref={map}
-        controlsPosition="bottom-left"
-        initialViewState={WORLD_VIEW}
-        cursor={drawing ? "crosshair" : "pointer"}
-        doubleClickZoom={!drawing}
-        interactiveLayerIds={drawing ? [] : [HOTSPOT_FILL]}
-        onLoad={() => {
-          setReady(true);
-          refreshBounds();
-        }}
-        onMoveEnd={refreshBounds}
-        onMouseMove={(event) => draw.move({ lat: event.lngLat.lat, lng: event.lngLat.lng })}
-        onClick={(event) => {
-          const at = { lat: event.lngLat.lat, lng: event.lngLat.lng };
-          if (drawing) return draw.click(at);
-          if (placing) return setTarget(at);
-          // An area under the click opens that hotspot; it must not also start a pin.
-          const area = (event.features?.[0]?.properties as { id?: string } | undefined)?.id;
-          if (area) {
+      <div className="absolute inset-y-0 right-0 left-0 sm:-left-(--side-w)">
+        <BaseMap
+          ref={map}
+          // Bottom-right, above the "Ask the map" button.
+          controlsPosition="bottom-right"
+          controlsInset="4.5rem"
+          initialViewState={WORLD_VIEW}
+          cursor={drawing ? "crosshair" : "pointer"}
+          doubleClickZoom={!drawing}
+          interactiveLayerIds={drawing ? [] : [HOTSPOT_FILL]}
+          onLoad={() => {
+            setReady(true);
+            refreshBounds();
+          }}
+          onMoveEnd={refreshBounds}
+          onMouseMove={(event) => draw.move({ lat: event.lngLat.lat, lng: event.lngLat.lng })}
+          onDblClick={() => drawing && draw.doubleClick()}
+          onClick={(event) => {
+            const at = { lat: event.lngLat.lat, lng: event.lngLat.lng };
+            if (drawing) return draw.click(at);
+            if (placing) return setTarget(at);
+            // An area under the click opens that hotspot; it must not also start a pin.
+            const area = (event.features?.[0]?.properties as { id?: string } | undefined)?.id;
+            if (area) {
+              setSelected(null);
+              return setHotspotId(area);
+            }
             setSelected(null);
-            return setHotspotId(area);
-          }
-          setSelected(null);
-          setHotspotId(null);
-          router.push(`/pins/new?lat=${at.lat.toFixed(6)}&lng=${at.lng.toFixed(6)}`);
-        }}
-      >
-        {hotspots.data && <HotspotLayer hotspots={hotspots.data} />}
-        {!drawing &&
-          onScreen.map((entry) => {
-            if (entry.kind === "cluster")
+            setHotspotId(null);
+            // A click starts a new pin there, or moves the pin of the card that is open.
+            const open = useMapFormCard.getState();
+            if (open.card?.kind === "newPin") open.moveTo(at);
+            else if (!open.card) open.open({ kind: "newPin" }, at);
+          }}
+        >
+          {hotspots.data && <HotspotLayer hotspots={hotspots.data} />}
+          {!drawing &&
+            onScreen.map((entry) => {
+              if (entry.kind === "cluster")
+                return (
+                  <ClusterBillboard
+                    key={`cluster:${entry.id}`}
+                    latitude={entry.latitude}
+                    longitude={entry.longitude}
+                    count={entry.count}
+                    images={entry.images}
+                    onOpen={() =>
+                      map.current?.easeTo({
+                        center: [entry.longitude, entry.latitude],
+                        zoom: clusterExpansionZoom(spotIndex, entry.id),
+                        duration: 500,
+                      })
+                    }
+                  />
+                );
+              const found = spotLookup.get(entry.spotId);
+              if (!found) return null;
+              const { item, spot } = found;
               return (
-                <ClusterBillboard
-                  key={`cluster:${entry.id}`}
-                  latitude={entry.latitude}
-                  longitude={entry.longitude}
-                  count={entry.count}
-                  images={entry.images}
-                  onOpen={() =>
-                    map.current?.easeTo({
-                      center: [entry.longitude, entry.latitude],
-                      zoom: clusterExpansionZoom(spotIndex, entry.id),
-                      duration: 500,
-                    })
-                  }
+                <PinMarker
+                  key={`${item.id}:${spot.id}`}
+                  lat={spot.latitude}
+                  lng={spot.longitude}
+                  glyph={item.look}
+                  icon={pinIcon(item.type)}
+                  count={spot.collected}
+                  label={item.title}
+                  look={pinLook(item.status)}
+                  selected={spot.id === selected?.spotId}
+                  onClick={() => selectPin(item.id, spot.id)}
                 />
               );
-            const found = spotLookup.get(entry.spotId);
-            if (!found) return null;
-            const { item, spot } = found;
-            return (
-              <PinMarker
-                key={`${item.id}:${spot.id}`}
-                lat={spot.latitude}
-                lng={spot.longitude}
-                image={item.imageUrl}
-                icon={pinIcon(item.type)}
-                count={spot.collected}
-                label={item.title}
-                look={pinLook(item.status)}
-                autoCollect={item.autoCollect}
-                selected={spot.id === selected?.spotId}
-                onClick={() => selectPin(item.id, spot.id)}
-              />
-            );
-          })}
-        {!drawing && <AgentMapLayer />}
-        {drawing && <DrawingLayers draftShape={draw.draftShape} points={draw.points} />}
-      </BaseMap>
+            })}
+          {/* The pin in the card, where it was clicked, as its Look tab has it so far. */}
+          {!drawing &&
+            formCard &&
+            cardAt &&
+            (formCard.kind === "newPin" || formCard.kind === "editPin") && (
+              <Marker
+                latitude={cardAt.lat}
+                longitude={cardAt.lng}
+                anchor={draftPin?.anchor ?? "bottom"}
+              >
+                {draftPin ? (
+                  <span className="relative block" aria-label="Where the pin goes" role="img">
+                    <span
+                      className="bg-primary/25 absolute inset-1 animate-ping rounded-full"
+                      aria-hidden
+                    />
+                    <PinGlyph
+                      path={draftPin.path}
+                      size={Math.round(48 * shapeScale(draftPin.path))}
+                      color={draftPin.color}
+                      defaultColor="var(--color-surface-2)"
+                      imageUrl={draftPin.imageUrl}
+                      imageFit={draftPin.imageFit}
+                      ringColor="var(--color-primary)"
+                      ringWidth={3.5}
+                      badge={draftPin.badge}
+                    />
+                  </span>
+                ) : (
+                  <span
+                    aria-hidden
+                    className="bg-primary border-surface block size-5 rounded-full border-[3px] shadow-lg ring-2 ring-black/20"
+                  />
+                )}
+              </Marker>
+            )}
+          {!drawing && <AgentMapLayer />}
+          {drawing && <DrawingLayers draftShape={draw.draftShape} points={draw.points} />}
+          {drawing && <DrawStartMarker draw={draw} />}
+          {/* The new hotspot's area, kept on the map while its card is open. */}
+          {!drawing && formCard?.kind === "newHotspot" && draftArea && (
+            <DraftAreaLayer feature={draftArea.feature} />
+          )}
+        </BaseMap>
+      </div>
 
       {drawing ? (
         <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-wrap items-start gap-2 lg:inset-x-4 lg:top-4">
@@ -338,22 +434,30 @@ export function PinsMap() {
               ))}
             </div>
           </div>
-          <p className="bg-surface pointer-events-auto rounded-lg border px-3 py-2 text-xs shadow-sm">
-            {SHAPE_HINT}
-          </p>
-          <div className="pointer-events-auto ml-auto flex items-center gap-2">
-            {shape === "polygon" && draw.points.length >= 3 && (
-              <Button className="shadow-sm" onClick={draw.finishShape}>
-                Finish shape
-              </Button>
+          <p
+            className={cn(
+              "bg-surface pointer-events-auto rounded-lg border px-3 py-2 text-xs shadow-sm",
+              message.tone === "bad" && "text-danger",
+              message.tone === "warn" && "text-warning",
             )}
-            <Button variant="outline" className="shadow-sm" onClick={stopDrawing}>
-              <X /> Cancel
-            </Button>
-          </div>
+          >
+            {message.text}
+          </p>
+          <DrawButtons
+            draw={draw}
+            onCancel={stopDrawing}
+            className="bg-surface pointer-events-auto ml-auto rounded-2xl border p-1.5 shadow-sm"
+          />
         </div>
       ) : (
-        <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-wrap items-start gap-2 lg:inset-x-4 lg:top-4">
+        <div
+          className={cn(
+            "pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-wrap items-start gap-2 lg:inset-x-4 lg:top-4",
+            // A form card takes the left side: the toolbar moves over.
+            formCard && "lg:left-[26rem]",
+          )}
+        >
+          {toolbarStart}
           <PlaceSearch
             className="pointer-events-auto w-full sm:w-80"
             onSelect={(place) => flyTo(place.lat, place.lng)}
@@ -365,23 +469,35 @@ export function PinsMap() {
             </Label>
           </div>
           <div className="pointer-events-auto ml-auto flex items-center gap-2">
-            <Button
-              variant="outline"
-              className="shadow-sm"
-              onClick={() => {
-                setSelected(null);
-                setHotspotId(null);
-                setPlacing(null);
-                setDrawing(true);
-              }}
-            >
-              <Hexagon /> <span className="hidden sm:inline">Draw hotspot</span>
-            </Button>
-            <Button asChild className="shadow-sm">
-              <Link href="/pins/new">
-                <Plus /> <span className="hidden sm:inline">New pin</span>
-              </Link>
-            </Button>
+            <LayerSwitcher />
+            {/* With a form card open the create buttons step aside; the layer switcher stays. */}
+            {!formCard && (
+              <>
+                <Button
+                  variant="outline"
+                  className="shadow-sm"
+                  onClick={() => {
+                    setSelected(null);
+                    setHotspotId(null);
+                    setPlacing(null);
+                    setDrawing(true);
+                  }}
+                >
+                  <Hexagon /> <span className="hidden sm:inline">Draw hotspot</span>
+                </Button>
+                <Button
+                  className="shadow-sm"
+                  onClick={() => {
+                    setSelected(null);
+                    setHotspotId(null);
+                    setPlacing(null);
+                    useMapFormCard.getState().open({ kind: "newPin" });
+                  }}
+                >
+                  <Plus /> <span className="hidden sm:inline">New pin</span>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -401,9 +517,10 @@ export function PinsMap() {
         </p>
       )}
 
-      {!drawing && (
+      {/* Right side, under the toolbar; the pin and hotspot cards take the same spot, so it steps aside for them. */}
+      {!drawing && !formCard && !(pin && selected) && !hotspot && (
         <InViewPanel
-          className="absolute top-16 left-4 z-10"
+          className="absolute top-16 right-4 z-10"
           items={inView}
           selectedId={selected?.pinId ?? null}
           onSelect={(item) => {
@@ -412,7 +529,9 @@ export function PinsMap() {
           }}
         />
       )}
-      {!drawing && <PinLegend className="absolute bottom-8 left-14 z-10 hidden sm:block" />}
+      {!drawing && !formCard && (
+        <PinLegend className="absolute bottom-8 left-4 z-10 hidden sm:block" />
+      )}
 
       {!drawing && <AgentChat />}
 
@@ -426,6 +545,20 @@ export function PinsMap() {
         />
       )}
       {cardOpen && hotspot && <HotspotCard hotspot={hotspot} onClose={() => setHotspotId(null)} />}
+
+      {/* A pin or hotspot form as a floating card (left, beside the map) */}
+      {formCard && !drawing && (
+        <>
+          {formCard.kind === "newPin" && (
+            <div className="bg-primary text-primary-foreground pointer-events-none absolute bottom-6 left-1/2 z-10 hidden -translate-x-1/2 rounded-full px-4 py-1.5 text-xs font-semibold shadow-lg lg:block">
+              {cardAt ? "Click the map to move the pin" : "Click the map where the pin goes"}
+            </div>
+          )}
+          <div className="absolute inset-x-3 bottom-3 z-20 flex max-h-[62%] lg:inset-x-auto lg:top-4 lg:bottom-4 lg:left-4 lg:max-h-none">
+            <MapFormCardHost card={formCard} at={cardAt} layerId={layer} />
+          </div>
+        </>
+      )}
 
       <ConfirmDialog
         open={target !== null && placing !== null}
@@ -447,5 +580,47 @@ export function PinsMap() {
         }}
       />
     </div>
+  );
+}
+
+/**
+ * The form card's content: the same forms as /pins/new, /pins/[id], /hotspots/new and
+ * /hotspots/[id], in card mode (`@bandcoin/ui/patterns/form-card`). Keyed per form (and per
+ * restart), so each opens fresh.
+ */
+function MapFormCardHost({
+  card,
+  at,
+  layerId,
+}: {
+  card: MapFormCard;
+  at: { lat: number; lng: number } | null;
+  layerId: string | null;
+}) {
+  const close = useMapFormCard((state) => state.close);
+  const [restarts, setRestarts] = useState(0);
+  const value = useMemo(
+    () => ({
+      onClose: close,
+      onDone: close,
+      at,
+      layerId,
+      restart: () => setRestarts((count) => count + 1),
+    }),
+    [close, at, layerId],
+  );
+  const key = `${card.kind}${"id" in card ? card.id : ""}:${restarts}`;
+  return (
+    <FormCardProvider value={value}>
+      {card.kind === "newPin" ? (
+        <NewPinView key={key} />
+      ) : card.kind === "editPin" ? (
+        <EditPinView key={key} pinId={card.id} />
+      ) : card.kind === "newHotspot" ? (
+        <NewHotspotView key={key} />
+      ) : (
+        <EditHotspotView key={key} hotspotId={card.id} />
+      )}
+    </FormCardProvider>
   );
 }

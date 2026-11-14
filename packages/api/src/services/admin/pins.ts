@@ -1,3 +1,4 @@
+import { resolvePinLook } from "@bandcoin/ar-core/pin-look";
 import type { ApprovalStatus, Prisma } from "@bandcoin/db";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
@@ -66,6 +67,7 @@ export async function listPins(ctx: Pick<Context, "db">, input: PinFilter, now =
       radiusMeters: true,
       createdAt: true,
       artist: { select: { id: true, name: true, userId: true, avatarUrl: true } },
+      layer: { select: { id: true, name: true, icon: true, color: true } },
       _count: { select: { spots: true } },
     },
   });
@@ -78,6 +80,7 @@ export async function listPins(ctx: Pick<Context, "db">, input: PinFilter, now =
       type: pin.type,
       imageUrl: pin.imageUrl,
       artist: pin.artist,
+      layer: pin.layer,
       spots: pin._count.spots,
       claimed: Math.max(0, pin.claimLimit - pin.claimsLeft),
       claimLimit: pin.claimLimit,
@@ -178,6 +181,14 @@ export async function pinsForMap(
       claimLimit: true,
       claimsLeft: true,
       artist: { select: { id: true, name: true, avatarUrl: true } },
+      layer: { select: { id: true, name: true, icon: true, color: true } },
+      pinShape: { select: { path: true, anchor: true } },
+      markerShape: true,
+      pinShapeId: true,
+      markerFill: true,
+      markerColor: true,
+      markerImageFit: true,
+      markerAutoBadge: true,
       spots: {
         where: { isHidden: false },
         select: {
@@ -197,6 +208,13 @@ export async function pinsForMap(
       type: pin.type,
       imageUrl: pin.imageUrl,
       artist: pin.artist,
+      layer: pin.layer,
+      look: resolvePinLook(pin, {
+        customShape: pin.pinShape,
+        artistImage: pin.artist.avatarUrl,
+        pinImage: pin.imageUrl,
+        autoCollect: pin.spots.some((spot) => spot.autoCollect),
+      }),
       startsAt: pin.startsAt,
       endsAt: pin.endsAt,
       status: statusOf(pin, now),

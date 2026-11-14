@@ -1,5 +1,7 @@
-import { redirect } from "next/navigation";
+import { OverviewView } from "~/features/admin/overview-view";
+
+export const metadata = { title: "Overview" };
 
 export default function AdminHome() {
-  redirect("/admin/artists");
+  return <OverviewView />;
 }

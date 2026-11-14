@@ -17,6 +17,8 @@ export const SCHEDULES: { type: JobType; everyMs: number }[] = [
   { type: "follows.sync", everyMs: 30 * 60_000 },
   // Short links: reminders, stored status, and names past their reserved days set free.
   { type: "vanity.expire", everyMs: 60 * 60_000 },
+  // Custom domains: waiting ones each time, live ones once a day (see services/domains).
+  { type: "domains.check", everyMs: 15 * 60_000 },
   // Drop pins in hotspots whose next drop is due (see services/artist/hotspots).
   { type: "hotspot.drop", everyMs: 5 * 60_000 },
   // Keep the NFT contract's unlock records alive (archived after months untouched).

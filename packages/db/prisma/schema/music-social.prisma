@@ -208,6 +208,8 @@ enum NotificationType {
   BOUNTY_COMMENT
   /// The artist's short link runs out soon, is in grace, or stopped working
   VANITY
+  /// The artist's custom domain went live, stopped working, or was removed by an admin
+  DOMAIN
 }
 
 /// Something that happened, fanned out to recipients as Notification rows.

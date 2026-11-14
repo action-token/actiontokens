@@ -114,6 +114,7 @@ describe("the artist directory", () => {
     expect(page.artists).toHaveLength(2);
     expect(page.next).toBe("b");
     expect(page.artists[0]).toEqual({
+      id: "a",
       name: "DJ Tamsin",
       slug: "dj-tamsin",
       bio: "Bedroom beats",
@@ -125,6 +126,7 @@ describe("the artist directory", () => {
       songs: 5,
       liveStories: 1,
       following: false,
+      subscribed: false,
     });
   });
 
@@ -147,9 +149,16 @@ describe("the artist directory", () => {
   });
 
   it("counts only stories that are live now, and marks the ones the viewer follows", async () => {
-    const { ctx, db } = setup([row({ followers: [{ userId: "fan" }] })]);
+    const { ctx, db } = setup([
+      row({ followers: [{ userId: "fan", isTemporary: true }] }),
+      row({ id: "b", slug: "b", followers: [{ userId: "fan", isTemporary: false }] }),
+    ]);
     const page = await artistDirectory(ctx, "fan", { limit: 24, sort: "popular" }, now);
-    expect(page.artists[0]!.following).toBe(true);
+    // A free follower, then a subscriber (they trust the artist's fan token).
+    expect(page.artists.map((artist) => [artist.id, artist.following, artist.subscribed])).toEqual([
+      ["a", true, false],
+      ["b", true, true],
+    ]);
     const select = db.artist.findMany.mock.calls[0]![0].select;
     expect(select._count.select.stories).toEqual({
       where: { removedAt: null, expiresAt: { gt: now } },

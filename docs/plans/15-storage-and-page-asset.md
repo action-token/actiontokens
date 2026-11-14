@@ -58,7 +58,7 @@ funding source. One prize token per bounty, as now.
   storage (so it can come back). It locks 1 XLM (0.5 per claimant), paid by
   the artist and shown in the breakdown before they confirm. The fan claims
   it on their wallet page; opening their trustline is their own 0.5 XLM.
-- Not yet: a button for the artist to take back an unclaimed gift.
+- The artist can take back an unclaimed gift: plan 34 (built 2026-11-13).
 - No "Become a member" button: membership stays "you hold enough tokens".
 - Falls back to issuing only if the artist has no storage.
 

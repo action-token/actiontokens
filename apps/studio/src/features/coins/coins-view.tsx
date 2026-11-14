@@ -14,6 +14,7 @@ import { api } from "~/trpc/react";
 
 import { CoinHistory } from "./history";
 import { TopUp } from "./top-up";
+import { CoinUsage } from "./usage";
 
 /**
  * Your coins, laid out like the wallet: the balance block (Top up, Create,
@@ -38,7 +39,7 @@ export function CoinsView() {
 
   const coins = balance.data?.coins;
   return (
-    <div className="mx-auto grid max-w-5xl gap-8 px-4 py-8 sm:px-8">
+    <div className="mx-auto grid w-full max-w-[80rem] gap-8 px-4 pt-5 pb-10 sm:px-8 lg:pt-8">
       <h1 className="sr-only">Coins</h1>
       <WalletHero
         label="your Studio coins"
@@ -68,6 +69,7 @@ export function CoinsView() {
       <div id="top-up" className="scroll-mt-6">
         <TopUp />
       </div>
+      <CoinUsage />
       <CoinHistory />
     </div>
   );

@@ -116,6 +116,7 @@ function setup() {
       update: vi.fn(),
     },
     agentAction: { findFirst: vi.fn(), updateMany: vi.fn(), update: vi.fn() },
+    pinLayer: { findUnique: vi.fn() },
     aiUsage: { findUnique: vi.fn().mockResolvedValue(null), upsert: vi.fn().mockResolvedValue({}) },
   };
   const ctx = { db, activity: { set: vi.fn() } } as never;
@@ -596,5 +597,86 @@ describe("the chat", () => {
       db.agentAction.updateMany.mockResolvedValue({ count: 1 });
       expect(await cancelAction(ctx, artist, user, "act1")).toEqual({ status: "cancelled" });
     });
+  });
+});
+
+describe("the map layer the artist is in (new pins and hotspots go in it)", () => {
+  const action: ProposedAction = { type: "create_pins", items: [place(1)], defaults };
+
+  it("queues the batch with the artist's own layer", async () => {
+    const { ctx, db } = setup();
+    db.pinLayer.findUnique.mockResolvedValue({ artistId: "a1" });
+    await executeAction(ctx, artist, action, {}, "L1");
+    const options = db.pinBatchJob.create.mock.calls[0]![0].data.payload.options;
+    expect(options.layerId).toBe("L1");
+  });
+
+  it("queues a regular batch (no layer) when none is picked", async () => {
+    const { ctx, db } = setup();
+    await executeAction(ctx, artist, action);
+    expect(db.pinBatchJob.create.mock.calls[0]![0].data.payload.options.layerId).toBeNull();
+    expect(db.pinLayer.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("refuses another artist's layer, and queues nothing", async () => {
+    const { ctx, db } = setup();
+    db.pinLayer.findUnique.mockResolvedValue({ artistId: "someone-else" });
+    await expect(executeAction(ctx, artist, action, {}, "L9")).rejects.toThrow(
+      /isn't one of yours/,
+    );
+    expect(db.pinBatchJob.create).not.toHaveBeenCalled();
+  });
+
+  it("hands the layer to the pin service when the worker makes each pin", async () => {
+    const { ctx, db } = setup();
+    db.pinBatchJob.findUniqueOrThrow.mockResolvedValue({
+      artistId: "a1",
+      payload: {
+        places: [
+          {
+            id: "p1",
+            title: "Park",
+            description: "d",
+            latitude: 40,
+            longitude: -74,
+            startsAt: "2026-12-01T00:00:00.000Z",
+            endsAt: "2026-12-31T23:59:59.999Z",
+          },
+        ],
+        options: { ...defaults, layerId: "L1" },
+      },
+    });
+    svc.createPin.mockResolvedValue({ pinId: "x" });
+    await runPinBatch(ctx, "b1");
+    expect(svc.createPin.mock.calls[0]![2]).toMatchObject({ layerId: "L1" });
+  });
+
+  it("puts a new hotspot in the layer too", async () => {
+    const { ctx } = setup();
+    svc.createHotspot.mockResolvedValue({ hotspotId: "h9" });
+    await executeAction(
+      ctx,
+      artist,
+      {
+        type: "create_hotspot",
+        hotspot: {
+          title: "Downtown",
+          lat: 40.7,
+          lng: -74,
+          radiusMetres: 800,
+          type: "EXPERIENCE",
+          startDate: "2026-12-01",
+          endDate: "2026-12-31",
+          dropEveryDays: 7,
+          pinDurationDays: 3,
+          pinNumber: 4,
+          collectionLimit: 50,
+          autoCollect: false,
+        },
+      },
+      {},
+      "L1",
+    );
+    expect(svc.createHotspot.mock.calls[0]![2]).toMatchObject({ layerId: "L1" });
   });
 });

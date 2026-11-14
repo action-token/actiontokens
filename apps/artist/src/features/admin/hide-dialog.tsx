@@ -22,11 +22,14 @@ export function HideDialog({
   busy,
   onClose,
   onConfirm,
+  confirmLabel = "Hide",
 }: {
   open: boolean;
   title: string;
   description: string;
   busy: boolean;
+  /** The confirm button's word; "Hide" unless the action is different */
+  confirmLabel?: string;
   onClose: () => void;
   onConfirm: (reason: string) => void;
 }) {
@@ -64,7 +67,7 @@ export function HideDialog({
               Cancel
             </Button>
             <Button type="submit" variant="destructive" disabled={reason.trim().length < 3 || busy}>
-              {busy && <Loader2 className="animate-spin" />} Hide
+              {busy && <Loader2 className="animate-spin" />} {confirmLabel}
             </Button>
           </DialogFooter>
         </form>

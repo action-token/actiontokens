@@ -23,15 +23,34 @@ import { api } from "~/trpc/react";
 import { FAN_APP_URL } from "../shell/links";
 
 /** Sign in, or the account menu when signed in. `rail` keeps only the avatar on the narrow sidebar. */
-export function AccountButton({ rail = false }: { rail?: boolean }) {
+export function AccountButton({
+  rail = false,
+  compact = false,
+}: {
+  rail?: boolean;
+  /** Phone header: just the round avatar (or a Sign in icon), no name */
+  compact?: boolean;
+}) {
   const { status } = useSession();
   const openDialog = useConnectWalletDialogStore((state) => state.setIsOpen);
   const me = api.account.me.useQuery(undefined, { enabled: status === "authenticated" });
 
   if (status === "loading" || (status === "authenticated" && me.isPending)) {
-    return <Skeleton className="h-10 w-full rounded-full" />;
+    return <Skeleton className={compact ? "size-9 rounded-full" : "h-10 w-full rounded-full"} />;
   }
   if (status === "unauthenticated" || !me.data) {
+    if (compact)
+      return (
+        <Button
+          size="sm"
+          aria-label="Sign in"
+          title="Sign in"
+          onClick={() => openDialog(true)}
+          className="h-9 shrink-0"
+        >
+          Sign in
+        </Button>
+      );
     return (
       <Button className="w-full" title="Sign in" onClick={() => openDialog(true)}>
         {rail && <LogIn className="xl:hidden" />}
@@ -51,18 +70,25 @@ export function AccountButton({ rail = false }: { rail?: boolean }) {
           type="button"
           aria-label="Account menu"
           className={cn(
-            "bg-surface hover:bg-surface-2 flex h-10 w-full items-center gap-2 rounded-full border pl-1 text-[13px] font-semibold transition-colors",
-            rail ? "justify-center pr-1 xl:justify-start xl:pr-3" : "pr-3",
+            "bg-surface hover:bg-surface-2 flex items-center gap-2 rounded-full border pl-1 text-[13px] font-semibold transition-colors",
+            compact ? "h-9 pr-1" : "h-10 w-full",
+            !compact && (rail ? "justify-center pr-1 xl:justify-start xl:pr-3" : "pr-3"),
           )}
         >
-          <Avatar className="size-8">
+          <Avatar className={compact ? "size-7" : "size-8"}>
             {me.data.avatarUrl && <AvatarImage src={me.data.avatarUrl} alt="" />}
             <AvatarFallback className="text-xs">{name.slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
-          <span className={cn("min-w-0 truncate", rail && "hidden xl:inline")}>{name}</span>
+          {!compact && (
+            <span className={cn("min-w-0 truncate", rail && "hidden xl:inline")}>{name}</span>
+          )}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent side={rail ? "right" : "top"} align="end" className="w-60">
+      <DropdownMenuContent
+        side={compact ? "bottom" : rail ? "right" : "top"}
+        align="end"
+        className="w-60"
+      >
         <DropdownMenuLabel className="grid gap-0.5 font-normal">
           <span className="text-fg truncate text-sm font-semibold">{name}</span>
           {me.data.artist && (

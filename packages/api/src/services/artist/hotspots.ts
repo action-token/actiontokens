@@ -1,3 +1,4 @@
+import { columnsToLook, type PinLookInput } from "@bandcoin/ar-core/pin-look";
 import type { PinType, Prisma } from "@bandcoin/db";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 import { generateRandomLocations, type HotspotShape } from "@bandcoin/geo";
@@ -6,6 +7,8 @@ import { featureCenter, haversineMetres, type StoredFeature } from "@bandcoin/ge
 import type { Context } from "../../context";
 import { webLink } from "./events";
 import { invalid } from "./items";
+import { checkLayer } from "./layers";
+import { copyLook, lookColumnsFor, lookData } from "./pin-look";
 import {
   checkText,
   cleanTags,
@@ -55,6 +58,10 @@ export type HotspotArea = { shape: HotspotShape; feature: StoredFeature };
 
 export type HotspotInput = HotspotTemplate & {
   title: string;
+  /** The artist's map layer its drops go in; left out or null is regular */
+  layerId?: string | null;
+  /** How its drops look on the maps; left out is the default */
+  look?: PinLookInput | null;
   area: HotspotArea;
   dropEveryDays: number;
   pinDurationDays: number;
@@ -192,6 +199,7 @@ export async function listHotspots(
       endsAt: true,
       nextDropAt: true,
       lastDropAt: true,
+      layerId: true,
       _count: { select: { pins: true } },
     },
   });
@@ -226,6 +234,7 @@ export async function getHotspot(
   return {
     ...hotspot,
     template: templateOf(hotspot.template),
+    look: columnsToLook(hotspot),
     status: hotspotStatus(hotspot, now),
     drops: drops.map(({ _count, ...drop }) => ({ ...drop, spots: _count.spots })),
   };
@@ -241,9 +250,13 @@ export async function createHotspot(
   checkSpots(input.spotsPerDrop);
   measureArea(input.area);
   const template = await cleanTemplate(ctx, artist, input);
+  const layerId = (await checkLayer(ctx.db, artist.id, input.layerId)) ?? null;
+  const look = await lookColumnsFor(ctx.db, artist.id, input.look);
   const hotspot = await ctx.db.hotspot.create({
     data: {
       artistId: artist.id,
+      layerId,
+      ...(look ? lookData(look) : {}),
       title: input.title.trim(),
       template,
       spotsPerDrop: input.spotsPerDrop,
@@ -299,10 +312,14 @@ export async function updateHotspot(
     nextDropAt = hotspot.lastDropAt ? nextSlot(hotspot.lastDropAt, schedule, now) : now;
   if (nextDropAt && nextDropAt >= schedule.endsAt) nextDropAt = null;
 
+  const layerId = await checkLayer(ctx.db, artist.id, input.layerId, hotspot.layerId);
+  const look = await lookColumnsFor(ctx.db, artist.id, input.look);
   await ctx.db.hotspot.update({
     where: { id: hotspot.id },
     data: {
+      ...(look ? lookData(look) : {}),
       ...(input.title !== undefined ? { title: input.title.trim() } : {}),
+      ...(layerId !== undefined ? { layerId } : {}),
       template,
       ...schedule,
       ...(input.spotsPerDrop !== undefined ? { spotsPerDrop: input.spotsPerDrop } : {}),
@@ -317,6 +334,9 @@ export async function updateHotspot(
       nextDropAt,
     },
   });
+  // Changing the layer moves the drops already made, too.
+  if (layerId !== undefined && layerId !== hotspot.layerId)
+    await ctx.db.pin.updateMany({ where: { hotspotId: hotspot.id }, data: { layerId } });
   return { hotspotId: hotspot.id };
 }
 
@@ -386,11 +406,13 @@ async function placeDrop(
       radiusMeters: reach,
       spotCount: spots.length,
       eventId: null,
+      layerId: hotspot.layerId,
     };
     const { pinId } = await createPin(ctx, { id: hotspot.artistId }, input, now, {
       hotspotId: hotspot.id,
       spots,
       maxRadius: MAX_AREA_METERS,
+      look: copyLook(hotspot),
     });
     await ctx.db.hotspot.update({ where: { id: hotspot.id }, data: { lastDropAt: now } });
     return { hotspotId: hotspot.id, outcome: "DROPPED", pinId, spots: spots.length };

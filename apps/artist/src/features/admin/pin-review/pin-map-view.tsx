@@ -22,6 +22,7 @@ import { formatWhen } from "~/lib/datetime";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import { BaseMap, WORLD_VIEW } from "../../pins/map-kit/base-map";
+import { LayerTag } from "../../pins/layers/layer-tag";
 import { PinLegend, PinMarker, pinIcon, pinLook } from "../../pins/map-kit/pin-marker";
 import { PlaceSearch } from "../../pins/map-kit/place-search";
 import { MAPBOX_TOKEN } from "../../pins/mapbox";
@@ -79,32 +80,34 @@ export function PinMapView() {
     );
 
   return (
-    // The portal pads its pages; cancel that so the map fills the space beside the sidebar.
+    // The portal pads its pages; cancel that so the map fills the page. The canvas runs on
+    // under the floating sidebar, which shows it blurred; the overlays stay beside it.
     <div className="relative -mt-4 -mb-24 h-[calc(100dvh-3.75rem-env(safe-area-inset-bottom))] sm:mt-0 sm:-mb-12 sm:h-dvh">
-      <BaseMap
-        ref={map}
-        controlsPosition="bottom-left"
-        initialViewState={WORLD_VIEW}
-        onClick={() => setSelectedId(null)}
-      >
-        {pins.data?.pins.flatMap((pin) =>
-          pin.spotPoints.map((spot) => (
-            <PinMarker
-              key={`${pin.id}:${spot.id}`}
-              lat={spot.latitude}
-              lng={spot.longitude}
-              image={pin.imageUrl}
-              icon={pinIcon(pin.type)}
-              count={spot.collected}
-              label={`${pin.title} (${pin.artist.name})`}
-              look={pinLook(pin.status)}
-              autoCollect={spot.autoCollect}
-              selected={pin.id === selectedId}
-              onClick={() => setSelectedId(pin.id)}
-            />
-          )),
-        )}
-      </BaseMap>
+      <div className="absolute inset-y-0 right-0 left-0 sm:-left-(--side-w)">
+        <BaseMap
+          ref={map}
+          controlsPosition="bottom-left"
+          initialViewState={WORLD_VIEW}
+          onClick={() => setSelectedId(null)}
+        >
+          {pins.data?.pins.flatMap((pin) =>
+            pin.spotPoints.map((spot) => (
+              <PinMarker
+                key={`${pin.id}:${spot.id}`}
+                lat={spot.latitude}
+                lng={spot.longitude}
+                glyph={pin.look}
+                icon={pinIcon(pin.type)}
+                count={spot.collected}
+                label={`${pin.title} (${pin.artist.name})`}
+                look={pinLook(pin.status)}
+                selected={pin.id === selectedId}
+                onClick={() => setSelectedId(pin.id)}
+              />
+            )),
+          )}
+        </BaseMap>
+      </div>
 
       <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-wrap items-start gap-2 lg:inset-x-4 lg:top-4">
         <PlaceSearch
@@ -197,6 +200,7 @@ function PinCard({ pin, onClose }: { pin: Pin; onClose: () => void }) {
       >
         {pin.artist.name} <ExternalLink className="size-3" />
       </Link>
+      <LayerTag layer={pin.layer} />
       <p className="text-fg-muted text-sm">
         {formatWhen(pin.startsAt)} to {formatWhen(pin.endsAt)} ·{" "}
         <span className="num">{pin.collected} collected</span>

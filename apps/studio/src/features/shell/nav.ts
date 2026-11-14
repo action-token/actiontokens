@@ -10,6 +10,7 @@ import {
   Sparkles,
   Video,
   type LucideIcon,
+  Mic2,
 } from "lucide-react";
 
 /** The kinds of run the library knows (the server's GenerationType). */
@@ -52,15 +53,6 @@ export const NAV_GROUPS: { title: string; items: NavEntry[] }[] = [
   },
 ];
 
-/** Phones: the five used most. */
-export const PHONE_TABS: NavEntry[] = [
-  { href: "/", label: "Create", icon: Sparkles, exact: true },
-  TOOL_PAGES.IMAGE,
-  TOOL_PAGES.MUSIC,
-  { href: "/library", label: "Library", icon: Library },
-  { href: "/coins", label: "Coins", icon: Coins },
-];
-
 export const isActive = (entry: NavEntry, pathname: string) =>
   entry.exact
     ? pathname === entry.href
@@ -68,3 +60,20 @@ export const isActive = (entry: NavEntry, pathname: string) =>
 
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.bandcoin.io";
 export const ARTIST_URL = process.env.NEXT_PUBLIC_ARTIST_URL ?? "https://artist.bandcoin.io";
+/** The AR collector (set NEXT_PUBLIC_AR_URL in dev: http://localhost:3002). */
+export const AR_URL = process.env.NEXT_PUBLIC_AR_URL ?? "https://www.bandcoin.io";
+
+/**
+ * Phones: Create, Library | AR | Artist, Coins. The AR key is the bar's own; "Artist" is another app,
+ * so it opens artist.bandcoin.io and is never lit here.
+ */
+export const PHONE_TABS: { left: NavEntry[]; right: (NavEntry & { external?: boolean })[] } = {
+  left: [
+    { href: "/", label: "Create", icon: Sparkles, exact: true },
+    { href: "/library", label: "Library", icon: Library },
+  ],
+  right: [
+    { href: ARTIST_URL, label: "Artist", icon: Mic2, external: true },
+    { href: "/coins", label: "Coins", icon: Coins },
+  ],
+};

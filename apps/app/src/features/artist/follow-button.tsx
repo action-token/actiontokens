@@ -36,7 +36,7 @@ export function FollowButton({
   token?: { code: string; artistId: string } | null;
   onFollowers?: (followers: number, subscribers: number) => void;
   onStanding?: (standing: { following: boolean; subscribed: boolean }) => void;
-  /** A smaller button for lists; no Subscribe button */
+  /** A smaller button for lists; Subscribe shows there too when `token` is passed */
   compact?: boolean;
   /** On a dark photo (the artist banner): light text */
   onDark?: boolean;
@@ -55,7 +55,7 @@ export function FollowButton({
     },
     onError: (error) => toast.error(error.message),
   });
-  const canSubscribe = !compact && following && !subscribed && token !== null;
+  const canSubscribe = following && !subscribed && token !== null;
 
   return (
     <>
@@ -81,7 +81,7 @@ export function FollowButton({
       </Button>
       {canSubscribe && (
         <Button
-          className="h-10 rounded-full px-5"
+          className={compact ? "h-8 rounded-full px-3 text-xs" : "h-10 rounded-full px-5"}
           onClick={() => token && setOffer({ code: token.code, artistId: token.artistId })}
         >
           Subscribe

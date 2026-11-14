@@ -18,6 +18,7 @@ import {
   MAX_TRACKS,
   mixLength,
   type MixClip,
+  type MixEq,
   type MixProject,
   type MixTrack,
   moveTo,
@@ -126,7 +127,8 @@ export function useMixer() {
     if (mixLength(current.tracks) === 0) return;
     const start = from >= mixLength(current.tracks) ? 0 : from;
     try {
-      await sound().play(current.tracks, start, current.masterVolume, () => {
+      const master = { volume: current.masterVolume, eq: current.masterEq };
+      await sound().play(current.tracks, start, master, () => {
         if (loopRef.current) return void play(0);
         setPlaying(false);
         setTime(0);
@@ -343,7 +345,10 @@ export function useMixer() {
   async function exportWav() {
     setExporting(true);
     try {
-      const blob = await sound().exportWav(project.tracks, project.masterVolume);
+      const blob = await sound().exportWav(project.tracks, {
+        volume: project.masterVolume,
+        eq: project.masterEq,
+      });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = `${name.trim() || "bandcoin-mix"}.wav`;
@@ -387,7 +392,10 @@ export function useMixer() {
     try {
       setPublishing("Rendering the mix…");
       const mixUrl = await uploadBlob(
-        await sound().exportWav(project.tracks, project.masterVolume),
+        await sound().exportWav(project.tracks, {
+          volume: project.masterVolume,
+          eq: project.masterEq,
+        }),
         `${base}.wav`,
       );
       const stems = [];
@@ -527,6 +535,15 @@ export function useMixer() {
         tracks: current.tracks.filter((track) => track.id !== trackId),
       }));
       if (selected?.trackId === trackId) setSelected(null);
+    },
+    /** The whole mix's EQ: heard at once while playing, saved with the project. */
+    setMasterEq: (eq: MixEq) => {
+      engine.current?.setMasterEq(eq);
+      change((current) => ({ ...current, masterEq: eq }), "masterEq");
+    },
+    setTrackEq: (trackId: string, eq: MixEq) => {
+      engine.current?.setTrackEq(trackId, eq);
+      editTrack(trackId, (track) => ({ ...track, eq }), `${trackId}:eq`);
     },
     setMasterVolume: (volume: number) => {
       engine.current?.setMasterVolume(volume);

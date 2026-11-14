@@ -34,7 +34,11 @@ describe("admin stories", () => {
       },
     ]);
     expect(await listLiveStories(ctx, now)).toEqual([
-      expect.objectContaining({ id: "s1", views: 4, artist: expect.objectContaining({ name: "DJ Tamsin" }) }),
+      expect.objectContaining({
+        id: "s1",
+        views: 4,
+        artist: expect.objectContaining({ name: "DJ Tamsin" }),
+      }),
     ]);
     expect(db.story.findMany).toHaveBeenCalledWith(
       expect.objectContaining({

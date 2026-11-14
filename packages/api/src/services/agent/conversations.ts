@@ -278,7 +278,7 @@ export async function confirmAction(
   ctx: ServiceCtx,
   artist: ArtistRef,
   user: SessionUser,
-  input: { actionId: string; edits?: ActionEdits },
+  input: { actionId: string; edits?: ActionEdits; layerId?: string | null },
 ) {
   const action = await ctx.db.agentAction.findFirst({
     where: { id: input.actionId, artistId: artist.id, conversation: { userId: user.id } },
@@ -302,6 +302,7 @@ export async function confirmAction(
       artist,
       action.payload as unknown as ProposedAction,
       input.edits,
+      input.layerId ?? null,
     );
     await ctx.db.agentAction.update({ where: { id: action.id }, data: { status: "done", result } });
     return { status: "done" as const, ...result };

@@ -104,12 +104,16 @@ export async function artistDirectory(
           stories: { where: { removedAt: null, expiresAt: { gt: now } } },
         },
       },
-      followers: { where: { userId: viewerId ?? "" }, select: { userId: true } },
+      followers: {
+        where: { userId: viewerId ?? "" },
+        select: { userId: true, isTemporary: true },
+      },
     },
   });
   const page = rows.slice(0, options.limit);
   return {
     artists: page.map((artist) => ({
+      id: artist.id,
       name: artist.name,
       slug: artist.slug,
       bio: artist.bio,
@@ -121,6 +125,8 @@ export async function artistDirectory(
       songs: artist._count.items,
       liveStories: artist._count.stories,
       following: artist.followers.length > 0,
+      /** The viewer also trusts the artist's fan token (a follow that isn't "just a follower") */
+      subscribed: artist.followers.some((follow) => !follow.isTemporary),
     })),
     next: rows.length > options.limit ? (page.at(-1)?.id ?? null) : null,
   };

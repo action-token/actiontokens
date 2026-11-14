@@ -22,9 +22,10 @@ const MEMBERS = "MEMBERS" as const;
 export const accessChoiceOf = (saved?: { kind: string; tierId: string | null }): AccessChoice =>
   saved?.kind === "TIER" && saved.tierId ? saved.tierId : (saved?.kind ?? PUBLIC);
 
-export function accessInput(
-  choice: AccessChoice,
-): { kind: "PUBLIC" | "MEMBERS" | "TIER"; tierId?: string } {
+export function accessInput(choice: AccessChoice): {
+  kind: "PUBLIC" | "MEMBERS" | "TIER";
+  tierId?: string;
+} {
   if (choice === PUBLIC || choice === MEMBERS) return { kind: choice };
   return { kind: "TIER", tierId: choice };
 }

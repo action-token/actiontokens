@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Copy, Link2 } from "lucide-react";
-import { useCallback, useState, type ReactNode } from "react";
+import { useCallback, useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
@@ -12,6 +12,7 @@ import { api, type RouterOutputs } from "~/trpc/react";
 
 import { VANITY_HOST } from "./host";
 import { NameField } from "./name-field";
+import { PanelCard as Card, PanelSection as Section } from "./panel-card";
 import { PayPanel } from "./pay-panel";
 
 type Overview = RouterOutputs["vanity"]["overview"];
@@ -167,18 +168,6 @@ function Price({ amount }: { amount: Overview["prices"]["monthly"] }) {
   ) : (
     <b>a small fee</b>
   );
-}
-
-function Card({ children }: { children: ReactNode }) {
-  return (
-    <section className="bg-surface grid content-start gap-5 rounded-[1.4rem] border-2 p-5 sm:p-6">
-      {children}
-    </section>
-  );
-}
-
-function Section({ children }: { children: ReactNode }) {
-  return <div className="grid gap-4 border-t pt-5">{children}</div>;
 }
 
 function CopyButton({ text }: { text: string }) {

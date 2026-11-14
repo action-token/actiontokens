@@ -41,7 +41,7 @@ export function DeleteAccountPanel() {
           onChange={(event) => setWord(event.target.value)}
           autoComplete="off"
           autoCapitalize="characters"
-          className="bg-white/[0.04] text-ar-text border-ar-line rounded-ar h-11 border px-3 text-[14px]"
+          className="text-ar-text border-ar-line rounded-ar h-11 border bg-white/[0.04] px-3 text-[14px]"
         />
       </label>
       {remove.error && (

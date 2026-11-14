@@ -1,12 +1,24 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import {
+  BellRing,
+  Gem,
+  Link2,
+  Loader2,
+  MapPin,
+  Percent,
+  Sparkles,
+  UserPlus,
+  type LucideIcon,
+} from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Input } from "@bandcoin/ui/components/input";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
+import { cn } from "@bandcoin/ui/lib/cn";
 import { ErrorState } from "@bandcoin/ui/patterns/error-state";
 import { Field } from "@bandcoin/ui/patterns/form-page";
 import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
@@ -14,8 +26,8 @@ import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import { messageOf } from "../murals/model";
-import { SettingsSection } from "../../settings/settings-section";
 import { ContractFeeCard } from "./contract-fee-card";
+import { SettingCard, UnitInput } from "./setting-card";
 import { StudioCard } from "./studio-card";
 
 type Saved = RouterOutputs["admin"]["settings"]["get"]["saved"];
@@ -77,18 +89,40 @@ function errorsOf(form: Form) {
   return errors;
 }
 
-/** Admin › Settings: the platform fee, short link prices, the pin radius and alert thresholds, then the contract-NFT fee. */
+type TabId = "fees" | "prices" | "map" | "alerts" | "nft" | "studio";
+const TABS: { id: TabId; label: string; icon: LucideIcon }[] = [
+  { id: "fees", label: "Fees", icon: Percent },
+  { id: "prices", label: "Prices", icon: Link2 },
+  { id: "map", label: "Map & artists", icon: MapPin },
+  { id: "alerts", label: "Alerts", icon: BellRing },
+  { id: "nft", label: "Contract NFT", icon: Gem },
+  { id: "studio", label: "Studio", icon: Sparkles },
+];
+/** Which tab each form field lives on (so a tab can show it has a mistake). */
+const TAB_OF: Partial<Record<keyof Form, TabId>> = {
+  platformFeeBps: "fees",
+  platformFeeRecipient: "fees",
+  vanityMonthlyBandcoin: "prices",
+  vanityMonthlyUsd: "prices",
+  vanityNameChangeBandcoin: "prices",
+  vanityNameChangeUsd: "prices",
+  nearbyPinRadiusMeters: "map",
+  fanTokenStartSupply: "map",
+  ...Object.fromEntries(RULES.map((rule) => [rule.key, "alerts" as const])),
+};
+
+/** Admin › Settings: tabs of cards, and a floating bar that saves what changed. */
 export function AdminSettingsView() {
   const settings = api.admin.settings.get.useQuery(undefined, { refetchOnWindowFocus: false });
   return (
-    <PageBody className="grid gap-8">
+    <PageBody className="grid gap-6">
       <PageHeader
         eyebrow="Admin"
         title="Settings"
         description="Fees and prices for the whole of Bandcoin. Every change is in the activity log."
       />
       {settings.isPending ? (
-        <Skeleton className="h-96 w-full rounded-xl" />
+        <Skeleton className="h-96 w-full rounded-[1.75rem]" />
       ) : settings.isError ? (
         <ErrorState message="Couldn't load the settings." onRetry={() => void settings.refetch()} />
       ) : (
@@ -98,8 +132,6 @@ export function AdminSettingsView() {
           treasury={settings.data.treasury}
         />
       )}
-      <ContractFeeCard />
-      <StudioCard />
     </PageBody>
   );
 }
@@ -108,7 +140,6 @@ function SavedForm({ saved, treasury }: { saved: Saved; treasury: string }) {
   const utils = api.useUtils();
   const [form, setForm] = useState(() => toForm(saved));
   const errors = errorsOf(form);
-  const dirty = JSON.stringify(form) !== JSON.stringify(toForm(saved));
   const set = (key: keyof Form) => (event: { target: { value: string } }) =>
     setForm((prev) => ({ ...prev, [key]: event.target.value }));
   const update = api.admin.settings.update.useMutation({
@@ -124,181 +155,245 @@ function SavedForm({ saved, treasury }: { saved: Saved; treasury: string }) {
   });
   const money = (key: (typeof MONEY_FIELDS)[number]) => form[key].trim() || null;
 
+  const [tab, setTab] = useState<TabId>("fees");
+  const changed = (Object.keys(form) as (keyof Form)[]).filter(
+    (key) => form[key] !== toForm(saved)[key],
+  );
+  const badTabs = new Set(
+    (Object.keys(errors) as (keyof Form)[]).map((key) => TAB_OF[key]).filter(Boolean),
+  );
+  const changedTabs = new Set(changed.map((key) => TAB_OF[key]).filter(Boolean));
+  const input = (id: string, key: keyof Form, unit?: string, className?: string) =>
+    unit ? (
+      <UnitInput
+        id={id}
+        unit={unit}
+        inputMode="decimal"
+        value={form[key]}
+        onChange={set(key)}
+        className={className}
+      />
+    ) : (
+      <Input
+        id={id}
+        inputMode="numeric"
+        value={form[key]}
+        onChange={set(key)}
+        className={className}
+      />
+    );
+
   return (
-    <form
-      className="grid gap-8"
-      onSubmit={(event) => {
-        event.preventDefault();
-        if (Object.keys(errors).length) return;
-        update.mutate({
-          platformFeeBps: Math.round(Number(form.platformFeeBps) * 100),
-          platformFeeRecipient: form.platformFeeRecipient.trim() || null,
-          vanityMonthlyBandcoin: money("vanityMonthlyBandcoin"),
-          vanityMonthlyUsd: money("vanityMonthlyUsd"),
-          vanityNameChangeBandcoin: money("vanityNameChangeBandcoin"),
-          vanityNameChangeUsd: money("vanityNameChangeUsd"),
-          nearbyPinRadiusMeters: Number(form.nearbyPinRadiusMeters),
-          fanTokenStartSupply: form.fanTokenStartSupply.trim(),
-          alertRules: Object.fromEntries(
-            RULES.map((rule) => [rule.key, Number(form[rule.key])]),
-          ) as Rules,
-        });
-      }}
-    >
-      <SettingsSection
-        title="Platform fee"
-        description="What Bandcoin takes from each song, item and membership sale. Contract NFTs use the contract's own fee, below."
+    <div className="grid gap-6 pb-24">
+      <form
+        className="grid gap-6"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (Object.keys(errors).length) return;
+          update.mutate({
+            platformFeeBps: Math.round(Number(form.platformFeeBps) * 100),
+            platformFeeRecipient: form.platformFeeRecipient.trim() || null,
+            vanityMonthlyBandcoin: money("vanityMonthlyBandcoin"),
+            vanityMonthlyUsd: money("vanityMonthlyUsd"),
+            vanityNameChangeBandcoin: money("vanityNameChangeBandcoin"),
+            vanityNameChangeUsd: money("vanityNameChangeUsd"),
+            nearbyPinRadiusMeters: Number(form.nearbyPinRadiusMeters),
+            fanTokenStartSupply: form.fanTokenStartSupply.trim(),
+            alertRules: Object.fromEntries(
+              RULES.map((rule) => [rule.key, Number(form[rule.key])]),
+            ) as Rules,
+          });
+        }}
       >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-[8rem_minmax(0,1fr)]">
-          <Field label="Fee (%)" htmlFor="fee" error={errors.platformFeeBps}>
-            <Input
-              id="fee"
-              inputMode="decimal"
-              value={form.platformFeeBps}
-              onChange={set("platformFeeBps")}
-            />
-          </Field>
-          <Field
-            label="Goes to"
-            htmlFor="fee-to"
-            error={errors.platformFeeRecipient}
-            hint="Empty: the platform treasury"
+        {/* the same tabs as every other page: Tabs with the line list */}
+        <Tabs value={tab} onValueChange={(value) => setTab(value as TabId)}>
+          <TabsList variant="line" className="w-full justify-start overflow-x-auto border-b">
+            {TABS.map((entry) => (
+              <TabsTrigger key={entry.id} value={entry.id} className="flex-none">
+                <entry.icon />
+                {entry.label}
+                {badTabs.has(entry.id) ? (
+                  <span aria-label="Needs a fix" className="bg-danger size-2 rounded-full" />
+                ) : (
+                  changedTabs.has(entry.id) && (
+                    <span aria-label="Unsaved" className="bg-primary-text size-2 rounded-full" />
+                  )
+                )}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+
+        <div role="tabpanel" id="panel-fees" aria-labelledby="tab-fees" hidden={tab !== "fees"}>
+          <SettingCard
+            icon={Percent}
+            title="Platform fee"
+            description="What Bandcoin takes from each song, item and membership sale. Contract NFTs use the contract's own fee, on the Contract NFT tab."
           >
-            <Input
-              id="fee-to"
-              value={form.platformFeeRecipient}
-              placeholder={treasury}
-              spellCheck={false}
-              className="font-mono text-xs"
-              onChange={(event) =>
-                setForm((prev) => ({
-                  ...prev,
-                  platformFeeRecipient: event.target.value.toUpperCase(),
-                }))
-              }
-            />
-          </Field>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[10rem_minmax(0,1fr)]">
+              <Field label="Fee" htmlFor="fee" error={errors.platformFeeBps}>
+                {input("fee", "platformFeeBps", "%")}
+              </Field>
+              <Field
+                label="Goes to"
+                htmlFor="fee-to"
+                error={errors.platformFeeRecipient}
+                hint="Empty: the platform treasury"
+              >
+                <Input
+                  id="fee-to"
+                  value={form.platformFeeRecipient}
+                  placeholder={treasury}
+                  spellCheck={false}
+                  className="font-mono text-xs"
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      platformFeeRecipient: event.target.value.toUpperCase(),
+                    }))
+                  }
+                />
+              </Field>
+            </div>
+          </SettingCard>
         </div>
-      </SettingsSection>
 
-      <SettingsSection
-        title="Short link prices"
-        description="What an artist pays for a bandcoin.io/name link. Until both prices of a kind are set, artists can't pay for it."
-      >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="Monthly, BANDCOIN" htmlFor="vm-b" error={errors.vanityMonthlyBandcoin}>
-            <Input
-              id="vm-b"
-              inputMode="decimal"
-              value={form.vanityMonthlyBandcoin}
-              onChange={set("vanityMonthlyBandcoin")}
-            />
-          </Field>
-          <Field label="Monthly, USD" htmlFor="vm-u" error={errors.vanityMonthlyUsd}>
-            <Input
-              id="vm-u"
-              inputMode="decimal"
-              value={form.vanityMonthlyUsd}
-              onChange={set("vanityMonthlyUsd")}
-            />
-          </Field>
-          <Field
-            label="Name change, BANDCOIN"
-            htmlFor="vn-b"
-            error={errors.vanityNameChangeBandcoin}
-          >
-            <Input
-              id="vn-b"
-              inputMode="decimal"
-              value={form.vanityNameChangeBandcoin}
-              onChange={set("vanityNameChangeBandcoin")}
-            />
-          </Field>
-          <Field label="Name change, USD" htmlFor="vn-u" error={errors.vanityNameChangeUsd}>
-            <Input
-              id="vn-u"
-              inputMode="decimal"
-              value={form.vanityNameChangeUsd}
-              onChange={set("vanityNameChangeUsd")}
-            />
-          </Field>
-        </div>
-      </SettingsSection>
-
-      <SettingsSection
-        title="Nearby pins"
-        description="How close a fan has to be for a pin to count as nearby."
-      >
-        <Field label="Radius (m)" htmlFor="radius" error={errors.nearbyPinRadiusMeters}>
-          <Input
-            id="radius"
-            inputMode="numeric"
-            className="sm:w-40"
-            value={form.nearbyPinRadiusMeters}
-            onChange={set("nearbyPinRadiusMeters")}
-          />
-        </Field>
-      </SettingsSection>
-
-      <SettingsSection
-        title="New artists"
-        description="When you approve an artist, Bandcoin opens their storage account (about 3 XLM from the platform) and issues this many of their fan token into it."
-      >
-        <Field
-          label="Starting fan tokens"
-          htmlFor="start-supply"
-          error={errors.fanTokenStartSupply}
+        <div
+          role="tabpanel"
+          id="panel-prices"
+          aria-labelledby="tab-prices"
+          hidden={tab !== "prices"}
         >
-          <Input
-            id="start-supply"
-            inputMode="numeric"
-            className="sm:w-48"
-            value={form.fanTokenStartSupply}
-            onChange={set("fanTokenStartSupply")}
-          />
-        </Field>
-      </SettingsSection>
+          <SettingCard
+            icon={Link2}
+            title="Short link prices"
+            description="What an artist pays for a bandcoin.io/name link. Until both prices of a kind are set, artists can't pay for it."
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="bg-surface-2 grid gap-4 rounded-2xl p-4">
+                <p className="display text-lg">Monthly</p>
+                <Field label="In BANDCOIN" htmlFor="vm-b" error={errors.vanityMonthlyBandcoin}>
+                  {input("vm-b", "vanityMonthlyBandcoin", "BANDCOIN")}
+                </Field>
+                <Field label="In dollars" htmlFor="vm-u" error={errors.vanityMonthlyUsd}>
+                  {input("vm-u", "vanityMonthlyUsd", "USD")}
+                </Field>
+              </div>
+              <div className="bg-surface-2 grid gap-4 rounded-2xl p-4">
+                <p className="display text-lg">Name change</p>
+                <Field label="In BANDCOIN" htmlFor="vn-b" error={errors.vanityNameChangeBandcoin}>
+                  {input("vn-b", "vanityNameChangeBandcoin", "BANDCOIN")}
+                </Field>
+                <Field label="In dollars" htmlFor="vn-u" error={errors.vanityNameChangeUsd}>
+                  {input("vn-u", "vanityNameChangeUsd", "USD")}
+                </Field>
+              </div>
+            </div>
+          </SettingCard>
+        </div>
 
-      <SettingsSection
-        title="Alert thresholds"
-        description="When something shows up on the Alerts page."
-      >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {RULES.map((rule) => (
-            <Field
-              key={rule.key}
-              label={rule.label}
-              htmlFor={`rule-${rule.key}`}
-              error={errors[rule.key]}
-            >
-              <Input
-                id={`rule-${rule.key}`}
-                inputMode="numeric"
-                value={form[rule.key]}
-                onChange={set(rule.key)}
-              />
+        <div
+          role="tabpanel"
+          id="panel-map"
+          aria-labelledby="tab-map"
+          hidden={tab !== "map"}
+          className="grid gap-5 lg:grid-cols-2"
+        >
+          <SettingCard
+            icon={MapPin}
+            title="Nearby pins"
+            description="How close a fan has to be for a pin to count as nearby."
+          >
+            <Field label="Radius" htmlFor="radius" error={errors.nearbyPinRadiusMeters}>
+              {input("radius", "nearbyPinRadiusMeters", "m")}
             </Field>
-          ))}
+          </SettingCard>
+          <SettingCard
+            icon={UserPlus}
+            title="New artists"
+            description="When you approve an artist, Bandcoin opens their storage account (about 3 XLM from the platform) and issues this many of their fan token into it."
+          >
+            <Field
+              label="Starting fan tokens"
+              htmlFor="start-supply"
+              error={errors.fanTokenStartSupply}
+            >
+              {input("start-supply", "fanTokenStartSupply")}
+            </Field>
+          </SettingCard>
         </div>
-      </SettingsSection>
 
-      <div className="flex justify-end gap-2 border-t pt-4">
-        <Button
-          type="button"
-          variant="ghost"
-          disabled={!dirty || update.isPending}
-          onClick={() => setForm(toForm(saved))}
+        <div
+          role="tabpanel"
+          id="panel-alerts"
+          aria-labelledby="tab-alerts"
+          hidden={tab !== "alerts"}
         >
-          Undo changes
-        </Button>
-        <Button
-          type="submit"
-          disabled={!dirty || update.isPending || Object.keys(errors).length > 0}
+          <SettingCard
+            icon={BellRing}
+            title="Alert thresholds"
+            description="When something shows up on the Alerts page."
+          >
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {RULES.map((rule) => (
+                <Field
+                  key={rule.key}
+                  label={rule.label}
+                  htmlFor={`rule-${rule.key}`}
+                  error={errors[rule.key]}
+                >
+                  {input(`rule-${rule.key}`, rule.key)}
+                </Field>
+              ))}
+            </div>
+          </SettingCard>
+        </div>
+
+        {/* the save bar: floats at the bottom, only while something has changed */}
+        <div
+          aria-hidden={changed.length === 0}
+          className={cn(
+            "pointer-events-none fixed inset-x-0 bottom-[calc(var(--phone-bar-space,0px)+1rem)] z-30 flex justify-center px-4 transition-all duration-300 sm:pl-(--side-w)",
+            changed.length ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
+          )}
         >
-          {update.isPending && <Loader2 className="animate-spin" />}
-          Save
-        </Button>
+          <div className="bg-[#16170f] pointer-events-auto flex items-center gap-3 rounded-full py-2 pr-2 pl-5 text-[#f3f4ea] shadow-[0_20px_40px_-12px_rgb(0_0_0/0.5)]">
+            <span className="text-sm font-semibold">
+              {changed.length} unsaved {changed.length === 1 ? "change" : "changes"}
+              {Object.keys(errors).length > 0 && (
+                <span className="text-danger"> · fix the red ones</span>
+              )}
+            </span>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              tabIndex={changed.length ? 0 : -1}
+              disabled={update.isPending}
+              onClick={() => setForm(toForm(saved))}
+              className="rounded-full text-[#f3f4ea] hover:bg-white/10 hover:text-white"
+            >
+              Undo
+            </Button>
+            <Button
+              type="submit"
+              size="sm"
+              tabIndex={changed.length ? 0 : -1}
+              disabled={update.isPending || Object.keys(errors).length > 0}
+              className="rounded-full"
+            >
+              {update.isPending && <Loader2 className="animate-spin" />}
+              Save
+            </Button>
+          </div>
+        </div>
+      </form>
+      <div role="tabpanel" id="panel-nft" aria-labelledby="tab-nft" hidden={tab !== "nft"}>
+        {tab === "nft" && <ContractFeeCard />}
       </div>
-    </form>
+      <div role="tabpanel" id="panel-studio" aria-labelledby="tab-studio" hidden={tab !== "studio"}>
+        {tab === "studio" && <StudioCard />}
+      </div>
+    </div>
   );
 }

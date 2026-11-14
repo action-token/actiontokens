@@ -32,6 +32,7 @@ const KIND: Record<string, string> = {
   "nft.keep-alive": "NFT records kept alive",
   "hotspot.drop": "Hotspot drops",
   "vanity.expire": "Short links",
+  "domains.check": "Custom domains",
   "studio.music": "Studio music",
   "studio.sweep": "Studio clean-up",
 };

@@ -15,7 +15,9 @@ describe("Studio navigation", () => {
     const hrefs = NAV_GROUPS.flatMap((group) => group.items.map((item) => item.href));
     expect(new Set(hrefs).size).toBe(hrefs.length);
     for (const page of Object.values(TOOL_PAGES)) expect(hrefs).toContain(page.href);
-    expect(PHONE_TABS).toHaveLength(5);
+    expect(PHONE_TABS.left.map((t) => t.label)).toEqual(["Create", "Library"]);
+    expect(PHONE_TABS.right.map((t) => t.label)).toEqual(["Artist", "Coins"]);
+    expect(PHONE_TABS.right[0]).toMatchObject({ external: true });
   });
 
   it("marks Create only on the home page, and a tool on its page", () => {

@@ -25,6 +25,8 @@ if (chain.config.name !== "testnet") throw new Error("Testnet only");
 const mother = chain.config.mother;
 if (!mother || !process.env.MOTHER_SECRET) throw new Error("MOTHER_SECRET is needed on testnet");
 
+// TRUST_CURRENCY=XLM pays only the fee and locks the fan's own 0.5 XLM.
+const currency: "XLM" | "BANDCOIN" = process.env.TRUST_CURRENCY === "XLM" ? "XLM" : "BANDCOIN";
 const friendbot = (key: string) => fetch(`https://friendbot.stellar.org/?addr=${key}`);
 const issuerKeys = Keypair.random();
 const fanKeys = Keypair.random();
@@ -117,7 +119,7 @@ const caller = createCallerFactory(appRouter)(
 
 try {
   const token = new Asset(code, issuerKeys.publicKey());
-  const input = { kind: "TOKEN_TRUST" as const, artistId: artist.id };
+  const input = { kind: "TOKEN_TRUST" as const, artistId: artist.id, currency };
   const [bandBefore, xlmBefore, motherBefore] = await Promise.all([
     balanceOf(fanKeys.publicKey(), bandcoin),
     balanceOf(fanKeys.publicKey()),
@@ -130,8 +132,11 @@ try {
     quote.ok ? "ok" : quote.problems,
     "pay",
     quote.total,
-    "BANDCOIN for",
-    quote.receiveXlm,
+    currency,
+    "(fee",
+    quote.fee,
+    ") and receive",
+    quote.sendXlm,
     "XLM",
   );
   const started = await caller.recharge.start(input);
