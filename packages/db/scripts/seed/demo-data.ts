@@ -1,11 +1,27 @@
 /**
  * Demo content for the dev database. Everything here is invented; names are
- * deliberately fictional. Covers are placeholder photos and audio is the
+ * deliberately fictional. Covers are generated placeholder art kept in our own bucket
+ * (testnet/shared/demo/, so dev never depends on an outside photo site) and audio is the
  * royalty-free SoundHelix set, so players and cards have something real to load.
  */
+import { createHash } from "node:crypto";
 
-export const cover = (seed: string, size = 800) =>
-  `https://picsum.photos/seed/bandcoin-${seed}/${size}/${size}`;
+/** Where the demo art lives. Override with DEMO_ASSET_BASE to serve it from somewhere else. */
+const DEMO_ASSET_BASE =
+  process.env.DEMO_ASSET_BASE ?? "https://bandcoin.s3.us-west-2.amazonaws.com/testnet/shared/demo";
+const SQUARE_COUNT = 12;
+const BANNER_COUNT = 6;
+
+/** The same seed always gets the same picture (1..count). */
+const pick = (seed: string, count: number) =>
+  String((createHash("sha1").update(seed).digest().readUInt32BE(0) % count) + 1).padStart(2, "0");
+
+/** A square demo cover. `size` is kept so callers read the same; the picture scales in the page. */
+export const cover = (seed: string, _size = 800) =>
+  `${DEMO_ASSET_BASE}/cover-${pick(`bandcoin-${seed}`, SQUARE_COUNT)}.jpg`;
+/** A wide demo banner. */
+export const banner = (seed: string) =>
+  `${DEMO_ASSET_BASE}/banner-${pick(`bandcoin-${seed}`, BANNER_COUNT)}.jpg`;
 export const audio = (n: number) =>
   `https://www.soundhelix.com/examples/mp3/SoundHelix-Song-${n}.mp3`;
 

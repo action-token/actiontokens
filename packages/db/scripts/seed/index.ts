@@ -21,6 +21,7 @@ import {
   STUDIO_PACKAGES,
   STUDIO_PRICES,
   audio,
+  banner,
   cover,
   musicBounty,
   nudge,
@@ -170,7 +171,7 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
       bio: demo.bio,
       status: "APPROVED",
       avatarUrl: cover(`${demo.slug}-avatar`, 400),
-      coverUrl: `https://picsum.photos/seed/bandcoin-${demo.slug}-cover/1600/500`,
+      coverUrl: banner(`${demo.slug}-cover`),
     },
   });
 
