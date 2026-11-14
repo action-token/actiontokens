@@ -1,11 +1,11 @@
 export type ContextPanelKind = "music" | "bounties";
 
 /**
- * What the right panel shows: the bounties list has its own, Home has what's
- * playing while a song is loaded. Everywhere else, and Home with nothing
- * playing, uses the full width.
+ * What the right panel shows: the bounties list has its own; every other page has what's playing
+ * once a song is loaded (the rail starts closed, so a page only gives up a slim strip). With
+ * nothing playing, a page uses the full width.
  */
 export function contextPanelFor(pathname: string, hasTrack: boolean): ContextPanelKind | null {
   if (pathname === "/bounties") return "bounties";
-  return pathname === "/" && hasTrack ? "music" : null;
+  return hasTrack ? "music" : null;
 }
