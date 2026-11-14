@@ -10,6 +10,7 @@ import {
   SkipForward,
   Volume2,
   VolumeX,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
@@ -39,8 +40,18 @@ const listeningSession = () => (session ??= crypto.randomUUID());
  * track's URL is fetched ahead so skipping doesn't wait.
  */
 export function PlayerBar() {
-  const { queue, index, playing, toggle, setPlaying, next, previous, fullOpen, setFullOpen } =
-    usePlayer();
+  const {
+    queue,
+    index,
+    playing,
+    toggle,
+    setPlaying,
+    next,
+    previous,
+    fullOpen,
+    setFullOpen,
+    dismiss,
+  } = usePlayer();
   const track = currentTrack({ queue, index });
   const upNext = queue[index + 1];
   const audio = useRef<HTMLAudioElement>(null);
@@ -153,7 +164,7 @@ export function PlayerBar() {
         role="region"
         aria-label="Player"
         className={cn(
-          "bg-surface sm:bg-surface/95 pointer-events-auto relative z-10 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t px-4 py-1.5 max-sm:pb-[2.5rem] sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_auto] sm:rounded-[1.5rem] sm:border sm:px-5 sm:py-2 sm:shadow-[0_20px_40px_-14px_rgb(0_0_0/0.45)] sm:backdrop-blur",
+          "bg-surface sm:bg-surface/95 pointer-events-auto relative z-10 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t px-4 py-1.5 max-sm:pb-[2.5rem] sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:rounded-[1.5rem] sm:border sm:px-5 sm:py-2 sm:shadow-[0_20px_40px_-14px_rgb(0_0_0/0.45)] sm:backdrop-blur",
           // Open: the bar is the drawer's foot, one surface with it, so no line between them.
           fullOpen && "max-sm:border-t-transparent",
         )}
@@ -199,20 +210,44 @@ export function PlayerBar() {
           />
         </div>
 
-        {/* Wide screens link to the song; on a phone, tapping the bar opens the full player. */}
-        <Link href={`/item/${track.slug}`} className="hidden min-w-0 items-center gap-3 sm:flex">
-          {info}
-        </Link>
-        <button
-          type="button"
-          onClick={() => setFullOpen(!fullOpen)}
-          aria-label={`${fullOpen ? "Close" : "Open"} the player: ${track.title}`}
-          className="flex min-w-0 items-center gap-3 text-left sm:hidden"
+        {/* Wide screens: the seek line runs the full width of the card's top edge, like YouTube
+            Music. It is clipped to the card's rounded outline, so it follows the corners. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 hidden overflow-hidden rounded-[1.5rem] sm:block"
         >
-          {info}
-        </button>
+          <div className="bg-fg/15 absolute inset-x-0 top-0 h-1" />
+          <div
+            className="bg-primary absolute top-0 left-0 h-1"
+            style={{ width: `${progressPercent(current, duration)}%` }}
+          />
+        </div>
+        {/* The playhead dot sits on the top edge (outside the clip, so it isn't cut in half), and
+            the invisible range input covers the line plus a little room to grab. Drag or click to
+            jump. */}
+        <div className="group absolute inset-x-0 top-0 hidden h-1 sm:block">
+          <span
+            aria-hidden
+            className="bg-primary absolute top-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full shadow-sm transition-transform group-hover:scale-125"
+            style={{
+              // Kept off the very ends so it doesn't float past the card's rounded corners
+              left: `clamp(0.75rem, ${progressPercent(current, duration)}%, calc(100% - 0.75rem))`,
+            }}
+          />
+          <input
+            type="range"
+            aria-label="Seek"
+            min={0}
+            max={duration || 0}
+            step={0.5}
+            value={Math.min(current, duration || 0)}
+            onChange={(event) => seek(Number(event.target.value))}
+            className="absolute inset-x-0 -top-1.5 h-4 w-full cursor-pointer opacity-0"
+          />
+        </div>
 
-        <div className="grid justify-items-center gap-0.5">
+        {/* Left: previous, play/pause, next and the time. On a phone this sits right of the song. */}
+        <div className="flex items-center gap-3 max-sm:order-1">
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -261,25 +296,29 @@ export function PlayerBar() {
               />
             </Button>
           </div>
-          <div className="num text-fg-faint hidden w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 text-[10px] leading-none sm:grid">
-            <span>{clock(current)}</span>
-            <input
-              type="range"
-              aria-label="Seek"
-              min={0}
-              max={duration || 0}
-              step={0.5}
-              value={Math.min(current, duration || 0)}
-              onChange={(event) => seek(Number(event.target.value))}
-              className="accent-fg h-1 w-full cursor-pointer"
-            />
-            <span>{clock(duration)}</span>
-          </div>
+          <span className="num text-fg-faint hidden text-xs whitespace-nowrap sm:block">
+            {clock(current)} / {clock(duration)}
+          </span>
         </div>
+
+        {/* Wide screens link to the song; on a phone, tapping the bar opens the full player. */}
+        <div className="hidden min-w-0 items-center justify-center gap-4 sm:flex">
+          <Link href={`/item/${track.slug}`} className="flex min-w-0 items-center gap-3">
+            {info}
+          </Link>
+          <ReactionButtons itemId={track.id} showCounts={false} />
+        </div>
+        <button
+          type="button"
+          onClick={() => setFullOpen(!fullOpen)}
+          aria-label={`${fullOpen ? "Close" : "Open"} the player: ${track.title}`}
+          className="flex min-w-0 items-center gap-3 text-left sm:hidden"
+        >
+          {info}
+        </button>
 
         {/* Sized to its content, so the song and the seek bar shrink instead of the buttons spilling out */}
         <div className="hidden items-center justify-end gap-1 sm:flex">
-          <ReactionButtons itemId={track.id} showCounts={false} />
           {stemsButton}
           {(preview || previewEnded) && (
             <Link
@@ -304,7 +343,28 @@ export function PlayerBar() {
             aria-label={muted ? "Unmute" : "Mute"}
             onClick={() => setMuted((value) => !value)}
           >
-            {muted ? <VolumeX /> : <Volume2 />}
+            {muted || volume === 0 ? <VolumeX /> : <Volume2 />}
+          </Button>
+          <input
+            type="range"
+            aria-label="Volume"
+            min={0}
+            max={1}
+            step={0.05}
+            value={muted ? 0 : volume}
+            onChange={(event) => changeVolume(Number(event.target.value))}
+            className="accent-fg hidden h-1 w-20 cursor-pointer lg:block"
+          />
+          {/* Stops the music and removes the player and the right-hand panel. */}
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Dismiss the player"
+            title="Close the player"
+            className="ml-1"
+            onClick={dismiss}
+          >
+            <X />
           </Button>
         </div>
       </div>

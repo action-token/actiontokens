@@ -1,6 +1,6 @@
 "use client";
 
-import { Pause, Play, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react";
+import { Pause, Play, SkipBack, SkipForward, Volume2, VolumeX, X } from "lucide-react";
 import Link from "next/link";
 import { type ReactNode, useEffect, useRef } from "react";
 
@@ -55,7 +55,8 @@ export function FullPlayer({
   /** The stems button, when the song has stems */
   stemsSlot: ReactNode;
 }) {
-  const { queue, index, playing, toggle, next, previous, fullOpen, setFullOpen } = usePlayer();
+  const { queue, index, playing, toggle, next, previous, fullOpen, setFullOpen, dismiss } =
+    usePlayer();
   const track = currentTrack({ queue, index });
   const ahead = useQueueAhead();
   const swipe = useRef<number | null>(null);
@@ -135,7 +136,19 @@ export function FullPlayer({
               >
                 <span className="bg-fg/25 h-1 w-10 rounded-full" />
               </button>
-              <p className="marker text-fg-muted -rotate-2 text-base">*now playing*</p>
+              <div className="flex items-center justify-between">
+                <p className="marker text-fg-muted -rotate-2 text-base">*now playing*</p>
+                {/* Stops the music and removes the player. */}
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Dismiss the player"
+                  className="-mr-2"
+                  onClick={dismiss}
+                >
+                  <X className="size-4" />
+                </Button>
+              </div>
             </div>
 
             <div className="flex max-h-[calc(80dvh-var(--phone-bar-space)-7.5rem)] [scrollbar-width:none] flex-col gap-3.5 overflow-y-auto overscroll-contain px-5 pt-2 pb-4">

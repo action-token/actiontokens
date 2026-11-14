@@ -29,3 +29,16 @@ describe("full player sheet", () => {
     expect(usePlayer.getState().fullOpen).toBe(true);
   });
 });
+
+describe("dismiss", () => {
+  it("stops and empties the player, and closes the full player", () => {
+    usePlayer.getState().playQueue([track("a"), track("b")], 1);
+    usePlayer.getState().setFullOpen(true);
+    usePlayer.getState().dismiss();
+    const state = usePlayer.getState();
+    expect(state.queue).toEqual([]);
+    expect(state.index).toBe(0);
+    expect(state.playing).toBe(false);
+    expect(state.fullOpen).toBe(false);
+  });
+});
