@@ -70,16 +70,19 @@ export type MixProject = {
 const invalid = (message: string) => new AppError(ErrorCodes.VALIDATION_FAILED, { message });
 
 /** Presigns an audio file for the mixer, after checking its type and size. */
-export async function signStudioAudio(file: {
-  fileName: string;
-  fileType: string;
-  fileSize: number;
-  checksum: string;
-}) {
+export async function signStudioAudio(
+  userId: string,
+  file: {
+    fileName: string;
+    fileType: string;
+    fileSize: number;
+    checksum: string;
+  },
+) {
   if (!isAudioType(file.fileType))
     throw invalid("Add an audio file, like MP3, WAV, FLAC, M4A, OGG or AIFF.");
   if (file.fileSize > MAX_AUDIO_BYTES) throw invalid("Keep each audio file under 100 MB.");
-  return presignUpload(file);
+  return presignUpload(file, { owner: "users", ownerId: userId, kind: "studio-audio" });
 }
 
 function checkProject(data: MixProject) {

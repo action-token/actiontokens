@@ -3,6 +3,7 @@ import sharp from "sharp";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import { fetchPublicFile } from "./public-url-guard";
+import type { Placement } from "./key-layout";
 import { uploadBufferToS3 } from "./presign";
 
 const OPTIMIZED_MAX_SIDE = 600;
@@ -10,12 +11,12 @@ const OPTIMIZED_JPEG_QUALITY = 60;
 const CIRCLE_SIZE = 600;
 
 /** Copy an image to the bucket as is; returns its public URL. */
-export async function copyImageToBucket(sourceUrl: string): Promise<string> {
+export async function copyImageToBucket(sourceUrl: string, placement?: Placement): Promise<string> {
   const { bytes, contentType } = await fetchPublicFile(sourceUrl);
   if (!contentType.startsWith("image/")) {
     throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "That link isn't an image." });
   }
-  return uploadBufferToS3(bytes, contentType);
+  return uploadBufferToS3(bytes, contentType, { placement });
 }
 
 /** A small (≤600 px, JPEG q60) copy of an image, for map pins and lists. */

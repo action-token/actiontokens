@@ -10,7 +10,7 @@ import type { ReadableStream } from "node:stream/web";
 import type { TranscodePart } from "@bandcoin/api";
 import type { Db } from "@bandcoin/db";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { assertPublicHttpUrl, putMediaFile } from "@bandcoin/storage";
+import { assertPublicHttpUrl, keyFolder, putMediaFile, storageNetwork } from "@bandcoin/storage";
 
 import {
   ffmpeg,
@@ -46,7 +46,13 @@ export const mediaIo: MediaIo = {
 };
 
 /** A fresh random folder per run, so a new preview never reuses an old (possibly shared) key. */
-const folderFor = (itemId: string) => `stream/${itemId}/${randomBytes(16).toString("hex")}`;
+const folderFor = (itemId: string, artistId: string | null | undefined) =>
+  `${keyFolder({
+    network: storageNetwork(),
+    owner: artistId ? "artists" : "shared",
+    ownerId: artistId ?? undefined,
+    kind: `items/${itemId}/media`,
+  })}/${randomBytes(16).toString("hex")}`;
 
 export type TranscodeResult = {
   itemId: string;
@@ -70,14 +76,20 @@ export async function transcodeItem(
   const { itemId, part } = job;
   const media = await db.itemMedia.findUnique({
     where: { itemId },
-    select: { mediaType: true, sourceUrl: true, previewStartSec: true, status: true },
+    select: {
+      mediaType: true,
+      sourceUrl: true,
+      previewStartSec: true,
+      status: true,
+      item: { select: { artistId: true } },
+    },
   });
   if (media?.mediaType !== "AUDIO") return { itemId, part, skipped: "no audio" };
   // A preview or stem redo only makes sense on top of finished files.
   if (part !== "all" && media.status !== "READY") return { itemId, part, skipped: media.status };
 
   const dir = await mkdtemp(path.join(tmpdir(), `transcode-${itemId}-`));
-  const folder = folderFor(itemId);
+  const folder = folderFor(itemId, media.item?.artistId);
   try {
     if (part === "all")
       await db.itemMedia.update({ where: { itemId }, data: { status: "PROCESSING" } });

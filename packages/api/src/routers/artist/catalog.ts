@@ -37,7 +37,11 @@ export const itemAccess = z.object({
 /** The artist's collectibles (see services/artist/items). Approved artists only. */
 export const catalogRouter = createRouter({
   /** A signed upload for a cover or the item's file. */
-  upload: artistProcedure.input(declaredFile).mutation(({ input }) => signCreatorUpload(input)),
+  upload: artistProcedure
+    .input(declaredFile)
+    .mutation(({ input, ctx }) =>
+      signCreatorUpload(input, { owner: "artists", ownerId: ctx.artist.id, kind: "uploads" }),
+    ),
 
   get: artistProcedure
     .input(z.object({ itemId: z.string().min(1) }))

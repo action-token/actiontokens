@@ -145,7 +145,11 @@ export const accountRouter = createRouter({
     }),
 
   /** A signed upload for a profile picture or cover image. */
-  imageUpload: authedProcedure.input(declaredImage).mutation(({ input }) => signImageUpload(input)),
+  imageUpload: authedProcedure
+    .input(declaredImage)
+    .mutation(({ input, ctx }) =>
+      signImageUpload(input, { owner: "users", ownerId: ctx.session.user.id, kind: "avatars" }),
+    ),
 
   /** The banner behind the profile; null removes it. Only a picture this app stored. */
   setCover: authedProcedure

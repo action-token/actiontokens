@@ -110,7 +110,13 @@ async function checkFanToken(
   // Its image is the one its issuer published on Stellar, copied in (their link could change).
   // A token with none shows the artist's photo in lists, as any item needs a picture.
   const coverUrl =
-    (check.image ? await copyImageToBucket(check.image).catch(() => null) : null) ?? avatarUrl;
+    (check.image
+      ? await copyImageToBucket(check.image, {
+          owner: "users",
+          ownerId: user.id,
+          kind: "token-covers",
+        }).catch(() => null)
+      : null) ?? avatarUrl;
   if (!coverUrl) throw invalid("Add your profile photo first.");
   return { mode: "EXISTING", code, issuer: token.issuer, coverUrl };
 }

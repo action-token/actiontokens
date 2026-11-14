@@ -53,6 +53,7 @@ function setup(over: { canPay?: boolean; status?: string } = {}) {
       deleteMany: vi.fn().mockResolvedValue({ count: 1 }),
       update: vi.fn().mockResolvedValue({}),
       updateMany: vi.fn().mockResolvedValue({ count: over.status === "RUNNING" ? 0 : 1 }),
+      findUniqueOrThrow: vi.fn().mockResolvedValue({ userId: "u1", artistId: null }),
       findMany: vi.fn().mockResolvedValue([]),
     },
     job: { findFirst: vi.fn(), create: vi.fn().mockResolvedValue({ id: "j1" }) },

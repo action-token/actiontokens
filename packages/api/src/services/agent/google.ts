@@ -218,5 +218,8 @@ export async function placePhoto(gPlaceId: string): Promise<string | null> {
   if (!image.ok) return null;
   const type = image.headers.get("content-type") ?? "image/jpeg";
   if (!type.startsWith("image/")) return null;
-  return uploadBufferToS3(Buffer.from(await image.arrayBuffer()), type, { keyPrefix: "place-" });
+  return uploadBufferToS3(Buffer.from(await image.arrayBuffer()), type, {
+    keyPrefix: "place-",
+    placement: { owner: "shared", kind: "places" },
+  });
 }

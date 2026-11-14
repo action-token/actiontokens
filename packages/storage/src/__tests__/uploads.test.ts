@@ -30,8 +30,19 @@ describe("signed uploads", () => {
   it("signs an allowed file and returns where it will live", async () => {
     const result = await signCreatorUpload(file());
     expect(result.uploadUrl).toBe("https://signed.example/upload");
-    expect(result.fileUrl).toMatch(/^https:\/\/test-bucket\.s3\.amazonaws\.com\/[0-9a-f]{64}$/);
+    expect(result.fileUrl).toMatch(
+      /^https:\/\/test-bucket\.s3\.us-east-1\.amazonaws\.com\/testnet\/shared\/uploads\/[0-9a-f]{32}\.png$/,
+    );
     expect(result.fileName).toBe("a.png");
+  });
+
+  it("puts the file under the network and its owner", async () => {
+    const result = await signImageUpload(file(), {
+      owner: "users",
+      ownerId: "u1",
+      kind: "avatars",
+    });
+    expect(result.fileUrl).toMatch(/\/testnet\/users\/u1\/avatars\/[0-9a-f]{32}\.png$/);
   });
 
   it("signs the checksum and type as headers, so S3 accepts the browser's PUT and checks the file", async () => {

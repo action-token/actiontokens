@@ -77,6 +77,7 @@ describe.skipIf(!hasFfmpeg)("transcodeItem (real ffmpeg)", () => {
         sourceUrl: "https://cdn/song.wav",
         previewStartSec: 25,
         status: "PENDING",
+        item: { artistId: "a1" },
       },
       [
         { id: "s1", sourceUrl: "https://cdn/vocals.wav" },
@@ -88,7 +89,7 @@ describe.skipIf(!hasFfmpeg)("transcodeItem (real ffmpeg)", () => {
     expect(result).toMatchObject({ durationSec: 40, stems: 1 });
     expect(statuses).toEqual(["PROCESSING", "READY"]);
     const keys = state as Record<string, string>;
-    expect(keys.streamKey).toMatch(/^stream\/i1\/[0-9a-f]{32}\/full\.m4a$/);
+    expect(keys.streamKey).toMatch(/^testnet\/artists\/a1\/items\/i1\/media\/[0-9a-f]{32}\/full\.m4a$/);
     expect(lengths[keys.streamKey!]).toBeCloseTo(40, 0);
     // Pulled back from 25 s so the 30 s fit inside 40 s.
     expect(lengths[keys.previewKey!]).toBeCloseTo(30, 0);

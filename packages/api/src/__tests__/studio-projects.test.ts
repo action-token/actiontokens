@@ -75,11 +75,15 @@ const project = (tracks: MixTrack[]) => ({
 describe("mixer uploads", () => {
   it("signs audio only, up to 100 MB", async () => {
     const file = { fileName: "a.mp3", fileType: "audio/mpeg", fileSize: 1000, checksum: "x" };
-    await expect(signStudioAudio(file)).resolves.toMatchObject({ fileUrl: "https://bucket/k" });
-    await expect(signStudioAudio({ ...file, fileType: "image/png" })).rejects.toThrow(/audio file/);
+    await expect(signStudioAudio("u1", file)).resolves.toMatchObject({
+      fileUrl: "https://bucket/k",
+    });
+    await expect(signStudioAudio("u1", { ...file, fileType: "image/png" })).rejects.toThrow(
+      /audio file/,
+    );
     for (const fileType of ["audio/aiff", "audio/opus", "audio/x-caf", "audio/flac"])
-      await expect(signStudioAudio({ ...file, fileType })).resolves.toBeTruthy();
-    await expect(signStudioAudio({ ...file, fileSize: 200 * 1024 * 1024 })).rejects.toThrow(
+      await expect(signStudioAudio("u1", { ...file, fileType })).resolves.toBeTruthy();
+    await expect(signStudioAudio("u1", { ...file, fileSize: 200 * 1024 * 1024 })).rejects.toThrow(
       /100 MB/,
     );
   });

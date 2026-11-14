@@ -68,7 +68,7 @@ export const projectsRouter = createRouter({
         checksum: z.string().min(1).max(100),
       }),
     )
-    .mutation(({ input }) => signStudioAudio(input)),
+    .mutation(({ input, ctx }) => signStudioAudio(ctx.session.user.id, input)),
 
   list: authedProcedure.query(({ ctx }) => listProjects(ctx, ctx.session.user)),
 

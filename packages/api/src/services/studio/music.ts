@@ -1,6 +1,8 @@
 import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
 import { uploadBufferToS3 } from "@bandcoin/storage";
 
+import { ownerPlacement } from "../placement";
+
 import type { Context, SessionUser } from "../../context";
 import { enqueueJob } from "../jobs/queue";
 import { holdCoins } from "./balance";
@@ -90,13 +92,14 @@ export async function runMusic(
   if (count !== 1) return { generationId, outcome: "SKIPPED" as const };
   const generation = await ctx.db.generation.findUniqueOrThrow({
     where: { id: generationId },
-    select: { prompt: true, model: true },
+    select: { prompt: true, model: true, userId: true, artistId: true },
   });
   const kind: MusicKind = generation.model === MUSIC_MODELS.SONG ? "SONG" : "CLIP";
   try {
     const result = await deps.provider.generate({ kind, prompt: generation.prompt });
     const url = await (deps.upload ?? uploadBufferToS3)(result.audio, result.mimeType, {
       keyPrefix: "studio-music-",
+      placement: ownerPlacement(generation, "generated"),
     });
     const outputs: MusicOutput[] = [
       { type: "audio", url, mimeType: result.mimeType, lyrics: result.lyrics },

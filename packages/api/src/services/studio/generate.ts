@@ -1,5 +1,7 @@
 import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
-import { uploadBufferToS3 } from "@bandcoin/storage";
+import { uploadBufferToS3, type Placement } from "@bandcoin/storage";
+
+import { ownerPlacement } from "../placement";
 
 import type { Context, SessionUser } from "../../context";
 import { enqueueJob } from "../jobs/queue";
@@ -113,11 +115,15 @@ async function produce(
   provider: GenerateProvider,
   input: GenerateInput,
   upload: typeof uploadBufferToS3,
+  placement: Placement,
 ): Promise<{ outputs: GenerateOutput[]; tokens: number | null }> {
   const prompt = providerPrompt(input);
   const keep = async (media: { bytes: Buffer; mimeType: string }, type: "image" | "video") => ({
     type,
-    url: await upload(media.bytes, media.mimeType, { keyPrefix: `studio-${type}-` }),
+    url: await upload(media.bytes, media.mimeType, {
+      keyPrefix: `studio-${type}-`,
+      placement,
+    }),
     mimeType: media.mimeType,
   });
   switch (input.tool) {
@@ -168,11 +174,16 @@ export async function runGeneration(
     },
   });
   if (count !== 1) return { generationId, outcome: "SKIPPED" as const };
+  const owner = await ctx.db.generation.findUniqueOrThrow({
+    where: { id: generationId },
+    select: { userId: true, artistId: true },
+  });
   try {
     const { outputs, tokens } = await produce(
       deps.providers[checkOptions(input).provider],
       input,
       deps.upload ?? uploadBufferToS3,
+      ownerPlacement(owner, "generated"),
     );
     await ctx.db.generation.update({
       where: { id: generationId },

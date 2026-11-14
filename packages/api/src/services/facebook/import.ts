@@ -171,6 +171,7 @@ export async function importFacebookPost(
         type: kind,
         url: await (deps.upload ?? uploadBufferToS3)(file.bytes, file.contentType, {
           keyPrefix: "facebook-",
+          placement: { owner: "artists", ownerId: artistId, kind: "facebook" },
         }),
       });
     } catch {

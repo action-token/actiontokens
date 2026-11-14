@@ -141,7 +141,11 @@ export async function generateImage(
       throw new AppError(ErrorCodes.AI_GENERATION_FAILED, {
         message: "No image came back. Try again.",
       });
-    return { url: await uploadBufferToS3(bytes, "image/png") };
+    return {
+      url: await uploadBufferToS3(bytes, "image/png", {
+        placement: { owner: "users", ownerId: actor.artist.userId, kind: "ai-images" },
+      }),
+    };
   });
 }
 

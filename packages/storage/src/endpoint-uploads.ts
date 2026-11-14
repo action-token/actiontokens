@@ -1,5 +1,6 @@
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
+import type { Placement } from "./key-layout";
 import { presignUpload, type DeclaredFile } from "./presign";
 import { CREATOR_FILE_TYPES, MAX_CREATOR_FILE_BYTES } from "./upload-rules";
 
@@ -22,7 +23,7 @@ export type UploadEndpoint = (typeof uploadEndpoints)[number];
  * A presigned PUT for a creator-tool upload, after checking size and type.
  * Extra fields the browser sent (like which slot it came from) are ignored.
  */
-export async function signCreatorUpload(file: DeclaredFile) {
+export async function signCreatorUpload(file: DeclaredFile, placement?: Placement) {
   if (file.fileSize > MAX_CREATOR_FILE_BYTES) {
     throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "File is too large" });
   }
@@ -30,5 +31,5 @@ export async function signCreatorUpload(file: DeclaredFile) {
     throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "File type not allowed" });
   }
   const { fileType, fileSize, checksum, fileName } = file;
-  return presignUpload({ fileType, fileSize, checksum, fileName });
+  return presignUpload({ fileType, fileSize, checksum, fileName }, placement);
 }

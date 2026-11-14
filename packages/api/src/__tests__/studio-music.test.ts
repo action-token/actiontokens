@@ -39,9 +39,12 @@ function setup(over: { canPay?: boolean; status?: string } = {}) {
       delete: vi.fn().mockResolvedValue({}),
       update: vi.fn().mockResolvedValue({}),
       updateMany: vi.fn().mockResolvedValue({ count: over.status === "RUNNING" ? 0 : 1 }),
-      findUniqueOrThrow: vi
-        .fn()
-        .mockResolvedValue({ prompt: "lo-fi beat", model: "lyria-3-pro-preview" }),
+      findUniqueOrThrow: vi.fn().mockResolvedValue({
+        prompt: "lo-fi beat",
+        model: "lyria-3-pro-preview",
+        userId: "u1",
+        artistId: null,
+      }),
       findMany: vi.fn().mockResolvedValue([{ id: "g1" }]),
     },
     job: { findFirst: vi.fn(), create: vi.fn().mockResolvedValue({ id: "j1" }) },
@@ -118,6 +121,7 @@ describe("running it", () => {
     expect(done).toMatchObject({ outcome: "DONE", url: "https://bucket/studio-music-1" });
     expect(upload).toHaveBeenCalledWith(Buffer.from("mp3"), "audio/mpeg", {
       keyPrefix: "studio-music-",
+      placement: { owner: "users", ownerId: "u1", kind: "generated" },
     });
     expect(db.generation.update).toHaveBeenCalledWith({
       where: { id: "g1" },

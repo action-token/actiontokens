@@ -56,9 +56,16 @@ export function getS3Client(): S3Client {
 
 export const getBucketName = (): string => bucketName();
 
-/** Public URL of an object in the bucket. */
-export const publicS3Url = (key: string): string =>
-  `https://${getBucketName()}.s3.amazonaws.com/${key}`;
+const bucketRegion = (): string =>
+  requireEnv(
+    "AWS_BUCKET_REGION",
+    firstSet(process.env.AWS_BUCKET_REGION, process.env.NEXT_AWS_BUCKET_REGION),
+  );
 
-/** True for a URL this bucket serves: used to reject foreign links. */
-export const isOwnS3Url = (url: string): boolean => url.startsWith(publicS3Url(""));
+/** Public URL of an object in the bucket. Names the region, so it works for a bucket outside us-east-1. */
+export const publicS3Url = (key: string): string =>
+  `https://${getBucketName()}.s3.${bucketRegion()}.amazonaws.com/${key}`;
+
+/** True for a URL this bucket serves (regional or the older global form): used to reject foreign links. */
+export const isOwnS3Url = (url: string): boolean =>
+  url.startsWith(publicS3Url("")) || url.startsWith(`https://${getBucketName()}.s3.amazonaws.com/`);

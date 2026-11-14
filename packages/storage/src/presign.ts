@@ -7,6 +7,13 @@ import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import { getBucketName, getS3Client, publicS3Url } from "./bucket";
 import {
+  extensionFor,
+  objectKey,
+  SHARED_UPLOADS,
+  storageNetwork,
+  type Placement,
+} from "./key-layout";
+import {
   ENTRY_FILE_TYPES,
   IMAGE_FILE_TYPES,
   MAX_ENTRY_FILE_BYTES,
@@ -30,8 +37,13 @@ const randomKey = (bytes = 32) => crypto.randomBytes(bytes).toString("hex");
  * One presigned PUT. The browser uploads straight to S3; the server only signs,
  * and the checksum pins the URL to exactly the declared file.
  */
-export async function presignUpload(file: DeclaredFile) {
-  const key = randomKey();
+export async function presignUpload(file: DeclaredFile, placement: Placement = SHARED_UPLOADS) {
+  const key = objectKey({
+    network: storageNetwork(),
+    ...placement,
+    name: randomKey(16),
+    ext: extensionFor(file.fileName, file.fileType),
+  });
   const uploadUrl = await getSignedUrl(
     getS3Client(),
     new PutObjectCommand({
@@ -65,25 +77,25 @@ function assertAllowed(
 }
 
 /** Presigned upload of a bounty entry attachment. */
-export async function signEntryUpload(file: DeclaredFile) {
+export async function signEntryUpload(file: DeclaredFile, placement?: Placement) {
   assertAllowed(file, {
     maxBytes: MAX_ENTRY_FILE_BYTES,
     types: ENTRY_FILE_TYPES,
     tooLarge: "File is too large",
     wrongType: "That file type can't be attached",
   });
-  return presignUpload(file);
+  return presignUpload(file, placement);
 }
 
 /** Presigned upload of a profile picture or cover image. */
-export async function signImageUpload(file: DeclaredFile) {
+export async function signImageUpload(file: DeclaredFile, placement?: Placement) {
   assertAllowed(file, {
     maxBytes: MAX_IMAGE_BYTES,
     types: IMAGE_FILE_TYPES,
     tooLarge: "Image is too large (max 10 MB)",
     wrongType: "Use a JPG, PNG, WebP or GIF image",
   });
-  return presignUpload(file);
+  return presignUpload(file, placement);
 }
 
 /**
@@ -116,7 +128,13 @@ export async function presignUnpinnedUpload({
 export async function signMuralFrames(sessionId: string, count: number) {
   return Promise.all(
     Array.from({ length: count }, async (_, index) => {
-      const key = `murals/${sessionId}/${index}-${randomKey(8)}.jpg`;
+      const key = objectKey({
+        network: storageNetwork(),
+        owner: "shared",
+        kind: `murals/${sessionId}`,
+        name: `${index}-${randomKey(8)}`,
+        ext: "jpg",
+      });
       const uploadUrl = await getSignedUrl(
         getS3Client(),
         new PutObjectCommand({ Bucket: getBucketName(), Key: key, ContentType: "image/jpeg" }),
@@ -140,14 +158,23 @@ export async function getObjectBytes(key: string): Promise<Buffer> {
 
 /**
  * Upload bytes made on the server (an AI-generated image, a resized copy);
- * returns the public URL. `keyPrefix` makes derived files recognisable in the bucket.
+ * returns the public URL. `keyPrefix` makes derived files recognisable in the bucket
+ * (letters, digits, dots, dashes only); `placement` says whose file it is.
  */
 export async function uploadBufferToS3(
   body: Buffer,
   contentType: string,
-  { keyPrefix = "" }: { keyPrefix?: string } = {},
+  {
+    keyPrefix = "",
+    placement = SHARED_UPLOADS,
+  }: { keyPrefix?: string; placement?: Placement } = {},
 ): Promise<string> {
-  const key = `${keyPrefix}${randomKey()}`;
+  const key = objectKey({
+    network: storageNetwork(),
+    ...placement,
+    name: `${keyPrefix}${randomKey(16)}`,
+    ext: extensionFor(undefined, contentType),
+  });
   await getS3Client().send(
     new PutObjectCommand({
       Bucket: getBucketName(),
