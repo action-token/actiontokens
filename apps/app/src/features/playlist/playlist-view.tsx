@@ -89,7 +89,7 @@ export function PlaylistView({ playlistId }: { playlistId: string }) {
 
   return (
     <>
-      <section className="relative isolate overflow-hidden border-b">
+      <section className="bleed relative isolate overflow-hidden border-b">
         {data.covers[0] && (
           // eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts
           <img

@@ -3,26 +3,32 @@
 import { useSyncExternalStore } from "react";
 
 const KEY = "bandcoin.sidebar-collapsed";
-const EVENT = "bandcoin-sidebar-change";
+const EVENT = "bandcoin-flag-change";
 
 type Storage = Pick<globalThis.Storage, "getItem" | "setItem">;
 
-/** Whether the sidebar was folded; open when nothing is saved or storage is blocked. */
-export function readCollapsed(storage: Storage) {
+/** A saved on/off setting; `fallback` when nothing is saved or storage is blocked. */
+export function readFlag(storage: Storage, key: string, fallback = false) {
   try {
-    return storage.getItem(KEY) === "1";
+    const value = storage.getItem(key);
+    return value === null ? fallback : value === "1";
   } catch {
-    return false;
+    return fallback;
   }
 }
 
-export function saveCollapsed(storage: Storage, collapsed: boolean) {
+export function saveFlag(storage: Storage, key: string, on: boolean) {
   try {
-    storage.setItem(KEY, collapsed ? "1" : "0");
+    storage.setItem(key, on ? "1" : "0");
   } catch {
-    // Private mode: it still folds for this page.
+    // Private mode: it still changes for this page.
   }
 }
+
+/** Whether the sidebar was folded; open when nothing is saved or storage is blocked. */
+export const readCollapsed = (storage: Storage) => readFlag(storage, KEY);
+export const saveCollapsed = (storage: Storage, collapsed: boolean) =>
+  saveFlag(storage, KEY, collapsed);
 
 function subscribe(onChange: () => void) {
   window.addEventListener(EVENT, onChange);
@@ -33,14 +39,25 @@ function subscribe(onChange: () => void) {
   };
 }
 
-const read = () => readCollapsed(window.localStorage);
+/**
+ * An on/off setting saved per browser and shared by every component that reads it.
+ * The server and the first render use `fallback`, so they always agree.
+ */
+export function usePersistedFlag(key: string, fallback = false) {
+  const value = useSyncExternalStore(
+    subscribe,
+    () => readFlag(window.localStorage, key, fallback),
+    () => fallback,
+  );
+  const setValue = (next: boolean) => {
+    saveFlag(window.localStorage, key, next);
+    window.dispatchEvent(new Event(EVENT));
+  };
+  return [value, setValue] as const;
+}
 
 /** The desktop sidebar's fold state, saved per browser. Open on the server and the first render. */
 export function useSidebarCollapsed() {
-  const collapsed = useSyncExternalStore(subscribe, read, () => false);
-  const setCollapsed = (next: boolean) => {
-    saveCollapsed(window.localStorage, next);
-    window.dispatchEvent(new Event(EVENT));
-  };
+  const [collapsed, setCollapsed] = usePersistedFlag(KEY);
   return { collapsed, setCollapsed };
 }

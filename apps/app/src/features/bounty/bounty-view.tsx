@@ -82,7 +82,7 @@ export function BountyView({ initial }: { initial: Bounty }) {
 
   return (
     <>
-      <section className="relative isolate overflow-hidden text-white">
+      <section className="bleed relative isolate overflow-hidden text-white">
         {cover && (
           // eslint-disable-next-line @next/next/no-img-element -- images come from many hosts
           <img

@@ -27,6 +27,8 @@ export function ResizeHandle({ side, label }: { side: Side; label: string }) {
         event.currentTarget.setPointerCapture(event.pointerId);
         drag.current = { x: event.clientX, width };
         document.body.style.userSelect = "none";
+        // Panels follow the pointer directly while dragging, without their open/close easing.
+        document.documentElement.dataset.resizing = "";
       }}
       onPointerMove={(event) => {
         if (drag.current)
@@ -35,6 +37,7 @@ export function ResizeHandle({ side, label }: { side: Side; label: string }) {
       onPointerUp={() => {
         drag.current = null;
         document.body.style.userSelect = "";
+        delete document.documentElement.dataset.resizing;
       }}
       onDoubleClick={() => reset(side)}
       onKeyDown={(event) => {

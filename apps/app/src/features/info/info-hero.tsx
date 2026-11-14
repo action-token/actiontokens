@@ -17,7 +17,7 @@ export function InfoHero({
   children?: ReactNode;
 }) {
   return (
-    <header className="bg-primary text-primary-foreground border-fg relative isolate overflow-hidden border-b-[3px]">
+    <header className="bleed bg-primary text-primary-foreground border-fg relative isolate overflow-hidden border-b-[3px]">
       <span
         aria-hidden
         className="bg-bg/15 absolute -top-24 -right-16 -z-10 size-72 rounded-full sm:size-[26rem]"

@@ -53,7 +53,7 @@ export function Hero({ items }: { items: HeroItem[] }) {
           go(active + (end < touchX ? 1 : -1));
         setTouchX(null);
       }}
-      className="relative isolate overflow-hidden border-b"
+      className="bleed relative isolate overflow-hidden border-b"
     >
       {/* the cover, blurred, as a soft wash behind everything */}
       {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}

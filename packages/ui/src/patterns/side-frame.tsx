@@ -121,18 +121,17 @@ export function SideFrame({
         // Takes no width: the page runs under it, and pads itself by --side-w (theme.css).
         className="side-island sticky top-0 z-40 hidden h-dvh w-0 sm:block"
       >
-        <div
-          className={cn(
-            "pointer-events-none absolute inset-y-0 left-0 p-3",
-            collapsed ? "w-(--side-rail-w)" : "w-(--side-rail-w) xl:w-(--side-open-w)",
-          )}
-        >
+        {/* As wide as --side-w, which animates (theme.css), so the card grows and shrinks
+            smoothly in step with the page beside it. */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-(--side-w) p-3">
           {/* the island: a frosted card floating over the page, which shows through blurred.
             A small blur and a dense fill: the blur is redrawn on every map frame. */}
           <div className="bg-side/80 ring-side-ink/10 pointer-events-auto relative h-full overflow-hidden rounded-[2rem] shadow-[var(--island-shadow)] ring-1 backdrop-blur-md">
             <div
               className={cn(
-                "text-side-ink relative h-full flex-col",
+                // A fixed width, so while the card grows its contents slide into view
+                // instead of squeezing and re-wrapping.
+                "text-side-ink relative h-full w-[calc(var(--side-open-w)-1.5rem)] flex-col",
                 collapsed ? "hidden" : "hidden xl:flex",
               )}
             >
@@ -175,7 +174,7 @@ export function SideFrame({
 
             <div
               className={cn(
-                "text-side-ink relative h-full flex-col",
+                "text-side-ink relative h-full w-[calc(var(--side-rail-w)-1.5rem)] flex-col",
                 collapsed ? "flex" : "flex xl:hidden",
               )}
             >
@@ -183,7 +182,9 @@ export function SideFrame({
                 <SideMark {...home} compact />
                 {tools && <div className="flex flex-col items-center gap-2">{tools}</div>}
               </div>
-              <div className="border-side-ink/25 relative flex min-h-0 flex-1 flex-col items-center gap-3 overflow-y-auto overscroll-contain border-y-2 border-dashed px-2 py-3 [scrollbar-width:none] [&>*]:shrink-0">
+              {/* Scrolls on short windows. The scrollbar is hidden, so both ends fade out:
+                  an icon running past the edge reads as "more below", not as cut off. */}
+              <div className="border-side-ink/25 relative flex min-h-0 flex-1 flex-col items-center gap-3 overflow-y-auto overscroll-contain border-y-2 border-dashed px-2 py-4 [mask-image:linear-gradient(to_bottom,transparent,#000_16px,#000_calc(100%-28px),transparent)] [scrollbar-width:none] [&>*]:shrink-0">
                 <nav className="flex flex-col items-center gap-3" aria-label="Sections">
                   {groups.map((group, index) => (
                     <Fragment key={group.title}>

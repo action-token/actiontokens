@@ -2,69 +2,82 @@
 
 import Link from "next/link";
 
+import { Money } from "~/components/money";
+import { api } from "~/trpc/react";
+
 import { currentTrack, usePlayer } from "../player/player-store";
+import { RightRule } from "./right-frame";
+import { showSidebarBuy } from "./sidebar-buy";
+import { UpNextList, useQueueAhead } from "./up-next";
 
 /** The right-hand panel on Home while a song is loaded: what's playing and what's next. */
 export function ContextPanel() {
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] content-start gap-7">
+    <div className="grid grid-cols-[minmax(0,1fr)] content-start gap-5">
       <NowPlaying />
     </div>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="grid grid-cols-[minmax(0,1fr)] gap-3">
-      <h2 className="display text-xl">{title}</h2>
-      {children}
-    </section>
-  );
-}
-
 function NowPlaying() {
-  const { queue, index, playQueue } = usePlayer();
+  const { queue, index } = usePlayer();
   const track = currentTrack({ queue, index });
+  // Same query (and cache) as the player bar's: tells whether the listener hears only the preview.
+  const playback = api.media.play.useQuery(
+    { itemId: track?.id ?? "" },
+    { enabled: Boolean(track), staleTime: 30 * 60_000 },
+  );
+  const queueAhead = useQueueAhead();
   if (!track) return null;
-  const upNext = queue.slice(index + 1, index + 5);
+  const offerBuy = showSidebarBuy(track, playback.data);
 
   return (
     <>
-      <Section title="Now playing">
-        <Link href={`/item/${track.slug}`} className="grid grid-cols-[minmax(0,1fr)] gap-3">
+      <section className="grid grid-cols-[minmax(0,1fr)] gap-3">
+        <Link href={`/item/${track.slug}`} className="relative block">
           {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
           <img
             src={track.coverUrl}
             alt=""
             className="aspect-square w-full rounded-md border object-cover"
           />
-          <div>
+          {offerBuy && track.price && (
+            <>
+              <span className="bg-surface text-fg border-fg absolute top-2 left-2 rounded-full border px-2.5 py-1 text-[11px] font-bold shadow-[1px_1px_0_0_var(--color-fg)]">
+                30 s preview
+              </span>
+              <span className="bg-primary text-primary-foreground border-fg absolute top-2 right-2 flex items-center rounded-full border-2 px-2.5 py-1 text-[12px] font-bold shadow-[2px_2px_0_0_var(--color-fg)]">
+                <Money
+                  amount={track.price.bandcoin}
+                  currency="BANDCOIN"
+                  short
+                  className="font-bold"
+                  onBrand
+                />
+              </span>
+            </>
+          )}
+        </Link>
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+          <Link href={`/item/${track.slug}`} className="min-w-0">
             <h3 className="truncate text-base font-bold">{track.title}</h3>
             <p className="text-fg-muted truncate text-[13px]">{track.artistName}</p>
-          </div>
-        </Link>
-      </Section>
-      {upNext.length > 0 && (
-        <Section title="Up next">
-          <ul className="grid grid-cols-[minmax(0,1fr)] gap-1">
-            {upNext.map((entry, offset) => (
-              <li key={entry.id}>
-                <button
-                  type="button"
-                  onClick={() => playQueue(queue, index + 1 + offset)}
-                  className="hover:bg-surface-2 grid w-full grid-cols-[36px_minmax(0,1fr)] items-center gap-3 rounded-sm p-1 text-left text-[13px]"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
-                  <img src={entry.coverUrl} alt="" className="size-9 rounded-sm object-cover" />
-                  <span className="min-w-0">
-                    <b className="block truncate font-semibold">{entry.title}</b>
-                    <span className="text-fg-muted block truncate">{entry.artistName}</span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </Section>
+          </Link>
+          {offerBuy && track.price && (
+            <Link
+              href={`/item/${track.slug}#buy`}
+              className="bg-primary text-primary-foreground border-fg flex h-9 items-center rounded-none border-2 px-3 text-[13px] font-bold whitespace-nowrap shadow-[3px_3px_0_0_var(--color-fg)] transition-transform hover:-translate-y-0.5"
+            >
+              Buy now
+            </Link>
+          )}
+        </div>
+      </section>
+      {queueAhead > 0 && (
+        <>
+          <RightRule />
+          <UpNextList />
+        </>
       )}
     </>
   );

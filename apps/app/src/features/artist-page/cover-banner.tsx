@@ -13,15 +13,23 @@ import type { ArtistPageData } from "./artist-page-data";
 export function CoverBanner({
   artist,
   align = "left",
+  bleed = false,
 }: {
   artist: ArtistPageData;
   align?: "left" | "center";
+  /** Reach under the sidebar to the screen edge (the standard page's top band, not a builder block). */
+  bleed?: boolean;
 }) {
   const banner = artist.coverUrl ?? artist.avatarUrl;
   const centered = align === "center";
 
   return (
-    <section className="relative isolate flex min-h-[300px] items-end overflow-hidden rounded-[var(--page-radius,0px)] text-white sm:min-h-[340px]">
+    <section
+      className={cn(
+        "relative isolate flex min-h-[300px] items-end overflow-hidden rounded-[var(--page-radius,0px)] text-white sm:min-h-[340px]",
+        bleed && "bleed",
+      )}
+    >
       {banner ? (
         // eslint-disable-next-line @next/next/no-img-element -- images come from many hosts
         <img

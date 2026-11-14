@@ -69,7 +69,7 @@ export async function ArtistView({ slug }: { slug: string }) {
 
   return (
     <>
-      <CoverBanner artist={artist} />
+      <CoverBanner artist={artist} bleed />
 
       <PageBody wide className="grid gap-12">
         <ArtistStories slug={artist.slug} />

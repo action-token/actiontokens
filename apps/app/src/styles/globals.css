@@ -5,6 +5,12 @@
 @source "../../../../packages/ui/src";
 @source "../../../../packages/wallet/src";
 
+/* Page content width (see page-layout.ts). Wide enough that folding the sidebar on a
+   1920px screen fills the space instead of leaving an empty strip on the right. */
+:root {
+  --page-max: 120rem;
+}
+
 /*
  * A small gloss on a card: a soft diagonal sheen and a thin top highlight.
  * Static and unblurred, so it paints once and costs the GPU nothing. The card

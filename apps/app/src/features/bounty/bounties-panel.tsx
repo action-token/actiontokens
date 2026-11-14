@@ -8,6 +8,7 @@ import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { cn } from "@bandcoin/ui/lib/cn";
 
 import { Money } from "~/components/money";
+import { RightRule } from "~/features/shell/right-frame";
 import { timeAgo } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";
 
@@ -16,8 +17,9 @@ type ActivityRow = RouterOutputs["bounty"]["recent"][number];
 /** The right panel on the bounties list. */
 export function BountiesPanel() {
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] content-start gap-7">
+    <div className="grid grid-cols-[minmax(0,1fr)] content-start gap-5">
       <TopBounties />
+      <RightRule />
       <RecentActivity />
     </div>
   );
@@ -34,8 +36,8 @@ function Panel({
 }) {
   return (
     <section className="grid grid-cols-[minmax(0,1fr)] gap-2">
-      <h2 className="display flex items-center gap-2 text-xl">
-        <Icon className="text-primary-text size-4" /> {title}
+      <h2 className="marker flex -rotate-1 items-center gap-2 text-base">
+        <Icon className="text-primary-text size-4" /> *{title.toLowerCase()}*
       </h2>
       <div className="grid grid-cols-[minmax(0,1fr)] gap-1">{children}</div>
     </section>
@@ -55,7 +57,7 @@ function TopBounties() {
           <Link
             key={bounty.id}
             href={`/bounty/${bounty.id}`}
-            className="hover:bg-surface-2 flex items-center gap-3 rounded-lg p-2 transition-colors"
+            className="hover:bg-side-ink/10 flex items-center gap-3 rounded-lg p-2 transition-colors"
           >
             <span
               className={cn(

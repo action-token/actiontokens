@@ -173,7 +173,7 @@ function Hero({ settings, form }: { settings: Settings; form: Form }) {
   const handle = handleOf(form.username);
 
   return (
-    <section className="relative isolate flex min-h-[280px] items-end overflow-hidden text-white sm:min-h-[320px]">
+    <section className="bleed relative isolate flex min-h-[280px] items-end overflow-hidden text-white sm:min-h-[320px]">
       {settings.coverUrl ? (
         // eslint-disable-next-line @next/next/no-img-element -- images come from many hosts
         <img

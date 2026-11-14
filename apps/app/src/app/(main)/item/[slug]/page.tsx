@@ -91,7 +91,7 @@ export default async function ItemPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
 
-      <section className="relative isolate overflow-hidden text-white">
+      <section className="bleed relative isolate overflow-hidden text-white">
         {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
         <img
           src={item.coverUrl}

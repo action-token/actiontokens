@@ -2,6 +2,7 @@
 
 import {
   AudioLines,
+  ChevronUp,
   Loader2,
   Pause,
   Play,
@@ -11,7 +12,7 @@ import {
   VolumeX,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { cn } from "@bandcoin/ui/lib/cn";
@@ -23,16 +24,14 @@ import { api } from "~/trpc/react";
 import { ReactionButtons } from "../reactions/reaction-buttons";
 import { StemRows } from "../stems/stem-rows";
 import { useStemMode } from "../stems/use-stem-mode";
+import { FullPlayer } from "./full-player";
 import { currentTrack, usePlayer } from "./player-store";
+import { clock, progressPercent } from "./time";
+import { showSidebarBuy } from "../shell/sidebar-buy";
 
 let session: string | null = null;
 /** One id per browser tab, so plays from the same tab can be told apart from others. */
 const listeningSession = () => (session ??= crypto.randomUUID());
-
-const clock = (seconds: number) => {
-  const whole = Math.max(0, Math.floor(seconds));
-  return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
-};
 
 /**
  * The bar at the bottom of every page. Owners hear the full track; everyone
@@ -40,14 +39,22 @@ const clock = (seconds: number) => {
  * track's URL is fetched ahead so skipping doesn't wait.
  */
 export function PlayerBar() {
-  const { queue, index, playing, toggle, setPlaying, next, previous } = usePlayer();
+  const { queue, index, playing, toggle, setPlaying, next, previous, fullOpen, setFullOpen } =
+    usePlayer();
   const track = currentTrack({ queue, index });
   const upNext = queue[index + 1];
   const audio = useRef<HTMLAudioElement>(null);
+  const panelId = useId();
   // Both are tagged with the track they belong to, so a new track starts from zero without an effect.
   const [progress, setProgress] = useState({ trackId: "", current: 0, duration: 0 });
   const [previewEndedFor, setPreviewEndedFor] = useState<string | null>(null);
   const [muted, setMuted] = useState(false);
+  const [volume, setVolume] = useState(1);
+  // Dragging the volume up from zero or from muted brings the sound back.
+  const changeVolume = (next: number) => {
+    setVolume(next);
+    setMuted(next === 0);
+  };
 
   const playback = api.media.play.useQuery(
     { itemId: track?.id ?? "" },
@@ -85,154 +92,221 @@ export function PlayerBar() {
     else element.pause();
   }, [playing, source, setPlaying, stems.active]);
 
+  // A new song gets a fresh <audio> element, so the level is set again when the source changes.
+  useEffect(() => {
+    if (audio.current) audio.current.volume = volume;
+  }, [volume, source]);
+
   if (!track) return null;
   const previewEnded = previewEndedFor === track.id;
   const time = progress.trackId === track.id ? progress : { current: 0, duration: 0 };
   const duration = stems.active ? stems.duration : (playback.data?.durationSec ?? time.duration);
   const current = stems.active ? stems.position : time.current;
+  const seek = (seconds: number) => {
+    if (stems.active) stems.seek(seconds);
+    else if (audio.current) audio.current.currentTime = seconds;
+  };
+  const stemsButton = stems.available ? (
+    <StemsButton
+      stems={stems}
+      sources={stemList.data?.stems ?? []}
+      preview={!stemList.data?.full}
+      onStart={() => void stems.start(audio.current?.currentTime ?? 0)}
+      onStop={() => {
+        const at = stems.stop();
+        if (audio.current && at > 0) audio.current.currentTime = at;
+      }}
+    />
+  ) : null;
+  const info = (
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
+      <img src={track.coverUrl} alt="" className="size-9 shrink-0 rounded-sm object-cover" />
+      <div className="min-w-0">
+        <b className="display block truncate text-lg leading-tight">{track.title}</b>
+        <span className="text-fg-muted block truncate text-[11px] leading-tight">
+          {track.artistName}
+          {preview && " · 30 s preview"}
+        </span>
+      </div>
+    </>
+  );
 
   return (
-    <div
-      role="region"
-      aria-label="Player"
-      className="bg-surface/95 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t px-4 py-1.5 backdrop-blur sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_auto]"
-    >
-      {source && (
-        <audio
-          ref={audio}
-          src={source}
-          preload="auto"
-          muted={muted}
-          onTimeUpdate={(event) => {
-            const element = event.currentTarget;
-            setProgress({
-              trackId: track.id,
-              current: element.currentTime,
-              duration: element.duration || 0,
-            });
-            // A preview cut by bytes can run a little long; it ends at its stated length.
-            if (preview && duration && element.currentTime >= duration) {
-              element.pause();
-              finish();
-            }
-          }}
-          onPlay={(event) => {
-            // A play counts when a song starts from the beginning, not when it resumes from pause.
-            if (event.currentTarget.currentTime < 0.5) {
-              recordPlay.mutate({
-                itemId: track.id,
-                sessionId: listeningSession(),
-                isPreview: preview,
+    // Phones: the expanded player is a sheet that slides up from the bar's top edge. Wide
+    // screens see only the bar (`contents` drops this wrapper).
+    <div className="pointer-events-auto relative flex flex-col sm:contents">
+      <FullPlayer
+        id={panelId}
+        current={current}
+        duration={duration}
+        onSeek={seek}
+        offerBuy={showSidebarBuy(track, playback.data)}
+        preview={preview}
+        muted={muted}
+        volume={volume}
+        onVolume={changeVolume}
+        onToggleMute={() => setMuted((value) => !value)}
+        stemsSlot={stemsButton}
+      />
+      <div
+        role="region"
+        aria-label="Player"
+        className={cn(
+          "bg-surface sm:bg-surface/95 pointer-events-auto relative z-10 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t px-4 py-1.5 max-sm:pb-[2.5rem] sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_auto] sm:rounded-[1.5rem] sm:border sm:px-5 sm:py-2 sm:shadow-[0_20px_40px_-14px_rgb(0_0_0/0.45)] sm:backdrop-blur",
+          // Open: the bar is the drawer's foot, one surface with it, so no line between them.
+          fullOpen && "max-sm:border-t-transparent",
+        )}
+      >
+        {source && (
+          <audio
+            ref={audio}
+            src={source}
+            preload="auto"
+            muted={muted}
+            onTimeUpdate={(event) => {
+              const element = event.currentTarget;
+              setProgress({
+                trackId: track.id,
+                current: element.currentTime,
+                duration: element.duration || 0,
               });
-            }
-          }}
-          onEnded={finish}
-        />
-      )}
-
-      <Link href={`/item/${track.slug}`} className="flex min-w-0 items-center gap-3">
-        {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
-        <img src={track.coverUrl} alt="" className="size-9 shrink-0 rounded-sm object-cover" />
-        <div className="min-w-0">
-          <b className="display block truncate text-lg leading-tight">{track.title}</b>
-          <span className="text-fg-muted block truncate text-[11px] leading-tight">
-            {track.artistName}
-            {preview && " · 30 s preview"}
-          </span>
-        </div>
-      </Link>
-
-      <div className="grid justify-items-center gap-0.5">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Previous"
-            className="hidden sm:inline-flex"
-            onClick={previous}
-          >
-            <SkipBack className="fill-current" />
-          </Button>
-          <Button
-            size="icon-sm"
-            aria-label={playing ? "Pause" : "Play"}
-            className="bg-fg text-bg hover:bg-fg/90 size-8 rounded-full"
-            disabled={!source}
-            onClick={toggle}
-          >
-            {playing ? <Pause className="fill-current" /> : <Play className="fill-current" />}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Next"
-            className="hidden sm:inline-flex"
-            disabled={!upNext}
-            onClick={next}
-          >
-            <SkipForward className="fill-current" />
-          </Button>
-        </div>
-        <div className="num text-fg-faint hidden w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 text-[10px] leading-none sm:grid">
-          <span>{clock(current)}</span>
-          <input
-            type="range"
-            aria-label="Seek"
-            min={0}
-            max={duration || 0}
-            step={0.5}
-            value={Math.min(current, duration || 0)}
-            onChange={(event) => {
-              const next = Number(event.target.value);
-              if (stems.active) stems.seek(next);
-              else if (audio.current) audio.current.currentTime = next;
+              // A preview cut by bytes can run a little long; it ends at its stated length.
+              if (preview && duration && element.currentTime >= duration) {
+                element.pause();
+                finish();
+              }
             }}
-            className="accent-fg h-1 w-full cursor-pointer"
-          />
-          <span>{clock(duration)}</span>
-        </div>
-      </div>
-
-      {/* Sized to its content, so the song and the seek bar shrink instead of the buttons spilling out */}
-      <div className="hidden items-center justify-end gap-1 sm:flex">
-        <ReactionButtons itemId={track.id} showCounts={false} />
-        {stems.available && (
-          <StemsButton
-            stems={stems}
-            sources={stemList.data?.stems ?? []}
-            preview={!stemList.data?.full}
-            onStart={() => void stems.start(audio.current?.currentTime ?? 0)}
-            onStop={() => {
-              const at = stems.stop();
-              if (audio.current && at > 0) audio.current.currentTime = at;
+            onPlay={(event) => {
+              // A play counts when a song starts from the beginning, not when it resumes from pause.
+              if (event.currentTarget.currentTime < 0.5) {
+                recordPlay.mutate({
+                  itemId: track.id,
+                  sessionId: listeningSession(),
+                  isPreview: preview,
+                });
+              }
             }}
+            onEnded={finish}
           />
         )}
-        {(preview || previewEnded) && (
-          <Link
-            href={`/item/${track.slug}#buy`}
-            className="bg-primary text-primary-foreground border-fg ml-1 flex h-8 items-center gap-1.5 rounded-full border-2 px-3 text-[13px] font-bold whitespace-nowrap shadow-[2px_2px_0_0_var(--color-fg)] transition-transform hover:-translate-y-0.5"
-          >
-            Buy
-            {track.price && (
-              <Money
-                amount={track.price.bandcoin}
-                currency="BANDCOIN"
-                short
-                className="font-bold"
-                onBrand
-              />
-            )}
-          </Link>
-        )}
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          aria-label={muted ? "Unmute" : "Mute"}
-          onClick={() => setMuted((value) => !value)}
+
+        {/* Phones: how far into the song, along the top edge of the bar */}
+        <div aria-hidden className="bg-fg/10 absolute inset-x-0 top-0 h-0.5 sm:hidden">
+          <div
+            className="bg-primary h-full transition-[width] duration-300 ease-linear"
+            style={{ width: `${progressPercent(current, duration)}%` }}
+          />
+        </div>
+
+        {/* Wide screens link to the song; on a phone, tapping the bar opens the full player. */}
+        <Link href={`/item/${track.slug}`} className="hidden min-w-0 items-center gap-3 sm:flex">
+          {info}
+        </Link>
+        <button
+          type="button"
+          onClick={() => setFullOpen(!fullOpen)}
+          aria-label={`${fullOpen ? "Close" : "Open"} the player: ${track.title}`}
+          className="flex min-w-0 items-center gap-3 text-left sm:hidden"
         >
-          {muted ? <VolumeX /> : <Volume2 />}
-        </Button>
+          {info}
+        </button>
+
+        <div className="grid justify-items-center gap-0.5">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Previous"
+              className="hidden sm:inline-flex"
+              onClick={previous}
+            >
+              <SkipBack className="fill-current" />
+            </Button>
+            <Button
+              size="icon-sm"
+              aria-label={playing ? "Pause" : "Play"}
+              className="bg-fg text-bg hover:bg-fg/90 size-8 rounded-full"
+              disabled={!source}
+              onClick={toggle}
+            >
+              {playing ? <Pause className="fill-current" /> : <Play className="fill-current" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Next"
+              className="hidden sm:inline-flex"
+              disabled={!upNext}
+              onClick={next}
+            >
+              <SkipForward className="fill-current" />
+            </Button>
+            {/* Phones: the chevron right of play/pause slides the player up and back down. */}
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-expanded={fullOpen}
+              aria-controls={panelId}
+              aria-label={fullOpen ? "Close the player" : "Open the player"}
+              className="sm:hidden"
+              onClick={() => setFullOpen(!fullOpen)}
+            >
+              <ChevronUp
+                aria-hidden
+                className={cn(
+                  "transition-transform duration-400 motion-reduce:transition-none",
+                  fullOpen && "rotate-180",
+                )}
+              />
+            </Button>
+          </div>
+          <div className="num text-fg-faint hidden w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 text-[10px] leading-none sm:grid">
+            <span>{clock(current)}</span>
+            <input
+              type="range"
+              aria-label="Seek"
+              min={0}
+              max={duration || 0}
+              step={0.5}
+              value={Math.min(current, duration || 0)}
+              onChange={(event) => seek(Number(event.target.value))}
+              className="accent-fg h-1 w-full cursor-pointer"
+            />
+            <span>{clock(duration)}</span>
+          </div>
+        </div>
+
+        {/* Sized to its content, so the song and the seek bar shrink instead of the buttons spilling out */}
+        <div className="hidden items-center justify-end gap-1 sm:flex">
+          <ReactionButtons itemId={track.id} showCounts={false} />
+          {stemsButton}
+          {(preview || previewEnded) && (
+            <Link
+              href={`/item/${track.slug}#buy`}
+              className="bg-primary text-primary-foreground border-fg ml-1 flex h-8 items-center gap-1.5 rounded-full border-2 px-3 text-[13px] font-bold whitespace-nowrap shadow-[2px_2px_0_0_var(--color-fg)] transition-transform hover:-translate-y-0.5"
+            >
+              Buy
+              {track.price && (
+                <Money
+                  amount={track.price.bandcoin}
+                  currency="BANDCOIN"
+                  short
+                  className="font-bold"
+                  onBrand
+                />
+              )}
+            </Link>
+          )}
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={muted ? "Unmute" : "Mute"}
+            onClick={() => setMuted((value) => !value)}
+          >
+            {muted ? <VolumeX /> : <Volume2 />}
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -283,7 +357,7 @@ function StemsButton({
         align="end"
         side="top"
         sideOffset={10}
-        className="border-fg bg-surface grid max-h-[70dvh] w-[25rem] gap-3 overflow-y-auto rounded-2xl border-[3px] p-4 shadow-[6px_7px_0_0_var(--color-primary)]"
+        className="border-fg bg-surface grid max-h-[70dvh] w-[25rem] max-w-[calc(100vw-1.5rem)] gap-3 overflow-y-auto rounded-2xl border-[3px] p-4 shadow-[6px_7px_0_0_var(--color-primary)]"
       >
         <div className="flex items-start justify-between gap-3">
           <div>

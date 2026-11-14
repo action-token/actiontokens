@@ -16,6 +16,9 @@ type PlayerState = {
   queue: QueueTrack[];
   index: number;
   playing: boolean;
+  /** The full-screen player (phones) is open */
+  fullOpen: boolean;
+  setFullOpen: (open: boolean) => void;
   /** Play `tracks`, starting at `start`. Replaces the queue. */
   playQueue: (tracks: QueueTrack[], start?: number) => void;
   toggle: () => void;
@@ -29,6 +32,8 @@ export const usePlayer = create<PlayerState>((set) => ({
   queue: [],
   index: 0,
   playing: false,
+  fullOpen: false,
+  setFullOpen: (fullOpen) => set({ fullOpen }),
   playQueue: (tracks, start = 0) =>
     set({ queue: tracks, index: start, playing: tracks.length > 0 }),
   toggle: () => set((state) => ({ playing: state.queue.length > 0 && !state.playing })),

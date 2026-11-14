@@ -47,7 +47,7 @@ export default async function AlbumPage({ params }: Props) {
 
   return (
     <>
-      <section className="relative isolate overflow-hidden border-b">
+      <section className="bleed relative isolate overflow-hidden border-b">
         {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
         <img
           src={album.coverUrl}

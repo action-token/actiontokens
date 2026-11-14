@@ -129,11 +129,24 @@
 }
 
 /* The floating sidebar takes no width; pages pad themselves by --side-w
-   (0 on phones, the rail, or the open card on wide screens). */
+   (0 on phones, the rail, or the open card on wide screens). Registered so it can
+   animate: folding or opening the sidebar slides the card, the page padding and the
+   full-width hero bands together, with the same timing as the fan app's right panel. */
+@property --side-w {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
 :root {
   --side-rail-w: 6.5rem;
   --side-open-w: 20.5rem;
   --side-w: 0px;
+  transition: --side-w 400ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    transition: none;
+  }
 }
 @media (min-width: 40rem) {
   :root:has(.side-island) {
@@ -147,8 +160,11 @@
 }
 
 /* The floating island sidebar: a card that floats over the page; the
-   current page is a brand-yellow pill. Follows the theme by itself. */
-.side-island {
+   current page is a brand-yellow pill. Follows the theme by itself.
+   .side-card gives the fan app's right rail and panel the same colours
+   without counting as the sidebar in the --side-w rules above. */
+.side-island,
+.side-card {
   /* lifted: a lighter card than the page, a deep drop shadow and a lit top edge */
   --side: #22241b;
   --island-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 20px 40px -12px rgb(0 0 0 / 0.7);
@@ -158,14 +174,16 @@
   --side-chip: var(--bc-surface);
 }
 @media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) .side-island {
+  :root:not([data-theme="dark"]) .side-island,
+  :root:not([data-theme="dark"]) .side-card {
     --side: #ffffff;
     --island-shadow:
       0 1px 2px rgb(26 27 20 / 0.08), 0 12px 24px -8px rgb(26 27 20 / 0.14),
       0 32px 64px -16px rgb(26 27 20 / 0.28);
   }
 }
-:root[data-theme="light"] .side-island {
+:root[data-theme="light"] .side-island,
+:root[data-theme="light"] .side-card {
   --side: #ffffff;
   --island-shadow: 0 1px 2px rgb(26 27 20 / 0.08), 0 20px 40px -14px rgb(26 27 20 / 0.28);
 }
@@ -233,6 +251,8 @@
   --animate-shimmer: bc-shimmer 1.4s linear infinite;
   --animate-eq: bc-eq 900ms var(--ease-out-soft) infinite alternate;
   --animate-reveal: bc-reveal 520ms 120ms var(--ease-out-soft) forwards;
+  /* A sideways equalizer bar (the fan app's right rail); each bar sets its own duration */
+  --animate-eq-x: bc-eq-x 800ms var(--ease-out-soft) infinite alternate;
 
   @keyframes bc-shimmer {
     from {
@@ -282,6 +302,14 @@
   @keyframes bc-spin {
     to {
       transform: rotate(360deg);
+    }
+  }
+  @keyframes bc-eq-x {
+    from {
+      scale: 0.2 1;
+    }
+    to {
+      scale: 1 1;
     }
   }
   @keyframes bc-reveal {
@@ -431,6 +459,14 @@
 }
 
 /* Hand-made shape: slightly uneven corners (Wadzzo). */
+/* A page-top hero band whose background reaches under the floating sidebar to the screen's
+   left edge (like the /pins map), while its padding keeps the content lined up with the
+   page. --side-w is 0 on phones, so it does nothing there. Use on a block with auto width. */
+@utility bleed {
+  margin-inline-start: calc(var(--side-w) * -1);
+  padding-inline-start: var(--side-w);
+}
+
 @utility blob {
   border-radius: 18px 12px 20px 10px / 12px 18px 10px 20px;
 }
@@ -446,6 +482,9 @@
 /* Space for the phone tab bar: its height plus the safe area. Pages pad their bottom with it. */
 :root {
   --phone-bar-space: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+  /* The tab bar's actual height (padding + 3rem keys + padding, bottom padding or safe area). Things
+     that sit directly on it, like the phone player, use this so no gap shows between them. */
+  --phone-bar-h: calc(3.375rem + max(0.375rem, env(safe-area-inset-bottom, 0px)));
 }
 @media (prefers-reduced-motion: reduce) {
   .bc-tab-motion {
