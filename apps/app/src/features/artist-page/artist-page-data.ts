@@ -35,6 +35,13 @@ export function socialLinks(artist: Socials): { label: string; href: string }[] 
   ].filter((link): link is { label: string; href: string } => link !== null);
 }
 
+/**
+ * What the Collectibles block shows: everything for sale that is not a song (songs have
+ * their own block, and would otherwise be listed twice).
+ */
+export const collectiblesOf = (artist: Pick<ArtistPageData, "forSale">) =>
+  artist.forSale.filter((item) => item.type !== "TRACK");
+
 /** Whether a block would show nothing right now. The cover is never empty. */
 export function isBlockEmpty(block: Block, artist: ArtistPageData): boolean {
   const list = (key: string) =>
@@ -49,7 +56,7 @@ export function isBlockEmpty(block: Block, artist: ArtistPageData): boolean {
     case "releases":
       return artist.albums.length === 0;
     case "nft-gallery":
-      return artist.forSale.length === 0;
+      return collectiblesOf(artist).length === 0;
     case "membership":
       return artist.tiers.length === 0;
     case "tour":

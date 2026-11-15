@@ -1,108 +1,98 @@
 /**
- * Gives real artists on PRODUCTION a designed page, but only where they have none.
+ * Rebuilds the artist page of every real artist on PRODUCTION from what they have now
+ * (songs, albums, collectibles, tiers, tour dates, their own bio, links and videos).
  *
  *   PROD_DATABASE_URL=... pnpm --filter @bandcoin/db exec tsx scripts/seed/prod-layouts.ts          (dry run)
  *   PROD_DATABASE_URL=... pnpm --filter @bandcoin/db exec tsx scripts/seed/prod-layouts.ts --apply  (writes)
  *
- * What it will and will not do:
- *   - Dry run unless --apply. It prints, per artist, exactly what it would do.
- *   - Never touches an artist who already has a published page, or a draft with blocks in
- *     it. Those are the artist's own work (3 Years Hollow has one: they can copy the new
- *     design from the dev database through the page editor instead).
- *   - Writes only a page layout (page_layouts). No bio, picture, link, item, price or
- *     account is created, changed or deleted.
- *   - The page only shows what an artist has: blocks with nothing in them stay hidden from
- *     fans until the artist adds something, so nothing is invented.
- *   - Runs in one transaction; any failure writes nothing.
+ *   - Dry run unless --apply. It prints, per artist, what the new page is made of.
+ *   - Replaces the artist's current page. Before that, the old page is saved as a second,
+ *     inactive layout ("Previous page (backup)") in the same table, so it can be restored.
+ *     An existing backup is never overwritten.
+ *   - Their own words survive: the About text, videos, links and band lineup they typed into
+ *     their old page are carried into the new one (what they hid stays hidden).
+ *   - Writes only page_layouts. No bio, picture, link, item, price or account is touched.
+ *   - Stubs with nothing (no photo, bio, music, tiers or page) are left alone.
+ *   - One transaction: any failure writes nothing.
  */
 import "dotenv/config";
 
-import pg from "pg";
+import { factsFrom, hasSubstance, pageJson } from "./artist-designs";
+import { connectProduction, readProduction } from "./prod-read";
 
-import { DESIGN, ownContent } from "./artist-designs";
-
-type Row = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+const BACKUP_NAME = "Previous page (backup)";
 
 async function main() {
-  const url = process.env.PROD_DATABASE_URL;
-  if (!url) throw new Error("Set PROD_DATABASE_URL.");
   const apply = process.argv.includes("--apply");
-  const client = new pg.Client({ connectionString: url, connectionTimeoutMillis: 30_000 });
-  await client.connect();
+  const client = await connectProduction();
   try {
     await client.query("BEGIN");
     if (!apply) await client.query("SET TRANSACTION READ ONLY");
+    const { rows: artists } = await client.query<{ slug: string }>(
+      `select slug from artists order by "createdAt"`,
+    );
     const written: string[] = [];
-    for (const [slug, design] of Object.entries(DESIGN)) {
-      const { rows: artists } = await client.query<Row>(
-        `select id, name, status, bio from artists where slug = $1`,
-        [slug],
+    for (const { slug } of artists) {
+      const data = await readProduction(client, slug);
+      if (!data) continue;
+      const { rows: layouts } = await client.query(
+        `select id, name, status, "isActive", theme, "draftBlocks", "publishedBlocks", "templateKey" from page_layouts where "artistId" = $1 order by "createdAt"`,
+        [data.artist.id],
       );
-      const artist = artists[0];
-      if (!artist) {
-        console.log(`${slug}: not in production, skipped`);
+      const facts = factsFrom(data);
+      if (!hasSubstance(facts, Boolean(data.layout))) {
+        console.log(`${slug}: left alone (nothing to build a page from yet)`);
         continue;
       }
-      const { rows: layouts } = await client.query<Row>(
-        `select id, status, "publishedBlocks", "draftBlocks" from page_layouts where "artistId" = $1 order by "createdAt"`,
-        [artist.id],
-      );
-      const published = layouts.find(
-        (layout) => layout.status === "PUBLISHED" && layout.publishedBlocks,
-      );
-      const blocksIn = (raw: unknown) =>
-        (Array.isArray(raw) ? raw : ((raw as Row | null)?.blocks ?? [])) as unknown[];
-      // A draft holding only the cover is just the starter page the editor creates: not their work.
-      const drafted = layouts.find(
-        (layout) =>
-          blocksIn(layout.draftBlocks).filter((block) => (block as Row).type !== "cover").length >
-          0,
-      );
-      if (published || drafted) {
-        console.log(
-          `${slug}: skipped, already has ${published ? "a published page" : "a draft"} of their own`,
-        );
-        continue;
-      }
-
-      const bio = artist.bio === "Bio not available." ? "" : (artist.bio ?? "");
-      const specs = design.blocks(bio, ownContent(undefined));
-      const blocks = [
-        { uid: "cover", type: "cover", width: 4, hidden: false, settings: { align: "left" } },
-        ...specs.map((spec, i) => ({
-          uid: `b-${i + 1}`,
-          type: spec.type,
-          width: spec.width,
-          hidden: spec.hidden ?? false,
-          settings: spec.settings ?? {},
-        })),
-      ];
-      const note =
-        artist.status === "APPROVED" ? "" : ` (${artist.status}: not public until approved)`;
-      const reuse = layouts[0];
+      const page = pageJson(facts);
+      const shown = page.blocks.slice(1).filter((block) => !block.hidden);
+      const mine = layouts.find((layout) => layout.name !== BACKUP_NAME);
+      const hasBackup = layouts.some((layout) => layout.name === BACKUP_NAME);
+      const worthKeeping =
+        mine &&
+        (mine.publishedBlocks || (Array.isArray(mine.draftBlocks) && mine.draftBlocks.length > 1));
+      const status =
+        data.artist.status === "APPROVED"
+          ? ""
+          : ` [${data.artist.status}: not public until approved]`;
       console.log(
-        `${slug}: ${apply ? "writing" : "would write"} ${blocks.length - 1} blocks${note}${reuse ? " into their empty draft" : ""}`,
+        `${slug}: ${apply ? "rebuilding" : "would rebuild"}${status} — songs ${facts.tracks}, albums ${facts.albums}, collectibles ${facts.collectibles}, tiers ${facts.tiers}, shows ${facts.events}` +
+          `; blocks: ${shown.map((block) => block.type).join(", ")}` +
+          (worthKeeping && !hasBackup ? "; old page backed up" : ""),
       );
       if (!apply) continue;
 
-      const args = [
-        "My page",
-        JSON.stringify(design.theme),
-        JSON.stringify(blocks),
-        JSON.stringify({ blocks, theme: design.theme }),
-      ];
-      if (reuse)
+      if (worthKeeping && !hasBackup)
         await client.query(
-          `update page_layouts set name = $1, "isActive" = true, status = 'PUBLISHED', theme = $2::jsonb,
-                  "draftBlocks" = $3::jsonb, "publishedBlocks" = $4::jsonb, "publishedAt" = now(), "updatedAt" = now()
-            where id = $5`,
-          [...args, reuse.id],
+          `insert into page_layouts (id, "artistId", name, "isActive", status, theme, "draftBlocks", "publishedBlocks", "templateKey", "updatedAt")
+           values ('c' || md5(random()::text || clock_timestamp()::text), $1, $2, false, 'DRAFT', $3::jsonb, $4::jsonb, $5::jsonb, $6, now())`,
+          [
+            data.artist.id,
+            BACKUP_NAME,
+            JSON.stringify(mine.theme),
+            JSON.stringify(mine.draftBlocks),
+            JSON.stringify(mine.publishedBlocks),
+            mine.templateKey,
+          ],
+        );
+
+      const args = [
+        JSON.stringify(page.theme),
+        JSON.stringify(page.blocks),
+        JSON.stringify({ blocks: page.blocks, theme: page.theme }),
+      ];
+      if (mine)
+        await client.query(
+          `update page_layouts set name = 'My page', "isActive" = true, status = 'PUBLISHED', theme = $1::jsonb,
+                  "draftBlocks" = $2::jsonb, "publishedBlocks" = $3::jsonb, "publishedAt" = now(), "updatedAt" = now()
+            where id = $4`,
+          [...args, mine.id],
         );
       else
         await client.query(
           `insert into page_layouts (id, "artistId", name, "isActive", status, theme, "draftBlocks", "publishedBlocks", "publishedAt", "updatedAt")
-           values ('c' || md5(random()::text || clock_timestamp()::text), $5, $1, true, 'PUBLISHED', $2::jsonb, $3::jsonb, $4::jsonb, now(), now())`,
-          [...args, artist.id],
+           values ('c' || md5(random()::text || clock_timestamp()::text), $4, 'My page', true, 'PUBLISHED', $1::jsonb, $2::jsonb, $3::jsonb, now(), now())`,
+          [...args, data.artist.id],
         );
       written.push(slug);
     }

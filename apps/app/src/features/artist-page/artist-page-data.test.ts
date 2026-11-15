@@ -4,6 +4,7 @@ import { makeBlock, type Block } from "@bandcoin/page/blocks";
 
 import {
   blocksToShow,
+  collectiblesOf,
   isBlockEmpty,
   rowSpans,
   socialLinks,
@@ -123,5 +124,17 @@ describe("rowSpans", () => {
     expect(rowSpans([4, 1])).toEqual([4, 4]);
     expect(rowSpans([1, 1, 1])).toEqual([1, 1, 2]);
     expect(rowSpans([])).toEqual([]);
+  });
+});
+
+describe("collectiblesOf", () => {
+  it("leaves songs out, because Popular songs shows them", () => {
+    const items = [{ type: "TRACK" }, { type: "IMAGE" }, { type: "TICKET" }, { type: "TRACK" }];
+    const data = artist({ forSale: items as unknown as ArtistPageData["forSale"] });
+    expect(collectiblesOf(data).map((item) => item.type)).toEqual(["IMAGE", "TICKET"]);
+    // A page with only songs for sale has no collectibles to show.
+    expect(
+      isBlockEmpty(block("nft-gallery"), artist({ forSale: [{ type: "TRACK" }] as never })),
+    ).toBe(true);
   });
 });

@@ -11,7 +11,7 @@ import { AlbumCard } from "../../catalog/album-card";
 import { ItemCard, POSTER_WIDTH } from "../../catalog/item-card";
 import { PlayAllButton, TrackList } from "../../music/track-list";
 import { AR_URL } from "../../shell/nav";
-import type { ArtistPageData } from "../artist-page-data";
+import { collectiblesOf, type ArtistPageData } from "../artist-page-data";
 
 import { BlockSection, CARD_GRID, EmptyLine, countSetting, fill, textSetting } from "./shared";
 
@@ -98,7 +98,7 @@ export function ReleasesBlock({ block, artist, empty }: DataBlock) {
 
 /** Collectibles for sale: a Grid or a scrolling Row. */
 export function CollectiblesBlock({ block, artist, empty }: DataBlock) {
-  const items = artist.forSale.slice(0, countSetting(block, 8));
+  const items = collectiblesOf(artist).slice(0, countSetting(block, 8));
   const title = textSetting(block, "heading", "Collectibles");
   const note = "own a piece of the music";
   if (empty)
