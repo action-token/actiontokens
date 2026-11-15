@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import type { Block } from "@bandcoin/page/blocks";
+import { PAGE_ACTION_MESSAGE, parsePageAction, type PageAction } from "@bandcoin/page/editor";
 import type { PageTheme } from "@bandcoin/page/theme";
 import { cn } from "@bandcoin/ui/lib/cn";
 
@@ -21,6 +22,7 @@ export function PreviewPane({
   theme,
   selectedUid,
   onSelect,
+  onAction,
   phone,
 }: {
   slug: string;
@@ -28,18 +30,29 @@ export function PreviewPane({
   theme: PageTheme;
   selectedUid: string | null;
   onSelect: (uid: string) => void;
+  /** The block toolbar and + buttons in the preview */
+  onAction: (action: PageAction) => void;
   phone: boolean;
 }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const [ready, setReady] = useState(false);
   const [src] = useState(() => `${FAN_APP_URL}/artist/${slug}/preview`);
+  // The newest handler, so the message listener doesn't re-subscribe on every edit.
+  const handlers = useRef({ onAction });
+  useEffect(() => {
+    handlers.current = { onAction };
+  }, [onAction]);
 
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       if (event.origin !== APP_ORIGIN || event.source !== frame.current?.contentWindow) return;
-      const data = event.data as { type?: string; uid?: unknown } | null;
+      const data = event.data as { type?: string; uid?: unknown; action?: unknown } | null;
       if (data?.type === "bandcoin-page:ready") setReady(true);
       if (data?.type === "bandcoin-page:select" && typeof data.uid === "string") onSelect(data.uid);
+      if (data?.type === PAGE_ACTION_MESSAGE) {
+        const action = parsePageAction(data.action);
+        if (action) handlers.current.onAction(action);
+      }
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);

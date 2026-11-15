@@ -99,7 +99,7 @@ export function SettingsPanel() {
 
   return (
     <form
-      className="bg-surface max-w-2xl rounded-[1.4rem] border-2"
+      className="bg-surface rounded-[1.4rem] border-2"
       onSubmit={(event) => {
         event.preventDefault();
         if (valid) save.mutate(form);

@@ -23,9 +23,5 @@ export function OpenIssuer({ approved = false }: { approved?: boolean }) {
   );
   // In Settings it sits inside the account's own card.
   if (approved) return panel;
-  return (
-    <section className="bg-surface grid max-w-xl gap-4 rounded-xl border p-5 sm:p-6">
-      {panel}
-    </section>
-  );
+  return <section className="bg-surface grid gap-4 rounded-xl border p-5 sm:p-6">{panel}</section>;
 }

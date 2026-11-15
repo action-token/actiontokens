@@ -52,10 +52,7 @@ export function DashboardView() {
     case "REJECTED":
       return (
         <PageBody className="grid gap-6">
-          <div
-            role="note"
-            className="bg-danger-soft mx-auto w-full max-w-5xl rounded-xl p-4 text-sm"
-          >
+          <div role="note" className="bg-danger-soft w-full max-w-5xl rounded-xl p-4 text-sm">
             <b>Your application wasn&apos;t approved.</b> Your 1.5 XLM was returned to your wallet.
             {portal.artist?.rejectionReason && <> Why: {portal.artist.rejectionReason}</>} Change
             what you need and send it again.

@@ -148,6 +148,24 @@ describe("the artist directory", () => {
     );
   });
 
+  it("Following: only artists the viewer follows, and nobody when signed out", async () => {
+    const { ctx, db } = setup([row({ followers: [{ userId: "fan", isTemporary: true }] })]);
+    await artistDirectory(ctx, "fan", { limit: 24, sort: "popular", following: true }, now);
+    expect(db.artist.findMany.mock.calls[0]![0].where).toMatchObject({
+      status: "APPROVED",
+      followers: { some: { userId: "fan" } },
+    });
+
+    const signedOut = await artistDirectory(
+      ctx,
+      null,
+      { limit: 24, sort: "popular", following: true },
+      now,
+    );
+    expect(signedOut).toEqual({ artists: [], next: null });
+    expect(db.artist.findMany).toHaveBeenCalledTimes(1);
+  });
+
   it("counts only stories that are live now, and marks the ones the viewer follows", async () => {
     const { ctx, db } = setup([
       row({ followers: [{ userId: "fan", isTemporary: true }] }),

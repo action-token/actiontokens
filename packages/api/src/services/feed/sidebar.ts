@@ -76,14 +76,23 @@ const DIRECTORY_ORDER = {
 export async function artistDirectory(
   ctx: ServiceCtx,
   viewerId: string | null,
-  options: { limit: number; sort: DirectorySort; search?: string; cursor?: string },
+  options: {
+    limit: number;
+    sort: DirectorySort;
+    search?: string;
+    cursor?: string;
+    /** Only artists the viewer follows (nobody, when signed out). */
+    following?: boolean;
+  },
   now = new Date(),
 ) {
+  if (options.following && !viewerId) return { artists: [], next: null };
   const search = options.search?.trim();
   const rows = await ctx.db.artist.findMany({
     where: {
       status: "APPROVED",
       ...(search ? { name: { contains: search, mode: "insensitive" } } : {}),
+      ...(options.following && viewerId ? { followers: { some: { userId: viewerId } } } : {}),
     },
     orderBy: DIRECTORY_ORDER[options.sort],
     take: options.limit + 1,

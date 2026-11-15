@@ -26,13 +26,10 @@ import { ReactionButtons } from "../reactions/reaction-buttons";
 import { StemRows } from "../stems/stem-rows";
 import { useStemMode } from "../stems/use-stem-mode";
 import { FullPlayer } from "./full-player";
+import { listeningSession } from "./listening-id";
 import { currentTrack, usePlayer } from "./player-store";
 import { clock, progressPercent } from "./time";
 import { showSidebarBuy } from "../shell/sidebar-buy";
-
-let session: string | null = null;
-/** One id per browser tab, so plays from the same tab can be told apart from others. */
-const listeningSession = () => (session ??= crypto.randomUUID());
 
 /**
  * The bar at the bottom of every page. Owners hear the full track; everyone
@@ -77,7 +74,11 @@ export function PlayerBar() {
   );
 
   const source = playback.data?.url;
-  const recordPlay = api.media.recordPlay.useMutation();
+  const utils = api.useUtils();
+  // A new play moves the song to the front of Home's Recently played.
+  const recordPlay = api.media.recordPlay.useMutation({
+    onSuccess: () => void utils.music.recent.invalidate(),
+  });
   const preview = playback.data ? !playback.data.full : false;
   const finish = () => {
     if (preview && track) setPreviewEndedFor(track.id);

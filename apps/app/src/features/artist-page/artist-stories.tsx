@@ -69,17 +69,26 @@ export function StoryAvatar({
 }
 
 /** Every live story of the artist as a strip of tiles; a tile opens the viewer at that story. */
-export function ArtistStories({ slug }: { slug: string }) {
+export function ArtistStories({
+  slug,
+  title = "Stories",
+  whenEmpty = null,
+}: {
+  slug: string;
+  title?: string;
+  /** Drawn instead of nothing when there are none (the page editor explains the block) */
+  whenEmpty?: ReactNode;
+}) {
   const stories = useArtistStories(slug);
   const [start, setStart] = useState<number | null>(null);
   const live = stories.data?.stories ?? [];
   if (stories.isPending)
-    return <RowSkeleton title="Stories" note="gone in 24 hours" shape="round" label="Stories" />;
-  if (live.length === 0) return null;
+    return <RowSkeleton title={title} note="gone in 24 hours" shape="round" label={title} />;
+  if (live.length === 0) return whenEmpty;
 
   return (
-    <section className="grid grid-cols-[minmax(0,1fr)] gap-4" aria-label="Stories">
-      <SectionTitle title="Stories" note="gone in 24 hours" />
+    <section className="grid grid-cols-[minmax(0,1fr)] gap-4" aria-label={title}>
+      <SectionTitle title={title} note="gone in 24 hours" />
       <ScrollRow>
         {live.map((story, index) => (
           <li key={story.id} className="shrink-0">
@@ -104,7 +113,15 @@ export function ArtistStories({ slug }: { slug: string }) {
  * Each story keeps the audience it had: a locked one shows what unlocks it.
  * Tapping one plays the highlights from there. Hidden when there are none.
  */
-export function ArtistHighlights({ slug }: { slug: string }) {
+export function ArtistHighlights({
+  slug,
+  title = "Highlights",
+  whenEmpty = null,
+}: {
+  slug: string;
+  title?: string;
+  whenEmpty?: ReactNode;
+}) {
   const archive = api.story.archive.useInfiniteQuery(
     { slug },
     { getNextPageParam: (last) => last.nextCursor ?? undefined, staleTime: 60_000 },
@@ -115,18 +132,13 @@ export function ArtistHighlights({ slug }: { slug: string }) {
   const stories = pages.flatMap((page) => page.stories);
   if (archive.isPending)
     return (
-      <RowSkeleton
-        title="Highlights"
-        note="everything they've shared"
-        shape="square"
-        label="Highlights"
-      />
+      <RowSkeleton title={title} note="everything they've shared" shape="square" label={title} />
     );
-  if (!artist || stories.length === 0) return null;
+  if (!artist || stories.length === 0) return whenEmpty;
 
   return (
-    <section className="grid grid-cols-[minmax(0,1fr)] gap-4" aria-label="Highlights">
-      <SectionTitle title="Highlights" note="everything they've shared" />
+    <section className="grid grid-cols-[minmax(0,1fr)] gap-4" aria-label={title}>
+      <SectionTitle title={title} note="everything they've shared" />
       <ScrollRow
         onEnd={() => {
           if (archive.hasNextPage && !archive.isFetchingNextPage) void archive.fetchNextPage();

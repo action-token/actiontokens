@@ -149,7 +149,7 @@ function SendGift() {
 
   return (
     <>
-      <section className="bg-surface border-fg/10 grid w-full max-w-3xl gap-6 rounded-[1.4rem] border-2 p-5 sm:p-7">
+      <section className="bg-surface border-fg/10 grid w-full gap-6 rounded-[1.4rem] border-2 p-5 sm:p-7">
         <ol aria-label="Steps" className="grid grid-cols-3 gap-2">
           {STEPS.map((entry, index) => {
             const current = index === step;

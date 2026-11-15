@@ -20,7 +20,7 @@ export function TrackList({
   actionFor?: (track: ItemCardData) => ReactNode;
 }) {
   return (
-    <ol className="grid gap-0.5">
+    <ol className="@container grid gap-0.5">
       {tracks.map((track, index) => (
         <TrackRow
           key={track.id}

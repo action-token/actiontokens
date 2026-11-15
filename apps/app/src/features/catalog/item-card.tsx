@@ -130,7 +130,7 @@ export function ItemCard({
           ) : (
             <p className="truncate text-xs font-semibold text-white/80">{item.artistName}</p>
           )}
-          <p className="display line-clamp-2 pr-10 text-2xl leading-[1.05] break-words">
+          <p className="display line-clamp-2 pr-10 text-2xl leading-[1.05] break-words hyphens-auto">
             {item.title}
           </p>
         </div>

@@ -97,11 +97,7 @@ function MembershipTabs() {
           </Tabs>
           {tab === "tiers" && <Tiers tokenCode={token.data.code} />}
           {tab === "bundles" && <PageAssets />}
-          {tab === "storage" && (
-            <div className="max-w-2xl">
-              <StorageStock itemId={token.data.itemId} />
-            </div>
-          )}
+          {tab === "storage" && <StorageStock itemId={token.data.itemId} />}
         </>
       )}
     </PageBody>

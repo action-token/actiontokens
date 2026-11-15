@@ -7,7 +7,9 @@ import {
   makeBlock,
   normalizeBlocks,
   parseBlock,
+  styleOf,
 } from "../blocks";
+import { parsePageAction } from "../editor";
 import { safeUrl, videoEmbed } from "../links";
 import { TEMPLATES, blocksOf, templateByKey } from "../templates";
 import { DEFAULT_THEME, inkFor, themeSchema, themeVars } from "../theme";
@@ -78,9 +80,10 @@ describe("a block", () => {
       width: 2,
       hidden: false,
       hideWhenEmpty: true,
-      settings: { heading: "Popular", count: 5 },
+      settings: { style: "list", heading: "Popular", count: 5 },
     });
     expect(makeBlock("links", "l1").settings).toEqual({
+      style: "buttons",
       heading: "Links",
       showSocials: true,
       links: [],
@@ -101,8 +104,21 @@ describe("a block", () => {
       width: 2,
       hidden: false,
       hideWhenEmpty: true,
-      settings: { heading: "Popular", count: 5 },
+      settings: { style: "list", heading: "Popular", count: 5 },
     });
+  });
+
+  it("keeps a known style and repairs an unknown one to the default", () => {
+    expect(
+      parseBlock({ uid: "r", type: "releases", settings: { style: "grid" } })?.settings.style,
+    ).toBe("grid");
+    expect(
+      parseBlock({ uid: "r", type: "releases", settings: { style: "spiral" } })?.settings.style,
+    ).toBe("row");
+    // Saved before styles existed: the default.
+    expect(parseBlock({ uid: "a", type: "about", settings: {} })?.settings.style).toBe("text");
+    expect(styleOf({ type: "links", settings: { style: "chips" } }, "links")).toBe("chips");
+    expect(styleOf({ type: "links", settings: {} }, "links")).toBe("buttons");
   });
 
   it("drops unknown types and blocks with no id", () => {
@@ -218,5 +234,34 @@ describe("registry and templates", () => {
     }
     expect(templateByKey("musician")?.name).toBe("Musician");
     expect(templateByKey("nope")).toBeUndefined();
+  });
+});
+
+describe("an editor action from the preview", () => {
+  it("is read when it is well formed", () => {
+    expect(parsePageAction({ kind: "move", uid: "b1", direction: -1 })).toEqual({
+      kind: "move",
+      uid: "b1",
+      direction: -1,
+    });
+    expect(parsePageAction({ kind: "width", uid: "b1", width: 3 })).toEqual({
+      kind: "width",
+      uid: "b1",
+      width: 3,
+    });
+    expect(parsePageAction({ kind: "style", uid: "b1", style: "chips" })?.kind).toBe("style");
+    expect(parsePageAction({ kind: "insert", after: "b1" })).toEqual({
+      kind: "insert",
+      after: "b1",
+    });
+  });
+
+  it("is ignored when it isn't", () => {
+    expect(parsePageAction({ kind: "move", uid: "b1", direction: 5 })).toBeNull();
+    expect(parsePageAction({ kind: "width", uid: "b1", width: 7 })).toBeNull();
+    expect(parsePageAction({ kind: "style", uid: "b1", style: "<script>" })).toBeNull();
+    expect(parsePageAction({ kind: "remove", uid: "" })).toBeNull();
+    expect(parsePageAction({ kind: "publish" })).toBeNull();
+    expect(parsePageAction("remove")).toBeNull();
   });
 });

@@ -126,7 +126,7 @@ export function FanTokenSetup() {
   }
 
   return (
-    <section className="bg-surface grid max-w-2xl gap-5 rounded-xl border p-5 sm:p-6">
+    <section className="bg-surface grid gap-5 rounded-xl border p-5 sm:p-6">
       <div>
         <h2 className="display text-2xl">Create your fan token</h2>
         <p className="text-fg-muted mt-1 text-sm">

@@ -45,7 +45,7 @@ export function FacebookTab() {
   const { configured, connected, pageName, connectedAt } = status.data;
 
   return (
-    <div className="grid max-w-xl gap-4">
+    <div className="grid gap-4">
       {problem && (
         <p role="alert" className="bg-surface-2 rounded-xl p-3 text-sm">
           {problem}

@@ -1,8 +1,9 @@
 "use client";
 
-import { ListMusic, Play, Star } from "lucide-react";
+import { ArrowRight, ListMusic, Play, Star } from "lucide-react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import { Button } from "@bandcoin/ui/components/button";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
@@ -24,33 +25,86 @@ const SORTS: { value: Sort; label: string }[] = [
   { value: "title", label: "A–Z" },
 ];
 
-/** Full releases, for Home. */
-export function AlbumsCarousel() {
-  const overview = api.music.overview.useQuery();
-  if (overview.isPending)
-    return (
-      <MediaCarousel title="Albums" note="full releases" itemWidth="minmax(160px,188px)">
-        {[0, 1, 2, 3, 4, 5].map((key) => (
-          <div key={key} className="grid gap-2" aria-hidden>
-            <Skeleton className="aspect-square w-full rounded-2xl" />
-            <Skeleton className="h-3.5 w-3/4" />
-            <Skeleton className="h-3 w-1/2" />
-          </div>
-        ))}
-      </MediaCarousel>
-    );
-  if (!overview.data || overview.data.albums.length === 0) return null;
+const ALBUM_WIDTH = "minmax(160px,188px)";
+
+function AlbumSkeletons({ count }: { count: number }) {
+  return Array.from({ length: count }, (_, key) => (
+    <div key={key} className="grid content-start gap-2" aria-hidden>
+      <Skeleton className="aspect-square w-full rounded-2xl" />
+      <Skeleton className="h-3.5 w-3/4" />
+      <Skeleton className="h-3 w-1/2" />
+    </div>
+  ));
+}
+
+/** Full releases, for Home: 12 at a time, more as you scroll to the end. */
+export function AlbumsCarousel({ action }: { action?: ReactNode }) {
+  const albums = api.music.albums.useInfiniteQuery(
+    { limit: 12 },
+    { getNextPageParam: (page) => page.nextCursor },
+  );
+  const list = albums.data?.pages.flatMap((page) => page.albums) ?? [];
+  if (albums.isSuccess && list.length === 0) return null;
   return (
-    <MediaCarousel title="Albums" note="full releases" itemWidth="minmax(160px,188px)">
-      {overview.data.albums.map((album) => (
+    <MediaCarousel
+      title="Albums"
+      note="full releases"
+      action={action}
+      itemWidth={ALBUM_WIDTH}
+      onEndReached={() => {
+        if (albums.hasNextPage && !albums.isFetchingNextPage) void albums.fetchNextPage();
+      }}
+    >
+      {list.map((album) => (
         <AlbumCard key={album.slug} album={{ ...album, artistName: album.artist?.name }} />
       ))}
+      {(albums.isPending || albums.isFetchingNextPage) && (
+        <AlbumSkeletons count={albums.isPending ? 6 : 3} />
+      )}
     </MediaCarousel>
   );
 }
 
-/** Every song on Bandcoin, sortable, with Play all: the bottom of Home. */
-export function AllSongs() {
+/** Every album, newest first, in a grid with Load more: the Albums page. */
+export function AlbumsGrid() {
+  const albums = api.music.albums.useInfiniteQuery(
+    {},
+    { getNextPageParam: (page) => page.nextCursor },
+  );
+  const list = albums.data?.pages.flatMap((page) => page.albums) ?? [];
+  if (albums.isSuccess && list.length === 0) {
+    return (
+      <EmptyState
+        icon={ListMusic}
+        title="No albums yet"
+        description="When artists put out full releases, they show up here."
+      />
+    );
+  }
+  return (
+    <div className="grid gap-6">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
+        {list.map((album) => (
+          <AlbumCard key={album.slug} album={{ ...album, artistName: album.artist?.name }} />
+        ))}
+        {albums.isPending && <AlbumSkeletons count={12} />}
+      </div>
+      {albums.hasNextPage && (
+        <Button
+          variant="secondary"
+          className="justify-self-center"
+          disabled={albums.isFetchingNextPage}
+          onClick={() => void albums.fetchNextPage()}
+        >
+          {albums.isFetchingNextPage ? "Loading…" : "Load more"}
+        </Button>
+      )}
+    </div>
+  );
+}
+
+/** Every song on Bandcoin, sortable, with Play all: the bottom of Home. No songs: no section. */
+export function AllSongs({ seeAllHref }: { seeAllHref?: string }) {
   const [sort, setSort] = useState<Sort>("newest");
   const tracks = api.music.tracks.useInfiniteQuery(
     { sort },
@@ -58,10 +112,11 @@ export function AllSongs() {
   );
   const list = tracks.data?.pages.flatMap((page) => page.tracks) ?? [];
   const playQueue = usePlayer((state) => state.playQueue);
+  if (tracks.isSuccess && list.length === 0) return null;
 
   return (
     <>
-      <section className="grid gap-3" aria-label="All songs">
+      <section id="all-songs" className="grid scroll-mt-24 gap-3" aria-label="All songs">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <SectionTitle title="All songs" note="tap a row to listen" />
           <div className="flex items-center gap-2">
@@ -72,16 +127,25 @@ export function AllSongs() {
           </div>
         </div>
         <TrackList tracks={list} loading={tracks.isPending} />
-        {tracks.hasNextPage && (
-          <Button
-            variant="secondary"
-            className="justify-self-center"
-            disabled={tracks.isFetchingNextPage}
-            onClick={() => void tracks.fetchNextPage()}
-          >
-            {tracks.isFetchingNextPage ? "Loading…" : "Load more"}
-          </Button>
-        )}
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          {tracks.hasNextPage && (
+            <Button
+              variant="secondary"
+              disabled={tracks.isFetchingNextPage}
+              onClick={() => void tracks.fetchNextPage()}
+            >
+              {tracks.isFetchingNextPage ? "Loading…" : "Load more"}
+            </Button>
+          )}
+          {seeAllHref && (
+            <Link
+              href={seeAllHref}
+              className="hover:border-border-strong inline-flex h-9 items-center gap-1.5 rounded-full border px-4 text-sm font-semibold transition-colors"
+            >
+              See all songs <ArrowRight className="size-4" />
+            </Link>
+          )}
+        </div>
       </section>
     </>
   );
@@ -196,7 +260,7 @@ function TrackList({
     );
   }
   return (
-    <ol className="grid gap-0.5">
+    <ol className="@container grid gap-0.5">
       {tracks.map((track, index) => (
         <TrackRow
           key={track.id}

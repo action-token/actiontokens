@@ -246,6 +246,21 @@ export const artistRouter = createRouter({
     .query(({ ctx, input }) => suggestedArtists(ctx, ctx.session?.user.id ?? null, input)),
 
   /** The Artists page: every approved artist, searchable and paged; open to anyone. */
+  /** An artist's most played songs, for a Play button on a list: just the queue, not the whole page. */
+  topTracks: publicProcedure.input(slugInput).query(async ({ ctx, input }) => {
+    const rows = await ctx.db.item.findMany({
+      where: {
+        ...listedItemWhere,
+        type: "TRACK",
+        artist: { slug: input.slug, status: "APPROVED" },
+      },
+      orderBy: [{ playCount: "desc" }, { createdAt: "desc" }],
+      take: 20,
+      select: itemCardSelect,
+    });
+    return rows.map(toItemCard);
+  }),
+
   directory: publicProcedure
     .input(
       z.object({
@@ -253,6 +268,7 @@ export const artistRouter = createRouter({
         sort: z.enum(["popular", "newest"]).default("popular"),
         cursor: z.string().min(1).nullish(),
         limit: z.number().int().min(1).max(48).default(24),
+        following: z.boolean().optional(),
       }),
     )
     .query(({ ctx, input }) =>

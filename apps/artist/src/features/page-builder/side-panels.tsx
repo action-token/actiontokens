@@ -1,35 +1,9 @@
 "use client";
 
-import {
-  ArrowDown,
-  ArrowUp,
-  CalendarDays,
-  Crown,
-  Disc3,
-  Eye,
-  EyeOff,
-  FileText,
-  Link2,
-  Music2,
-  Package,
-  Plus,
-  Trash2,
-  User,
-  UsersRound,
-  Video,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowDown, ArrowUp, Eye, EyeOff, GripVertical, Plus, Trash2, X } from "lucide-react";
 import { useState } from "react";
 
-import {
-  BLOCK_DEFS,
-  BLOCK_LIST,
-  type Block,
-  type BlockCategory,
-  type BlockType,
-  type BlockWidth,
-} from "@bandcoin/page/blocks";
-import { DENSITIES, FONT_PAIRS, RADII, type PageTheme } from "@bandcoin/page/theme";
+import { BLOCK_DEFS, type Block, type BlockWidth } from "@bandcoin/page/blocks";
 import { Button } from "@bandcoin/ui/components/button";
 import { Label } from "@bandcoin/ui/components/label";
 import { Switch } from "@bandcoin/ui/components/switch";
@@ -38,40 +12,25 @@ import { cn } from "@bandcoin/ui/lib/cn";
 import { Segmented } from "../embeds/embed-fields";
 
 import { BlockField } from "./block-fields";
+import { BLOCK_ICON } from "./block-picker";
 
-const ICON: Record<BlockType, LucideIcon> = {
-  cover: User,
-  about: FileText,
-  music: Music2,
-  releases: Disc3,
-  "nft-gallery": Package,
-  membership: Crown,
-  tour: CalendarDays,
-  links: Link2,
-  videos: Video,
-  "band-members": UsersRound,
-};
-
-const CATEGORY: Record<BlockCategory, string> = {
-  essentials: "Essentials",
-  music: "Music",
-  sell: "Sell",
-  connect: "Connect",
-};
 const WIDTHS: { value: BlockWidth; label: string }[] = [
   { value: 1, label: "¼" },
   { value: 2, label: "½" },
   { value: 3, label: "¾" },
   { value: 4, label: "Full" },
 ];
-const ACCENTS = ["#dbdc2c", "#39ff88", "#ff5d73", "#1d4ed8", "#ea580c", "#7c3aed", "#0f172a"];
 
-/** The blocks on the page, in order, with ways to reorder, hide and add them. */
+/**
+ * The blocks on the page, in order: drag one by its handle to move it (or use the arrows),
+ * hide it with the eye, add one with the button. The cover always stays first.
+ */
 export function BlockListPanel({
   blocks,
   selectedUid,
   onSelect,
   onMove,
+  onDrop,
   onToggleHidden,
   onAdd,
 }: {
@@ -79,11 +38,17 @@ export function BlockListPanel({
   selectedUid: string | null;
   onSelect: (uid: string) => void;
   onMove: (uid: string, direction: -1 | 1) => void;
+  /** A dragged block dropped at this place in the list */
+  onDrop: (uid: string, to: number) => void;
   onToggleHidden: (uid: string) => void;
-  onAdd: (type: BlockType) => void;
+  onAdd: () => void;
 }) {
-  const [adding, setAdding] = useState(false);
-  const addable = BLOCK_LIST.filter((def) => !def.locked);
+  const [dragging, setDragging] = useState<string | null>(null);
+  const [over, setOver] = useState<number | null>(null);
+  const end = () => {
+    setDragging(null);
+    setOver(null);
+  };
 
   return (
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4 p-4">
@@ -91,55 +56,106 @@ export function BlockListPanel({
         <h2 className="text-fg-muted mb-2 text-xs font-semibold tracking-wider uppercase">
           Your page
         </h2>
-        <ol className="grid gap-1">
+        <ol
+          className="grid gap-1"
+          onDragLeave={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOver(null);
+          }}
+        >
           {blocks.map((block, index) => {
             const def = BLOCK_DEFS[block.type];
-            const Icon = ICON[block.type];
+            const Icon = BLOCK_ICON[block.type];
             const selected = block.uid === selectedUid;
+            const movable = !def.locked;
             return (
               <li
                 key={block.uid}
+                draggable={movable}
+                onDragStart={(event) => {
+                  event.dataTransfer.effectAllowed = "move";
+                  event.dataTransfer.setData("text/plain", block.uid);
+                  setDragging(block.uid);
+                }}
+                onDragOver={(event) => {
+                  if (!dragging || index === 0) return;
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = "move";
+                  setOver(index);
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  if (dragging && over !== null) {
+                    // The line sits above the row it's over, so land just before that row
+                    // (one less when coming from above, as the dragged row leaves the list first).
+                    const from = blocks.findIndex((entry) => entry.uid === dragging);
+                    onDrop(dragging, from < over ? over - 1 : over);
+                  }
+                  end();
+                }}
+                onDragEnd={end}
                 className={cn(
-                  "flex items-center gap-1 rounded-lg border pr-1 transition-colors",
+                  "group relative flex items-center gap-0.5 rounded-lg border pr-1 transition-colors",
                   selected
                     ? "border-primary bg-primary/10"
                     : "hover:bg-surface-2 border-transparent",
+                  dragging === block.uid && "opacity-40",
+                  // The line where the dragged block will land.
+                  over === index &&
+                    dragging !== block.uid &&
+                    "before:bg-primary before:absolute before:inset-x-1 before:-top-1 before:h-0.5 before:rounded-full",
                 )}
               >
+                <span
+                  aria-hidden
+                  className={cn(
+                    "text-fg-faint grid w-5 shrink-0 place-items-center pl-1",
+                    movable ? "cursor-grab active:cursor-grabbing" : "invisible",
+                  )}
+                >
+                  <GripVertical className="size-4" />
+                </span>
                 <button
                   type="button"
                   onClick={() => onSelect(block.uid)}
                   aria-current={selected}
                   className={cn(
-                    "flex min-w-0 flex-1 items-center gap-2 px-2 py-2 text-left text-sm",
+                    "flex min-w-0 flex-1 items-center gap-2 py-2 pr-1 text-left text-sm",
                     block.hidden && "opacity-50",
                   )}
                 >
                   <Icon className="size-4 shrink-0" />
                   <span className="truncate">{def.label}</span>
                 </button>
-                {!def.locked && (
+                {movable && (
                   <>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={`Move ${def.label} up`}
-                      disabled={index <= 1}
-                      onClick={() => onMove(block.uid, -1)}
+                    {/* The arrows show on hover, on focus and for the selected block, so the eye always fits. */}
+                    <span
+                      className={cn(
+                        "hidden items-center group-focus-within:flex group-hover:flex",
+                        selected && "flex",
+                      )}
                     >
-                      <ArrowUp />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={`Move ${def.label} down`}
-                      disabled={index >= blocks.length - 1}
-                      onClick={() => onMove(block.uid, 1)}
-                    >
-                      <ArrowDown />
-                    </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={`Move ${def.label} up`}
+                        disabled={index <= 1}
+                        onClick={() => onMove(block.uid, -1)}
+                      >
+                        <ArrowUp />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={`Move ${def.label} down`}
+                        disabled={index >= blocks.length - 1}
+                        onClick={() => onMove(block.uid, 1)}
+                      >
+                        <ArrowDown />
+                      </Button>
+                    </span>
                     <Button
                       type="button"
                       variant="ghost"
@@ -155,82 +171,66 @@ export function BlockListPanel({
             );
           })}
         </ol>
+        <p className="text-fg-faint mt-2 px-1 text-[11px]">
+          Drag to reorder. Click a block for its settings, or + in the preview to add one after it.
+        </p>
       </div>
 
-      <div className="grid gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setAdding((value) => !value)}
-          aria-expanded={adding}
-        >
-          <Plus /> Add a block
-        </Button>
-        {adding && (
-          <div className="grid gap-3 rounded-xl border p-2">
-            {(Object.keys(CATEGORY) as BlockCategory[]).map((category) => {
-              const defs = addable.filter((def) => def.category === category);
-              if (defs.length === 0) return null;
-              return (
-                <div key={category} className="grid gap-1">
-                  <span className="text-fg-faint px-1 text-[11px] font-semibold tracking-wider uppercase">
-                    {CATEGORY[category]}
-                  </span>
-                  {defs.map((def) => {
-                    const Icon = ICON[def.type];
-                    return (
-                      <button
-                        key={def.type}
-                        type="button"
-                        className="hover:bg-surface-2 flex items-start gap-2 rounded-lg px-2 py-1.5 text-left"
-                        onClick={() => {
-                          onAdd(def.type);
-                          setAdding(false);
-                        }}
-                      >
-                        <Icon className="mt-0.5 size-4 shrink-0" />
-                        <span className="grid text-sm">
-                          <b className="font-medium">{def.label}</b>
-                          <span className="text-fg-muted text-xs">{def.description}</span>
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      <Button type="button" variant="outline" onClick={onAdd}>
+        <Plus /> Add a block
+      </Button>
     </div>
   );
 }
 
-/** The selected block's settings, or the page theme when nothing is selected. */
+/** The selected block's settings (in the drop-down under the style bar). */
 export function SettingsPanel({
   block,
-  theme,
-  onTheme,
   onPatch,
   onSetting,
   onRemove,
+  onClose,
 }: {
-  block: Block | null;
-  theme: PageTheme;
-  onTheme: (theme: PageTheme) => void;
-  onPatch: (uid: string, patch: Partial<Pick<Block, "width" | "hidden" | "hideWhenEmpty">>) => void;
+  block: Block;
+  onPatch: (uid: string, patch: Partial<Pick<Block, "width" | "hidden">>) => void;
   onSetting: (uid: string, key: string, value: unknown) => void;
   onRemove: (uid: string) => void;
+  onClose: () => void;
 }) {
-  if (!block) return <ThemePanel theme={theme} onTheme={onTheme} />;
   const def = BLOCK_DEFS[block.type];
+  const Icon = BLOCK_ICON[block.type];
 
   return (
     <div className="grid gap-5 p-4">
-      <div>
-        <h2 className="display text-xl">{def.label}</h2>
-        <p className="text-fg-muted text-xs">{def.description}</p>
+      <div className="flex items-start gap-3">
+        <span className="bg-surface-2 grid size-9 shrink-0 place-items-center rounded-lg">
+          <Icon className="size-4" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h2 className="display text-xl leading-tight">{def.label}</h2>
+          <p className="text-fg-muted text-xs">{def.description}</p>
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Close block settings"
+          onClick={onClose}
+        >
+          <X />
+        </Button>
       </div>
+
+      {def.fields
+        .filter((field) => field.key === "style")
+        .map((field) => (
+          <BlockField
+            key={`${block.uid}-${field.key}`}
+            field={field}
+            value={block.settings[field.key]}
+            onChange={(value) => onSetting(block.uid, field.key, value)}
+          />
+        ))}
 
       {!def.locked && (
         <div className="grid gap-1.5">
@@ -245,39 +245,30 @@ export function SettingsPanel({
       )}
 
       {!def.locked && (
-        <label className="flex cursor-pointer items-center justify-between gap-3 text-sm">
-          <span>Visible on my page</span>
-          <Switch
-            checked={!block.hidden}
-            onCheckedChange={(visible) => onPatch(block.uid, { hidden: !visible })}
-          />
-        </label>
+        <div className="grid gap-1">
+          <label className="flex cursor-pointer items-center justify-between gap-3 text-sm">
+            <span>Visible on my page</span>
+            <Switch
+              checked={!block.hidden}
+              onCheckedChange={(visible) => onPatch(block.uid, { hidden: !visible })}
+            />
+          </label>
+          <p className="text-fg-muted text-xs">
+            Fans only see this block once it has something to show.
+          </p>
+        </div>
       )}
 
-      {def.source === "data" && !def.locked && (
-        <label className="flex cursor-pointer items-start justify-between gap-3 text-sm">
-          <span>
-            Hide when empty
-            <span className="text-fg-muted block text-xs">
-              Skip this block until it has something to show. Otherwise visitors see a quiet
-              &ldquo;nothing yet&rdquo; line.
-            </span>
-          </span>
-          <Switch
-            checked={block.hideWhenEmpty}
-            onCheckedChange={(hide) => onPatch(block.uid, { hideWhenEmpty: hide })}
+      {def.fields
+        .filter((field) => field.key !== "style")
+        .map((field) => (
+          <BlockField
+            key={`${block.uid}-${field.key}`}
+            field={field}
+            value={block.settings[field.key]}
+            onChange={(value) => onSetting(block.uid, field.key, value)}
           />
-        </label>
-      )}
-
-      {def.fields.map((field) => (
-        <BlockField
-          key={`${block.uid}-${field.key}`}
-          field={field}
-          value={block.settings[field.key]}
-          onChange={(value) => onSetting(block.uid, field.key, value)}
-        />
-      ))}
+        ))}
 
       {def.source === "data" && (
         <p className="bg-surface-2 text-fg-muted rounded-lg p-3 text-xs">
@@ -296,71 +287,6 @@ export function SettingsPanel({
           <Trash2 /> Remove block
         </Button>
       )}
-    </div>
-  );
-}
-
-function ThemePanel({ theme, onTheme }: { theme: PageTheme; onTheme: (theme: PageTheme) => void }) {
-  const set = <K extends keyof PageTheme>(key: K, value: PageTheme[K]) =>
-    onTheme({ ...theme, [key]: value });
-  return (
-    <div className="grid gap-5 p-4">
-      <div>
-        <h2 className="display text-xl">Page style</h2>
-        <p className="text-fg-muted text-xs">
-          Select a block to edit it, or change how the whole page looks.
-        </p>
-      </div>
-      <div className="grid gap-1.5">
-        <Label className="text-xs">Accent colour</Label>
-        <div className="flex flex-wrap items-center gap-2">
-          {ACCENTS.map((color) => (
-            <button
-              key={color}
-              type="button"
-              aria-label={`Accent ${color}`}
-              onClick={() => set("accent", color)}
-              className={cn(
-                "size-7 rounded-full border-2",
-                theme.accent.toLowerCase() === color ? "border-foreground" : "border-transparent",
-              )}
-              style={{ background: color }}
-            />
-          ))}
-          <input
-            type="color"
-            aria-label="Pick any colour"
-            value={theme.accent}
-            onChange={(event) => set("accent", event.target.value)}
-            className="h-8 w-10 cursor-pointer rounded border bg-transparent"
-          />
-        </div>
-        <p className="text-fg-muted text-xs">Buttons, highlights and popular tiers.</p>
-      </div>
-      <div className="grid gap-1.5">
-        <Label className="text-xs">Font</Label>
-        <Segmented
-          value={theme.fontPair}
-          onChange={(value) => set("fontPair", value)}
-          options={FONT_PAIRS.map((entry) => ({ id: entry.value, label: entry.label }))}
-        />
-      </div>
-      <div className="grid gap-1.5">
-        <Label className="text-xs">Corners</Label>
-        <Segmented
-          value={theme.radius}
-          onChange={(value) => set("radius", value)}
-          options={RADII.map((entry) => ({ id: entry.value, label: entry.label }))}
-        />
-      </div>
-      <div className="grid gap-1.5">
-        <Label className="text-xs">Spacing</Label>
-        <Segmented
-          value={theme.density}
-          onChange={(value) => set("density", value)}
-          options={DENSITIES.map((entry) => ({ id: entry.value, label: entry.label }))}
-        />
-      </div>
     </div>
   );
 }

@@ -2,7 +2,16 @@ import { describe, expect, it } from "vitest";
 
 import { makeBlock } from "@bandcoin/page/blocks";
 
-import { addBlock, moveBlock, patchBlock, removeBlock, restoreBlock, setSetting } from "./draft";
+import {
+  addBlock,
+  insertBlock,
+  moveBlock,
+  moveBlockTo,
+  patchBlock,
+  removeBlock,
+  restoreBlock,
+  setSetting,
+} from "./draft";
 
 const page = () => [
   makeBlock("cover", "c"),
@@ -16,6 +25,21 @@ describe("page draft edits", () => {
   it("adds a block at the end, but never a second cover", () => {
     expect(order(addBlock(page(), "videos", "v"))).toBe("c,a,m,l,v");
     expect(order(addBlock(page(), "cover", "c2"))).toBe("c,a,m,l");
+  });
+
+  it("inserts a block right after another one, or at the end if that one is gone", () => {
+    expect(order(insertBlock(page(), "videos", "v", "a"))).toBe("c,a,v,m,l");
+    expect(order(insertBlock(page(), "videos", "v", "c"))).toBe("c,v,a,m,l");
+    expect(order(insertBlock(page(), "videos", "v", "gone"))).toBe("c,a,m,l,v");
+    expect(order(insertBlock(page(), "cover", "c2", "a"))).toBe("c,a,m,l");
+  });
+
+  it("drops a dragged block at a new place, never above the cover", () => {
+    expect(order(moveBlockTo(page(), "l", 1))).toBe("c,l,a,m");
+    expect(order(moveBlockTo(page(), "a", 3))).toBe("c,m,l,a");
+    expect(order(moveBlockTo(page(), "m", 0))).toBe("c,m,a,l");
+    expect(order(moveBlockTo(page(), "c", 2))).toBe("c,a,m,l");
+    expect(order(moveBlockTo(page(), "nope", 2))).toBe("c,a,m,l");
   });
 
   it("moves a block up and down, but never above the cover or off the ends", () => {
@@ -53,9 +77,14 @@ describe("page draft edits", () => {
   it("sets one setting and leaves the rest and the other blocks alone", () => {
     const blocks = setSetting(page(), "a", "body", "Hello");
     expect(blocks.find((b) => b.uid === "a")?.settings).toEqual({
+      style: "text",
       heading: "About",
       body: "Hello",
     });
-    expect(blocks.find((b) => b.uid === "m")?.settings).toEqual({ heading: "Popular", count: 5 });
+    expect(blocks.find((b) => b.uid === "m")?.settings).toEqual({
+      style: "list",
+      heading: "Popular",
+      count: 5,
+    });
   });
 });

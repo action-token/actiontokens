@@ -37,7 +37,7 @@ export function WaitingView() {
   const progress = Math.max(15, Math.min(90, Math.round((days / REVIEW_DAYS) * 100)));
 
   return (
-    <div className="w-full max-w-5xl">
+    <div className="w-full">
       <div className="mb-6">
         <p className="marker text-primary-text text-sm">artist portal</p>
         <h1 className="display text-4xl sm:text-5xl">You&apos;re in review</h1>
@@ -158,7 +158,7 @@ function Step({
 
 function WaitingSkeleton() {
   return (
-    <div className="w-full max-w-5xl" aria-busy aria-label="Loading">
+    <div className="w-full" aria-busy aria-label="Loading">
       <Skeleton className="mb-2 h-4 w-24" />
       <Skeleton className="mb-2 h-10 w-72 max-w-full" />
       <Skeleton className="mb-6 h-4 w-96 max-w-full" />

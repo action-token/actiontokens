@@ -11,6 +11,7 @@ import { useConnectWalletDialogStore } from "@bandcoin/wallet";
 
 import { api } from "~/trpc/react";
 
+import { useArtistStanding, type Standing } from "./artist-standing";
 import { HoldTokenDialog, type TokenOffer } from "./hold-token-dialog";
 
 /**
@@ -43,13 +44,26 @@ export function FollowButton({
 }) {
   const { status } = useSession();
   const openSignIn = useConnectWalletDialogStore((state) => state.setIsOpen);
-  const [following, setFollowing] = useState(initial);
-  const [subscribed, setSubscribed] = useState(initialSubscribed);
+  // On an artist's page every Follow button shares one state; elsewhere each keeps its own.
+  const shared = useArtistStanding(slug);
+  const [local, setLocal] = useState({ following: initial, subscribed: initialSubscribed });
+  const { following, subscribed } = shared?.standing ?? local;
+  const set = (patch: Partial<Standing>) =>
+    shared
+      ? shared.update(patch)
+      : setLocal((now) => ({
+          following: patch.following ?? now.following,
+          subscribed: patch.subscribed ?? now.subscribed,
+        }));
   const [offer, setOffer] = useState<TokenOffer | null>(null);
   const mutation = api.artist.setFollowing.useMutation({
     onSuccess: (result) => {
-      setFollowing(result.following);
-      setSubscribed(result.subscribed);
+      set({
+        following: result.following,
+        subscribed: result.subscribed,
+        followers: result.followers,
+        subscribers: result.subscribers,
+      });
       onFollowers?.(result.followers, result.subscribers);
       onStanding?.({ following: result.following, subscribed: result.subscribed });
     },
@@ -91,7 +105,7 @@ export function FollowButton({
         offer={offer}
         onClose={() => setOffer(null)}
         onSubscribed={() => {
-          setSubscribed(true);
+          set({ following: true, subscribed: true });
           onStanding?.({ following: true, subscribed: true });
         }}
       />

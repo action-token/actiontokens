@@ -6,7 +6,7 @@ import { safeUrl, videoEmbed } from "./links";
  * The blocks an artist builds their page from. Each block has a type, a width
  * (in quarters of a row), two visibility switches and its own settings. A
  * block either shows data that already lives on Bandcoin (music, albums,
- * collectibles, membership tiers, events) or content typed into its settings
+ * collectibles, membership tiers, events, stories) or content typed into its settings
  * (about, links, videos, band members).
  *
  * Saved pages are read leniently: an unknown block or a bad value is dropped
@@ -23,6 +23,8 @@ export const BLOCK_TYPES = [
   "links",
   "videos",
   "band-members",
+  "stories",
+  "highlights",
 ] as const;
 export type BlockType = (typeof BLOCK_TYPES)[number];
 
@@ -60,20 +62,102 @@ const optionalWebUrl = z.preprocess(
   z.string().optional(),
 );
 
+/**
+ * The ways a block can be laid out (its Style setting). The first is the default; a saved
+ * page without a style, or with one that no longer exists, gets the default.
+ */
+export const BLOCK_STYLES = {
+  about: [
+    { value: "text", label: "Text" },
+    { value: "quote", label: "Big quote" },
+    { value: "card", label: "Photo card" },
+  ],
+  music: [
+    { value: "list", label: "List" },
+    { value: "cards", label: "Cards" },
+  ],
+  releases: [
+    { value: "row", label: "Row" },
+    { value: "grid", label: "Grid" },
+  ],
+  "nft-gallery": [
+    { value: "grid", label: "Grid" },
+    { value: "row", label: "Row" },
+  ],
+  tour: [
+    { value: "list", label: "List" },
+    { value: "tickets", label: "Ticket cards" },
+  ],
+  links: [
+    { value: "buttons", label: "Buttons" },
+    { value: "chips", label: "Chips" },
+  ],
+  videos: [
+    { value: "grid", label: "Grid" },
+    { value: "featured", label: "Featured" },
+  ],
+  "band-members": [
+    { value: "circles", label: "Circles" },
+    { value: "cards", label: "Cards" },
+  ],
+} as const satisfies Partial<Record<BlockType, readonly { value: string; label: string }[]>>;
+
+export type StyledBlockType = keyof typeof BLOCK_STYLES;
+export type StyleOf<T extends StyledBlockType> = (typeof BLOCK_STYLES)[T][number]["value"];
+
+const styleSchema = <T extends StyledBlockType>(type: T) => {
+  const values = BLOCK_STYLES[type].map((option) => option.value) as [StyleOf<T>, ...StyleOf<T>[]];
+  return z.enum(values).catch(values[0]).default(values[0]);
+};
+
+/** A block's style, or its default when it has none (or the block has no styles). */
+export function styleOf<T extends StyledBlockType>(
+  block: { type: string; settings: Record<string, unknown> },
+  type: T,
+): StyleOf<T> {
+  const options = BLOCK_STYLES[type] as readonly { value: string }[];
+  const value = block.settings.style;
+  return (
+    options.some((option) => option.value === value) ? value : options[0]!.value
+  ) as StyleOf<T>;
+}
+
 export const SETTINGS = {
   cover: z.object({ align: z.enum(["left", "center"]).catch("left").default("left") }),
-  about: z.object({ heading: text(40, "About"), body: text(2000, "") }),
-  music: z.object({ heading: text(40, "Popular"), count: count(3, 10, 5) }),
-  releases: z.object({ heading: text(40, "Albums"), count: count(4, 12, 8) }),
-  "nft-gallery": z.object({ heading: text(40, "Collectibles"), count: count(4, 12, 8) }),
+  about: z.object({
+    style: styleSchema("about"),
+    heading: text(40, "About"),
+    body: text(2000, ""),
+  }),
+  music: z.object({
+    style: styleSchema("music"),
+    heading: text(40, "Popular"),
+    count: count(3, 10, 5),
+  }),
+  releases: z.object({
+    style: styleSchema("releases"),
+    heading: text(40, "Albums"),
+    count: count(4, 12, 8),
+  }),
+  "nft-gallery": z.object({
+    style: styleSchema("nft-gallery"),
+    heading: text(40, "Collectibles"),
+    count: count(4, 12, 8),
+  }),
   membership: z.object({ heading: text(40, "Membership") }),
-  tour: z.object({ heading: text(40, "Tour dates"), count: count(1, 10, 5) }),
+  tour: z.object({
+    style: styleSchema("tour"),
+    heading: text(40, "Tour dates"),
+    count: count(1, 10, 5),
+  }),
   links: z.object({
+    style: styleSchema("links"),
     heading: text(40, "Links"),
     showSocials: z.boolean().catch(true).default(true),
     links: items(z.object({ label: z.string().trim().min(1).max(40), url: webUrl }), 12),
   }),
   videos: z.object({
+    style: styleSchema("videos"),
     heading: text(40, "Videos"),
     videos: items(
       z.object({ title: z.string().trim().max(80).catch("").default(""), url: videoUrl }),
@@ -81,6 +165,7 @@ export const SETTINGS = {
     ),
   }),
   "band-members": z.object({
+    style: styleSchema("band-members"),
     heading: text(40, "Band members"),
     members: items(
       z.object({
@@ -91,6 +176,9 @@ export const SETTINGS = {
       12,
     ),
   }),
+  // Both show what the artist already shared as stories; there is nothing to set but a heading.
+  stories: z.object({ heading: text(40, "Stories") }),
+  highlights: z.object({ heading: text(40, "Highlights") }),
 } satisfies Record<BlockType, z.ZodType>;
 
 export type SettingsOf<T extends BlockType> = z.infer<(typeof SETTINGS)[T]>;
@@ -142,6 +230,13 @@ export type BlockDef = {
 };
 
 const heading = (max = 40): FieldDef => ({ key: "heading", kind: "text", label: "Heading", max });
+/** The Style choice, shown first in a block's settings. */
+const style = (type: StyledBlockType): FieldDef => ({
+  key: "style",
+  kind: "select",
+  label: "Style",
+  options: BLOCK_STYLES[type].map((option) => ({ value: option.value, label: option.label })),
+});
 
 export const BLOCK_DEFS: Record<BlockType, BlockDef> = {
   cover: {
@@ -174,7 +269,11 @@ export const BLOCK_DEFS: Record<BlockType, BlockDef> = {
     defaultWidth: 2,
     defaultHideWhenEmpty: false,
     source: "settings",
-    fields: [heading(), { key: "body", kind: "textarea", label: "Text", max: 2000 }],
+    fields: [
+      style("about"),
+      heading(),
+      { key: "body", kind: "textarea", label: "Text", max: 2000 },
+    ],
     empty: "Add a few words about yourself",
   },
   music: {
@@ -185,7 +284,11 @@ export const BLOCK_DEFS: Record<BlockType, BlockDef> = {
     defaultWidth: 2,
     defaultHideWhenEmpty: true,
     source: "data",
-    fields: [heading(), { key: "count", kind: "number", label: "How many", min: 3, max: 10 }],
+    fields: [
+      style("music"),
+      heading(),
+      { key: "count", kind: "number", label: "How many", min: 3, max: 10 },
+    ],
     empty: "Your songs show here once you release one",
   },
   releases: {
@@ -196,7 +299,11 @@ export const BLOCK_DEFS: Record<BlockType, BlockDef> = {
     defaultWidth: 4,
     defaultHideWhenEmpty: true,
     source: "data",
-    fields: [heading(), { key: "count", kind: "number", label: "How many", min: 4, max: 12 }],
+    fields: [
+      style("releases"),
+      heading(),
+      { key: "count", kind: "number", label: "How many", min: 4, max: 12 },
+    ],
     empty: "Your albums show here once you create one",
   },
   "nft-gallery": {
@@ -207,7 +314,11 @@ export const BLOCK_DEFS: Record<BlockType, BlockDef> = {
     defaultWidth: 4,
     defaultHideWhenEmpty: true,
     source: "data",
-    fields: [heading(), { key: "count", kind: "number", label: "How many", min: 4, max: 12 }],
+    fields: [
+      style("nft-gallery"),
+      heading(),
+      { key: "count", kind: "number", label: "How many", min: 4, max: 12 },
+    ],
     empty: "Your collectibles show here once one is for sale",
   },
   membership: {
@@ -229,7 +340,11 @@ export const BLOCK_DEFS: Record<BlockType, BlockDef> = {
     defaultWidth: 2,
     defaultHideWhenEmpty: true,
     source: "data",
-    fields: [heading(), { key: "count", kind: "number", label: "How many", min: 1, max: 10 }],
+    fields: [
+      style("tour"),
+      heading(),
+      { key: "count", kind: "number", label: "How many", min: 1, max: 10 },
+    ],
     empty: "Your upcoming events show here",
   },
   links: {
@@ -241,6 +356,7 @@ export const BLOCK_DEFS: Record<BlockType, BlockDef> = {
     defaultHideWhenEmpty: false,
     source: "settings",
     fields: [
+      style("links"),
       heading(),
       { key: "showSocials", kind: "toggle", label: "Show my website and social links" },
       {
@@ -266,6 +382,7 @@ export const BLOCK_DEFS: Record<BlockType, BlockDef> = {
     defaultHideWhenEmpty: true,
     source: "settings",
     fields: [
+      style("videos"),
       heading(),
       {
         key: "videos",
@@ -295,6 +412,7 @@ export const BLOCK_DEFS: Record<BlockType, BlockDef> = {
     defaultHideWhenEmpty: true,
     source: "settings",
     fields: [
+      style("band-members"),
       heading(),
       {
         key: "members",
@@ -310,6 +428,28 @@ export const BLOCK_DEFS: Record<BlockType, BlockDef> = {
       },
     ],
     empty: "Add a band member",
+  },
+  stories: {
+    type: "stories",
+    label: "Stories",
+    description: "Your live stories, gone in 24 hours. Fans tap one to watch.",
+    category: "connect",
+    defaultWidth: 4,
+    defaultHideWhenEmpty: true,
+    source: "data",
+    fields: [heading()],
+    empty: "Your stories show here while one is live",
+  },
+  highlights: {
+    type: "highlights",
+    label: "Highlights",
+    description: "Everything you have shared, newest first.",
+    category: "connect",
+    defaultWidth: 4,
+    defaultHideWhenEmpty: true,
+    source: "data",
+    fields: [heading()],
+    empty: "Your highlights show here once you have shared a story",
   },
 };
 

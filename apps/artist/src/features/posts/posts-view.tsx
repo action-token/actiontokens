@@ -86,7 +86,7 @@ function PostCard({ post }: { post: Post }) {
           <Markdown content={post.body} compact className="text-fg-muted line-clamp-4" />
         )}
         {images.length > 0 && (
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-[repeat(4,minmax(0,7rem))] gap-2">
             {images.slice(0, 4).map((file) => (
               // eslint-disable-next-line @next/next/no-img-element
               <img

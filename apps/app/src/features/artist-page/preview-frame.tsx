@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { normalizeBlocks, type Block } from "@bandcoin/page/blocks";
+import { PAGE_ACTION_MESSAGE, type PageAction } from "@bandcoin/page/editor";
 import { DEFAULT_THEME, themeSchema, type PageTheme } from "@bandcoin/page/theme";
 import { Skeleton } from "@bandcoin/ui/components/skeleton";
 import { ErrorState } from "@bandcoin/ui/patterns/error-state";
@@ -27,7 +28,8 @@ type Design = { blocks: Block[]; theme: PageTheme };
  * without saving first; clicking a block tells the editor which one to open.
  *
  *   in : { type: "bandcoin-page:design", blocks, theme } and { type: "bandcoin-page:select", uid }
- *   out: { type: "bandcoin-page:ready" } and { type: "bandcoin-page:select", uid }
+ *   out: { type: "bandcoin-page:ready" }, { type: "bandcoin-page:select", uid } and
+ *        { type: "bandcoin-page:action", action } (the block toolbar and the + buttons)
  */
 export function PreviewFrame({ slug }: { slug: string }) {
   const artist = api.artist.bySlug.useQuery({ slug });
@@ -78,12 +80,14 @@ export function PreviewFrame({ slug }: { slug: string }) {
   const shown = design ?? draft.data;
   if (!artist.data || !shown) return <Skeleton className="m-6 h-96 rounded-xl" />;
 
+  const parent =
+    ALLOWED_ORIGINS.find((origin) => document.referrer.startsWith(origin)) ?? PORTAL_ORIGIN;
   const select = (uid: string) => {
     setSelected(uid);
-    const parent =
-      ALLOWED_ORIGINS.find((origin) => document.referrer.startsWith(origin)) ?? PORTAL_ORIGIN;
     window.parent.postMessage({ type: "bandcoin-page:select", uid }, parent);
   };
+  const act = (action: PageAction) =>
+    window.parent.postMessage({ type: PAGE_ACTION_MESSAGE, action }, parent);
 
   return (
     <PageRenderer
@@ -93,6 +97,7 @@ export function PreviewFrame({ slug }: { slug: string }) {
       editing
       selectedUid={selected}
       onSelect={select}
+      onAction={act}
     />
   );
 }

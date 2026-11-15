@@ -19,7 +19,8 @@ const clock = (seconds: number | null) =>
 
 /**
  * A song in a list. Tapping the row plays it (and queues the rest of the
- * list); the title links to the item page.
+ * list); the title links to the item page. Plays and length show when the list
+ * (an `@container`) is wide enough, so a narrow list keeps room for the title.
  */
 export function TrackRow({
   track,
@@ -109,13 +110,13 @@ export function TrackRow({
         {/* One cell, two layers: the numbers by default, only the buttons on hover or focus */}
         <div className="grid items-center justify-items-end">
           <div className="flex items-center gap-4 transition-opacity [grid-area:1/1] group-focus-within:invisible group-hover:invisible [@media(pointer:coarse)]:hidden">
-            <span className="num text-fg-faint hidden text-xs whitespace-nowrap sm:block">
+            <span className="num text-fg-faint hidden text-xs whitespace-nowrap @md:block">
               {playsLabel(track.playCount)}
             </span>
             <span className="num text-fg-muted text-xs">
               {track.price && <Money amount={track.price.bandcoin} currency="BANDCOIN" />}
             </span>
-            <span className="num text-fg-faint hidden w-10 text-right text-xs sm:block">
+            <span className="num text-fg-faint hidden w-10 text-right text-xs @md:block">
               {clock(track.durationSec)}
             </span>
           </div>

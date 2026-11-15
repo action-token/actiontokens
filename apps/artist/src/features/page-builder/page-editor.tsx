@@ -16,6 +16,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 import { BLOCK_DEFS, type Block, type BlockType } from "@bandcoin/page/blocks";
+import type { PageAction } from "@bandcoin/page/editor";
 import type { PageTheme } from "@bandcoin/page/theme";
 import { Button } from "@bandcoin/ui/components/button";
 import {
@@ -35,13 +36,24 @@ import { api, type RouterOutputs } from "~/trpc/react";
 
 import { FAN_APP_URL } from "../shell/links";
 
-import { addBlock, moveBlock, patchBlock, removeBlock, restoreBlock, setSetting } from "./draft";
+import { BlockPicker } from "./block-picker";
+import {
+  addBlock,
+  insertBlock,
+  moveBlock,
+  moveBlockTo,
+  patchBlock,
+  removeBlock,
+  restoreBlock,
+  setSetting,
+} from "./draft";
 import { PreviewPane } from "./preview-pane";
 import { BlockListPanel, SettingsPanel } from "./side-panels";
+import { StyleBar } from "./style-bar";
 
 type EditorData = RouterOutputs["page"]["editor"];
 type SaveState = "saved" | "dirty" | "saving" | "error";
-type Pane = "preview" | "blocks" | "settings";
+type Pane = "preview" | "blocks";
 
 const messageOf = (error: unknown) =>
   error instanceof Error ? error.message : "Something went wrong.";
@@ -78,6 +90,8 @@ function Editor({ initial, onReload }: { initial: EditorData; onReload: () => Pr
   const [published, setPublished] = useState(initial.isPublished);
   const [phone, setPhone] = useState(false);
   const [pane, setPane] = useState<Pane>("preview");
+  // The selected block's settings, dropped down under the style bar.
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [confirm, setConfirm] = useState<null | {
     title: string;
     description: string;
@@ -85,6 +99,8 @@ function Editor({ initial, onReload }: { initial: EditorData; onReload: () => Pr
     run: () => Promise<unknown>;
   }>(null);
   const [busy, setBusy] = useState(false);
+  // The block picker: open, and which block the new one goes after (null: the end).
+  const [picking, setPicking] = useState<{ after: string | null } | null>(null);
 
   // Saves read the newest blocks and theme from here, so a save never sends a stale copy.
   const latest = useRef({ blocks, theme });
@@ -131,7 +147,8 @@ function Editor({ initial, onReload }: { initial: EditorData; onReload: () => Pr
   const selected = blocks.find((block) => block.uid === selectedUid) ?? null;
   const select = (uid: string | null) => {
     setSelectedUid(uid);
-    if (uid) setPane("settings");
+    setSettingsOpen(uid !== null);
+    if (uid) setPane("preview");
   };
 
   const remove = (uid: string) => {
@@ -139,7 +156,7 @@ function Editor({ initial, onReload }: { initial: EditorData; onReload: () => Pr
     const gone = blocks[index];
     if (!gone) return;
     edit((current) => removeBlock(current, uid));
-    setSelectedUid(null);
+    select(null);
     toast((t) => (
       <span className="flex items-center gap-3 text-sm">
         {BLOCK_DEFS[gone.type].label} removed
@@ -159,9 +176,42 @@ function Editor({ initial, onReload }: { initial: EditorData; onReload: () => Pr
 
   const add = (type: BlockType) => {
     const uid = newUid();
-    edit((current) => addBlock(current, type, uid));
+    const after = picking?.after ?? null;
+    edit((current) =>
+      after ? insertBlock(current, type, uid, after) : addBlock(current, type, uid),
+    );
+    setPicking(null);
     select(uid);
   };
+
+  // The toolbar and + buttons on the preview.
+  const onAction = (action: PageAction) => {
+    switch (action.kind) {
+      case "move":
+        edit((current) => moveBlock(current, action.uid, action.direction));
+        break;
+      case "width":
+        edit((current) => patchBlock(current, action.uid, { width: action.width }));
+        break;
+      case "style":
+        edit((current) => setSetting(current, action.uid, "style", action.style));
+        break;
+      case "toggle-hidden":
+        edit((current) =>
+          patchBlock(current, action.uid, {
+            hidden: !current.find((block) => block.uid === action.uid)?.hidden,
+          }),
+        );
+        break;
+      case "remove":
+        remove(action.uid);
+        break;
+      case "insert":
+        setPicking({ after: action.after });
+        break;
+    }
+  };
+  const pickingAfter = picking?.after ? blocks.find((block) => block.uid === picking.after) : null;
 
   const run = async () => {
     if (!confirm) return;
@@ -338,7 +388,7 @@ function Editor({ initial, onReload }: { initial: EditorData; onReload: () => Pr
         role="tablist"
         aria-label="Editor sections"
       >
-        {(["preview", "blocks", "settings"] as const).map((entry) => (
+        {(["preview", "blocks"] as const).map((entry) => (
           <button
             key={entry}
             type="button"
@@ -355,7 +405,7 @@ function Editor({ initial, onReload }: { initial: EditorData; onReload: () => Pr
         ))}
       </div>
 
-      <div className="grid lg:min-h-0 lg:flex-1 lg:grid-cols-[272px_minmax(0,1fr)_340px]">
+      <div className="grid lg:min-h-0 lg:flex-1 lg:grid-cols-[300px_minmax(0,1fr)]">
         <aside
           className={cn(
             "border-b lg:min-h-0 lg:overflow-y-auto lg:border-r lg:border-b-0",
@@ -367,6 +417,7 @@ function Editor({ initial, onReload }: { initial: EditorData; onReload: () => Pr
             selectedUid={selectedUid}
             onSelect={select}
             onMove={(uid, direction) => edit((current) => moveBlock(current, uid, direction))}
+            onDrop={(uid, to) => edit((current) => moveBlockTo(current, uid, to))}
             onToggleHidden={(uid) =>
               edit((current) =>
                 patchBlock(current, uid, {
@@ -374,44 +425,56 @@ function Editor({ initial, onReload }: { initial: EditorData; onReload: () => Pr
                 }),
               )
             }
-            onAdd={add}
+            onAdd={() => setPicking({ after: null })}
           />
         </aside>
         <div
           className={cn("flex min-w-0 flex-col lg:min-h-0", pane !== "preview" && "max-lg:hidden")}
         >
+          <StyleBar
+            theme={theme}
+            onTheme={editTheme}
+            block={selected}
+            open={settingsOpen}
+            onOpenChange={setSettingsOpen}
+            settings={
+              selected && (
+                <SettingsPanel
+                  block={selected}
+                  onPatch={(uid, patch) => edit((current) => patchBlock(current, uid, patch))}
+                  onSetting={(uid, key, value) =>
+                    edit((current) => setSetting(current, uid, key, value))
+                  }
+                  onRemove={remove}
+                  onClose={() => setSettingsOpen(false)}
+                />
+              )
+            }
+          />
           <PreviewPane
             slug={initial.slug}
             blocks={blocks}
             theme={theme}
             selectedUid={selectedUid}
             onSelect={select}
+            onAction={onAction}
             phone={phone}
           />
         </div>
-        <aside
-          className={cn(
-            "border-t lg:min-h-0 lg:overflow-y-auto lg:border-t-0 lg:border-l",
-            pane !== "settings" && "max-lg:hidden",
-          )}
-        >
-          {selected && (
-            <div className="border-b px-4 py-2">
-              <Button type="button" variant="ghost" size="sm" onClick={() => setSelectedUid(null)}>
-                <ArrowLeft /> Page style
-              </Button>
-            </div>
-          )}
-          <SettingsPanel
-            block={selected}
-            theme={theme}
-            onTheme={editTheme}
-            onPatch={(uid, patch) => edit((current) => patchBlock(current, uid, patch))}
-            onSetting={(uid, key, value) => edit((current) => setSetting(current, uid, key, value))}
-            onRemove={remove}
-          />
-        </aside>
       </div>
+
+      <BlockPicker
+        open={picking !== null}
+        onOpenChange={(open) => !open && setPicking(null)}
+        onPick={add}
+        where={
+          pickingAfter
+            ? pickingAfter.type === "cover"
+              ? "right under your cover"
+              : `after ${BLOCK_DEFS[pickingAfter.type].label}`
+            : "at the end of your page"
+        }
+      />
 
       <ConfirmDialog
         open={confirm !== null}

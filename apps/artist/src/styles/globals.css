@@ -4,3 +4,9 @@
 /* Class names used inside shared packages (Tailwind only scans the app by default). */
 @source "../../../../packages/ui/src";
 @source "../../../../packages/wallet/src";
+
+/* Page content width (see page-layout.ts): the same as the fan app, so pages fill the
+   screen instead of leaving an empty strip on the right of a wide display. */
+:root {
+  --page-max: 120rem;
+}

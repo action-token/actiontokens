@@ -1,13 +1,15 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useRef, type ReactNode } from "react";
+import { useCallback, useRef, type ReactNode } from "react";
 
 import { cn } from "../lib/cn";
 
 /**
  * The one carousel: a titled row that scrolls sideways and snaps to cards.
  * Arrows on pointer devices, swipe on touch. Children are the cards.
+ * Pass `onEndReached` to load more: it fires when the row is scrolled (or arrowed) to within
+ * about a screen of its end; the caller guards against double fetches and appends cards.
  */
 export function MediaCarousel({
   title,
@@ -15,6 +17,7 @@ export function MediaCarousel({
   action,
   children,
   itemWidth = "minmax(150px,172px)",
+  onEndReached,
   className,
 }: {
   title: string;
@@ -24,11 +27,21 @@ export function MediaCarousel({
   action?: ReactNode;
   children: ReactNode;
   itemWidth?: string;
+  /** Called when the row nears its end, to fetch the next page of cards. */
+  onEndReached?: () => void;
   className?: string;
 }) {
   const track = useRef<HTMLDivElement>(null);
-  const scroll = (dir: -1 | 1) =>
+  const checkEnd = useCallback(() => {
+    const el = track.current;
+    if (!el || !onEndReached) return;
+    if (el.scrollLeft + el.clientWidth * 2 >= el.scrollWidth) onEndReached();
+  }, [onEndReached]);
+  const scroll = (dir: -1 | 1) => {
     track.current?.scrollBy({ left: dir * track.current.clientWidth * 0.8, behavior: "smooth" });
+    // Already at the end, the row won't scroll (no scroll event), so ask directly.
+    if (dir === 1) checkEnd();
+  };
 
   const arrow =
     "bg-surface hover:border-border-strong hidden size-9 place-items-center rounded-full border transition-colors [@media(pointer:fine)]:grid";
@@ -60,7 +73,8 @@ export function MediaCarousel({
       <div
         ref={track}
         tabIndex={0}
-        className="scrollbar-none grid snap-x snap-mandatory auto-cols-[var(--item-w)] grid-flow-col gap-4 overflow-x-auto pb-0.5 [&>*]:snap-start"
+        onScroll={onEndReached ? checkEnd : undefined}
+        className="scrollbar-none -mt-2 -mb-2 grid snap-x snap-mandatory auto-cols-[var(--item-w)] grid-flow-col gap-4 overflow-x-auto pt-2 pb-2.5 [&>*]:snap-start"
         style={{ "--item-w": itemWidth } as React.CSSProperties}
       >
         {children}

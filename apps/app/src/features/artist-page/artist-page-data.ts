@@ -1,4 +1,4 @@
-import type { Block, BlockType } from "@bandcoin/page/blocks";
+import type { Block, BlockType, BlockWidth } from "@bandcoin/page/blocks";
 
 import type { RouterOutputs } from "~/trpc/react";
 
@@ -17,6 +17,8 @@ export const EMPTY_TEXT: Record<BlockType, string> = {
   links: "No links yet.",
   videos: "No videos yet.",
   "band-members": "No members listed yet.",
+  stories: "No live stories.",
+  highlights: "No highlights yet.",
 };
 
 type Socials = Pick<ArtistPageData, "website" | "twitter" | "instagram">;
@@ -61,13 +63,17 @@ export function isBlockEmpty(block: Block, artist: ArtistPageData): boolean {
       return list("videos").length === 0;
     case "band-members":
       return list("members").length === 0;
+    // Their stories load in the browser: the block draws nothing for a fan while it has none.
+    case "stories":
+    case "highlights":
+      return false;
   }
 }
 
 /**
- * The blocks to draw. Visitors never see a hidden block, and an empty block is
- * either dropped (hide when empty) or shown with a quiet "nothing yet" line.
- * While editing, everything is drawn so the artist can still select it.
+ * The blocks to draw. Visitors never see a hidden block or an empty one (a block with
+ * nothing to show waits until it has something). While editing, everything is drawn so
+ * the artist can still select it; empty ones say what will fill them.
  */
 export function blocksToShow(
   blocks: Block[],
@@ -77,5 +83,27 @@ export function blocksToShow(
   return blocks
     .filter((block) => editing || !block.hidden)
     .map((block) => ({ block, empty: isBlockEmpty(block, artist) }))
-    .filter(({ block, empty }) => editing || !(empty && block.hideWhenEmpty));
+    .filter(({ empty }) => editing || !empty);
+}
+
+/**
+ * The columns each block really spans: a block that leaves its row unfinished (the
+ * next one doesn't fit beside it, or it is the last) stretches to the end of the row,
+ * so the page never shows a hole. Widths the artist picked still decide what sits together.
+ */
+export function rowSpans(widths: BlockWidth[]): BlockWidth[] {
+  const spans = [...widths];
+  let used = 0;
+  let rowEnd = -1; // index of the last block in the current row
+  widths.forEach((width, index) => {
+    if (used > 0 && used + width > 4) {
+      spans[rowEnd] = (spans[rowEnd]! + (4 - used)) as BlockWidth;
+      used = 0;
+    }
+    used += width;
+    rowEnd = index;
+    if (used === 4) used = 0;
+  });
+  if (used > 0 && rowEnd >= 0) spans[rowEnd] = (spans[rowEnd]! + (4 - used)) as BlockWidth;
+  return spans;
 }

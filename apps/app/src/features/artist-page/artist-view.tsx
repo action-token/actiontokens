@@ -54,18 +54,23 @@ export async function artistMetadata(slug: string): Promise<Metadata> {
 export async function ArtistView({ slug }: { slug: string }) {
   const artist = await loadArtist(slug);
 
-  // The artist designed their own page in the page builder: show that.
-  if (artist.design)
+  // The artist designed their own page in the page builder: show that. Stories and
+  // Highlights are blocks they place; a page saved before that keeps them at the bottom.
+  const { design } = artist;
+  if (design) {
+    const has = (type: "stories" | "highlights") =>
+      design.blocks.some((block) => block.type === type);
     return (
       <>
-        <PageRenderer blocks={artist.design.blocks} theme={artist.design.theme} artist={artist} />
+        <PageRenderer blocks={design.blocks} theme={design.theme} artist={artist} />
         <PageBody wide className="grid gap-12">
-          <ArtistStories slug={artist.slug} />
-          <ArtistHighlights slug={artist.slug} />
+          {!has("stories") && <ArtistStories slug={artist.slug} />}
+          {!has("highlights") && <ArtistHighlights slug={artist.slug} />}
           <PageAssetOffers slug={artist.slug} />
         </PageBody>
       </>
     );
+  }
 
   return (
     <>

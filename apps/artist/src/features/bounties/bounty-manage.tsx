@@ -131,7 +131,7 @@ function Loaded({ bounty }: { bounty: Bounty }) {
       />
 
       {!bounty.funded && (
-        <section role="note" className="bg-surface grid max-w-3xl gap-3 rounded-xl border p-5">
+        <section role="note" className="bg-surface grid gap-3 rounded-xl border p-5">
           <h2 className="display text-2xl">This bounty isn&apos;t funded yet</h2>
           <p className="text-fg-muted text-sm">
             Fans can&apos;t see it until its prize of{" "}
@@ -162,7 +162,7 @@ function Loaded({ bounty }: { bounty: Bounty }) {
         </section>
       )}
 
-      <dl className="grid max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4">
+      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="Prize">
           <Money amount={bounty.prizeAmount} currency={currency} code={code} />
         </Stat>
@@ -176,7 +176,7 @@ function Loaded({ bounty }: { bounty: Bounty }) {
       </dl>
 
       {bounty.funded && (
-        <Tabs defaultValue="reports" className="max-w-3xl">
+        <Tabs defaultValue="reports">
           <TabsList variant="line" className="w-full justify-start overflow-x-auto border-b">
             <TabsTrigger value="reports" className="flex-none">
               Reports ({bounty.submissions})
@@ -200,7 +200,7 @@ function Loaded({ bounty }: { bounty: Bounty }) {
         </Tabs>
       )}
 
-      <section className="max-w-3xl">
+      <section>
         <h2 className="display mb-2 text-2xl">Description</h2>
         <Markdown content={bounty.description || "_No description._"} />
       </section>

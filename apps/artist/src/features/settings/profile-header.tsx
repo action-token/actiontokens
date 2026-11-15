@@ -30,11 +30,15 @@ const joined = (date: Date | string) =>
   new Date(date).toLocaleDateString("en", { month: "long", year: "numeric" });
 
 /** The column everything under the cover lines up in. */
-export const SETTINGS_COLUMN = "w-full max-w-5xl";
+export const SETTINGS_COLUMN = "w-full";
 
-/** Cancels the page's own padding so the cover runs edge to edge. */
+/**
+ * Cancels the page's own padding so the cover runs edge to edge, and slides in behind the
+ * floating sidebar to the left edge of the screen (like the fan app's Home hero).
+ * `--side-w` is 0 on phones.
+ */
 export const FULL_BLEED =
-  "-mx-4 -mt-5 sm:-mx-6 lg:mx-[calc(var(--page-pad-x-lg,1.5rem)*-1)] lg:-mt-8";
+  "-mt-5 -ml-4 -mr-4 sm:-mr-8 sm:-ml-[calc(2rem+var(--side-w))] sm:pl-(--side-w) lg:-mt-8";
 
 /**
  * The top of Settings, as in Wadzzo's brand settings: a full-width cover and

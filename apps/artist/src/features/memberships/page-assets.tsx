@@ -32,12 +32,12 @@ const messageOf = (error: unknown) =>
  */
 export function PageAssets() {
   const overview = api.catalog.pageAssets.useQuery();
-  if (overview.isPending) return <Skeleton className="h-48 w-full max-w-2xl rounded-xl" />;
+  if (overview.isPending) return <Skeleton className="h-48 w-full rounded-xl" />;
   if (!overview.data?.fanToken) return null;
   const { fanToken, storageOpen, held, free, offers } = overview.data;
 
   return (
-    <section className="grid max-w-2xl gap-4">
+    <section className="grid gap-4">
       <div>
         <h2 className="display text-2xl">Sell page assets</h2>
         <p className="text-fg-muted text-sm">

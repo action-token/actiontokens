@@ -13,6 +13,7 @@ import { usePersistedFlag, useSidebarCollapsed } from "@bandcoin/ui/lib/sidebar-
 
 import { AccountButton } from "~/features/account/account-button";
 import { BountiesPanel } from "~/features/bounty/bounties-panel";
+import { ClaimPlays } from "~/features/player/claim-plays";
 import { PlayerBar } from "~/features/player/player-bar";
 import { usePlayer } from "~/features/player/player-store";
 
@@ -53,6 +54,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           "--right-w": rightOpen ? `calc(${RAIL} + ${widths.right}px)` : RAIL,
         } as CSSProperties
       }
+      // Fixed things across the page (the artist page's sticky bar) stop at the rail.
+      data-right-rail={panel ? "" : undefined}
       className={cn(
         "grid min-h-dvh grid-cols-1 sm:grid-cols-[auto_minmax(0,1fr)]",
         panel &&
@@ -113,6 +116,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             "in-data-resizing:transition-none motion-reduce:transition-none xl:right-(--right-w) xl:transition-[right] xl:duration-400 xl:ease-[ease]",
         )}
       >
+        <ClaimPlays />
         <PlayerBar />
       </div>
       <PhoneTabBar

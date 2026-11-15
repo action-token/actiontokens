@@ -90,7 +90,7 @@ export function StoriesView() {
       <SectionTabs tabs={POSTS_TABS} label="Posts and stories" />
 
       {stories.isPending ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(10rem,12.5rem))]">
           {[0, 1, 2].map((key) => (
             <Skeleton key={key} className="aspect-[9/16] rounded-[1.4rem]" />
           ))}
@@ -111,7 +111,7 @@ export function StoriesView() {
             {full ? ". Remove one or wait for one to end to add another." : "."}
           </p>
           {live.length > 0 && (
-            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(10rem,12.5rem))]">
               {live.map((story) => (
                 <StoryCard
                   key={story.id}
@@ -132,7 +132,7 @@ export function StoriesView() {
                   Ended stories stay on your page for fans to watch, by the audience you chose.
                 </p>
               </div>
-              <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <ul className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(10rem,12.5rem))]">
                 {ended.map((story) => (
                   <StoryCard
                     key={story.id}

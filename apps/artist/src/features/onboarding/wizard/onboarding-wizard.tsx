@@ -158,7 +158,7 @@ function Wizard({ userId, initial, startAt }: { userId: string; initial: Draft; 
   }
 
   return (
-    <div className="w-full max-w-5xl">
+    <div className="w-full">
       <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="marker text-primary-text text-sm">artist portal</p>
@@ -297,7 +297,7 @@ function liveOf(
 /** The wizard's shape while the saved answers load. */
 function WizardSkeleton() {
   return (
-    <div className="w-full max-w-5xl" aria-busy aria-label="Loading">
+    <div className="w-full" aria-busy aria-label="Loading">
       <Skeleton className="mb-2 h-4 w-24" />
       <Skeleton className="mb-6 h-10 w-80 max-w-full" />
       <div className="grid gap-6 lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8">
