@@ -58,7 +58,7 @@
   }
 }
 
-/* Wadzzo's pair (lib/fonts.ts sets --nf-*), also for the shared Bandcoin components. */
+/* AR's pair (lib/fonts.ts sets --nf-*), also for the shared Bandcoin components. */
 @theme inline {
   --font-display: var(--nf-display), system-ui, sans-serif;
   --font-sans: var(--nf-body), system-ui, sans-serif;

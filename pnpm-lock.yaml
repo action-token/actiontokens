@@ -179,16 +179,13 @@ catalogs:
     '@creit.tech/xbull-wallet-connect':
       specifier: ^0.4.0
       version: 0.4.0
-    '@fontsource-variable/bricolage-grotesque':
-      specifier: ^5.2.0
-      version: 5.3.0
-    '@fontsource-variable/jetbrains-mono':
+    '@fontsource-variable/azeret-mono':
       specifier: ^5.3.0
       version: 5.3.0
-    '@fontsource-variable/onest':
-      specifier: ^5.3.1
-      version: 5.3.1
-    '@fontsource/caveat-brush':
+    '@fontsource-variable/teko':
+      specifier: ^5.3.0
+      version: 5.3.0
+    '@fontsource/barlow':
       specifier: ^5.3.0
       version: 5.3.0
     '@google/genai':
@@ -1480,16 +1477,13 @@ importers:
       '@bandcoin/utils':
         specifier: workspace:*
         version: link:../utils
-      '@fontsource-variable/bricolage-grotesque':
+      '@fontsource-variable/azeret-mono':
         specifier: 'catalog:'
         version: 5.3.0
-      '@fontsource-variable/jetbrains-mono':
+      '@fontsource-variable/teko':
         specifier: 'catalog:'
         version: 5.3.0
-      '@fontsource-variable/onest':
-        specifier: 'catalog:'
-        version: 5.3.1
-      '@fontsource/caveat-brush':
+      '@fontsource/barlow':
         specifier: 'catalog:'
         version: 5.3.0
       '@uiw/react-md-editor':
@@ -2385,17 +2379,14 @@ packages:
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
 
-  '@fontsource-variable/bricolage-grotesque@5.3.0':
-    resolution: {integrity: sha512-TLi9Q4hJjS2UvoTMRSS2nHu6c4R56lAw60NR9QYtVRCHn0XtsFpiEhNffZ8Glsoxu6wEEwLKBP8lb94J52PNBA==}
+  '@fontsource-variable/azeret-mono@5.3.0':
+    resolution: {integrity: sha512-nX76TwGHW53SoMMJoqb415uFqEQ3qnthL/bEeOOI2DjC7MntyIUVItQ45sVLe5+wG4gT0H5B7auAMa77p8Qc3Q==}
 
-  '@fontsource-variable/jetbrains-mono@5.3.0':
-    resolution: {integrity: sha512-F32xpS2NsGYoQi2ADSkKTgpJj7ozajsGgDJ8woTnqjmIB+dxDIqImjl4pXZVEExu8UFZ2ndhmX18EBS/hdz3Lw==}
+  '@fontsource-variable/teko@5.3.0':
+    resolution: {integrity: sha512-/Pq5z/kpf3QgAIjuGXRnSt9boC/jeIEsXtQnxfNlAov9mpwsznCZikofAuZMU8JCphWwjtZwugkvlq0iyq8Ywg==}
 
-  '@fontsource-variable/onest@5.3.1':
-    resolution: {integrity: sha512-xaaw6G4HDB2/RczsWLD/2bnib4ykmQlTlBUN3GOEOiyErilZukQWVJG95h9zwAy0i8KY+QzDa+COPfqhI72Acw==}
-
-  '@fontsource/caveat-brush@5.3.0':
-    resolution: {integrity: sha512-BHSP/9EKNUtnSj7h4TXuYKOrQWgnkCGm7QMHYiie0xSxtlWKbND6wLkhAgwUtUpbz5k8XL8CWPRrL6tDV+JC8w==}
+  '@fontsource/barlow@5.3.0':
+    resolution: {integrity: sha512-tGR0y6QObRtKv71MOth44222+mdNFM/ZWFWDV1VLzNbG4oK9PNRlyJzmkck4vHAi9ibHBXgt4SlY51amFP55CA==}
 
   '@google-cloud/firestore-api@0.2.0':
     resolution: {integrity: sha512-wfHJPZmLqzpy6FN6U+7HkkP/AKhGsbHSpEy/qL2TyI3/pKRAvpamQxZ2qvps5hMRgAjfuHCim+oeJj9RveCaqg==}
@@ -9570,13 +9561,11 @@ snapshots:
 
   '@floating-ui/utils@0.2.12': {}
 
-  '@fontsource-variable/bricolage-grotesque@5.3.0': {}
+  '@fontsource-variable/azeret-mono@5.3.0': {}
 
-  '@fontsource-variable/jetbrains-mono@5.3.0': {}
+  '@fontsource-variable/teko@5.3.0': {}
 
-  '@fontsource-variable/onest@5.3.1': {}
-
-  '@fontsource/caveat-brush@5.3.0': {}
+  '@fontsource/barlow@5.3.0': {}
 
   '@google-cloud/firestore-api@0.2.0':
     dependencies:

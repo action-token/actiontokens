@@ -1,17 +1,17 @@
-import { Chakra_Petch, Sora } from "next/font/google";
+import { Barlow, Teko } from "next/font/google";
 
 /**
- * Wadzzo AR's type pair, so the ported screens keep Wadzzo's sizes and widths:
- * Chakra Petch (condensed) for HUD chrome, Sora for prose. Bandcoin's
- * Unbounded is far wider and overflows the same layouts.
+ * AR's type pair, matching the rest of Bandcoin: Teko (condensed) for HUD
+ * chrome, Barlow for prose. Both are narrower than the Wadzzo pair the ported
+ * screens were sized for (Chakra Petch, Sora), so nothing overflows.
  */
-const display = Chakra_Petch({
+const display = Teko({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
   variable: "--nf-display",
 });
-const body = Sora({
+const body = Barlow({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   display: "swap",

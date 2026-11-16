@@ -18,10 +18,9 @@
   },
   "dependencies": {
     "@bandcoin/utils": "workspace:*",
-    "@fontsource-variable/jetbrains-mono": "catalog:",
-    "@fontsource-variable/onest": "catalog:",
-    "@fontsource-variable/bricolage-grotesque": "catalog:",
-    "@fontsource/caveat-brush": "catalog:",
+    "@fontsource-variable/azeret-mono": "catalog:",
+    "@fontsource/barlow": "catalog:",
+    "@fontsource-variable/teko": "catalog:",
     "@uiw/react-md-editor": "catalog:",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
