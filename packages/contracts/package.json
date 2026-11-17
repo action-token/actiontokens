@@ -1,0 +1,14 @@
+{
+  "name": "@bandcoin/contracts",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Soroban sources (bounty_escrow, nft_oz) and generated TS bindings. Needs Rust and the stellar CLI.",
+  "scripts": {
+    "test": "pnpm test:escrow && pnpm test:nft_oz",
+    "test:escrow": "cd bounty_escrow && cargo test",
+    "test:nft_oz": "cd nft_oz && cargo test",
+    "build:escrow": "cd bounty_escrow && stellar contract build",
+    "build:nft_oz": "cd nft_oz && PATH=\"$HOME/.cargo/bin:$PATH\" stellar contract build",
+    "bindings:nft_oz": "stellar contract bindings typescript --wasm target/wasm32v1-none/release/nft_oz.wasm --output-dir nft_oz/bindings --overwrite"
+  }
+}
