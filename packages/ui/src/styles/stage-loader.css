@@ -1,0 +1,258 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Stage loader (patterns/stage-loader). Always a dark stage, whatever the theme.
+   Import once in an app's globals.css, after the theme:
+     @import "@bandcoin/ui/styles/stage-loader.css";
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.stage-loader {
+  --sl-bg: #0e0f0b;
+  --sl-fg: #f3f4ea;
+  --sl-primary: #dbdc2c;
+  --sl-teal: hsl(172 62% 50%);
+  --sl-violet: hsl(268 70% 68%);
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  color: var(--sl-fg);
+}
+.stage-loader--contained {
+  position: absolute;
+}
+
+/* ── curtains ── */
+.sl-curtain {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50.5%;
+  transition: transform 1s cubic-bezier(0.76, 0, 0.24, 1);
+  will-change: transform;
+}
+.sl-curtain--l {
+  left: 0;
+  background: linear-gradient(90deg, #0b0c08 0%, var(--sl-bg) 70%);
+}
+.sl-curtain--r {
+  right: 0;
+  background: linear-gradient(270deg, #0b0c08 0%, var(--sl-bg) 70%);
+}
+.sl-curtain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  background: repeating-linear-gradient(
+    90deg,
+    rgb(255 255 255 / 0.012) 0 3vw,
+    rgb(0 0 0 / 0.18) 6vw,
+    rgb(255 255 255 / 0.012) 9vw
+  );
+}
+.stage-loader.is-open .sl-curtain--l {
+  transform: translateX(-101%);
+}
+.stage-loader.is-open .sl-curtain--r {
+  transform: translateX(101%);
+}
+
+/* ── stage ── */
+.sl-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transition:
+    opacity 0.35s,
+    transform 0.5s cubic-bezier(0.6, 0, 0.4, 1);
+}
+.stage-loader.is-open .sl-stage {
+  opacity: 0;
+  transform: scale(0.96);
+}
+.sl-stage::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -20%;
+  width: min(90%, 900px);
+  height: 120%;
+  translate: -50% 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 50% 60% at 50% 45%,
+    rgb(219 220 44 / calc(0.05 + var(--p, 0) * 0.07)),
+    transparent 70%
+  );
+}
+.sl-gtr,
+.sl-strings {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+/* the guitar starts dim and lights up as loading progresses */
+.sl-gtr {
+  filter: brightness(calc(0.42 + var(--p, 0) * 0.58));
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+.stage-loader.is-in .sl-gtr {
+  opacity: 1;
+}
+
+/* ── the pick: dark, filling with colour from the bottom ── */
+.sl-pick {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  width: clamp(130px, 20vh, 210px);
+  aspect-ratio: 32 / 36;
+  translate: -50% -50%;
+  filter: drop-shadow(0 0 calc(var(--p, 0) * 30px) rgb(219 220 44 / calc(var(--p, 0) * 0.5)));
+  animation: sl-float 3.2s ease-in-out infinite;
+}
+.sl-pick svg {
+  position: absolute;
+  inset: 0;
+}
+.sl-pick-dim {
+  filter: grayscale(1) brightness(0.32) contrast(1.1);
+}
+.sl-pick-lit {
+  clip-path: inset(calc((1 - var(--p, 0)) * 100%) 0 0 0);
+}
+.stage-loader.is-strum .sl-pick {
+  animation: sl-flick 0.55s cubic-bezier(0.3, 1.6, 0.5, 1) forwards;
+}
+@keyframes sl-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(3deg);
+  }
+}
+@keyframes sl-flick {
+  0% {
+    transform: rotate(0);
+  }
+  35% {
+    transform: translate(-14px, 26px) rotate(-24deg) scale(1.06);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0) scale(1.1);
+  }
+}
+
+/* ── wordmark: outline → solid, letter by letter ── */
+.sl-word {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(44% + clamp(130px, 20vh, 210px) * 0.72);
+  display: flex;
+  justify-content: center;
+  gap: 0.04em;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(48px, 9vw, 120px);
+  line-height: 0.8;
+  letter-spacing: 0.02em;
+  overflow: hidden;
+  padding-top: 0.08em;
+}
+.sl-word span {
+  display: block;
+  transform: translateY(110%);
+  color: transparent;
+  -webkit-text-stroke: 1.5px #4a4d3c;
+  transition:
+    color 0.25s,
+    -webkit-text-stroke-color 0.25s;
+}
+.stage-loader.is-in .sl-word span {
+  animation: sl-up 0.8s cubic-bezier(0.3, 1.5, 0.5, 1) forwards;
+  animation-delay: calc(var(--i) * 55ms + 120ms);
+}
+.sl-word span.on {
+  color: var(--sl-fg);
+  -webkit-text-stroke-color: transparent;
+}
+.stage-loader.is-strum .sl-word span {
+  color: var(--sl-primary);
+  text-shadow: 0 0 24px rgb(219 220 44 / 0.5);
+}
+@keyframes sl-up {
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* ── counter + track waveform ── */
+.sl-bottom {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0 clamp(16px, 3vw, 32px) clamp(16px, 3vw, 28px);
+  display: grid;
+  gap: 16px;
+}
+.sl-pct {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(64px, 12vw, 150px);
+  line-height: 0.75;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: flex-start;
+  text-shadow: 0 6px 40px rgb(0 0 0 / 0.75);
+}
+.sl-pct small {
+  font-size: 0.32em;
+  color: var(--sl-primary);
+  margin: 0.1em 0 0 0.08em;
+}
+.sl-wave {
+  display: block;
+  width: 100%;
+  height: 56px;
+}
+
+/* Portrait phones: the guitar stands up (see computeLayout). BANDCOIN on top, the pick on the
+   neck, the counter beside the neck; the body fills the bottom, so the waveform steps aside. */
+@media (orientation: portrait) and (max-width: 819px) {
+  .sl-word {
+    top: max(28px, 7%);
+    font-size: clamp(44px, 16vw, 96px);
+  }
+  .sl-pick {
+    top: 33%;
+    width: clamp(96px, 30vw, 150px);
+  }
+  .sl-bottom {
+    top: 46%;
+    bottom: auto;
+    right: auto;
+    padding: 0 0 0 clamp(16px, 5vw, 28px);
+  }
+  .sl-pct {
+    font-size: clamp(48px, 17vw, 96px);
+  }
+  .sl-wave {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sl-pick {
+    animation: none;
+  }
+  .stage-loader.is-in .sl-word span {
+    animation-duration: 0.01s;
+  }
+  .sl-curtain {
+    transition-duration: 0.01s;
+  }
+}

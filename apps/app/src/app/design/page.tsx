@@ -79,8 +79,8 @@ export default function DesignPreviewPage() {
       </section>
 
       <Block
-        title="Boot screen"
-        note="First visit only, under 600 ms, over the already-rendered page."
+        title="Stage loader"
+        note="On every full page load, driven by real readiness, over the already-rendered page."
       >
         <BootDemo />
       </Block>
