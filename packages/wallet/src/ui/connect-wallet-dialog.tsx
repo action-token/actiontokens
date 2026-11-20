@@ -663,13 +663,14 @@ function LogoStack({ items, more = 0 }: { items: StackItem[]; more?: number }) {
  */
 function BrandHeader() {
   return (
-    <div className="flex flex-col items-center pt-1 text-center">
-      <Image src={brandMark} alt="" width={44} height={44} priority />
-      <span className="font-display text-foreground mt-3 text-[24px] leading-none tracking-[0.04em]">
+    <div className="flex items-center gap-2.5 pr-8">
+      <Image src={brandMark} alt="" width={28} height={28} priority />
+      <span className="font-display text-foreground text-[19px] leading-none tracking-[0.03em]">
         ACTIONTOKENS
       </span>
-      <span className="text-muted-foreground mt-2 text-[11px] font-medium tracking-[0.18em] uppercase">
-        Action Auth System
+      <span className="bg-border h-4 w-px" />
+      <span className="text-muted-foreground text-[12px] leading-none font-medium">
+        Auth System
       </span>
     </div>
   );
