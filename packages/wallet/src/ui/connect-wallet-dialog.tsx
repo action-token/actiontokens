@@ -93,14 +93,14 @@ function WalletButton({
       <button
         onClick={onClick}
         className={clsx(
-          "group flex w-full items-center gap-2.5 rounded-[10px] border px-3 py-2.5 text-sm font-semibold transition-[transform,border-color,box-shadow] duration-150",
-          "hover:border-primary hover:-translate-y-0.5 hover:shadow-[0_0_18px_-6px_var(--color-primary)]",
+          "group font-display flex w-full items-center gap-2.5 rounded-[10px] border-2 px-3 py-2.5 text-[15px] tracking-[0.03em] uppercase transition-[transform,box-shadow] duration-100",
+          "shadow-[3px_3px_0_0_var(--color-primary)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none",
           selected
-            ? "border-primary bg-primary/10 text-primary-text"
-            : "border-border-strong bg-surface-2 text-foreground",
+            ? "bg-primary border-black text-black"
+            : "bg-surface-2 text-foreground border-[#f2f7f2]/80",
         )}
       >
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-black/40">
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-full border-2 border-black bg-[#f2f7f2] text-black [&_svg]:size-4">
           {image ? (
             <Image src={image} alt="" width={22} height={22} className="object-contain" />
           ) : (
@@ -109,11 +109,9 @@ function WalletButton({
         </span>
         <span className="flex-1 text-left">{label}</span>
         {selected ? (
-          <CheckCircle2 className="text-primary-text size-4 shrink-0" />
+          <CheckCircle2 className="size-4 shrink-0 text-black" />
         ) : (
-          <span className="font-pixel text-fg-faint group-hover:text-primary-text text-[10px]">
-            GO
-          </span>
+          <span className="font-display text-primary text-[13px]">GO →</span>
         )}
       </button>
     </div>
@@ -211,8 +209,8 @@ export function ConnectWalletDialog() {
     const initials = name.slice(0, 2).toUpperCase();
     const walletLabel = getWalletLabel(user.walletType ?? "");
     return (
-      <div className="border-primary/40 bg-surface-2 relative shrink-0 overflow-hidden rounded-[14px] border p-3.5">
-        <div aria-hidden className="at-grid pointer-events-none absolute inset-0 opacity-60" />
+      <div className="bg-surface-2 relative shrink-0 overflow-hidden rounded-[14px] border-[2.5px] border-[#f2f7f2] p-3.5 shadow-[4px_4px_0_0_var(--color-primary)]">
+        
         <div className="border-border relative mb-3 flex items-center gap-2 border-b pr-8 pb-2.5">
           <Image src={brandMark} alt="" width={22} height={22} />
           <span className="font-display text-foreground text-[15px] leading-none tracking-[0.05em]">
@@ -224,14 +222,14 @@ export function ConnectWalletDialog() {
           </span>
         </div>
         <div className="relative flex items-center gap-3">
-          <div className="ring-primary bg-primary text-primary-foreground font-brand flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full text-lg ring-2 ring-offset-2 ring-offset-[var(--color-surface-2)]">
+          <div className="bg-primary font-display flex size-14 shrink-0 -rotate-3 items-center justify-center overflow-hidden rounded-full border-[3px] border-black text-[20px] text-black shadow-[2px_2px_0_0_#f2f7f2]">
             {image ? <img src={image} alt="" className="size-full object-cover" /> : initials}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-pixel text-primary-text text-[10px] tracking-widest">
+            <p className="font-display bg-primary inline-block -rotate-1 px-1.5 text-[11px] tracking-[0.06em] text-black">
               PLAYER ONE · {walletLabel.toUpperCase()}
             </p>
-            <p className="font-brand text-foreground mt-0.5 truncate text-lg">{name}</p>
+            <p className="font-display text-foreground mt-1 truncate text-[20px] leading-tight uppercase">{name}</p>
             <p className="text-muted-foreground font-mono text-xs">
               {abbreviateAddress(user.walletAddress, 6)}
             </p>
@@ -247,7 +245,7 @@ export function ConnectWalletDialog() {
               }}
               title="Copy wallet address"
               aria-label="Copy wallet address"
-              className="border-border-strong hover:border-primary hover:text-primary-text flex size-9 items-center justify-center rounded-[10px] border transition-colors"
+              className="flex size-9 items-center justify-center rounded-[10px] border-2 border-black bg-[#f2f7f2] text-black shadow-[2px_2px_0_0_var(--color-primary)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
             >
               <DocumentDuplicateIcon className="size-4" />
             </button>
@@ -255,7 +253,7 @@ export function ConnectWalletDialog() {
               onClick={disconnectWallet}
               title="Sign out"
               aria-label="Sign out"
-              className="border-destructive/50 text-destructive hover:bg-destructive/10 flex size-9 items-center justify-center rounded-[10px] border transition-colors"
+              className="bg-destructive flex size-9 items-center justify-center rounded-[10px] border-2 border-black text-white shadow-[2px_2px_0_0_#f2f7f2] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
             >
               <LogOut className="size-4" />
             </button>
@@ -334,7 +332,7 @@ export function ConnectWalletDialog() {
   // ── Social auth buttons ──
   function SocialButtons() {
     const base =
-      "flex h-12 w-full items-center justify-center gap-2.5 rounded-[10px] border text-sm font-semibold transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 disabled:opacity-50";
+      "font-display flex h-12 w-full items-center justify-center gap-2.5 rounded-[10px] text-[16px] tracking-[0.04em] uppercase transition-[transform,box-shadow] duration-100 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none disabled:opacity-50";
     return (
       <div className="flex flex-col gap-2.5">
         <button
@@ -342,7 +340,7 @@ export function ConnectWalletDialog() {
           disabled={isIosFBuser ?? false}
           className={clsx(
             base,
-            "border-transparent bg-[#f2f7f2] text-[#050605] hover:shadow-[0_0_22px_-6px_var(--color-primary)]",
+            "border-[3px] border-black bg-[#f2f7f2] text-[#050605] shadow-[4px_4px_0_0_var(--color-primary)]",
           )}
         >
           <GoogleLogo />
@@ -350,7 +348,7 @@ export function ConnectWalletDialog() {
         </button>
         <button
           onClick={() => void appleProvider.login()}
-          className={clsx(base, "border-border-strong hover:border-primary bg-black text-white")}
+          className={clsx(base, "border-[2.5px] border-[#f2f7f2] bg-black text-white shadow-[4px_4px_0_0_var(--color-primary)]")}
         >
           <AppleLogo />
           Continue with Apple
@@ -451,7 +449,7 @@ export function ConnectWalletDialog() {
       !isAccountActivate ? (
         <DialogContent
           portalContainer={frameContainer}
-          className="border-border-strong bg-surface max-w-sm rounded-[20px] border p-6"
+          className="bg-surface max-w-sm rounded-[20px] border-[3px] border-[#f2f7f2] p-6 shadow-[6px_6px_0_0_var(--color-primary)]"
         >
           <DialogTitle className="sr-only">Account status</DialogTitle>
           <NotActivatedUser />
@@ -466,10 +464,10 @@ export function ConnectWalletDialog() {
         <DialogContent
           portalContainer={frameContainer}
           className={clsx(
-            "border-border-strong bg-surface gap-0 overflow-hidden border p-0",
+            "bg-surface gap-0 overflow-hidden border-[3px] border-[#f2f7f2] p-0 shadow-[6px_6px_0_0_var(--color-primary)]",
             isFramedHost
               ? "mx-auto flex max-h-[88vh] w-full max-w-[420px] flex-col rounded-[22px]"
-              : "flex max-h-[92dvh] max-w-[860px] rounded-[22px] shadow-[0_0_0_1px_rgb(77_255_42/0.15),0_30px_80px_-20px_rgb(0_0_0/0.9)] lg:grid lg:grid-cols-[330px_1fr]",
+              : "flex max-h-[92dvh] max-w-[860px] rounded-[22px] lg:grid lg:grid-cols-[330px_1fr]",
           )}
         >
           {/* ── Brand panel (wide screens) ── */}
@@ -557,13 +555,14 @@ export function ConnectWalletDialog() {
               <button
                 type="button"
                 onClick={() => setActiveTab(onWallets ? "action" : "stellar")}
-                className="border-border-strong hover:border-primary group mt-auto flex items-center gap-3 rounded-[12px] border border-dashed px-4 py-3 text-left transition-colors"
+                className="group bg-surface-2 relative mt-auto flex -rotate-1 items-center gap-3 rounded-[12px] border-[2.5px] border-[#f2f7f2] px-4 py-3 text-left shadow-[4px_4px_0_0_var(--color-primary)] transition-[transform,box-shadow] duration-100 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
               >
-                <span className="bg-surface-3 flex size-9 items-center justify-center rounded-[10px]">
+                <span aria-hidden className="absolute -top-2 left-1/2 h-4 w-12 -translate-x-1/2 rotate-3 bg-[#f2f7f2]/70" />
+                <span className="bg-primary flex size-9 items-center justify-center rounded-full border-2 border-black text-black">
                   {onWallets ? <ArrowLeft className="size-4" /> : <Wallet className="size-4" />}
                 </span>
                 <span className="flex-1">
-                  <span className="font-brand block text-sm">
+                  <span className="font-display block text-[16px] leading-tight tracking-[0.03em] uppercase">
                     {onWallets ? "Use email, Google or Apple" : "I have a Stellar wallet"}
                   </span>
                   {onWallets ? (
@@ -575,7 +574,7 @@ export function ConnectWalletDialog() {
                     />
                   )}
                 </span>
-                <span className="font-pixel text-fg-faint group-hover:text-primary-text text-[10px]">
+                <span className="font-display bg-primary rotate-3 border-2 border-black px-1.5 py-0.5 text-[12px] text-black">
                   {onWallets ? "BACK" : "NEXT"}
                 </span>
               </button>
@@ -668,16 +667,6 @@ function LogoStack({ items, more = 0 }: { items: StackItem[]; more?: number }) {
   );
 }
 
-/** One L-shaped viewfinder corner. */
-function Reticle({ className }: { className: string }) {
-  return (
-    <span
-      aria-hidden
-      className={clsx("border-primary/70 pointer-events-none absolute size-3", className)}
-    />
-  );
-}
-
 /**
  * Who is asking you to sign in, as a slim radar strip: a small sweeping radar with the
  * ActionTokens pin pinging on the left, the "Action Auth System" readout and the wordmark on
@@ -688,49 +677,22 @@ function BrandHeader({ framed }: { framed: boolean }) {
   return (
     <div
       className={clsx(
-        "border-border relative flex h-[96px] shrink-0 items-center gap-4 overflow-hidden border-b bg-black pr-12",
+        "relative flex h-[96px] shrink-0 items-center gap-3.5 overflow-hidden border-b-[3px] border-[#f2f7f2] bg-black pr-12",
+        "bg-[radial-gradient(color-mix(in_oklab,var(--color-primary)_14%,transparent)_1px,transparent_1.4px)] [background-size:8px_8px]",
         framed ? "-mx-5 -mt-8 pl-5" : "-mx-6 -mt-6 pl-6 sm:-mx-8 sm:-mt-8 sm:pl-8",
       )}
     >
-      <span aria-hidden className="at-grid pointer-events-none absolute inset-0 opacity-50" />
-
-      {/* radar around the pin */}
-      <span className="relative flex size-14 shrink-0 items-center justify-center">
-        <span aria-hidden className="absolute inset-0">
-          {[84, 124].map((d) => (
-            <span
-              key={d}
-              style={{ width: d, height: d }}
-              className="border-primary/15 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border"
-            />
-          ))}
-          <span className="absolute top-1/2 left-1/2 size-[124px] -translate-x-1/2 -translate-y-1/2 animate-spin rounded-full bg-[conic-gradient(from_0deg,transparent_0deg,transparent_250deg,color-mix(in_oklab,var(--color-primary)_30%,transparent)_360deg)] [mask-image:radial-gradient(closest-side,black_60%,transparent)] [animation-duration:4s] motion-reduce:animate-none" />
-          {[0, 1.2].map((delay) => (
-            <span
-              key={delay}
-              style={{ animationDelay: `${delay}s`, animationDuration: "2.4s" }}
-              className="border-primary/60 absolute inset-0 animate-ping rounded-full border motion-reduce:hidden"
-            />
-          ))}
-        </span>
-        <span className="border-primary/50 relative flex size-14 items-center justify-center rounded-full border bg-black shadow-[0_0_24px_-4px_color-mix(in_oklab,var(--color-primary)_60%,transparent)]">
-          <Image src={brandMark} alt="" width={38} height={38} priority />
-        </span>
+      <span className="relative flex size-14 shrink-0 -rotate-6 items-center justify-center rounded-full border-[3px] border-black bg-[#f2f7f2] shadow-[3px_3px_0_0_var(--color-primary)]">
+        <Image src={brandMark} alt="" width={36} height={36} priority />
       </span>
-
-      <span className="relative min-w-0">
-        <span className="text-primary flex items-center gap-1.5 font-mono text-[10px] tracking-[0.18em] uppercase">
-          <span className="bg-primary at-pulse size-1.5 rounded-full" />
-          Action Auth System
-        </span>
-        <span className="font-display text-foreground mt-1.5 block truncate text-[24px] leading-none tracking-[0.05em]">
+      <span className="relative flex min-w-0 flex-col items-start gap-1.5">
+        <span className="font-display bg-primary inline-block -rotate-2 border-[2.5px] border-black px-2 py-0.5 text-[22px] leading-none tracking-[0.03em] text-black shadow-[3px_3px_0_0_#f2f7f2]">
           ACTIONTOKENS
         </span>
+        <span className="font-display ml-2 inline-block rotate-2 bg-[#f2f7f2] px-1.5 py-[3px] text-[11px] leading-none tracking-[0.1em] text-black">
+          ACTION AUTH SYSTEM
+        </span>
       </span>
-
-      <Reticle className="top-2.5 left-2.5 border-t-2 border-l-2" />
-      <Reticle className="bottom-2.5 left-2.5 border-b-2 border-l-2" />
-      <Reticle className="right-2.5 bottom-2.5 border-r-2 border-b-2" />
     </div>
   );
 }
@@ -739,7 +701,7 @@ function Divider({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-3">
       <span className="bg-border h-px flex-1" />
-      <span className="font-pixel text-fg-faint text-[10px] tracking-widest uppercase">
+      <span className="font-display text-muted-foreground text-[12px] tracking-[0.1em] uppercase">
         {label}
       </span>
       <span className="bg-border h-px flex-1" />
@@ -797,23 +759,26 @@ function WCButton({
           void runner();
         }}
         className={clsx(
-          "flex w-full items-center gap-2.5 rounded-[10px] border text-sm font-semibold transition-[transform,border-color,box-shadow] duration-150 disabled:opacity-60",
+          "font-display flex w-full items-center gap-2.5 rounded-[10px] border-2 text-[15px] tracking-[0.03em] uppercase transition-[transform,box-shadow] duration-100 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none disabled:opacity-60",
           inGrid ? "px-3 py-2.5" : "justify-center px-4 py-2.5",
           isSelected
-            ? "border-primary bg-primary/10 text-primary-text"
+            ? "bg-primary border-black text-black shadow-[3px_3px_0_0_#f2f7f2]"
             : onDark
-              ? "at-stripes font-brand border-transparent hover:-translate-y-0.5 hover:shadow-[0_0_22px_-4px_var(--color-primary)]"
-              : "border-border-strong bg-surface-2 text-foreground hover:border-primary hover:-translate-y-0.5",
+              ? "bg-primary border-black text-black shadow-[3px_3px_0_0_#f2f7f2]"
+              : "bg-surface-2 text-foreground border-[#f2f7f2]/80 shadow-[3px_3px_0_0_var(--color-primary)]",
         )}
       >
         <span
-          className={clsx("flex shrink-0 items-center justify-center", inGrid ? "h-7 w-7" : "")}
+          className={clsx(
+            "flex shrink-0 items-center justify-center rounded-full border-2 border-black bg-[#f2f7f2]",
+            inGrid ? "size-7" : "size-6",
+          )}
         >
           <Image
             src={lobstrLogo}
             alt="Lobstr"
-            width={inGrid ? 28 : 20}
-            height={inGrid ? 28 : 20}
+            width={inGrid ? 22 : 18}
+            height={inGrid ? 22 : 18}
             className="rounded-full object-contain"
           />
         </span>
@@ -822,7 +787,7 @@ function WCButton({
             {wcLoading && initializing ? "Initializing…" : text}
           </span>
         )}
-        {isSelected && <CheckCircle2 className="text-primary-text h-4 w-4 shrink-0" />}
+        {isSelected && <CheckCircle2 className="h-4 w-4 shrink-0 text-black" />}
       </button>
     </div>
   );

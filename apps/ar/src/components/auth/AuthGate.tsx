@@ -60,25 +60,17 @@ export function AuthGate() {
       {copy && (
         <div className="px-6 pt-4 pb-2">
           {/* Emblem */}
-          <div className="relative mx-auto mb-5 flex h-[72px] w-[72px] items-center justify-center">
-            <motion.span
-              aria-hidden
-              className="border-ar-accent/50 absolute inset-0 rounded-full border"
-              animate={{ scale: [1, 1.28, 1], opacity: [0.7, 0, 0.7] }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: "easeOut" }}
-            />
-            <span className="ar-key !border-ar-accent/50 flex h-[62px] w-[62px] items-center justify-center rounded-full">
-              <Wallet
-                size={26}
-                strokeWidth={2}
-                className="text-ar-accent-hot drop-shadow-[0_0_10px_hsl(var(--ar-accent)/0.9)]"
-              />
-            </span>
-          </div>
+          <motion.div
+            className="mx-auto mb-5 flex size-[66px] -rotate-6 items-center justify-center rounded-full border-[3px] border-[hsl(var(--st-ink))] bg-ar-accent shadow-[4px_4px_0_0_hsl(var(--st-paper))]"
+            animate={{ y: [0, -3, 0] }}
+            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <Wallet size={28} strokeWidth={2.4} className="text-[hsl(var(--st-ink))]" />
+          </motion.div>
 
           <h2
             id="auth-gate-title"
-            className="font-hud text-ar-text text-center text-[21px] leading-tight font-bold"
+            className="font-display text-ar-text text-center text-[28px] leading-[0.95] uppercase"
           >
             {copy.title}
           </h2>
@@ -97,15 +89,18 @@ export function AuthGate() {
 
           {/* What "connect" actually covers — a wallet-only prompt reads as
               crypto-gated to people who just want a free coffee. */}
-          <div className="border-ar-line mt-5 border-t pt-4">
-            <p className="font-hud text-ar-faint mb-2.5 text-center text-[9px] font-semibold tracking-[0.24em] uppercase">
+          <div className="mt-5 border-t-2 border-dashed border-[hsl(var(--st-paper)/0.25)] pt-4">
+            <p className="font-display text-ar-dim mb-2.5 text-center text-[12px] tracking-[0.1em] uppercase">
               Sign in with
             </p>
             <div className="flex flex-wrap justify-center gap-1.5">
-              {METHODS.map((m) => (
+              {METHODS.map((m, i) => (
                 <span
                   key={m}
-                  className="font-hud border-ar-line text-ar-faint rounded-full border bg-white/[0.04] px-2.5 py-1 text-[10px] font-medium tracking-[0.1em] uppercase"
+                  className={
+                    "font-display bg-ar-surface-2 text-ar-text rounded-[4px] border-2 border-[hsl(var(--st-paper)/0.7)] px-2 py-0.5 text-[11px] tracking-[0.06em] uppercase " +
+                    (i % 2 ? "rotate-2" : "-rotate-2")
+                  }
                 >
                   {m}
                 </span>

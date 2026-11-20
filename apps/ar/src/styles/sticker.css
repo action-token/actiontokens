@@ -101,7 +101,7 @@
   background: hsl(var(--ar-accent));
   border: 2.5px solid hsl(var(--st-ink));
   color: hsl(var(--st-ink));
-  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--st-ink));
+  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--st-paper));
 }
 
 .ar-key-gold,
@@ -109,7 +109,7 @@
   background: hsl(var(--rarity-legendary));
   border: 2.5px solid hsl(var(--st-ink));
   color: hsl(var(--st-ink));
-  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--st-ink));
+  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--st-paper));
 }
 
 .ar-key-danger,
@@ -117,8 +117,10 @@
   background: hsl(var(--ar-danger));
   border: 2.5px solid hsl(var(--st-ink));
   color: hsl(0 0% 100%);
-  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--st-ink));
+  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--st-paper));
 }
+
+/* Filled keys sit on dark screens, so their hard shadow is paper, not ink. */
 
 /* Floating over the map or camera: a near-solid dark sticker with a paper
    outline and a hard black shadow, so it reads on any background. */
