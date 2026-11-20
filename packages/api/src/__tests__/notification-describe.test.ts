@@ -69,9 +69,26 @@ describe("describeNotification", () => {
       "BOUNTY_SUBMISSION",
       "BOUNTY_WINNER",
       "BOUNTY_COMMENT",
+      "COMMUNITY_POST",
+      "COMMUNITY_COMMENT",
+      "COMMUNITY_REPLY",
+      "COMMUNITY_MEMBER_JOIN",
+      "COMMUNITY_INVITE",
+      "COMMUNITY_REACTION",
     ] as const;
     for (const type of types)
       expect(describeNotification(type, { actor: fan }).text).toMatch(/^Ana /);
+  });
+});
+
+describe("community notifications", () => {
+  it("names the community and opens it", () => {
+    expect(
+      describeNotification("COMMUNITY_POST", {
+        actor: fan,
+        community: { id: "c1", title: "Luna" },
+      }),
+    ).toEqual({ text: "Ana posted in Luna.", href: "/communities/c1" });
   });
 });
 

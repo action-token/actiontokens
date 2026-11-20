@@ -146,3 +146,49 @@ describe("community rules", () => {
     ).rejects.toThrow(/turned off/);
   });
 });
+
+describe("community notifications (central system)", () => {
+  const notifyDb = (muted: string[] = []) => ({
+    ...joinDb(gated),
+    communityMember: {
+      findUnique: vi
+        .fn()
+        .mockResolvedValue({ id: "m1", role: "MEMBER", communityId: "c1", userId: "me" }),
+      findMany: vi.fn().mockResolvedValue([{ userId: "a" }, { userId: "b" }, { userId: "me" }]),
+    },
+    communityNotificationPreference: {
+      findMany: vi.fn().mockResolvedValue(muted.map((userId) => ({ userId }))),
+    },
+    communityPost: { create: vi.fn().mockResolvedValue({ id: "p1" }) },
+    notificationEvent: { create: vi.fn().mockResolvedValue({}) },
+  });
+
+  it("tells members about a new post, skipping the author and anyone who muted posts", async () => {
+    const db = notifyDb(["b"]);
+    await caller(db).community.post.create({ communityId: "c1", content: "hi" });
+    const data = (
+      db.notificationEvent.create.mock.calls[0]![0] as {
+        data: {
+          type: string;
+          entityId: string;
+          notifications: { createMany: { data: { recipientId: string }[] } };
+        };
+      }
+    ).data;
+    expect(data.type).toBe("COMMUNITY_POST");
+    expect(data.entityId).toBe("c1");
+    expect(data.notifications.createMany.data.map((n) => n.recipientId)).toEqual(["a"]);
+    expect(db.communityNotificationPreference.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { communityId: "c1", newPosts: false } }),
+    );
+  });
+
+  it("never fails the post when notifying breaks", async () => {
+    const db = notifyDb();
+    db.notificationEvent.create.mockRejectedValue(new Error("db down"));
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    await expect(
+      caller(db).community.post.create({ communityId: "c1", content: "hi" }),
+    ).resolves.toEqual({ id: "p1" });
+  });
+});

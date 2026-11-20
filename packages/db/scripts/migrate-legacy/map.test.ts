@@ -82,6 +82,7 @@ describe("old values to new", () => {
     expect(notificationType("MEMBER")).toBe("MEMBERSHIP");
     expect(notificationType("BOUNTY_PARTICIPANT")).toBe("BOUNTY_JOINED");
     expect(notificationType("BOUNTY_DOUBT_REPLY")).toBe("BOUNTY_COMMENT");
+    expect(notificationType("COMMUNITY_REACTION")).toBe("COMMUNITY_REACTION");
   });
 
   it("makes clean, unique slugs", () => {

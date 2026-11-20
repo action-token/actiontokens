@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Loader Font Picker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Onest:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#050605; --surface:#0c0f0c; --surface-raised:#131813; --border:#1f2a1f; --border-strong:#2f402f;
+  --fg:#e9f5e9; --fg-muted:#8fa38f; --fg-subtle:#5b6b5b; --accent:#4dff2a; --accent-fg:#031003;
+  --mono:"JetBrains Mono",ui-monospace,monospace; --body:"Onest",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--fg);font-family:var(--body)}
+body{padding:0 0 120px}
+button,input,select{font:inherit;color:inherit}
+header{position:sticky;top:0;z-index:5;background:rgba(5,6,5,.94);border-bottom:1px solid var(--border);padding:16px clamp(16px,3vw,32px)}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;max-width:1500px;margin:0 auto}
+h1{font-size:18px;font-weight:700;margin-right:auto}
+h1 small{display:block;font-size:12px;font-weight:400;color:var(--fg-muted);margin-top:2px}
+.ctl{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--fg-muted);letter-spacing:.08em}
+.ctl input[type=text]{width:180px;height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--border-strong);background:var(--surface);font-family:var(--body);font-size:14px;letter-spacing:0;color:var(--fg)}
+.seg{display:flex;border:1px solid var(--border-strong);border-radius:10px;overflow:hidden}
+.seg button{height:34px;padding:0 12px;background:var(--surface);border:0;cursor:pointer;font-size:12px;color:var(--fg-muted)}
+.seg button.on{background:var(--accent);color:var(--accent-fg);font-weight:700}
+.filters{display:flex;gap:8px;flex-wrap:wrap;max-width:1500px;margin:12px auto 0}
+.filters button{height:30px;padding:0 12px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface);font-size:12px;color:var(--fg-muted);cursor:pointer}
+.filters button.on{border-color:var(--accent);color:var(--accent)}
+main{max-width:1500px;margin:24px auto 0;padding:0 clamp(16px,3vw,32px)}
+.group{margin:34px 0 14px;display:flex;align-items:baseline;gap:12px}
+.group h2{font-family:var(--mono);font-size:12px;letter-spacing:.2em;color:var(--accent)}
+.group p{font-size:13px;color:var(--fg-muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:16px}
+@media (max-width:520px){.grid{grid-template-columns:1fr}}
+.card{position:relative;border-radius:18px;border:1px solid var(--border);background:var(--surface);overflow:hidden;cursor:pointer;transition:border-color .2s,transform .2s}
+.card:hover{border-color:var(--border-strong);transform:translateY(-2px)}
+.card.pick{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 40px rgba(77,255,42,.15)}
+.stage{position:relative;height:210px;display:flex;align-items:flex-end;justify-content:center;padding:0 18px 10px;overflow:hidden;
+  background:radial-gradient(60% 70% at 50% 80%,rgba(77,255,42,.10),transparent 70%),#050605}
+.word{font-size:132px;line-height:1;white-space:nowrap;transition:font-size .15s}
+/* styles */
+.s-neon .word{background:linear-gradient(180deg,#f4fff0 0%,var(--accent) 40%,#1f8a0e 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(77,255,42,.45))}
+.s-chrome .word{background:linear-gradient(180deg,#fdfdfd 0%,#bdbdbd 40%,#ffffff 52%,#6a6a6a 70%,#d9d9d9 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 rgba(0,0,0,.6))}
+.s-half .word{background:linear-gradient(to top,var(--accent) 0 55%,#1a211a 55% 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.s-outline .word{color:transparent;-webkit-text-stroke:2px var(--accent)}
+.meta{display:flex;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid var(--border)}
+.num{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent-fg);background:var(--accent);border-radius:6px;padding:3px 7px}
+.name{font-weight:700;font-size:15px}
+.tag{font-family:var(--mono);font-size:10px;color:var(--fg-subtle);letter-spacing:.1em}
+.meta a{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--fg-muted);text-decoration:none;border:1px solid var(--border-strong);padding:6px 10px;border-radius:8px;white-space:nowrap}
+.meta a:hover{color:var(--accent);border-color:var(--accent)}
+.sub{padding:0 14px 14px;display:grid;gap:4px}
+.sub .u{font-size:30px;line-height:1.05;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub .d{font-size:18px;color:var(--fg-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.loading{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:11px;color:var(--fg-subtle);background:#050605}
+.card.ready .loading{display:none}
+.check{position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--accent-fg);font-weight:900;opacity:0;transform:scale(.6);transition:.2s}
+.card.pick .check{opacity:1;transform:none}
+.bar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:6;display:flex;align-items:center;gap:14px;padding:10px 10px 10px 18px;border-radius:16px;border:1px solid var(--border-strong);background:rgba(12,15,12,.96);box-shadow:0 20px 50px rgba(0,0,0,.6);font-size:14px;max-width:calc(100vw - 32px)}
+.bar[hidden]{display:none}
+.bar b{color:var(--accent)}
+.bar .chips{display:flex;gap:6px;flex-wrap:wrap}
+.bar .chips span{font-family:var(--mono);font-size:11px;padding:4px 8px;border-radius:6px;background:var(--surface-raised)}
+.bar button{height:36px;padding:0 14px;border-radius:10px;border:0;background:var(--accent);color:var(--accent-fg);font-weight:700;cursor:pointer;white-space:nowrap}
+.bar button.ghost{background:none;border:1px solid var(--border-strong);color:var(--fg-muted)}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <h1>Loader font picker <small>Click cards to shortlist (pick as many as you like). "Try in loader" opens the real loading screen with that font.</small></h1>
+    <label class="ctl">TEXT <input type="text" id="txt" value="Action" /></label>
+    <div class="ctl">STYLE
+      <div class="seg" id="style"><button data-s="neon" class="on">Neon</button><button data-s="half">Loading 55%</button><button data-s="chrome">Chrome</button><button data-s="outline">Outline</button></div>
+    </div>
+    <div class="ctl">CASE
+      <div class="seg" id="case"><button data-c="none" class="on">As typed</button><button data-c="upper">UPPER</button></div>
+    </div>
+  </div>
+  <div class="filters" id="filters"></div>
+</header>
+<main id="main"></main>
+<div class="bar" id="bar" hidden>
+  <span>Shortlist:</span><div class="chips" id="chips"></div>
+  <button class="ghost" id="clear">Clear</button>
+  <button id="copy">Copy shortlist</button>
+</div>
+
+<script>
+// [family, google css2 spec, group, note]
+const FONTS = [
+  ['Grenze Gotisch','Grenze+Gotisch:wght@900','Blackletter','current loader font'],
+  ['UnifrakturMaguntia','UnifrakturMaguntia','Blackletter','classic Old English, Memphis phonk covers'],
+  ['UnifrakturCook','UnifrakturCook:wght@700','Blackletter','bold condensed fraktur'],
+  ['Pirata One','Pirata+One','Blackletter','gothic, very legible'],
+  ['New Rocker','New+Rocker','Blackletter','gothic with metal hooks'],
+  ['Metal Mania','Metal+Mania','Blackletter','heavy-metal spikes'],
+  ['Germania One','Germania+One','Blackletter','tight condensed gothic'],
+  ['Fruktur','Fruktur','Blackletter','italic fraktur, drift energy'],
+  ['Jacquard 24','Jacquard+24','Blackletter','pixel blackletter, retro game'],
+  ['Racing Sans One','Racing+Sans+One','Drift / racing','italic racing, JDM drift'],
+  ['Faster One','Faster+One','Drift / racing','speed stripes'],
+  ['Russo One','Russo+One','Drift / racing','squared motorsport'],
+  ['Black Ops One','Black+Ops+One','Drift / racing','stencil, military'],
+  ['Audiowide','Audiowide','Drift / racing','wide tech, car badges'],
+  ['Rubik Glitch','Rubik+Glitch','Distorted','built-in glitch cuts'],
+  ['Rubik Wet Paint','Rubik+Wet+Paint','Distorted','dripping paint'],
+  ['Rubik Distressed','Rubik+Distressed','Distorted','worn, cassette-sleeve'],
+  ['Rubik Burned','Rubik+Burned','Distorted','burned edges'],
+  ['Nosifer','Nosifer','Distorted','blood drip horror-phonk'],
+  ['Creepster','Creepster','Distorted','horror comic'],
+  ['Anton','Anton','Heavy condensed','current headline font'],
+  ['Bebas Neue','Bebas+Neue','Heavy condensed','clean poster'],
+  ['Big Shoulders Display','Big+Shoulders+Display:wght@900','Heavy condensed','Chicago industrial'],
+  ['Rubik Mono One','Rubik+Mono+One','Heavy condensed','fat geometric'],
+  ['Tilt Warp','Tilt+Warp','Heavy condensed','bulgy 3D-ish'],
+  ['Monoton','Monoton','Chrome / neon / Y2K','neon tube lines'],
+  ['Bungee Shade','Bungee+Shade','Chrome / neon / Y2K','3D shaded signage'],
+  ['Orbitron','Orbitron:wght@900','Chrome / neon / Y2K','sci-fi, Y2K'],
+  ['Michroma','Michroma','Chrome / neon / Y2K','ultra-wide tech'],
+  ['Wallpoet','Wallpoet','Chrome / neon / Y2K','cyber stencil'],
+  ['Zen Dots','Zen+Dots','Chrome / neon / Y2K','rounded future'],
+  ['Stalinist One','Stalinist+One','Chrome / neon / Y2K','wide brutal'],
+];
+const GROUP_NOTES = {
+  'Blackletter':'The classic phonk look: Memphis rap tapes, chrome gothic logos.',
+  'Drift / racing':'Drift phonk: JDM, speed, motorsport badges.',
+  'Distorted':'Glitch, drips and wear: the darker side of phonk.',
+  'Heavy condensed':'Poster-weight, very legible at any size.',
+  'Chrome / neon / Y2K':'Wide, techy, made for chrome and neon effects.',
+};
+const store = { get(k){ try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } }, set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
+let picks = store.get('font-picks') || [];
+const main = document.getElementById('main');
+
+// one <link> per font, so one bad family never breaks the others
+FONTS.forEach(([fam, spec]) => { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = `https://fonts.googleapis.com/css2?family=${spec}&display=swap`; document.head.appendChild(l); });
+
+const groups = [...new Set(FONTS.map(f => f[2]))];
+document.getElementById('filters').innerHTML = ['All', ...groups].map((g, i) => `<button data-g="${g}" class="${i ? '' : 'on'}">${g}</button>`).join('');
+main.innerHTML = groups.map(g => `<section data-group="${g}"><div class="group"><h2>${g.toUpperCase()}</h2><p>${GROUP_NOTES[g]}</p></div><div class="grid">${
+  FONTS.map((f, i) => [f, i]).filter(([f]) => f[2] === g).map(([f, i]) => `
+  <article class="card s-neon" data-fam="${f[0]}" data-n="${String(i + 1).padStart(2, '0')}">
+    <span class="check">✓</span>
+    <div class="stage"><div class="word" style="font-family:'${f[0]}'">Action</div><div class="loading">loading ${f[0]}…</div></div>
+    <div class="meta"><span class="num">${String(i + 1).padStart(2, '0')}</span><div><div class="name">${f[0]}</div><div class="tag">${f[3]}</div></div>
+      <a href="home.html?hold&font=${encodeURIComponent(f[0])}&spec=${encodeURIComponent(f[1])}" target="_blank" onclick="event.stopPropagation()">Try in loader ↗</a></div>
+    <div class="sub" style="font-family:'${f[0]}'"><div class="u">ACTIONTOKENS · Earn</div><div class="d">0123456789 · $RIDE 0.42 · Take action.</div></div>
+  </article>`).join('')}</div></section>`).join('');
+
+const cards = [...document.querySelectorAll('.card')];
+// fit the word into its stage
+function fit(card){ const w = card.querySelector('.word'), st = card.querySelector('.stage'); w.style.fontSize = '132px';
+  const max = st.clientWidth - 36; const ratio = max / w.scrollWidth; w.style.fontSize = Math.min(150, Math.floor(132 * Math.min(1.1, ratio))) + 'px'; }
+document.fonts.ready.then(() => cards.forEach(c => { fit(c); }));
+cards.forEach(c => { const fam = c.dataset.fam;
+  document.fonts.load(`64px "${fam}"`, 'Action').then(() => { c.classList.add('ready'); fit(c); }).catch(() => c.classList.add('ready'));
+  setTimeout(() => c.classList.add('ready'), 4000);
+});
+addEventListener('resize', () => cards.forEach(fit));
+
+// controls
+const txt = document.getElementById('txt');
+let upper = false;
+function applyText(){ const v = txt.value || 'Action'; cards.forEach(c => { c.querySelector('.word').textContent = upper ? v.toUpperCase() : v; fit(c); }); }
+txt.addEventListener('input', applyText);
+document.getElementById('case').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#case button').forEach(x => x.classList.toggle('on', x === b)); upper = b.dataset.c === 'upper'; applyText(); });
+document.getElementById('style').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#style button').forEach(x => x.classList.toggle('on', x === b));
+  cards.forEach(c => { c.className = c.className.replace(/s-\w+/, 's-' + b.dataset.s); }); });
+document.getElementById('filters').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#filters button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('section[data-group]').forEach(s => s.hidden = b.dataset.g !== 'All' && s.dataset.group !== b.dataset.g); cards.forEach(fit); });
+
+// shortlist
+function renderPicks(){
+  cards.forEach(c => c.classList.toggle('pick', picks.includes(c.dataset.fam)));
+  document.getElementById('bar').hidden = !picks.length;
+  document.getElementById('chips').innerHTML = picks.map(p => { const c = cards.find(x => x.dataset.fam === p); return `<span>#${c ? c.dataset.n : '?'} ${p}</span>`; }).join('');
+  store.set('font-picks', picks);
+}
+cards.forEach(c => c.addEventListener('click', () => { const f = c.dataset.fam; picks = picks.includes(f) ? picks.filter(x => x !== f) : [...picks, f]; renderPicks(); }));
+document.getElementById('clear').addEventListener('click', () => { picks = []; renderPicks(); });
+document.getElementById('copy').addEventListener('click', e => {
+  const text = picks.map(p => { const c = cards.find(x => x.dataset.fam === p); return `#${c ? c.dataset.n : '?'} ${p}`; }).join(', ');
+  navigator.clipboard?.writeText(text).then(() => { e.target.textContent = 'Copied ✓'; setTimeout(() => e.target.textContent = 'Copy shortlist', 1400); }).catch(() => {});
+});
+renderPicks();
+</script>
+</body>
+</html>

@@ -92,6 +92,12 @@ export const notificationType = (type: string) =>
     BOUNTY_DOUBT: "BOUNTY_COMMENT",
     BOUNTY_DOUBT_CREATE: "BOUNTY_COMMENT",
     BOUNTY_DOUBT_REPLY: "BOUNTY_COMMENT",
+    COMMUNITY_POST: "COMMUNITY_POST",
+    COMMUNITY_COMMENT: "COMMUNITY_COMMENT",
+    COMMUNITY_REPLY: "COMMUNITY_REPLY",
+    COMMUNITY_MEMBER_JOIN: "COMMUNITY_MEMBER_JOIN",
+    COMMUNITY_INVITE: "COMMUNITY_INVITE",
+    COMMUNITY_REACTION: "COMMUNITY_REACTION",
   })[type] ?? fail(`notification type ${type}`);
 
 /** The old app charged credits at dollar rates, and a coin is a cent (decided 2026-11-04). */

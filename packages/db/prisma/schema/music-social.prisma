@@ -210,6 +210,13 @@ enum NotificationType {
   VANITY
   /// The artist's custom domain went live, stopped working, or was removed by an admin
   DOMAIN
+  /// Communities: entityId is the community id
+  COMMUNITY_POST
+  COMMUNITY_COMMENT
+  COMMUNITY_REPLY
+  COMMUNITY_MEMBER_JOIN
+  COMMUNITY_INVITE
+  COMMUNITY_REACTION
 }
 
 /// Something that happened, fanned out to recipients as Notification rows.

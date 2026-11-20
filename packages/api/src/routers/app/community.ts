@@ -4,12 +4,13 @@ import type { Db } from "@actiontokens/db";
 import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { checkGate } from "../../services/community/gate";
+import { notifyCommunity } from "../../services/community/notify";
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 
 /**
  * Communities: groups owned by a user, optionally gated by holding tokens. Members post, like and
  * comment; the owner manages the group. The token gate is checked here against the chain, never
- * from balances the browser sends. Notifications for community events come with the worker (F3).
+ * from balances the browser sends. Community events go to the central notification system (services/community/notify).
  */
 
 const PAGE = 20;
@@ -220,6 +221,13 @@ const communityRouter = createRouter({
     }
     await ctx.db.communityMember.create({ data: { communityId: community.id, userId } });
     await logActivity(ctx.db, community.id, userId, "JOIN");
+    await notifyCommunity(ctx, {
+      type: "COMMUNITY_MEMBER_JOIN",
+      actorId: userId,
+      communityId: community.id,
+      switch: "newMembers",
+      only: [community.ownerId],
+    });
     return { ok: true };
   }),
 
@@ -364,6 +372,12 @@ const postRouter = createRouter({
         select: { id: true },
       });
       await logActivity(ctx.db, community.id, userId, "POST_CREATED", post.id);
+      await notifyCommunity(ctx, {
+        type: "COMMUNITY_POST",
+        actorId: userId,
+        communityId: community.id,
+        switch: "newPosts",
+      });
       return post;
     }),
 
@@ -415,8 +429,16 @@ const postRouter = createRouter({
         return { liked: false };
       }
       await ctx.db.communityPostLike.create({ data: { postId: post.id, userId } });
-      if (post.authorId !== userId)
+      if (post.authorId !== userId) {
         await logActivity(ctx.db, post.communityId, userId, "POST_LIKED", post.id);
+        await notifyCommunity(ctx, {
+          type: "COMMUNITY_REACTION",
+          actorId: userId,
+          communityId: post.communityId,
+          switch: "reactions",
+          only: [post.authorId],
+        });
+      }
       return { liked: true };
     }),
 });
@@ -453,15 +475,30 @@ const commentRouter = createRouter({
       if (!post) throw notFound("post");
       await requireMember(ctx.db, post.communityId, userId);
       if (!post.commentsEnabled) throw refuse("Comments are turned off for this post.");
+      let parentAuthorId: string | null = null;
       if (input.parentId) {
         const parent = await ctx.db.communityComment.findUnique({ where: { id: input.parentId } });
         if (!parent || parent.postId !== post.id) throw notFound("comment");
+        parentAuthorId = parent.authorId;
       }
       const comment = await ctx.db.communityComment.create({
         data: { postId: post.id, authorId: userId, body: input.body, parentId: input.parentId },
         select: { id: true },
       });
       await logActivity(ctx.db, post.communityId, userId, "COMMENT_CREATED", comment.id);
+      // A reply tells the comment's author; either way the post's author hears too (once).
+      const base = {
+        actorId: userId,
+        communityId: post.communityId,
+        switch: "newComments",
+      } as const;
+      if (parentAuthorId)
+        await notifyCommunity(ctx, { ...base, type: "COMMUNITY_REPLY", only: [parentAuthorId] });
+      await notifyCommunity(ctx, {
+        ...base,
+        type: "COMMUNITY_COMMENT",
+        only: [post.authorId].filter((id) => id !== parentAuthorId),
+      });
       return comment;
     }),
 

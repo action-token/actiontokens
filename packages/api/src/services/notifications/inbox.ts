@@ -54,7 +54,7 @@ export async function loadInbox(
 
   // What the events are about, read once per page.
   const ids = [...new Set(page.flatMap((row) => (row.event.entityId ? [row.event.entityId] : [])))];
-  const [bounties, items, posts] = ids.length
+  const [bounties, items, posts, communities] = ids.length
     ? await Promise.all([
         ctx.db.bounty.findMany({ where: { id: { in: ids } }, select: { id: true, title: true } }),
         ctx.db.item.findMany({
@@ -62,11 +62,16 @@ export async function loadInbox(
           select: { id: true, slug: true, title: true, type: true },
         }),
         ctx.db.post.findMany({ where: { id: { in: ids } }, select: { id: true, title: true } }),
+        ctx.db.community.findMany({
+          where: { id: { in: ids } },
+          select: { id: true, title: true },
+        }),
       ])
-    : [[], [], []];
+    : [[], [], [], []];
   const bountyById = new Map(bounties.map((bounty) => [bounty.id, bounty]));
   const itemById = new Map(items.map((item) => [item.id, item]));
   const postById = new Map(posts.map((post) => [post.id, post]));
+  const communityById = new Map(communities.map((community) => [community.id, community]));
 
   return {
     unread,
@@ -78,6 +83,7 @@ export async function loadInbox(
         actor: { name, username: actor.username, artistSlug: actor.organization?.slug ?? null },
         bounty: entityId ? bountyById.get(entityId) : null,
         item: entityId ? itemById.get(entityId) : null,
+        community: entityId ? communityById.get(entityId) : null,
       };
       const { text, href } =
         audience === "ARTIST"

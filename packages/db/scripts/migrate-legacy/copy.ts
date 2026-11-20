@@ -74,10 +74,10 @@ try {
     ["NFTs, listings, orders", copyNfts],
     ["market", copyMarket],
     ["posts", copyPosts],
+    ["communities", copyCommunities],
     ["notifications", copyNotifications],
     ["pins", copyPins],
     ["bounties", copyBounties],
-    ["communities", copyCommunities],
     ["agent", copyAgent],
     ["platform settings", copyAppSettings],
   ] as const) {

@@ -1,6 +1,6 @@
 # Data copy report (rehearsal)
 
-Generated 2026-11-20T09:59:46.345Z. Took 52 s. Target schema: `public`.
+Generated 2026-11-20T14:21:32.652Z. Took 39 s. Target schema: `public`.
 
 ## Checks
 
@@ -14,8 +14,8 @@ Generated 2026-11-20T09:59:46.345Z. Took 52 s. Target schema: `public`.
 
 - 1 × Creator.storageKey: STORAGE key unusable: no account stored
 - 1 × TemporalFollow: also a real follow: the real one wins
-- 24 × NotificationObject: community notification: migrated with communities (F3)
-- 27 × Notification: its event is a community notification (F3)
+- 11 × NotificationObject: its community was deleted
+- 11 × Notification: its community was deleted
 - 8 × Bounty: prize asset is not BANDCOIN, XLM or USDC: skipped by owner decision
 - 9 × BountyParticipant: belongs to a skipped bounty
 - 3 × BountySubmission: belongs to a skipped bounty
@@ -48,8 +48,8 @@ Generated 2026-11-20T09:59:46.345Z. Took 52 s. Target schema: `public`.
 | Post | 200 | post_collectibles | 200 | 0 |
 | Like | 0 | post_likes | 0 | 0 |
 | Comment | 0 | post_comments | 0 | 0 |
-| NotificationObject | 122 | notification_events | 98 | 24 |
-| Notification | 125 | notifications | 98 | 27 |
+| NotificationObject | 122 | notification_events | 111 | 11 |
+| Notification | 125 | notifications | 114 | 11 |
 | LocationGroup | 5 | pins | 5 | 0 |
 | Location | 14 | pin_spots | 14 | 0 |
 | LocationConsumer | 1 | pin_claims | 1 | 0 |
@@ -64,6 +64,15 @@ Generated 2026-11-20T09:59:46.345Z. Took 52 s. Target schema: `public`.
 | BountyWinner | 3 | bounty_winners | 1 | 2 |
 | BountyMusicConfig | 3 | bounty_music_rules | 0 | 3 |
 | BountyTrack | 8 | bounty_tracks | 0 | 8 |
+| Community | 1 | communities | 1 | 0 |
+| CommunityTokenRequirement | 2 | community_token_requirements | 2 | 0 |
+| CommunityMember | 3 | community_members | 3 | 0 |
+| CommunityPost | 11 | community_posts | 11 | 0 |
+| CommunityPostMedia | 9 | community_post_media | 9 | 0 |
+| CommunityPostLike | 0 | community_post_likes | 0 | 0 |
+| CommunityComment | 0 | community_comments | 0 | 0 |
+| CommunityActivity | 14 | community_activities | 14 | 0 |
+| CommunityNotificationPreference | 3 | community_notification_preferences | 3 | 0 |
 | AgentJob | 3 | agent_jobs | 3 | 0 |
 | AgentConversation | 0 | agent_conversations | 0 | 0 |
 | AgentMessage | 0 | agent_messages | 0 | 0 |

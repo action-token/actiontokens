@@ -23,6 +23,7 @@ function setup(rows: unknown[]) {
     bounty: { findMany: vi.fn().mockResolvedValue([]) },
     item: { findMany: vi.fn().mockResolvedValue([]) },
     post: { findMany: vi.fn().mockResolvedValue([{ id: "p1", title: "Tour diary" }]) },
+    community: { findMany: vi.fn().mockResolvedValue([]) },
   };
   return { ctx: { db } as never, db };
 }

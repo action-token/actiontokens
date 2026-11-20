@@ -96,23 +96,25 @@ export async function copyPosts(copy: Copier) {
 function entityOf(copy: Copier, event: Row) {
   if (event.entityStringId) return String(event.entityStringId);
   if (event.entityId === null) return null;
+  if (String(event.entityType).startsWith("COMMUNITY_"))
+    return copy.must("Community", event.entityId);
   if (["POST", "LIKE", "COMMENT", "REPLY"].includes(event.entityType))
     return copy.find("PostGroup", event.entityId);
   return String(event.entityId);
 }
 
 export async function copyNotifications(copy: Copier) {
-  // Community notifications belong to the communities feature (F3), which has no tables yet:
-  // they're skipped here and the community migration recreates them. Prod has none today.
+  // A community notification about a community that no longer exists has nothing to open.
   const events = (await copy.read("NotificationObject")).filter((event: Row) => {
-    if (!String(event.entityType).startsWith("COMMUNITY_")) return true;
-    copy.skip(
-      "NotificationObject",
-      event.id,
-      "community notification: migrated with communities (F3)",
-    );
+    if (
+      !String(event.entityType).startsWith("COMMUNITY_") ||
+      copy.find("Community", event.entityId)
+    )
+      return true;
+    copy.skip("NotificationObject", event.id, "its community was deleted");
     return false;
   });
+  const kept = new Set(events.map((event: Row) => event.id));
   await copy.insert(
     "notification_events",
     events.map((event: Row) => ({
@@ -123,13 +125,12 @@ export async function copyNotifications(copy: Copier) {
       createdAt: event.createdAt,
     })),
   );
-  const kept = new Set(events.map((event: Row) => event.id));
   await copy.insert(
     "notifications",
     (await copy.read("Notification"))
       .filter((row: Row) => {
         if (kept.has(row.notificationObjectId)) return true;
-        copy.skip("Notification", row.id, "its event is a community notification (F3)");
+        copy.skip("Notification", row.id, "its community was deleted");
         return false;
       })
       .map((row: Row) => ({

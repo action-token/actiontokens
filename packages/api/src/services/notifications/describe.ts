@@ -10,6 +10,8 @@ export type NotificationSubject = {
   item?: { slug: string; title: string } | null;
   /** The post a POST or REPLY is about */
   postId?: string | null;
+  /** The community a COMMUNITY_* event is about */
+  community?: { id: string; title: string } | null;
   /** A short-link reminder: which one, for which month, which name */
   vanity?: { stage: "SOON" | "GRACE" | "LAPSED"; paidUntil: Date; name: string } | null;
   /** A custom-domain note: live, stopped working, or removed by an admin */
@@ -47,7 +49,7 @@ export function describeVanity(vanity: NotificationSubject["vanity"]) {
 /** What a fan reads in the bell, and where it takes them. */
 export function describeNotification(
   type: NotificationType,
-  { actor, bounty, item, postId }: NotificationSubject,
+  { actor, bounty, item, postId, community }: NotificationSubject,
 ): { text: string; href: string | null } {
   const actorPage = actor.artistSlug
     ? `/artist/${actor.artistSlug}`
@@ -57,6 +59,8 @@ export function describeNotification(
   const bountyPage = bounty ? `/bounty/${bounty.id}` : null;
   const name = actor.name;
   const postPage = postId ? `/feed/${postId}` : "/feed";
+  const communityPage = community ? `/communities/${community.id}` : "/communities";
+  const inCommunity = community ? ` in ${community.title}` : " in a community";
 
   switch (type) {
     case "BOUNTY_WINNER":
@@ -100,6 +104,24 @@ export function describeNotification(
       return { text: `${name} joined a membership.`, href: actorPage };
     case "PURCHASE":
       return { text: `${name} bought something.`, href: item ? `/item/${item.slug}` : actorPage };
+    case "COMMUNITY_POST":
+      return { text: `${name} posted${inCommunity}.`, href: communityPage };
+    case "COMMUNITY_COMMENT":
+      return { text: `${name} commented on a post${inCommunity}.`, href: communityPage };
+    case "COMMUNITY_REPLY":
+      return { text: `${name} replied to a comment${inCommunity}.`, href: communityPage };
+    case "COMMUNITY_MEMBER_JOIN":
+      return {
+        text: `${name} joined${community ? ` ${community.title}` : " your community"}.`,
+        href: communityPage,
+      };
+    case "COMMUNITY_INVITE":
+      return {
+        text: `${name} invited you to ${community ? community.title : "a community"}.`,
+        href: communityPage,
+      };
+    case "COMMUNITY_REACTION":
+      return { text: `${name} liked your post${inCommunity}.`, href: communityPage };
     case "VANITY":
       return { text: describeVanity(null).text, href: null };
     case "DOMAIN":
