@@ -63,10 +63,16 @@ different, yellower green. The AR palette is now built on the logo's hue:
 | Token | Dark | Light | High contrast |
 |---|---|---|---|
 | Sticker fill (`--ar-accent`) | `#0aff54` | `#00ff4c` | `#29ff69` |
-| Green text and lines | `#0aff54` | `#007a23` (the logo) | `#66ff94` |
+| Green text and lines | `#0aff54` | `#00701f` (the logo green, a touch darker) | `#66ff94` |
 | Ink on green | `#021207` | `#021207` | `#000000` |
 
-Neutrals (surfaces, lines, text, paper, ink) lean to the same hue (135 to 140°). Map route, embed
+Neutrals (surfaces, lines, text, paper, ink) lean to the same hue (135 to 140°).
+
+Contrast audit (2026-11-20): every visible text element on Map, Collection, Marketplace, item, Orgs,
+org, Bounties, Events, Coins and Profile was measured in all three themes against WCAG AA (4.5:1,
+3:1 for large text). Fixes: Dark faint text `140 9% 56%` (was 3.4:1, now 5+), Dark epic `272 82% 70%`;
+Light faint `140 6% 38%`, green text `137 100% 22%` (`#00701f`), and darker Light rarity colours. The
+neon stays the fill everywhere, with ink text on it. Map route, embed
 accent and the mural-pack colour live in `packages/ar-core/src/site.ts`.
 
 ## Naming

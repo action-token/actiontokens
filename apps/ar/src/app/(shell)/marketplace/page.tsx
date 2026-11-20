@@ -69,10 +69,10 @@ export default function MarketplaceScreen() {
               aria-selected={type === t.id}
               onClick={() => setType(t.id)}
               className={cn(
-                "font-hud h-8 shrink-0 rounded-full border px-3.5 text-[10.5px] font-semibold tracking-[0.1em] uppercase transition-colors",
+                "font-hud h-8 shrink-0 rounded-full border-2 px-3.5 text-[10.5px] font-semibold tracking-[0.1em] uppercase transition-colors",
                 type === t.id
-                  ? "bg-ar-accent/15 border-ar-accent/40 text-ar-text"
-                  : "border-ar-line text-ar-faint hover:text-ar-dim",
+                  ? "bg-ar-accent border-[hsl(var(--st-ink))] text-[hsl(var(--st-ink))] shadow-[2px_2px_0_0_hsl(var(--st-line))]"
+                  : "border-[hsl(var(--st-line)/0.5)] text-ar-dim hover:text-ar-text",
               )}
             >
               {t.label}

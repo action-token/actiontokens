@@ -214,7 +214,7 @@ export function MapStyleOptions({ view }: { view: PreviewView }) {
               onClick={() => setMapMode(m)}
               className={cn(
                 "font-hud h-8 w-12 rounded-full text-[12px] font-bold",
-                mode === m ? "bg-ar-accent-hot text-black" : "text-ar-dim",
+                mode === m ? "bg-ar-accent text-[hsl(var(--st-ink))]" : "text-ar-dim",
               )}
             >
               {m.toUpperCase()}

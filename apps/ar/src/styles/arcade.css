@@ -26,7 +26,7 @@
 
   --ar-text: 140 39% 94%;
   --ar-text-dim: 140 10% 60%;
-  --ar-text-faint: 140 8% 39%;
+  --ar-text-faint: 140 9% 56%;
 
   /* ActionTokens neon green #0aff54 (the logo's #007a23 at full brightness), near-black ink on it */
   --ar-accent: 138 100% 52%;
@@ -36,7 +36,7 @@
 
   --rarity-common: 120 8% 62%;
   --rarity-rare: 192 88% 56%;
-  --rarity-epic: 272 82% 66%;
+  --rarity-epic: 272 82% 70%;
   --rarity-legendary: 38 96% 58%;
   --rarity-mythic: 320 90% 64%;
 
@@ -78,7 +78,7 @@
 
   --ar-text: 140 39% 94%;
   --ar-text-dim: 140 10% 60%;
-  --ar-text-faint: 140 8% 39%;
+  --ar-text-faint: 140 9% 56%;
 
   /* ActionTokens neon green #0aff54 (the logo's #007a23 at full brightness), near-black ink on it */
   --ar-accent: 138 100% 52%;
@@ -88,7 +88,7 @@
 
   --rarity-common: 120 8% 62%;
   --rarity-rare: 192 88% 56%;
-  --rarity-epic: 272 82% 66%;
+  --rarity-epic: 272 82% 70%;
   --rarity-legendary: 38 96% 58%;
   --rarity-mythic: 320 90% 64%;
 

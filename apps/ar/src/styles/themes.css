@@ -24,28 +24,29 @@
 
   --ar-text: 140 12% 5%;
   --ar-text-dim: 140 7% 30%;
-  --ar-text-faint: 140 5% 44%;
+  --ar-text-faint: 140 6% 38%;
 
-  /* Neon green stays the sticker fill (the logo green, #007a23, is the text colour) (always with ink text on it). Green used as
-     text or a thin line can't be neon on white, so those read the deep green. */
+  /* Neon green stays the sticker fill (always with ink text on it). Green used as text or a
+     thin line can't be neon on white, so those read a deep green of the logo's hue
+     (#00701f, the logo's #007a23 pulled a touch darker so it holds 4.5:1 on every paper tint). */
   --ar-accent: 138 100% 50%;
-  --ar-accent-hot: 137 100% 24%;
-  --ar-accent-deep: 137 100% 24%;
+  --ar-accent-hot: 137 100% 22%;
+  --ar-accent-deep: 137 100% 22%;
   --ar-accent-ink: 140 80% 4%;
-  --ar-accent-text: 137 100% 24%;
+  --ar-accent-text: 137 100% 22%;
 
-  --rarity-common: 120 6% 40%;
-  --rarity-rare: 200 88% 38%;
-  --rarity-epic: 272 62% 50%;
-  --rarity-legendary: 32 95% 40%;
-  --rarity-mythic: 322 72% 44%;
+  --rarity-common: 120 6% 36%;
+  --rarity-rare: 200 90% 30%;
+  --rarity-epic: 272 62% 46%;
+  --rarity-legendary: 30 100% 28%;
+  --rarity-mythic: 322 70% 40%;
 
   --ar-danger: 350 82% 46%;
   --ar-locked: 120 5% 55%;
 
   --st-line: var(--st-ink);
   --st-pop: var(--st-ink);
-  --st-dot: hsl(120 10% 2% / 0.07);
+  --st-dot: hsl(140 10% 2% / 0.07);
 
   /* The shared components (wallet dialog) inside AR. */
   --bc-bg: #ecf3ee;
@@ -56,12 +57,12 @@
   --bc-border-strong: #96a99c;
   --bc-fg: #070a07;
   --bc-fg-muted: #3f4c3f;
-  --bc-fg-faint: #65736a;
+  --bc-fg-faint: #586259;
   --bc-primary: #00ff4c;
-  --bc-primary-strong: #007a23;
+  --bc-primary-strong: #00701f;
   --bc-primary-ink: #021207;
-  --bc-primary-text: #007a23;
-  --bc-primary-soft: rgb(0 122 35 / 0.1);
+  --bc-primary-text: #00701f;
+  --bc-primary-soft: rgb(0 112 31 / 0.1);
   --bc-danger: #d61f45;
   --bc-danger-soft: rgb(214 31 69 / 0.1);
   --bc-overlay: rgb(10 20 10 / 0.45);
@@ -74,7 +75,7 @@
 :root:not(.dark) .text-ar-accent {
   color: hsl(var(--ar-accent-text));
 }
-:root:not(.dark) :is(.bg-black, .st-on-ink) .text-ar-accent,
+:root:not(.dark) :is(.bg-black, .st-on-ink) :is(.text-ar-accent, .text-ar-accent-hot),
 :root:not(.dark) :is(.bg-black, .st-on-ink).text-ar-accent {
   color: hsl(138 100% 52%);
 }

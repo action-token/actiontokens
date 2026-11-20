@@ -80,7 +80,7 @@ export function SegmentedTabs<T extends string>({
                   className={cn(
                     "inline-flex h-[17px] min-w-[19px] items-center justify-center rounded-[4px] px-1 text-[10px] tabular-nums",
                     active
-                      ? "bg-[hsl(var(--st-ink))] text-ar-accent"
+                      ? "st-on-ink bg-[hsl(var(--st-ink))] text-ar-accent"
                       : "text-ar-dim bg-white/[0.08]",
                   )}
                 >
