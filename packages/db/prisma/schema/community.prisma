@@ -44,6 +44,9 @@ model Community {
   postPermission       CommunityPostPermission       @default(ALL_MEMBERS)
   isTokenGated         Boolean                       @default(false)
   gateLogic            CommunityGateLogic            @default(AND)
+  /// Hidden by an admin: only the owner still sees it; nobody can join or post
+  hiddenAt             DateTime?
+  hiddenReason         String?
   createdAt            DateTime                      @default(now())
   updatedAt            DateTime                      @updatedAt
 

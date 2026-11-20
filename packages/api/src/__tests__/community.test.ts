@@ -134,6 +134,9 @@ describe("community rules", () => {
 
   it("comments are refused when turned off", async () => {
     const db = {
+      community: {
+        findUnique: vi.fn().mockResolvedValue({ id: "c1", ownerId: "owner", hiddenAt: null }),
+      },
       communityPost: {
         findUnique: vi
           .fn()
@@ -195,6 +198,9 @@ describe("community notifications (central system)", () => {
 
 describe("community.invite", () => {
   const inviteDb = () => ({
+    community: {
+      findUnique: vi.fn().mockResolvedValue({ id: "c1", ownerId: "owner", hiddenAt: null }),
+    },
     communityMember: {
       findUnique: vi.fn().mockResolvedValue({ id: "m1", role: "MEMBER" }),
       findMany: vi.fn().mockResolvedValue([{ userId: "in" }]),
@@ -223,5 +229,33 @@ describe("community.invite", () => {
     await expect(
       caller(db).community.invite({ communityId: "c1", userIds: ["x"] }),
     ).rejects.toThrow(/Join the community/);
+  });
+});
+
+describe("hidden communities", () => {
+  const hidden = { ...gated, hiddenAt: new Date(), hiddenReason: "spam" };
+  const db = () => ({
+    community: { findUnique: vi.fn().mockResolvedValue(hidden) },
+    communityMember: { findUnique: vi.fn().mockResolvedValue(null), create: vi.fn() },
+    communityPost: { findMany: vi.fn().mockResolvedValue([]) },
+  });
+
+  it("looks like it doesn't exist to everyone but its owner", async () => {
+    await expect(caller(db()).community.byId({ communityId: "c1" })).rejects.toThrow(
+      /doesn't exist/,
+    );
+    await expect(caller(db()).community.post.list({ communityId: "c1" })).rejects.toThrow(
+      /doesn't exist/,
+    );
+    const owner = { ...me, id: "owner" };
+    await expect(
+      caller(db(), {}, owner).community.post.list({ communityId: "c1" }),
+    ).resolves.toBeTruthy();
+  });
+
+  it("can't be joined", async () => {
+    const d = db();
+    await expect(caller(d).community.join({ communityId: "c1" })).rejects.toThrow(/hidden/);
+    expect(d.communityMember.create).not.toHaveBeenCalled();
   });
 });

@@ -977,6 +977,8 @@ CREATE TABLE "communities" (
     "postPermission" "CommunityPostPermission" NOT NULL DEFAULT 'ALL_MEMBERS',
     "isTokenGated" BOOLEAN NOT NULL DEFAULT false,
     "gateLogic" "CommunityGateLogic" NOT NULL DEFAULT 'AND',
+    "hiddenAt" TIMESTAMP(3),
+    "hiddenReason" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

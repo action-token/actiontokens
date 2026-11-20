@@ -32,6 +32,14 @@ import {
   userCounts,
 } from "../../services/admin/users";
 import { listBounties, setBountyHidden } from "../../services/admin/bounties";
+import {
+  communityDetail,
+  listCommunities,
+  removeCommunityMember,
+  setCommunityHidden,
+  takeDownComment,
+  takeDownPost,
+} from "../../services/admin/communities";
 import { listLiveStories, takeDownStory } from "../../services/admin/stories";
 import { listDomainsForAdmin, removeDomainAsAdmin } from "../../services/domains";
 import { listItems, setItemHidden } from "../../services/admin/items";
@@ -155,6 +163,28 @@ export const adminRouter = createRouter({
       .input(pinIds.extend({ approval: z.enum(["PENDING", "APPROVED", "REJECTED"]) }))
       .mutation(({ ctx, input }) => decidePins(ctx, input)),
     remove: adminProcedure.input(pinIds).mutation(({ ctx, input }) => deletePins(ctx, input)),
+  }),
+  communities: createRouter({
+    list: adminProcedure
+      .input(z.object({ search, status: z.enum(["active", "hidden"]).optional(), cursor }))
+      .query(({ ctx, input }) =>
+        listCommunities(ctx, { ...input, cursor: input.cursor ?? undefined }),
+      ),
+    get: adminProcedure
+      .input(z.object({ communityId: z.string().min(1) }))
+      .query(({ ctx, input }) => communityDetail(ctx, input.communityId)),
+    setHidden: adminProcedure
+      .input(z.object({ communityId: z.string().min(1) }).and(hideInput))
+      .mutation(({ ctx, input }) => setCommunityHidden(ctx, input)),
+    takeDownPost: adminProcedure
+      .input(z.object({ postId: z.string().min(1) }))
+      .mutation(({ ctx, input }) => takeDownPost(ctx, input.postId)),
+    takeDownComment: adminProcedure
+      .input(z.object({ commentId: z.string().min(1) }))
+      .mutation(({ ctx, input }) => takeDownComment(ctx, input.commentId)),
+    removeMember: adminProcedure
+      .input(z.object({ communityId: z.string().min(1), userId: z.string().min(1) }))
+      .mutation(({ ctx, input }) => removeCommunityMember(ctx, input)),
   }),
   bounties: createRouter({
     list: adminProcedure

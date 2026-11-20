@@ -51,6 +51,22 @@ async function communityOr404(db: Db, id: string) {
   return community;
 }
 
+/** Hidden communities are for their owner only; anyone else gets "doesn't exist". */
+async function visibleOr404(db: Db, communityId: string, viewerId?: string) {
+  const community = await db.community.findUnique({
+    where: { id: communityId },
+    select: { id: true, ownerId: true, hiddenAt: true },
+  });
+  if (!community || (community.hiddenAt && community.ownerId !== viewerId))
+    throw notFound("community");
+  return community;
+}
+
+/** What can't be done in a hidden community, even by its owner. */
+const notHidden = (community: { hiddenAt: Date | null }) => {
+  if (community.hiddenAt) throw refuse("This community is hidden by the admins.");
+};
+
 async function membership(db: Db, communityId: string, userId: string) {
   return db.communityMember.findUnique({
     where: { communityId_userId: { communityId, userId } },
@@ -84,14 +100,17 @@ const communityRouter = createRouter({
     )
     .query(async ({ ctx, input }) => {
       const rows = await ctx.db.community.findMany({
-        where: input.search
-          ? {
-              OR: [
-                { title: { contains: input.search, mode: "insensitive" } },
-                { description: { contains: input.search, mode: "insensitive" } },
-              ],
-            }
-          : undefined,
+        where: {
+          hiddenAt: null,
+          ...(input.search
+            ? {
+                OR: [
+                  { title: { contains: input.search, mode: "insensitive" } },
+                  { description: { contains: input.search, mode: "insensitive" } },
+                ],
+              }
+            : {}),
+        },
         orderBy:
           input.sort === "members"
             ? [{ members: { _count: "desc" } }, { id: "asc" }]
@@ -113,6 +132,7 @@ const communityRouter = createRouter({
     .input(z.object({ limit: z.number().int().min(1).max(20).default(5) }))
     .query(({ ctx, input }) =>
       ctx.db.community.findMany({
+        where: { hiddenAt: null },
         take: input.limit,
         orderBy: [{ members: { _count: "desc" } }, { id: "asc" }],
         include: {
@@ -169,6 +189,7 @@ const communityRouter = createRouter({
     .input(idInput.extend({ userIds: z.array(z.string().min(1)).min(1).max(50) }))
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
+      notHidden(await visibleOr404(ctx.db, input.communityId, userId));
       await requireMember(ctx.db, input.communityId, userId);
       const existing = await ctx.db.communityMember.findMany({
         where: { communityId: input.communityId, userId: { in: input.userIds } },
@@ -189,7 +210,10 @@ const communityRouter = createRouter({
 
   mine: authedProcedure.query(({ ctx }) =>
     ctx.db.community.findMany({
-      where: { members: { some: { userId: ctx.session.user.id } } },
+      where: {
+        members: { some: { userId: ctx.session.user.id } },
+        OR: [{ hiddenAt: null }, { ownerId: ctx.session.user.id }],
+      },
       orderBy: { createdAt: "desc" },
       include: { _count: { select: { members: true, posts: true } } },
     }),
@@ -199,6 +223,7 @@ const communityRouter = createRouter({
   postable: authedProcedure.query(({ ctx }) =>
     ctx.db.community.findMany({
       where: {
+        hiddenAt: null,
         members: { some: { userId: ctx.session.user.id } },
         OR: [{ postPermission: "ALL_MEMBERS" }, { ownerId: ctx.session.user.id }],
       },
@@ -215,14 +240,16 @@ const communityRouter = createRouter({
         _count: { select: { members: true, posts: true } },
       },
     });
-    if (!community) throw notFound("community");
     const viewer = ctx.session?.user;
+    if (!community || (community.hiddenAt && community.ownerId !== viewer?.id))
+      throw notFound("community");
     const member = viewer ? await membership(ctx.db, community.id, viewer.id) : null;
     return { ...community, isMember: Boolean(member), isOwner: community.ownerId === viewer?.id };
   }),
 
   /** Whether the caller holds what the gate asks, with the numbers for the join screen. */
   gate: authedProcedure.input(idInput).query(async ({ ctx, input }) => {
+    await visibleOr404(ctx.db, input.communityId, ctx.session.user.id);
     const community = await communityOr404(ctx.db, input.communityId);
     if (!community.isTokenGated || community.requirements.length === 0)
       return { gated: false, passes: true, checks: [] };
@@ -289,6 +316,7 @@ const communityRouter = createRouter({
   join: authedProcedure.input(idInput).mutation(async ({ ctx, input }) => {
     const userId = ctx.session.user.id;
     const community = await communityOr404(ctx.db, input.communityId);
+    notHidden(community);
     if (await membership(ctx.db, community.id, userId)) return { ok: true };
     if (community.isTokenGated && community.requirements.length > 0) {
       const account = await ctx.chain.loadAccount(ctx.session.user.walletAddress);
@@ -339,6 +367,7 @@ const communityRouter = createRouter({
     .query(async ({ ctx, input }) => {
       const community = await communityOr404(ctx.db, input.communityId);
       const viewerId = ctx.session?.user.id;
+      await visibleOr404(ctx.db, community.id, viewerId);
       if (
         community.memberListVisibility === "MEMBERS_ONLY" &&
         !(viewerId && (await membership(ctx.db, community.id, viewerId)))
@@ -388,6 +417,7 @@ const communityRouter = createRouter({
   activity: publicProcedure
     .input(idInput.extend({ cursor: z.string().optional() }))
     .query(async ({ ctx, input }) => {
+      await visibleOr404(ctx.db, input.communityId, ctx.session?.user.id);
       const rows = await ctx.db.communityActivity.findMany({
         where: { communityId: input.communityId },
         orderBy: [{ createdAt: "desc" }, { id: "asc" }],
@@ -405,6 +435,7 @@ const postRouter = createRouter({
     .input(idInput.extend({ cursor: z.string().optional() }))
     .query(async ({ ctx, input }) => {
       const viewerId = ctx.session?.user.id;
+      await visibleOr404(ctx.db, input.communityId, viewerId);
       const rows = await ctx.db.communityPost.findMany({
         where: { communityId: input.communityId },
         orderBy: [{ createdAt: "desc" }, { id: "asc" }],
@@ -438,6 +469,7 @@ const postRouter = createRouter({
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
       const community = await communityOr404(ctx.db, input.communityId);
+      notHidden(community);
       await requireMember(ctx.db, community.id, userId);
       if (community.postPermission === "OWNER_ONLY" && community.ownerId !== userId)
         throw forbid("Only the owner can post in this community.");
@@ -501,6 +533,7 @@ const postRouter = createRouter({
       const userId = ctx.session.user.id;
       const post = await ctx.db.communityPost.findUnique({ where: { id: input.postId } });
       if (!post) throw notFound("post");
+      notHidden(await visibleOr404(ctx.db, post.communityId, userId));
       await requireMember(ctx.db, post.communityId, userId);
       const key = { postId_userId: { postId: post.id, userId } };
       const existing = await ctx.db.communityPostLike.findUnique({ where: key });
@@ -527,6 +560,12 @@ const commentRouter = createRouter({
   list: publicProcedure
     .input(z.object({ postId: z.string().min(1), cursor: z.string().optional() }))
     .query(async ({ ctx, input }) => {
+      const post = await ctx.db.communityPost.findUnique({
+        where: { id: input.postId },
+        select: { communityId: true },
+      });
+      if (!post) throw notFound("post");
+      await visibleOr404(ctx.db, post.communityId, ctx.session?.user.id);
       const rows = await ctx.db.communityComment.findMany({
         where: { postId: input.postId, parentId: null },
         orderBy: [{ createdAt: "asc" }, { id: "asc" }],
@@ -553,6 +592,7 @@ const commentRouter = createRouter({
       const userId = ctx.session.user.id;
       const post = await ctx.db.communityPost.findUnique({ where: { id: input.postId } });
       if (!post) throw notFound("post");
+      notHidden(await visibleOr404(ctx.db, post.communityId, userId));
       await requireMember(ctx.db, post.communityId, userId);
       if (!post.commentsEnabled) throw refuse("Comments are turned off for this post.");
       let parentAuthorId: string | null = null;
