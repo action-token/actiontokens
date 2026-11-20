@@ -211,7 +211,7 @@ export function ConnectWalletDialog() {
     const initials = name.slice(0, 2).toUpperCase();
     const walletLabel = getWalletLabel(user.walletType ?? "");
     return (
-      <div className="border-primary/40 bg-surface-2 relative overflow-hidden rounded-[14px] border p-3.5">
+      <div className="border-primary/40 bg-surface-2 relative shrink-0 overflow-hidden rounded-[14px] border p-3.5">
         <div aria-hidden className="at-grid pointer-events-none absolute inset-0 opacity-60" />
         <div className="relative flex items-center gap-3">
           <div className="ring-primary bg-primary text-primary-foreground font-brand flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full text-lg ring-2 ring-offset-2 ring-offset-[var(--color-surface-2)]">
@@ -662,67 +662,64 @@ function Reticle({ className }: { className: string }) {
   return (
     <span
       aria-hidden
-      className={clsx("border-primary/70 pointer-events-none absolute size-4", className)}
+      className={clsx("border-primary/70 pointer-events-none absolute size-3", className)}
     />
   );
 }
 
 /**
- * Who is asking you to sign in, drawn as the map radar: a sweeping beam and range rings with
- * the ActionTokens pin pinging in the middle, AR-camera corners, the "Action Auth System"
- * readout and the wordmark. It bleeds to the dialog edges (the negative margins undo the
- * column padding) and fades into the dialog at the bottom. Still for reduced motion.
+ * Who is asking you to sign in, as a slim radar strip: a small sweeping radar with the
+ * ActionTokens pin pinging on the left, the "Action Auth System" readout and the wordmark on
+ * the right, AR-camera corners. It bleeds to the dialog edges (the negative margins undo the
+ * column padding). Still for reduced motion.
  */
 function BrandHeader({ framed }: { framed: boolean }) {
   return (
     <div
       className={clsx(
-        "relative h-[224px] shrink-0 overflow-hidden bg-black",
-        framed ? "-mx-5 -mt-8" : "-mx-6 -mt-6 sm:-mx-8 sm:-mt-8",
+        "border-border relative flex h-[96px] shrink-0 items-center gap-4 overflow-hidden border-b bg-black pr-12",
+        framed ? "-mx-5 -mt-8 pl-5" : "-mx-6 -mt-6 pl-6 sm:-mx-8 sm:-mt-8 sm:pl-8",
       )}
     >
       <span aria-hidden className="at-grid pointer-events-none absolute inset-0 opacity-50" />
 
-      {/* radar, centred on the pin */}
-      <div aria-hidden className="absolute top-[44%] left-1/2 -translate-x-1/2 -translate-y-1/2">
-        {[88, 150, 220].map((d) => (
-          <span
-            key={d}
-            style={{ width: d, height: d }}
-            className="border-primary/15 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border"
-          />
-        ))}
-        <span className="absolute top-1/2 left-1/2 size-[220px] -translate-x-1/2 -translate-y-1/2 animate-spin rounded-full bg-[conic-gradient(from_0deg,transparent_0deg,transparent_250deg,color-mix(in_oklab,var(--color-primary)_28%,transparent)_360deg)] [mask-image:radial-gradient(closest-side,black_60%,transparent)] [animation-duration:4s] motion-reduce:animate-none" />
-        {[0, 0.8, 1.6].map((delay) => (
-          <span
-            key={delay}
-            style={{ animationDelay: `${delay}s`, animationDuration: "2.4s" }}
-            className="border-primary/60 absolute top-1/2 left-1/2 -mt-9 -ml-9 size-[72px] animate-ping rounded-full border motion-reduce:hidden"
-          />
-        ))}
-      </div>
-
-      <span className="absolute top-[44%] left-1/2 flex size-[72px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-primary/50 bg-black shadow-[0_0_32px_-4px_color-mix(in_oklab,var(--color-primary)_60%,transparent)]">
-        <Image src={brandMark} alt="" width={48} height={48} priority />
+      {/* radar around the pin */}
+      <span className="relative flex size-14 shrink-0 items-center justify-center">
+        <span aria-hidden className="absolute inset-0">
+          {[84, 124].map((d) => (
+            <span
+              key={d}
+              style={{ width: d, height: d }}
+              className="border-primary/15 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border"
+            />
+          ))}
+          <span className="absolute top-1/2 left-1/2 size-[124px] -translate-x-1/2 -translate-y-1/2 animate-spin rounded-full bg-[conic-gradient(from_0deg,transparent_0deg,transparent_250deg,color-mix(in_oklab,var(--color-primary)_30%,transparent)_360deg)] [mask-image:radial-gradient(closest-side,black_60%,transparent)] [animation-duration:4s] motion-reduce:animate-none" />
+          {[0, 1.2].map((delay) => (
+            <span
+              key={delay}
+              style={{ animationDelay: `${delay}s`, animationDuration: "2.4s" }}
+              className="border-primary/60 absolute inset-0 animate-ping rounded-full border motion-reduce:hidden"
+            />
+          ))}
+        </span>
+        <span className="border-primary/50 relative flex size-14 items-center justify-center rounded-full border bg-black shadow-[0_0_24px_-4px_color-mix(in_oklab,var(--color-primary)_60%,transparent)]">
+          <Image src={brandMark} alt="" width={38} height={38} priority />
+        </span>
       </span>
 
-      <Reticle className="top-4 left-4 border-t-2 border-l-2" />
-      <Reticle className="bottom-4 left-4 border-b-2 border-l-2" />
-      <Reticle className="right-4 bottom-4 border-r-2 border-b-2" />
-
-      <span className="text-primary absolute top-[18px] left-10 flex items-center gap-1.5 font-mono text-[10px] tracking-[0.18em] uppercase">
-        <span className="bg-primary at-pulse size-1.5 rounded-full" />
-        Action Auth System
+      <span className="relative min-w-0">
+        <span className="text-primary flex items-center gap-1.5 font-mono text-[10px] tracking-[0.18em] uppercase">
+          <span className="bg-primary at-pulse size-1.5 rounded-full" />
+          Action Auth System
+        </span>
+        <span className="font-display text-foreground mt-1.5 block truncate text-[24px] leading-none tracking-[0.05em]">
+          ACTIONTOKENS
+        </span>
       </span>
 
-      {/* fade into the dialog, wordmark on top */}
-      <span
-        aria-hidden
-        className="to-surface absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent"
-      />
-      <span className="font-display text-foreground absolute inset-x-0 bottom-3 text-center text-[24px] leading-none tracking-[0.06em]">
-        ACTIONTOKENS
-      </span>
+      <Reticle className="top-2.5 left-2.5 border-t-2 border-l-2" />
+      <Reticle className="bottom-2.5 left-2.5 border-b-2 border-l-2" />
+      <Reticle className="right-2.5 bottom-2.5 border-r-2 border-b-2" />
     </div>
   );
 }
