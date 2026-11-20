@@ -31,5 +31,6 @@
     "turbo": "^2.11.13",
     "typescript": "catalog:"
   },
-  "prettier": "@actiontokens/prettier-config"
+  "prettier": "@actiontokens/prettier-config",
+  "license": "SEE LICENSE IN LICENSE"
 }

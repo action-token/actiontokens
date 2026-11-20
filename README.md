@@ -116,4 +116,5 @@ as described in [SECURITY.md](SECURITY.md). Never commit keys, tokens or `.env` 
 
 ## License
 
-Copyright © 2026 ActionTokens. All rights reserved. See [LICENSE](LICENSE).
+The source is visible for reading and local evaluation. Any other use needs written permission. See the
+[ActionTokens License](LICENSE).

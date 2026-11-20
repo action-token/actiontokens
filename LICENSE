@@ -1,6 +1,27 @@
+ActionTokens License
+
 Copyright (c) 2026 ActionTokens. All rights reserved.
 
-This source code is made publicly visible for transparency. No licence is granted to copy, modify, distribute
-or use it, in whole or in part, except with written permission from ActionTokens.
+1. Ownership. This repository, including its source code, documentation, designs, logos and the
+   "ActionTokens" and "Actionverse" names, is owned by ActionTokens. It is made publicly visible so that
+   people can read it, learn from it and report problems.
 
-The Stellar network, Soroban and third-party packages used by this project are covered by their own licences.
+2. What you may do without asking. You may view and read the code, and run it locally to evaluate it. You may
+   quote short excerpts in discussions, reviews and security reports, with attribution.
+
+3. What needs written permission. You may not copy, modify, redistribute, sublicense, sell or host this
+   software, or use it to build or run a product or service, in whole or in part, without written permission
+   from ActionTokens. You may not use the ActionTokens or Actionverse names, logos or branding to identify
+   your own work.
+
+4. Contributions. By submitting a contribution (a pull request, patch or issue with code), you confirm you
+   have the right to submit it and you grant ActionTokens a perpetual, worldwide, royalty-free licence to use,
+   change and distribute it as part of the project.
+
+5. Third-party software. The project depends on open-source packages, and on the Stellar and Soroban software
+   and networks. Those are covered by their own licences, which are not changed by this one.
+
+6. No warranty. This software is provided "as is", without warranty of any kind, express or implied. In no
+   event is ActionTokens liable for any claim, damages or other liability arising from its use.
+
+For permission, or questions about this licence, write to support@action-tokens.com.
