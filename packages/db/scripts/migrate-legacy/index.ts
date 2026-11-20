@@ -1,10 +1,10 @@
 /**
- * One-time copy of the old bandfan dev database into the new schema.
+ * One-time copy of the old Actionverse database into the new schema.
  *
- *   pnpm --filter @actiontokens/db legacy:dry-run   reads only; writes docs/migration-report.md
+ *   pnpm --filter @actiontokens/db legacy:dry-run [--label=prod]   reads only; writes docs/migration-report[-label].md
  *   pnpm --filter @actiontokens/db legacy:run       (after approval) copies the data
  *
- * The legacy database is opened read-only and must be the dev database.
+ * The legacy database is opened read-only (LEGACY_DATABASE_URL), never written.
  */
 import "dotenv/config";
 
@@ -18,7 +18,12 @@ type CheckResult = TableCheck & {
   rows: number | null;
   issueCounts: { label: string; action: string; n: number }[];
   breakdownRows: { k: string; n: string }[];
+  /** Checks that couldn't run on this database (usually a column the old schema doesn't have) */
+  errors: { what: string; message: string }[];
 };
+
+const messageOf = (error: unknown) =>
+  (error instanceof Error ? error.message : String(error)).replace(/postgres\S+/g, "<url>");
 
 async function runDryRun() {
   const legacy = await connectLegacyReadOnly();
@@ -31,29 +36,48 @@ async function runDryRun() {
 
     for (const check of CHECKS) {
       if (!existing.has(check.oldTable)) {
-        results.push({ ...check, rows: null, issueCounts: [], breakdownRows: [] });
+        results.push({ ...check, rows: null, issueCounts: [], breakdownRows: [], errors: [] });
         continue;
       }
-      const rows = await count(legacy, `SELECT count(*) AS n FROM "${check.oldTable}"`);
-      const issueCounts = [];
-      for (const issue of check.issues ?? []) {
-        issueCounts.push({
-          label: issue.label,
-          action: issue.action,
-          n: await count(legacy, issue.sql),
-        });
+      const errors: CheckResult["errors"] = [];
+      let rows: number | null = null;
+      try {
+        rows = await count(legacy, `SELECT count(*) AS n FROM "${check.oldTable}"`);
+      } catch (error) {
+        errors.push({ what: "row count", message: messageOf(error) });
       }
-      const breakdownRows = check.breakdown
-        ? (await legacy.query<{ k: string; n: string }>(check.breakdown.sql)).rows
-        : [];
-      results.push({ ...check, rows, issueCounts, breakdownRows });
+      const issueCounts: CheckResult["issueCounts"] = [];
+      for (const issue of check.issues ?? []) {
+        try {
+          issueCounts.push({
+            label: issue.label,
+            action: issue.action,
+            n: await count(legacy, issue.sql),
+          });
+        } catch (error) {
+          errors.push({ what: issue.label, message: messageOf(error) });
+        }
+      }
+      let breakdownRows: CheckResult["breakdownRows"] = [];
+      if (check.breakdown) {
+        try {
+          breakdownRows = (await legacy.query<{ k: string; n: string }>(check.breakdown.sql)).rows;
+        } catch (error) {
+          errors.push({ what: check.breakdown.label, message: messageOf(error) });
+        }
+      }
+      results.push({ ...check, rows, issueCounts, breakdownRows, errors });
       process.stdout.write(".");
     }
 
     const unmapped = [...existing].filter(
       (name) => !CHECKS.some((c) => c.oldTable === name) && !name.startsWith("_prisma"),
     );
-    const reportPath = resolve(import.meta.dirname, "../../../../docs/migration-report.md");
+    const label = process.argv.find((a) => a.startsWith("--label="))?.slice(8);
+    const reportPath = resolve(
+      import.meta.dirname,
+      `../../../../docs/migration-report${label ? `-${label}` : ""}.md`,
+    );
     writeFileSync(reportPath, renderReport(results, unmapped));
     console.log(`\nWrote ${reportPath}`);
   } finally {
@@ -66,7 +90,7 @@ function renderReport(results: CheckResult[], unmapped: string[]): string {
   const total = results.reduce((sum, r) => sum + (r.rows ?? 0), 0);
   lines.push("# Legacy migration: dry-run report", "");
   lines.push(
-    `Generated ${new Date().toISOString()} from the old dev database (read only). Nothing was written.`,
+    `Generated ${new Date().toISOString()} from the old Actionverse database (read only). Nothing was written.`,
     "",
   );
   lines.push(
@@ -108,6 +132,18 @@ function renderReport(results: CheckResult[], unmapped: string[]): string {
     }
     const next = results[results.indexOf(r) + 1];
     if (!next || next.domain !== domain) lines.push("");
+  }
+
+  const failed = results.flatMap((r) => r.errors.map((e) => ({ table: r.oldTable, ...e })));
+  if (failed.length > 0) {
+    lines.push(
+      "## Checks that couldn't run on this database",
+      "",
+      "| Old table | Check | Database said |",
+      "|---|---|---|",
+      ...failed.map((f) => `| ${f.table} | ${f.what} | ${f.message.replace(/\|/g, "/")} |`),
+      "",
+    );
   }
 
   if (unmapped.length > 0) {

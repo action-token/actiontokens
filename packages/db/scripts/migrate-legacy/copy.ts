@@ -9,6 +9,8 @@
  * and CUTOVER_CONFIRM=<its host name>. Nothing here signs or
  * sends a Stellar transaction, and no secret is ever printed.
  */
+import "dotenv/config";
+
 import { randomBytes } from "node:crypto";
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -17,7 +19,7 @@ import pg from "pg";
 
 import { Copier } from "./copier";
 import { copyAssets, copyFanTokens, copyMarket, copyNfts } from "./steps-catalog";
-import { copyAgent, copyBounties } from "./steps-bounty";
+import { copyAgent, copyAppSettings, copyBounties } from "./steps-bounty";
 import { copyArtistExtras, copyArtists, copyUsers } from "./steps-people";
 import { copyPins } from "./steps-ar";
 import { copyNotifications, copyPosts } from "./steps-social";
@@ -42,10 +44,19 @@ await source.query("SET default_transaction_read_only = on");
 await dest.query(`SET search_path TO "${target.schema}"`);
 
 try {
+  const present = new Set(
+    (
+      await source.query(
+        `SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'`,
+      )
+    ).rows.map((r) => r.table_name as string),
+  );
   for (const table of MUST_BE_EMPTY) {
+    if (!present.has(table)) continue;
     const rows = Number((await source.query(`SELECT count(*) n FROM "${table}"`)).rows[0].n);
-    if (rows > 0)
+    if (rows > 0 && cutover)
       throw new Error(`${table} now has ${rows} rows and this tool has no rule for it.`);
+    if (rows > 0) console.warn(`rehearsal: skipping ${table} (${rows} rows, no rule yet)`);
   }
   const existing = Number((await dest.query(`SELECT count(*) n FROM users`)).rows[0].n);
   if (existing > 0) throw new Error(`The target already has ${existing} users: refusing to mix.`);
@@ -66,6 +77,7 @@ try {
     ["pins", copyPins],
     ["bounties", copyBounties],
     ["agent", copyAgent],
+    ["platform settings", copyAppSettings],
   ] as const) {
     await step(copy);
     console.log(`copied ${name}`);

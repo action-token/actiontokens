@@ -45,7 +45,6 @@ export function checkTargets(
 export const MUST_BE_EMPTY = [
   "AdminAsset",
   "AdminAssetTag",
-  "AppConfig",
   "BountyParticipantTrackProgress",
   "BountySubmissionCapture",
   "BountySubmissionMedia",

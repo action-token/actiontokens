@@ -146,3 +146,17 @@ export async function copyAgent(copy: Copier) {
     })),
   );
 }
+
+/** Platform settings: the single old AppConfig row (pin radius, fee) becomes app_settings. */
+export async function copyAppSettings(copy: Copier) {
+  await copy.insert(
+    "app_settings",
+    (await copy.read("AppConfig")).map((row: Row) => ({
+      id: row.id,
+      nearbyPinRadiusMeters: row.nearbyPinRadius,
+      platformFeeBps: row.platformFeeBps,
+      platformFeeRecipient: row.platformFeeRecipient,
+      updatedAt: new Date(),
+    })),
+  );
+}

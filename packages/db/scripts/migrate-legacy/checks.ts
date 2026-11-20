@@ -147,11 +147,6 @@ export const CHECKS: TableCheck[] = [
     newTable: "items (CLASSIC_TOKEN) + classic_tokens + item_media",
     issues: [
       {
-        label: "Soft-deleted items",
-        sql: n(t("Asset"), `"deletedAt" IS NOT NULL`),
-        action: "Copied with deletedAt kept.",
-      },
-      {
         label: "Items whose code+issuer is not unique",
         sql: `SELECT count(*) AS n FROM (SELECT code, issuer FROM "Asset" GROUP BY 1, 2 HAVING count(*) > 1) d`,
         action: "Cannot happen (old unique index); checked anyway.",
