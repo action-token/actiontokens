@@ -663,14 +663,17 @@ function LogoStack({ items, more = 0 }: { items: StackItem[]; more?: number }) {
  */
 function BrandHeader() {
   return (
-    <div className="flex items-center gap-2.5 pr-8">
-      <Image src={brandMark} alt="" width={28} height={28} priority />
-      <span className="font-display text-foreground text-[19px] leading-none tracking-[0.03em]">
+    <div className="border-primary/20 relative flex shrink-0 flex-col items-center overflow-hidden rounded-[18px] border bg-[radial-gradient(120%_90%_at_50%_0%,color-mix(in_oklab,var(--color-primary)_28%,transparent),transparent_70%)] px-4 pt-6 pb-5 text-center">
+      <span aria-hidden className="at-grid pointer-events-none absolute inset-0 opacity-40" />
+      <span className="relative drop-shadow-[0_0_18px_color-mix(in_oklab,var(--color-primary)_70%,transparent)]">
+        <Image src={brandMark} alt="" width={56} height={56} priority />
+      </span>
+      <span className="font-display text-foreground relative mt-3 text-[26px] leading-none tracking-[0.04em]">
         ACTIONTOKENS
       </span>
-      <span className="bg-border h-4 w-px" />
-      <span className="text-muted-foreground text-[12px] leading-none font-medium">
-        Auth System
+      <span className="text-primary relative mt-2.5 flex items-center gap-2 text-[11px] font-semibold tracking-[0.2em] uppercase">
+        <span className="bg-primary at-pulse size-1.5 rounded-full" />
+        Action Auth System
       </span>
     </div>
   );
