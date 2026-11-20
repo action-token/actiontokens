@@ -11,7 +11,7 @@ The reference is `apps/ar/src/app/(bare)/review/concept-sticker.tsx`. Match it.
 | Element | Rule |
 |---|---|
 | Palette | Black `#050605` background, neon green `#4dff2a` accent, paper `#f2f7f2` for sticker faces. Rarity colours stay the same. |
-| Type | Anton (`font-display` / `font-hud`), uppercase, for titles, buttons, tags and tabs. Onest (`font-sans`) for body text. |
+| Type | Rubik Mono One (`font-display` / `font-hud`), uppercase, for titles, buttons, tags and tabs; it is wide, so keep titles around 24px. Rubik (`font-sans`) for body text. Picked on 2026-11-20 from `/review/fonts`. |
 | Outline | 3px solid black on light or green stickers, and 3px paper on dark cards. Never a 1px hairline as the main edge. |
 | Shadow | A hard offset shadow with no blur: `4px 4px 0` black on green or paper, and `4px 4px 0` green on dark cards. No soft glows. |
 | Tilt | Stickers and cards tilt by ±1–3°, alternating. Titles and labels tilt by ±2–3°. Inputs and long lists don't tilt. |
