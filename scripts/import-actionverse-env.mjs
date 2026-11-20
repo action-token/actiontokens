@@ -115,7 +115,7 @@ function derive(src, kind, app, chainKey) {
     AWS_BUCKET_NAME: src.NEXT_AWS_BUCKET_NAME,
     AWS_BUCKET_REGION: src.NEXT_AWS_BUCKET_REGION,
     DATABASE_URL: dev ? LOCAL_DB : PROD_DB,
-    CHAIN_ACCOUNT_KEY: dev ? chainKey : "",
+    CHAIN_ACCOUNT_KEY: chainKey,
   };
   if (src.TREASURY_SECRET) out.PLATFORM_TREASURY = stellar.Keypair.fromSecret(src.TREASURY_SECRET).publicKey();
   if (dev && PORTS[app]) {
@@ -155,6 +155,10 @@ for (const u of [dev.DATABASE_URL, prod.DATABASE_URL]) if (u) seenHosts.add(host
 const protectedList = [...seenHosts].join(",");
 const chainKey =
   existingKey(resolve(root, "packages/db/.env")) ?? randomBytes(32).toString("hex");
+// Production has its own key: it encrypts the migrated storage-account secrets, so it must never
+// change or be lost once data exists. Kept if one is already in .env.production.
+const prodChainKey =
+  existingKey(resolve(root, ".env.production")) ?? randomBytes(32).toString("hex");
 
 for (const app of ["app", "org", "ar", "worker"]) {
   const wanted = names(resolve(root, `apps/${app}/.env.example`));
@@ -168,7 +172,7 @@ for (const app of ["app", "org", "ar", "worker"]) {
   ];
   const devFile = app === "worker" ? ".env.local" : ".env.development.local";
   write(resolve(dir, devFile), wanted, dev, derive(dev, "development", app, chainKey), note("development"));
-  write(resolve(dir, ".env.production.local"), wanted, prod, derive(prod, "production", app, ""), note("production"));
+  write(resolve(dir, ".env.production.local"), wanted, prod, derive(prod, "production", app, prodChainKey), note("production"));
 }
 
 // Root .env.development / .env.production: the full set, missing values empty.
@@ -177,7 +181,7 @@ for (const app of ["app", "org", "ar", "worker"])
   for (const n of names(resolve(root, `apps/${app}/.env.example`))) allNames.add(n);
 for (const kind of ["development", "production"]) {
   const src = kind === "development" ? dev : prod;
-  const derived = derive(src, kind, "app", kind === "development" ? chainKey : "");
+  const derived = derive(src, kind, "app", kind === "development" ? chainKey : prodChainKey);
   derived.LEGACY_DATABASE_URL = src.DATABASE_URL ?? "";
   derived.PROTECTED_HOSTS = protectedList;
   const values = new Map();
