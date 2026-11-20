@@ -517,6 +517,9 @@ export function ConnectWalletDialog() {
               isFramedHost ? "px-5 pt-8 pb-5" : "p-6 sm:p-8",
             )}
           >
+            {/* first child: its negative margins reach the column's edges */}
+            <BrandHeader framed={isFramedHost} />
+
             {session.data?.user && !session.data.user.emailVerified && (
               <div className="border-warning/40 bg-warning/10 rounded-[12px] border p-4">
                 <p className="text-foreground text-sm font-semibold">{session.data.user.email}</p>
@@ -531,8 +534,6 @@ export function ConnectWalletDialog() {
             )}
 
             {authUser && <ProfileCard />}
-
-            <BrandHeader />
 
             <DialogTitle className="sr-only">
               {onWallets ? "Stellar wallet" : authUser ? "Use another account" : "Sign in"}
@@ -656,24 +657,71 @@ function LogoStack({ items, more = 0 }: { items: StackItem[]; more?: number }) {
   );
 }
 
-/**
- * Who is asking you to sign in: the ActionTokens mark, the name and "Action Auth System".
- * Always shown, so the dialog is branded even where the wide brand panel is hidden (phones,
- * the AR phone frame).
- */
-function BrandHeader() {
+/** One L-shaped viewfinder corner. */
+function Reticle({ className }: { className: string }) {
   return (
-    <div className="border-primary/20 relative flex shrink-0 flex-col items-center overflow-hidden rounded-[18px] border bg-[radial-gradient(120%_90%_at_50%_0%,color-mix(in_oklab,var(--color-primary)_28%,transparent),transparent_70%)] px-4 pt-6 pb-5 text-center">
-      <span aria-hidden className="at-grid pointer-events-none absolute inset-0 opacity-40" />
-      <span className="relative drop-shadow-[0_0_18px_color-mix(in_oklab,var(--color-primary)_70%,transparent)]">
-        <Image src={brandMark} alt="" width={56} height={56} priority />
+    <span
+      aria-hidden
+      className={clsx("border-primary/70 pointer-events-none absolute size-4", className)}
+    />
+  );
+}
+
+/**
+ * Who is asking you to sign in, drawn as the map radar: a sweeping beam and range rings with
+ * the ActionTokens pin pinging in the middle, AR-camera corners, the "Action Auth System"
+ * readout and the wordmark. It bleeds to the dialog edges (the negative margins undo the
+ * column padding) and fades into the dialog at the bottom. Still for reduced motion.
+ */
+function BrandHeader({ framed }: { framed: boolean }) {
+  return (
+    <div
+      className={clsx(
+        "relative h-[224px] shrink-0 overflow-hidden bg-black",
+        framed ? "-mx-5 -mt-8" : "-mx-6 -mt-6 sm:-mx-8 sm:-mt-8",
+      )}
+    >
+      <span aria-hidden className="at-grid pointer-events-none absolute inset-0 opacity-50" />
+
+      {/* radar, centred on the pin */}
+      <div aria-hidden className="absolute top-[44%] left-1/2 -translate-x-1/2 -translate-y-1/2">
+        {[88, 150, 220].map((d) => (
+          <span
+            key={d}
+            style={{ width: d, height: d }}
+            className="border-primary/15 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border"
+          />
+        ))}
+        <span className="absolute top-1/2 left-1/2 size-[220px] -translate-x-1/2 -translate-y-1/2 animate-spin rounded-full bg-[conic-gradient(from_0deg,transparent_0deg,transparent_250deg,color-mix(in_oklab,var(--color-primary)_28%,transparent)_360deg)] [mask-image:radial-gradient(closest-side,black_60%,transparent)] [animation-duration:4s] motion-reduce:animate-none" />
+        {[0, 0.8, 1.6].map((delay) => (
+          <span
+            key={delay}
+            style={{ animationDelay: `${delay}s`, animationDuration: "2.4s" }}
+            className="border-primary/60 absolute top-1/2 left-1/2 -mt-9 -ml-9 size-[72px] animate-ping rounded-full border motion-reduce:hidden"
+          />
+        ))}
+      </div>
+
+      <span className="absolute top-[44%] left-1/2 flex size-[72px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-primary/50 bg-black shadow-[0_0_32px_-4px_color-mix(in_oklab,var(--color-primary)_60%,transparent)]">
+        <Image src={brandMark} alt="" width={48} height={48} priority />
       </span>
-      <span className="font-display text-foreground relative mt-3 text-[26px] leading-none tracking-[0.04em]">
-        ACTIONTOKENS
-      </span>
-      <span className="text-primary relative mt-2.5 flex items-center gap-2 text-[11px] font-semibold tracking-[0.2em] uppercase">
+
+      <Reticle className="top-4 left-4 border-t-2 border-l-2" />
+      <Reticle className="bottom-4 left-4 border-b-2 border-l-2" />
+      <Reticle className="right-4 bottom-4 border-r-2 border-b-2" />
+
+      <span className="text-primary absolute top-[18px] left-10 flex items-center gap-1.5 font-mono text-[10px] tracking-[0.18em] uppercase">
         <span className="bg-primary at-pulse size-1.5 rounded-full" />
         Action Auth System
+      </span>
+
+      {/* fade into the dialog, wordmark on top */}
+      <span
+        aria-hidden
+        className="to-surface absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent"
+      />
+      <span className="font-display text-foreground absolute inset-x-0 bottom-3 text-center text-[24px] leading-none tracking-[0.06em]">
+        ACTIONTOKENS
       </span>
     </div>
   );
