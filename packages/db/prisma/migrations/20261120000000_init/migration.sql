@@ -56,6 +56,21 @@ CREATE TYPE "MediaStatus" AS ENUM ('LEGACY', 'PENDING', 'PROCESSING', 'READY', '
 CREATE TYPE "LockedContentType" AS ENUM ('SONG', 'IMAGE', 'VIDEO', 'OTHER');
 
 -- CreateEnum
+CREATE TYPE "CommunityMemberListVisibility" AS ENUM ('EVERYONE', 'MEMBERS_ONLY');
+
+-- CreateEnum
+CREATE TYPE "CommunityPostPermission" AS ENUM ('ALL_MEMBERS', 'OWNER_ONLY');
+
+-- CreateEnum
+CREATE TYPE "CommunityRole" AS ENUM ('OWNER', 'MEMBER');
+
+-- CreateEnum
+CREATE TYPE "CommunityGateLogic" AS ENUM ('AND', 'OR');
+
+-- CreateEnum
+CREATE TYPE "CommunityActivityType" AS ENUM ('JOIN', 'LEAVE', 'POST_CREATED', 'POST_LIKED', 'COMMENT_CREATED', 'MEMBER_INVITED');
+
+-- CreateEnum
 CREATE TYPE "UserRole" AS ENUM ('FAN', 'ARTIST', 'ADMIN');
 
 -- CreateEnum
@@ -951,6 +966,119 @@ CREATE TABLE "unlock_points" (
 );
 
 -- CreateTable
+CREATE TABLE "communities" (
+    "id" TEXT NOT NULL,
+    "ownerId" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "coverUrl" TEXT NOT NULL,
+    "profileUrl" TEXT NOT NULL,
+    "memberListVisibility" "CommunityMemberListVisibility" NOT NULL DEFAULT 'EVERYONE',
+    "postPermission" "CommunityPostPermission" NOT NULL DEFAULT 'ALL_MEMBERS',
+    "isTokenGated" BOOLEAN NOT NULL DEFAULT false,
+    "gateLogic" "CommunityGateLogic" NOT NULL DEFAULT 'AND',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "communities_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "community_token_requirements" (
+    "id" TEXT NOT NULL,
+    "communityId" TEXT NOT NULL,
+    "assetCode" TEXT NOT NULL,
+    "assetIssuer" TEXT NOT NULL,
+    "assetImageUrl" TEXT,
+    "requiredBalance" DECIMAL(20,7) NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "community_token_requirements_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "community_members" (
+    "id" TEXT NOT NULL,
+    "communityId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "role" "CommunityRole" NOT NULL DEFAULT 'MEMBER',
+    "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "community_members_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "community_posts" (
+    "id" TEXT NOT NULL,
+    "communityId" TEXT NOT NULL,
+    "authorId" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+    "commentsEnabled" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "community_posts_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "community_post_media" (
+    "id" TEXT NOT NULL,
+    "postId" TEXT NOT NULL,
+    "type" "MediaType" NOT NULL,
+    "url" TEXT NOT NULL,
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
+
+    CONSTRAINT "community_post_media_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "community_post_likes" (
+    "id" TEXT NOT NULL,
+    "postId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "community_post_likes_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "community_comments" (
+    "id" TEXT NOT NULL,
+    "postId" TEXT NOT NULL,
+    "authorId" TEXT NOT NULL,
+    "parentId" TEXT,
+    "body" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "community_comments_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "community_activities" (
+    "id" TEXT NOT NULL,
+    "communityId" TEXT NOT NULL,
+    "actorId" TEXT NOT NULL,
+    "type" "CommunityActivityType" NOT NULL,
+    "entityId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "community_activities_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "community_notification_preferences" (
+    "id" TEXT NOT NULL,
+    "communityId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "newPosts" BOOLEAN NOT NULL DEFAULT true,
+    "newComments" BOOLEAN NOT NULL DEFAULT true,
+    "newMembers" BOOLEAN NOT NULL DEFAULT true,
+    "reactions" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "community_notification_preferences_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
     "walletAddress" TEXT,
@@ -1819,6 +1947,48 @@ CREATE UNIQUE INDEX "unlock_rules_lockedContentId_key" ON "unlock_rules"("locked
 CREATE INDEX "unlock_points_ruleId_idx" ON "unlock_points"("ruleId");
 
 -- CreateIndex
+CREATE INDEX "communities_ownerId_idx" ON "communities"("ownerId");
+
+-- CreateIndex
+CREATE INDEX "communities_createdAt_idx" ON "communities"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "community_token_requirements_communityId_idx" ON "community_token_requirements"("communityId");
+
+-- CreateIndex
+CREATE INDEX "community_members_userId_idx" ON "community_members"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "community_members_communityId_userId_key" ON "community_members"("communityId", "userId");
+
+-- CreateIndex
+CREATE INDEX "community_posts_communityId_createdAt_idx" ON "community_posts"("communityId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "community_posts_authorId_idx" ON "community_posts"("authorId");
+
+-- CreateIndex
+CREATE INDEX "community_post_media_postId_idx" ON "community_post_media"("postId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "community_post_likes_postId_userId_key" ON "community_post_likes"("postId", "userId");
+
+-- CreateIndex
+CREATE INDEX "community_comments_postId_idx" ON "community_comments"("postId");
+
+-- CreateIndex
+CREATE INDEX "community_comments_authorId_idx" ON "community_comments"("authorId");
+
+-- CreateIndex
+CREATE INDEX "community_activities_communityId_createdAt_idx" ON "community_activities"("communityId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "community_activities_actorId_idx" ON "community_activities"("actorId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "community_notification_preferences_communityId_userId_key" ON "community_notification_preferences"("communityId", "userId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "users_walletAddress_key" ON "users"("walletAddress");
 
 -- CreateIndex
@@ -2276,6 +2446,54 @@ ALTER TABLE "unlock_rules" ADD CONSTRAINT "unlock_rules_lockedContentId_fkey" FO
 
 -- AddForeignKey
 ALTER TABLE "unlock_points" ADD CONSTRAINT "unlock_points_ruleId_fkey" FOREIGN KEY ("ruleId") REFERENCES "unlock_rules"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "communities" ADD CONSTRAINT "communities_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "community_token_requirements" ADD CONSTRAINT "community_token_requirements_communityId_fkey" FOREIGN KEY ("communityId") REFERENCES "communities"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "community_members" ADD CONSTRAINT "community_members_communityId_fkey" FOREIGN KEY ("communityId") REFERENCES "communities"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "community_members" ADD CONSTRAINT "community_members_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "community_posts" ADD CONSTRAINT "community_posts_communityId_fkey" FOREIGN KEY ("communityId") REFERENCES "communities"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "community_posts" ADD CONSTRAINT "community_posts_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "community_post_media" ADD CONSTRAINT "community_post_media_postId_fkey" FOREIGN KEY ("postId") REFERENCES "community_posts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "community_post_likes" ADD CONSTRAINT "community_post_likes_postId_fkey" FOREIGN KEY ("postId") REFERENCES "community_posts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "community_post_likes" ADD CONSTRAINT "community_post_likes_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "community_comments" ADD CONSTRAINT "community_comments_postId_fkey" FOREIGN KEY ("postId") REFERENCES "community_posts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "community_comments" ADD CONSTRAINT "community_comments_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "community_comments" ADD CONSTRAINT "community_comments_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "community_comments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "community_activities" ADD CONSTRAINT "community_activities_communityId_fkey" FOREIGN KEY ("communityId") REFERENCES "communities"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "community_activities" ADD CONSTRAINT "community_activities_actorId_fkey" FOREIGN KEY ("actorId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "community_notification_preferences" ADD CONSTRAINT "community_notification_preferences_communityId_fkey" FOREIGN KEY ("communityId") REFERENCES "communities"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "community_notification_preferences" ADD CONSTRAINT "community_notification_preferences_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "chain_accounts" ADD CONSTRAINT "chain_accounts_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;

@@ -1,0 +1,182 @@
+/// Who may see the member list.
+enum CommunityMemberListVisibility {
+  EVERYONE
+  MEMBERS_ONLY
+}
+
+/// Who may start a post.
+enum CommunityPostPermission {
+  ALL_MEMBERS
+  OWNER_ONLY
+}
+
+enum CommunityRole {
+  OWNER
+  MEMBER
+}
+
+/// How several token requirements combine.
+enum CommunityGateLogic {
+  AND
+  OR
+}
+
+enum CommunityActivityType {
+  JOIN
+  LEAVE
+  POST_CREATED
+  POST_LIKED
+  COMMENT_CREATED
+  MEMBER_INVITED
+}
+
+/// A group owned by a user. Optionally token-gated: joining needs a minimum balance of one or
+/// all of the requirement assets (see `gateLogic`).
+model Community {
+  id                   String                        @id @default(cuid())
+  ownerId              String
+  owner                User                          @relation("CommunityOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  title                String
+  description          String
+  coverUrl             String
+  profileUrl           String
+  memberListVisibility CommunityMemberListVisibility @default(EVERYONE)
+  postPermission       CommunityPostPermission       @default(ALL_MEMBERS)
+  isTokenGated         Boolean                       @default(false)
+  gateLogic            CommunityGateLogic            @default(AND)
+  createdAt            DateTime                      @default(now())
+  updatedAt            DateTime                      @updatedAt
+
+  requirements   CommunityTokenRequirement[]
+  members        CommunityMember[]
+  posts          CommunityPost[]
+  activities     CommunityActivity[]
+  notifySettings CommunityNotificationPreference[]
+
+  @@index([ownerId])
+  @@index([createdAt])
+  @@map("communities")
+}
+
+/// One asset a member must hold. Balance is checked on join and re-checked by the worker.
+model CommunityTokenRequirement {
+  id              String    @id @default(cuid())
+  communityId     String
+  community       Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  assetCode       String
+  assetIssuer     String
+  assetImageUrl   String?
+  requiredBalance Decimal   @default(0) @db.Decimal(20, 7)
+  createdAt       DateTime  @default(now())
+
+  @@index([communityId])
+  @@map("community_token_requirements")
+}
+
+model CommunityMember {
+  id          String        @id @default(cuid())
+  communityId String
+  community   Community     @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User          @relation("CommunityMembership", fields: [userId], references: [id], onDelete: Cascade)
+  role        CommunityRole @default(MEMBER)
+  joinedAt    DateTime      @default(now())
+
+  @@unique([communityId, userId])
+  @@index([userId])
+  @@map("community_members")
+}
+
+model CommunityPost {
+  id              String    @id @default(cuid())
+  communityId     String
+  community       Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  authorId        String
+  author          User      @relation("CommunityPostAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  content         String
+  commentsEnabled Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  media    CommunityPostMedia[]
+  comments CommunityComment[]
+  likes    CommunityPostLike[]
+
+  @@index([communityId, createdAt])
+  @@index([authorId])
+  @@map("community_posts")
+}
+
+model CommunityPostMedia {
+  id        String        @id @default(cuid())
+  postId    String
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  type      MediaType
+  url       String
+  sortOrder Int           @default(0)
+
+  @@index([postId])
+  @@map("community_post_media")
+}
+
+model CommunityPostLike {
+  id        String        @id @default(cuid())
+  postId    String
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User          @relation("CommunityPostLiker", fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+
+  @@unique([postId, userId])
+  @@map("community_post_likes")
+}
+
+model CommunityComment {
+  id        String             @id @default(cuid())
+  postId    String
+  post      CommunityPost      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User               @relation("CommunityCommenter", fields: [authorId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parent    CommunityComment?  @relation("CommunityReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   CommunityComment[] @relation("CommunityReplies")
+  body      String
+  createdAt DateTime           @default(now())
+
+  @@index([postId])
+  @@index([authorId])
+  @@map("community_comments")
+}
+
+/// The community's activity feed.
+model CommunityActivity {
+  id          String                @id @default(cuid())
+  communityId String
+  community   Community             @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  actorId     String
+  actor       User                  @relation("CommunityActor", fields: [actorId], references: [id], onDelete: Cascade)
+  type        CommunityActivityType
+  /// The post or comment the activity is about
+  entityId    String?
+  createdAt   DateTime              @default(now())
+
+  @@index([communityId, createdAt])
+  @@index([actorId])
+  @@map("community_activities")
+}
+
+/// A member's notification switches for one community.
+model CommunityNotificationPreference {
+  id          String    @id @default(cuid())
+  communityId String
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation("CommunityNotifySetting", fields: [userId], references: [id], onDelete: Cascade)
+  newPosts    Boolean   @default(true)
+  newComments Boolean   @default(true)
+  newMembers  Boolean   @default(true)
+  reactions   Boolean   @default(true)
+
+  @@unique([communityId, userId])
+  @@map("community_notification_preferences")
+}

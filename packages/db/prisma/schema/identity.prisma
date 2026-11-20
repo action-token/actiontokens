@@ -36,7 +36,7 @@ model User {
   follows              Follow[]
   declinedGifts        DeclinedGift[]
   lastFmAccount        LastFmAccount?
-  createdItems         Item[]                @relation("ItemCreatedBy")
+  createdItems         Item[]                            @relation("ItemCreatedBy")
   ownerships           Ownership[]
   editions             NftEdition[]
   listings             Listing[]
@@ -46,7 +46,7 @@ model User {
   collections          ItemCollection[]
   collectionLikes      CollectionLike[]
   redeemClaims         RedeemClaim[]
-  alertReviews         AdminAlertReview[]    @relation("AlertReviewer")
+  alertReviews         AdminAlertReview[]                @relation("AlertReviewer")
   playlists            Playlist[]
   trackFavorites       TrackFavorite[]
   stemMixes            StemMix[]
@@ -56,13 +56,20 @@ model User {
   notificationEvents   NotificationEvent[]
   notifications        Notification[]
   pinClaims            PinClaim[]
-  restrictedPins       Pin[]                 @relation("PinRestrictedTo")
+  restrictedPins       Pin[]                             @relation("PinRestrictedTo")
   bountyEntries        BountyParticipant[]
   bountySubmissions    BountySubmission[]
   bountyWins           BountyWinner[]
   uploads              Upload[]
+  communitiesOwned     Community[]                       @relation("CommunityOwner")
+  communityMemberships CommunityMember[]                 @relation("CommunityMembership")
+  communityPosts       CommunityPost[]                   @relation("CommunityPostAuthor")
+  communityPostLikes   CommunityPostLike[]               @relation("CommunityPostLiker")
+  communityComments    CommunityComment[]                @relation("CommunityCommenter")
+  communityActivity    CommunityActivity[]               @relation("CommunityActor")
+  communityNotify      CommunityNotificationPreference[] @relation("CommunityNotifySetting")
   activity             ActivityLog[]
-  discoveredMurals     Mural[]               @relation("MuralDiscoverer")
+  discoveredMurals     Mural[]                           @relation("MuralDiscoverer")
   muralScans           MuralScan[]
   muralScanSessions    MuralScanSession[]
   coinBalance          CoinBalance?
