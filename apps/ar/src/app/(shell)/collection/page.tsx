@@ -299,13 +299,13 @@ function EmptyState({
   }
 
   return (
-    <div className="flex flex-col items-center justify-center py-14 text-center">
+    <div className="flex flex-col items-center justify-center py-6 text-center">
       {/* Three empty card slots — shows the shape of what goes here. */}
-      <div className="mb-6 flex gap-2.5">
+      <div className="mb-4 flex gap-2.5">
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className="border-ar-line-bright h-[92px] w-[66px] rounded-[11px] border border-dashed bg-white/[0.02]"
+            className="border-ar-line-bright h-[72px] w-[52px] rounded-[10px] border border-dashed bg-white/[0.02]"
             style={{ transform: `rotate(${(i - 1) * 7}deg)` }}
           />
         ))}
