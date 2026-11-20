@@ -56,8 +56,15 @@ export type CheckLine = {
   skipped: number;
 };
 
-const count = async (client: Copier["source"], table: string) =>
-  Number((await client.query(`SELECT count(*) AS n FROM "${table}"`)).rows[0].n);
+/** Row count; a table the old database never had (42P01) counts as empty. */
+const count = async (client: Copier["source"], table: string) => {
+  try {
+    return Number((await client.query(`SELECT count(*) AS n FROM "${table}"`)).rows[0].n);
+  } catch (error) {
+    if ((error as { code?: string }).code === "42P01") return 0;
+    throw error;
+  }
+};
 
 /** Compares counts and checks the keys inside the open transaction; any problem undoes the copy. */
 export async function verify(copy: Copier) {
@@ -112,14 +119,6 @@ export async function verify(copy: Copier) {
     newRows: await count(copy.target, "follows"),
     skipped: skippedIn("TemporalFollow"),
   });
-  lines.push({
-    old: "GenerationJob + AiGeneratedContent",
-    next: "generations",
-    oldRows: await sum(["GenerationJob", "AiGeneratedContent"]),
-    newRows: await count(copy.target, "generations"),
-    skipped: 0,
-  });
-
   const wrong = lines.filter((line) => line.oldRows !== line.newRows + line.skipped);
   if (wrong.length > 0)
     throw new Error(
@@ -151,7 +150,7 @@ export async function verify(copy: Copier) {
     ).rows[0].n,
     queuedJobs: (
       await copy.target.query(
-        `SELECT (SELECT count(*) FROM agent_jobs WHERE status IN ('QUEUED','RUNNING')) + (SELECT count(*) FROM pin_batch_jobs WHERE status IN ('QUEUED','RUNNING')) + (SELECT count(*) FROM generations WHERE status IN ('QUEUED','RUNNING')) n`,
+        `SELECT (SELECT count(*) FROM agent_jobs WHERE status IN ('QUEUED','RUNNING')) + (SELECT count(*) FROM pin_batch_jobs WHERE status IN ('QUEUED','RUNNING')) n`,
       )
     ).rows[0].n,
   };

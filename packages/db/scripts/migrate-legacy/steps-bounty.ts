@@ -3,11 +3,28 @@ import { dec, finishedJobStatus, json, prize } from "./map";
 
 /** Bounties keep their ids and their escrow, untouched. */
 export async function copyBounties(copy: Copier) {
+  // Owner decision 2026-11-20: bounties paid in anything but BANDCOIN, XLM or USDC are not migrated.
+  const STANDARD = new Set(["BANDCOIN", "XLM", "NATIVE", "USDC"]);
+  const bounties = (await copy.read("Bounty")).filter((bounty: Row) => {
+    if (STANDARD.has(String(bounty.prizeAssetCode).toUpperCase())) return true;
+    copy.skip(
+      "Bounty",
+      bounty.id,
+      "prize asset is not BANDCOIN, XLM or USDC: skipped by owner decision",
+    );
+    return false;
+  });
+  const keptOf = (table: string) => (row: Row) => {
+    if (copy.find("Bounty", row.bountyId)) return true;
+    copy.skip(table, row.id, "belongs to a skipped bounty");
+    return false;
+  };
   await copy.insert(
     "bounties",
-    (await copy.read("Bounty")).map((bounty: Row) => ({
+    bounties.map((bounty: Row) => ({
       id: copy.map("Bounty", bounty.id, true),
-      organizationId: copy.must("Creator", bounty.creatorId),
+      // Actionverse bounties point at the creator's user id (Creator.id is the same id)
+      organizationId: copy.must("Creator", bounty.creatorId ?? bounty.userId),
       title: bounty.title,
       summary: bounty.summary,
       description: bounty.description,
@@ -27,7 +44,7 @@ export async function copyBounties(copy: Copier) {
   );
   await copy.insert(
     "bounty_participants",
-    (await copy.read("BountyParticipant")).map((row: Row) => ({
+    (await copy.read("BountyParticipant")).filter(keptOf("BountyParticipant")).map((row: Row) => ({
       id: copy.map("BountyParticipant", row.id),
       bountyId: copy.must("Bounty", row.bountyId),
       userId: copy.must("User", row.userId),
@@ -36,7 +53,7 @@ export async function copyBounties(copy: Copier) {
   );
   await copy.insert(
     "bounty_submissions",
-    (await copy.read("BountySubmission")).map((row: Row) => ({
+    (await copy.read("BountySubmission")).filter(keptOf("BountySubmission")).map((row: Row) => ({
       id: copy.map("BountySubmission", row.id),
       bountyId: copy.must("Bounty", row.bountyId),
       userId: copy.must("User", row.userId),
@@ -48,7 +65,7 @@ export async function copyBounties(copy: Copier) {
   );
   await copy.insert(
     "bounty_winners",
-    (await copy.read("BountyWinner")).map((row: Row) => ({
+    (await copy.read("BountyWinner")).filter(keptOf("BountyWinner")).map((row: Row) => ({
       id: copy.map("BountyWinner", row.id),
       bountyId: copy.must("Bounty", row.bountyId),
       userId: copy.must("User", row.userId),
@@ -58,7 +75,7 @@ export async function copyBounties(copy: Copier) {
       selectedAt: row.selectedAt,
     })),
   );
-  const configs = await copy.read("BountyMusicConfig");
+  const configs = (await copy.read("BountyMusicConfig")).filter(keptOf("BountyMusicConfig"));
   await copy.insert(
     "bounty_music_rules",
     configs.map((config: Row) => ({
@@ -76,20 +93,26 @@ export async function copyBounties(copy: Copier) {
   );
   await copy.insert(
     "bounty_tracks",
-    (await copy.read("BountyTrack")).map((track: Row) => ({
-      id: track.id,
-      bountyId: copy.must("Bounty", bountyOf.get(track.musicConfigId)),
-      title: track.title,
-      artistName: track.artist,
-      albumName: track.album,
-      albumArtUrl: track.albumArtUrl,
-      durationSec: track.durationSec,
-      targetPlays: track.targetPlayCount,
-      lastFmUrl: track.lastFmUrl,
-      spotifyUrl: track.spotifyUrl,
-      youtubeUrl: track.youtubeUrl,
-      createdAt: track.createdAt,
-    })),
+    (await copy.read("BountyTrack"))
+      .filter((track: Row) => {
+        if (bountyOf.has(track.musicConfigId)) return true;
+        copy.skip("BountyTrack", track.id, "belongs to a skipped bounty");
+        return false;
+      })
+      .map((track: Row) => ({
+        id: track.id,
+        bountyId: copy.must("Bounty", bountyOf.get(track.musicConfigId)),
+        title: track.title,
+        artistName: track.artist,
+        albumName: track.album,
+        albumArtUrl: track.albumArtUrl,
+        durationSec: track.durationSec,
+        targetPlays: track.targetPlayCount,
+        lastFmUrl: track.lastFmUrl,
+        spotifyUrl: track.spotifyUrl,
+        youtubeUrl: track.youtubeUrl,
+        createdAt: track.createdAt,
+      })),
   );
 }
 

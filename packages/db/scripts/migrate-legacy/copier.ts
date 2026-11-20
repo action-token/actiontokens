@@ -27,7 +27,13 @@ export class Copier {
   /** Rows of an old table, or of a query. */
   async read(tableOrSql: string): Promise<Row[]> {
     const sql = tableOrSql.includes(" ") ? tableOrSql : `SELECT * FROM "${tableOrSql}"`;
-    return (await this.source.query(sql)).rows;
+    try {
+      return (await this.source.query(sql)).rows;
+    } catch (error) {
+      // 42P01: the old database never had this table (Actionverse lacks many Bandcoin tables)
+      if ((error as { code?: string }).code === "42P01") return [];
+      throw error;
+    }
   }
 
   async insert(table: string, rows: Row[]) {
