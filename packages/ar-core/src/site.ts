@@ -1,30 +1,32 @@
 /**
- * Bandcoin's name, colours and links as the AR app shows them. One brand, so
- * this is a constant (Wadzzo switches between several platforms here).
- * Colours match the guitar-pick logo: chartreuse #dbdc2c on olive-dark ground.
+ * ActionTokens' name, colours and links as the AR app shows them. One brand, so this is a
+ * constant. Colours: neon green #4dff2a on near-black green (docs/PLAN.md §12).
  */
 export const site = {
-  name: "Bandcoin",
+  name: "ActionTokens",
   /** Off-chain points earned by scanning murals; not the BANDCOIN token */
   coinName: "Mural Coins",
-  coinOwner: "Bandcoin",
-  wordmark: { letters: ["B", "A", "N", "D", "C", "O", "I", "N"], plate: "AR" },
+  coinOwner: "ActionTokens",
+  wordmark: {
+    letters: ["A", "C", "T", "I", "O", "N", "T", "O", "K", "E", "N", "S"],
+    plate: "AR",
+  },
   assets: {
-    mark: "/brand/bandcoin-mark.png",
+    mark: "/brand/actiontokens-mark.png",
     favicon: "/favicon.ico",
   },
   colors: {
-    themeDark: "#0e0f0b",
-    themeLight: "#f7f7f2",
-    mapRoute: "#dbdc2c",
-    mapRouteCasing: "#3a3b08",
-    mapNavAccent: "#626300",
-    mapLoadingRoute: "#dbdc2c",
-    embedAccent: "#dbdc2c",
-    cardBorder: "#3a3b12",
-    cardGlow: "rgba(219,220,44,0.35)",
-    packDone: "hsl(60 71% 52%)",
-    packDoneGlow: "hsl(60 71% 52% / 0.35)",
+    themeDark: "#050605",
+    themeLight: "#050605",
+    mapRoute: "#4dff2a",
+    mapRouteCasing: "#0f3a08",
+    mapNavAccent: "#3ea024",
+    mapLoadingRoute: "#4dff2a",
+    embedAccent: "#4dff2a",
+    cardBorder: "#1f3a1a",
+    cardGlow: "rgba(77,255,42,0.35)",
+    packDone: "hsl(110 100% 58%)",
+    packDoneGlow: "hsl(110 100% 58% / 0.35)",
   },
   urls: {
     arWeb: process.env.NEXT_PUBLIC_AR_URL ?? "https://ar.action-tokens.com",
@@ -32,5 +34,5 @@ export const site = {
     fanApp: process.env.NEXT_PUBLIC_APP_URL ?? "https://app.action-tokens.com",
   },
   contact: { supportEmail: "support@action-tokens.com" },
-  calendar: { productId: "Bandcoin", uidDomain: "action-tokens.com" },
+  calendar: { productId: "ActionTokens", uidDomain: "action-tokens.com" },
 } as const;

@@ -108,18 +108,11 @@ function writeStoredPreference(pref: ThemePreference) {
   }
 }
 
-function systemPrefersLight(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    typeof window.matchMedia === "function" &&
-    window.matchMedia("(prefers-color-scheme: light)").matches
-  );
-}
 
 /** "auto" resolved against the OS preference; "light"/"dark" pass through. */
-export function resolveTheme(pref: ThemePreference): ResolvedTheme {
-  if (pref === "light" || pref === "dark") return pref;
-  return systemPrefersLight() ? "light" : "dark";
+export function resolveTheme(_pref: ThemePreference): ResolvedTheme {
+  // ActionTokens AR is dark only (docs/PLAN.md §12.2); a stored "light" is ignored.
+  return "dark";
 }
 
 /** Apply a resolved theme to the document: the `.dark` class (arcade

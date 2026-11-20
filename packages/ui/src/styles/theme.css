@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Bandcoin theme: tokens, fonts, Tailwind mapping and base layer.
+   ActionTokens theme (neon-green phonk): tokens, fonts, Tailwind mapping and base layer.
    Import once, right after Tailwind, in every app's globals.css:
 
      @import "tailwindcss";
@@ -23,96 +23,40 @@
 @custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
 
 /* ── Tokens ─────────────────────────────────────────────────────────────── */
-:root {
-  /* dark (default): a stage at night, warm graphite with an olive bias so the chartreuse pick belongs */
-  --bc-bg: #0e0f0b;
-  --bc-surface: #161812;
-  --bc-surface-2: #1d1f18;
-  --bc-surface-3: #26291f;
-  --bc-border: #2b2e23;
-  --bc-border-strong: #3a3e2f;
-  --bc-fg: #f3f4ea;
-  --bc-fg-muted: #a6a998;
-  --bc-fg-faint: #75786a;
-  --bc-primary: #dbdc2c;
-  --bc-primary-strong: #c6c71c;
-  --bc-primary-ink: #1b1c05;
-  --bc-primary-text: #dbdc2c;
-  --bc-primary-soft: rgb(219 220 44 / 0.12);
-  --bc-success: #4ade80;
-  --bc-warning: #f5a524;
-  --bc-danger: #ff6b6b;
-  --bc-danger-soft: rgb(255 107 107 / 0.12);
-  --bc-info: #60a5fa;
-  --bc-overlay: rgb(8 9 6 / 0.72);
-  --bc-shadow: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 12px 32px -12px rgb(0 0 0 / 0.6);
-  /* The site backdrop's BANDCOIN mark (SiteBackdrop): the three colours it fades between, and
-     how strongly it shows through. A faint watermark on the dark page. */
-  --bc-mark-a: hsl(61 72% 52%);
-  --bc-mark-b: hsl(172 62% 50%);
-  --bc-mark-c: hsl(268 70% 68%);
-  --bc-mark: 0.016;
+/* ActionTokens: neon-green phonk (docs/PLAN.md §12). Dark only for v1: the light
+   attribute is ignored on purpose, so a stray toggle can't produce an unreadable page. */
+:root,
+:root[data-theme="light"],
+:root[data-theme="dark"] {
+  --bc-bg: #050605;
+  --bc-surface: #0c0f0c;
+  --bc-surface-2: #131813;
+  --bc-surface-3: #1a221a;
+  --bc-border: #1f2a1f;
+  --bc-border-strong: #2f402f;
+  --bc-fg: #e9f5e9;
+  --bc-fg-muted: #8fa38f;
+  --bc-fg-faint: #5b6b5b;
+  --bc-primary: #4dff2a;
+  --bc-primary-strong: #3ea024;
+  --bc-primary-ink: #031003;
+  --bc-primary-text: #4dff2a;
+  --bc-primary-soft: rgb(77 255 42 / 0.12);
+  --bc-success: #4dff2a;
+  --bc-warning: #ffb020;
+  --bc-danger: #ff3b5c;
+  --bc-danger-soft: rgb(255 59 92 / 0.12);
+  --bc-info: #3aa0ff;
+  --bc-overlay: rgb(2 3 2 / 0.78);
+  --bc-shadow: 0 1px 0 rgb(77 255 42 / 0.05) inset, 0 16px 40px -14px rgb(0 0 0 / 0.75);
+  /* Neon glow and chrome type (phonk effects; see .at-glow / .at-chrome below) */
+  --at-glow: 0 0 0 1px rgb(77 255 42 / 0.35), 0 0 24px -4px rgb(77 255 42 / 0.55);
+  --at-chrome: linear-gradient(180deg, #fdfdfd 0%, #a7a7a7 45%, #ffffff 52%, #4d4d4d 100%);
+  --bc-mark-a: hsl(108 100% 58%);
+  --bc-mark-b: hsl(120 60% 40%);
+  --bc-mark-c: hsl(96 80% 70%);
+  --bc-mark: 0.02;
   color-scheme: dark;
-}
-
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) {
-    --bc-bg: #f7f7f2;
-    --bc-surface: #ffffff;
-    --bc-surface-2: #f0f1e8;
-    --bc-surface-3: #e6e7dc;
-    --bc-border: #dfe0d3;
-    --bc-border-strong: #c8cab9;
-    --bc-fg: #1a1b14;
-    --bc-fg-muted: #56584a;
-    --bc-fg-faint: #808272;
-    --bc-primary: #dbdc2c;
-    --bc-primary-strong: #c9ca1a;
-    --bc-primary-ink: #1b1c05;
-    --bc-primary-text: #626300;
-    --bc-primary-soft: rgb(219 220 44 / 0.22);
-    --bc-success: #18834a;
-    --bc-warning: #a35f00;
-    --bc-danger: #c93636;
-    --bc-danger-soft: rgb(201 54 54 / 0.08);
-    --bc-info: #1d5fbf;
-    --bc-overlay: rgb(247 247 242 / 0.8);
-    --bc-shadow: 0 1px 2px rgb(26 27 20 / 0.06), 0 12px 28px -14px rgb(26 27 20 / 0.18);
-    --bc-mark-a: hsl(61 80% 58%);
-    --bc-mark-b: hsl(172 60% 62%);
-    --bc-mark-c: hsl(268 75% 78%);
-    --bc-mark: 0.045;
-    color-scheme: light;
-  }
-}
-
-:root[data-theme="light"] {
-  --bc-bg: #f7f7f2;
-  --bc-surface: #ffffff;
-  --bc-surface-2: #f0f1e8;
-  --bc-surface-3: #e6e7dc;
-  --bc-border: #dfe0d3;
-  --bc-border-strong: #c8cab9;
-  --bc-fg: #1a1b14;
-  --bc-fg-muted: #56584a;
-  --bc-fg-faint: #808272;
-  --bc-primary: #dbdc2c;
-  --bc-primary-strong: #c9ca1a;
-  --bc-primary-ink: #1b1c05;
-  --bc-primary-text: #626300;
-  --bc-primary-soft: rgb(219 220 44 / 0.22);
-  --bc-success: #18834a;
-  --bc-warning: #a35f00;
-  --bc-danger: #c93636;
-  --bc-danger-soft: rgb(201 54 54 / 0.08);
-  --bc-info: #1d5fbf;
-  --bc-overlay: rgb(247 247 242 / 0.8);
-  --bc-shadow: 0 1px 2px rgb(26 27 20 / 0.06), 0 12px 28px -14px rgb(26 27 20 / 0.18);
-  --bc-mark-a: hsl(61 80% 58%);
-  --bc-mark-b: hsl(172 60% 62%);
-  --bc-mark-c: hsl(268 75% 78%);
-  --bc-mark: 0.045;
-  color-scheme: light;
 }
 
 /* Sidebar block (Wadzzo's look). side = the block, side-ink = text and
@@ -122,25 +66,9 @@
 .side-scope {
   --side: var(--bc-primary);
   --side-ink: var(--bc-primary-ink);
-  --side-mint: #f6f7c9;
+  --side-mint: #c9ffbd;
   --side-badge: var(--bc-primary-ink);
-  --side-chip: #f6f7c9;
-}
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) .side-scope {
-    --side: #16170f;
-    --side-ink: #f3f4ea;
-    --side-mint: var(--bc-primary);
-    --side-badge: #2b2d20;
-    --side-chip: #3d3f2e;
-  }
-}
-:root[data-theme="light"] .side-scope {
-  --side: #16170f;
-  --side-ink: #f3f4ea;
-  --side-mint: var(--bc-primary);
-  --side-badge: #2b2d20;
-  --side-chip: #3d3f2e;
+  --side-chip: #c9ffbd;
 }
 
 /* The floating sidebar takes no width; pages pad themselves by --side-w
@@ -181,26 +109,12 @@
 .side-island,
 .side-card {
   /* lifted: a lighter card than the page, a deep drop shadow and a lit top edge */
-  --side: #22241b;
+  --side: #0f140f;
   --island-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 20px 40px -12px rgb(0 0 0 / 0.7);
   --side-ink: var(--bc-fg);
   --side-mint: var(--bc-primary);
   --side-badge: var(--bc-primary-ink);
   --side-chip: var(--bc-surface);
-}
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) .side-island,
-  :root:not([data-theme="dark"]) .side-card {
-    --side: #ffffff;
-    --island-shadow:
-      0 1px 2px rgb(26 27 20 / 0.08), 0 12px 24px -8px rgb(26 27 20 / 0.14),
-      0 32px 64px -16px rgb(26 27 20 / 0.28);
-  }
-}
-:root[data-theme="light"] .side-island,
-:root[data-theme="light"] .side-card {
-  --side: #ffffff;
-  --island-shadow: 0 1px 2px rgb(26 27 20 / 0.08), 0 20px 40px -14px rgb(26 27 20 / 0.28);
 }
 
 /* ── Tailwind mapping ───────────────────────────────────────────────────── */
@@ -208,6 +122,12 @@
   --font-display: "Teko Variable", "Arial Narrow", system-ui, sans-serif;
   --font-sans: "Barlow", "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-mono: "Azeret Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
+  /* ActionTokens accents: an app that loads them (next/font sets --nf-*) gets the real faces,
+     any other app falls back to its display face, so shared components never break. */
+  --font-brand: var(--nf-brand, "Teko Variable"), system-ui, sans-serif;
+  --font-shade: var(--nf-shade, var(--nf-brand, "Teko Variable")), system-ui, sans-serif;
+  --font-neon: var(--nf-neon, var(--nf-brand, "Teko Variable")), system-ui, sans-serif;
+  --font-pixel: var(--nf-pixel, "Azeret Mono Variable"), ui-monospace, monospace;
 
   --color-bg: var(--bc-bg);
   --color-surface: var(--bc-surface);
@@ -539,5 +459,62 @@
 @media (prefers-reduced-motion: reduce) {
   .bc-tab-motion {
     animation: none !important;
+  }
+}
+
+/* ── ActionTokens phonk effects (docs/PLAN.md §12.4). GPU-light; motion is off under
+   prefers-reduced-motion. ─────────────────────────────────────────────────── */
+.at-glow {
+  box-shadow: var(--at-glow);
+}
+.at-chrome-text {
+  background: var(--at-chrome);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.at-neon-text {
+  color: var(--bc-primary);
+  text-shadow: 0 0 18px rgb(77 255 42 / 0.45);
+}
+/* Diagonal stripes on neon: the active state of rows and the big ACT buttons */
+.at-stripes {
+  background-color: var(--bc-primary);
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgb(3 16 3 / 0.14) 0 6px,
+    transparent 6px 14px
+  );
+  color: var(--bc-primary-ink);
+}
+/* A faint green terrain grid for brand panels */
+.at-grid {
+  background-image:
+    linear-gradient(rgb(77 255 42 / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(77 255 42 / 0.07) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+.at-scanlines {
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgb(0 0 0 / 0.22) 0 1px,
+    transparent 1px 3px
+  );
+}
+@keyframes at-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+.at-pulse {
+  animation: at-pulse 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .at-pulse {
+    animation: none;
   }
 }

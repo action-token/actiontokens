@@ -2,7 +2,7 @@
  * ── Bandcoin AR: arcade design layer ───────────────────────────────────────
  *
  * Wadzzo AR's collector HUD (bevelled card stock, trading-card holo foil,
- * scanlines, a terrain grid) re-tinted to Bandcoin: chartreuse #dbdc2c on
+ * scanlines, a terrain grid) re-tinted to Bandcoin: chartreuse #4dff2a on
  * olive-dark ground, with olive-biased neutrals. Loaded after the Bandcoin
  * theme, so these win on equal specificity.
  *
@@ -16,37 +16,32 @@
  */
 
 :root {
-  /* ── Ground ───────────────────────────────────────────────────────────── */
-  --ar-void: 60 22% 96%;
-  --ar-bg: 60 18% 94%;
-  --ar-surface: 0 0% 100%;
-  --ar-surface-2: 60 14% 96%;
-  --ar-surface-3: 64 12% 90%;
-  --ar-line: 66 10% 82%;
-  --ar-line-bright: 66 10% 68%;
+  --ar-void: 120 9% 2%;
+  --ar-bg: 120 10% 3%;
+  --ar-surface: 120 11% 5%;
+  --ar-surface-2: 120 11% 8%;
+  --ar-surface-3: 120 13% 12%;
+  --ar-line: 120 15% 14%;
+  --ar-line-bright: 120 15% 22%;
 
-  /* ── Ink ──────────────────────────────────────────────────────────────── */
-  --ar-text: 69 15% 9%;
-  --ar-text-dim: 69 9% 32%;
-  --ar-text-faint: 67 7% 48%;
+  --ar-text: 120 39% 94%;
+  --ar-text-dim: 120 10% 60%;
+  --ar-text-faint: 120 8% 39%;
 
-  /* ── Accent: deep olive, readable as text and as a fill under white ink ─ */
-  --ar-accent: 60 100% 22%;
-  --ar-accent-hot: 60 100% 18%;
-  --ar-accent-deep: 60 80% 16%;
-  --ar-accent-ink: 60 40% 97%;
+  /* ActionTokens neon green #4dff2a, near-black ink on it */
+  --ar-accent: 110 100% 58%;
+  --ar-accent-hot: 108 100% 66%;
+  --ar-accent-deep: 105 63% 38%;
+  --ar-accent-ink: 120 69% 4%;
 
-  /* ── Rarity ladder — same hues as the dark palette, relit for a white
-     ground ─────────────────────────────────────────────────────────────── */
-  --rarity-common: 200 14% 38%;
-  --rarity-rare: 199 85% 32%;
-  --rarity-epic: 272 62% 46%;
-  --rarity-legendary: 38 85% 30%;
-  --rarity-mythic: 322 72% 42%;
+  --rarity-common: 120 8% 62%;
+  --rarity-rare: 192 88% 56%;
+  --rarity-epic: 272 82% 66%;
+  --rarity-legendary: 38 96% 58%;
+  --rarity-mythic: 320 90% 64%;
 
-  /* ── State ────────────────────────────────────────────────────────────── */
-  --ar-danger: 358 72% 42%;
-  --ar-locked: 220 10% 42%;
+  --ar-danger: 350 100% 62%;
+  --ar-locked: 120 6% 48%;
 
   /* ── Geometry — same in both palettes, so declared once here rather than
      duplicated into `.dark` too. ───────────────────────────────────────── */
@@ -73,32 +68,32 @@
 
 /* ── Dark palette (colour tokens only; geometry and insets are shared). ── */
 .dark {
-  --ar-void: 75 15% 4%;
-  --ar-bg: 75 15% 5%;
-  --ar-surface: 80 14% 8%;
-  --ar-surface-2: 78 12% 12%;
-  --ar-surface-3: 76 10% 17%;
-  --ar-line: 72 9% 23%;
-  --ar-line-bright: 70 9% 33%;
+  --ar-void: 120 9% 2%;
+  --ar-bg: 120 10% 3%;
+  --ar-surface: 120 11% 5%;
+  --ar-surface-2: 120 11% 8%;
+  --ar-surface-3: 120 13% 12%;
+  --ar-line: 120 15% 14%;
+  --ar-line-bright: 120 15% 22%;
 
-  --ar-text: 66 30% 94%;
-  --ar-text-dim: 70 8% 63%;
-  --ar-text-faint: 73 6% 44%;
+  --ar-text: 120 39% 94%;
+  --ar-text-dim: 120 10% 60%;
+  --ar-text-faint: 120 8% 39%;
 
-  /* Bandcoin chartreuse #dbdc2c, with dark ink on it as on the logo */
-  --ar-accent: 60 71% 52%;
-  --ar-accent-hot: 61 86% 62%;
-  --ar-accent-deep: 60 70% 26%;
-  --ar-accent-ink: 63 70% 6%;
+  /* ActionTokens neon green #4dff2a, near-black ink on it */
+  --ar-accent: 110 100% 58%;
+  --ar-accent-hot: 108 100% 66%;
+  --ar-accent-deep: 105 63% 38%;
+  --ar-accent-ink: 120 69% 4%;
 
-  --rarity-common: 70 8% 62%;
+  --rarity-common: 120 8% 62%;
   --rarity-rare: 192 88% 56%;
   --rarity-epic: 272 82% 66%;
   --rarity-legendary: 38 96% 58%;
   --rarity-mythic: 320 90% 64%;
 
-  --ar-danger: 358 74% 60%;
-  --ar-locked: 70 6% 48%;
+  --ar-danger: 350 100% 62%;
+  --ar-locked: 120 6% 48%;
 }
 
 /* Matches StatusBar's h-[52px]; both are `lg:` only. Theme-agnostic, so

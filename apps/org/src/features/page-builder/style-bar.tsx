@@ -23,7 +23,7 @@ import { cn } from "@actiontokens/ui/lib/cn";
 
 import { BLOCK_ICON } from "./block-picker";
 
-const ACCENTS = ["#dbdc2c", "#39ff88", "#ff5d73", "#1d4ed8", "#ea580c", "#7c3aed", "#0f172a"];
+const ACCENTS = ["#4dff2a", "#39ff88", "#ff5d73", "#1d4ed8", "#ea580c", "#7c3aed", "#0f172a"];
 
 const chip =
   "hover:bg-surface-2 data-[state=open]:bg-surface-2 inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs transition-colors";

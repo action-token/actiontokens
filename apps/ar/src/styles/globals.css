@@ -58,8 +58,13 @@
   }
 }
 
-/* AR's pair (lib/fonts.ts sets --nf-*), also for the shared Bandcoin components. */
+/* ActionTokens type (lib/fonts.ts sets --nf-*), also for the shared components. */
 @theme inline {
-  --font-display: var(--nf-display), system-ui, sans-serif;
+  --font-display: var(--nf-display), "Arial Narrow", system-ui, sans-serif;
   --font-sans: var(--nf-body), system-ui, sans-serif;
+  --font-mono: var(--nf-mono), ui-monospace, Menlo, monospace;
+  --font-brand: var(--nf-brand), var(--nf-display), system-ui, sans-serif;
+  --font-shade: var(--nf-shade), var(--nf-brand), system-ui, sans-serif;
+  --font-neon: var(--nf-neon), var(--nf-brand), system-ui, sans-serif;
+  --font-pixel: var(--nf-pixel), ui-monospace, monospace;
 }

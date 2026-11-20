@@ -6,9 +6,6 @@ import {
   Footprints,
   Frame,
   LogOut,
-  Moon,
-  MonitorSmartphone,
-  Sun,
   Vibrate,
   Volume2,
   Wallet,
@@ -33,22 +30,12 @@ import { RARITY_META, RARITY_ORDER } from "@actiontokens/ar-core/ar/rarity";
 import { type MuralLayer, useMuralLayer } from "~/lib/ar/mural-layer";
 import { useAuth, useSettings } from "~/lib/ar/store";
 import { api } from "~/trpc/react";
-import { type ThemePreference, useTheme } from "~/lib/ar/theme";
 import type { ArSettings } from "@actiontokens/ar-core/ar/types";
 import { useDragScroll } from "~/lib/ar/useDragScroll";
 import { useArtists, useCollectedPinsQuery } from "~/lib/ar/usePins";
 import { site } from "@actiontokens/ar-core/site";
 import { cn } from "@actiontokens/ui/lib/cn";
 
-const THEME_OPTIONS: {
-  value: ThemePreference;
-  icon: typeof Sun;
-  label: string;
-}[] = [
-  { value: "auto", icon: MonitorSmartphone, label: "System" },
-  { value: "light", icon: Sun, label: "Light" },
-  { value: "dark", icon: Moon, label: "Dark" },
-];
 
 /**
  * Hides the "Test feedback" row without removing it — flip back to `true`
@@ -113,7 +100,6 @@ export default function ProfileScreen() {
   const signOut = useAuth((s) => s.signOut);
   const requireAuth = useAuth((s) => s.requireAuth);
   const settings = useSettings();
-  const theme = useTheme();
 
   const recentRailRef = useDragScroll<HTMLDivElement>();
 
@@ -296,66 +282,6 @@ export default function ProfileScreen() {
             </div>
           </section>
         )}
-
-        {/* ── Appearance ───────────────────────────────────────────── */}
-        <section className="mt-5 px-5">
-          <h2 className="font-hud text-ar-faint mb-2.5 text-[9.5px] font-semibold tracking-[0.24em] uppercase">
-            Appearance
-          </h2>
-          <div className="ar-bevel rounded-ar flex items-start gap-3 p-3.5">
-            <span
-              className={cn(
-                "mt-[1px] flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border",
-                "border-ar-accent/50 bg-ar-accent/14 text-ar-accent-hot",
-              )}
-            >
-              {theme.resolved === "light" ? (
-                <Sun size={15} strokeWidth={2.2} />
-              ) : (
-                <Moon size={15} strokeWidth={2.2} />
-              )}
-            </span>
-
-            <div className="min-w-0 flex-1">
-              <span className="font-hud text-ar-text block text-[12.5px] font-bold tracking-[0.1em] uppercase">
-                Theme
-              </span>
-              <span className="text-ar-faint mt-1 block text-[11.5px] leading-relaxed">
-                {theme.preference === "auto"
-                  ? `Follows your device — currently ${theme.resolved}.`
-                  : "Set manually, independent of your device."}
-              </span>
-
-              {/* A 3-way choice, not a boolean — the `Switch` used below
-                  doesn't fit it, so this is its own small segmented control
-                  rather than three separate on/off rows. */}
-              <div
-                role="radiogroup"
-                aria-label="Theme"
-                className="ar-key mt-3 grid grid-cols-3 gap-1 rounded-[12px] p-1"
-              >
-                {THEME_OPTIONS.map(({ value, icon: Icon, label }) => {
-                  const active = theme.preference === value;
-                  return (
-                    <button
-                      key={value}
-                      role="radio"
-                      aria-checked={active}
-                      onClick={() => theme.setPreference(value)}
-                      className={cn(
-                        "font-hud flex items-center justify-center gap-1.5 rounded-[9px] py-2 text-[10px] font-bold tracking-[0.08em] uppercase transition-colors",
-                        active ? "bg-ar-accent/18 text-ar-accent-hot" : "text-ar-faint",
-                      )}
-                    >
-                      <Icon size={13} strokeWidth={2.4} />
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* ── Settings ─────────────────────────────────────────────── */}
         <section className="mt-5 px-5">

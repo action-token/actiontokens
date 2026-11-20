@@ -1,4 +1,3 @@
-import { sharedThemeSeedScript } from "@actiontokens/ui/lib/shared-theme";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "~/styles/globals.css";
 // After globals, so the arcade palette wins on equal specificity.
@@ -13,9 +12,9 @@ import { fontVariables } from "~/lib/fonts";
 import { TRPCReactProvider } from "~/trpc/react";
 
 export const metadata: Metadata = {
-  title: { default: "Bandcoin AR: collect the real world", template: "%s · Bandcoin AR" },
+  title: { default: "ActionTokens AR: collect the real world", template: "%s · ActionTokens AR" },
   description:
-    "Walk to pins your favourite artists dropped around the city, collect them in AR and keep the rewards.",
+    "Walk to pins organizations dropped around the city, collect them in AR and keep the rewards.",
   appleWebApp: { capable: true, statusBarStyle: "black-translucent" },
 };
 
@@ -30,24 +29,14 @@ export const viewport: Viewport = {
 };
 
 /**
- * Applies the stored theme before the first paint. It runs before any bundle
- * loads, so it repeats `THEME_STORAGE_KEY` and the "auto" rule from
- * lib/ar/theme.ts as a literal string. Dark is server-rendered; this only
- * switches to light, setting both `.dark` (arcade palette) and `data-theme`
- * (shared Bandcoin components).
+ * ActionTokens AR is dark only (docs/PLAN.md §12.2): whatever theme was stored before,
+ * the page stays dark, with both `.dark` (arcade palette) and `data-theme` set.
  */
 const themeBootScript = `
 (function () {
   try {
-    var v = localStorage.getItem("bandcoin-ar-theme");
-    var pref = v === "light" || v === "dark" ? v : "auto";
-    var light = pref === "light" || (pref === "auto" && window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches);
-    if (light) {
-      document.documentElement.classList.remove("dark");
-      document.documentElement.setAttribute("data-theme", "light");
-      var meta = document.querySelector('meta[name="theme-color"]');
-      if (meta) meta.setAttribute("content", ${JSON.stringify(site.colors.themeLight)});
-    }
+    document.documentElement.classList.add("dark");
+    document.documentElement.setAttribute("data-theme", "dark");
   } catch (e) {}
 })();
 `;
@@ -57,12 +46,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     // The boot script may change the theme before hydration.
     <html lang="en" className={`dark ${fontVariables}`} data-theme="dark" suppressHydrationWarning>
       <head>
-        {/* The theme the other Bandcoin sites chose goes into this app's own key first. */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: sharedThemeSeedScript("bandcoin-ar-theme", { system: "auto" }),
-          }}
-        />
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       </head>
       <body className="bg-ar-void">

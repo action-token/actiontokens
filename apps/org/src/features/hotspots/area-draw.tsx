@@ -35,7 +35,7 @@ import { MAPBOX_TOKEN } from "../pins/mapbox";
 export type AreaShape = "circle" | "rectangle" | "polygon";
 export type DrawnArea = { shape: AreaShape; feature: StoredFeature };
 
-export const AREA = "#dbdc2c";
+export const AREA = "#4dff2a";
 export const SHAPES: {
   value: AreaShape;
   label: string;

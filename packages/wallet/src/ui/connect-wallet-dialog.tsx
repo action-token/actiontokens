@@ -8,6 +8,7 @@ import {
   ArrowUpCircle,
   CheckCircle2,
   LogOut,
+  Mail,
   QrCodeIcon,
   RefreshCcw,
   Wallet,
@@ -30,7 +31,6 @@ import { EmailSignUpForm } from "./email-sign-up-form";
 import { AR_APP_FRAME_SELECTOR } from "./host-frame";
 import { Button } from "@actiontokens/ui/components/button";
 import { Dialog, DialogContent, DialogTitle } from "@actiontokens/ui/components/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@actiontokens/ui/components/tabs";
 import { useFacebookIosUserAgent } from "./use-facebook-ios-user-agent";
 import { HanaIcon, MetaMaskIcon } from "./wallet-icons";
 import { NON_CUSTODIAL_PROVIDERS } from "../providers/registry";
@@ -41,6 +41,7 @@ import albedoLogo from "./assets/albedo.svg";
 import freighterLogo from "./assets/freighter.png";
 import rabetLogo from "./assets/rabet.png";
 import xbullLogo from "./assets/xbull-dark.svg";
+import lobstrLogo from "./assets/lobstr.png";
 
 type AuthView = "login" | "signup" | "forgot-password";
 function getWalletLabel(walletType: WalletType): string {
@@ -91,28 +92,28 @@ function WalletButton({
       <button
         onClick={onClick}
         className={clsx(
-          "flex w-full items-center gap-2.5 rounded-xl border-2 px-3 py-2 text-sm font-bold transition-[transform,border-color] duration-150",
-          "hover:border-foreground hover:-translate-y-0.5",
+          "group flex w-full items-center gap-2.5 rounded-[10px] border px-3 py-2.5 text-sm font-semibold transition-[transform,border-color,box-shadow] duration-150",
+          "hover:border-primary hover:-translate-y-0.5 hover:shadow-[0_0_18px_-6px_var(--color-primary)]",
           selected
-            ? "border-primary-text bg-primary/10 text-primary-text"
-            : "border-foreground/12 bg-card text-card-foreground",
+            ? "border-primary bg-primary/10 text-primary-text"
+            : "border-border-strong bg-surface-2 text-foreground",
         )}
       >
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center">
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-black/40">
           {image ? (
-            <Image
-              src={image}
-              alt={label}
-              width={28}
-              height={28}
-              className="rounded-full object-contain"
-            />
+            <Image src={image} alt="" width={22} height={22} className="object-contain" />
           ) : (
             icon
           )}
         </span>
         <span className="flex-1 text-left">{label}</span>
-        {selected && <CheckCircle2 className="text-primary-text h-4 w-4 shrink-0" />}
+        {selected ? (
+          <CheckCircle2 className="text-primary-text size-4 shrink-0" />
+        ) : (
+          <span className="font-pixel text-fg-faint group-hover:text-primary-text text-[10px]">
+            GO
+          </span>
+        )}
       </button>
     </div>
   );
@@ -197,11 +198,11 @@ export function ConnectWalletDialog() {
 
   const subtitle = authUser
     ? activeTab === "stellar"
-      ? "Use another Stellar wallet"
-      : "Use another email, Google or Apple account"
+      ? "Pick another Stellar wallet."
+      : "Sign in with another email, Google or Apple account."
     : activeTab === "stellar"
-      ? "Choose your Stellar wallet to sign in"
-      : "Sign in to access your account";
+      ? "Choose the wallet you already use."
+      : "One account for drops, bounties, crews and the map. We keep a Stellar wallet for you.";
 
   // ── Profile card ──
   // Who is signed in: a brand-colour cover with the avatar breaking out of it, the name, how they
@@ -214,61 +215,25 @@ export function ConnectWalletDialog() {
     const name =
       profile?.name ?? (user as { name?: string }).name ?? abbreviateAddress(user.walletAddress, 8);
     const image = profile?.image ?? (user as { image?: string | null }).image;
-    const cover = profile?.coverImage;
     const initials = name.slice(0, 2).toUpperCase();
     const walletLabel = getWalletLabel(user.walletType ?? "");
     return (
-      <div
-        className={clsx(
-          // full width of the column and flush with the dialog's top: cancel the panel's padding
-          "border-foreground/10 bg-card shrink-0 overflow-hidden border-b-2",
-          isFramedHost ? "-mx-4 -mt-10" : "-mx-6 -mt-6 lg:-mx-8 lg:-mt-5",
-        )}
-      >
-        <div className="bg-primary relative h-[4.5rem]">
-          {cover ? (
-            <>
-              <img src={cover} alt="" className="absolute inset-0 size-full object-cover" />
-              <div
-                aria-hidden
-                className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/10"
-              />
-            </>
-          ) : (
-            // no cover photo: a quiet dashed pattern on the brand colour
-            <div
-              aria-hidden
-              className="absolute inset-0 opacity-15"
-              style={{
-                backgroundImage:
-                  "repeating-linear-gradient(135deg, currentColor 0 2px, transparent 2px 14px)",
-                color: "var(--color-primary-foreground)",
-              }}
-            />
-          )}
-          {/* how they signed in, as a badge on the cover */}
-          <span className="label-caps absolute top-3 right-4 rounded-full bg-black/55 px-2.5 py-1 text-[10px] text-white">
-            {walletLabel}
-          </span>
-        </div>
-        <div
-          className={clsx("flex items-center gap-3 pb-3.5", isFramedHost ? "px-4" : "px-6 lg:px-8")}
-        >
-          <div className="border-card bg-primary text-primary-foreground relative z-10 -mt-7 flex size-16 shrink-0 items-center justify-center self-start overflow-hidden rounded-full border-4 text-lg font-bold">
+      <div className="border-primary/40 bg-surface-2 relative overflow-hidden rounded-[14px] border p-3.5">
+        <div aria-hidden className="at-grid pointer-events-none absolute inset-0 opacity-60" />
+        <div className="relative flex items-center gap-3">
+          <div className="ring-primary bg-primary text-primary-foreground font-brand flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full text-lg ring-2 ring-offset-2 ring-offset-[var(--color-surface-2)]">
             {image ? <img src={image} alt="" className="size-full object-cover" /> : initials}
           </div>
-          <div className="min-w-0 flex-1 pt-1.5">
-            <div className="flex items-center gap-1.5">
-              <p className="display text-foreground truncate text-xl">{name}</p>
-              <CheckCircle2 className="text-primary-text size-4 shrink-0" />
-            </div>
-            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
-              <span className="text-muted-foreground font-mono">
-                {abbreviateAddress(user.walletAddress, 6)}
-              </span>
-            </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-pixel text-primary-text text-[10px] tracking-widest">
+              PLAYER ONE · {walletLabel.toUpperCase()}
+            </p>
+            <p className="font-brand text-foreground mt-0.5 truncate text-lg">{name}</p>
+            <p className="text-muted-foreground font-mono text-xs">
+              {abbreviateAddress(user.walletAddress, 6)}
+            </p>
           </div>
-          <div className="flex shrink-0 gap-1.5 pt-1.5">
+          <div className="flex shrink-0 gap-1.5">
             <button
               onClick={() => {
                 void toast.promise(navigator.clipboard.writeText(user.walletAddress), {
@@ -279,7 +244,7 @@ export function ConnectWalletDialog() {
               }}
               title="Copy wallet address"
               aria-label="Copy wallet address"
-              className="border-foreground/12 hover:border-foreground flex size-9 items-center justify-center rounded-xl border-2 transition-colors"
+              className="border-border-strong hover:border-primary hover:text-primary-text flex size-9 items-center justify-center rounded-[10px] border transition-colors"
             >
               <DocumentDuplicateIcon className="size-4" />
             </button>
@@ -287,7 +252,7 @@ export function ConnectWalletDialog() {
               onClick={disconnectWallet}
               title="Sign out"
               aria-label="Sign out"
-              className="border-destructive/40 text-destructive hover:bg-destructive/10 flex size-9 items-center justify-center rounded-xl border-2 transition-colors"
+              className="border-destructive/50 text-destructive hover:bg-destructive/10 flex size-9 items-center justify-center rounded-[10px] border transition-colors"
             >
               <LogOut className="size-4" />
             </button>
@@ -365,44 +330,27 @@ export function ConnectWalletDialog() {
 
   // ── Social auth buttons ──
   function SocialButtons() {
+    const base =
+      "flex h-12 w-full items-center justify-center gap-2.5 rounded-[10px] border text-sm font-semibold transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 disabled:opacity-50";
     return (
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2.5">
-        <button
-          onClick={() => void appleProvider.login()}
-          className="border-foreground/12 bg-card text-card-foreground hover:border-foreground flex h-11 w-full items-center justify-center gap-2 rounded-xl border-2 px-4 text-sm font-bold whitespace-nowrap transition-[transform,border-color] duration-150 hover:-translate-y-0.5 disabled:opacity-50"
-        >
-          <svg className="size-[18px]" viewBox="0 0 384 512" fill="currentColor" aria-hidden>
-            <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
-          </svg>
-          Apple
-        </button>
-
-        <span className="marker text-muted-foreground text-base">or</span>
-
+      <div className="flex flex-col gap-2.5">
         <button
           onClick={() => void googleProvider.login()}
           disabled={isIosFBuser ?? false}
-          className="border-foreground/12 bg-card text-card-foreground hover:border-foreground flex h-11 w-full items-center justify-center gap-2 rounded-xl border-2 px-4 text-sm font-bold whitespace-nowrap transition-[transform,border-color] duration-150 hover:-translate-y-0.5 disabled:opacity-50"
+          className={clsx(
+            base,
+            "border-transparent bg-[#f2f7f2] text-[#050605] hover:shadow-[0_0_22px_-6px_var(--color-primary)]",
+          )}
         >
-          <svg className="size-[18px]" viewBox="0 0 48 48" aria-hidden>
-            <path
-              fill="#FFC107"
-              d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"
-            />
-            <path
-              fill="#FF3D00"
-              d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"
-            />
-            <path
-              fill="#4CAF50"
-              d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"
-            />
-            <path
-              fill="#1976D2"
-              d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"
-            />
-          </svg>
-          Google
+          <GoogleLogo />
+          Continue with Google
+        </button>
+        <button
+          onClick={() => void appleProvider.login()}
+          className={clsx(base, "border-border-strong hover:border-primary bg-black text-white")}
+        >
+          <AppleLogo />
+          Continue with Apple
         </button>
       </div>
     );
@@ -410,63 +358,46 @@ export function ConnectWalletDialog() {
 
   // ── Action tab content ──
   function ActionTabContent() {
+    const back = (
+      <button
+        type="button"
+        onClick={() => setAuthView("login")}
+        className="text-muted-foreground hover:text-primary-text flex items-center gap-1 text-sm transition-colors"
+      >
+        <ArrowLeft className="size-4" /> Back
+      </button>
+    );
     return (
       <div className="flex flex-col gap-4">
         {authView === "login" && (
           <>
-            <EmailLoginForm onForgotPassword={() => setAuthView("forgot-password")} />
-
-            <div className="relative my-1">
-              <div className="absolute inset-0 flex items-center">
-                <span className="border-foreground/15 w-full border-t-2 border-dashed" />
-              </div>
-              <div className="relative flex justify-center text-base">
-                <span className="bg-surface marker text-muted-foreground px-2">
-                  or continue with
-                </span>
-              </div>
-            </div>
-
             <SocialButtons />
-
+            <Divider label="or with email" />
+            <EmailLoginForm onForgotPassword={() => setAuthView("forgot-password")} />
             {/* already signed in: switching accounts doesn't need the sign-up prompt */}
             {!authUser && (
               <p className="text-muted-foreground text-center text-sm">
-                Don&apos;t have an account?{" "}
+                New here?{" "}
                 <button
                   type="button"
                   onClick={() => setAuthView("signup")}
                   className="text-primary-text font-semibold hover:underline"
                 >
-                  Sign up
+                  Create an account
                 </button>
               </p>
             )}
           </>
         )}
-
         {authView === "signup" && (
           <>
-            <button
-              type="button"
-              onClick={() => setAuthView("login")}
-              className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-sm transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" /> Back to login
-            </button>
+            {back}
             <EmailSignUpForm onSuccess={() => setAuthView("login")} />
           </>
         )}
-
         {authView === "forgot-password" && (
           <>
-            <button
-              type="button"
-              onClick={() => setAuthView("login")}
-              className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-sm transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" /> Back to login
-            </button>
+            {back}
             <ForgotPasswordForm />
           </>
         )}
@@ -477,9 +408,10 @@ export function ConnectWalletDialog() {
   // ── Stellar wallets grid ──
   function StellarTabContent() {
     return (
-      <div className="flex flex-col gap-2">
-        {authUser && <p className="text-muted-foreground text-xs font-medium">Switch wallet</p>}
-
+      <div className="flex flex-col gap-3">
+        <p className="text-fg-faint text-xs">
+          You only sign a message to sign in. Nothing is sent.
+        </p>
         <div className="grid grid-cols-2 gap-2">
           {NON_CUSTODIAL_PROVIDERS.map((provider) => (
             <WalletButton
@@ -491,14 +423,8 @@ export function ConnectWalletDialog() {
               {...WALLET_BUTTON_ART[provider.type]}
             />
           ))}
-          {/* Complementary with the right panel's own Lobstr button, not
-              redundant with it: this tile is the ONLY way to reach
-              Lobstr/WalletConnect once that panel is narrow (`lg:hidden`,
-              real viewport) or hidden outright for the framed host, which
-              has no viewport width at which the panel ever reappears. Without
-              the `isFramedHost` half of this condition, a framed host
-              reviewed at normal desktop width — which is how this app is
-              meant to be looked at — would show Lobstr in neither place. */}
+          {/* Lobstr (WalletConnect): the only way to reach it in the phone frame and on narrow
+              screens, where the brand panel with its QR card is hidden. */}
           <div className={isFramedHost ? undefined : "lg:hidden"}>
             <WCButton
               toolTipsAddr={toolTipsAddr}
@@ -512,141 +438,73 @@ export function ConnectWalletDialog() {
     );
   }
 
+  const onWallets = activeTab === "stellar";
   return (
     <Dialog open={dialogModalState.isOpen} onOpenChange={handleClose}>
-      {/* Not-activated state — compact dialog */}
+      {/* Signed in but the Stellar account isn't funded yet: a compact card */}
       {session.status === "authenticated" &&
       session.data?.user.emailVerified &&
       !isAccountActivateLoading &&
       !isAccountActivate ? (
-        <DialogContent portalContainer={frameContainer} className="max-w-sm rounded-2xl p-6">
-          <DialogTitle className="sr-only">Account Status</DialogTitle>
+        <DialogContent
+          portalContainer={frameContainer}
+          className="border-border-strong bg-surface max-w-sm rounded-[20px] border p-6"
+        >
+          <DialogTitle className="sr-only">Account status</DialogTitle>
           <NotActivatedUser />
           <div className="mt-4">
             <DisconnectButton />
           </div>
         </DialogContent>
       ) : (
-        /* Main dialog — inlined to prevent remounting.
-           Two layouts, chosen by `isFramedHost`: the original wide
-           two-column grid (unchanged, for every other consumer of this
-           shared package), or a single column capped to a phone-comfortable
-           width for the AR app's device frame — Tailwind's `lg:` variants key
-           off the real browser viewport, not that frame's width, so left
-           alone the two-column grid would still activate on any wide screen
-           and cram a 280px side panel into a ~400px box. */
+        /* One column in the AR phone frame and on phones; on wide screens a brand panel
+           (with the Lobstr QR card) sits on the left. `isFramedHost` decides, because the
+           frame is narrow even on a wide screen and lg: keys off the real viewport. */
         <DialogContent
           portalContainer={frameContainer}
-          className={
+          className={clsx(
+            "border-border-strong bg-surface gap-0 overflow-hidden border p-0",
             isFramedHost
-              ? clsx(
-                  "mx-auto flex w-full max-w-[420px] flex-col gap-0 overflow-hidden p-0",
-                  authUser ? "h-[85vh]" : "h-[80vh]",
-                )
-              : clsx(
-                  // as tall as its content (no inner scroll), never shorter than the email view so switching tabs
-                  // doesn't resize it; the 92dvh cap only matters on very short screens
-                  "border-foreground/15 flex max-w-[820px] gap-0 overflow-hidden rounded-[1.6rem] border-2 p-0 shadow-[10px_11px_0_0_var(--color-primary)] lg:grid lg:min-h-[min(624px,92dvh)] lg:grid-cols-[1fr_290px] lg:grid-rows-[minmax(0,1fr)]",
-                )
-          }
+              ? "mx-auto flex max-h-[88vh] w-full max-w-[420px] flex-col rounded-[22px]"
+              : "flex max-h-[92dvh] max-w-[860px] rounded-[22px] shadow-[0_0_0_1px_rgb(77_255_42/0.15),0_30px_80px_-20px_rgb(0_0_0/0.9)] lg:grid lg:grid-cols-[330px_1fr]",
+          )}
         >
-          {/* ── Left panel ── */}
-          <div
+          {/* ── Brand panel (wide screens) ── */}
+          <aside
             className={clsx(
-              "flex min-h-0 w-full flex-1 flex-col overflow-y-auto",
-              isFramedHost
-                ? "gap-4 px-4 pt-10 pb-4"
-                : authUser
-                  ? "gap-3 p-6 lg:px-8 lg:py-5"
-                  : "gap-4 p-6 lg:px-8 lg:py-7",
+              "border-border relative flex-col justify-between overflow-hidden border-r bg-black p-7",
+              isFramedHost ? "hidden" : "hidden lg:flex",
             )}
           >
-            {/* Unverified email banner */}
-            {session.data?.user && !session.data.user.emailVerified && (
-              <div className="bg-secondary/60 rounded-xl border p-4">
-                <p className="text-foreground text-sm font-semibold">{session.data.user.email}</p>
-                <p className="text-muted-foreground mt-0.5 text-sm">
-                  Please verify your email before continuing.
+            <div aria-hidden className="at-grid absolute inset-0" />
+            <div aria-hidden className="at-scanlines absolute inset-0 opacity-60" />
+            <div
+              aria-hidden
+              className="absolute -bottom-24 left-1/2 h-56 w-[140%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgb(77_255_42/0.35),transparent)]"
+            />
+            <div className="relative">
+              <p className="font-neon at-neon-text text-2xl">Welcome</p>
+              <p className="font-shade text-foreground mt-3 text-[44px] leading-[0.95]">
+                ACTION
+                <br />
+                TOKENS
+              </p>
+              <p className="font-pixel text-muted-foreground mt-4 text-[11px] leading-relaxed tracking-widest">
+                DISCOVER · ACT · PROVE
+                <br />
+                EARN · FLEX
+              </p>
+            </div>
+            <div className="relative">
+              <div className="border-border-strong rounded-[14px] border bg-[#0a0d0a]/90 p-4">
+                <div className="flex items-center gap-2">
+                  <QrCodeIcon className="text-primary-text size-5" />
+                  <p className="font-brand text-sm">Scan with Lobstr</p>
+                </div>
+                <p className="text-muted-foreground mt-1 text-xs">
+                  Connect your phone wallet with a QR code.
                 </p>
-                <Button size="sm" variant="outline" className="mt-3" onClick={disconnectWallet}>
-                  <SignalSlashIcon className="mr-1.5 h-3.5 w-3.5" />
-                  Logout
-                </Button>
-              </div>
-            )}
-
-            {/* Profile card */}
-            {authUser && <ProfileCard />}
-
-            {/* Header */}
-            <div>
-              <DialogTitle
-                className={clsx("display text-foreground", authUser ? "text-2xl" : "text-3xl")}
-              >
-                Action Auth System
-              </DialogTitle>
-              <p className="marker text-primary-text mt-2 -rotate-1 text-lg">{subtitle}</p>
-            </div>
-
-            {/* Tabs — controlled so switching is stable */}
-            <Tabs
-              value={activeTab}
-              onValueChange={(v) => setActiveTab(v as "action" | "stellar")}
-              className="w-full"
-            >
-              <TabsList className="bg-surface-2 grid h-12 w-full grid-cols-2 rounded-2xl p-1">
-                <TabsTrigger
-                  value="action"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground font-hud rounded-xl text-sm data-[state=active]:shadow-none dark:data-[state=active]:border-transparent"
-                >
-                  Action Login
-                </TabsTrigger>
-                <TabsTrigger
-                  value="stellar"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:bg-primary dark:data-[state=active]:text-primary-foreground font-hud rounded-xl text-sm data-[state=active]:shadow-none dark:data-[state=active]:border-transparent"
-                >
-                  Stellar Login
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="action" className={authUser ? "mt-2" : "mt-4"}>
-                <ActionTabContent />
-              </TabsContent>
-              <TabsContent value="stellar" className={authUser ? "mt-2" : "mt-4"}>
-                <StellarTabContent />
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          {/* ── Right panel ──
-              Desktop-only marketing panel (QR code, "scan to connect") from
-              the original wide two-column layout. Hidden outright in the
-              framed host rather than left on its original `lg:flex` trigger,
-              since that keys off the real browser viewport and would still
-              fire on any wide screen even though the dialog itself no longer
-              renders as a two-column box there. Nothing is lost when it's
-              hidden: Lobstr/WalletConnect is still the "Lobstr" tile in the
-              Stellar wallet grid below (`WCButton ... inGrid`). Every other
-              consumer of this shared package keeps the original panel. */}
-          <div
-            className={
-              isFramedHost
-                ? "hidden"
-                : "bg-primary/10 dark:bg-primary/15 text-foreground border-foreground/10 relative hidden flex-col overflow-hidden border-l-2 lg:flex"
-            }
-          >
-            <div className="p-6 pb-3">
-              <p className="marker text-primary-text text-xl">*scan to connect*</p>
-              <h3 className="display text-foreground mt-2 text-[22px] whitespace-nowrap">
-                Connect Wallet
-              </h3>
-            </div>
-
-            <div className="flex flex-1 items-center justify-center px-6">
-              <div className="bg-card border-foreground/10 relative flex h-44 w-full -rotate-2 items-center justify-center overflow-hidden rounded-2xl border-2">
-                {/* QR blurred watermark */}
-                <QrCodeIcon className="text-foreground absolute h-36 w-36 scale-110 opacity-10" />
-                {/* Button centred on top */}
-                <div className="relative z-10 w-full px-2">
+                <div className="mt-3">
                   <WCButton
                     toolTipsAddr={toolTipsAddr}
                     selectedWallet={selectedWallet}
@@ -656,32 +514,171 @@ export function ConnectWalletDialog() {
                 </div>
               </div>
             </div>
+          </aside>
 
-            <div className="p-6 pt-3">
+          {/* ── Sign-in column ── */}
+          <div
+            className={clsx(
+              "flex min-h-0 w-full flex-1 flex-col gap-5 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+              isFramedHost ? "px-5 pt-8 pb-5" : "p-6 sm:p-8",
+            )}
+          >
+            {session.data?.user && !session.data.user.emailVerified && (
+              <div className="border-warning/40 bg-warning/10 rounded-[12px] border p-4">
+                <p className="text-foreground text-sm font-semibold">{session.data.user.email}</p>
+                <p className="text-muted-foreground mt-0.5 text-sm">
+                  Check your inbox and verify your email to continue.
+                </p>
+                <Button size="sm" variant="outline" className="mt-3" onClick={disconnectWallet}>
+                  <SignalSlashIcon className="mr-1.5 size-3.5" />
+                  Sign out
+                </Button>
+              </div>
+            )}
+
+            {authUser && <ProfileCard />}
+
+            <header>
+              <p className="font-pixel text-primary-text text-[11px] tracking-[0.25em]">
+                {authUser ? "SWITCH ACCOUNT" : "PRESS START"}
+              </p>
+              <DialogTitle className="font-brand text-foreground mt-1.5 text-[28px] leading-tight">
+                {onWallets
+                  ? "Stellar wallet"
+                  : authUser
+                    ? "Use another account"
+                    : "Enter the network"}
+              </DialogTitle>
+              <p className="text-muted-foreground mt-1.5 text-sm">{subtitle}</p>
+            </header>
+
+            {onWallets ? <StellarTabContent /> : <ActionTabContent />}
+
+            {/* The other way in, one tap away */}
+            {authView === "login" && (
               <button
-                onClick={() =>
-                  (window.location.href =
-                    "https://github.com/Lobstrco/lobstr-browser-extension/tree/main")
-                }
-                className="bg-card border-foreground/10 hover:border-foreground flex w-full items-center gap-3 rounded-xl border-2 px-3 py-2.5 text-left transition-colors"
+                type="button"
+                onClick={() => setActiveTab(onWallets ? "action" : "stellar")}
+                className="border-border-strong hover:border-primary group mt-auto flex items-center gap-3 rounded-[12px] border border-dashed px-4 py-3 text-left transition-colors"
               >
-                <Image
-                  src="/images/icons/labstr.png"
-                  alt="Lobstr"
-                  width={32}
-                  height={32}
-                  className="shrink-0 rounded-full"
-                />
-                <div>
-                  <p className="marker text-muted-foreground text-base">works with</p>
-                  <p className="display text-sm whitespace-nowrap">Lobstr Mobile App</p>
-                </div>
+                <span className="bg-surface-3 flex size-9 items-center justify-center rounded-[10px]">
+                  {onWallets ? <ArrowLeft className="size-4" /> : <Wallet className="size-4" />}
+                </span>
+                <span className="flex-1">
+                  <span className="font-brand block text-sm">
+                    {onWallets ? "Use email, Google or Apple" : "I have a Stellar wallet"}
+                  </span>
+                  {onWallets ? (
+                    <LogoStack items={ACCOUNT_STACK} />
+                  ) : (
+                    <LogoStack
+                      items={WALLET_STACK}
+                      more={NON_CUSTODIAL_PROVIDERS.length + 1 - WALLET_STACK.length}
+                    />
+                  )}
+                </span>
+                <span className="font-pixel text-fg-faint group-hover:text-primary-text text-[10px]">
+                  {onWallets ? "BACK" : "NEXT"}
+                </span>
               </button>
-            </div>
+            )}
+
+            <p className="text-fg-faint text-center text-[11px]">
+              By continuing you agree to the ActionTokens terms.
+            </p>
           </div>
         </DialogContent>
       )}
     </Dialog>
+  );
+}
+
+function GoogleLogo({ className = "size-[18px]" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 48 48" aria-hidden>
+      <path
+        fill="#FFC107"
+        d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"
+      />
+      <path
+        fill="#FF3D00"
+        d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"
+      />
+      <path
+        fill="#4CAF50"
+        d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"
+      />
+      <path
+        fill="#1976D2"
+        d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"
+      />
+    </svg>
+  );
+}
+
+function AppleLogo({ className = "size-[18px]" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 384 512" fill="currentColor" aria-hidden>
+      <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
+    </svg>
+  );
+}
+
+type StackItem = { name: string; image?: StaticImageData; icon?: React.ReactNode };
+
+/** The Stellar wallets we support. */
+const WALLET_STACK: StackItem[] = [
+  { name: "Freighter", image: freighterLogo },
+  { name: "xBull", image: xbullLogo },
+  { name: "Lobstr", image: lobstrLogo },
+  { name: "Albedo", image: albedoLogo },
+  { name: "Rabet", image: rabetLogo },
+  { name: "Hana", icon: <HanaIcon /> },
+];
+
+/** The ways in that need no wallet: email, Google, Apple. */
+const ACCOUNT_STACK: StackItem[] = [
+  { name: "Email", icon: <Mail className="text-primary-text" /> },
+  { name: "Google", icon: <GoogleLogo className="size-4" /> },
+  { name: "Apple", icon: <AppleLogo className="size-4 text-white" /> },
+];
+
+/** Logos as an overlapping row of circles, with "+N" for the rest. */
+function LogoStack({ items, more = 0 }: { items: StackItem[]; more?: number }) {
+  return (
+    <span className="mt-1.5 flex items-center" aria-label={items.map((w) => w.name).join(", ")}>
+      {items.map((item, i) => (
+        <span
+          key={item.name}
+          title={item.name}
+          style={{ zIndex: items.length - i }}
+          className="ring-surface relative -ml-2 flex size-8 items-center justify-center overflow-hidden rounded-full bg-[#1a221a] ring-2 first:ml-0 [&_svg]:size-4"
+        >
+          {item.image ? (
+            <Image src={item.image} alt="" width={20} height={20} className="object-contain" />
+          ) : (
+            item.icon
+          )}
+        </span>
+      ))}
+      {more > 0 && (
+        <span className="ring-surface bg-surface-3 text-muted-foreground relative -ml-2 flex size-8 items-center justify-center rounded-full font-mono text-[10px] ring-2">
+          +{more}
+        </span>
+      )}
+    </span>
+  );
+}
+
+function Divider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="bg-border h-px flex-1" />
+      <span className="font-pixel text-fg-faint text-[10px] tracking-widest uppercase">
+        {label}
+      </span>
+      <span className="bg-border h-px flex-1" />
+    </div>
   );
 }
 
@@ -735,20 +732,20 @@ function WCButton({
           void runner();
         }}
         className={clsx(
-          "flex w-full items-center gap-2.5 rounded-xl border-2 text-sm font-bold transition-[transform,border-color,background-color] duration-150 disabled:opacity-60",
-          inGrid ? "px-3 py-2" : "justify-center px-4 py-2.5",
+          "flex w-full items-center gap-2.5 rounded-[10px] border text-sm font-semibold transition-[transform,border-color,box-shadow] duration-150 disabled:opacity-60",
+          inGrid ? "px-3 py-2.5" : "justify-center px-4 py-2.5",
           isSelected
-            ? "border-primary-text bg-primary/10 ring-primary-text/30 text-primary-text hover:bg-primary/20 ring-1"
+            ? "border-primary bg-primary/10 text-primary-text"
             : onDark
-              ? "border-primary-text bg-primary text-primary-foreground hover:-translate-y-0.5"
-              : "border-foreground/12 bg-card text-card-foreground hover:border-foreground hover:-translate-y-0.5",
+              ? "at-stripes font-brand border-transparent hover:-translate-y-0.5 hover:shadow-[0_0_22px_-4px_var(--color-primary)]"
+              : "border-border-strong bg-surface-2 text-foreground hover:border-primary hover:-translate-y-0.5",
         )}
       >
         <span
           className={clsx("flex shrink-0 items-center justify-center", inGrid ? "h-7 w-7" : "")}
         >
           <Image
-            src="/images/icons/labstr.png"
+            src={lobstrLogo}
             alt="Lobstr"
             width={inGrid ? 28 : 20}
             height={inGrid ? 28 : 20}

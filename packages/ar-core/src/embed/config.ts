@@ -152,7 +152,7 @@ export function frameAncestors(domains: string[]): string {
   return `frame-ancestors 'self' ${[...orgPortalOrigins(), ...sources].join(" ")}`;
 }
 
-/** "#dbdc2c" → "60 72% 52%" — the triplet format the `--ar-*` tokens use. */
+/** "#4dff2a" → "60 72% 52%" — the triplet format the `--ar-*` tokens use. */
 export function hexToHslTriplet(hex: string): string {
   const n = parseInt(hex.slice(1), 16);
   const r = ((n >> 16) & 255) / 255;

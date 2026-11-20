@@ -13,7 +13,7 @@ import { PlaceSearch } from "../../pins/map-kit/place-search";
 import { MAPBOX_TOKEN } from "../../pins/mapbox";
 import { MAX_PLACES, type UnlockPlace } from "./drafts";
 
-const AREA = "#dbdc2c";
+const AREA = "#4dff2a";
 
 /**
  * The places an owner must visit to unlock a piece: click the map or search to

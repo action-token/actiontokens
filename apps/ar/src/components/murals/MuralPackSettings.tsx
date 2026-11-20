@@ -134,7 +134,7 @@ export function MuralPackSettings() {
           onClick={() => {
             setBusy("delete");
             void deleteMuralPack()
-              .then(() => setNote("Deleted. It downloads again next time you open Bandcoin AR."))
+              .then(() => setNote("Deleted. It downloads again next time you open ActionTokens AR."))
               .finally(() => setBusy(null));
           }}
         >

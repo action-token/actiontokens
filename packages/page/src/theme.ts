@@ -11,7 +11,7 @@ export const themeSchema = z.object({
 export type PageTheme = z.infer<typeof themeSchema>;
 
 export const DEFAULT_THEME: PageTheme = {
-  accent: "#dbdc2c",
+  accent: "#4dff2a",
   fontPair: "grotesk",
   radius: "md",
   density: "normal",

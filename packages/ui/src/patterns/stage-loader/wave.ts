@@ -57,7 +57,7 @@ export function drawWave(ctx: CanvasRenderingContext2D, wave: Wave, progress: nu
     const near = played && head - x < 48 ? 1 + 0.22 * Math.sin(now / 90 + i * 1.3) : 1;
     const top = Math.max(1.5, peaks[i]! * (mid - 4) * near);
     const bottom = Math.max(1, peaks[i]! * (height - mid - 2) * 0.85);
-    ctx.fillStyle = played ? "#dbdc2c" : "#3b3e31";
+    ctx.fillStyle = played ? "#4dff2a" : "#3b3e31";
     ctx.beginPath();
     ctx.roundRect(x, mid - top, BAR, top, 1.5);
     ctx.fill();

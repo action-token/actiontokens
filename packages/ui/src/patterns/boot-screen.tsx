@@ -16,7 +16,7 @@ export function BrandMark({ className }: { className?: string }) {
     <svg viewBox="0 0 32 36" aria-hidden className={cn("h-8 w-auto", className)}>
       <path
         d="M16 1C25.5 1 31 4.6 31 11.2 31 20.3 22.6 30 17.6 34.2a2.5 2.5 0 0 1-3.2 0C9.4 30 1 20.3 1 11.2 1 4.6 6.5 1 16 1Z"
-        fill="#dbdc2c"
+        fill="#4dff2a"
       />
       <path
         d="M10.5 12.5h8.6a3.3 3.3 0 0 1 2.4 5.6 3.4 3.4 0 0 1-2.2 6H10.5Zm3.2 3v2.2h4.4v-2.2Zm0 4.9v1.9h4.9v-1.9Z"

@@ -41,7 +41,7 @@ type Tab = "settings" | "install" | "stats";
 type View = { lat: number; lng: number; zoom: number };
 type Saved = RouterOutputs["embeds"]["embed"];
 
-const ACCENTS = ["#dbdc2c", "#39ff88", "#7d2a3c", "#1d4ed8", "#ea580c", "#7c3aed", "#0f172a"];
+const ACCENTS = ["#4dff2a", "#39ff88", "#7d2a3c", "#1d4ed8", "#ea580c", "#7c3aed", "#0f172a"];
 const WIDTHS = [
   { id: "hero", label: "Hero", icon: Monitor, width: "100%" },
   { id: "sidebar", label: "Sidebar", icon: PanelLeft, width: "420px" },

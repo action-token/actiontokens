@@ -18,7 +18,7 @@ import { PlaceSearch } from "./place-search";
 
 export type MapSpot = { id: string; latitude: number; longitude: number; hidden?: boolean };
 
-const AREA = "#dbdc2c";
+const AREA = "#4dff2a";
 
 /**
  * Pick one location for a form: click the map, drag the marker, search a place,
