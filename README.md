@@ -1,105 +1,119 @@
-# Bandcoin
+<div align="center">
 
-Music and collectibles on Stellar. Fans buy, sell and stream music, collect rewards at pins on a map, and complete bounties. Artists run everything from their own portal: catalog, memberships, pins, bounties, events, posts, gifts and their public page.
+# ActionTokens
 
-This is the monorepo behind [bandcoin.io](https://bandcoin.io). It is a Turborepo with pnpm workspaces.
+**Collect the real world.** Fans find drops on a map, walk to them and collect them in AR.
+Organizations run everything from their own portal.
 
-## Apps
+[Fan app](https://app.action-tokens.com) · [AR app](https://ar.action-tokens.com) · [Org portal](https://org.action-tokens.com)
 
-| App                          | Address              | Local port | What it is                                                                                             |
-| ---------------------------- | -------------------- | ---------- | ------------------------------------------------------------------------------------------------------ |
-| [`apps/app`](apps/app)       | `bandcoin.io`        | 3000       | Fan app: home, music, marketplace, items, collection, playlists, bounties, artist pages, wallet        |
-| [`apps/org`](apps/org) | `artist.bandcoin.io` | 3001       | Organization portal: onboarding, catalog, music, memberships, pins, bounties, events, posts, gifts, `/admin` |
-| [`apps/ar`](apps/ar)         | `ar.bandcoin.io`     | 3002       | AR collector: find pins on a map, collect them, scan murals, the embeddable pin map                    |
-| `apps/worker`                | _planned_            |            | Background jobs (transcoding, hotspot drops, payouts, reconciliation)                                  |
+</div>
 
-All apps share one login (`NEXTAUTH_SECRET` and the `.bandcoin.io` cookie domain), one database and one API package.
+ActionTokens is a platform on [Stellar](https://stellar.org). An **organization** (a brand, a venue, a cause, an
+artist crew) issues its own **action token** and collectibles. **Fans** buy them, or collect them by visiting
+**pins** on a map, completing **bounties** and scanning **murals**. Everything is a real Stellar asset or a
+Soroban contract, so what a fan collects is theirs.
+
+> **Looking for the old Actionverse?** It is deprecated. This repository replaces
+> [`action-token/actionverse`](https://github.com/action-token/actionverse) and
+> [`action-token/gallery-actiontokens`](https://github.com/action-token/gallery-actiontokens). See
+> [docs/README.md](docs/README.md#migration-from-actionverse) for how the data moved.
+
+## The apps
+
+| App                          | Address                 | Local port | What it is                                                                                         |
+| ---------------------------- | ----------------------- | ---------- | -------------------------------------------------------------------------------------------------- |
+| [`apps/app`](apps/app)       | `app.action-tokens.com` | 3000       | **Fan app:** home, marketplace, items, collection, bounties, organization pages, wallet            |
+| [`apps/org`](apps/org)       | `org.action-tokens.com` | 3001       | **Organization portal:** onboarding, catalog, memberships, pins, bounties, events, posts, `/admin` |
+| [`apps/ar`](apps/ar)         | `ar.action-tokens.com`  | 3002       | **AR collector:** find pins on a map, collect them, scan murals, the embeddable pin map            |
+| [`apps/worker`](apps/worker) | server only             |            | **Background jobs:** payment re-checks, music processing, hotspot drops, reconciliation            |
+
+All apps share one login, one database and one API package.
 
 ## Stack
 
 - **Web:** Next.js 16, React 19, Tailwind CSS 4, tRPC 11
-- **Data:** Prisma 7 on PostgreSQL (Neon)
-- **Sign-in:** NextAuth v4 with Stellar wallets (Freighter, Albedo, WalletConnect…) and custodial accounts (email, Google, Apple via Firebase)
-- **Chain:** Stellar SDK, classic tokens, and the Soroban contracts `nft_oz` (NFT editions) and `bounty_escrow`
-- **Payments:** wallet payments in BANDCOIN, XLM or USDC, and cards through Square
-- **Files:** S3 for covers, music, art and mural photos
-- **Tooling:** pnpm 12 with a version catalog, Turborepo, TypeScript, ESLint, Prettier, Vitest
+- **Data:** Prisma 7 on PostgreSQL
+- **Sign-in:** NextAuth with Stellar wallets (Freighter, Albedo, WalletConnect) and custodial email accounts
+- **Chain:** Stellar SDK, classic assets, and the Soroban contracts `nft_oz` (NFT editions) and `bounty_escrow`
+- **Payments:** wallet payments in ACTION, XLM or USDC, and cards through Square
+- **Tooling:** pnpm, Turborepo, TypeScript, ESLint, Prettier, Vitest
+
+## Quick start
+
+You need Node 22 (see [`.nvmrc`](.nvmrc)), pnpm 12 and Docker.
+
+```bash
+pnpm install
+pnpm db:up                                   # local Postgres in Docker (port 55432)
+
+cp packages/db/.env.example packages/db/.env
+cp apps/ar/.env.example     apps/ar/.env.local   # fill in the values, one file per app
+pnpm --filter @actiontokens/db migrate:deploy
+pnpm --filter @actiontokens/db seed          # demo organizations, items and pins
+
+pnpm dev:ar                                  # or dev:app, dev:org, or `pnpm dev` for all
+```
+
+Development runs on Stellar **testnet**. The step-by-step guide, including funding testnet wallets and
+loading real on-chain demo data, is in **[docs/getting-started.md](docs/getting-started.md)**.
 
 ## Repository layout
 
 ```
 apps/
-  app/       fan app
-  artist/    artist portal (and /admin)
-  ar/        AR collector
+  app/        fan app
+  org/        organization portal (and /admin)
+  ar/         AR collector
+  worker/     background jobs
 packages/
-  api/       tRPC context, procedures, services (the business logic) and one root router per app
-  ar-core/   AR domain code: pins, distance, rarity, murals, the website-map embed
-  auth/      turns a credential into a signed-in user
-  chain/     every Stellar transaction Bandcoin builds: quotes, tokens, NFTs, escrow
-  db/        Prisma schema (one file per domain) and the shared client
-  errors/    AppError and error codes
-  geo/       geographic helpers
-  page/      artist page blocks, themes and templates
-  stellar/   account reads, quotes and price lookups
-  storage/   S3 uploads and the rules for what may be uploaded
-  ui/        design system: tokens, primitives and patterns
-  utils/     small framework-free helpers
-  wallet/    connect wallets, sign transactions, testnet or mainnet
-tooling/     shared ESLint, Prettier, TypeScript and Vitest config
-docs/        migration report and plans
+  api/        tRPC procedures and services (the business logic)
+  ar-core/    AR domain code: pins, distance, rarity, murals, the website-map embed
+  auth/       turns a credential into a signed-in user
+  chain/      every Stellar transaction we build: quotes, tokens, NFTs, escrow
+  contracts/  Soroban contracts (bounty_escrow, nft_oz)
+  db/         Prisma schema (one file per domain), migrations, seeds
+  errors/     AppError and error codes
+  geo/ map/   geographic helpers and the shared map
+  page/       organization page blocks, themes and templates
+  stellar/    account reads, quotes and price lookups
+  storage/    S3 uploads and the rules for what may be uploaded
+  ui/         design system: tokens, primitives, patterns
+  utils/      small framework-free helpers
+  wallet/     connect wallets, sign transactions, testnet or mainnet
+tooling/      shared ESLint, Prettier, TypeScript and Vitest config
+docs/         guides, architecture, design and plans (start at docs/README.md)
 ```
-
-## Getting started
-
-You need Node 20.19 or newer and pnpm 12.
-
-```bash
-pnpm install
-
-# One env file per app: copy the example and fill it in.
-cp apps/app/.env.example    apps/app/.env.local
-cp apps/org/.env.example apps/org/.env.local
-cp apps/ar/.env.example     apps/ar/.env.local
-cp packages/db/.env.example packages/db/.env
-
-pnpm db:generate            # generate the Prisma client
-pnpm dev:app                # or dev:org, dev:ar, or `pnpm dev` for all of them
-```
-
-Development runs against Stellar **testnet**. Set `NEXT_PUBLIC_STELLAR_NETWORK=mainnet` (and the mainnet asset and contract addresses) only in production.
-
-### Environment variables
-
-Every variable an app reads is documented, with a comment, in that app's `.env.example`. The files are grouped the same way in all three apps: network, database, sign-in, chain keys, payments, storage, site details, links to the other apps, then the app's own integrations (maps, AI, Last.fm, Google Vision).
-
-Real values never go in git: `.env`, `.env.local` and `.env.production` are ignored, and only `*.example` files are committed.
 
 ## Everyday commands
 
-| Command                                  | What it does                                   |
-| ---------------------------------------- | ---------------------------------------------- |
-| `pnpm dev`                               | Run every app in development                   |
+| Command                               | What it does                                   |
+| ------------------------------------- | ---------------------------------------------- |
+| `pnpm dev`                            | Run every app in development                   |
 | `pnpm dev:app` / `dev:org` / `dev:ar` | Run one app                                    |
-| `pnpm typecheck`                         | Type-check every package                       |
-| `pnpm lint`                              | Lint every package                             |
-| `pnpm test`                              | Run every test suite                           |
-| `pnpm format` / `pnpm format:check`      | Format with Prettier, or only check            |
-| `pnpm db:generate` / `pnpm db:studio`    | Generate the Prisma client, or open the studio |
-| `pnpm build`                             | Production build of every app                  |
+| `pnpm typecheck` · `lint` · `test`    | Check every package                            |
+| `pnpm format` / `pnpm format:check`   | Format with Prettier, or only check            |
+| `pnpm db:up` / `pnpm db:down`         | Start or stop the local Postgres               |
+| `pnpm db:generate` / `pnpm db:studio` | Generate the Prisma client, or open the studio |
+| `pnpm build`                          | Production build of every app                  |
 
-Dependency versions live in the `catalog:` of [`pnpm-workspace.yaml`](pnpm-workspace.yaml), so upgrading a library is a one-line change.
+Run `pnpm typecheck && pnpm lint && pnpm test` before you push.
 
-## How the code is organised
+## Documentation
 
-- Apps never import each other. Shared code lives in a package, and packages never import apps.
-- Business logic lives in `packages/api/src/services`. Routers only check input and call a service. Every mutation lands in the activity log.
-- All Stellar and contract transactions are built in `@actiontokens/chain`, never in pages or routers. The user is always the transaction source, so the user pays the network fee.
-- Money is shown with a full price breakdown before anything is signed, and custodial wallets get a 5 second countdown with Cancel.
-- Files are kebab-case, components PascalCase, functions verb-first (`buildIssuerSetup`, `claimPin`). No file over 1000 lines.
-- No `throw new Error`: use `AppError` from `@actiontokens/errors`.
-- Run `pnpm typecheck && pnpm lint && pnpm test` before you push.
+| Read this                                                  | When you want to                                |
+| ---------------------------------------------------------- | ----------------------------------------------- |
+| [docs/getting-started.md](docs/getting-started.md)         | Set up a machine and run the apps               |
+| [docs/architecture.md](docs/architecture.md)               | Understand how the apps, packages and chain fit |
+| [docs/testnet-demo-data.md](docs/testnet-demo-data.md)     | Load real on-chain demo organizations and fans  |
+| [docs/AR-STICKER-REDESIGN.md](docs/AR-STICKER-REDESIGN.md) | See the AR design language, themes and colours  |
+| [docs/README.md](docs/README.md)                           | Browse everything, including plans and reports  |
 
-## Security
+## Contributing and security
 
-Never commit keys, tokens or `.env` files. If you find a security problem, email [support@bandcoin.io](mailto:support@bandcoin.io) instead of opening a public issue.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Report security problems privately,
+as described in [SECURITY.md](SECURITY.md). Never commit keys, tokens or `.env` files.
+
+## License
+
+Copyright © 2026 ActionTokens. All rights reserved. See [LICENSE](LICENSE).
