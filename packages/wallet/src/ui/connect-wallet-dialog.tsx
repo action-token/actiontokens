@@ -42,6 +42,7 @@ import freighterLogo from "./assets/freighter.png";
 import rabetLogo from "./assets/rabet.png";
 import xbullLogo from "./assets/xbull-dark.svg";
 import lobstrLogo from "./assets/lobstr.png";
+import brandMark from "./assets/actiontokens-mark.png";
 
 type AuthView = "login" | "signup" | "forgot-password";
 function getWalletLabel(walletType: WalletType): string {
@@ -483,7 +484,8 @@ export function ConnectWalletDialog() {
               className="absolute -bottom-24 left-1/2 h-56 w-[140%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgb(77_255_42/0.35),transparent)]"
             />
             <div className="relative">
-              <p className="font-neon at-neon-text text-2xl">Welcome</p>
+              <Image src={brandMark} alt="ActionTokens" width={64} height={64} priority />
+              <p className="font-neon at-neon-text mt-4 text-2xl">Welcome</p>
               <p className="font-shade text-foreground mt-3 text-[44px] leading-[0.95]">
                 ACTION
                 <br />
@@ -537,6 +539,8 @@ export function ConnectWalletDialog() {
             )}
 
             {authUser && <ProfileCard />}
+
+            <BrandHeader />
 
             <header>
               <p className="font-pixel text-primary-text text-[11px] tracking-[0.25em]">
@@ -667,6 +671,30 @@ function LogoStack({ items, more = 0 }: { items: StackItem[]; more?: number }) {
         </span>
       )}
     </span>
+  );
+}
+
+/**
+ * Who is asking you to sign in: the ActionTokens mark, the name and "Action Auth System".
+ * Always shown, so the dialog is branded even where the wide brand panel is hidden (phones,
+ * the AR phone frame).
+ */
+function BrandHeader() {
+  return (
+    <div className="border-border flex items-center gap-3 border-b pb-4">
+      <span className="border-primary/40 relative flex size-12 shrink-0 items-center justify-center rounded-[14px] border bg-black shadow-[0_0_20px_-6px_var(--color-primary)]">
+        <Image src={brandMark} alt="" width={36} height={36} priority />
+      </span>
+      <span className="min-w-0">
+        <span className="font-shade text-foreground block truncate text-[20px] leading-none">
+          ACTIONTOKENS
+        </span>
+        <span className="font-pixel at-neon-text mt-1.5 flex items-center gap-1.5 text-[10px] tracking-[0.22em]">
+          <span className="bg-primary at-pulse size-1.5 rounded-full" />
+          ACTION AUTH SYSTEM
+        </span>
+      </span>
+    </div>
   );
 }
 
