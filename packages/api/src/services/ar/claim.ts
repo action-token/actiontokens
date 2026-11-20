@@ -51,7 +51,7 @@ const claimInclude = {
               classicToken: { include: { issuerAccount: { select: { publicKey: true } } } },
             },
           },
-          artist: {
+          organization: {
             select: {
               name: true,
               issuerAccount: { select: { publicKey: true, activatedAt: true } },
@@ -80,9 +80,9 @@ async function loadClaim(ctx: ServiceCtx, userId: string, claimId: string) {
       message: "You haven't collected this pin.",
     });
   const { pin } = claim.spot;
-  const item = pin.rewardItem ?? (pin.rewardsFanToken ? pin.artist.fanTokenItem : null);
+  const item = pin.rewardItem ?? (pin.rewardsFanToken ? pin.organization.fanTokenItem : null);
   const token = item?.chainType === "CLASSIC_TOKEN" ? item.classicToken : null;
-  const stockAccount = pin.artist.storageAccount?.publicKey ?? null;
+  const stockAccount = pin.organization.storageAccount?.publicKey ?? null;
   const fanToken = !pin.rewardItem && pin.rewardsFanToken;
   // The fan token comes out of storage only; minting is for items, or an artist without storage.
   const storageOnly = fanToken && stockAccount !== null;
@@ -97,7 +97,7 @@ async function loadClaim(ctx: ServiceCtx, userId: string, claimId: string) {
           stockAccount,
           storageOnly,
           minter:
-            token.isExternal || storageOnly ? null : minterOf(token, pin.artist.issuerAccount),
+            token.isExternal || storageOnly ? null : minterOf(token, pin.organization.issuerAccount),
         }
       : null;
   return { claim, pin, item, reward };
@@ -203,11 +203,11 @@ async function plan(ctx: ServiceCtx, user: SessionUser, loaded: Loaded) {
       reward.storageOnly
         ? {
             code: "STORAGE_EMPTY",
-            message: `${loaded.pin.artist.name} has run out of ${reward.asset.getCode()} for pin rewards. Your collect is safe; try again later.`,
+            message: `${loaded.pin.organization.name} has run out of ${reward.asset.getCode()} for pin rewards. Your collect is safe; try again later.`,
           }
         : {
             code: "NOT_STOCKED",
-            message: `${loaded.pin.artist.name} hasn't stocked this reward yet, so it can't be sent. Your collect is safe; try again later.`,
+            message: `${loaded.pin.organization.name} hasn't stocked this reward yet, so it can't be sent. Your collect is safe; try again later.`,
           },
     );
   }

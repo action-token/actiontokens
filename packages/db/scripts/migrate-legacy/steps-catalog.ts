@@ -29,13 +29,13 @@ export async function copyFanTokens(copy: Copier) {
       external: boolean;
     },
   ) => {
-    const artistId = copy.must("Creator", creator.id);
+    const organizationId = copy.must("Creator", creator.id);
     const itemId = copy.map("FanToken", creator.id);
     const issuerAccountId = token.external
       ? null
       : ((
-          await copy.target.query(`SELECT "issuerAccountId" id FROM artists WHERE id = $1`, [
-            artistId,
+          await copy.target.query(`SELECT "issuerAccountId" id FROM organizations WHERE id = $1`, [
+            organizationId,
           ])
         ).rows[0]?.id ?? null);
     await copy.insert("items", [
@@ -47,7 +47,7 @@ export async function copyFanTokens(copy: Copier) {
         slug: uniqueSlug(copy.slug("item"), `${creator.name ?? ""} ${token.code}`),
         coverUrl: token.cover,
         supply: token.supply,
-        artistId,
+        organizationId,
         createdById: copy.must("User", creator.id),
         createdAt: creator.createdAt,
         updatedAt: now,
@@ -62,9 +62,9 @@ export async function copyFanTokens(copy: Copier) {
         isExternal: token.external || !issuerAccountId,
       },
     ]);
-    await copy.target.query(`UPDATE artists SET "fanTokenItemId" = $1 WHERE id = $2`, [
+    await copy.target.query(`UPDATE organizations SET "fanTokenItemId" = $1 WHERE id = $2`, [
       itemId,
-      artistId,
+      organizationId,
     ]);
   };
 
@@ -122,7 +122,7 @@ export async function copyAssets(copy: Copier) {
         releaseAt: asset.releaseDate,
         saleEndsAt: asset.fundEndDate,
         playCount: asset.playCount,
-        artistId: copy.find("Creator", asset.creatorId),
+        organizationId: copy.find("Creator", asset.creatorId),
         createdById,
         deletedAt: asset.deletedAt,
         createdAt: asset.createdAt,
@@ -172,7 +172,7 @@ export async function copyAssets(copy: Copier) {
     "albums",
     (await copy.read("Album")).map((album: Row) => ({
       id: copy.map("Album", album.id),
-      artistId: copy.find("Creator", album.creatorId),
+      organizationId: copy.find("Creator", album.creatorId),
       title: album.name,
       slug: uniqueSlug(copy.slug("album"), album.slug ?? album.name),
       description: album.description,
@@ -212,7 +212,7 @@ export async function copyNfts(copy: Copier) {
         coverUrl: nft.thumbnail,
         supply: nft.supply,
         royaltyPercent: (nft.royaltyBps / 100).toFixed(4),
-        artistId: copy.must("Creator", nft.creatorId),
+        organizationId: copy.must("Creator", nft.creatorId),
         createdById: copy.must("User", nft.creatorId),
         createdAt: nft.createdAt,
         updatedAt: nft.updatedAt,

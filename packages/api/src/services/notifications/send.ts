@@ -64,7 +64,7 @@ export async function notifyFollowers(
   ctx: Db,
   input: {
     type: NotificationType;
-    artist: { id: string; userId: string };
+    organization: { id: string; userId: string };
     entityId: string;
     once?: boolean;
   },
@@ -78,12 +78,12 @@ export async function notifyFollowers(
       if (sent) return;
     }
     const followers = await ctx.db.follow.findMany({
-      where: { artistId: input.artist.id },
+      where: { organizationId: input.organization.id },
       select: { userId: true },
     });
     await notify(ctx, {
       type: input.type,
-      actorId: input.artist.userId,
+      actorId: input.organization.userId,
       entityId: input.entityId,
       recipients: followers.map((follower) => ({ id: follower.userId })),
     });

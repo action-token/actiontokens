@@ -35,7 +35,7 @@ import { api, type RouterOutputs } from "~/trpc/react";
 
 import { FAN_APP_URL } from "../../shell/links";
 import { useArtistActions } from "./artist-actions";
-import { ArtistStatus } from "./artist-status";
+import { OrganizationStatus } from "./artist-status";
 
 type Artist = RouterOutputs["admin"]["artists"]["get"];
 type RecentPin = Artist["recentPins"][number];
@@ -44,8 +44,8 @@ const BACK = { href: "/admin/artists", label: "Artists" };
 const CARD = "bg-surface border-fg/10 rounded-[1.4rem] border-2";
 
 /** Admin › one artist, following Wadzzo's creator page. */
-export function ArtistDetailView({ artistId }: { artistId: string }) {
-  const artist = api.admin.artists.get.useQuery({ artistId }, { refetchOnWindowFocus: false });
+export function ArtistDetailView({ organizationId }: { organizationId: string }) {
+  const artist = api.admin.artists.get.useQuery({ organizationId }, { refetchOnWindowFocus: false });
   if (artist.isPending) return <DetailSkeleton />;
   if (artist.isError)
     return (
@@ -105,7 +105,7 @@ function Details({ artist }: { artist: Artist }) {
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="display truncate text-3xl sm:text-4xl">{artist.name}</h1>
-            <ArtistStatus status={artist.status} paid={ref.paid} />
+            <OrganizationStatus status={artist.status} paid={ref.paid} />
           </div>
           <p className="text-fg-muted mt-1 max-w-2xl text-sm">{artist.bio ?? "No bio yet."}</p>
           {artist.rejectionReason && (

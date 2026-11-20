@@ -28,7 +28,7 @@ function postRow(
     collectAccess: over.collectAccess ?? "VIEWERS",
     commentTier: null,
     collectTier: null,
-    artist: {
+    organization: {
       id: "a0",
       name: "DJ Tamsin",
       slug: "dj-tamsin",
@@ -74,14 +74,14 @@ function setup(
   const events: { type: string; recipients: { recipientId: string; isForArtist: boolean }[] }[] =
     [];
   const db = {
-    artist: {
+    organization: {
       findFirst: vi.fn().mockResolvedValue(opts.ownArtist ? { id: opts.ownArtist } : null),
     },
     follow: {
       findMany: vi
         .fn()
         .mockResolvedValue(
-          Array.from({ length: opts.follows ?? 1 }, (_, i) => ({ artistId: `a${i}` })),
+          Array.from({ length: opts.follows ?? 1 }, (_, i) => ({ organizationId: `a${i}` })),
         ),
     },
     post: {
@@ -138,7 +138,7 @@ describe("feed", () => {
     const page = await feedPage(ctx, fan, null);
     expect(db.post.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { artistId: { in: ["a0", "mine"] }, isImportOnly: false },
+        where: { organizationId: { in: ["a0", "mine"] }, isImportOnly: false },
       }),
     );
     expect(page).toMatchObject({ following: 1 });
@@ -184,11 +184,11 @@ describe("the public feed", () => {
     const page = await feedPage(ctx, null, null, "all");
     expect(db.post.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { isImportOnly: false, artist: { status: "APPROVED" } },
+        where: { isImportOnly: false, organization: { status: "APPROVED" } },
       }),
     );
     expect(db.follow.findMany).not.toHaveBeenCalled();
-    expect(db.artist.findFirst).not.toHaveBeenCalled();
+    expect(db.organization.findFirst).not.toHaveBeenCalled();
     expect(page).toMatchObject({ following: null, next: null });
     expect(page.posts[0]).toMatchObject({ body: "New song soon", lock: null, liked: false });
   });

@@ -28,7 +28,7 @@ export function Composer() {
   const openSignIn = useConnectWalletDialogStore((state) => state.setIsOpen);
   const me = api.account.me.useQuery(undefined, { enabled: signedIn, staleTime: 5 * 60_000 });
   const loading = status === "loading" || (signedIn && !me.data);
-  const artist = me.data?.artist ?? null;
+  const artist = me.data?.organization ?? null;
   const target = composerTarget(signedIn, artist, me.data?.displayName ?? null);
   const name = artist?.name ?? me.data?.displayName ?? "You";
 

@@ -339,7 +339,7 @@ describe("batch pins", () => {
   it("makes each pin live without review, with the batch's shared tags", async () => {
     const { ctx, db } = setup();
     db.pinBatchJob.findUniqueOrThrow.mockResolvedValue({
-      artistId: "a1",
+      organizationId: "a1",
       payload: payload("per-location"),
     });
     svc.createPin.mockResolvedValue({ pinId: "x" });
@@ -366,7 +366,7 @@ describe("batch pins", () => {
   it("keeps going when one place fails, and says which", async () => {
     const { ctx, db } = setup();
     db.pinBatchJob.findUniqueOrThrow.mockResolvedValue({
-      artistId: "a1",
+      organizationId: "a1",
       payload: payload("per-location"),
     });
     svc.createPin
@@ -387,7 +387,7 @@ describe("batch pins", () => {
   it("makes one pin with every place's spots for a single group", async () => {
     const { ctx, db } = setup();
     db.pinBatchJob.findUniqueOrThrow.mockResolvedValue({
-      artistId: "a1",
+      organizationId: "a1",
       payload: payload("single-group"),
     });
     svc.createPin.mockResolvedValue({});
@@ -401,7 +401,7 @@ describe("batch pins", () => {
     const { ctx, db } = setup();
     const p = payload("per-location", 1);
     p.options.collectionLimit = 999_999;
-    db.pinBatchJob.findUniqueOrThrow.mockResolvedValue({ artistId: "a1", payload: p });
+    db.pinBatchJob.findUniqueOrThrow.mockResolvedValue({ organizationId: "a1", payload: p });
     svc.createPin.mockResolvedValue({});
     await runPinBatch(ctx, "b1", {
       enrich: (place) =>
@@ -605,7 +605,7 @@ describe("the map layer the artist is in (new pins and hotspots go in it)", () =
 
   it("queues the batch with the artist's own layer", async () => {
     const { ctx, db } = setup();
-    db.pinLayer.findUnique.mockResolvedValue({ artistId: "a1" });
+    db.pinLayer.findUnique.mockResolvedValue({ organizationId: "a1" });
     await executeAction(ctx, artist, action, {}, "L1");
     const options = db.pinBatchJob.create.mock.calls[0]![0].data.payload.options;
     expect(options.layerId).toBe("L1");
@@ -620,7 +620,7 @@ describe("the map layer the artist is in (new pins and hotspots go in it)", () =
 
   it("refuses another artist's layer, and queues nothing", async () => {
     const { ctx, db } = setup();
-    db.pinLayer.findUnique.mockResolvedValue({ artistId: "someone-else" });
+    db.pinLayer.findUnique.mockResolvedValue({ organizationId: "someone-else" });
     await expect(executeAction(ctx, artist, action, {}, "L9")).rejects.toThrow(
       /isn't one of yours/,
     );
@@ -630,7 +630,7 @@ describe("the map layer the artist is in (new pins and hotspots go in it)", () =
   it("hands the layer to the pin service when the worker makes each pin", async () => {
     const { ctx, db } = setup();
     db.pinBatchJob.findUniqueOrThrow.mockResolvedValue({
-      artistId: "a1",
+      organizationId: "a1",
       payload: {
         places: [
           {

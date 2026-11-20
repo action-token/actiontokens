@@ -432,9 +432,9 @@ export async function deliverOrder(ctx: ServiceCtx, orderId: string) {
   if (delivered.kind === "ITEM_PURCHASE") await tellArtistAboutSale(ctx, delivered);
   // Trusting an artist's fan token makes the fan their subscriber (and follower).
   if (delivered.kind === "TOKEN_TRUST" && delivered.buyerId) {
-    const artistId = (delivered.breakdown as { token?: { artistId?: string } } | null)?.token
-      ?.artistId;
-    if (artistId) await setSubscribed(ctx.db, delivered.buyerId, artistId);
+    const organizationId = (delivered.breakdown as { token?: { organizationId?: string } } | null)?.token
+      ?.organizationId;
+    if (organizationId) await setSubscribed(ctx.db, delivered.buyerId, organizationId);
   }
   return { orderId, status: "DELIVERED" as const };
 }

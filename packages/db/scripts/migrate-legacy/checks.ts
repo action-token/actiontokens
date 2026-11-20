@@ -75,7 +75,7 @@ export const CHECKS: TableCheck[] = [
   {
     domain: "Artist",
     oldTable: "Creator",
-    newTable: "artists + chain_accounts (storage)",
+    newTable: "organizations + chain_accounts (storage)",
     note: "Storage secret is re-encrypted into chain_accounts.",
     issues: [
       {

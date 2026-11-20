@@ -45,16 +45,16 @@ describe("ar subscribe", () => {
     recharge.quoteRecharge.mockResolvedValue({ kind: "TOKEN_TRUST" });
     recharge.startRecharge.mockResolvedValue({ orderId: ORDER, xdr: "x", signer: "wallet" });
     const { caller } = setup(null);
-    await caller.subscribe.quote({ artistId: "a1", currency: "XLM" });
-    await caller.subscribe.start({ artistId: "a1", currency: "XLM" });
+    await caller.subscribe.quote({ organizationId: "a1", currency: "XLM" });
+    await caller.subscribe.start({ organizationId: "a1", currency: "XLM" });
     expect(recharge.quoteRecharge).toHaveBeenCalledWith(expect.anything(), me, {
       kind: "TOKEN_TRUST",
-      artistId: "a1",
+      organizationId: "a1",
       currency: "XLM",
     });
     expect(recharge.startRecharge).toHaveBeenCalledWith(expect.anything(), me, {
       kind: "TOKEN_TRUST",
-      artistId: "a1",
+      organizationId: "a1",
       currency: "XLM",
     });
   });

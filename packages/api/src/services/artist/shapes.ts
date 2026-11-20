@@ -30,7 +30,7 @@ export const listShapes = (
   options: { archived?: boolean } = {},
 ) =>
   ctx.db.pinShape.findMany({
-    where: { artistId: artist.id, archived: options.archived ?? false },
+    where: { organizationId: artist.id, archived: options.archived ?? false },
     select: SELECT,
     orderBy: { updatedAt: "desc" },
   });
@@ -38,7 +38,7 @@ export const listShapes = (
 /** Loads a shape and checks it is the artist's own. */
 async function ownShape(ctx: ServiceCtx, artist: ArtistRef, id: string) {
   const shape = await ctx.db.pinShape.findFirst({
-    where: { id, artistId: artist.id },
+    where: { id, organizationId: artist.id },
     select: { id: true },
   });
   if (!shape) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Shape not found" });
@@ -53,20 +53,20 @@ export async function shapeUsage(ctx: ServiceCtx, artist: ArtistRef, id: string)
     ctx.db.pin.count({ where: { pinShapeId: shape.id } }),
     ctx.db.hotspot.count({ where: { pinShapeId: shape.id, isHidden: false } }),
     ctx.db.pinTemplate.count({
-      where: { artistId: artist.id, data: { path: ["look", "shape"], equals: shape.id } },
+      where: { organizationId: artist.id, data: { path: ["look", "shape"], equals: shape.id } },
     }),
   ]);
   return { pins, hotspots, templates, total: pins + hotspots + templates };
 }
 
 export async function createShape(ctx: ServiceCtx, artist: ArtistRef, input: ShapeInput) {
-  const count = await ctx.db.pinShape.count({ where: { artistId: artist.id, archived: false } });
+  const count = await ctx.db.pinShape.count({ where: { organizationId: artist.id, archived: false } });
   if (count >= MAX_SHAPES_PER_ARTIST)
     throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
       message: `You can keep up to ${MAX_SHAPES_PER_ARTIST} shapes. Archive some you no longer use.`,
     });
   const shape = await ctx.db.pinShape.create({
-    data: { artistId: artist.id, name: input.name, path: input.path, anchor: input.anchor },
+    data: { organizationId: artist.id, name: input.name, path: input.path, anchor: input.anchor },
     select: SELECT,
   });
   ctx.activity.set({ targetType: "PinShape", targetId: shape.id });

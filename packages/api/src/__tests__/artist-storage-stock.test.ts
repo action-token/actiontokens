@@ -40,12 +40,12 @@ function setup(
     id: "song1",
     supply: opts.supply === undefined ? 100 : opts.supply,
     classicToken: { code: "SONG1", issuer, isExternal: false, issuerAccount: null },
-    artist: { issuerAccount: { publicKey: issuer, activatedAt: new Date() } },
+    organization: { issuerAccount: { publicKey: issuer, activatedAt: new Date() } },
   };
   const db = {
     item: {
-      findFirst: vi.fn(({ where }: { where: { id: string; artistId: string } }) =>
-        Promise.resolve(where.id === item.id && where.artistId === "a1" ? item : null),
+      findFirst: vi.fn(({ where }: { where: { id: string; organizationId: string } }) =>
+        Promise.resolve(where.id === item.id && where.organizationId === "a1" ? item : null),
       ),
     },
     chainAccount: {

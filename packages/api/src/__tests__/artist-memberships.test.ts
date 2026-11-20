@@ -57,12 +57,12 @@ function setup(
       }),
       count: vi.fn().mockResolvedValue(opts.usage?.[0] ?? 0),
     },
-    artist: { update: vi.fn().mockResolvedValue({}) },
+    organization: { update: vi.fn().mockResolvedValue({}) },
     membershipTier: {
       findMany: vi.fn().mockResolvedValue(opts.tiers ?? []),
       findFirst: vi
         .fn()
-        .mockResolvedValue(opts.tier === undefined ? { id: "t1", artistId: "a1" } : opts.tier),
+        .mockResolvedValue(opts.tier === undefined ? { id: "t1", organizationId: "a1" } : opts.tier),
       create: vi.fn(({ data }: { data: Row }) => Promise.resolve({ id: "t1", ...data })),
       update: vi.fn().mockResolvedValue({}),
       delete: vi.fn().mockResolvedValue({}),
@@ -92,7 +92,7 @@ describe("createFanToken", () => {
       chainType: "CLASSIC_TOKEN",
       title: "Luna Vale fan token",
       visibility: "PUBLIC",
-      artistId: "a1",
+      organizationId: "a1",
       classicToken: {
         create: {
           code: "LUNAVALE",
@@ -102,7 +102,7 @@ describe("createFanToken", () => {
         },
       },
     });
-    expect(db.artist.update).toHaveBeenCalledWith({
+    expect(db.organization.update).toHaveBeenCalledWith({
       where: { id: "a1" },
       data: { fanTokenItemId: "ft1" },
     });
@@ -202,7 +202,7 @@ describe("createFanToken", () => {
 
     const mine = setup();
     (mine.db.classicToken.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
-      item: { title: "Old merch", artistId: "a1" },
+      item: { title: "Old merch", organizationId: "a1" },
     });
     await expect(checkExistingToken(mine.ctx, artist, { code: "LUNA", issuer })).resolves.toEqual({
       status: "USED",
@@ -211,7 +211,7 @@ describe("createFanToken", () => {
     });
     const theirs = setup();
     (theirs.db.classicToken.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
-      item: { title: "Their item", artistId: "a2" },
+      item: { title: "Their item", organizationId: "a2" },
     });
     await expect(checkExistingToken(theirs.ctx, artist, { code: "LUNA", issuer })).resolves.toEqual(
       { status: "USED", byYou: false, message: "That asset is already used for another item." },
@@ -291,7 +291,7 @@ describe("tiers", () => {
     });
     expect(db.membershipTier.create).toHaveBeenCalledWith({
       data: {
-        artistId: "a1",
+        organizationId: "a1",
         name: "Gold",
         description: "Early access",
         features: ["Early drops", "Chat"],
@@ -406,7 +406,7 @@ describe("memberships router", () => {
       createContext({
         db: {
           activityLog: { create: vi.fn() },
-          artist: { findUnique: vi.fn().mockResolvedValue(artistRow) },
+          organization: { findUnique: vi.fn().mockResolvedValue(artistRow) },
         } as unknown as Db,
         chain: {} as ChainGateway,
         app: "org",

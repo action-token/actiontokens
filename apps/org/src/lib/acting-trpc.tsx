@@ -12,13 +12,13 @@ import { api } from "~/trpc/react";
  * so the artist's data never mixes with the admin's own pages, and a client that sends
  * `x-acting-artist`. The server honours the header only for an admin, only for an approved
  * artist, and only on the pin, hotspot, layer, shape and assistant APIs. Mount it with
- * `key={artistId}` so each artist gets a fresh cache.
+ * `key={organizationId}` so each artist gets a fresh cache.
  */
 export function ActingTRPCProvider({
-  artistId,
+  organizationId,
   children,
 }: {
-  artistId: string;
+  organizationId: string;
   children: ReactNode;
 }) {
   const [queryClient] = useState(
@@ -33,7 +33,7 @@ export function ActingTRPCProvider({
         httpBatchStreamLink({
           url: "/api/trpc",
           transformer: superjson,
-          headers: () => ({ "x-acting-artist": artistId }),
+          headers: () => ({ "x-acting-artist": organizationId }),
         }),
       ],
     }),

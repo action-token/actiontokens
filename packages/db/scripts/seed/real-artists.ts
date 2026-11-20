@@ -71,7 +71,7 @@ async function importArtist(slug: string, data: ProdData) {
       ownerId: user.id,
     },
   });
-  const artist = await db.artist.create({
+  const artist = await db.organization.create({
     data: {
       userId: user.id,
       issuerAccountId: issuerAccount.id,
@@ -91,7 +91,7 @@ async function importArtist(slug: string, data: ProdData) {
   for (const tier of data.tiers)
     await db.membershipTier.create({
       data: {
-        artistId: artist.id,
+        organizationId: artist.id,
         name: tier.name,
         description: tier.description ?? "",
         features: tier.features ?? [],
@@ -106,7 +106,7 @@ async function importArtist(slug: string, data: ProdData) {
   for (const [i, album] of data.albums.entries()) {
     const row = await db.album.create({
       data: {
-        artistId: artist.id,
+        organizationId: artist.id,
         title: album.title,
         slug: `${slug}-${album.slug}`.slice(0, 80),
         coverUrl: album.coverUrl ?? cover(`${slug}-album-${i}`),
@@ -136,7 +136,7 @@ async function importArtist(slug: string, data: ProdData) {
       supply: item.supply,
       visibility: "PUBLIC" as const,
       playCount: item.playCount ?? 0,
-      artistId: artist.id,
+      organizationId: artist.id,
       createdById: user.id,
       listings: listing,
     };
@@ -151,7 +151,7 @@ async function importArtist(slug: string, data: ProdData) {
           },
         },
       });
-      await db.artist.update({ where: { id: artist.id }, data: { fanTokenItemId: created.id } });
+      await db.organization.update({ where: { id: artist.id }, data: { fanTokenItemId: created.id } });
     } else if (item.type === "TRACK" && item.chainType === "CLASSIC_TOKEN") {
       await db.item.create({
         data: {
@@ -194,7 +194,7 @@ async function importArtist(slug: string, data: ProdData) {
   for (const event of data.events)
     await db.event.create({
       data: {
-        artistId: artist.id,
+        organizationId: artist.id,
         title: event.title,
         description: event.description,
         coverUrl: event.coverUrl,
@@ -214,7 +214,7 @@ async function importArtist(slug: string, data: ProdData) {
 
 /** An artist imported before their fan token was (a token is DRAFT in production, so it was skipped once). */
 async function ensureFanToken(
-  artist: {
+  organization: {
     id: string;
     slug: string;
     fanTokenItemId: string | null;
@@ -224,20 +224,20 @@ async function ensureFanToken(
   data: ProdData,
 ) {
   const token = data.items.find((item) => item.type === "FAN_TOKEN");
-  if (artist.fanTokenItemId || !token || !artist.issuerAccountId) return;
-  const issuer = await db.chainAccount.findUnique({ where: { id: artist.issuerAccountId } });
+  if (organization.fanTokenItemId || !token || !organization.issuerAccountId) return;
+  const issuer = await db.chainAccount.findUnique({ where: { id: organization.issuerAccountId } });
   if (!issuer) return;
   const created = await db.item.create({
     data: {
       type: "FAN_TOKEN",
       chainType: "CLASSIC_TOKEN",
       title: token.title,
-      slug: `${artist.slug}-${token.slug}`.slice(0, 90),
+      slug: `${organization.slug}-${token.slug}`.slice(0, 90),
       description: token.description,
-      coverUrl: token.coverUrl ?? cover(`${artist.slug}-token`),
+      coverUrl: token.coverUrl ?? cover(`${organization.slug}-token`),
       visibility: "PUBLIC",
-      artistId: artist.id,
-      createdById: artist.userId,
+      organizationId: organization.id,
+      createdById: organization.userId,
       classicToken: {
         create: {
           code: token.code ?? token.title.replace(/\W/g, "").slice(0, 12),
@@ -246,10 +246,10 @@ async function ensureFanToken(
       },
     },
   });
-  await db.artist.update({ where: { id: artist.id }, data: { fanTokenItemId: created.id } });
+  await db.organization.update({ where: { id: organization.id }, data: { fanTokenItemId: created.id } });
 }
 
-async function publish(artistId: string, data: ProdData) {
+async function publish(organizationId: string, data: ProdData) {
   const design = pageJson(factsFrom(data));
   const row = {
     name: "My page",
@@ -261,11 +261,11 @@ async function publish(artistId: string, data: ProdData) {
     publishedAt: new Date(),
   };
   const existing = await db.pageLayout.findFirst({
-    where: { artistId },
+    where: { organizationId },
     orderBy: { createdAt: "asc" },
   });
   if (existing) await db.pageLayout.update({ where: { id: existing.id }, data: row });
-  else await db.pageLayout.create({ data: { ...row, artistId } });
+  else await db.pageLayout.create({ data: { ...row, organizationId } });
 }
 
 async function main() {
@@ -286,10 +286,10 @@ async function main() {
         continue;
       }
       const artist =
-        (await db.artist.findUnique({ where: { slug } })) ?? (await importArtist(slug, data));
+        (await db.organization.findUnique({ where: { slug } })) ?? (await importArtist(slug, data));
       await ensureFanToken(artist, data);
       await db.follow.createMany({
-        data: fans.map((fan) => ({ userId: fan.id, artistId: artist.id })),
+        data: fans.map((fan) => ({ userId: fan.id, organizationId: artist.id })),
         skipDuplicates: true,
       });
       await publish(artist.id, data);

@@ -9,8 +9,8 @@ enum BountyStatus {
 
 model Bounty {
   id                String       @id @default(cuid())
-  artistId          String
-  artist            Artist       @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   title             String
   summary           String
   description       String
@@ -42,7 +42,7 @@ model Bounty {
   event        Event?              @relation(fields: [eventId], references: [id], onDelete: SetNull)
   eventId      String?
 
-  @@index([artistId])
+  @@index([organizationId])
   @@index([status, createdAt])
   @@map("bounties")
 }

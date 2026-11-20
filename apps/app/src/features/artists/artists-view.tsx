@@ -23,7 +23,7 @@ type Artist = RouterOutputs["artist"]["directory"]["artists"][number];
 const GRID = "grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-[repeat(auto-fill,minmax(184px,1fr))]";
 
 const tokenOf = (artist: Artist) =>
-  artist.tokenCode ? { code: artist.tokenCode, artistId: artist.id } : null;
+  artist.tokenCode ? { code: artist.tokenCode, organizationId: artist.id } : null;
 
 /** A follower count that moves when you follow, unfollow or subscribe. */
 function useFollowers(initial: number) {

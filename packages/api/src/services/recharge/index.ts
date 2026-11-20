@@ -41,7 +41,7 @@ import { deliverOrder, failOrder, holdsLine, ownOrder, userSignature } from "../
 
 export type RechargeInput =
   | { kind: "TOP_UP"; packageUsd: string }
-  | { kind: "TOKEN_TRUST"; artistId: string; currency: TrustCurrency };
+  | { kind: "TOKEN_TRUST"; organizationId: string; currency: TrustCurrency };
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 
 async function priceRecharge(ctx: ServiceCtx, user: SessionUser | null, input: RechargeInput) {
@@ -61,7 +61,7 @@ async function priceRecharge(ctx: ServiceCtx, user: SessionUser | null, input: R
   const { baseFee } = chain.config.network;
 
   const openTrustline = !(account && holdsLine(account, asset));
-  const token = input.kind === "TOKEN_TRUST" ? await fanTokenOf(ctx, input.artistId) : null;
+  const token = input.kind === "TOKEN_TRUST" ? await fanTokenOf(ctx, input.organizationId) : null;
   const quote =
     input.kind === "TOP_UP"
       ? {
@@ -78,7 +78,7 @@ async function priceRecharge(ctx: ServiceCtx, user: SessionUser | null, input: R
       : {
           kind: "TOKEN_TRUST" as const,
           token: token
-            ? { code: token.code, artistName: token.artistName, artistId: input.artistId }
+            ? { code: token.code, artistName: token.artistName, organizationId: input.organizationId }
             : null,
           ...quoteFanTokenTrust({
             currency: input.currency,
@@ -132,9 +132,9 @@ function trustOperations(currency: TrustCurrency, noBandcoinLine: boolean) {
 }
 
 /** The artist's fan token, if they have one on Stellar that Bandcoin issued or tracks. */
-async function fanTokenOf(ctx: Pick<ServiceCtx, "db">, artistId: string) {
-  const artist = await ctx.db.artist.findFirst({
-    where: { id: artistId, status: "APPROVED" },
+async function fanTokenOf(ctx: Pick<ServiceCtx, "db">, organizationId: string) {
+  const artist = await ctx.db.organization.findFirst({
+    where: { id: organizationId, status: "APPROVED" },
     select: {
       name: true,
       fanTokenItem: { select: { classicToken: { select: { code: true, issuer: true } } } },

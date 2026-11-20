@@ -11,7 +11,7 @@ const artist = { id: "a1" };
 
 const hotspotRow = (over: Record<string, unknown> = {}) => ({
   id: "h1",
-  artistId: "a1",
+  organizationId: "a1",
   title: "Drops",
   layerId: null,
   markerShape: "star",
@@ -49,8 +49,8 @@ function setup(row = hotspotRow()) {
   const pins: { data: Record<string, unknown> }[] = [];
   const db = {
     pinShape: {
-      findFirst: vi.fn(({ where }: { where: { id: string; artistId: string } }) =>
-        Promise.resolve(where.id === "S1" && where.artistId === "a1" ? { id: "S1" } : null),
+      findFirst: vi.fn(({ where }: { where: { id: string; organizationId: string } }) =>
+        Promise.resolve(where.id === "S1" && where.organizationId === "a1" ? { id: "S1" } : null),
       ),
     },
     pinLayer: { findUnique: vi.fn() },

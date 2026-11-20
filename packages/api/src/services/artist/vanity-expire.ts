@@ -47,13 +47,13 @@ export async function expireVanityLinks(ctx: ServiceCtx, now = new Date()) {
   const links = await ctx.db.vanityUrl.findMany({
     where: { paidUntil: { lte: new Date(now.getTime() + REMIND_BEFORE_DAYS * DAY_MS) } },
     select: {
-      artistId: true,
+      organizationId: true,
       name: true,
       status: true,
       paidUntil: true,
       graceEndsAt: true,
       reservedUntil: true,
-      artist: { select: { userId: true } },
+      organization: { select: { userId: true } },
     },
   });
 
@@ -66,7 +66,7 @@ export async function expireVanityLinks(ctx: ServiceCtx, now = new Date()) {
     // Past its reserved days: the name is free for anyone.
     if (timeline.status === "LAPSED" && now > timeline.heldUntil) {
       const { count } = await ctx.db.vanityUrl.deleteMany({
-        where: { artistId: link.artistId, paidUntil: link.paidUntil },
+        where: { organizationId: link.organizationId, paidUntil: link.paidUntil },
       });
       released += count;
       continue;
@@ -80,7 +80,7 @@ export async function expireVanityLinks(ctx: ServiceCtx, now = new Date()) {
         link.reservedUntil?.getTime() !== timeline.heldUntil.getTime())
     ) {
       await ctx.db.vanityUrl.updateMany({
-        where: { artistId: link.artistId, paidUntil: link.paidUntil },
+        where: { organizationId: link.organizationId, paidUntil: link.paidUntil },
         data: {
           status: timeline.status,
           graceEndsAt: timeline.graceEndsAt,
@@ -100,7 +100,7 @@ export async function expireVanityLinks(ctx: ServiceCtx, now = new Date()) {
     if (sent) continue;
     await notifySelf(ctx, {
       type: "VANITY",
-      userId: link.artist.userId,
+      userId: link.organization.userId,
       entityId: key,
       isForArtist: true,
     });

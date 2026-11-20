@@ -65,7 +65,7 @@ function setup(layout: Row | null = null) {
 
 const existing = (over: Row = {}) => ({
   id: "l1",
-  artistId: "a1",
+  organizationId: "a1",
   templateKey: "musician",
   status: "DRAFT",
   isActive: false,
@@ -222,7 +222,7 @@ describe("publishing", () => {
     );
     expect(await publishedDesign(test.ctx, "a1")).toMatchObject({ blocks: [{ type: "cover" }] });
     expect(test.db.pageLayout.findFirst).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { artistId: "a1", isActive: true, status: "PUBLISHED" } }),
+      expect.objectContaining({ where: { organizationId: "a1", isActive: true, status: "PUBLISHED" } }),
     );
     expect(await publishedDesign(setup(null).ctx, "a1")).toBeNull();
   });

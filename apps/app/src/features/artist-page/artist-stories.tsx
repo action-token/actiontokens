@@ -128,7 +128,7 @@ export function ArtistHighlights({
   );
   const [start, setStart] = useState<number | null>(null);
   const pages = archive.data?.pages ?? [];
-  const artist = pages[0]?.artist;
+  const artist = pages[0]?.organization;
   const stories = pages.flatMap((page) => page.stories);
   if (archive.isPending)
     return (
@@ -153,7 +153,7 @@ export function ArtistHighlights({
       {start !== null && (
         <StoryViewer
           slug={slug}
-          archive={{ artist, stories }}
+          archive={{ organization: artist, stories }}
           startAt={start}
           onClose={() => setStart(null)}
           onFinish={() => setStart(null)}

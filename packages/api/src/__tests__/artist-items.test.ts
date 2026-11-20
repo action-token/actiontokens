@@ -67,7 +67,7 @@ function setup(
       update: vi.fn().mockResolvedValue({}),
     },
     listing: { update: vi.fn().mockResolvedValue({}) },
-    artist: {
+    organization: {
       findUnique: vi
         .fn()
         .mockResolvedValue(
@@ -95,7 +95,7 @@ describe("createItem", () => {
       title: "Night Drive",
       slug: "luna-vale-night-drive",
       supply: 100,
-      artistId: "a1",
+      organizationId: "a1",
       createdById: "u1",
       visibility: "PUBLIC",
       classicToken: { create: { code: "NIGHTDRV", issuer: "GISSUER", issuerAccountId: "chain1" } },
@@ -212,7 +212,7 @@ describe("createItem", () => {
 
 const owned = (extra: Row = {}) => ({
   id: "i1",
-  artistId: "a1",
+  organizationId: "a1",
   supply: 100,
   visibility: "PUBLIC",
   classicToken: { code: "NIGHTDRV", issuer: "GISSUER" },
@@ -561,7 +561,7 @@ describe("listMyItems", () => {
     ]);
     expect(db.item.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { artistId: "a1", deletedAt: null, type: { notIn: ["TRACK", "FAN_TOKEN"] } },
+        where: { organizationId: "a1", deletedAt: null, type: { notIn: ["TRACK", "FAN_TOKEN"] } },
         orderBy: { createdAt: "desc" },
       }),
     );
@@ -575,7 +575,7 @@ describe("catalog router", () => {
       createContext({
         db: {
           activityLog: { create: vi.fn() },
-          artist: { findUnique: vi.fn().mockResolvedValue(artistRow) },
+          organization: { findUnique: vi.fn().mockResolvedValue(artistRow) },
         } as unknown as Db,
         chain: {} as ChainGateway,
         app: "org",

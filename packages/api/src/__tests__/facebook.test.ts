@@ -42,8 +42,8 @@ describe("sealing and signing", () => {
   });
 
   it("carries the artist and where to return, and refuses forged or old state", () => {
-    const state = makeState({ artistId: "a1", redirect: "/settings" }, 1_000);
-    expect(readState(state, 2_000)).toEqual({ artistId: "a1", redirect: "/settings" });
+    const state = makeState({ organizationId: "a1", redirect: "/settings" }, 1_000);
+    expect(readState(state, 2_000)).toEqual({ organizationId: "a1", redirect: "/settings" });
     expect(readState(state, 1_000 + 11 * 60_000)).toBeNull();
     const [payload] = state.split(".");
     const forged = Buffer.from(JSON.stringify({ a: "a2", r: "/x", n: "n", t: 1_000 })).toString(
@@ -80,7 +80,7 @@ describe("sealing and signing", () => {
   });
 });
 
-function setup(over: { connection?: unknown; post?: unknown; artist?: unknown } = {}) {
+function setup(over: { connection?: unknown; post?: unknown; organization?: unknown } = {}) {
   const db = {
     facebookConnection: {
       findFirst: vi.fn().mockResolvedValue(over.connection ?? null),
@@ -93,13 +93,13 @@ function setup(over: { connection?: unknown; post?: unknown; artist?: unknown } 
       findUnique: vi.fn().mockResolvedValue(over.post ?? null),
       create: vi.fn().mockResolvedValue({ id: "p1" }),
     },
-    artist: {
+    organization: {
       findUnique: vi
         .fn()
         .mockResolvedValue(
-          over.artist === undefined
+          over.organization === undefined
             ? { id: "a1", userId: "u1", facebook: { pageTokenEncrypted: sealToken("page-token") } }
-            : over.artist,
+            : over.organization,
         ),
     },
     job: {
@@ -142,7 +142,7 @@ describe("connecting a page", () => {
         { pages: () => Promise.resolve([page]) },
       ),
     ).rejects.toThrow(/isn't one you manage/);
-    const taken = setup({ connection: { artistId: "a2" } });
+    const taken = setup({ connection: { organizationId: "a2" } });
     await expect(
       connectPage(taken.ctx, { id: "a1" }, input(), { pages: () => Promise.resolve([page]) }),
     ).rejects.toThrow(/already connected to another artist/);
@@ -179,7 +179,7 @@ describe("connecting a page", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
     await disconnectFacebook(connected.ctx, { id: "a1" });
     expect(connected.db.facebookConnection.delete).toHaveBeenCalledWith({
-      where: { artistId: "a1" },
+      where: { organizationId: "a1" },
     });
     vi.unstubAllGlobals();
   });
@@ -194,7 +194,7 @@ describe("the webhook", () => {
   };
 
   it("refuses a request that isn't from Meta", async () => {
-    const { ctx, db } = setup({ connection: { artistId: "a1" } });
+    const { ctx, db } = setup({ connection: { organizationId: "a1" } });
     expect(await receiveWebhook(ctx, body([added]), "sha256=" + "0".repeat(64))).toEqual({
       ok: false,
       status: 401,
@@ -207,19 +207,19 @@ describe("the webhook", () => {
   });
 
   it("queues one import for a new post on a connected page", async () => {
-    const { ctx, db } = setup({ connection: { artistId: "a1" } });
+    const { ctx, db } = setup({ connection: { organizationId: "a1" } });
     const raw = body([added]);
     expect(await receiveWebhook(ctx, raw, sign(raw))).toEqual({ ok: true, status: 200, queued: 1 });
     expect(db.job.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         type: "facebook.import",
-        payload: expect.objectContaining({ artistId: "a1", fbPostId: "pg1_9" }),
+        payload: expect.objectContaining({ organizationId: "a1", fbPostId: "pg1_9" }),
       }),
     });
   });
 
   it("ignores edits, other kinds, unknown pages and pages nobody connected", async () => {
-    const { ctx, db } = setup({ connection: { artistId: "a1" } });
+    const { ctx, db } = setup({ connection: { organizationId: "a1" } });
     const raw = body([
       { field: "feed", value: { item: "status", verb: "edited", post_id: "1" } },
       { field: "feed", value: { item: "comment", verb: "add", post_id: "2" } },
@@ -257,7 +257,7 @@ describe("copying a post in", () => {
     expect(out).toEqual({ outcome: "IMPORTED", postId: "p1", media: 1 });
     const data = db.post.create.mock.calls[0]![0].data as Record<string, unknown>;
     expect(data).toMatchObject({
-      artistId: "a1",
+      organizationId: "a1",
       title: "New single out now!",
       facebookPostId: "pg1_9",
       body: "New single out now!\nListen here\n\nhttps://fb.com/p/9",
@@ -277,7 +277,7 @@ describe("copying a post in", () => {
   });
 
   it("does nothing for an artist who disconnected", async () => {
-    const { ctx } = setup({ artist: { id: "a1", userId: "u1", facebook: null } });
+    const { ctx } = setup({ organization: { id: "a1", userId: "u1", facebook: null } });
     expect(await importFacebookPost(ctx, "a1", { fbPostId: "x" }, deps() as never)).toEqual({
       outcome: "DISCONNECTED",
     });
@@ -295,7 +295,7 @@ describe("copying a post in", () => {
       deps({ getPost: vi.fn().mockRejectedValue(revoked) }) as never,
     );
     expect(out).toEqual({ outcome: "TOKEN_REVOKED" });
-    expect(db.facebookConnection.delete).toHaveBeenCalledWith({ where: { artistId: "a1" } });
+    expect(db.facebookConnection.delete).toHaveBeenCalledWith({ where: { organizationId: "a1" } });
     expect(db.post.create).not.toHaveBeenCalled();
   });
 

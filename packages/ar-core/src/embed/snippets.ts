@@ -58,9 +58,9 @@ export const DEFAULT_DRAFT: EmbedDraft = {
   allowedDomains: [],
 };
 
-/** The editor's unsaved settings as the `c` param the AR app's preview reads. `artistId` is whose pins "Only my pins" shows. */
-export function previewUrl(draft: EmbedDraft, artistId: string | null) {
-  const json = JSON.stringify({ ...draft, artistId });
+/** The editor's unsaved settings as the `c` param the AR app's preview reads. `organizationId` is whose pins "Only my pins" shows. */
+export function previewUrl(draft: EmbedDraft, organizationId: string | null) {
+  const json = JSON.stringify({ ...draft, organizationId });
   const b64 = btoa(unescape(encodeURIComponent(json)))
     .replace(/\+/g, "-")
     .replace(/\//g, "_")

@@ -21,7 +21,7 @@ type ArtistRef = { id: string };
 
 export async function facebookStatus(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef) {
   const connection = await ctx.db.facebookConnection.findUnique({
-    where: { artistId: artist.id },
+    where: { organizationId: artist.id },
     select: { pageId: true, pageName: true, autoPublish: true, connectedAt: true },
   });
   return {
@@ -72,8 +72,8 @@ export async function connectPage(
     });
   // One page feeds one artist: otherwise a post would belong to whoever was first.
   const taken = await ctx.db.facebookConnection.findFirst({
-    where: { pageId: page.id, NOT: { artistId: artist.id } },
-    select: { artistId: true },
+    where: { pageId: page.id, NOT: { organizationId: artist.id } },
+    select: { organizationId: true },
   });
   if (taken)
     throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
@@ -89,8 +89,8 @@ export async function connectPage(
   }
   const pageTokenEncrypted = sealToken(page.access_token);
   await ctx.db.facebookConnection.upsert({
-    where: { artistId: artist.id },
-    create: { artistId: artist.id, pageId: page.id, pageName: page.name, pageTokenEncrypted },
+    where: { organizationId: artist.id },
+    create: { organizationId: artist.id, pageId: page.id, pageName: page.name, pageTokenEncrypted },
     update: { pageId: page.id, pageName: page.name, pageTokenEncrypted, connectedAt: new Date() },
   });
   ctx.activity.set({ targetType: "FacebookConnection", targetId: artist.id });
@@ -100,7 +100,7 @@ export async function connectPage(
 /** Kept like the old app kept it: a setting only, since publishing to the page isn't built. */
 export async function setAutoPublish(ctx: ServiceCtx, artist: ArtistRef, value: boolean) {
   const { count } = await ctx.db.facebookConnection.updateMany({
-    where: { artistId: artist.id },
+    where: { organizationId: artist.id },
     data: { autoPublish: value },
   });
   if (count === 0)
@@ -113,7 +113,7 @@ export async function setAutoPublish(ctx: ServiceCtx, artist: ArtistRef, value: 
 
 export async function disconnectFacebook(ctx: ServiceCtx, artist: ArtistRef) {
   const connection = await ctx.db.facebookConnection.findUnique({
-    where: { artistId: artist.id },
+    where: { organizationId: artist.id },
     select: { pageId: true, pageTokenEncrypted: true },
   });
   if (connection) {
@@ -123,7 +123,7 @@ export async function disconnectFacebook(ctx: ServiceCtx, artist: ArtistRef) {
     } catch {
       // The page may already be gone, or the token revoked.
     }
-    await ctx.db.facebookConnection.delete({ where: { artistId: artist.id } });
+    await ctx.db.facebookConnection.delete({ where: { organizationId: artist.id } });
   }
   ctx.activity.set({ targetType: "FacebookConnection", targetId: artist.id });
   return { connected: false };

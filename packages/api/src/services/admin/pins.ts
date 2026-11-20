@@ -36,7 +36,7 @@ function whereOf(input: PinFilter): Prisma.PinWhereInput {
             { id: q },
             { title: { contains: q, mode: "insensitive" } },
             { description: { contains: q, mode: "insensitive" } },
-            { artist: { name: { contains: q, mode: "insensitive" } } },
+            { organization: { name: { contains: q, mode: "insensitive" } } },
           ],
         }
       : {}),
@@ -66,7 +66,7 @@ export async function listPins(ctx: Pick<Context, "db">, input: PinFilter, now =
       longitude: true,
       radiusMeters: true,
       createdAt: true,
-      artist: { select: { id: true, name: true, userId: true, avatarUrl: true } },
+      organization: { select: { id: true, name: true, userId: true, avatarUrl: true } },
       layer: { select: { id: true, name: true, icon: true, color: true } },
       _count: { select: { spots: true } },
     },
@@ -79,7 +79,7 @@ export async function listPins(ctx: Pick<Context, "db">, input: PinFilter, now =
       description: pin.description,
       type: pin.type,
       imageUrl: pin.imageUrl,
-      artist: pin.artist,
+      artist: pin.organization,
       layer: pin.layer,
       spots: pin._count.spots,
       claimed: Math.max(0, pin.claimLimit - pin.claimsLeft),
@@ -158,13 +158,13 @@ export const MAP_PINS = 2000;
  */
 export async function pinsForMap(
   ctx: Pick<Context, "db">,
-  input: { artistId?: string; includeEnded?: boolean },
+  input: { organizationId?: string; includeEnded?: boolean },
   now = new Date(),
 ) {
   const rows = await ctx.db.pin.findMany({
     where: {
       ...notUnlockPin,
-      ...(input.artistId ? { artistId: input.artistId } : {}),
+      ...(input.organizationId ? { organizationId: input.organizationId } : {}),
       ...(input.includeEnded ? {} : { endsAt: { gte: now } }),
     },
     orderBy: { createdAt: "desc" },
@@ -180,7 +180,7 @@ export async function pinsForMap(
       endsAt: true,
       claimLimit: true,
       claimsLeft: true,
-      artist: { select: { id: true, name: true, avatarUrl: true } },
+      organization: { select: { id: true, name: true, avatarUrl: true } },
       layer: { select: { id: true, name: true, icon: true, color: true } },
       pinShape: { select: { path: true, anchor: true } },
       markerShape: true,
@@ -207,11 +207,11 @@ export async function pinsForMap(
       title: pin.title,
       type: pin.type,
       imageUrl: pin.imageUrl,
-      artist: pin.artist,
+      artist: pin.organization,
       layer: pin.layer,
       look: resolvePinLook(pin, {
         customShape: pin.pinShape,
-        artistImage: pin.artist.avatarUrl,
+        artistImage: pin.organization.avatarUrl,
         pinImage: pin.imageUrl,
         autoCollect: pin.spots.some((spot) => spot.autoCollect),
       }),

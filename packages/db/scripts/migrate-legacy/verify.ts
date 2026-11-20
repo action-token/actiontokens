@@ -6,7 +6,7 @@ import type { Copier } from "./copier";
 /** Old rows that must equal new rows plus rows skipped for a stated reason. */
 const PAIRS: [old: string, next: string][] = [
   ["User", "users"],
-  ["Creator", "artists"],
+  ["Creator", "organizations"],
   ["Subscription", "membership_tiers"],
   ["VanitySubscription", "vanity_urls"],
   ["CreatorCustomDomain", "custom_domains"],

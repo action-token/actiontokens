@@ -58,7 +58,7 @@ const messageOf = (error: unknown) =>
 
 const draftOf = ({
   id: _id,
-  artistId: _artist,
+  organizationId: _artist,
   createdAt: _created,
   updatedAt: _updated,
   ...draft
@@ -102,8 +102,8 @@ function Editor({ id, saved }: { id: string; saved: Saved | null }) {
     !isNew && (tabParam === "install" || tabParam === "stats") ? tabParam : "settings";
 
   const status = api.portal.status.useQuery();
-  const artistId =
-    saved?.artistId ?? (status.data?.signedIn ? (status.data.artist?.id ?? null) : null);
+  const organizationId =
+    saved?.organizationId ?? (status.data?.signedIn ? (status.data.artist?.id ?? null) : null);
   const [draft, setDraft] = useState<EmbedDraft>(saved ? draftOf(saved) : DEFAULT_DRAFT);
   const [dirty, setDirty] = useState(false);
 
@@ -200,7 +200,7 @@ function Editor({ id, saved }: { id: string; saved: Saved | null }) {
           </div>
           <Preview
             draft={draft}
-            artistId={artistId}
+            organizationId={organizationId}
             onStartView={(view) => {
               set("centerLat", view.lat);
               set("centerLng", view.lng);
@@ -438,11 +438,11 @@ function Settings({ draft, set }: { draft: EmbedDraft; set: SetDraft }) {
 
 function Preview({
   draft,
-  artistId,
+  organizationId,
   onStartView,
 }: {
   draft: EmbedDraft;
-  artistId: string | null;
+  organizationId: string | null;
   onStartView: (view: View) => void;
 }) {
   const frame = useRef<HTMLIFrameElement>(null);
@@ -451,11 +451,11 @@ function Preview({
   const [view, setView] = useState<View | null>(null);
   const origin = new URL(arOrigin()).origin;
   // Loaded once with the settings at open; later edits go in by postMessage.
-  const [src] = useState(() => previewUrl(draft, artistId));
-  const latest = useRef({ ...draft, artistId });
+  const [src] = useState(() => previewUrl(draft, organizationId));
+  const latest = useRef({ ...draft, organizationId });
   useEffect(() => {
-    latest.current = { ...draft, artistId };
-  }, [draft, artistId]);
+    latest.current = { ...draft, organizationId };
+  }, [draft, organizationId]);
 
   const push = useCallback(() => {
     frame.current?.contentWindow?.postMessage(
@@ -489,7 +489,7 @@ function Preview({
   useEffect(() => {
     const timer = setTimeout(push, 150);
     return () => clearTimeout(timer);
-  }, [draft, artistId, push]);
+  }, [draft, organizationId, push]);
 
   const sameAsStart =
     view != null &&

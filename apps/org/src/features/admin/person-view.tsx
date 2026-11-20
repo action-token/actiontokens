@@ -39,7 +39,7 @@ import { timeAgo } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import { ActivityList } from "./activity-list";
-import { ArtistStatus } from "./artists/artist-status";
+import { OrganizationStatus } from "./artists/artist-status";
 import { useUserActions } from "./user-actions";
 
 type Person = RouterOutputs["admin"]["users"]["get"];
@@ -110,7 +110,7 @@ function Details({ person }: { person: Person }) {
               </StatusPill>
             )}
             {person.artist && (
-              <ArtistStatus status={person.artist.status} paid={person.artist.issuer !== null} />
+              <OrganizationStatus status={person.artist.status} paid={person.artist.issuer !== null} />
             )}
             {person.suspended && <StatusPill tone="danger">Suspended</StatusPill>}
           </div>
@@ -208,8 +208,8 @@ function Details({ person }: { person: Person }) {
               title: claim.pin.title,
               sub: (
                 <>
-                  <Link href={`/admin/artists/${claim.pin.artist.id}`} className="hover:underline">
-                    {claim.pin.artist.name}
+                  <Link href={`/admin/artists/${claim.pin.organization.id}`} className="hover:underline">
+                    {claim.pin.organization.name}
                   </Link>{" "}
                   · {timeAgo(claim.at)}
                 </>

@@ -117,7 +117,7 @@ export function AgentChat() {
           <Welcome
             suggestions={overview.data?.suggestions ?? []}
             onPick={(s) => void chat.send(s)}
-            artistName={overview.data?.artist.name}
+            artistName={overview.data?.organization.name}
           />
         ) : (
           <MessageList chat={chat} linkable />

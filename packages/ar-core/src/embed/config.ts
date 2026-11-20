@@ -23,7 +23,7 @@ export interface EmbedConfig {
   /** "ARTIST" = only the embed owner's pins; "ALL" = every artist's. */
   pinSource: "ALL" | "ARTIST";
   /** The embed owner (an Artist id). Null only for a malformed preview. */
-  artistId: string | null;
+  organizationId: string | null;
   pinTypes: ArPinType[];
   showFilterChips: boolean;
   showSearch: boolean;
@@ -87,7 +87,7 @@ export function normalizeConfig(raw: Record<string, unknown>, id: string): Embed
         ? raw.accentColor
         : site.colors.embedAccent,
     pinSource: raw.pinSource === "ARTIST" ? "ARTIST" : "ALL",
-    artistId: typeof raw.artistId === "string" && raw.artistId ? raw.artistId : null,
+    organizationId: typeof raw.organizationId === "string" && raw.organizationId ? raw.organizationId : null,
     pinTypes,
     showFilterChips: raw.showFilterChips === true,
     showSearch: raw.showSearch !== false,
@@ -197,7 +197,7 @@ export function accentVars(hex: string): Record<string, string> {
 }
 
 /** The artist to restrict pins to, or undefined for every artist. */
-export const artistFilter = (c: Pick<EmbedConfig, "pinSource" | "artistId">) =>
-  c.pinSource === "ARTIST" && c.artistId ? c.artistId : undefined;
+export const artistFilter = (c: Pick<EmbedConfig, "pinSource" | "organizationId">) =>
+  c.pinSource === "ARTIST" && c.organizationId ? c.organizationId : undefined;
 
 export type EmbedEvent = "view" | "pinTap" | "open" | "events" | "bounties";

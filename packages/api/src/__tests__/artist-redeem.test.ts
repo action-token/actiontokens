@@ -69,7 +69,7 @@ describe("lookupCode", () => {
     await expect(lookupCode(ctx, artist, "abc234")).resolves.toEqual({ status: "not_found" });
     expect(db.pinClaim.findFirst).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { redeemCode: "ABC234", isHidden: false, spot: { pin: { artistId: "a1" } } },
+        where: { redeemCode: "ABC234", isHidden: false, spot: { pin: { organizationId: "a1" } } },
       }),
     );
   });
@@ -170,7 +170,7 @@ describe("listRewards", () => {
     await listRewards(ctx, artist, { search: " poster " });
     expect(db.pin.count).toHaveBeenCalledWith({
       where: {
-        artistId: "a1",
+        organizationId: "a1",
         isHidden: false,
         unlockLockedContentId: null,
         title: { contains: "poster", mode: "insensitive" },
@@ -195,7 +195,7 @@ describe("redeemHistory", () => {
       where: {
         isRedeemed: true,
         isHidden: false,
-        spot: { pin: { artistId: "a1", isHidden: false } },
+        spot: { pin: { organizationId: "a1", isHidden: false } },
       },
     });
   });
@@ -224,7 +224,7 @@ describe("NFT content codes on the Redeem page", () => {
       label: "Backstage",
       type: "OTHER",
       unlockRule: over.rule === false ? null : { id: "r1" },
-      item: { title: "VIP pass", coverUrl: null, artistId: "a1" },
+      item: { title: "VIP pass", coverUrl: null, organizationId: "a1" },
     },
   });
 
@@ -237,7 +237,7 @@ describe("NFT content codes on the Redeem page", () => {
     });
     expect(db.lockedContentRedeem.findFirst).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { code: "XYZ789", lockedContent: { item: { artistId: "a1" } } },
+        where: { code: "XYZ789", lockedContent: { item: { organizationId: "a1" } } },
       }),
     );
   });

@@ -30,9 +30,9 @@ export async function pinReport(
   now = new Date(),
 ) {
   const pin = await ctx.db.pin.findFirst({
-    where: { id: pinId, ...(artist ? { artistId: artist.id } : {}) },
+    where: { id: pinId, ...(artist ? { organizationId: artist.id } : {}) },
     select: {
-      artistId: true,
+      organizationId: true,
       id: true,
       title: true,
       description: true,
@@ -116,7 +116,7 @@ export type ReportPeriod = { from?: Date; to?: Date };
 const claimsFrom = Prisma.sql`pin_claims c JOIN pin_spots s ON s.id = c."spotId" JOIN pins p ON p.id = s."pinId"`;
 function claimsWhere(artist: ArtistRef, { from, to }: ReportPeriod, pinId?: string) {
   return Prisma.sql`c."isHidden" = false AND s."isHidden" = false AND p."isHidden" = false
-    ${artist ? Prisma.sql`AND p."artistId" = ${artist.id}` : Prisma.empty}
+    ${artist ? Prisma.sql`AND p."organizationId" = ${artist.id}` : Prisma.empty}
     ${from ? Prisma.sql`AND c."createdAt" >= ${from}` : Prisma.empty}
     ${to ? Prisma.sql`AND c."createdAt" <= ${to}` : Prisma.empty}
     ${pinId ? Prisma.sql`AND p.id = ${pinId}` : Prisma.empty}`;
@@ -168,11 +168,11 @@ export async function collectionSummary(
       FROM ${claimsFrom} JOIN users u ON u.id = c."userId"
       WHERE ${where} GROUP BY u.id ORDER BY n DESC, MAX(c."createdAt") DESC LIMIT 10`,
     ctx.db.pin.findMany({
-      where: { ...(artist ? { artistId: artist.id } : {}), isHidden: false, ...notUnlockPin },
+      where: { ...(artist ? { organizationId: artist.id } : {}), isHidden: false, ...notUnlockPin },
       orderBy: { createdAt: "desc" },
       ...(artist ? {} : { take: MAX_REPORT_PINS }),
       select: {
-        artist: { select: { id: true, name: true } },
+        organization: { select: { id: true, name: true } },
         id: true,
         title: true,
         imageUrl: true,
@@ -235,7 +235,7 @@ export async function exportCollections(
     SELECT a.name AS artist, p.title AS pin, p.id AS "pinId", s.latitude AS lat, s.longitude AS lng,
            u."walletAddress" AS wallet, COALESCE(u."displayName", u.username) AS name, u.email,
            c."createdAt" AS "collectedAt", c."isRedeemed" AS redeemed
-    FROM ${claimsFrom} JOIN users u ON u.id = c."userId" JOIN artists a ON a.id = p."artistId"
+    FROM ${claimsFrom} JOIN users u ON u.id = c."userId" JOIN organizations a ON a.id = p."organizationId"
     WHERE ${claimsWhere(artist, period, pinId)}
     ORDER BY c."createdAt" DESC LIMIT ${MAX_EXPORT_ROWS}`;
 }

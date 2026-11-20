@@ -111,7 +111,7 @@ export function createMcpServer(
         const overview = await agent.overview();
         return text(
           [
-            `Artist: ${overview.artist.name} (\`${overview.artist.id}\`)`,
+            `Artist: ${overview.organization.name} (\`${overview.organization.id}\`)`,
             `Try:\n${overview.suggestions.map((s) => `- ${s}`).join("\n")}`,
           ].join("\n"),
         );

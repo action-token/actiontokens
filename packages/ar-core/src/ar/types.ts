@@ -36,7 +36,7 @@ export interface ArPin {
   imageUrl: string;
   link: string | null;
 
-  artistId: string;
+  organizationId: string;
   artistName: string;
   artistImageUrl: string;
 

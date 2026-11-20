@@ -31,7 +31,7 @@ function setup(opts: { artists?: Row[]; history?: Row[] } = {}) {
   const bySlug = (slug: string) => [...artists.values()].find((row) => row.slug === slug) ?? null;
 
   const db = {
-    artist: {
+    organization: {
       findUnique: vi.fn(({ where }: { where: { slug: string } }) =>
         Promise.resolve(bySlug(where.slug)),
       ),
@@ -40,16 +40,16 @@ function setup(opts: { artists?: Row[]; history?: Row[] } = {}) {
         return Promise.resolve(artists.get(where.id));
       }),
     },
-    artistSlugHistory: {
+    organizationSlugHistory: {
       findUnique: vi.fn(({ where, select }: { where: { slug: string }; select: Row }) => {
         const row = history.get(where.slug);
         if (!row) return Promise.resolve(null);
         return Promise.resolve(
-          select.artist ? { artist: artists.get(row.artistId as string) } : row,
+          select.organization ? { organization: artists.get(row.organizationId as string) } : row,
         );
       }),
-      deleteMany: vi.fn(({ where }: { where: { slug: string; artistId: string } }) => {
-        if (history.get(where.slug)?.artistId === where.artistId) history.delete(where.slug);
+      deleteMany: vi.fn(({ where }: { where: { slug: string; organizationId: string } }) => {
+        if (history.get(where.slug)?.organizationId === where.organizationId) history.delete(where.slug);
         return Promise.resolve({ count: 1 });
       }),
       upsert: vi.fn(({ create }: { create: Row }) => {
@@ -103,19 +103,19 @@ describe("artist profile", () => {
     );
     expect(result).toEqual({ slug: "luna-vale-band" });
     expect(artists.get("a1")?.slug).toBe("luna-vale-band");
-    expect(history.get("luna-vale")).toMatchObject({ artistId: "a1" });
+    expect(history.get("luna-vale")).toMatchObject({ organizationId: "a1" });
     await expect(currentSlugFor(ctx, "luna-vale")).resolves.toBe("luna-vale-band");
   });
 
   it("lets an artist take back one of their own old addresses", async () => {
     const { ctx, artists, history } = setup({
       artists: [{ id: "a1", slug: "luna-vale-band", status: "APPROVED" }],
-      history: [{ slug: "luna-vale", artistId: "a1" }],
+      history: [{ slug: "luna-vale", organizationId: "a1" }],
     });
     await updateProfile(ctx, { id: "a1", slug: "luna-vale-band" }, input());
     expect(artists.get("a1")?.slug).toBe("luna-vale");
     expect(history.has("luna-vale")).toBe(false);
-    expect(history.get("luna-vale-band")).toMatchObject({ artistId: "a1" });
+    expect(history.get("luna-vale-band")).toMatchObject({ organizationId: "a1" });
   });
 
   it("refuses an address another artist uses now or used before", async () => {
@@ -129,7 +129,7 @@ describe("artist profile", () => {
       updateProfile(now.ctx, { id: "a1", slug: "luna-vale" }, input({ name: "Nova" })),
     ).rejects.toMatchObject({ code: "RESOURCE_CONFLICT" });
 
-    const before = setup({ history: [{ slug: "nova", artistId: "a2" }] });
+    const before = setup({ history: [{ slug: "nova", organizationId: "a2" }] });
     await expect(
       updateProfile(before.ctx, { id: "a1", slug: "luna-vale" }, input({ name: "Nova" })),
     ).rejects.toMatchObject({ code: "RESOURCE_CONFLICT" });
@@ -144,7 +144,7 @@ describe("artist profile", () => {
       /200/,
     );
     await expect(updateProfile(ctx, artist, input({ name: "Music" }))).rejects.toThrow(/reserved/);
-    expect(db.artist.update).not.toHaveBeenCalled();
+    expect(db.organization.update).not.toHaveBeenCalled();
   });
 
   it("reads social handles and websites the way people type them", () => {
@@ -169,7 +169,7 @@ describe("artist profile", () => {
   it("doesn't redirect to an artist who is no longer approved", async () => {
     const { ctx } = setup({
       artists: [{ id: "a1", slug: "luna-vale-band", status: "BANNED" }],
-      history: [{ slug: "luna-vale", artistId: "a1" }],
+      history: [{ slug: "luna-vale", organizationId: "a1" }],
     });
     await expect(currentSlugFor(ctx, "luna-vale")).resolves.toBeNull();
     await expect(currentSlugFor(ctx, "never-used")).resolves.toBeNull();

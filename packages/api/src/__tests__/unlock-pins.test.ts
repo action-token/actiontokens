@@ -13,7 +13,7 @@ function setup(existing: Row[] = [], clash = false) {
       findUnique: vi.fn().mockResolvedValue({
         title: "VIP pass",
         coverUrl: "https://cdn.example/c.jpg",
-        artistId: "a1",
+        organizationId: "a1",
       }),
     },
     lockedContent: {
@@ -61,7 +61,7 @@ describe("unlock pins", () => {
       ),
     ).resolves.toBe(2);
     expect(made[0]).toMatchObject({
-      artistId: "a1",
+      organizationId: "a1",
       title: "Unlock: Backstage video",
       approval: "APPROVED",
       restrictedToUserId: "fan",

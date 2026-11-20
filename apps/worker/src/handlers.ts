@@ -45,12 +45,12 @@ export function handlersFor(deps: WorkerDeps): Record<string, JobHandler> {
       const payload = job.payload as {
         agentJobId?: unknown;
         conversationId?: unknown;
-        artistId?: unknown;
+        organizationId?: unknown;
       };
       if (
         typeof payload.agentJobId !== "string" ||
         typeof payload.conversationId !== "string" ||
-        typeof payload.artistId !== "string"
+        typeof payload.organizationId !== "string"
       )
         throw new AppError(ErrorCodes.VALIDATION_FAILED, {
           message: "agent.run needs its run details",
@@ -63,12 +63,12 @@ export function handlersFor(deps: WorkerDeps): Record<string, JobHandler> {
     },
     // Copies one new post from an artist's Facebook page (photos re-hosted). Safe to repeat: one post, once.
     "facebook.import": async (job) => {
-      const payload = job.payload as ImportPayload & { artistId?: unknown };
-      if (typeof payload.artistId !== "string" || typeof payload.fbPostId !== "string")
+      const payload = job.payload as ImportPayload & { organizationId?: unknown };
+      if (typeof payload.organizationId !== "string" || typeof payload.fbPostId !== "string")
         throw new AppError(ErrorCodes.VALIDATION_FAILED, {
-          message: "facebook.import needs an artistId and an fbPostId",
+          message: "facebook.import needs an organizationId and an fbPostId",
         });
-      const result = await importFacebookPost(context(), payload.artistId, payload);
+      const result = await importFacebookPost(context(), payload.organizationId, payload);
       return { result, target: { type: "FacebookPost", id: payload.fbPostId } };
     },
     // Pins an artist confirmed on an agent card, made one by one. A failed place is logged, never retried.

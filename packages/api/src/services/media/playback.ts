@@ -31,7 +31,7 @@ export async function playbackFor(
     where: { id: itemId, deletedAt: null },
     select: {
       createdById: true,
-      artist: { select: { userId: true } },
+      organization: { select: { userId: true } },
       media: {
         select: {
           mediaType: true,
@@ -72,9 +72,9 @@ export async function canPlayFull(
   db: Db,
   viewerId: string,
   itemId: string,
-  item: { createdById: string; artist: { userId: string } | null },
+  item: { createdById: string; organization: { userId: string } | null },
 ) {
-  if (item.createdById === viewerId || item.artist?.userId === viewerId) return true;
+  if (item.createdById === viewerId || item.organization?.userId === viewerId) return true;
   const owned = await db.ownership.findUnique({
     where: { userId_itemId: { userId: viewerId, itemId } },
     select: { quantity: true },

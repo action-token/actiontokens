@@ -37,7 +37,7 @@ export async function listItems(ctx: Pick<Context, "db">, input: ItemFilter) {
               { id: q },
               { slug: q },
               { title: { contains: q, mode: "insensitive" } },
-              { artist: { name: { contains: q, mode: "insensitive" } } },
+              { organization: { name: { contains: q, mode: "insensitive" } } },
               { classicToken: { code: { equals: q, mode: "insensitive" } } },
             ],
           }
@@ -58,7 +58,7 @@ export async function listItems(ctx: Pick<Context, "db">, input: ItemFilter) {
       hiddenAt: true,
       hiddenReason: true,
       createdAt: true,
-      artist: { select: { id: true, name: true, userId: true } },
+      organization: { select: { id: true, name: true, userId: true } },
       classicToken: { select: { code: true } },
       listings: {
         where: { kind: "PRIMARY" },
@@ -80,7 +80,7 @@ export async function listItems(ctx: Pick<Context, "db">, input: ItemFilter) {
         chain: row.chainType,
         code: row.classicToken?.code ?? null,
         coverUrl: row.coverUrl,
-        artist: row.artist,
+        artist: row.organization,
         price: listing
           ? { bandcoin: listing.priceBandcoin.toString(), usd: listing.priceUsd.toString() }
           : null,

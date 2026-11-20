@@ -38,7 +38,7 @@ const user: SessionUser = {
 
 function setup() {
   const db = {
-    artist: { findUnique: vi.fn().mockResolvedValue({ id: "a1", status: "APPROVED" }) },
+    organization: { findUnique: vi.fn().mockResolvedValue({ id: "a1", status: "APPROVED" }) },
     aiUsage: { findUnique: vi.fn().mockResolvedValue(null), upsert: vi.fn().mockResolvedValue({}) },
     user: { findUnique: vi.fn().mockResolvedValue({ suspendedAt: null }) },
     activityLog: { create: vi.fn() },

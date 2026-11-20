@@ -103,13 +103,13 @@ export default function CollectionDetail() {
 
   const pin = useMemo(() => pins.find((p) => p.id === id) ?? null, [pins, id]);
   const artist = useMemo(
-    () => (pin ? (artists.find((a) => a.id === pin.artistId) ?? null) : null),
+    () => (pin ? (artists.find((a) => a.id === pin.organizationId) ?? null) : null),
     [artists, pin],
   );
 
   const siblings = useMemo(
     () =>
-      pin ? pins.filter((p) => p.artistId === pin.artistId && p.id !== pin.id).slice(0, 6) : [],
+      pin ? pins.filter((p) => p.organizationId === pin.organizationId && p.id !== pin.id).slice(0, 6) : [],
     [pins, pin],
   );
 
@@ -271,7 +271,7 @@ export default function CollectionDetail() {
 
           <div className="mt-3.5 flex items-center justify-center gap-2">
             <Link
-              href={`/artists/${pin.artistId}`}
+              href={`/artists/${pin.organizationId}`}
               className="ar-glass text-ar-dim hover:text-ar-text flex items-center gap-2 rounded-full py-1 pr-3 pl-1.5 text-[12px] transition-colors"
             >
               <ArtistAvatar
@@ -289,14 +289,14 @@ export default function CollectionDetail() {
               variant={artist?.followed ? "outline" : "primary"}
               onClick={() => {
                 if (!requireAuth("follow")) return;
-                toggleFollow(artist ?? { id: pin.artistId, followed: false });
+                toggleFollow(artist ?? { id: pin.organizationId, followed: false });
               }}
-              busy={followPendingId === pin.artistId}
+              busy={followPendingId === pin.organizationId}
               className="h-7 rounded-full px-3 text-[10.5px]"
             >
               {artist?.followed
                 ? "Following"
-                : followLabel(artist ?? { id: pin.artistId, followed: false })}
+                : followLabel(artist ?? { id: pin.organizationId, followed: false })}
             </ArButton>
           </div>
         </div>
@@ -536,7 +536,7 @@ function CreatorInfoCard({
 
       <div className="relative flex items-center justify-between gap-3">
         <Link
-          href={`/artists/${pin.artistId}`}
+          href={`/artists/${pin.organizationId}`}
           className="group flex min-w-0 flex-1 items-center gap-3"
         >
           <div className="relative shrink-0">
@@ -580,7 +580,7 @@ function CreatorInfoCard({
             {artist?.followed ? "Following" : followLabel}
           </ArButton>
           <Link
-            href={`/artists/${pin.artistId}`}
+            href={`/artists/${pin.organizationId}`}
             aria-label="View creator page"
             className="ar-glass text-ar-faint hover:text-ar-text flex h-8 w-8 items-center justify-center rounded-full transition-colors"
           >

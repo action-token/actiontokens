@@ -71,7 +71,7 @@ export async function listTemplates(
   formType?: PinTemplateFormType,
 ) {
   const rows = await ctx.db.pinTemplate.findMany({
-    where: { artistId: artist.id, ...(formType ? { formType } : {}) },
+    where: { organizationId: artist.id, ...(formType ? { formType } : {}) },
     orderBy: { updatedAt: "desc" },
     take: MAX_TEMPLATES_PER_ARTIST,
     select: SELECT,
@@ -81,7 +81,7 @@ export async function listTemplates(
 
 async function ownTemplate(ctx: ServiceCtx, artist: ArtistRef, id: string) {
   const row = await ctx.db.pinTemplate.findFirst({
-    where: { id, artistId: artist.id },
+    where: { id, organizationId: artist.id },
     select: SELECT,
   });
   if (!row) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Template not found" });
@@ -94,7 +94,7 @@ export async function getTemplate(ctx: ServiceCtx, artist: ArtistRef, id: string
 }
 
 async function assertRoom(ctx: ServiceCtx, artist: ArtistRef) {
-  const have = await ctx.db.pinTemplate.count({ where: { artistId: artist.id } });
+  const have = await ctx.db.pinTemplate.count({ where: { organizationId: artist.id } });
   if (have >= MAX_TEMPLATES_PER_ARTIST)
     throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
       message: `You can keep up to ${MAX_TEMPLATES_PER_ARTIST} templates. Delete some you no longer use.`,
@@ -110,7 +110,7 @@ export async function createTemplate(
   await assertRoom(ctx, artist);
   const row = await ctx.db.pinTemplate.create({
     data: {
-      artistId: artist.id,
+      organizationId: artist.id,
       name: input.name,
       formType: input.formType,
       data: toJson(data),
@@ -154,7 +154,7 @@ export async function duplicateTemplate(ctx: ServiceCtx, artist: ArtistRef, id: 
   await assertRoom(ctx, artist);
   const copy = await ctx.db.pinTemplate.create({
     data: {
-      artistId: artist.id,
+      organizationId: artist.id,
       name: `${row.name} (copy)`.slice(0, 80),
       formType: row.formType,
       data: row.data as Prisma.InputJsonValue,

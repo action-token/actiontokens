@@ -138,7 +138,7 @@ export async function createItem(
       ...access,
       supply: input.supply,
       ...(input.type === "ROYALTY" ? { royaltyPercent: input.royaltyPercent } : {}),
-      artistId: artist.id,
+      organizationId: artist.id,
       createdById: user.id,
       classicToken: { create: { code, issuer: issuer.publicKey, issuerAccountId: issuer.id } },
       ...(input.media
@@ -195,7 +195,7 @@ export async function freeSlug(db: ServiceCtx["db"], base: string) {
 
 export async function listMyItems(ctx: Pick<ServiceCtx, "db">, artist: Pick<ArtistRef, "id">) {
   const rows = await ctx.db.item.findMany({
-    where: { artistId: artist.id, deletedAt: null, type: { notIn: ["TRACK", "FAN_TOKEN"] } },
+    where: { organizationId: artist.id, deletedAt: null, type: { notIn: ["TRACK", "FAN_TOKEN"] } },
     orderBy: { createdAt: "desc" },
     take: 200,
     select: {
@@ -246,7 +246,7 @@ export async function listMyItems(ctx: Pick<ServiceCtx, "db">, artist: Pick<Arti
 
 async function ownItem(ctx: ServiceCtx, artist: Pick<ArtistRef, "id">, itemId: string) {
   const item = await ctx.db.item.findFirst({
-    where: { id: itemId, artistId: artist.id, deletedAt: null },
+    where: { id: itemId, organizationId: artist.id, deletedAt: null },
     select: {
       id: true,
       supply: true,
@@ -273,7 +273,7 @@ export async function getItem(
   itemId: string,
 ) {
   const item = await ctx.db.item.findFirst({
-    where: { id: itemId, artistId: artist.id, deletedAt: null },
+    where: { id: itemId, organizationId: artist.id, deletedAt: null },
     select: {
       id: true,
       title: true,

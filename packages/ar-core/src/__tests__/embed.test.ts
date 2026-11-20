@@ -24,7 +24,7 @@ describe("embed config", () => {
         name: "My map",
         showUserLocation: true,
         pinSource: "ARTIST",
-        artistId: "a1",
+        organizationId: "a1",
         accentColor: "red",
         eventsUrl: "javascript:alert(1)",
         zoom: 99,
@@ -35,7 +35,7 @@ describe("embed config", () => {
       id: "m1",
       userLocation: true,
       pinSource: "ARTIST",
-      artistId: "a1",
+      organizationId: "a1",
       accentColor: "#dbdc2c",
       eventsUrl: null,
       zoom: 18,
@@ -75,7 +75,7 @@ describe("embed snippets", () => {
     expect(config).toMatchObject({
       name: "Tour — Zürich",
       userLocation: true,
-      artistId: "a1",
+      organizationId: "a1",
       pinSource: "ARTIST",
     });
   });

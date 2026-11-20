@@ -39,7 +39,7 @@ const holding = (balance: string) =>
 function pinRow(over: Partial<PinRow> = {}): PinRow {
   return {
     id: "pin1",
-    artistId: "artist1",
+    organizationId: "artist1",
     type: "LAUNCH",
     title: "Album launch",
     description: "Walk here",
@@ -61,7 +61,7 @@ function pinRow(over: Partial<PinRow> = {}): PinRow {
     isHidden: false,
     approval: "APPROVED",
     restrictedToUserId: null,
-    artist: {
+    organization: {
       id: "artist1",
       name: "Luna Vale",
       avatarUrl: "https://cdn/luna.png",
@@ -118,7 +118,7 @@ describe("pin locks", () => {
     expect(lockReasonFor(pin, viewer({ balance: "0" }))).toBeNull();
     const noToken = pinRow({
       visibility: "SUBSCRIBERS" as never,
-      artist: { ...pinRow().artist, fanTokenItem: null },
+      organization: { ...pinRow().organization, fanTokenItem: null },
     });
     expect(lockReasonFor(noToken, viewer({ balance: "5" }))).toBe("Not available");
   });
@@ -135,7 +135,7 @@ describe("pin locks", () => {
   it("says a gated pin isn't available when the artist has no fan token", () => {
     const pin = pinRow({
       visibility: "MEMBERS",
-      artist: { ...pinRow().artist, fanTokenItem: null },
+      organization: { ...pinRow().organization, fanTokenItem: null },
     });
     expect(lockReasonFor(pin, viewer({ balance: "999" }))).toBe("Not available");
   });
@@ -167,7 +167,7 @@ describe("spotsOf", () => {
     expect(spotsOf(pin, null)[0]!.subscribe).toBeNull();
     const noToken = pinRow({
       visibility: "SUBSCRIBERS" as never,
-      artist: { ...pinRow().artist, fanTokenItem: null },
+      organization: { ...pinRow().organization, fanTokenItem: null },
     });
     expect(spotsOf(noToken, viewer())[0]!.subscribe).toBeNull();
     expect(spotsOf(pinRow({ visibility: "FOLLOWERS" }), viewer())[0]!.subscribe).toBeNull();

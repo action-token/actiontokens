@@ -103,7 +103,7 @@ function followArg() {
 
 async function main() {
   assertDevDatabase();
-  const artists = await db.artist.findMany({
+  const artists = await db.organization.findMany({
     where: { status: "APPROVED", NOT: { slug: { startsWith: "e2e" } } },
     select: {
       id: true,
@@ -116,7 +116,7 @@ async function main() {
     orderBy: { createdAt: "asc" },
   });
   const fans = await db.user.findMany({
-    where: { artist: null },
+    where: { organization: null },
     select: { id: true },
     take: 8,
     orderBy: { createdAt: "asc" },
@@ -135,7 +135,7 @@ async function main() {
       const createdAt = new Date(Date.now() - (order * artists.length + index + 1) * 5 * HOUR);
       const post = await db.post.create({
         data: {
-          artistId: artist.id,
+          organizationId: artist.id,
           title: sample.title,
           body: sample.body,
           audience: sample.membersOnly
@@ -186,7 +186,7 @@ async function main() {
 
   // Every post can be collected: give older posts without copies their 100.
   const bare = await db.post.findMany({
-    where: { artistId: { in: artists.map((artist) => artist.id) }, collectibles: { none: {} } },
+    where: { organizationId: { in: artists.map((artist) => artist.id) }, collectibles: { none: {} } },
     select: { id: true },
   });
   for (const post of bare)
@@ -200,7 +200,7 @@ async function main() {
     const { count } = await db.follow.createMany({
       data: artists
         .filter((artist) => artist.userId !== follower)
-        .map((artist) => ({ userId: follower, artistId: artist.id })),
+        .map((artist) => ({ userId: follower, organizationId: artist.id })),
       skipDuplicates: true,
     });
     console.log(`${follower} now follows ${count} more artist${count === 1 ? "" : "s"}`);

@@ -152,7 +152,7 @@ describe("Sell Page Assets", () => {
         id: "l1",
         kind: "BUNDLE",
         status: "ACTIVE",
-        item: { id: "fan", artistId: "a1" },
+        item: { id: "fan", organizationId: "a1" },
       },
       data: { status: "CLOSED" },
     });

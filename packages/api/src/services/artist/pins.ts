@@ -156,7 +156,7 @@ export async function resolveTier(
   if (visibility !== "TIER") return null;
   if (!tierId) throw invalid("Pick the tier that can collect this pin.");
   const tier = await ctx.db.membershipTier.findFirst({
-    where: { id: tierId, artistId: artist.id, isActive: true },
+    where: { id: tierId, organizationId: artist.id, isActive: true },
     select: { id: true },
   });
   if (!tier) throw invalid("That tier isn't available. Pick another.");
@@ -182,7 +182,7 @@ export async function resolveReward(
     throw invalid("Set how many fans can collect it, since each one gets a reward.");
 
   if (reward.kind === "FAN_TOKEN") {
-    const owner = await ctx.db.artist.findUnique({
+    const owner = await ctx.db.organization.findUnique({
       where: { id: artist.id },
       select: { fanTokenItemId: true },
     });
@@ -196,7 +196,7 @@ export async function resolveReward(
   const item = await ctx.db.item.findFirst({
     where: {
       id: reward.itemId,
-      artistId: artist.id,
+      organizationId: artist.id,
       deletedAt: null,
       chainType: "CLASSIC_TOKEN",
       type: { notIn: ["FAN_TOKEN", "ROYALTY"] },
@@ -218,7 +218,7 @@ async function resolveEvent(
 ) {
   if (!eventId) return null;
   const event = await ctx.db.event.findFirst({
-    where: { id: eventId, artistId: artist.id },
+    where: { id: eventId, organizationId: artist.id },
     select: { id: true },
   });
   if (!event) throw invalid("That event isn't available. Pick another.");
@@ -246,7 +246,7 @@ export const statusOf = (
 
 async function ownPin(ctx: ServiceCtx, artist: ArtistRef, pinId: string) {
   const pin = await ctx.db.pin.findFirst({
-    where: { id: pinId, artistId: artist.id },
+    where: { id: pinId, organizationId: artist.id },
     select: {
       id: true,
       startsAt: true,
@@ -277,7 +277,7 @@ export async function pinOptions(
   const [items, tiers, events, tags, owner] = await Promise.all([
     ctx.db.item.findMany({
       where: {
-        artistId: artist.id,
+        organizationId: artist.id,
         deletedAt: null,
         chainType: "CLASSIC_TOKEN",
         type: { notIn: ["FAN_TOKEN", "ROYALTY"] },
@@ -286,23 +286,23 @@ export async function pinOptions(
       select: { id: true, title: true, coverUrl: true, supply: true },
     }),
     ctx.db.membershipTier.findMany({
-      where: { artistId: artist.id, isActive: true },
+      where: { organizationId: artist.id, isActive: true },
       orderBy: { requiredTokens: "asc" },
       select: { id: true, name: true, requiredTokens: true },
     }),
     ctx.db.event.findMany({
-      where: { artistId: artist.id, endsAt: { gte: new Date() } },
+      where: { organizationId: artist.id, endsAt: { gte: new Date() } },
       orderBy: { startsAt: "asc" },
       select: { id: true, title: true, startsAt: true },
     }),
     ctx.db.pinTag.findMany({
       where: {
-        OR: [{ artistId: artist.id }, { pins: { some: { pin: { artistId: artist.id } } } }],
+        OR: [{ organizationId: artist.id }, { pins: { some: { pin: { organizationId: artist.id } } } }],
       },
       orderBy: { label: "asc" },
       select: { label: true },
     }),
-    ctx.db.artist.findUnique({
+    ctx.db.organization.findUnique({
       where: { id: artist.id },
       select: {
         avatarUrl: true,
@@ -338,10 +338,10 @@ export async function pinOptions(
 /** How many fan tokens storage holds for pin rewards; null when storage isn't open or can't be read. */
 async function fanTokensInStorage(
   ctx: Pick<Context, "db" | "chain">,
-  artist: { storageAccountId: string | null },
+  organization: { storageAccountId: string | null },
   token: { code: string; issuer: string } | null,
 ) {
-  const storage = await openedStorage(ctx, artist);
+  const storage = await openedStorage(ctx, organization);
   if (!storage || !token) return null;
   // A failed read says nothing rather than "0": the form only shows what it knows.
   const account = await ctx.chain.loadAccount(storage.publicKey).catch(() => undefined);
@@ -361,14 +361,14 @@ const fanTokenLabel = (amount: { toString(): string }) => {
 
 export async function listPins(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef, now = new Date()) {
   const rows = await ctx.db.pin.findMany({
-    where: { artistId: artist.id, ...notUnlockPin },
+    where: { organizationId: artist.id, ...notUnlockPin },
     orderBy: { createdAt: "desc" },
     include: {
       rewardItem: { select: { title: true, coverUrl: true } },
       event: { select: { title: true } },
       layer: { select: { id: true, name: true, icon: true, color: true } },
       pinShape: PIN_LOOK_SELECT.pinShape,
-      artist: { select: { avatarUrl: true } },
+      organization: { select: { avatarUrl: true } },
       tags: { select: { tag: { select: { label: true } } } },
       spots: {
         where: { isHidden: false },
@@ -411,7 +411,7 @@ export async function listPins(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef, n
     layer: pin.layer,
     look: resolvePinLook(pin, {
       customShape: pin.pinShape,
-      artistImage: pin.artist.avatarUrl,
+      artistImage: pin.organization.avatarUrl,
       pinImage: pin.imageUrl,
       autoCollect: pin.spots.some((spot) => spot.autoCollect),
     }),
@@ -426,7 +426,7 @@ export async function getPin(
   now = new Date(),
 ) {
   const pin = await ctx.db.pin.findFirst({
-    where: { id: pinId, artistId: artist.id },
+    where: { id: pinId, organizationId: artist.id },
     include: {
       rewardItem: { select: { title: true } },
       tags: { select: { tag: { select: { label: true } } } },
@@ -519,7 +519,7 @@ export async function createPin(
   const pin = await ctx.db.$transaction(async (tx) => {
     const created = await tx.pin.create({
       data: {
-        artistId: artist.id,
+        organizationId: artist.id,
         title: input.title.trim(),
         description: input.description?.trim() || null,
         imageUrl: input.imageUrl || null,
@@ -580,7 +580,7 @@ async function linkTags(
     tags.map((tag) =>
       tx.pinTag.upsert({
         where: { name: tag.name },
-        create: { ...tag, artistId: artist.id },
+        create: { ...tag, organizationId: artist.id },
         update: {},
         select: { id: true },
       }),
@@ -703,7 +703,7 @@ export async function removePin(ctx: ServiceCtx, artist: ArtistRef, pinId: strin
 /** Takes one spot off the map; a spot fans already collected is hidden rather than erased. */
 export async function removeSpot(ctx: ServiceCtx, artist: ArtistRef, spotId: string) {
   const spot = await ctx.db.pinSpot.findFirst({
-    where: { id: spotId, pin: { artistId: artist.id } },
+    where: { id: spotId, pin: { organizationId: artist.id } },
     select: { id: true, pinId: true, isHidden: true, _count: { select: { claims: true } } },
   });
   if (!spot) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Spot not found" });
@@ -727,7 +727,7 @@ function checkPoint(latitude: number, longitude: number) {
 
 async function ownSpot(ctx: ServiceCtx, artist: ArtistRef, spotId: string) {
   const spot = await ctx.db.pinSpot.findFirst({
-    where: { id: spotId, pin: { artistId: artist.id } },
+    where: { id: spotId, pin: { organizationId: artist.id } },
     select: { id: true, pinId: true, autoCollect: true },
   });
   if (!spot) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Spot not found" });

@@ -16,14 +16,14 @@ export async function announceItem(ctx: Pick<Context, "db">, itemId: string) {
         visibility: true,
         deletedAt: true,
         hiddenAt: true,
-        artist: { select: { id: true, userId: true } },
+        organization: { select: { id: true, userId: true } },
       },
     });
-    if (!item?.artist || item.type === "FAN_TOKEN") return;
+    if (!item?.organization || item.type === "FAN_TOKEN") return;
     if (item.visibility !== "PUBLIC" || item.deletedAt || item.hiddenAt) return;
     await notifyFollowers(ctx, {
       type: "NEW_ITEM",
-      artist: item.artist,
+      organization: item.organization,
       entityId: itemId,
       once: true,
     });

@@ -69,7 +69,7 @@ function setup(
       ),
     },
     job: table(opts.jobs ?? []),
-    artist: table(opts.artists ?? []),
+    organization: table(opts.artists ?? []),
     user: { ...table([{}, {}, {}]), findMany: vi.fn().mockResolvedValue([]) },
     item: table([{ deletedAt: null }, { deletedAt: null }, { deletedAt: ago(DAY) }]),
     story: table([

@@ -10,7 +10,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   const { id } = await ctx.params;
   const row = await db.event.findUnique({
     where: { id },
-    include: { artist: { select: { name: true } } },
+    include: { organization: { select: { name: true } } },
   });
   if (!row) return new Response("Event not found", { status: 404 });
 
@@ -26,7 +26,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
       longitude: row.longitude,
       startDate: row.startsAt.toISOString(),
       endDate: row.endsAt.toISOString(),
-      artist: { name: row.artist.name },
+      organization: { name: row.organization.name },
     },
     `${site.urls.arWeb}/events/${row.id}`,
   );

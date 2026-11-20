@@ -7,7 +7,7 @@ export async function copyBounties(copy: Copier) {
     "bounties",
     (await copy.read("Bounty")).map((bounty: Row) => ({
       id: copy.map("Bounty", bounty.id, true),
-      artistId: copy.must("Creator", bounty.creatorId),
+      organizationId: copy.must("Creator", bounty.creatorId),
       title: bounty.title,
       summary: bounty.summary,
       description: bounty.description,
@@ -99,7 +99,7 @@ export async function copyAgent(copy: Copier) {
     "agent_jobs",
     (await copy.read("AgentJob")).map((job: Row) => ({
       id: job.id,
-      artistId: copy.must("Creator", job.creatorId),
+      organizationId: copy.must("Creator", job.creatorId),
       status: finishedJobStatus(job.status),
       payload: json(job.payload),
       result: json(job.result),
@@ -112,7 +112,7 @@ export async function copyAgent(copy: Copier) {
     "agent_conversations",
     (await copy.read("AgentConversation")).map((row: Row) => ({
       id: copy.map("AgentConversation", row.id, true),
-      artistId: copy.must("Creator", row.creatorId),
+      organizationId: copy.must("Creator", row.creatorId),
       userId: copy.must("User", row.userId),
       title: row.title,
       createdAt: row.createdAt,
@@ -136,7 +136,7 @@ export async function copyAgent(copy: Copier) {
     (await copy.read("AgentAction")).map((row: Row) => ({
       id: row.id,
       conversationId: copy.must("AgentConversation", row.conversationId),
-      artistId: copy.must("Creator", row.creatorId),
+      organizationId: copy.must("Creator", row.creatorId),
       type: row.type,
       payload: json(row.payload),
       status: row.status,

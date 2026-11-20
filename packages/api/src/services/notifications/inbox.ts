@@ -41,7 +41,7 @@ export async function loadInbox(
                 displayName: true,
                 username: true,
                 avatarUrl: true,
-                artist: { select: { name: true, slug: true } },
+                organization: { select: { name: true, slug: true } },
               },
             },
           },
@@ -73,9 +73,9 @@ export async function loadInbox(
     next: rows.length > INBOX_PAGE ? (page.at(-1)?.id ?? null) : null,
     items: page.map((row) => {
       const { actor, type, entityId } = row.event;
-      const name = actor.artist?.name ?? actor.displayName ?? actor.username ?? "Someone";
+      const name = actor.organization?.name ?? actor.displayName ?? actor.username ?? "Someone";
       const subject = {
-        actor: { name, username: actor.username, artistSlug: actor.artist?.slug ?? null },
+        actor: { name, username: actor.username, artistSlug: actor.organization?.slug ?? null },
         bounty: entityId ? bountyById.get(entityId) : null,
         item: entityId ? itemById.get(entityId) : null,
       };

@@ -165,7 +165,7 @@ describe("admins", () => {
   });
 
   it("makes an admin, and removing it puts an approved artist back to artist", async () => {
-    const { ctx, users } = setup([{ id: "u1", artist: { status: "APPROVED" } }, { id: "u2" }]);
+    const { ctx, users } = setup([{ id: "u1", organization: { status: "APPROVED" } }, { id: "u2" }]);
     await setAdmin(ctx, admin, { userId: "u1", admin: true });
     expect(users.get("u1")?.role).toBe("ADMIN");
     await setAdmin(ctx, admin, { userId: "u1", admin: false });

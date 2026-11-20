@@ -57,7 +57,7 @@ function setup(
       ? {
           id: "i1",
           title: "Pass",
-          artist: { user: { walletAddress: artistWallet } },
+          organization: { user: { walletAddress: artistWallet } },
           contractNft: { royaltyBps: 1000, status: "MINTED" },
         }
       : opts.item;

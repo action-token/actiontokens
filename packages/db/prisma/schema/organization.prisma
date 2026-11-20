@@ -1,6 +1,6 @@
-// Artists, their memberships, page, domains and connected services.
+// Organizations, their memberships, page, domains and connected services.
 
-enum ArtistStatus {
+enum OrganizationStatus {
   /// Applied, waiting for an admin
   PENDING
   APPROVED
@@ -9,12 +9,12 @@ enum ArtistStatus {
   REJECTED
 }
 
-model Artist {
-  id                String        @id @default(cuid())
-  userId            String        @unique
-  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Organization {
+  id                String             @id @default(cuid())
+  userId            String             @unique
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   name              String
-  slug              String        @unique
+  slug              String             @unique
   bio               String?
   avatarUrl         String?
   coverUrl          String?
@@ -23,28 +23,28 @@ model Artist {
   /// { default, desktop, mobile } section order
   sectionLayouts    Json?
   backgroundSvg     String?
-  showBackgroundSvg Boolean       @default(false)
+  showBackgroundSvg Boolean            @default(false)
   website           String?
   twitter           String?
   instagram         String?
-  status            ArtistStatus  @default(PENDING)
+  status            OrganizationStatus @default(PENDING)
   /// What the admin told the applicant when rejecting
   rejectionReason   String?
-  storageAccountId  String?       @unique
-  storageAccount    ChainAccount? @relation("ArtistStorage", fields: [storageAccountId], references: [id], onDelete: SetNull)
+  storageAccountId  String?            @unique
+  storageAccount    ChainAccount?      @relation("OrganizationStorage", fields: [storageAccountId], references: [id], onDelete: SetNull)
   /// The artist's one issuer: their fan token and every item they create are
   /// issued by it (Wadzzo model). The artist pays to open it once; copies are
   /// minted when fans buy or claim.
-  issuerAccountId   String?       @unique
-  issuerAccount     ChainAccount? @relation("ArtistIssuer", fields: [issuerAccountId], references: [id], onDelete: SetNull)
+  issuerAccountId   String?            @unique
+  issuerAccount     ChainAccount?      @relation("OrganizationIssuer", fields: [issuerAccountId], references: [id], onDelete: SetNull)
   /// The artist's fan token: an Item of type FAN_TOKEN. Tiers are "hold N of it".
-  fanTokenItemId    String?       @unique
-  fanTokenItem      Item?         @relation("ArtistFanToken", fields: [fanTokenItemId], references: [id], onDelete: SetNull)
+  fanTokenItemId    String?            @unique
+  fanTokenItem      Item?              @relation("OrganizationFanToken", fields: [fanTokenItemId], references: [id], onDelete: SetNull)
   /// The fan token chosen while applying ({ mode: NEW | EXISTING, code, issuer?, coverUrl });
   /// created when an admin approves, then cleared
   pendingFanToken   Json?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 
   items              Item[]
   albums             Album[]
@@ -71,39 +71,39 @@ model Artist {
   events             Event[]
   announcements      Announcement[]
   mapEmbeds          MapEmbed[]
-  previousSlugs      ArtistSlugHistory[]
+  previousSlugs      OrganizationSlugHistory[]
 
   @@index([status, createdAt])
-  @@map("artists")
+  @@map("organizations")
 }
 
 /// An address an artist's page used before a rename, so old /artist/{slug}
 /// links keep working (they redirect to the current one). A slug here can't
 /// be taken by another artist.
-model ArtistSlugHistory {
-  slug      String   @id
-  artistId  String
-  artist    Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+model OrganizationSlugHistory {
+  slug           String       @id
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
 
-  @@index([artistId])
-  @@map("artist_slug_history")
+  @@index([organizationId])
+  @@map("organization_slug_history")
 }
 
 /// A membership level: hold `requiredTokens` of the artist's fan token.
 model MembershipTier {
-  id             String   @id @default(cuid())
-  artistId       String
-  artist         Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   name           String
   description    String
   features       String[]
   color          String?
-  isPopular      Boolean  @default(false)
-  isActive       Boolean  @default(true)
-  requiredTokens Decimal  @db.Decimal(20, 7)
-  sortOrder      Int      @default(0)
-  createdAt      DateTime @default(now())
+  isPopular      Boolean      @default(false)
+  isActive       Boolean      @default(true)
+  requiredTokens Decimal      @db.Decimal(20, 7)
+  sortOrder      Int          @default(0)
+  createdAt      DateTime     @default(now())
 
   items        Item[]
   posts        Post[]  @relation("PostTier")
@@ -112,22 +112,22 @@ model MembershipTier {
   stories      Story[] @relation("StoryTier")
   pins         Pin[]
 
-  @@unique([artistId, name])
+  @@unique([organizationId, name])
   @@map("membership_tiers")
 }
 
 model Follow {
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  artistId    String
-  artist      Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   /// true: just a follower (no trustline to the artist's fan token); false: a subscriber (has the trustline).
   /// Was TemporalFollow. Kept true to the chain by the follow service and the `follows.sync` job.
-  isTemporary Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  isTemporary    Boolean      @default(false)
+  createdAt      DateTime     @default(now())
 
-  @@id([userId, artistId])
-  @@index([artistId])
+  @@id([userId, organizationId])
+  @@index([organizationId])
   @@map("follows")
 }
 
@@ -147,32 +147,32 @@ enum VanityPaymentKind {
 /// bandcoin.io/name. First month free, then a monthly renewal; on lapse a
 /// 7-day grace, then the name is reserved for 30 days.
 model VanityUrl {
-  artistId      String       @id
-  artist        Artist       @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  name          String       @unique
-  status        VanityStatus @default(TRIAL)
-  startedAt     DateTime     @default(now())
-  paidUntil     DateTime
-  graceEndsAt   DateTime?
-  reservedUntil DateTime?
-  updatedAt     DateTime     @updatedAt
+  organizationId String       @id
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String       @unique
+  status         VanityStatus @default(TRIAL)
+  startedAt      DateTime     @default(now())
+  paidUntil      DateTime
+  graceEndsAt    DateTime?
+  reservedUntil  DateTime?
+  updatedAt      DateTime     @updatedAt
 
   @@map("vanity_urls")
 }
 
 model VanityPayment {
-  id        String            @id @default(cuid())
-  artistId  String
-  artist    Artist            @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  kind      VanityPaymentKind
-  currency  Currency
-  amount    Decimal           @db.Decimal(20, 7)
-  orderId   String?           @unique
-  order     Order?            @relation(fields: [orderId], references: [id], onDelete: SetNull)
-  periodEnd DateTime
-  createdAt DateTime          @default(now())
+  id             String            @id @default(cuid())
+  organizationId String
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  kind           VanityPaymentKind
+  currency       Currency
+  amount         Decimal           @db.Decimal(20, 7)
+  orderId        String?           @unique
+  order          Order?            @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  periodEnd      DateTime
+  createdAt      DateTime          @default(now())
 
-  @@index([artistId, createdAt])
+  @@index([organizationId, createdAt])
   @@map("vanity_payments")
 }
 
@@ -189,21 +189,21 @@ enum CustomDomainStatus {
 
 /// An artist's own domain showing their artist page (plan 32). One per artist.
 model CustomDomain {
-  id            String             @id @default(cuid())
-  artistId      String             @unique
-  artist        Artist             @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  id             String             @id @default(cuid())
+  organizationId String             @unique
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   /// Lower case, no scheme, no www (a root domain's www is `withWww`)
-  domain        String             @unique
-  status        CustomDomainStatus @default(PENDING)
+  domain         String             @unique
+  status         CustomDomainStatus @default(PENDING)
   /// Root domains: www.<domain> is on the host too, redirecting to the root
-  withWww       Boolean            @default(false)
+  withWww        Boolean            @default(false)
   /// First time it went live
-  verifiedAt    DateTime?
-  lastCheckedAt DateTime?
-  brokenSince   DateTime?
+  verifiedAt     DateTime?
+  lastCheckedAt  DateTime?
+  brokenSince    DateTime?
   /// The host's last complaint, in its words
-  lastError     String?
-  createdAt     DateTime           @default(now())
+  lastError      String?
+  createdAt      DateTime           @default(now())
 
   @@index([status, lastCheckedAt])
   @@map("custom_domains")
@@ -216,27 +216,27 @@ enum LayoutStatus {
 
 /// An artist page design (page builder). One is active at a time.
 model PageLayout {
-  id              String       @id @default(cuid())
-  artistId        String?
-  artist          Artist?      @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  id              String        @id @default(cuid())
+  organizationId  String?
+  organization    Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   name            String
   templateKey     String?
-  isDefault       Boolean      @default(false)
-  isPublic        Boolean      @default(false)
-  isActive        Boolean      @default(false)
-  status          LayoutStatus @default(DRAFT)
+  isDefault       Boolean       @default(false)
+  isPublic        Boolean       @default(false)
+  isActive        Boolean       @default(false)
+  status          LayoutStatus  @default(DRAFT)
   theme           Json?
   /// Block[] being edited
   draftBlocks     Json?
   /// Block[] visitors see
   publishedBlocks Json?
   publishedAt     DateTime?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   widgets PageWidget[]
 
-  @@index([artistId, isActive])
+  @@index([organizationId, isActive])
   @@map("page_layouts")
 }
 
@@ -279,14 +279,14 @@ model PageTemplate {
 }
 
 model FacebookConnection {
-  artistId           String   @id
-  artist             Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  organizationId     String       @id
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   pageId             String
   pageName           String
   /// AES-256-GCM, "iv:tag:ciphertext" hex
   pageTokenEncrypted String
-  autoPublish        Boolean  @default(false)
-  connectedAt        DateTime @default(now())
+  autoPublish        Boolean      @default(false)
+  connectedAt        DateTime     @default(now())
 
   @@map("facebook_connections")
 }

@@ -12,8 +12,8 @@ import { withAiQuota } from "./quota";
 
 type GenerateCtx = Pick<Context, "db">;
 /** The signed-in artist; the allowance belongs to their account (userId). */
-type Artist = { userId: string; name: string; bio: string | null };
-type Who = { artist: Artist; unlimited: boolean };
+type Organization = { userId: string; name: string; bio: string | null };
+type Who = { organization: Organization; unlimited: boolean };
 
 const RULES = `Rules:
 - Write in the same language the artist writes in.
@@ -31,7 +31,7 @@ export const WRITE_MODES = [
 ] as const;
 export type WriteMode = (typeof WRITE_MODES)[number];
 
-const artistLine = ({ name, bio }: Artist) =>
+const artistLine = ({ name, bio }: Organization) =>
   `The artist is "${name}"${bio ? `: ${bio.slice(0, 300)}` : ""}.`;
 
 const contextBlock = (context: Record<string, string>) => {
@@ -43,7 +43,7 @@ const contextBlock = (context: Record<string, string>) => {
     : "The form is empty so far.";
 };
 
-const who = ({ artist, unlimited }: Who) => ({ userId: artist.userId, unlimited });
+const who = ({ organization, unlimited }: Who) => ({ userId: organization.userId, unlimited });
 
 /** "Fill with AI": one description becomes every field of a form, for the artist to review. */
 export async function fillForm<F extends FillForm>(
@@ -61,7 +61,7 @@ export async function fillForm<F extends FillForm>(
   const schema = FILL_SCHEMAS[input.form];
   return withAiQuota(ctx, who(actor), "text", async () => {
     const filled = await model.fill({
-      system: `You fill in the form for ${FORM_BRIEF[input.form]} on Bandcoin, a platform where artists sell music and collectibles to fans. ${artistLine(actor.artist)}
+      system: `You fill in the form for ${FORM_BRIEF[input.form]} on Bandcoin, a platform where artists sell music and collectibles to fans. ${artistLine(actor.organization)}
 It is now ${input.now} (${input.timeZone}). Choose sensible defaults for anything the artist didn't specify, and dates in the future.
 ${RULES}`,
       user: `${contextBlock(input.context)}\n\nWhat the artist wants:\n${input.prompt}`,
@@ -101,7 +101,7 @@ export async function writeField(
 ) {
   return withAiQuota(ctx, who(actor), "text", async () => {
     const raw = await model.write({
-      system: `You write copy for ${FORM_BRIEF[input.form]} on Bandcoin. ${artistLine(actor.artist)}
+      system: `You write copy for ${FORM_BRIEF[input.form]} on Bandcoin. ${artistLine(actor.organization)}
 ${RULES}
 Return plain text only, no quotes, no markdown.${input.maxChars ? ` Stay under ${input.maxChars} characters.` : ""} Return only the ${input.field} itself.`,
       user: `${contextBlock(input.context)}\n\n${TASKS[input.mode](input.field)}${input.current.trim() ? `\n\nCurrent ${input.field}:\n${input.current}` : ""}`,
@@ -143,7 +143,7 @@ export async function generateImage(
       });
     return {
       url: await uploadBufferToS3(bytes, "image/png", {
-        placement: { owner: "users", ownerId: actor.artist.userId, kind: "ai-images" },
+        placement: { owner: "users", ownerId: actor.organization.userId, kind: "ai-images" },
       }),
     };
   });
@@ -177,7 +177,7 @@ export async function suggestPinTags(
 
   return withAiQuota(ctx, who(actor), "text", async () => {
     const filled = await model.fill({
-      system: `You write search tags for a pin on a music map. ${artistLine(actor.artist)}
+      system: `You write search tags for a pin on a music map. ${artistLine(actor.organization)}
 Tags are short lowercase phrases of 1-3 words that fans would search for. No hashtags, no duplicates, nothing the artist didn't hint at.`,
       user: `Title: ${input.title}\nType: ${input.type}\nPlace: ${input.place.trim() || "unknown"}\nDescription: ${input.description.trim().slice(0, 600) || "none"}`,
       schema: tagSchema,
@@ -221,7 +221,7 @@ export async function suggestTokenCodes(
     const filled = await model.fill({
       system: `You suggest the code of a music artist's fan token on Stellar. Fans hold it to join the artist's memberships.
 Codes are 4-12 capital letters or digits, easy to say, clearly tied to the artist (a short form of the name, a nickname, or name + FANS / CLUB / CREW). Never BANDCOIN, XLM, USDC or USD.`,
-      user: `Artist: ${input.name}\nAbout: ${input.bio.trim().slice(0, 500) || "nothing yet"}`,
+      user: `Organization: ${input.name}\nAbout: ${input.bio.trim().slice(0, 500) || "nothing yet"}`,
       schema: codeSchema,
     });
     const codes = [

@@ -35,10 +35,10 @@ export async function walletTrusts(
 }
 
 /** Follows the artist and marks the fan a subscriber, as one step (they trust the token). */
-export async function setSubscribed(db: Pick<Db, "follow">, userId: string, artistId: string) {
+export async function setSubscribed(db: Pick<Db, "follow">, userId: string, organizationId: string) {
   await db.follow.upsert({
-    where: { userId_artistId: { userId, artistId } },
-    create: { userId, artistId, isTemporary: false },
+    where: { userId_organizationId: { userId, organizationId } },
+    create: { userId, organizationId, isTemporary: false },
     update: { isTemporary: false },
   });
 }
@@ -53,9 +53,9 @@ export async function syncViewerSubscription(
   user: { id: string; walletAddress: string },
   artist: ArtistTokens,
 ) {
-  const key = { userId: user.id, artistId: artist.id };
+  const key = { userId: user.id, organizationId: artist.id };
   const row = await ctx.db.follow.findUnique({
-    where: { userId_artistId: key },
+    where: { userId_organizationId: key },
     select: { isTemporary: true },
   });
   const token = tokenOf(artist);
@@ -79,7 +79,7 @@ export async function syncViewerSubscription(
  * A list too long to read in full never demotes anyone.
  */
 export async function syncAllSubscribers(ctx: ServiceCtx) {
-  const artists = await ctx.db.artist.findMany({
+  const artists = await ctx.db.organization.findMany({
     where: { status: "APPROVED", fanTokenItem: { classicToken: { isNot: null } } },
     select: {
       id: true,
@@ -90,7 +90,7 @@ export async function syncAllSubscribers(ctx: ServiceCtx) {
   await ctx.db.follow.updateMany({
     where: {
       isTemporary: false,
-      artist: { OR: [{ fanTokenItem: null }, { fanTokenItem: { classicToken: null } }] },
+      organization: { OR: [{ fanTokenItem: null }, { fanTokenItem: { classicToken: null } }] },
     },
     data: { isTemporary: true },
   });
@@ -112,7 +112,7 @@ export async function syncAllSubscribers(ctx: ServiceCtx) {
       : [];
     const trusting = new Set(users.map((user) => user.id));
     const follows = await ctx.db.follow.findMany({
-      where: { artistId: artist.id },
+      where: { organizationId: artist.id },
       select: { userId: true, isTemporary: true },
     });
     const following = new Map(follows.map((follow) => [follow.userId, follow.isTemporary]));
@@ -126,17 +126,17 @@ export async function syncAllSubscribers(ctx: ServiceCtx) {
       : [];
     if (create.length)
       await ctx.db.follow.createMany({
-        data: create.map((userId) => ({ userId, artistId: artist.id, isTemporary: false })),
+        data: create.map((userId) => ({ userId, organizationId: artist.id, isTemporary: false })),
         skipDuplicates: true,
       });
     if (promote.length)
       await ctx.db.follow.updateMany({
-        where: { artistId: artist.id, userId: { in: promote } },
+        where: { organizationId: artist.id, userId: { in: promote } },
         data: { isTemporary: false },
       });
     if (demote.length)
       await ctx.db.follow.updateMany({
-        where: { artistId: artist.id, userId: { in: demote } },
+        where: { organizationId: artist.id, userId: { in: demote } },
         data: { isTemporary: true },
       });
     done.artists += 1;

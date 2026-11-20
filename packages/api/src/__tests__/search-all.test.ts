@@ -5,7 +5,7 @@ import { searchAll } from "../services/catalog/search";
 function setup(over: { items?: object[]; artists?: object[]; bounties?: object[] } = {}) {
   const db = {
     item: { findMany: vi.fn().mockResolvedValue(over.items ?? []) },
-    artist: { findMany: vi.fn().mockResolvedValue(over.artists ?? []) },
+    organization: { findMany: vi.fn().mockResolvedValue(over.artists ?? []) },
     bounty: { findMany: vi.fn().mockResolvedValue(over.bounties ?? []) },
   };
   return { ctx: { db } as never, db };
@@ -28,13 +28,13 @@ describe("search", () => {
           hiddenAt: null,
           OR: [
             { title: { contains: "green", mode: "insensitive" } },
-            { artist: { name: { contains: "green", mode: "insensitive" } } },
+            { organization: { name: { contains: "green", mode: "insensitive" } } },
           ],
         }),
         take: 5,
       }),
     );
-    expect(db.artist.findMany).toHaveBeenCalledWith(
+    expect(db.organization.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { status: "APPROVED", name: { contains: "green", mode: "insensitive" } },
         take: 5,

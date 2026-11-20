@@ -8,7 +8,7 @@ export async function copyPosts(copy: Copier) {
       const tierId = copy.find("Subscription", post.subscriptionId);
       return {
         id: copy.map("PostGroup", post.id),
-        artistId: copy.must("Creator", post.creatorId),
+        organizationId: copy.must("Creator", post.creatorId),
         title: post.heading,
         body: post.content,
         summary: post.description,

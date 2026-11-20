@@ -59,7 +59,7 @@ export async function startPinBatch(ctx: ServiceCtx, artist: ArtistRef, payload:
   payload = { ...payload, options: { ...payload.options, layerId } };
   const job = await ctx.db.pinBatchJob.create({
     data: {
-      artistId: artist.id,
+      organizationId: artist.id,
       status: "QUEUED",
       total: payload.places.length,
       payload,
@@ -116,10 +116,10 @@ export async function runPinBatch(
   if (count !== 1) return { batchId, outcome: "SKIPPED" as const };
   const job = await ctx.db.pinBatchJob.findUniqueOrThrow({
     where: { id: batchId },
-    select: { artistId: true, payload: true },
+    select: { organizationId: true, payload: true },
   });
   const { places, options } = job.payload as unknown as BatchPayload;
-  const artist = { id: job.artistId };
+  const artist = { id: job.organizationId };
   const log: BatchLog[] = [];
   const save = (status?: "SUCCEEDED" | "FAILED", error?: string) =>
     ctx.db.pinBatchJob.update({
@@ -199,7 +199,7 @@ export async function batchStatus(
   now = new Date(),
 ) {
   const job = await ctx.db.pinBatchJob.findFirst({
-    where: { id: batchId, artistId: artist.id },
+    where: { id: batchId, organizationId: artist.id },
     select: { status: true, total: true, completed: true, log: true, error: true, updatedAt: true },
   });
   if (!job) return null;

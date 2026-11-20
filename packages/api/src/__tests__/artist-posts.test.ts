@@ -86,12 +86,12 @@ describe("createPost", () => {
     const data = created[0] as {
       title: string;
       body: string;
-      artistId: string;
+      organizationId: string;
       tierId: null;
       media: { createMany: { data: Row[] } };
       collectibles: { createMany: { data: Row[] } };
     };
-    expect(data).toMatchObject({ title: "New drop", body: "Hello", artistId: "a1" });
+    expect(data).toMatchObject({ title: "New drop", body: "Hello", organizationId: "a1" });
     expect(data).not.toHaveProperty("tierId");
     expect(data.media.createMany.data.map((m) => m.sortOrder)).toEqual([0, 1]);
     expect(data.collectibles.createMany.data).toHaveLength(COLLECTIBLE_COPIES);
@@ -188,7 +188,7 @@ describe("createPost", () => {
     await createPost(ok.ctx, artist, { title: "Members only", tierId: "t1" });
     expect(ok.created[0]).toMatchObject({ tierId: "t1" });
     expect(ok.db.membershipTier.findFirst).toHaveBeenCalledWith({
-      where: { id: "t1", artistId: "a1", isActive: true },
+      where: { id: "t1", organizationId: "a1", isActive: true },
       select: { id: true },
     });
     const bad = setup({ tier: null });
@@ -240,7 +240,7 @@ describe("updatePost", () => {
       /Post not found/,
     );
     expect(db.post.findFirst).toHaveBeenCalledWith({
-      where: { id: "p9", artistId: "a1" },
+      where: { id: "p9", organizationId: "a1" },
       select: { id: true },
     });
   });
@@ -335,7 +335,7 @@ describe("listPosts", () => {
     const [post] = await listPosts(ctx, artist);
     expect(post).toMatchObject({ tierName: "Gold", likes: 3, comments: 1, collected: 7 });
     expect(db.post.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { artistId: "a1", isImportOnly: false } }),
+      expect.objectContaining({ where: { organizationId: "a1", isImportOnly: false } }),
     );
   });
 });
@@ -350,7 +350,7 @@ describe("comments", () => {
     const ok = setup();
     await removeComment(ok.ctx, artist, "c1");
     expect(ok.db.postComment.findFirst).toHaveBeenCalledWith({
-      where: { id: "c1", post: { artistId: "a1" } },
+      where: { id: "c1", post: { organizationId: "a1" } },
       select: { id: true, postId: true },
     });
     expect(ok.db.postComment.delete).toHaveBeenCalledWith({ where: { id: "c1" } });

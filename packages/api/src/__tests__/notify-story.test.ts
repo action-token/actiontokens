@@ -33,9 +33,9 @@ describe("telling followers about a story", () => {
   it("tells every follower about an everyone or followers story, once, from the artist", async () => {
     for (const audience of ["EVERYONE", "FOLLOWERS"] as const) {
       const { ctx, db } = setup();
-      await announceStory(ctx, { artist, audience, now });
+      await announceStory(ctx, { organization: artist, audience, now });
       expect(db.follow.findMany).toHaveBeenCalledWith({
-        where: { artistId: "a1" },
+        where: { organizationId: "a1" },
         select: { userId: true },
       });
       expect(db.notificationEvent.create).toHaveBeenCalledWith({
@@ -48,9 +48,9 @@ describe("telling followers about a story", () => {
   it("tells only subscribers about a subscribers or members story", async () => {
     for (const audience of ["SUBSCRIBERS", "MEMBERS"] as const) {
       const { ctx, db } = setup({ followers: ["sub"] });
-      await announceStory(ctx, { artist, audience, now });
+      await announceStory(ctx, { organization: artist, audience, now });
       expect(db.follow.findMany).toHaveBeenCalledWith({
-        where: { artistId: "a1", isTemporary: false },
+        where: { organizationId: "a1", isTemporary: false },
         select: { userId: true },
       });
       expect(recipientsOf(db)).toEqual(["sub"]);
@@ -59,7 +59,7 @@ describe("telling followers about a story", () => {
 
   it("skips anyone already told about a story by this artist in the last 24 hours", async () => {
     const { ctx, db } = setup({ followers: ["f1", "f2", "f3"], told: ["f2"] });
-    await announceStory(ctx, { artist, audience: "EVERYONE", now });
+    await announceStory(ctx, { organization: artist, audience: "EVERYONE", now });
     expect(db.notification.findMany).toHaveBeenCalledWith({
       where: {
         recipientId: { in: ["f1", "f2", "f3"] },
@@ -77,11 +77,11 @@ describe("telling followers about a story", () => {
 
   it("sends nothing when there is nobody to tell, or everyone was told today", async () => {
     const none = setup({ followers: [] });
-    await announceStory(none.ctx, { artist, audience: "EVERYONE", now });
+    await announceStory(none.ctx, { organization: artist, audience: "EVERYONE", now });
     expect(none.db.notificationEvent.create).not.toHaveBeenCalled();
 
     const told = setup({ followers: ["f1"], told: ["f1"] });
-    await announceStory(told.ctx, { artist, audience: "EVERYONE", now });
+    await announceStory(told.ctx, { organization: artist, audience: "EVERYONE", now });
     expect(told.db.notificationEvent.create).not.toHaveBeenCalled();
   });
 
@@ -90,7 +90,7 @@ describe("telling followers about a story", () => {
     db.follow.findMany.mockRejectedValue(new Error("db down"));
     const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
     await expect(
-      announceStory(ctx, { artist, audience: "EVERYONE", now }),
+      announceStory(ctx, { organization: artist, audience: "EVERYONE", now }),
     ).resolves.toBeUndefined();
     log.mockRestore();
   });

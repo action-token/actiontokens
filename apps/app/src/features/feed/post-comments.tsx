@@ -211,7 +211,7 @@ export function CommentBox({
     if (!text.trim() || add.isPending) return;
     add.mutate({ postId, body: text, parentId: replyTo?.id ?? null });
   };
-  const name = me.data?.artist?.name ?? me.data?.displayName ?? "You";
+  const name = me.data?.organization?.name ?? me.data?.displayName ?? "You";
 
   return (
     <form onSubmit={submit} className="grid gap-1">

@@ -137,7 +137,7 @@ async function prepare(
     problems.push(unavailable("You can't gift tokens to yourself."));
   else if (
     !(await db.follow.findUnique({
-      where: { userId_artistId: { userId: recipient.id, artistId: artist.id } },
+      where: { userId_organizationId: { userId: recipient.id, organizationId: artist.id } },
       select: { userId: true },
     }))
   )
@@ -471,7 +471,7 @@ export async function listFollowers(
   const q = search?.trim();
   const rows = await ctx.db.follow.findMany({
     where: {
-      artistId: artist.id,
+      organizationId: artist.id,
       user: {
         walletAddress: { not: null },
         ...(q

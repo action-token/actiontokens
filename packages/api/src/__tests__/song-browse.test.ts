@@ -25,7 +25,7 @@ const card = (id: string) => ({
   supply: null,
   playCount: 0,
   createdAt: now,
-  artist: { name: "Mira", slug: "mira" },
+  organization: { name: "Mira", slug: "mira" },
   track: null,
   media: { mediaType: "AUDIO", durationSec: 200 },
   listings: [],
@@ -62,7 +62,7 @@ describe("song filters", () => {
         {
           OR: [
             { title: { contains: "gold", mode: "insensitive" } },
-            { artist: { name: { contains: "gold", mode: "insensitive" } } },
+            { organization: { name: { contains: "gold", mode: "insensitive" } } },
             { track: { artistName: { contains: "gold", mode: "insensitive" } } },
           ],
         },

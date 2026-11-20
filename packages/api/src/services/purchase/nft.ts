@@ -100,8 +100,8 @@ export async function loadNftSale(db: Db, listingId: string) {
           deletedAt: true,
           hiddenAt: true,
           ...accessSelect,
-          artist: {
-            select: { ...accessSelect.artist.select, user: { select: { walletAddress: true } } },
+          organization: {
+            select: { ...accessSelect.organization.select, user: { select: { walletAddress: true } } },
           },
           media: { select: { mediaType: true, sourceUrl: true } },
           contractNft: {
@@ -130,7 +130,7 @@ export async function loadNftSale(db: Db, listingId: string) {
     throw new AppError(ErrorCodes.ITEM_NOT_AVAILABLE, {
       message: "This copy was sold or moved by its owner.",
     });
-  const creator = listing.item.artist?.user.walletAddress ?? null;
+  const creator = listing.item.organization?.user.walletAddress ?? null;
   if (!listing.item.contractNft || !creator)
     throw new AppError(ErrorCodes.ITEM_NOT_AVAILABLE, {
       message: "This item isn't for sale right now.",

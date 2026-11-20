@@ -185,7 +185,7 @@ async function brokenDomains(ctx: Pick<Context, "db">) {
       brokenSince: true,
       lastError: true,
       createdAt: true,
-      artist: { select: { userId: true, name: true } },
+      organization: { select: { userId: true, name: true } },
     },
     take: 200,
   });
@@ -195,9 +195,9 @@ async function brokenDomains(ctx: Pick<Context, "db">) {
       key: `brokenDomain:${row.id}:${since.toISOString()}`,
       kind: "brokenDomain",
       title: "Custom domain stopped working",
-      detail: `${row.domain} (${row.artist.name}) fails since ${since.toISOString().slice(0, 10)}${row.lastError ? `: ${row.lastError}` : "."} The artist was told; it wasn't removed.`,
+      detail: `${row.domain} (${row.organization.name}) fails since ${since.toISOString().slice(0, 10)}${row.lastError ? `: ${row.lastError}` : "."} The artist was told; it wasn't removed.`,
       at: since,
-      userId: row.artist.userId,
+      userId: row.organization.userId,
     };
   });
 }

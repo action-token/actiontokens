@@ -91,7 +91,7 @@ const [artistUser, sellerUser, buyerUser] = await Promise.all([
   mkUser(sellerKeys, "rs_seller"),
   mkUser(buyerKeys, "rs_buyer"),
 ]);
-const artist = await db.artist.create({
+const artist = await db.organization.create({
   data: {
     userId: artistUser.id,
     name: "Resale Test",
@@ -108,7 +108,7 @@ const item = await db.item.create({
     coverUrl: "https://example.com/x.png",
     supply: 100,
     royaltyPercent: "10",
-    artistId: artist.id,
+    organizationId: artist.id,
     createdById: artistUser.id,
     classicToken: {
       create: { code: token.getCode(), issuer: issuerKeys.publicKey(), isExternal: true },
@@ -242,7 +242,7 @@ try {
   await db.order.deleteMany({ where: { OR: [{ buyerId: { in: users } }, { itemId: item.id }] } });
   await db.listing.deleteMany({ where: { itemId: item.id } });
   await db.item.delete({ where: { id: item.id } });
-  await db.artist.delete({ where: { id: artist.id } });
+  await db.organization.delete({ where: { id: artist.id } });
   await db.chainAccount.deleteMany({ where: { ownerId: { in: users } } });
   await db.user.deleteMany({ where: { id: { in: users } } });
   await db.$disconnect();

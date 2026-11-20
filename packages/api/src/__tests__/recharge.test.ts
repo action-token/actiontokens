@@ -83,7 +83,7 @@ function setup(
   const orders = new Map<string, Record<string, unknown>>();
   const token = opts.token === undefined ? { code: "NOVA", issuer: tokenIssuer } : opts.token;
   const db = {
-    artist: {
+    organization: {
       findFirst: vi.fn().mockResolvedValue({
         name: "Nova",
         fanTokenItem: token ? { classicToken: token } : null,
@@ -153,7 +153,7 @@ function setup(
 }
 
 const topUp = { kind: "TOP_UP", packageUsd: "9.99" } as const;
-const trust = { kind: "TOKEN_TRUST" as const, artistId: "a1", currency: "BANDCOIN" as const };
+const trust = { kind: "TOKEN_TRUST" as const, organizationId: "a1", currency: "BANDCOIN" as const };
 const trustIn = (currency: "BANDCOIN" | "USDC" | "XLM" | "USD") => ({ ...trust, currency });
 const parse = (xdr: string) => TransactionBuilder.fromXDR(xdr, Networks.TESTNET);
 
@@ -333,8 +333,8 @@ describe("holding an artist's fan token", () => {
     expect(chain.card.charge).not.toHaveBeenCalled();
     // Trusting the token makes the fan a subscriber of that artist (and a follower).
     expect(db.follow.upsert).toHaveBeenCalledWith({
-      where: { userId_artistId: { userId: "me", artistId: "a1" } },
-      create: { userId: "me", artistId: "a1", isTemporary: false },
+      where: { userId_organizationId: { userId: "me", organizationId: "a1" } },
+      create: { userId: "me", organizationId: "a1", isTemporary: false },
       update: { isTemporary: false },
     });
   });

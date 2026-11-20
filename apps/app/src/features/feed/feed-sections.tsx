@@ -94,7 +94,7 @@ export function UpcomingEvents() {
         events.data?.map((event) => (
           <Link
             key={event.id}
-            href={`/artist/${event.artist.slug}`}
+            href={`/artist/${event.organization.slug}`}
             className={cn(POSTER, ITEM, "w-64")}
           >
             <div className="relative aspect-[4/3] xl:aspect-[16/9]">

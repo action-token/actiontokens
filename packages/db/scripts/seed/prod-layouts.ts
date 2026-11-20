@@ -36,7 +36,7 @@ async function main() {
       const data = await readProduction(client, slug);
       if (!data) continue;
       const { rows: layouts } = await client.query(
-        `select id, name, status, "isActive", theme, "draftBlocks", "publishedBlocks", "templateKey" from page_layouts where "artistId" = $1 order by "createdAt"`,
+        `select id, name, status, "isActive", theme, "draftBlocks", "publishedBlocks", "templateKey" from page_layouts where "organizationId" = $1 order by "createdAt"`,
         [data.artist.id],
       );
       const facts = factsFrom(data);
@@ -64,7 +64,7 @@ async function main() {
 
       if (worthKeeping && !hasBackup)
         await client.query(
-          `insert into page_layouts (id, "artistId", name, "isActive", status, theme, "draftBlocks", "publishedBlocks", "templateKey", "updatedAt")
+          `insert into page_layouts (id, "organizationId", name, "isActive", status, theme, "draftBlocks", "publishedBlocks", "templateKey", "updatedAt")
            values ('c' || md5(random()::text || clock_timestamp()::text), $1, $2, false, 'DRAFT', $3::jsonb, $4::jsonb, $5::jsonb, $6, now())`,
           [
             data.artist.id,
@@ -90,7 +90,7 @@ async function main() {
         );
       else
         await client.query(
-          `insert into page_layouts (id, "artistId", name, "isActive", status, theme, "draftBlocks", "publishedBlocks", "publishedAt", "updatedAt")
+          `insert into page_layouts (id, "organizationId", name, "isActive", status, theme, "draftBlocks", "publishedBlocks", "publishedAt", "updatedAt")
            values ('c' || md5(random()::text || clock_timestamp()::text), $4, 'My page', true, 'PUBLISHED', $1::jsonb, $2::jsonb, $3::jsonb, now(), now())`,
           [...args, data.artist.id],
         );

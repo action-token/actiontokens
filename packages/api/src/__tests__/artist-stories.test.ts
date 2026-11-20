@@ -45,7 +45,7 @@ describe("adding a story", () => {
   it("tells the artist's followers, with the audience it was shared with", async () => {
     const { ctx } = setup();
     await createStory(ctx, artist, { ...photo, audience: "SUBSCRIBERS" }, now);
-    expect(announceStory).toHaveBeenCalledWith(ctx, { artist, audience: "SUBSCRIBERS", now });
+    expect(announceStory).toHaveBeenCalledWith(ctx, { organization: artist, audience: "SUBSCRIBERS", now });
   });
 
   it("goes live at once for 24 hours, open to everyone by default", async () => {
@@ -55,7 +55,7 @@ describe("adding a story", () => {
     });
     expect(db.story.create).toHaveBeenCalledWith({
       data: {
-        artistId: "a1",
+        organizationId: "a1",
         type: "IMAGE",
         url: photo.url,
         thumbnailUrl: null,
@@ -87,7 +87,7 @@ describe("adding a story", () => {
     const members = setup();
     await createStory(members.ctx, artist, { ...photo, audience: "MEMBERS", tierId: "t1" }, now);
     expect(members.db.membershipTier.findFirst).toHaveBeenCalledWith({
-      where: { id: "t1", artistId: "a1", isActive: true },
+      where: { id: "t1", organizationId: "a1", isActive: true },
       select: { id: true },
     });
     expect(members.db.story.create.mock.calls[0]![0].data).toMatchObject({
@@ -121,7 +121,7 @@ describe("adding a story", () => {
     const { ctx, db } = setup({ live: MAX_LIVE_STORIES });
     await expect(createStory(ctx, artist, photo, now)).rejects.toThrow(/10 live stories/i);
     expect(db.story.count).toHaveBeenCalledWith({
-      where: { artistId: "a1", removedAt: null, expiresAt: { gt: now } },
+      where: { organizationId: "a1", removedAt: null, expiresAt: { gt: now } },
     });
     expect(db.story.create).not.toHaveBeenCalled();
   });
@@ -160,7 +160,7 @@ describe("my stories", () => {
     ]);
     expect(db.story.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { artistId: "a1", removedAt: null },
+        where: { organizationId: "a1", removedAt: null },
         orderBy: { createdAt: "desc" },
         take: 100,
       }),
@@ -173,7 +173,7 @@ describe("editing a story", () => {
     const { ctx, db, activity } = setup();
     await updateStory(ctx, artist, { storyId: "s1", caption: "  Load-in  " });
     expect(db.story.findFirst).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { id: "s1", artistId: "a1", removedAt: null } }),
+      expect.objectContaining({ where: { id: "s1", organizationId: "a1", removedAt: null } }),
     );
     expect(db.story.update).toHaveBeenCalledWith({
       where: { id: "s1" },
@@ -192,7 +192,7 @@ describe("editing a story", () => {
     const members = setup();
     await updateStory(members.ctx, artist, { storyId: "s1", audience: "MEMBERS", tierId: "t1" });
     expect(members.db.membershipTier.findFirst).toHaveBeenCalledWith({
-      where: { id: "t1", artistId: "a1", isActive: true },
+      where: { id: "t1", organizationId: "a1", isActive: true },
       select: { id: true },
     });
     expect(members.db.story.update).toHaveBeenCalledWith({
@@ -238,7 +238,7 @@ describe("taking a story down", () => {
     const { ctx, db, activity } = setup();
     await removeStory(ctx, artist, "s1", now);
     expect(db.story.findFirst).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { id: "s1", artistId: "a1", removedAt: null } }),
+      expect.objectContaining({ where: { id: "s1", organizationId: "a1", removedAt: null } }),
     );
     expect(db.story.update).toHaveBeenCalledWith({
       where: { id: "s1" },

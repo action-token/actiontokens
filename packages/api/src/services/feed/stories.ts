@@ -39,8 +39,8 @@ async function locksFor(
     viewer && !isOwner && asks("FOLLOWERS")
       ? Boolean(
           await ctx.db.follow.findFirst({
-            where: { userId: viewer.id, artistId: artist.id },
-            select: { artistId: true },
+            where: { userId: viewer.id, organizationId: artist.id },
+            select: { organizationId: true },
           }),
         )
       : false;
@@ -83,21 +83,21 @@ export async function storyRing(
   now = new Date(),
 ) {
   const rows = await ctx.db.story.findMany({
-    where: { removedAt: null, expiresAt: { gt: now }, artist: { status: "APPROVED" } },
+    where: { removedAt: null, expiresAt: { gt: now }, organization: { status: "APPROVED" } },
     orderBy: { createdAt: "desc" },
     take: 500,
     select: {
       id: true,
       createdAt: true,
-      artistId: true,
-      artist: { select: { slug: true, name: true, avatarUrl: true } },
+      organizationId: true,
+      organization: { select: { slug: true, name: true, avatarUrl: true } },
       views: { where: { userId: viewer?.id ?? "" }, select: { userId: true } },
     },
   });
   const byArtist = new Map<
     string,
     {
-      artistId: string;
+      organizationId: string;
       slug: string;
       name: string;
       avatarUrl: string | null;
@@ -107,9 +107,9 @@ export async function storyRing(
     }
   >();
   for (const row of rows) {
-    const entry = byArtist.get(row.artistId) ?? {
-      artistId: row.artistId,
-      ...row.artist,
+    const entry = byArtist.get(row.organizationId) ?? {
+      organizationId: row.organizationId,
+      ...row.organization,
       stories: 0,
       unseen: 0,
       latestAt: row.createdAt,
@@ -117,21 +117,21 @@ export async function storyRing(
     entry.stories += 1;
     if (row.views.length === 0) entry.unseen += 1;
     if (row.createdAt > entry.latestAt) entry.latestAt = row.createdAt;
-    byArtist.set(row.artistId, entry);
+    byArtist.set(row.organizationId, entry);
   }
   const followed = new Set<string>();
   if (viewer && byArtist.size > 0) {
     const follows = await ctx.db.follow.findMany({
-      where: { userId: viewer.id, artistId: { in: [...byArtist.keys()] } },
-      select: { artistId: true },
+      where: { userId: viewer.id, organizationId: { in: [...byArtist.keys()] } },
+      select: { organizationId: true },
     });
-    for (const follow of follows) followed.add(follow.artistId);
+    for (const follow of follows) followed.add(follow.organizationId);
   }
   return [...byArtist.values()]
-    .map(({ artistId, unseen, ...entry }) => ({
+    .map(({ organizationId, unseen, ...entry }) => ({
       ...entry,
       seen: unseen === 0,
-      following: followed.has(artistId),
+      following: followed.has(organizationId),
     }))
     .sort(
       (a, b) =>
@@ -152,13 +152,13 @@ export async function artistStories(
   slug: string,
   now = new Date(),
 ) {
-  const artist = await ctx.db.artist.findFirst({
+  const artist = await ctx.db.organization.findFirst({
     where: { slug, status: "APPROVED" },
     select: artistFields,
   });
   if (!artist) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Artist not found" });
   const rows = await ctx.db.story.findMany({
-    where: { artistId: artist.id, removedAt: null, expiresAt: { gt: now } },
+    where: { organizationId: artist.id, removedAt: null, expiresAt: { gt: now } },
     orderBy: { createdAt: "asc" },
     select: {
       id: true,
@@ -175,7 +175,7 @@ export async function artistStories(
   });
   const lockOf = await locksFor(ctx, viewer, artist, rows);
   return {
-    artist: { name: artist.name, slug: artist.slug, avatarUrl: artist.avatarUrl },
+    organization: { name: artist.name, slug: artist.slug, avatarUrl: artist.avatarUrl },
     stories: rows.map((row) => {
       const lock = lockOf(row);
       return {
@@ -208,13 +208,13 @@ export async function storyArchive(
   input: { slug: string; cursor?: string },
   now = new Date(),
 ) {
-  const artist = await ctx.db.artist.findFirst({
+  const artist = await ctx.db.organization.findFirst({
     where: { slug: input.slug, status: "APPROVED" },
     select: artistFields,
   });
   if (!artist) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Artist not found" });
   const rows = await ctx.db.story.findMany({
-    where: { artistId: artist.id, removedAt: null, expiresAt: { lte: now } },
+    where: { organizationId: artist.id, removedAt: null, expiresAt: { lte: now } },
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     take: ARCHIVE_PAGE + 1,
     ...(input.cursor ? { cursor: { id: input.cursor } } : {}),
@@ -233,7 +233,7 @@ export async function storyArchive(
   const page = rows.slice(0, ARCHIVE_PAGE);
   const lockOf = await locksFor(ctx, viewer, artist, page);
   return {
-    artist: { name: artist.name, slug: artist.slug, avatarUrl: artist.avatarUrl },
+    organization: { name: artist.name, slug: artist.slug, avatarUrl: artist.avatarUrl },
     stories: page.map((row) => {
       const lock = lockOf(row);
       return {
@@ -262,18 +262,18 @@ export async function markStoryViewed(
       id: storyId,
       removedAt: null,
       expiresAt: { gt: now },
-      artist: { status: "APPROVED" },
+      organization: { status: "APPROVED" },
     },
     select: {
       id: true,
       audience: true,
       tier: { select: { name: true, requiredTokens: true } },
-      artist: { select: artistFields },
+      organization: { select: artistFields },
     },
   });
   if (!story) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Story not found" });
-  if (story.artist.userId === viewer.id) return { recorded: false };
-  const lockOf = await locksFor(ctx, viewer, story.artist, [story]);
+  if (story.organization.userId === viewer.id) return { recorded: false };
+  const lockOf = await locksFor(ctx, viewer, story.organization, [story]);
   if (lockOf(story)) return { recorded: false };
   await ctx.db.storyView.createMany({
     data: [{ storyId: story.id, userId: viewer.id }],

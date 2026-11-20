@@ -49,19 +49,19 @@ type Row = Record<string, unknown>;
 function setup(
   opts: {
     xlm?: string;
-    artist?: Row | null;
+    organization?: Row | null;
     submit?: (xdr: string) => Promise<{ hash: string }>;
     takenSlug?: string;
   } = {},
 ) {
   const artists = new Map<string, Row>();
-  if (opts.artist) artists.set("a1", { id: "a1", userId: "me", ...opts.artist });
+  if (opts.organization) artists.set("a1", { id: "a1", userId: "me", ...opts.organization });
   const chainAccounts = new Map<string, Row>();
   const orders = new Map<string, Row>();
   const db = {
     classicToken: { findUnique: vi.fn().mockResolvedValue(null) },
-    artistSlugHistory: { findUnique: vi.fn().mockResolvedValue(null) },
-    artist: {
+    organizationSlugHistory: { findUnique: vi.fn().mockResolvedValue(null) },
+    organization: {
       findUnique: vi.fn(({ where }: { where: { userId?: string; slug?: string } }) => {
         if (where.slug && where.slug === opts.takenSlug)
           return Promise.resolve({ id: "other", userId: "someone", slug: where.slug });
@@ -174,7 +174,7 @@ describe("applyAsArtist", () => {
   it("creates a pending application, with a page address made from the name when none is given", async () => {
     const { ctx, artists } = setup();
     await expect(applyAsArtist(ctx, me, { name: "Luna Vale" })).resolves.toEqual({
-      artistId: "a1",
+      organizationId: "a1",
       slug: "luna-vale",
     });
     expect(artists.get("a1")).toMatchObject({
@@ -207,7 +207,7 @@ describe("applyAsArtist", () => {
       { ...pending, status: "BANNED" },
     ]) {
       await expect(
-        applyAsArtist(setup({ artist }).ctx, me, { name: "Luna Vale" }),
+        applyAsArtist(setup({ organization: artist }).ctx, me, { name: "Luna Vale" }),
       ).rejects.toMatchObject({
         message: "You already have an artist page.",
       });
@@ -215,9 +215,9 @@ describe("applyAsArtist", () => {
   });
 
   it("lets an artist go back and change their answers before paying", async () => {
-    const { ctx, artists, db } = setup({ artist: pending });
+    const { ctx, artists, db } = setup({ organization: pending });
     await applyAsArtist(ctx, me, { name: "Luna Vale Trio", slug: "luna-vale-trio" });
-    expect(db.artist.create).not.toHaveBeenCalled();
+    expect(db.organization.create).not.toHaveBeenCalled();
     expect(artists.get("a1")).toMatchObject({ name: "Luna Vale Trio", status: "PENDING" });
   });
 
@@ -293,10 +293,10 @@ describe("applyAsArtist", () => {
 
   it("lets a rejected artist apply again with the same row, clearing the reason", async () => {
     const { ctx, artists, db } = setup({
-      artist: { ...pending, status: "REJECTED", rejectionReason: "Needs a real name" },
+      organization: { ...pending, status: "REJECTED", rejectionReason: "Needs a real name" },
     });
     await applyAsArtist(ctx, me, { name: "Luna Vale Band", slug: "luna-vale-band" });
-    expect(db.artist.create).not.toHaveBeenCalled();
+    expect(db.organization.create).not.toHaveBeenCalled();
     expect(artists.get("a1")).toMatchObject({
       name: "Luna Vale Band",
       slug: "luna-vale-band",
@@ -312,7 +312,7 @@ describe("getApplication", () => {
     const token = { mode: "NEW", code: "LUNA", coverUrl: "https://cdn.example/t.png" };
     const openedAt = new Date("2026-10-31T10:00:00Z");
     const { ctx } = setup({
-      artist: {
+      organization: {
         ...pending,
         bio: "hi",
         pendingFanToken: token,
@@ -341,10 +341,10 @@ describe("checkSlug", () => {
 describe("quoteIssuerOpening", () => {
   it("lets an artist approved before paying open it late, but not a banned one", async () => {
     await expect(
-      quoteIssuerOpening(setup({ artist: { ...pending, status: "APPROVED" } }).ctx, me),
+      quoteIssuerOpening(setup({ organization: { ...pending, status: "APPROVED" } }).ctx, me),
     ).resolves.toMatchObject({ ok: true });
     await expect(
-      quoteIssuerOpening(setup({ artist: { ...pending, status: "BANNED" } }).ctx, me),
+      quoteIssuerOpening(setup({ organization: { ...pending, status: "BANNED" } }).ctx, me),
     ).resolves.toMatchObject({
       ok: false,
       problems: [{ message: "Your artist account is suspended." }],
@@ -352,7 +352,7 @@ describe("quoteIssuerOpening", () => {
   });
 
   it("prices the 1.5 XLM and the fee for a pending applicant", async () => {
-    await expect(quoteIssuerOpening(setup({ artist: pending }).ctx, me)).resolves.toMatchObject({
+    await expect(quoteIssuerOpening(setup({ organization: pending }).ctx, me)).resolves.toMatchObject({
       ok: true,
       total: "1.5000100",
     });
@@ -360,7 +360,7 @@ describe("quoteIssuerOpening", () => {
 
   it("says what's missing when the wallet is short, and when there is nothing to pay for", async () => {
     await expect(
-      quoteIssuerOpening(setup({ artist: pending, xlm: "2" }).ctx, me),
+      quoteIssuerOpening(setup({ organization: pending, xlm: "2" }).ctx, me),
     ).resolves.toMatchObject({
       ok: false,
       problems: [{ code: "INSUFFICIENT_FUNDS" }],
@@ -372,7 +372,7 @@ describe("quoteIssuerOpening", () => {
       ],
     });
     await expect(
-      quoteIssuerOpening(setup({ artist: { ...pending, issuerAccountId: "chain1" } }).ctx, me),
+      quoteIssuerOpening(setup({ organization: { ...pending, issuerAccountId: "chain1" } }).ctx, me),
     ).resolves.toMatchObject({
       problems: [{ code: "UNAVAILABLE", message: "Your artist account is already open." }],
     });
@@ -381,7 +381,7 @@ describe("quoteIssuerOpening", () => {
 
 describe("opening the issuer", () => {
   it("builds the payment from the artist's wallet to a new issuer the platform holds the key for, and signs nothing yet", async () => {
-    const { ctx, chain, orders, chainAccounts } = setup({ artist: pending });
+    const { ctx, chain, orders, chainAccounts } = setup({ organization: pending });
     const started = await startIssuerOpening(ctx, me);
     expect(started).toMatchObject({ orderId: ORDER, signer: "wallet" });
 
@@ -410,7 +410,7 @@ describe("opening the issuer", () => {
   });
 
   it("reuses the issuer key from an earlier attempt that never paid", async () => {
-    const { ctx, chainAccounts } = setup({ artist: pending });
+    const { ctx, chainAccounts } = setup({ organization: pending });
     await startIssuerOpening(ctx, me);
     await startIssuerOpening(ctx, me);
     expect(chainAccounts.size).toBe(1);
@@ -418,13 +418,13 @@ describe("opening the issuer", () => {
 
   it("won't start when the wallet can't cover it", async () => {
     await expect(
-      startIssuerOpening(setup({ artist: pending, xlm: "1" }).ctx, me),
+      startIssuerOpening(setup({ organization: pending, xlm: "1" }).ctx, me),
     ).rejects.toMatchObject({ code: "PRECONDITION_NOT_MET" });
   });
 
   it("sends the payment with only the artist's signature when no home domain is set (Stellar refuses extra signatures), then links the issuer", async () => {
     vi.stubEnv("ISSUER_HOME_DOMAIN", "");
-    const { ctx, chain, artists, chainAccounts, orders } = setup({ artist: pending });
+    const { ctx, chain, artists, chainAccounts, orders } = setup({ organization: pending });
     const { xdr } = await startIssuerOpening(ctx, me);
     const [issuerKey] = [...chainAccounts.keys()];
 
@@ -441,7 +441,7 @@ describe("opening the issuer", () => {
   });
 
   it("sets the issuer's home domain (bandcoin.io) so wallets read stellar.toml, and the issuer signs that step", async () => {
-    const { ctx, chain, chainAccounts } = setup({ artist: pending });
+    const { ctx, chain, chainAccounts } = setup({ organization: pending });
     const { xdr } = await startIssuerOpening(ctx, me);
     const [issuerKey] = [...chainAccounts.keys()];
     const tx = TransactionBuilder.fromXDR(xdr, Networks.TESTNET) as Transaction;
@@ -453,7 +453,7 @@ describe("opening the issuer", () => {
   });
 
   it("refuses a different transaction than the one it built", async () => {
-    const { ctx } = setup({ artist: pending });
+    const { ctx } = setup({ organization: pending });
     await startIssuerOpening(ctx, me);
     const other = new TransactionBuilder(new Account(wallet.publicKey(), "9"), {
       fee: "100",
@@ -468,7 +468,7 @@ describe("opening the issuer", () => {
 
   it("keeps the artist unlinked and fails the order when the network says no", async () => {
     const { ctx, artists, orders } = setup({
-      artist: pending,
+      organization: pending,
       submit: () => Promise.reject(new Error("tx_failed")),
     });
     const { xdr } = await startIssuerOpening(ctx, me);
@@ -480,7 +480,7 @@ describe("opening the issuer", () => {
   });
 
   it("won't take someone else's order or another kind of order", async () => {
-    const { ctx, orders } = setup({ artist: pending });
+    const { ctx, orders } = setup({ organization: pending });
     const { xdr } = await startIssuerOpening(ctx, me);
     await expect(
       submitIssuerOpening(ctx, { ...me, id: "other" }, { orderId: ORDER, xdr }),

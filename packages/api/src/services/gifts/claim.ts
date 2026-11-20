@@ -82,7 +82,7 @@ export async function listGifts(ctx: ServiceCtx, user: Pick<SessionUser, "id" | 
       select: {
         code: true,
         issuer: true,
-        item: { select: { id: true, title: true, artist: { select: { name: true, slug: true } } } },
+        item: { select: { id: true, title: true, organization: { select: { name: true, slug: true } } } },
       },
     }),
     ctx.db.user.findMany({
@@ -104,7 +104,7 @@ export async function listGifts(ctx: ServiceCtx, user: Pick<SessionUser, "id" | 
       amount: gift.amount,
       title: token?.item?.title ?? gift.code,
       /** The artist whose item this is; null for any other token */
-      artist: token?.item?.artist ?? null,
+      artist: token?.item?.organization ?? null,
       /** Who sent it (the account that made the balance), named when they're on Bandcoin */
       from: {
         address: gift.sponsor,

@@ -53,7 +53,7 @@ describe("notifyFollowers", () => {
     const { ctx, created } = setup();
     await notifyFollowers(ctx, {
       type: "NEW_ITEM",
-      artist: { id: "a1", userId: "artist" },
+      organization: { id: "a1", userId: "artist" },
       entityId: "i1",
     });
     expect(created[0]).toMatchObject({
@@ -66,7 +66,7 @@ describe("notifyFollowers", () => {
     const { ctx, db } = setup({ sent: true });
     await notifyFollowers(ctx, {
       type: "NEW_ITEM",
-      artist: { id: "a1", userId: "artist" },
+      organization: { id: "a1", userId: "artist" },
       entityId: "i1",
       once: true,
     });

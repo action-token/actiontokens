@@ -26,9 +26,9 @@ export const STEM_COLORS = [
   "#f2c14e",
 ] as const;
 
-async function ownSong(ctx: ServiceCtx, artist: { id: string }, itemId: string) {
+async function ownSong(ctx: ServiceCtx, organization: { id: string }, itemId: string) {
   const song = await ctx.db.item.findFirst({
-    where: { id: itemId, artistId: artist.id, deletedAt: null, type: "TRACK" },
+    where: { id: itemId, organizationId: organization.id, deletedAt: null, type: "TRACK" },
     select: { id: true, media: { select: { durationSec: true } } },
   });
   if (!song) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Song not found" });
@@ -36,9 +36,9 @@ async function ownSong(ctx: ServiceCtx, artist: { id: string }, itemId: string) 
   return song;
 }
 
-async function ownStem(ctx: ServiceCtx, artist: { id: string }, stemId: string) {
+async function ownStem(ctx: ServiceCtx, organization: { id: string }, stemId: string) {
   const stem = await ctx.db.itemStem.findFirst({
-    where: { id: stemId, item: { artistId: artist.id, deletedAt: null } },
+    where: { id: stemId, item: { organizationId: organization.id, deletedAt: null } },
     select: { id: true, itemId: true },
   });
   if (!stem) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Stem not found" });
@@ -46,8 +46,8 @@ async function ownStem(ctx: ServiceCtx, artist: { id: string }, stemId: string) 
   return stem;
 }
 
-export async function listStems(ctx: ServiceCtx, artist: { id: string }, itemId: string) {
-  await ownSong(ctx, artist, itemId);
+export async function listStems(ctx: ServiceCtx, organization: { id: string }, itemId: string) {
+  await ownSong(ctx, organization, itemId);
   const rows = await ctx.db.itemStem.findMany({
     where: { itemId },
     orderBy: [{ trackIndex: "asc" }, { createdAt: "asc" }],
@@ -63,10 +63,10 @@ export async function listStems(ctx: ServiceCtx, artist: { id: string }, itemId:
 
 export async function addStem(
   ctx: ServiceCtx,
-  artist: { id: string },
+  organization: { id: string },
   input: { itemId: string; name: string; audio: { url: string; durationSec: number } },
 ) {
-  const song = await ownSong(ctx, artist, input.itemId);
+  const song = await ownSong(ctx, organization, input.itemId);
   const name = input.name.trim();
   if (name.length === 0 || name.length > 30) throw invalid("Name the stem, for example Vocals.");
   checkOwnUrls({ file: input.audio.url });
@@ -105,10 +105,10 @@ export async function addStem(
 
 export async function updateStem(
   ctx: ServiceCtx,
-  artist: { id: string },
+  organization: { id: string },
   input: { stemId: string; name?: string; color?: string },
 ) {
-  const stem = await ownStem(ctx, artist, input.stemId);
+  const stem = await ownStem(ctx, organization, input.stemId);
   if (input.color !== undefined && !/^#[0-9a-fA-F]{6}$/.test(input.color))
     throw invalid("Pick a colour.");
   if (input.name !== undefined && (input.name.trim().length === 0 || input.name.trim().length > 30))
@@ -121,8 +121,8 @@ export async function updateStem(
   return { stemId: stem.id };
 }
 
-export async function removeStem(ctx: ServiceCtx, artist: { id: string }, stemId: string) {
-  const stem = await ownStem(ctx, artist, stemId);
+export async function removeStem(ctx: ServiceCtx, organization: { id: string }, stemId: string) {
+  const stem = await ownStem(ctx, organization, stemId);
   await ctx.db.itemStem.delete({ where: { id: stem.id } });
   return { stemId: stem.id };
 }

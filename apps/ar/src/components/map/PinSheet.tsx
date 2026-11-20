@@ -133,7 +133,7 @@ function PinSheetBody({
           </h2>
 
           <Link
-            href={`/artists/${pin.artistId}`}
+            href={`/artists/${pin.organizationId}`}
             className="text-ar-dim hover:text-ar-text mt-1.5 inline-flex items-center gap-1.5 text-[12px] transition-colors"
           >
             <ArtistAvatar
@@ -265,7 +265,7 @@ function PinSheetBody({
           </>
         )}
 
-        <ArLinkButton href={`/artists/${pin.artistId}`} variant="ghost" size="md" block>
+        <ArLinkButton href={`/artists/${pin.organizationId}`} variant="ghost" size="md" block>
           More from {pin.artistName}
         </ArLinkButton>
       </div>
@@ -321,7 +321,7 @@ function Fact({
 function SubscribeToUnlock({ pin, following }: { pin: ArPin; following: boolean }) {
   const [open, setOpen] = useState(false);
   const { toggle, pendingId, error } = useToggleFollow();
-  const artist = api.artist.byId.useQuery({ id: pin.artistId }, { enabled: following });
+  const artist = api.artist.byId.useQuery({ id: pin.organizationId }, { enabled: following });
   const code = artist.data?.fanToken;
 
   if (!following) {
@@ -331,8 +331,8 @@ function SubscribeToUnlock({ pin, following }: { pin: ArPin; following: boolean 
           variant="primary"
           size="lg"
           block
-          busy={pendingId === pin.artistId}
-          onClick={() => toggle({ id: pin.artistId, followed: false })}
+          busy={pendingId === pin.organizationId}
+          onClick={() => toggle({ id: pin.organizationId, followed: false })}
         >
           Follow {pin.artistName}
         </ArButton>
@@ -358,7 +358,7 @@ function SubscribeToUnlock({ pin, following }: { pin: ArPin; following: boolean 
         <SubscribeSheet
           open={open}
           onClose={() => setOpen(false)}
-          artistId={pin.artistId}
+          organizationId={pin.organizationId}
           artistName={pin.artistName}
           code={code}
         />

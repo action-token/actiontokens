@@ -79,7 +79,7 @@ const owner = await db.user.create({
 const fanUser = await db.user.create({
   data: { walletAddress: fanKeys.publicKey(), signUpMethod: "frieghter" },
 });
-const artist = await db.artist.create({
+const artist = await db.organization.create({
   data: {
     userId: owner.id,
     name: "Trust Test",
@@ -94,12 +94,12 @@ const item = await db.item.create({
     title: code,
     slug: `trust-${stamp.toLowerCase()}`,
     coverUrl: "https://example.com/x.png",
-    artistId: artist.id,
+    organizationId: artist.id,
     createdById: owner.id,
     classicToken: { create: { code, issuer: issuerKeys.publicKey(), isExternal: true } },
   },
 });
-await db.artist.update({ where: { id: artist.id }, data: { fanTokenItemId: item.id } });
+await db.organization.update({ where: { id: artist.id }, data: { fanTokenItemId: item.id } });
 
 const caller = createCallerFactory(appRouter)(
   createContext({
@@ -119,7 +119,7 @@ const caller = createCallerFactory(appRouter)(
 
 try {
   const token = new Asset(code, issuerKeys.publicKey());
-  const input = { kind: "TOKEN_TRUST" as const, artistId: artist.id, currency };
+  const input = { kind: "TOKEN_TRUST" as const, organizationId: artist.id, currency };
   const [bandBefore, xlmBefore, motherBefore] = await Promise.all([
     balanceOf(fanKeys.publicKey(), bandcoin),
     balanceOf(fanKeys.publicKey()),
@@ -179,9 +179,9 @@ try {
 } finally {
   await db.activityLog.deleteMany({ where: { actorId: fanUser.id } });
   await db.order.deleteMany({ where: { buyerId: fanUser.id } });
-  await db.artist.update({ where: { id: artist.id }, data: { fanTokenItemId: null } });
+  await db.organization.update({ where: { id: artist.id }, data: { fanTokenItemId: null } });
   await db.item.delete({ where: { id: item.id } });
-  await db.artist.delete({ where: { id: artist.id } });
+  await db.organization.delete({ where: { id: artist.id } });
   await db.user.deleteMany({ where: { id: { in: [owner.id, fanUser.id] } } });
   await db.$disconnect();
 }

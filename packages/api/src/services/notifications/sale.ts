@@ -14,14 +14,14 @@ export async function tellArtistAboutSale(
   try {
     const item = await ctx.db.item.findUnique({
       where: { id: order.itemId },
-      select: { type: true, artist: { select: { userId: true } } },
+      select: { type: true, organization: { select: { userId: true } } },
     });
-    if (!item?.artist) return;
+    if (!item?.organization) return;
     await notifyArtist(ctx, {
       type: item.type === "FAN_TOKEN" ? "MEMBERSHIP" : "PURCHASE",
       actorId: order.buyerId,
       entityId: order.itemId,
-      artistUserId: item.artist.userId,
+      artistUserId: item.organization.userId,
     });
   } catch (error) {
     console.error("[notify] couldn't tell the artist about a sale", { error });

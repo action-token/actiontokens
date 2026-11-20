@@ -39,20 +39,20 @@ const EVERYONE = "__all";
 export function PinMapView() {
   const map = useRef<MapRef>(null);
   const framedFor = useRef<string | null>(null);
-  const [artistId, setArtistId] = useState(EVERYONE);
+  const [organizationId, setArtistId] = useState(EVERYONE);
   const [includeEnded, setIncludeEnded] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const artists = api.admin.artists.list.useQuery({}, { refetchOnWindowFocus: false });
   const pins = api.admin.pins.map.useQuery(
-    { artistId: artistId === EVERYONE ? undefined : artistId, includeEnded },
+    { organizationId: organizationId === EVERYONE ? undefined : organizationId, includeEnded },
     { refetchOnWindowFocus: false },
   );
   const selected = pins.data?.pins.find((pin) => pin.id === selectedId) ?? null;
 
   // Frame the pins shown whenever the artist changes.
   useEffect(() => {
-    if (!pins.data || !map.current || framedFor.current === artistId) return;
-    framedFor.current = artistId;
+    if (!pins.data || !map.current || framedFor.current === organizationId) return;
+    framedFor.current = organizationId;
     const points = pins.data.pins.flatMap((pin) =>
       pin.spotPoints.map((spot) => [spot.longitude, spot.latitude] as const),
     );
@@ -66,7 +66,7 @@ export function PinMapView() {
       ],
       { padding: 90, maxZoom: 15, duration: 600 },
     );
-  }, [pins.data, artistId]);
+  }, [pins.data, organizationId]);
 
   if (!MAPBOX_TOKEN)
     return (
@@ -116,7 +116,7 @@ export function PinMapView() {
             map.current?.flyTo({ center: [place.lng, place.lat], zoom: 14, duration: 700 })
           }
         />
-        <Select value={artistId} onValueChange={setArtistId}>
+        <Select value={organizationId} onValueChange={setArtistId}>
           <SelectTrigger
             className="bg-surface pointer-events-auto h-10 w-full shadow-sm sm:w-56"
             aria-label="Artist"

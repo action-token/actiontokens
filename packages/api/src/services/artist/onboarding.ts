@@ -65,8 +65,8 @@ export async function checkSlug(
   const problem = validateSlug(slug);
   if (problem) return { ok: false, message: problem };
   const [taken, oldName] = await Promise.all([
-    ctx.db.artist.findUnique({ where: { slug }, select: { userId: true } }),
-    ctx.db.artistSlugHistory.findUnique({ where: { slug }, select: { artistId: true } }),
+    ctx.db.organization.findUnique({ where: { slug }, select: { userId: true } }),
+    ctx.db.organizationSlugHistory.findUnique({ where: { slug }, select: { organizationId: true } }),
   ]);
   if ((taken && taken.userId !== user.id) || oldName)
     return { ok: false, message: "That page address is taken" };
@@ -79,7 +79,7 @@ export async function checkToken(
   user: SessionUser,
   input: { code: string; issuer: string },
 ): Promise<TokenCheck & { image?: string | null }> {
-  const artist = await ctx.db.artist.findUnique({
+  const artist = await ctx.db.organization.findUnique({
     where: { userId: user.id },
     select: { id: true },
   });
@@ -122,7 +122,7 @@ async function checkFanToken(
 }
 
 export async function getApplication(ctx: Pick<Context, "db">, user: SessionUser) {
-  const artist = await ctx.db.artist.findUnique({
+  const artist = await ctx.db.organization.findUnique({
     where: { userId: user.id },
     select: {
       name: true,
@@ -161,7 +161,7 @@ export async function applyAsArtist(
   if (input.coverUrl !== undefined && !isOwnS3Url(input.coverUrl))
     throw invalid("Upload the cover again.");
 
-  const existing = await ctx.db.artist.findUnique({
+  const existing = await ctx.db.organization.findUnique({
     where: { userId: user.id },
     select: { id: true, status: true, issuerAccountId: true },
   });
@@ -176,7 +176,7 @@ export async function applyAsArtist(
       message: "You already have an artist page.",
     });
   }
-  const taken = await ctx.db.artist.findUnique({ where: { slug }, select: { id: true } });
+  const taken = await ctx.db.organization.findUnique({ where: { slug }, select: { id: true } });
   if (taken && taken.id !== existing?.id) {
     throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "That page address is taken" });
   }
@@ -193,20 +193,20 @@ export async function applyAsArtist(
     ...(fanToken ? { pendingFanToken: fanToken } : {}),
   };
   const artist = existing
-    ? await ctx.db.artist.update({
+    ? await ctx.db.organization.update({
         where: { id: existing.id },
         data: { ...details, status: "PENDING", rejectionReason: null },
       })
-    : await ctx.db.artist.create({ data: { ...details, userId: user.id } });
+    : await ctx.db.organization.create({ data: { ...details, userId: user.id } });
   ctx.activity.set({ targetType: "Artist", targetId: artist.id });
-  return { artistId: artist.id, slug };
+  return { organizationId: artist.id, slug };
 }
 
 async function priceOpening(ctx: ServiceCtx, user: SessionUser) {
   const { chain, db } = ctx;
   const [account, artist] = await Promise.all([
     chain.loadAccount(user.walletAddress),
-    db.artist.findUnique({
+    db.organization.findUnique({
       where: { userId: user.id },
       select: { id: true, status: true, issuerAccountId: true },
     }),

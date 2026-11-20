@@ -232,7 +232,7 @@ export async function submitFunding(
   // Fans see a bounty once its prize is in escrow, so that's when followers hear about it.
   await notifyFollowers(ctx, {
     type: "BOUNTY",
-    artist: { id: artist.id, userId: user.id },
+    organization: { id: artist.id, userId: user.id },
     entityId: bounty.id,
     once: true,
   });

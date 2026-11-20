@@ -98,7 +98,7 @@ function setup(
       hiddenAt: null,
       membersOnly: false,
       tier: null,
-      artist: { tiers: [], fanTokenItem: null, user: { walletAddress: creator } },
+      organization: { tiers: [], fanTokenItem: null, user: { walletAddress: creator } },
       media: null,
       contractNft: {
         onChainEditionId: opts.registered === false ? null : "7",
@@ -159,7 +159,7 @@ function setup(
     },
     ownership: { upsert: vi.fn().mockResolvedValue({}), updateMany: vi.fn().mockResolvedValue({}) },
     item: {
-      findUnique: vi.fn().mockResolvedValue({ title: "VIP pass", coverUrl: null, artistId: "a1" }),
+      findUnique: vi.fn().mockResolvedValue({ title: "VIP pass", coverUrl: null, organizationId: "a1" }),
     },
     lockedContent: {
       findMany: vi.fn().mockResolvedValue([

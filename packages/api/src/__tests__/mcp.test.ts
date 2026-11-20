@@ -134,7 +134,7 @@ function fakeAgent(over: Record<string, unknown> = {}) {
   const agent = {
     overview: vi
       .fn()
-      .mockResolvedValue({ artist: { id: "a1", name: "Nova" }, suggestions: ["Find parks"] }),
+      .mockResolvedValue({ organization: { id: "a1", name: "Nova" }, suggestions: ["Find parks"] }),
     send: vi.fn().mockResolvedValue({ conversationId: "c1", jobId: "j1", userMessage: {} }),
     poll: vi.fn().mockResolvedValue({ status: "SUCCEEDED", steps: [], message }),
     conversation: vi.fn().mockResolvedValue({

@@ -29,7 +29,7 @@ describe("admin stories", () => {
         audience: "MEMBERS",
         createdAt: now,
         expiresAt: new Date(now.getTime() + 3_600_000),
-        artist: { id: "a1", name: "DJ Tamsin", slug: "dj-tamsin" },
+        organization: { id: "a1", name: "DJ Tamsin", slug: "dj-tamsin" },
         _count: { views: 4 },
       },
     ]);
@@ -37,7 +37,7 @@ describe("admin stories", () => {
       expect.objectContaining({
         id: "s1",
         views: 4,
-        artist: expect.objectContaining({ name: "DJ Tamsin" }),
+        organization: expect.objectContaining({ name: "DJ Tamsin" }),
       }),
     ]);
     expect(db.story.findMany).toHaveBeenCalledWith(

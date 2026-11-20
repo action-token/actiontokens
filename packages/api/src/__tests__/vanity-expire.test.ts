@@ -14,13 +14,13 @@ const at = (days: number) => new Date(now.getTime() + days * DAY);
 
 function link(paidUntilDays: number, over: Record<string, unknown> = {}) {
   return {
-    artistId: "a1",
+    organizationId: "a1",
     name: "tamsin",
     status: "ACTIVE" as const,
     paidUntil: at(paidUntilDays),
     graceEndsAt: null,
     reservedUntil: null,
-    artist: { userId: "artist-user" },
+    organization: { userId: "artist-user" },
     ...over,
   };
 }
@@ -67,7 +67,7 @@ describe("short-link reminders", () => {
       },
     });
     expect(db.vanityUrl.updateMany).toHaveBeenCalledWith({
-      where: { artistId: "a1", paidUntil: at(-2) },
+      where: { organizationId: "a1", paidUntil: at(-2) },
       data: { status: "GRACE", graceEndsAt: at(5), reservedUntil: at(35) },
     });
 
@@ -83,7 +83,7 @@ describe("short-link reminders", () => {
     const { ctx, db } = setup([link(-40)]);
     expect(await expireVanityLinks(ctx, now)).toMatchObject({ released: 1, reminded: 0 });
     expect(db.vanityUrl.deleteMany).toHaveBeenCalledWith({
-      where: { artistId: "a1", paidUntil: at(-40) },
+      where: { organizationId: "a1", paidUntil: at(-40) },
     });
   });
 

@@ -8,7 +8,7 @@ import { quoteRecharge, startRecharge, submitRecharge } from "../../services/rec
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 
 const artist = z.object({
-  artistId: z.string().min(1),
+  organizationId: z.string().min(1),
   /** BANDCOIN, USDC, XLM or card (plan 33) */
   currency: z.enum(["BANDCOIN", "USDC", "XLM", "USD"]),
 });
@@ -33,7 +33,7 @@ export const subscribeRouter = createRouter({
   quote: publicProcedure.input(artist).query(({ ctx, input }) =>
     quoteRecharge(ctx, ctx.session?.user ?? null, {
       kind: "TOKEN_TRUST",
-      artistId: input.artistId,
+      organizationId: input.organizationId,
       currency: input.currency,
     }),
   ),
@@ -41,7 +41,7 @@ export const subscribeRouter = createRouter({
   start: authedProcedure.input(artist).mutation(({ ctx, input }) =>
     startRecharge(ctx, ctx.session.user, {
       kind: "TOKEN_TRUST",
-      artistId: input.artistId,
+      organizationId: input.organizationId,
       currency: input.currency,
     }),
   ),

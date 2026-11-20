@@ -45,7 +45,7 @@ const pin = (over: Partial<ArPin> = {}): ArPin => ({
   description: "",
   imageUrl: "",
   link: null,
-  artistId: "a",
+  organizationId: "a",
   artistName: "A",
   artistImageUrl: "",
   remaining: 5,

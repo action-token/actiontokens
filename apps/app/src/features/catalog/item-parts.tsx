@@ -206,10 +206,10 @@ export function MoreFromArtist({
 /** A members-only or tier item the viewer can't buy yet: what unlocks it, and where to get the token. */
 export function AccessNotice({
   access,
-  artist,
+  organization,
 }: {
   access: { tierName: string | null; code: string | null; reason: string | null };
-  artist: { name: string; slug: string } | null;
+  organization: { name: string; slug: string } | null;
 }) {
   return (
     <p
@@ -221,12 +221,12 @@ export function AccessNotice({
         {access.tierName ? `For ${access.tierName} members.` : "For members."}
       </span>
       <span className="text-fg-muted">{access.reason}</span>
-      {artist && access.code && (
+      {organization && access.code && (
         <Link
-          href={`/artist/${artist.slug}`}
+          href={`/artist/${organization.slug}`}
           className="text-primary-text font-semibold hover:underline"
         >
-          Get {access.code} from {artist.name}
+          Get {access.code} from {organization.name}
         </Link>
       )}
     </p>

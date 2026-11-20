@@ -283,7 +283,7 @@ describe("albums", () => {
     ).resolves.toEqual({ albumId: "al1", slug: "luna-vale-gold-hour-ep" });
     expect(db.album.create).toHaveBeenCalledWith({
       data: {
-        artistId: "a1",
+        organizationId: "a1",
         title: "Gold Hour EP",
         slug: "luna-vale-gold-hour-ep",
         description: "Five songs",
@@ -348,7 +348,7 @@ describe("albums", () => {
       expect.objectContaining({ id: "al1", title: "EP", songCount: 4 }),
     ]);
     expect(db.album.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { artistId: "a1" }, orderBy: { createdAt: "desc" } }),
+      expect.objectContaining({ where: { organizationId: "a1" }, orderBy: { createdAt: "desc" } }),
     );
   });
 });
@@ -451,7 +451,7 @@ describe("listSongs", () => {
       }),
     ]);
     expect(db.item.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { artistId: "a1", deletedAt: null, type: "TRACK" } }),
+      expect.objectContaining({ where: { organizationId: "a1", deletedAt: null, type: "TRACK" } }),
     );
   });
 });
@@ -462,7 +462,7 @@ describe("music router", () => {
       createContext({
         db: {
           activityLog: { create: vi.fn() },
-          artist: { findUnique: vi.fn().mockResolvedValue(artistRow) },
+          organization: { findUnique: vi.fn().mockResolvedValue(artistRow) },
         } as unknown as Db,
         chain: {} as ChainGateway,
         app: "org",

@@ -25,13 +25,13 @@ export const PIN_LOOK_SELECT = {
 } as const;
 
 /**
- * The columns to store for `look` on `artistId`'s pin or hotspot. A shape id that isn't built in
+ * The columns to store for `look` on `organizationId`'s pin or hotspot. A shape id that isn't built in
  * must be one of that artist's own shapes (archived ones included, so a template or an existing
  * pin keeps working). `undefined` look = leave the stored look alone (for updates).
  */
 export async function lookColumnsFor(
   db: Pick<Db, "pinShape">,
-  artistId: string,
+  organizationId: string,
   look: PinLookInput | null | undefined,
 ): Promise<PinLookColumns | undefined> {
   if (look === undefined) return undefined;
@@ -42,7 +42,7 @@ export async function lookColumnsFor(
     });
   const shape = parsed.data.shape ?? null;
   if (!shape || isBuiltinShape(shape)) return lookToColumns(parsed.data, false);
-  const own = await db.pinShape.findFirst({ where: { id: shape, artistId }, select: { id: true } });
+  const own = await db.pinShape.findFirst({ where: { id: shape, organizationId }, select: { id: true } });
   if (!own)
     throw new AppError(ErrorCodes.VALIDATION_FAILED, {
       message: "That pin shape isn't available. Choose another.",

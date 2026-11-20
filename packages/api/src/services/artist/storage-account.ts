@@ -150,6 +150,6 @@ export async function openStorage(ctx: ServiceCtx, artist: StorageArtist) {
 async function link(ctx: ServiceCtx, artist: StorageArtist, storageId: string) {
   await ctx.db.$transaction(async (tx) => {
     await tx.chainAccount.update({ where: { id: storageId }, data: { activatedAt: new Date() } });
-    await tx.artist.update({ where: { id: artist.id }, data: { storageAccountId: storageId } });
+    await tx.organization.update({ where: { id: artist.id }, data: { storageAccountId: storageId } });
   });
 }

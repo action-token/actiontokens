@@ -83,7 +83,7 @@ export async function notifyNftGift(
       }),
       ctx.db.user.findUnique({
         where: { id: gift.senderId },
-        select: { displayName: true, username: true, artist: { select: { name: true } } },
+        select: { displayName: true, username: true, organization: { select: { name: true } } },
       }),
       ctx.db.item.findUnique({
         where: { id: gift.itemId },
@@ -100,7 +100,7 @@ export async function notifyNftGift(
       to: recipient.email,
       recipientName: recipient.displayName ?? recipient.username,
       senderName:
-        sender?.artist?.name ?? sender?.displayName ?? sender?.username ?? "An artist on Bandcoin",
+        sender?.organization?.name ?? sender?.displayName ?? sender?.username ?? "An artist on Bandcoin",
       title: item.title,
       coverUrl: item.coverUrl,
       tokenId: gift.tokenId,

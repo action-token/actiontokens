@@ -91,8 +91,8 @@ export function AccountButton({
       >
         <DropdownMenuLabel className="grid gap-0.5 font-normal">
           <span className="text-fg truncate text-sm font-semibold">{name}</span>
-          {me.data.artist && (
-            <span className="text-fg-muted truncate text-xs">Artist: {me.data.artist.name}</span>
+          {me.data.organization && (
+            <span className="text-fg-muted truncate text-xs">Artist: {me.data.organization.name}</span>
           )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />

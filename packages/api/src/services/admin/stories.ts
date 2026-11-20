@@ -21,7 +21,7 @@ export async function listLiveStories(ctx: Pick<Context, "db">, now = new Date()
       audience: true,
       createdAt: true,
       expiresAt: true,
-      artist: { select: { id: true, name: true, slug: true } },
+      organization: { select: { id: true, name: true, slug: true } },
       _count: { select: { views: true } },
     },
   });

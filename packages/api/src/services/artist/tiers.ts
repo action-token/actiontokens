@@ -47,7 +47,7 @@ const perks = (features: string[]) => {
 
 async function ownTier(ctx: ServiceCtx, artist: Pick<ArtistRef, "id">, tierId: string) {
   const tier = await ctx.db.membershipTier.findFirst({
-    where: { id: tierId, artistId: artist.id },
+    where: { id: tierId, organizationId: artist.id },
     select: { id: true },
   });
   if (!tier) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Tier not found" });
@@ -59,7 +59,7 @@ const duplicate = (error: unknown) => (error as { code?: string } | null)?.code 
 
 export async function listTiers(ctx: Pick<ServiceCtx, "db">, artist: Pick<ArtistRef, "id">) {
   const rows = await ctx.db.membershipTier.findMany({
-    where: { artistId: artist.id },
+    where: { organizationId: artist.id },
     orderBy: [{ requiredTokens: "asc" }, { createdAt: "asc" }],
     select: {
       id: true,
@@ -89,7 +89,7 @@ export async function createTier(ctx: ServiceCtx, artist: ArtistRef, input: Tier
   try {
     const tier = await ctx.db.membershipTier.create({
       data: {
-        artistId: artist.id,
+        organizationId: artist.id,
         name: input.name.trim(),
         description: input.description.trim(),
         features: perks(input.features),

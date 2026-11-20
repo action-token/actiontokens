@@ -22,7 +22,7 @@ const circle = { shape: "circle" as const, feature: circleAround({ lat: 23.8, ln
 function hotspotRow(over: Record<string, unknown> = {}) {
   return {
     id: "h1",
-    artistId: "a1",
+    organizationId: "a1",
     title: "Street drops",
     template: {
       type: "OTHER",

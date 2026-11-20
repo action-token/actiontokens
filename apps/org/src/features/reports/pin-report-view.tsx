@@ -243,7 +243,7 @@ function Body({ report: r, admin }: { report: Report; admin: boolean }) {
         <div className="flex shrink-0 gap-2">
           <Button variant="outline" asChild>
             {admin ? (
-              <Link href={`/admin/artists/${r.artistId}`}>
+              <Link href={`/admin/artists/${r.organizationId}`}>
                 <ExternalLink /> View artist
               </Link>
             ) : (

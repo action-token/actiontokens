@@ -23,7 +23,7 @@ function dbWith(media: object | null, owned: number | null = null) {
     item: {
       findFirst: vi
         .fn()
-        .mockResolvedValue({ createdById: "creator", artist: { userId: "artist-user" }, media }),
+        .mockResolvedValue({ createdById: "creator", organization: { userId: "artist-user" }, media }),
     },
     ownership: {
       findUnique: vi.fn().mockResolvedValue(owned === null ? null : { quantity: owned }),

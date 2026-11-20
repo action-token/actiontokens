@@ -43,10 +43,10 @@ export function readDesign(raw: unknown): Design {
 /** The page visitors see, or null when the artist hasn't published one (the fan app then shows its standard page). */
 export async function publishedDesign(
   ctx: Pick<ServiceCtx, "db">,
-  artistId: string,
+  organizationId: string,
 ): Promise<Design | null> {
   const layout = await ctx.db.pageLayout.findFirst({
-    where: { artistId, isActive: true, status: "PUBLISHED" },
+    where: { organizationId, isActive: true, status: "PUBLISHED" },
     select: { publishedBlocks: true },
   });
   return layout?.publishedBlocks ? readDesign(layout.publishedBlocks) : null;
@@ -56,14 +56,14 @@ const sameDesign = (a: Design, b: Design) => JSON.stringify(a) === JSON.stringif
 
 async function ensureLayout(ctx: ServiceCtx, artist: ArtistRef) {
   const existing = await ctx.db.pageLayout.findFirst({
-    where: { artistId: artist.id },
+    where: { organizationId: artist.id },
     orderBy: { createdAt: "asc" },
   });
   if (existing) return existing;
   const template = templateByKey(DEFAULT_TEMPLATE_KEY) ?? TEMPLATES[0]!;
   return ctx.db.pageLayout.create({
     data: {
-      artistId: artist.id,
+      organizationId: artist.id,
       name: "My page",
       templateKey: template.key,
       theme: template.theme,
@@ -190,9 +190,9 @@ export async function unpublishPage(ctx: ServiceCtx, artist: ArtistRef) {
 }
 
 /** The draft, for the owner's live preview on the fan app. */
-export async function draftDesign(ctx: Pick<ServiceCtx, "db">, artistId: string): Promise<Design> {
+export async function draftDesign(ctx: Pick<ServiceCtx, "db">, organizationId: string): Promise<Design> {
   const layout = await ctx.db.pageLayout.findFirst({
-    where: { artistId },
+    where: { organizationId },
     orderBy: { createdAt: "asc" },
     select: { draftBlocks: true, theme: true },
   });

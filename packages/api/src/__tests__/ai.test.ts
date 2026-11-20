@@ -18,7 +18,7 @@ vi.mock("../services/ai/model", () => ({
 }));
 
 const artist = { userId: "u1", name: "Luna Vale", bio: "Dream pop from Dhaka" };
-const actor = { artist, unlimited: false };
+const actor = { organization: artist, unlimited: false };
 const now = new Date("2026-11-01T10:00:00Z");
 
 function setup(used: { text?: number; image?: number } | null = null) {
@@ -214,7 +214,7 @@ describe("who can use AI", () => {
     createCallerFactory(portalRouter)(
       createContext({
         db: {
-          artist: { findUnique: vi.fn().mockResolvedValue(artist) },
+          organization: { findUnique: vi.fn().mockResolvedValue(artist) },
           aiUsage: { findUnique: vi.fn().mockResolvedValue(null) },
           user: { findUnique: vi.fn().mockResolvedValue({ suspendedAt: null }) },
           activityLog: { create: vi.fn() },

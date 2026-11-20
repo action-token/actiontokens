@@ -15,8 +15,8 @@ const FROM = Prisma.sql`pin_claims c
   JOIN pin_spots s ON s.id = c."spotId"
   JOIN pins g ON g.id = s."pinId"`;
 
-function where(artistId: string, since: Date | null, until: Date | null, pinIds: string[] | null) {
-  return Prisma.sql`c."isHidden" = false AND s."isHidden" = false AND g."isHidden" = false AND g."artistId" = ${artistId}
+function where(organizationId: string, since: Date | null, until: Date | null, pinIds: string[] | null) {
+  return Prisma.sql`c."isHidden" = false AND s."isHidden" = false AND g."isHidden" = false AND g."organizationId" = ${organizationId}
     AND g."restrictedToUserId" IS NULL
     ${since ? Prisma.sql`AND c."createdAt" >= ${since}` : Prisma.empty}
     ${until ? Prisma.sql`AND c."createdAt" < ${until}` : Prisma.empty}
@@ -65,17 +65,17 @@ export const analyticsTools = [
     label: (a) => `Crunching collection numbers${a.days ? ` for the last ${a.days} days` : ""}…`,
     run: async (a, run) => {
       const db = run.ctx.db;
-      const artistId = run.artist.id;
+      const organizationId = run.artist.id;
       const pinIds = pinScope(run, a);
       const now = new Date();
       const since = a.days ? new Date(now.getTime() - a.days * 86_400_000) : null;
       const prevSince = a.days ? new Date(now.getTime() - 2 * a.days * 86_400_000) : null;
-      const w = where(artistId, since, null, pinIds);
+      const w = where(organizationId, since, null, pinIds);
       const totals = async (from: Date | null, until: Date | null): Promise<Totals> => {
         const [row] = await db.$queryRaw<Totals[]>`
           SELECT COUNT(*)::int AS collections, COUNT(DISTINCT c."userId")::int AS collectors,
                  COUNT(*) FILTER (WHERE c."isRedeemed")::int AS redeemed
-          FROM ${FROM} WHERE ${where(artistId, from, until, pinIds)}`;
+          FROM ${FROM} WHERE ${where(organizationId, from, until, pinIds)}`;
         return row ?? { collections: 0, collectors: 0, redeemed: 0 };
       };
       const bars = (): Promise<Bar[]> => {

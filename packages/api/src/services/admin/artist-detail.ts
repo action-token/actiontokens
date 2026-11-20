@@ -5,9 +5,9 @@ import type { Context } from "../../context";
 const RECENT_PINS = 10;
 
 /** One artist for /admin/artists/[id], as Wadzzo's creator page: who, what they made, their accounts. */
-export async function getArtist(ctx: Pick<Context, "db">, artistId: string) {
-  const artist = await ctx.db.artist.findUnique({
-    where: { id: artistId },
+export async function getArtist(ctx: Pick<Context, "db">, organizationId: string) {
+  const artist = await ctx.db.organization.findUnique({
+    where: { id: organizationId },
     select: {
       id: true,
       name: true,
@@ -63,7 +63,7 @@ export async function getArtist(ctx: Pick<Context, "db">, artistId: string) {
     },
   });
   if (!artist) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Artist not found" });
-  const collected = await ctx.db.pinClaim.count({ where: { spot: { pin: { artistId } } } });
+  const collected = await ctx.db.pinClaim.count({ where: { spot: { pin: { organizationId } } } });
 
   return {
     id: artist.id,

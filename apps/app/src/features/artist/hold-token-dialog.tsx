@@ -26,7 +26,7 @@ import { QuoteBreakdown } from "../recharge/quote-breakdown";
 import { RechargeToast } from "../recharge/recharge-toast";
 import { useRecharge } from "../recharge/use-recharge";
 
-export type TokenOffer = { code: string; artistId: string };
+export type TokenOffer = { code: string; organizationId: string };
 
 /**
  * After following an artist who has a fan token: "Subscribe with NOVA?". The fan
@@ -52,7 +52,7 @@ export function HoldTokenDialog({
   const me = api.account.me.useQuery(undefined, { enabled: status === "authenticated" });
   const { container: cardField, ...card } = useSquareCard(Boolean(offer) && byCard);
   const quote = api.recharge.quote.useQuery(
-    { kind: "TOKEN_TRUST", artistId: offer?.artistId ?? "", currency },
+    { kind: "TOKEN_TRUST", organizationId: offer?.organizationId ?? "", currency },
     {
       enabled: Boolean(offer) && status === "authenticated",
       refetchInterval: 30_000,
@@ -88,7 +88,7 @@ export function HoldTokenDialog({
     onClose();
     await flow.run({
       kind: "TOKEN_TRUST",
-      artistId: offer.artistId,
+      organizationId: offer.organizationId,
       currency: data.currency,
       card: cardToken ?? undefined,
       summary: (

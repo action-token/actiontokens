@@ -41,17 +41,17 @@ function setup(
   over: { artist?: object | null; stories?: object[]; follows?: boolean; held?: string } = {},
 ) {
   const db = {
-    artist: {
+    organization: {
       findFirst: vi.fn().mockResolvedValue(over.artist === undefined ? artistRow : over.artist),
     },
     story: {
       findMany: vi.fn().mockResolvedValue(over.stories ?? [storyRow()]),
       findFirst: vi
         .fn()
-        .mockResolvedValue({ id: "s1", audience: "EVERYONE", tier: null, artist: artistRow }),
+        .mockResolvedValue({ id: "s1", audience: "EVERYONE", tier: null, organization: artistRow }),
     },
     follow: {
-      findFirst: vi.fn().mockResolvedValue(over.follows ? { artistId: "a0" } : null),
+      findFirst: vi.fn().mockResolvedValue(over.follows ? { organizationId: "a0" } : null),
       findMany: vi.fn().mockResolvedValue([]),
     },
     storyView: { createMany: vi.fn().mockResolvedValue({ count: 1 }) },
@@ -65,11 +65,11 @@ function setup(
 }
 
 describe("the story ring", () => {
-  const ringRow = (slug: string, id: string, at: string, seen = false, artistId = slug) => ({
+  const ringRow = (slug: string, id: string, at: string, seen = false, organizationId = slug) => ({
     id,
     createdAt: new Date(at),
-    artistId,
-    artist: { slug, name: slug.toUpperCase(), avatarUrl: null },
+    organizationId,
+    organization: { slug, name: slug.toUpperCase(), avatarUrl: null },
     views: seen ? [{ userId: "fan" }] : [],
   });
 
@@ -82,7 +82,7 @@ describe("the story ring", () => {
       ringRow("followed", "s4", "2026-11-05T07:00:00Z", true),
       ringRow("newest", "s5", "2026-11-05T10:00:00Z"),
     ]);
-    db.follow.findMany.mockResolvedValue([{ artistId: "followed" }]);
+    db.follow.findMany.mockResolvedValue([{ organizationId: "followed" }]);
     const ring = await storyRing(ctx, fan, now);
     expect(ring.map((entry) => entry.slug)).toEqual(["followed", "newest", "fresh", "seen"]);
     expect(ring.find((entry) => entry.slug === "fresh")).toMatchObject({
@@ -96,7 +96,7 @@ describe("the story ring", () => {
         where: {
           removedAt: null,
           expiresAt: { gt: now },
-          artist: { status: "APPROVED" },
+          organization: { status: "APPROVED" },
         },
       }),
     );
@@ -115,7 +115,7 @@ describe("one artist's stories", () => {
   it("lists them oldest first, open to anyone for an everyone story", async () => {
     const { ctx, db } = setup();
     const result = await artistStories(ctx, null, "dj-tamsin", now);
-    expect(result.artist).toEqual({ name: "DJ Tamsin", slug: "dj-tamsin", avatarUrl: null });
+    expect(result.organization).toEqual({ name: "DJ Tamsin", slug: "dj-tamsin", avatarUrl: null });
     expect(result.stories[0]).toMatchObject({
       id: "s1",
       url: "https://cdn/s1.jpg",
@@ -125,7 +125,7 @@ describe("one artist's stories", () => {
     });
     expect(db.story.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { artistId: "a0", removedAt: null, expiresAt: { gt: now } },
+        where: { organizationId: "a0", removedAt: null, expiresAt: { gt: now } },
         orderBy: { createdAt: "asc" },
       }),
     );
@@ -207,7 +207,7 @@ describe("viewing a story", () => {
       id: "s1",
       audience: "FOLLOWERS",
       tier: null,
-      artist: artistRow,
+      organization: artistRow,
     });
     expect(await markStoryViewed(locked.ctx, fan, "s1", now)).toEqual({ recorded: false });
     expect(locked.db.storyView.createMany).not.toHaveBeenCalled();
@@ -233,13 +233,13 @@ describe("the story archive", () => {
   it("lists the artist's ended stories, newest first, never the live or taken-down ones", async () => {
     const { ctx, db } = setup({ stories: [endedRow()] });
     const result = await storyArchive(ctx, null, { slug: "dj-tamsin" }, now);
-    expect(result.artist).toEqual({ name: "DJ Tamsin", slug: "dj-tamsin", avatarUrl: null });
+    expect(result.organization).toEqual({ name: "DJ Tamsin", slug: "dj-tamsin", avatarUrl: null });
     expect(result.stories).toEqual([
       expect.objectContaining({ id: "s1", url: "https://cdn/s1.jpg", lock: null }),
     ]);
     expect(db.story.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { artistId: "a0", removedAt: null, expiresAt: { lte: now } },
+        where: { organizationId: "a0", removedAt: null, expiresAt: { lte: now } },
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],
         take: 25,
       }),

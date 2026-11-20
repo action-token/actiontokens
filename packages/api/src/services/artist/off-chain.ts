@@ -63,7 +63,7 @@ export async function createOffChainItem(
       visibility: input.visibility,
       ...access,
       supply: input.supply,
-      artistId: artist.id,
+      organizationId: artist.id,
       createdById: user.id,
       ...(input.media
         ? { media: { create: { mediaType: input.media.mediaType, sourceUrl: input.media.url } } }

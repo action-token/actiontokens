@@ -15,14 +15,14 @@ const DAY_MS = 24 * 60 * 60_000;
  */
 export async function announceStory(
   ctx: Pick<Context, "db">,
-  input: { artist: { id: string; userId: string }; audience: PostAudience; now?: Date },
+  input: { organization: { id: string; userId: string }; audience: PostAudience; now?: Date },
 ) {
   try {
-    const { artist, audience } = input;
+    const { organization, audience } = input;
     const since = new Date((input.now ?? new Date()).getTime() - DAY_MS);
     const narrow = audience === "SUBSCRIBERS" || audience === "MEMBERS";
     const followers = await ctx.db.follow.findMany({
-      where: { artistId: artist.id, ...(narrow ? { isTemporary: false } : {}) },
+      where: { organizationId: organization.id, ...(narrow ? { isTemporary: false } : {}) },
       select: { userId: true },
     });
     if (followers.length === 0) return;
@@ -31,15 +31,15 @@ export async function announceStory(
       where: {
         recipientId: { in: ids },
         isForArtist: false,
-        event: { type: "STORY", actorId: artist.userId, createdAt: { gt: since } },
+        event: { type: "STORY", actorId: organization.userId, createdAt: { gt: since } },
       },
       select: { recipientId: true },
     });
     const told = new Set(recent.map((row) => row.recipientId));
     await notify(ctx, {
       type: "STORY",
-      actorId: artist.userId,
-      entityId: artist.id,
+      actorId: organization.userId,
+      entityId: organization.id,
       recipients: ids.filter((id) => !told.has(id)).map((id) => ({ id })),
     });
   } catch (error) {

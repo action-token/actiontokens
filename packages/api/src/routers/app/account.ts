@@ -45,7 +45,7 @@ export const accountRouter = createRouter({
           email: true,
           role: true,
           walletAddress: true,
-          artist: { select: { slug: true, name: true, status: true } },
+          organization: { select: { slug: true, name: true, status: true } },
         },
       }),
       ctx.chain.loadAccount(sessionUser.walletAddress).catch(() => null),

@@ -61,7 +61,7 @@ export async function listJobs(ctx: Pick<Context, "db">, input: JobFilter) {
   const items = itemIds.length
     ? await ctx.db.item.findMany({
         where: { id: { in: itemIds } },
-        select: { id: true, title: true, artist: { select: { name: true } } },
+        select: { id: true, title: true, organization: { select: { name: true } } },
       })
     : [];
   const itemById = new Map(items.map((item) => [item.id, item]));
@@ -71,7 +71,7 @@ export async function listJobs(ctx: Pick<Context, "db">, input: JobFilter) {
       return {
         ...row,
         about: item
-          ? { itemId: item.id, title: item.title, artist: item.artist?.name ?? null }
+          ? { itemId: item.id, title: item.title, artist: item.organization?.name ?? null }
           : null,
         canRetry:
           row.status === "FAILED" && (RETRYABLE_JOBS as readonly string[]).includes(row.type),

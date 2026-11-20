@@ -54,7 +54,7 @@ function setup(
         .mockResolvedValue({ id: "ca1", kind: "ISSUER", ownerId: "u1", publicKey: issuerKey }),
       update: vi.fn().mockResolvedValue({}),
     },
-    artist: { update: vi.fn().mockResolvedValue({}) },
+    organization: { update: vi.fn().mockResolvedValue({}) },
     contractNft: { update: vi.fn().mockResolvedValue({}) },
     vanityUrl: {
       findUnique: vi.fn().mockResolvedValue(null),
@@ -133,7 +133,7 @@ describe("finishing an order", () => {
     expect(orders.get("o1")?.status).toBe("DELIVERED");
     const sideEffects = () =>
       db.ownership.upsert.mock.calls.length +
-      db.artist.update.mock.calls.length +
+      db.organization.update.mock.calls.length +
       db.contractNft.update.mock.calls.length;
     const before = sideEffects();
     await expect(finishOrder(ctx, { id: "o1", kind }, envelope)).rejects.toMatchObject({
@@ -153,7 +153,7 @@ describe("finishing an order", () => {
     );
     const issuer = setup(order("ISSUER_SETUP"));
     await finishOrder(issuer.ctx, { id: "o1", kind: "ISSUER_SETUP" }, issuer.envelope);
-    expect(issuer.db.artist.update).toHaveBeenCalledWith({
+    expect(issuer.db.organization.update).toHaveBeenCalledWith({
       where: { userId: "u1" },
       data: { issuerAccountId: "ca1" },
     });

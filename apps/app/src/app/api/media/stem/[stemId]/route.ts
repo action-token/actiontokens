@@ -25,7 +25,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ stem
         select: {
           id: true,
           createdById: true,
-          artist: { select: { userId: true } },
+          organization: { select: { userId: true } },
           media: { select: { durationSec: true } },
         },
       },

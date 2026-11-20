@@ -42,7 +42,7 @@ export const pinRouter = createRouter({
           radiusKm: z.number().positive().max(2000).optional(),
           /** Only these pin types (website embeds); empty = all */
           types: z.array(z.enum(PinType)).max(6).optional(),
-          artistId: z.string().min(1).optional(),
+          organizationId: z.string().min(1).optional(),
           /** "none" = regular pins; an id, or ids with commas = those layers; left out = all */
           layer: z.string().max(2000).optional(),
         })
@@ -64,7 +64,7 @@ export const pinRouter = createRouter({
         where: {
           ...livePinWhere(viewerId),
           ...(input?.types?.length ? { type: { in: input.types } } : {}),
-          ...(input?.artistId ? { artistId: input.artistId } : {}),
+          ...(input?.organizationId ? { organizationId: input.organizationId } : {}),
           ...layerFilterWhere(input?.layer),
           spots: { some: spotWhere },
         },
@@ -114,7 +114,7 @@ export const pinRouter = createRouter({
         lat: lat.optional(),
         lng: lng.optional(),
         limit: z.number().int().min(1).max(30).default(20),
-        artistId: z.string().min(1).optional(),
+        organizationId: z.string().min(1).optional(),
       }),
     )
     .query(async ({ ctx, input }): Promise<ArPin[]> => {
@@ -126,13 +126,13 @@ export const pinRouter = createRouter({
       const pins = await ctx.db.pin.findMany({
         where: {
           ...livePinWhere(viewerId),
-          ...(input.artistId ? { artistId: input.artistId } : {}),
+          ...(input.organizationId ? { organizationId: input.organizationId } : {}),
           spots: { some: { isHidden: false } },
           AND: terms.map((term) => ({
             OR: [
               { title: contains(term) },
               { description: contains(term) },
-              { artist: { name: contains(term) } },
+              { organization: { name: contains(term) } },
               { tags: { some: { tag: { label: contains(term) } } } },
             ],
           })),
@@ -146,7 +146,7 @@ export const pinRouter = createRouter({
         .map((pin) => ({
           pin,
           score: searchScore(
-            { ...pin, artistName: pin.artist.name },
+            { ...pin, artistName: pin.organization.name },
             pin.tags.map((link) => link.tag.label),
             terms,
             phrase,
@@ -214,7 +214,7 @@ export const pinRouter = createRouter({
   byArtist: publicProcedure
     .input(
       z.object({
-        artistId: z.string().min(1),
+        organizationId: z.string().min(1),
         tab: z.enum(["live", "yours"]).default("live"),
         limit: z.number().int().min(1).max(48).default(24),
         cursor: z.number().int().min(0).nullish(),
@@ -229,7 +229,7 @@ export const pinRouter = createRouter({
       const pins = await ctx.db.pin.findMany({
         where: {
           ...livePinWhere(viewerId),
-          artistId: input.artistId,
+          organizationId: input.organizationId,
           spots: {
             some:
               input.tab === "yours"
@@ -288,7 +288,7 @@ export const pinRouter = createRouter({
       for (const pin of all) counts[pin.rarity] += 1;
       const facets = {
         total: all.length,
-        artists: new Set(all.map((pin) => pin.artistId)).size,
+        artists: new Set(all.map((pin) => pin.organizationId)).size,
         best: all.reduce<Rarity>(
           (best, pin) =>
             RARITY_ORDER.indexOf(pin.rarity) > RARITY_ORDER.indexOf(best) ? pin.rarity : best,

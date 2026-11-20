@@ -99,7 +99,7 @@ export async function copyArtists(copy: Copier) {
           table: "CreatorPageAsset.issuerKey",
         })
       : null;
-    await copy.insert("artists", [
+    await copy.insert("organizations", [
       {
         id: copy.map("Creator", creator.id),
         userId,
@@ -145,15 +145,15 @@ export async function copyArtistExtras(copy: Copier) {
   await copy.insert(
     "membership_tiers",
     (await copy.read("Subscription")).map((tier: Row) => {
-      const artistId = copy.must("Creator", tier.creatorId);
-      const taken = tierNames.get(artistId) ?? new Set<string>();
-      tierNames.set(artistId, taken);
+      const organizationId = copy.must("Creator", tier.creatorId);
+      const taken = tierNames.get(organizationId) ?? new Set<string>();
+      tierNames.set(organizationId, taken);
       let name = tier.name as string;
       for (let n = 2; taken.has(name); n++) name = `${tier.name} ${n}`;
       taken.add(name);
       return {
         id: copy.map("Subscription", tier.id),
-        artistId,
+        organizationId,
         name,
         description: tier.description,
         features: tier.features ?? [],
@@ -170,7 +170,7 @@ export async function copyArtistExtras(copy: Copier) {
   const real = new Set(follows.map((row) => `${row.userId}:${row.creatorId}`));
   const row = (follow: Row, isTemporary: boolean) => ({
     userId: copy.must("User", follow.userId),
-    artistId: copy.must("Creator", follow.creatorId),
+    organizationId: copy.must("Creator", follow.creatorId),
     isTemporary,
     createdAt: follow.followAt,
   });
@@ -188,7 +188,7 @@ export async function copyArtistExtras(copy: Copier) {
   await copy.insert(
     "vanity_urls",
     (await copy.read("VanitySubscription")).map((vanity: Row) => ({
-      artistId: copy.must("Creator", vanity.creatorId),
+      organizationId: copy.must("Creator", vanity.creatorId),
       name: String(creators.get(vanity.creatorId)?.vanityURL ?? vanity.creatorId).toLowerCase(),
       status: vanity.status,
       startedAt: vanity.startDate,
@@ -203,7 +203,7 @@ export async function copyArtistExtras(copy: Copier) {
     "custom_domains",
     (await copy.read("CreatorCustomDomain")).map((domain: Row) => ({
       id: domain.id,
-      artistId: copy.must("Creator", domain.creatorId),
+      organizationId: copy.must("Creator", domain.creatorId),
       domain: domain.domain,
       createdAt: now,
     })),
@@ -213,7 +213,7 @@ export async function copyArtistExtras(copy: Copier) {
     "page_layouts",
     (await copy.read("Appearance")).map((layout: Row) => ({
       id: layout.id,
-      artistId: copy.find("Creator", layout.creatorId),
+      organizationId: copy.find("Creator", layout.creatorId),
       name: layout.name,
       templateKey: layout.templateKey,
       isDefault: layout.isDefault,

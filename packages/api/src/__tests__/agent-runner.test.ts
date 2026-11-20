@@ -66,7 +66,7 @@ function setup(replies: Reply[], over: { pins?: unknown[]; claims?: unknown[] } 
       updateMany: vi.fn().mockResolvedValue({ count: 1 }),
       update: vi.fn().mockResolvedValue({}),
     },
-    artist: { findUnique: vi.fn().mockResolvedValue({ name: "Nova", bio: "Indie folk" }) },
+    organization: { findUnique: vi.fn().mockResolvedValue({ name: "Nova", bio: "Indie folk" }) },
     pin: {
       count: vi.fn().mockResolvedValue(0),
       groupBy: vi.fn().mockResolvedValue([]),
@@ -76,7 +76,7 @@ function setup(replies: Reply[], over: { pins?: unknown[]; claims?: unknown[] } 
     event: { findMany: vi.fn().mockResolvedValue([]) },
     announcement: { findMany: vi.fn().mockResolvedValue([]) },
     agentConversation: {
-      findUnique: vi.fn().mockResolvedValue({ artistId: "a1" }),
+      findUnique: vi.fn().mockResolvedValue({ organizationId: "a1" }),
     },
     agentMessage: {
       findMany: vi
@@ -95,7 +95,7 @@ function setup(replies: Reply[], over: { pins?: unknown[]; claims?: unknown[] } 
     respond: respond as unknown as AgentModel["respond"],
     web: vi.fn().mockResolvedValue("[]"),
   };
-  const payload = { conversationId: "c1", artistId: "a1", agentJobId: "aj1" };
+  const payload = { conversationId: "c1", organizationId: "a1", agentJobId: "aj1" };
   return { ctx: { db } as never, db, model, respond, saved, payload };
 }
 
@@ -148,7 +148,7 @@ describe("one agent run", () => {
     ]);
     expect(saved.actions).toHaveLength(1);
     expect(saved.actions[0]).toMatchObject({
-      artistId: "a1",
+      organizationId: "a1",
       type: "create_pins",
       status: "pending",
     });
@@ -256,7 +256,7 @@ describe("one agent run", () => {
       (c) => (c[0] as { orderBy?: unknown; take?: number }).take === 50,
     )![0] as { where: Record<string, unknown> };
     expect(where.where).toMatchObject({
-      artistId: "a1",
+      organizationId: "a1",
       isHidden: false,
       restrictedToUserId: null,
     });

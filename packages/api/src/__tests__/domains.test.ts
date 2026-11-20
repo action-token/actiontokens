@@ -47,7 +47,7 @@ function fakeHost(status: HostDomainStatus = answer()): DomainHost & { calls: st
 function row(over: Record<string, unknown> = {}) {
   return {
     id: "d1",
-    artistId: "a1",
+    organizationId: "a1",
     domain: "coldplay.com",
     status: "PENDING" as const,
     withWww: true,
@@ -56,7 +56,7 @@ function row(over: Record<string, unknown> = {}) {
     brokenSince: null,
     lastError: null,
     createdAt: now,
-    artist: { userId: "u1" },
+    organization: { userId: "u1" },
     ...over,
   };
 }
@@ -67,7 +67,7 @@ function setup({ mine = null, taken = null, rows = [], moved = 1 }: Setup = {}) 
   const db = {
     customDomain: {
       findUnique: vi.fn(async ({ where }: { where: Record<string, string> }) =>
-        where.artistId ? mine : where.domain ? taken : where.id ? mine : null,
+        where.organizationId ? mine : where.domain ? taken : where.id ? mine : null,
       ),
       findMany: vi.fn().mockResolvedValue(rows),
       create: vi.fn(async ({ data }: { data: Record<string, unknown> }) => ({ id: "d1", ...data })),
@@ -171,7 +171,7 @@ describe("connecting a domain", () => {
     });
     expect(host.calls).toEqual(["add coldplay.com"]);
     expect(db.customDomain.create).toHaveBeenCalledWith({
-      data: { artistId: "a1", domain: "coldplay.com", withWww: true, status: "PENDING" },
+      data: { organizationId: "a1", domain: "coldplay.com", withWww: true, status: "PENDING" },
     });
     expect(activity.set).toHaveBeenCalledWith({ targetType: "CustomDomain", targetId: "d1" });
   });
@@ -181,7 +181,7 @@ describe("connecting a domain", () => {
       addDomain(setup({ mine: row() }).ctx, artist, "other.com", fakeHost()),
     ).rejects.toThrow(/Remove it first/);
     await expect(
-      addDomain(setup({ taken: row({ artistId: "a2" }) }).ctx, artist, "coldplay.com", fakeHost()),
+      addDomain(setup({ taken: row({ organizationId: "a2" }) }).ctx, artist, "coldplay.com", fakeHost()),
     ).rejects.toThrow(/another artist/);
   });
 
@@ -293,7 +293,7 @@ describe("serving a domain", () => {
     const live = {
       status: "LIVE",
       domain: "coldplay.com",
-      artist: { slug: "luna", status: "APPROVED" },
+      organization: { slug: "luna", status: "APPROVED" },
     };
     expect(await liveDomainArtist(find(live), "WWW.coldplay.com:443")).toEqual({
       slug: "luna",
@@ -302,7 +302,7 @@ describe("serving a domain", () => {
     expect(await liveDomainArtist(find({ ...live, status: "PENDING" }), "coldplay.com")).toBeNull();
     expect(
       await liveDomainArtist(
-        find({ ...live, artist: { slug: "luna", status: "BANNED" } }),
+        find({ ...live, organization: { slug: "luna", status: "BANNED" } }),
         "coldplay.com",
       ),
     ).toBeNull();

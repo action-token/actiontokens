@@ -149,7 +149,7 @@ async function ownEvent(
 ) {
   if (!eventId) return null;
   const event = await ctx.db.event.findFirst({
-    where: { id: eventId, artistId: artist.id },
+    where: { id: eventId, organizationId: artist.id },
     select: { id: true },
   });
   if (!event) throw invalid("That event isn't one of yours.");
@@ -162,7 +162,7 @@ export async function ownBounty(
   bountyId: string,
 ) {
   const bounty = await ctx.db.bounty.findFirst({
-    where: { id: bountyId, artistId: artist.id },
+    where: { id: bountyId, organizationId: artist.id },
     select: {
       id: true,
       fundTxHash: true,
@@ -219,7 +219,7 @@ export async function createBounty(ctx: ServiceCtx, artist: ArtistRef, input: Bo
 
   const bounty = await ctx.db.bounty.create({
     data: {
-      artistId: artist.id,
+      organizationId: artist.id,
       title: input.title.trim(),
       summary: input.summary.trim(),
       description: input.description.trim(),
@@ -336,7 +336,7 @@ export async function listBounties(
   artist: Pick<ArtistRef, "id">,
 ) {
   const rows = await ctx.db.bounty.findMany({
-    where: { artistId: artist.id },
+    where: { organizationId: artist.id },
     orderBy: { createdAt: "desc" },
     include: {
       _count: { select: { participants: true, submissions: true, winners: true } },
@@ -366,7 +366,7 @@ export async function getBounty(
   bountyId: string,
 ) {
   const bounty = await ctx.db.bounty.findFirst({
-    where: { id: bountyId, artistId: artist.id },
+    where: { id: bountyId, organizationId: artist.id },
     include: {
       musicRule: { include: { tracks: { orderBy: { createdAt: "asc" } } } },
       winners: { include: { user: person }, orderBy: { selectedAt: "asc" } },
@@ -398,7 +398,7 @@ export async function listParticipants(
   bountyId: string,
 ) {
   const bounty = await ctx.db.bounty.findFirst({
-    where: { id: bountyId, artistId: artist.id },
+    where: { id: bountyId, organizationId: artist.id },
     select: { musicRule: { select: { tracks: { select: { id: true } } } } },
   });
   if (!bounty) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Bounty not found" });
@@ -426,7 +426,7 @@ export async function listSubmissions(
   bountyId: string,
 ) {
   const bounty = await ctx.db.bounty.findFirst({
-    where: { id: bountyId, artistId: artist.id },
+    where: { id: bountyId, organizationId: artist.id },
     select: { id: true },
   });
   if (!bounty) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Bounty not found" });

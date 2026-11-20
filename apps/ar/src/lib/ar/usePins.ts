@@ -52,7 +52,7 @@ export function useToggleFollow() {
         utils.pin.list.invalidate(),
       ]),
   });
-  const pendingId = setFollowing.isPending ? (setFollowing.variables?.artistId ?? null) : null;
+  const pendingId = setFollowing.isPending ? (setFollowing.variables?.organizationId ?? null) : null;
 
   return {
     error,
@@ -67,7 +67,7 @@ export function useToggleFollow() {
           : "Follow",
     toggle: (artist: Pick<ArArtist, "id" | "followed">) => {
       if (pendingId) return;
-      setFollowing.mutate({ artistId: artist.id, following: !artist.followed });
+      setFollowing.mutate({ organizationId: artist.id, following: !artist.followed });
     },
   };
 }
@@ -237,18 +237,18 @@ export function useCollectedPinsQuery(args: {
  * next one is in flight instead of flashing the empty state.
  */
 export function useArtistPinsQuery(args: {
-  artistId: string | null;
+  organizationId: string | null;
   tab: "live" | "yours";
   pageSize?: number;
 }) {
   const query = api.pin.byArtist.useInfiniteQuery(
     {
-      artistId: args.artistId ?? "",
+      organizationId: args.organizationId ?? "",
       tab: args.tab,
       limit: args.pageSize ?? 24,
     },
     {
-      enabled: Boolean(args.artistId),
+      enabled: Boolean(args.organizationId),
       getNextPageParam: (last) => last.nextCursor,
       refetchOnWindowFocus: false,
       staleTime: 60_000,
@@ -322,7 +322,7 @@ export function useDiscoveryPinsQuery(): DiscoveryPinsResult {
     const inLayer = pins.filter((p) => inLayers(p, layerView.regular, ticked));
     if (!followingOnly || artistsLoading) return inLayer;
     const followed = new Set(artists.filter((a) => a.followed).map((a) => a.id));
-    return inLayer.filter((p) => followed.has(p.artistId));
+    return inLayer.filter((p) => followed.has(p.organizationId));
   }, [pins, layerView, followingOnly, artists, artistsLoading]);
 
   return { pins: discovered, isLoading, isError, refetch };
@@ -348,7 +348,7 @@ export function filterPins(
 ): ArPin[] {
   switch (filter) {
     case "following":
-      return pins.filter((p) => followedArtistIds.has(p.artistId));
+      return pins.filter((p) => followedArtistIds.has(p.organizationId));
     case "available":
       return pins.filter((p) => pinStatus(p) === "collectible");
     case "collected":

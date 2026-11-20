@@ -129,7 +129,7 @@ async function setCopies(ctx: ServiceCtx, postId: string, copies: number) {
 async function resolveTier(ctx: ServiceCtx, artist: ArtistRef, tierId: string | null | undefined) {
   if (!tierId) return null;
   const tier = await ctx.db.membershipTier.findFirst({
-    where: { id: tierId, artistId: artist.id, isActive: true },
+    where: { id: tierId, organizationId: artist.id, isActive: true },
     select: { id: true },
   });
   if (!tier) throw invalid("Pick one of your active membership tiers.");
@@ -138,7 +138,7 @@ async function resolveTier(ctx: ServiceCtx, artist: ArtistRef, tierId: string | 
 
 async function ownPost(ctx: ServiceCtx, artist: ArtistRef, postId: string) {
   const post = await ctx.db.post.findFirst({
-    where: { id: postId, artistId: artist.id },
+    where: { id: postId, organizationId: artist.id },
     select: { id: true },
   });
   if (!post) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Post not found" });
@@ -202,7 +202,7 @@ const NO_COPIES = { copies: 0, collected: 0 };
 
 export async function listPosts(ctx: Pick<ServiceCtx, "db">, artist: Pick<ArtistRef, "id">) {
   const rows = await ctx.db.post.findMany({
-    where: { artistId: artist.id, isImportOnly: false },
+    where: { organizationId: artist.id, isImportOnly: false },
     orderBy: { createdAt: "desc" },
     take: 200,
     select: postSelect,
@@ -226,7 +226,7 @@ export async function getPost(
   postId: string,
 ) {
   const post = await ctx.db.post.findFirst({
-    where: { id: postId, artistId: artist.id },
+    where: { id: postId, organizationId: artist.id },
     select: postSelect,
   });
   if (!post) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Post not found" });
@@ -246,7 +246,7 @@ export async function createPost(ctx: ServiceCtx, artist: ArtistRef, input: Post
   const settings = await resolveSettings(ctx, artist, input);
   const post = await ctx.db.post.create({
     data: {
-      artistId: artist.id,
+      organizationId: artist.id,
       title: input.title.trim(),
       body: input.body?.trim() ?? "",
       ...settings,
@@ -263,7 +263,7 @@ export async function createPost(ctx: ServiceCtx, artist: ArtistRef, input: Post
     select: { id: true },
   });
   ctx.activity.set({ targetType: "Post", targetId: post.id });
-  await notifyFollowers(ctx, { type: "POST", artist, entityId: post.id });
+  await notifyFollowers(ctx, { type: "POST", organization: artist, entityId: post.id });
   return { postId: post.id };
 }
 
@@ -317,7 +317,7 @@ export async function listComments(
   postId: string,
 ) {
   const post = await ctx.db.post.findFirst({
-    where: { id: postId, artistId: artist.id },
+    where: { id: postId, organizationId: artist.id },
     select: { id: true },
   });
   if (!post) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Post not found" });
@@ -342,7 +342,7 @@ export async function listComments(
 /** The artist can remove any comment on their own posts (its replies go with it). */
 export async function removeComment(ctx: ServiceCtx, artist: ArtistRef, commentId: string) {
   const comment = await ctx.db.postComment.findFirst({
-    where: { id: commentId, post: { artistId: artist.id } },
+    where: { id: commentId, post: { organizationId: artist.id } },
     select: { id: true, postId: true },
   });
   if (!comment) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Comment not found" });

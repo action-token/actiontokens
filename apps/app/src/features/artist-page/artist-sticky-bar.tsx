@@ -28,7 +28,7 @@ export function ArtistStickyBar({
   name: string;
   avatarUrl: string | null;
   bannerUrl: string | null;
-  token: { code: string; artistId: string } | null;
+  token: { code: string; organizationId: string } | null;
   songs: ItemCardData[];
 }) {
   const marker = useRef<HTMLSpanElement>(null);

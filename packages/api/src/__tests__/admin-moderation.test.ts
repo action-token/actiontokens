@@ -32,7 +32,7 @@ const pinRow = (extra: Record<string, unknown>) => ({
   longitude: 0,
   radiusMeters: 50,
   createdAt: now,
-  artist: { id: "a1", name: "Luna", userId: "u1", avatarUrl: null },
+  organization: { id: "a1", name: "Luna", userId: "u1", avatarUrl: null },
   _count: { spots: 1 },
   ...extra,
 });
@@ -129,10 +129,10 @@ describe("admin pin map", () => {
       unlockLockedContentId: null,
       endsAt: { gte: now },
     });
-    await pinsForMap(ctx, { artistId: "a1", includeEnded: true }, now);
+    await pinsForMap(ctx, { organizationId: "a1", includeEnded: true }, now);
     expect(findMany.mock.calls[1]?.[0].where).toEqual({
       unlockLockedContentId: null,
-      artistId: "a1",
+      organizationId: "a1",
     });
   });
 });
@@ -151,7 +151,7 @@ describe("admin bounties", () => {
       hiddenAt: null,
       hiddenReason: null,
       createdAt: now,
-      artist: { id: "a1", name: "Luna", userId: "u1" },
+      organization: { id: "a1", name: "Luna", userId: "u1" },
       _count: { participants: 4, submissions: 2, winners: 0 },
       ...extra,
     });
@@ -214,7 +214,7 @@ describe("admin items", () => {
             hiddenAt: null,
             hiddenReason: null,
             createdAt: now,
-            artist: { id: "a1", name: "Luna", userId: "u1" },
+            organization: { id: "a1", name: "Luna", userId: "u1" },
             classicToken: { code: "SONG1" },
             listings: [
               {

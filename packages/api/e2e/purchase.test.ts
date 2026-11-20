@@ -155,7 +155,7 @@ beforeAll(async () => {
     },
   });
   ids.chainAccount = issuer.id;
-  const artist = await db.artist.create({
+  const artist = await db.organization.create({
     data: {
       userId: artistUser.id,
       name: `E2E ${run}`,
@@ -173,7 +173,7 @@ beforeAll(async () => {
       slug: `${run}-track`,
       coverUrl: "https://picsum.photos/seed/e2e/400",
       supply: 5,
-      artistId: artist.id,
+      organizationId: artist.id,
       createdById: artistUser.id,
       classicToken: { create: { code, issuer: keys.issuer.publicKey() } },
     },
@@ -201,9 +201,9 @@ afterAll(async () => {
   await db.ownership.deleteMany({ where: { itemId } });
   await db.listing.deleteMany({ where: { itemId } });
   await db.item.deleteMany({ where: { id: itemId } });
-  await db.artist.updateMany({ where: { id: ids.artist }, data: { fanTokenItemId: null } });
-  await db.item.deleteMany({ where: { artistId: ids.artist } });
-  await db.artist.deleteMany({ where: { id: ids.artist } });
+  await db.organization.updateMany({ where: { id: ids.artist }, data: { fanTokenItemId: null } });
+  await db.item.deleteMany({ where: { organizationId: ids.artist } });
+  await db.organization.deleteMany({ where: { id: ids.artist } });
   await db.chainAccount.deleteMany({ where: { id: ids.chainAccount } });
   await db.user.deleteMany({ where: { id: { in: ids.users } } });
   await db.$disconnect();
@@ -371,18 +371,18 @@ describe("a members-only or tier item", () => {
         title: "E2E fan token",
         slug: `${run}-fan`,
         coverUrl: "https://picsum.photos/seed/e2e-fan/400",
-        artistId: ids.artist,
+        organizationId: ids.artist,
         createdById: ids.users[0] ?? "",
         classicToken: { create: { code: fanCode, issuer: keys.issuer.publicKey() } },
       },
     });
-    await db.artist.update({ where: { id: ids.artist }, data: { fanTokenItemId: fanToken.id } });
+    await db.organization.update({ where: { id: ids.artist }, data: { fanTokenItemId: fanToken.id } });
     const [low, gold] = await Promise.all([
       db.membershipTier.create({
-        data: { artistId: ids.artist, name: "Fan", description: "", requiredTokens: "10" },
+        data: { organizationId: ids.artist, name: "Fan", description: "", requiredTokens: "10" },
       }),
       db.membershipTier.create({
-        data: { artistId: ids.artist, name: "Gold", description: "", requiredTokens: "50" },
+        data: { organizationId: ids.artist, name: "Gold", description: "", requiredTokens: "50" },
       }),
     ]);
     const caller = callerFor(buyer);
@@ -441,7 +441,7 @@ describe("a Non Stellar item", () => {
         slug: `${run}-tote`,
         coverUrl: "https://picsum.photos/seed/e2e-tote/400",
         supply: 3,
-        artistId: ids.artist,
+        organizationId: ids.artist,
         createdById: ids.users[0] ?? "",
       },
     });
@@ -506,7 +506,7 @@ describe("a page asset bundle", () => {
       },
     });
     storageId = account.id;
-    await db.artist.update({ where: { id: ids.artist }, data: { storageAccountId: account.id } });
+    await db.organization.update({ where: { id: ids.artist }, data: { storageAccountId: account.id } });
     const token = await db.item.create({
       data: {
         type: "FAN_TOKEN",
@@ -514,7 +514,7 @@ describe("a page asset bundle", () => {
         title: "E2E page asset",
         slug: `${run}-page`,
         coverUrl: "https://picsum.photos/seed/e2e-page/400",
-        artistId: ids.artist,
+        organizationId: ids.artist,
         createdById: ids.users[0] ?? "",
         classicToken: { create: { code: tokenCode, issuer: keys.issuer.publicKey() } },
       },
@@ -544,7 +544,7 @@ describe("a page asset bundle", () => {
     await db.order.deleteMany({ where: { itemId: tokenItem } });
     await db.ownership.deleteMany({ where: { itemId: tokenItem } });
     await db.listing.deleteMany({ where: { itemId: tokenItem } });
-    await db.artist.update({ where: { id: ids.artist }, data: { storageAccountId: null } });
+    await db.organization.update({ where: { id: ids.artist }, data: { storageAccountId: null } });
     await db.chainAccount.deleteMany({ where: { id: storageId } });
   });
 

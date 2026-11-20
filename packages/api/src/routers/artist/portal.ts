@@ -4,11 +4,11 @@ import { createRouter, publicProcedure } from "../../trpc";
 export type OnboardingStep =
   "OPEN_ISSUER" | "WAITING_FOR_APPROVAL" | "READY" | "BANNED" | "REJECTED";
 
-function stepOf(artist: { status: string; issuerAccountId: string | null }): OnboardingStep {
-  if (artist.status === "BANNED") return "BANNED";
-  if (artist.status === "REJECTED") return "REJECTED";
-  if (artist.status === "APPROVED") return "READY";
-  return artist.issuerAccountId ? "WAITING_FOR_APPROVAL" : "OPEN_ISSUER";
+function stepOf(organization: { status: string; issuerAccountId: string | null }): OnboardingStep {
+  if (organization.status === "BANNED") return "BANNED";
+  if (organization.status === "REJECTED") return "REJECTED";
+  if (organization.status === "APPROVED") return "READY";
+  return organization.issuerAccountId ? "WAITING_FOR_APPROVAL" : "OPEN_ISSUER";
 }
 
 export const portalStatusRouter = createRouter({
@@ -19,7 +19,7 @@ export const portalStatusRouter = createRouter({
   status: publicProcedure.query(async ({ ctx }) => {
     const user = ctx.session?.user;
     if (!user) return { signedIn: false as const };
-    const artist = await ctx.db.artist.findUnique({
+    const artist = await ctx.db.organization.findUnique({
       where: { userId: user.id },
       select: {
         id: true,

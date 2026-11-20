@@ -5,7 +5,7 @@ import { tellArtistAboutSale } from "../services/notifications/sale";
 function setup(type: string) {
   const db = {
     item: {
-      findUnique: vi.fn().mockResolvedValue({ type, artist: { userId: "artist-user" } }),
+      findUnique: vi.fn().mockResolvedValue({ type, organization: { userId: "artist-user" } }),
     },
     notificationEvent: { create: vi.fn().mockResolvedValue({}) },
   };

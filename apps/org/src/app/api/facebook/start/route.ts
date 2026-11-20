@@ -9,7 +9,7 @@ import { getSession } from "~/server/auth";
 export async function GET(request: Request) {
   const session = await getSession();
   const artist = session?.user?.id
-    ? await db.artist.findUnique({
+    ? await db.organization.findUnique({
         where: { userId: session.user.id },
         select: { id: true, status: true },
       })
@@ -21,7 +21,7 @@ export async function GET(request: Request) {
   // Only a path on this site: never an address someone else chose.
   const redirect = asked.startsWith("/") && !asked.startsWith("//") ? asked : "/settings";
   try {
-    const state = makeState({ artistId: artist.id, redirect });
+    const state = makeState({ organizationId: artist.id, redirect });
     const response = NextResponse.redirect(loginUrl(state), 302);
     response.cookies.set("fb_oauth_state", state, {
       httpOnly: true,

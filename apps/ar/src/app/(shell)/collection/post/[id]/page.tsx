@@ -61,10 +61,10 @@ export default function CollectedPostScreen() {
               </div>
 
               <div className="flex items-center gap-2.5">
-                {data.artist.avatarUrl ? (
+                {data.organization.avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element -- artist upload
                   <img
-                    src={data.artist.avatarUrl}
+                    src={data.organization.avatarUrl}
                     alt=""
                     className="size-9 rounded-full object-cover"
                   />
@@ -73,7 +73,7 @@ export default function CollectedPostScreen() {
                 )}
                 <div className="min-w-0">
                   <p className="text-ar-text truncate text-[13.5px] font-semibold">
-                    {data.artist.name}
+                    {data.organization.name}
                   </p>
                   <p className="text-ar-faint text-[11px]">Posted {dateFmt(data.createdAt)}</p>
                 </div>

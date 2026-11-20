@@ -50,7 +50,7 @@ function cta(input: Pick<AnnouncementInput, "ctaLabel" | "ctaUrl">) {
 
 async function ownAnnouncement(ctx: ServiceCtx, artist: ArtistRef, announcementId: string) {
   const row = await ctx.db.announcement.findFirst({
-    where: { id: announcementId, artistId: artist.id },
+    where: { id: announcementId, organizationId: artist.id },
     select: { id: true, ctaLabel: true, ctaUrl: true },
   });
   if (!row)
@@ -61,7 +61,7 @@ async function ownAnnouncement(ctx: ServiceCtx, artist: ArtistRef, announcementI
 
 export async function listAnnouncements(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef) {
   const rows = await ctx.db.announcement.findMany({
-    where: { artistId: artist.id },
+    where: { organizationId: artist.id },
     orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
     include: { _count: { select: { comments: true } } },
   });
@@ -77,7 +77,7 @@ export async function createAnnouncement(
   check(input, now);
   const row = await ctx.db.announcement.create({
     data: {
-      artistId: artist.id,
+      organizationId: artist.id,
       title: input.title.trim(),
       body: input.body.trim(),
       imageUrls: input.imageUrls ?? [],

@@ -30,7 +30,7 @@ function setup(opts: { motherXlm?: string; onChain?: string[]; supply?: string }
   const chainAccounts = new Map<string, Row>();
   const artistUpdates: Row[] = [];
   const db = {
-    artist: {
+    organization: {
       update: vi.fn(({ data }: { data: Row }) => {
         artistUpdates.push(data);
         return Promise.resolve({});

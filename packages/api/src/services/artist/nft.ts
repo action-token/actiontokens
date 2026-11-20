@@ -71,7 +71,7 @@ export async function createNft(
       coverUrl: input.coverUrl,
       visibility: input.visibility,
       supply: input.supply,
-      artistId: artist.id,
+      organizationId: artist.id,
       createdById: user.id,
       contractNft: {
         create: {

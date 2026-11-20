@@ -69,15 +69,15 @@ const select = {
       label: true,
       type: true,
       unlockRule: { select: { id: true } },
-      item: { select: { title: true, coverUrl: true, artistId: true } },
+      item: { select: { title: true, coverUrl: true, organizationId: true } },
     },
   },
 } as const;
 
 /** A content code of this artist's NFTs, described like a pin code for the Redeem page; null when there's none. */
-export async function findContentCode(db: Db, artistId: string, code: string) {
+export async function findContentCode(db: Db, organizationId: string, code: string) {
   const row = await db.lockedContentRedeem.findFirst({
-    where: { code, lockedContent: { item: { artistId } } },
+    where: { code, lockedContent: { item: { organizationId } } },
     select,
   });
   if (!row) return null;

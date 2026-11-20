@@ -162,7 +162,7 @@ export default function ArtistsScreen() {
         <SubscribeSheet
           open={subscribing}
           onClose={() => setSubscribing(false)}
-          artistId={subscribingTo.id}
+          organizationId={subscribingTo.id}
           artistName={subscribingTo.name}
           code={subscribingTo.fanToken}
         />

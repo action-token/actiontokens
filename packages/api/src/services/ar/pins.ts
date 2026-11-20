@@ -36,7 +36,7 @@ const claimSelect = {
 export const pinInclude = (viewerId: string | null) =>
   ({
     tier: { select: { requiredTokens: true } },
-    artist: {
+    organization: {
       select: {
         id: true,
         name: true,
@@ -91,12 +91,12 @@ export async function loadViewer(
       pin.visibility === "MEMBERS" || pin.visibility === "TIER" || pin.visibility === "SUBSCRIBERS",
   );
   const [follows, account] = await Promise.all([
-    ctx.db.follow.findMany({ where: { userId: user.id }, select: { artistId: true } }),
+    ctx.db.follow.findMany({ where: { userId: user.id }, select: { organizationId: true } }),
     needsBalance
       ? ctx.chain.loadAccount(user.walletAddress).catch(() => null)
       : Promise.resolve(null),
   ]);
-  return { id: user.id, followedArtistIds: new Set(follows.map((row) => row.artistId)), account };
+  return { id: user.id, followedArtistIds: new Set(follows.map((row) => row.organizationId)), account };
 }
 
 const tokenBalance = (
@@ -117,26 +117,26 @@ const tokenBalance = (
  * Every pin is shown to everyone; this only decides whether it can be taken.
  */
 export function lockReasonFor(
-  pin: Pick<PinRow, "visibility" | "artistId" | "tier" | "artist">,
+  pin: Pick<PinRow, "visibility" | "organizationId" | "tier" | "organization">,
   viewer: Viewer,
 ): string | null {
-  const artist = pin.artist.name;
+  const artist = pin.organization.name;
   switch (pin.visibility) {
     case "PUBLIC":
       return null;
     case "SUBSCRIBERS": {
-      const token = pin.artist.fanTokenItem?.classicToken;
+      const token = pin.organization.fanTokenItem?.classicToken;
       if (!token) return "Not available";
       if (!viewer) return `Sign in and subscribe to ${artist} to unlock`;
       return tokenTrusted(viewer.account, token) ? null : `Subscribe to ${artist} to unlock`;
     }
     case "FOLLOWERS":
       if (!viewer) return `Sign in and follow ${artist} to unlock`;
-      return viewer.followedArtistIds.has(pin.artistId) ? null : `Follow ${artist} to unlock`;
+      return viewer.followedArtistIds.has(pin.organizationId) ? null : `Follow ${artist} to unlock`;
     case "MEMBERS":
     case "TIER": {
-      const token = pin.artist.fanTokenItem?.classicToken;
-      const ladder = pin.artist.tiers.map((tier) => Number(tier.requiredTokens));
+      const token = pin.organization.fanTokenItem?.classicToken;
+      const ladder = pin.organization.tiers.map((tier) => Number(tier.requiredTokens));
       const needed =
         pin.visibility === "TIER"
           ? pin.tier
@@ -160,10 +160,10 @@ function pinFacts(pin: PinRow) {
     rarity: deriveRarity({
       visibility: pin.visibility,
       tierTokens: pin.tier ? Number(pin.tier.requiredTokens) : null,
-      artistTierTokens: pin.artist.tiers.map((tier) => Number(tier.requiredTokens)),
+      artistTierTokens: pin.organization.tiers.map((tier) => Number(tier.requiredTokens)),
     }),
     supply: pin.claimLimit > 0 ? pin.claimLimit : null,
-    image: pin.imageUrl ?? pin.artist.avatarUrl ?? site.assets.mark,
+    image: pin.imageUrl ?? pin.organization.avatarUrl ?? site.assets.mark,
     // The same tag can arrive through two links; sorted so a pin reads the same every time.
     tags: [...new Set(pin.tags.map((link) => link.tag.label))].sort(),
   };
@@ -187,9 +187,9 @@ export function toArPin(
     description: pin.description ?? "",
     imageUrl: facts.image,
     link: pin.link,
-    artistId: pin.artistId,
-    artistName: pin.artist.name,
-    artistImageUrl: pin.artist.avatarUrl ?? site.assets.mark,
+    organizationId: pin.organizationId,
+    artistName: pin.organization.name,
+    artistImageUrl: pin.organization.avatarUrl ?? site.assets.mark,
     remaining: facts.supply === null ? null : pin.claimsLeft,
     supply: facts.supply,
     rarity: facts.rarity,
@@ -208,7 +208,7 @@ export function toArPin(
     layer: pin.layer,
     look: resolvePinLook(pin, {
       customShape: pin.pinShape,
-      artistImage: pin.artist.avatarUrl ?? site.assets.mark,
+      artistImage: pin.organization.avatarUrl ?? site.assets.mark,
       pinImage: pin.imageUrl,
       autoCollect: spot.autoCollect,
     }),
@@ -223,8 +223,8 @@ export function spotsOf(pin: PinRow, viewer: Viewer): ArPin[] {
     viewer &&
     lockReason &&
     pin.visibility === "SUBSCRIBERS" &&
-    pin.artist.fanTokenItem?.classicToken
-      ? { following: viewer.followedArtistIds.has(pin.artistId) }
+    pin.organization.fanTokenItem?.classicToken
+      ? { following: viewer.followedArtistIds.has(pin.organizationId) }
       : null;
   const anyClaim = pin.spots.flatMap((spot) => spot.claims)[0];
   return pin.spots.map((spot) => {
@@ -426,14 +426,14 @@ export async function mapLayerChips(
       name: true,
       icon: true,
       color: true,
-      artist: { select: { name: true, avatarUrl: true } },
+      organization: { select: { name: true, avatarUrl: true } },
     },
   });
   return layers
-    .map(({ artist, ...layer }) => ({
+    .map(({ organization, ...layer }) => ({
       ...layer,
-      artist: artist.name,
-      artistImage: artist.avatarUrl ?? null,
+      artist: organization.name,
+      artistImage: organization.avatarUrl ?? null,
       pinCount: countOf.get(layer.id) ?? 0,
     }))
     .sort((a, b) => a.name.localeCompare(b.name) || a.artist.localeCompare(b.artist));

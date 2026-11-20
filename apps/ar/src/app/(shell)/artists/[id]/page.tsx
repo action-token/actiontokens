@@ -73,12 +73,12 @@ export default function ArtistDetail() {
   // `total`, not from a client-side filter over every pin on the map — see
   // `useArtistPinsQuery`.
   const liveQuery = useArtistPinsQuery({
-    artistId: id,
+    organizationId: id,
     tab: "live",
     pageSize: PAGE_SIZE,
   });
   const yoursQuery = useArtistPinsQuery({
-    artistId: signedIn ? id : null,
+    organizationId: signedIn ? id : null,
     tab: "yours",
     pageSize: PAGE_SIZE,
   });
@@ -268,7 +268,7 @@ export default function ArtistDetail() {
           <SubscribeSheet
             open={subscribing}
             onClose={() => setSubscribing(false)}
-            artistId={artist.id}
+            organizationId={artist.id}
             artistName={artist.name}
             code={artist.fanToken}
           />

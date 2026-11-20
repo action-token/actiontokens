@@ -55,7 +55,7 @@ async function prepare(ctx: ServiceCtx, user: SessionUser, artist: ArtistRef, in
   const problems: QuoteProblem[] = [];
 
   const item = await db.item.findFirst({
-    where: { id: input.itemId, artistId: artist.id, type: "ROYALTY", deletedAt: null },
+    where: { id: input.itemId, organizationId: artist.id, type: "ROYALTY", deletedAt: null },
     select: {
       id: true,
       title: true,
@@ -82,7 +82,7 @@ async function prepare(ctx: ServiceCtx, user: SessionUser, artist: ArtistRef, in
 
   const [held, artistRow, account] = await Promise.all([
     chain.assetHolders(code, issuer),
-    db.artist.findUnique({
+    db.organization.findUnique({
       where: { id: artist.id },
       select: {
         issuerAccount: { select: { publicKey: true } },
@@ -264,7 +264,7 @@ export async function startRoyalty(
     const row = await tx.royaltyPayout.create({
       data: {
         itemId: prepared.item.id,
-        artistId: artist.id,
+        organizationId: artist.id,
         reportId: saved.id,
         currency: input.currency,
         totalAmount: prepared.paid,
@@ -494,7 +494,7 @@ export async function cancelRoyalty(
 
 async function ownPayout(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef, payoutId: string) {
   const payout = await ctx.db.royaltyPayout.findFirst({
-    where: { id: payoutId, artistId: artist.id },
+    where: { id: payoutId, organizationId: artist.id },
   });
   if (!payout) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Payout not found" });
   return payout;
@@ -503,7 +503,7 @@ async function ownPayout(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef, payoutI
 /** The artist's royalty items, what each shares, and when it last paid out. */
 export async function listRoyaltyItems(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef) {
   const items = await ctx.db.item.findMany({
-    where: { artistId: artist.id, type: "ROYALTY", deletedAt: null, classicToken: { isNot: null } },
+    where: { organizationId: artist.id, type: "ROYALTY", deletedAt: null, classicToken: { isNot: null } },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
@@ -529,7 +529,7 @@ export async function listRoyaltyItems(ctx: Pick<ServiceCtx, "db">, artist: Arti
 /** Every payout the artist started, newest first, with how many holders were paid. */
 export async function listPayouts(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef) {
   const payouts = await ctx.db.royaltyPayout.findMany({
-    where: { artistId: artist.id },
+    where: { organizationId: artist.id },
     orderBy: { createdAt: "desc" },
     take: 30,
     select: {
@@ -545,7 +545,7 @@ export async function listPayouts(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef
   });
   const sent = await ctx.db.royaltyPayoutLine.groupBy({
     by: ["payoutId"],
-    where: { payout: { artistId: artist.id }, status: "SENT" },
+    where: { payout: { organizationId: artist.id }, status: "SENT" },
     _count: true,
   });
   return payouts.map((payout) => ({

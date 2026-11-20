@@ -125,7 +125,7 @@ async function seedPeople() {
         signUpMethod: "wallet",
       },
     });
-    await db.artist.create({
+    await db.organization.create({
       data: { userId: user.id, name: real.name, slug: real.slug, status: "APPROVED" },
     });
   }
@@ -158,7 +158,7 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
       ownerId: user.id,
     },
   });
-  const artist = await db.artist.create({
+  const artist = await db.organization.create({
     data: {
       userId: user.id,
       issuerAccountId: issuerAccount.id,
@@ -179,17 +179,17 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
       title: `$${demo.fanToken}`,
       slug: `${demo.slug}-token`,
       coverUrl: cover(`${demo.slug}-token`),
-      artistId: artist.id,
+      organizationId: artist.id,
       createdById: user.id,
       classicToken: { create: { code: demo.fanToken, issuer } },
       listings: { create: { sellerId: user.id, priceBandcoin: 500, priceUsd: 0.05 } },
     },
   });
-  await db.artist.update({ where: { id: artist.id }, data: { fanTokenItemId: fanToken.id } });
+  await db.organization.update({ where: { id: artist.id }, data: { fanTokenItemId: fanToken.id } });
   const [, insider] = await Promise.all([
     db.membershipTier.create({
       data: {
-        artistId: artist.id,
+        organizationId: artist.id,
         name: "Supporter",
         description: "Early listens and posts.",
         features: ["Early listens", "Member posts"],
@@ -199,7 +199,7 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
     }),
     db.membershipTier.create({
       data: {
-        artistId: artist.id,
+        organizationId: artist.id,
         name: "Insider",
         description: "Stems, studio sessions, backstage pins.",
         features: ["Stems", "Studio sessions", "Backstage pins"],
@@ -213,7 +213,7 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
   // Album and tracks; the last track is for the Insider tier
   const album = await db.album.create({
     data: {
-      artistId: artist.id,
+      organizationId: artist.id,
       title: demo.album.title,
       slug: slugify(`${demo.slug}-${demo.album.title}`),
       coverUrl: cover(`${demo.slug}-album`),
@@ -236,7 +236,7 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
           visibility: isTierTrack ? "TIER" : "PUBLIC",
           tierId: isTierTrack ? insider.id : null,
           playCount: 100 * (i + 1) * (index + 1),
-          artistId: artist.id,
+          organizationId: artist.id,
           createdById: user.id,
           classicToken: { create: { code: `${demo.fanToken.slice(0, 6)}T${i + 1}`, issuer } },
           media: {
@@ -270,7 +270,7 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
       description: "Backstage access and a signed digital poster.",
       coverUrl: cover(`${demo.slug}-vip`),
       supply: 25,
-      artistId: artist.id,
+      organizationId: artist.id,
       createdById: user.id,
       contractNft: { create: { status: "MINTED", mintedCount: 2, royaltyBps: 500 } },
       listings: { create: { sellerId: user.id, priceBandcoin: 120000, priceUsd: 12 } },
@@ -286,7 +286,7 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
   const first = tracks[0]!;
   const firstListing = await db.listing.findFirstOrThrow({ where: { itemId: first.id } });
   for (const fan of fans) {
-    await db.follow.create({ data: { userId: fan.id, artistId: artist.id } });
+    await db.follow.create({ data: { userId: fan.id, organizationId: artist.id } });
   }
   for (const fan of fans.slice(index % 2, (index % 2) + 2)) {
     await db.ownership.create({
@@ -312,7 +312,7 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
   // Posts with likes and a comment
   const post = await db.post.create({
     data: {
-      artistId: artist.id,
+      organizationId: artist.id,
       title: `${demo.album.title} is out`,
       body: `Thank you for listening. Holders of ${demo.album.title} get the stems this week.`,
       media: { create: { type: "IMAGE", url: cover(`${demo.slug}-post`) } },
@@ -321,7 +321,7 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
   });
   await db.post.create({
     data: {
-      artistId: artist.id,
+      organizationId: artist.id,
       title: "Members only: studio notes",
       body: "How we recorded the last track.",
       audience: "MEMBERS",
@@ -339,7 +339,7 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
   const { lat, lng } = demo.city;
   const event = await db.event.create({
     data: {
-      artistId: artist.id,
+      organizationId: artist.id,
       title: `${demo.name} live in ${demo.city.name}`,
       description: "A small show with a listening party after.",
       coverUrl: cover(`${demo.slug}-event`),
@@ -380,7 +380,7 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
     const at = nudge(lat, lng, spec.north, spec.east);
     await db.pin.create({
       data: {
-        artistId: artist.id,
+        organizationId: artist.id,
         title: spec.title,
         type: spec.type,
         description: `Walk here to collect from ${demo.name}.`,
@@ -403,7 +403,7 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
   }
   await db.announcement.create({
     data: {
-      artistId: artist.id,
+      organizationId: artist.id,
       title: "New pins on the map",
       body: `Three drops around ${demo.city.name} this month.`,
       isPinned: true,
@@ -413,7 +413,7 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
   });
   await db.bounty.create({
     data: {
-      artistId: artist.id,
+      organizationId: artist.id,
       title: `Cover ${demo.album.tracks[0]!.title}`,
       summary: "Record your own version.",
       description: "Post a 60-second cover. The artist picks the winner.",
@@ -430,7 +430,7 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
   if (index === 0) {
     await db.mapEmbed.create({
       data: {
-        artistId: artist.id,
+        organizationId: artist.id,
         name: "Website map",
         centerLat: lat,
         centerLng: lng,
@@ -500,7 +500,7 @@ async function main() {
 
   const counts = await Promise.all([
     db.user.count(),
-    db.artist.count(),
+    db.organization.count(),
     db.item.count(),
     db.listing.count(),
     db.pin.count(),

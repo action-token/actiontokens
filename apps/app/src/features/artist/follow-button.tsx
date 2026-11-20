@@ -34,7 +34,7 @@ export function FollowButton({
   initial: boolean;
   initialSubscribed?: boolean;
   /** The artist's fan token, when they have one (it is what a fan trusts to subscribe) */
-  token?: { code: string; artistId: string } | null;
+  token?: { code: string; organizationId: string } | null;
   onFollowers?: (followers: number, subscribers: number) => void;
   onStanding?: (standing: { following: boolean; subscribed: boolean }) => void;
   /** A smaller button for lists; Subscribe shows there too when `token` is passed */
@@ -96,7 +96,7 @@ export function FollowButton({
       {canSubscribe && (
         <Button
           className={compact ? "h-8 rounded-full px-3 text-xs" : "h-10 rounded-full px-5"}
-          onClick={() => token && setOffer({ code: token.code, artistId: token.artistId })}
+          onClick={() => token && setOffer({ code: token.code, organizationId: token.organizationId })}
         >
           Subscribe
         </Button>

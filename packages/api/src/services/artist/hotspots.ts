@@ -170,7 +170,7 @@ export function nextSlot(
 
 async function ownHotspot(ctx: ServiceCtx, artist: ArtistRef, hotspotId: string) {
   const hotspot = await ctx.db.hotspot.findFirst({
-    where: { id: hotspotId, artistId: artist.id, isHidden: false },
+    where: { id: hotspotId, organizationId: artist.id, isHidden: false },
   });
   if (!hotspot) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Hotspot not found" });
   ctx.activity.set({ targetType: "Hotspot", targetId: hotspot.id });
@@ -183,7 +183,7 @@ export async function listHotspots(
   now = new Date(),
 ) {
   const rows = await ctx.db.hotspot.findMany({
-    where: { artistId: artist.id, isHidden: false },
+    where: { organizationId: artist.id, isHidden: false },
     orderBy: { createdAt: "desc" },
     take: 200,
     select: {
@@ -254,7 +254,7 @@ export async function createHotspot(
   const look = await lookColumnsFor(ctx.db, artist.id, input.look);
   const hotspot = await ctx.db.hotspot.create({
     data: {
-      artistId: artist.id,
+      organizationId: artist.id,
       layerId,
       ...(look ? lookData(look) : {}),
       title: input.title.trim(),
@@ -408,7 +408,7 @@ async function placeDrop(
       eventId: null,
       layerId: hotspot.layerId,
     };
-    const { pinId } = await createPin(ctx, { id: hotspot.artistId }, input, now, {
+    const { pinId } = await createPin(ctx, { id: hotspot.organizationId }, input, now, {
       hotspotId: hotspot.id,
       spots,
       maxRadius: MAX_AREA_METERS,

@@ -20,8 +20,8 @@ function setup(opts: { have?: number; pins?: number; hotspots?: number; template
       create: vi.fn(({ data }: { data: Record<string, unknown> }) =>
         Promise.resolve({ id: "S-new", ...data }),
       ),
-      findFirst: vi.fn(({ where }: { where: { id: string; artistId: string } }) =>
-        Promise.resolve(where.id === "S1" && where.artistId === "a1" ? { id: "S1" } : null),
+      findFirst: vi.fn(({ where }: { where: { id: string; organizationId: string } }) =>
+        Promise.resolve(where.id === "S1" && where.organizationId === "a1" ? { id: "S1" } : null),
       ),
       findMany: vi.fn().mockResolvedValue([{ id: "S1" }]),
       update: vi.fn(({ data }: { data: Record<string, unknown> }) =>
@@ -41,11 +41,11 @@ describe("an artist's own shapes", () => {
     const { ctx, db } = setup();
     await listShapes(ctx, artist);
     expect(db.pinShape.findMany).toHaveBeenLastCalledWith(
-      expect.objectContaining({ where: { artistId: "a1", archived: false } }),
+      expect.objectContaining({ where: { organizationId: "a1", archived: false } }),
     );
     await listShapes(ctx, artist, { archived: true });
     expect(db.pinShape.findMany).toHaveBeenLastCalledWith(
-      expect.objectContaining({ where: { artistId: "a1", archived: true } }),
+      expect.objectContaining({ where: { organizationId: "a1", archived: true } }),
     );
   });
 
@@ -53,7 +53,7 @@ describe("an artist's own shapes", () => {
     const { ctx, db } = setup();
     await createShape(ctx, artist, input);
     expect(db.pinShape.create).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { artistId: "a1", ...input } }),
+      expect.objectContaining({ data: { organizationId: "a1", ...input } }),
     );
     const full = setup({ have: MAX_SHAPES_PER_ARTIST });
     await expect(createShape(full.ctx, artist, input)).rejects.toThrow(/up to 100 shapes/);

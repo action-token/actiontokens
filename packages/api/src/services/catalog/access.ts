@@ -16,7 +16,7 @@ import type { Prisma } from "@actiontokens/db";
 export const accessSelect = {
   membersOnly: true,
   tier: { select: { name: true, requiredTokens: true } },
-  artist: {
+  organization: {
     select: {
       tiers: { where: { isActive: true }, select: { requiredTokens: true } },
       fanTokenItem: { select: { classicToken: { select: { code: true, issuer: true } } } },
@@ -38,8 +38,8 @@ export type Access = {
 /** The item's gate, or null when anyone can buy it. */
 export function accessOf(row: AccessRow): Access | null {
   if (!row.tier && !row.membersOnly) return null;
-  const token = row.artist?.fanTokenItem?.classicToken ?? null;
-  const ladder = (row.artist?.tiers ?? []).map((tier) => Number(tier.requiredTokens));
+  const token = row.organization?.fanTokenItem?.classicToken ?? null;
+  const ladder = (row.organization?.tiers ?? []).map((tier) => Number(tier.requiredTokens));
   const needed = row.tier
     ? Number(row.tier.requiredTokens)
     : ladder.length > 0

@@ -46,11 +46,11 @@ export const mediaIo: MediaIo = {
 };
 
 /** A fresh random folder per run, so a new preview never reuses an old (possibly shared) key. */
-const folderFor = (itemId: string, artistId: string | null | undefined) =>
+const folderFor = (itemId: string, organizationId: string | null | undefined) =>
   `${keyFolder({
     network: storageNetwork(),
-    owner: artistId ? "artists" : "shared",
-    ownerId: artistId ?? undefined,
+    owner: organizationId ? "artists" : "shared",
+    ownerId: organizationId ?? undefined,
     kind: `items/${itemId}/media`,
   })}/${randomBytes(16).toString("hex")}`;
 
@@ -81,7 +81,7 @@ export async function transcodeItem(
       sourceUrl: true,
       previewStartSec: true,
       status: true,
-      item: { select: { artistId: true } },
+      item: { select: { organizationId: true } },
     },
   });
   if (media?.mediaType !== "AUDIO") return { itemId, part, skipped: "no audio" };
@@ -89,7 +89,7 @@ export async function transcodeItem(
   if (part !== "all" && media.status !== "READY") return { itemId, part, skipped: media.status };
 
   const dir = await mkdtemp(path.join(tmpdir(), `transcode-${itemId}-`));
-  const folder = folderFor(itemId, media.item?.artistId);
+  const folder = folderFor(itemId, media.item?.organizationId);
   try {
     if (part === "all")
       await db.itemMedia.update({ where: { itemId }, data: { status: "PROCESSING" } });

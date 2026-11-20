@@ -158,7 +158,7 @@ export async function closePageAssetOffer(ctx: ServiceCtx, artist: ArtistRef, of
       id: offerId,
       kind: "BUNDLE",
       status: "ACTIVE",
-      item: { id: artist.fanTokenItemId ?? "", artistId: artist.id },
+      item: { id: artist.fanTokenItemId ?? "", organizationId: artist.id },
     },
     data: { status: "CLOSED" },
   });

@@ -1,3 +1,6 @@
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
+
 -- CreateEnum
 CREATE TYPE "MuralStatus" AS ENUM ('DISCOVERED', 'PENDING', 'APPROVED', 'REJECTED');
 
@@ -23,18 +26,6 @@ CREATE TYPE "PinType" AS ENUM ('EVENT', 'BOUNTY', 'EXPERIENCE', 'LAUNCH', 'LANDM
 CREATE TYPE "ApprovalStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
 
 -- CreateEnum
-CREATE TYPE "ArtistStatus" AS ENUM ('PENDING', 'APPROVED', 'BANNED');
-
--- CreateEnum
-CREATE TYPE "VanityStatus" AS ENUM ('TRIAL', 'ACTIVE', 'GRACE', 'LAPSED');
-
--- CreateEnum
-CREATE TYPE "VanityPaymentKind" AS ENUM ('FREE_TRIAL', 'RENEWAL', 'NAME_CHANGE');
-
--- CreateEnum
-CREATE TYPE "LayoutStatus" AS ENUM ('DRAFT', 'PUBLISHED');
-
--- CreateEnum
 CREATE TYPE "BountyStatus" AS ENUM ('RUNNING', 'PAUSED', 'COMPLETED');
 
 -- CreateEnum
@@ -53,7 +44,7 @@ CREATE TYPE "BountyRuleType" AS ENUM ('ALL', 'ANY_N', 'TOTAL_PLAYS');
 CREATE TYPE "ItemType" AS ENUM ('TRACK', 'VIDEO', 'IMAGE', 'MODEL_3D', 'DOCUMENT', 'ROYALTY', 'TICKET', 'MERCH', 'FAN_TOKEN');
 
 -- CreateEnum
-CREATE TYPE "ChainType" AS ENUM ('CLASSIC_TOKEN', 'CONTRACT_NFT');
+CREATE TYPE "ChainType" AS ENUM ('CLASSIC_TOKEN', 'CONTRACT_NFT', 'OFF_CHAIN');
 
 -- CreateEnum
 CREATE TYPE "NftMintStatus" AS ENUM ('PENDING', 'MINTED');
@@ -68,10 +59,10 @@ CREATE TYPE "LockedContentType" AS ENUM ('SONG', 'IMAGE', 'VIDEO', 'OTHER');
 CREATE TYPE "UserRole" AS ENUM ('FAN', 'ARTIST', 'ADMIN');
 
 -- CreateEnum
-CREATE TYPE "ChainAccountKind" AS ENUM ('STORAGE', 'ISSUER', 'PLATFORM');
+CREATE TYPE "ChainAccountKind" AS ENUM ('STORAGE', 'ISSUER', 'PLATFORM', 'RESALE_STORAGE');
 
 -- CreateEnum
-CREATE TYPE "ListingKind" AS ENUM ('PRIMARY', 'RESALE');
+CREATE TYPE "ListingKind" AS ENUM ('PRIMARY', 'RESALE', 'BUNDLE');
 
 -- CreateEnum
 CREATE TYPE "ListingStatus" AS ENUM ('ACTIVE', 'PAUSED', 'SOLD_OUT', 'CLOSED');
@@ -83,7 +74,7 @@ CREATE TYPE "PayMethod" AS ENUM ('WALLET', 'CARD');
 CREATE TYPE "OrderStatus" AS ENUM ('QUOTED', 'AWAITING_SIGNATURE', 'SUBMITTED', 'CONFIRMED', 'DELIVERED', 'CANCELED', 'FAILED', 'REFUNDED');
 
 -- CreateEnum
-CREATE TYPE "OrderKind" AS ENUM ('ITEM_PURCHASE', 'GIFT', 'VANITY', 'STUDIO_COINS');
+CREATE TYPE "OrderKind" AS ENUM ('ITEM_PURCHASE', 'GIFT', 'VANITY', 'RECHARGE', 'XLM_SWAP', 'TOKEN_TRUST', 'RESALE_LIST', 'RESALE_CANCEL', 'ACTIVATION', 'ISSUER_SETUP', 'STORAGE_SETUP', 'STORAGE_STOCK', 'STORAGE_WITHDRAW', 'STORAGE_DEPOSIT', 'NFT_PURCHASE', 'NFT_REGISTER', 'NFT_PLATFORM_FEE', 'NFT_GIFT', 'SEND', 'BANDCOIN_SWAP');
 
 -- CreateEnum
 CREATE TYPE "OwnershipSource" AS ENUM ('PURCHASE', 'GIFT', 'TRANSFER', 'CREATOR', 'REDEEM', 'PIN_CLAIM', 'BOUNTY', 'SYNC');
@@ -95,7 +86,28 @@ CREATE TYPE "PayoutStatus" AS ENUM ('DRAFT', 'SUBMITTING', 'PARTIAL', 'COMPLETE'
 CREATE TYPE "PayoutLineStatus" AS ENUM ('PENDING', 'SENT', 'FAILED');
 
 -- CreateEnum
-CREATE TYPE "NotificationType" AS ENUM ('LIKE', 'COMMENT', 'REPLY', 'FOLLOW', 'MEMBERSHIP', 'POST', 'NEW_ITEM', 'PURCHASE', 'BOUNTY', 'BOUNTY_JOINED', 'BOUNTY_SUBMISSION', 'BOUNTY_WINNER', 'BOUNTY_COMMENT');
+CREATE TYPE "PostAudience" AS ENUM ('EVERYONE', 'FOLLOWERS', 'SUBSCRIBERS', 'MEMBERS');
+
+-- CreateEnum
+CREATE TYPE "PostAccess" AS ENUM ('VIEWERS', 'FOLLOWERS', 'SUBSCRIBERS', 'MEMBERS', 'NOBODY');
+
+-- CreateEnum
+CREATE TYPE "NotificationType" AS ENUM ('LIKE', 'COMMENT', 'REPLY', 'FOLLOW', 'MEMBERSHIP', 'POST', 'NEW_ITEM', 'STORY', 'PURCHASE', 'BOUNTY', 'BOUNTY_JOINED', 'BOUNTY_SUBMISSION', 'BOUNTY_WINNER', 'BOUNTY_COMMENT', 'VANITY', 'DOMAIN');
+
+-- CreateEnum
+CREATE TYPE "OrganizationStatus" AS ENUM ('PENDING', 'APPROVED', 'BANNED', 'REJECTED');
+
+-- CreateEnum
+CREATE TYPE "VanityStatus" AS ENUM ('TRIAL', 'ACTIVE', 'GRACE', 'LAPSED');
+
+-- CreateEnum
+CREATE TYPE "VanityPaymentKind" AS ENUM ('FREE_TRIAL', 'RENEWAL', 'NAME_CHANGE');
+
+-- CreateEnum
+CREATE TYPE "CustomDomainStatus" AS ENUM ('NEEDS_SETUP', 'PENDING', 'LIVE', 'BROKEN');
+
+-- CreateEnum
+CREATE TYPE "LayoutStatus" AS ENUM ('DRAFT', 'PUBLISHED');
 
 -- CreateEnum
 CREATE TYPE "ActorRole" AS ENUM ('GUEST', 'FAN', 'ARTIST', 'ADMIN', 'SYSTEM');
@@ -110,19 +122,64 @@ CREATE TYPE "Currency" AS ENUM ('BANDCOIN', 'XLM', 'USDC', 'USD');
 CREATE TYPE "MediaType" AS ENUM ('AUDIO', 'VIDEO', 'IMAGE', 'MODEL_3D', 'DOCUMENT');
 
 -- CreateEnum
-CREATE TYPE "Visibility" AS ENUM ('DRAFT', 'PUBLIC', 'FOLLOWERS', 'MEMBERS', 'TIER');
+CREATE TYPE "Visibility" AS ENUM ('DRAFT', 'PUBLIC', 'FOLLOWERS', 'SUBSCRIBERS', 'MEMBERS', 'TIER');
 
 -- CreateEnum
 CREATE TYPE "JobStatus" AS ENUM ('QUEUED', 'RUNNING', 'SUCCEEDED', 'FAILED', 'CANCELED');
 
--- CreateEnum
-CREATE TYPE "StudioLedgerKind" AS ENUM ('DEPOSIT', 'SPEND', 'REFUND', 'WITHDRAW', 'BONUS', 'MIGRATED');
+-- CreateTable
+CREATE TABLE "agent_jobs" (
+    "id" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "status" "JobStatus" NOT NULL DEFAULT 'QUEUED',
+    "payload" JSONB NOT NULL,
+    "result" JSONB,
+    "error" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
--- CreateEnum
-CREATE TYPE "LedgerStatus" AS ENUM ('PENDING', 'CONFIRMED', 'FAILED');
+    CONSTRAINT "agent_jobs_pkey" PRIMARY KEY ("id")
+);
 
--- CreateEnum
-CREATE TYPE "GenerationType" AS ENUM ('TEXT', 'IMAGE', 'MUSIC', 'VIDEO', 'SEO', 'SOCIAL');
+-- CreateTable
+CREATE TABLE "agent_conversations" (
+    "id" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "title" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "agent_conversations_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "agent_messages" (
+    "id" TEXT NOT NULL,
+    "conversationId" TEXT NOT NULL,
+    "role" TEXT NOT NULL,
+    "text" TEXT NOT NULL,
+    "blocks" JSONB,
+    "steps" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "agent_messages_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "agent_actions" (
+    "id" TEXT NOT NULL,
+    "conversationId" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "payload" JSONB NOT NULL,
+    "status" TEXT NOT NULL,
+    "result" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "agent_actions_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "murals" (
@@ -235,7 +292,7 @@ CREATE TABLE "coin_ledger_entries" (
 -- CreateTable
 CREATE TABLE "events" (
     "id" TEXT NOT NULL,
-    "artistId" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "coverUrl" TEXT,
@@ -278,7 +335,7 @@ CREATE TABLE "event_comments" (
 -- CreateTable
 CREATE TABLE "announcements" (
     "id" TEXT NOT NULL,
-    "artistId" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "body" TEXT NOT NULL,
     "imageUrls" TEXT[] DEFAULT ARRAY[]::TEXT[],
@@ -306,7 +363,7 @@ CREATE TABLE "announcement_comments" (
 -- CreateTable
 CREATE TABLE "map_embeds" (
     "id" TEXT NOT NULL,
-    "artistId" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "isEnabled" BOOLEAN NOT NULL DEFAULT true,
     "centerLat" DOUBLE PRECISION NOT NULL,
@@ -349,7 +406,7 @@ CREATE TABLE "map_embed_daily_stats" (
 -- CreateTable
 CREATE TABLE "pins" (
     "id" TEXT NOT NULL,
-    "artistId" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
     "type" "PinType" NOT NULL DEFAULT 'OTHER',
     "title" TEXT NOT NULL,
     "description" TEXT,
@@ -359,6 +416,7 @@ CREATE TABLE "pins" (
     "tierId" TEXT,
     "rewardItemId" TEXT,
     "rewardsFanToken" BOOLEAN NOT NULL DEFAULT false,
+    "rewardAmount" DECIMAL(20,7) NOT NULL DEFAULT 1,
     "claimLimit" INTEGER NOT NULL DEFAULT 0,
     "claimsLeft" INTEGER NOT NULL DEFAULT 0,
     "startsAt" TIMESTAMP(3) NOT NULL,
@@ -380,6 +438,13 @@ CREATE TABLE "pins" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "eventId" TEXT,
+    "layerId" TEXT,
+    "markerShape" TEXT,
+    "pinShapeId" TEXT,
+    "markerFill" TEXT NOT NULL DEFAULT 'ARTIST',
+    "markerColor" TEXT,
+    "markerImageFit" JSONB,
+    "markerAutoBadge" BOOLEAN NOT NULL DEFAULT true,
 
     CONSTRAINT "pins_pkey" PRIMARY KEY ("id")
 );
@@ -416,7 +481,11 @@ CREATE TABLE "pin_claims" (
 -- CreateTable
 CREATE TABLE "hotspots" (
     "id" TEXT NOT NULL,
-    "artistId" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "title" TEXT NOT NULL DEFAULT '',
+    "template" JSONB NOT NULL DEFAULT '{}',
+    "spotsPerDrop" INTEGER NOT NULL DEFAULT 1,
+    "lastDropAt" TIMESTAMP(3),
     "dropEveryDays" INTEGER NOT NULL,
     "pinDurationDays" INTEGER NOT NULL,
     "startsAt" TIMESTAMP(3) NOT NULL,
@@ -430,14 +499,62 @@ CREATE TABLE "hotspots" (
     "nextDropAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "layerId" TEXT,
+    "markerShape" TEXT,
+    "pinShapeId" TEXT,
+    "markerFill" TEXT NOT NULL DEFAULT 'ARTIST',
+    "markerColor" TEXT,
+    "markerImageFit" JSONB,
+    "markerAutoBadge" BOOLEAN NOT NULL DEFAULT true,
 
     CONSTRAINT "hotspots_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
+CREATE TABLE "pin_layers" (
+    "id" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "icon" TEXT NOT NULL,
+    "color" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "pin_layers_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "pin_shapes" (
+    "id" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "path" TEXT NOT NULL,
+    "anchor" TEXT NOT NULL DEFAULT 'center',
+    "archived" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "pin_shapes_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "pin_templates" (
+    "id" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "formType" TEXT NOT NULL,
+    "data" JSONB NOT NULL,
+    "schemaVersion" INTEGER NOT NULL DEFAULT 1,
+    "hasLocation" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "pin_templates_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "pin_tags" (
     "id" TEXT NOT NULL,
-    "artistId" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "label" TEXT NOT NULL,
 
@@ -474,7 +591,7 @@ CREATE TABLE "geo_cache" (
 -- CreateTable
 CREATE TABLE "pin_batch_jobs" (
     "id" TEXT NOT NULL,
-    "artistId" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
     "status" "JobStatus" NOT NULL DEFAULT 'QUEUED',
     "total" INTEGER NOT NULL DEFAULT 0,
     "completed" INTEGER NOT NULL DEFAULT 0,
@@ -489,186 +606,16 @@ CREATE TABLE "pin_batch_jobs" (
 );
 
 -- CreateTable
-CREATE TABLE "artists" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "slug" TEXT NOT NULL,
-    "bio" TEXT,
-    "avatarUrl" TEXT,
-    "coverUrl" TEXT,
-    "coverHeights" JSONB,
-    "sectionLayouts" JSONB,
-    "backgroundSvg" TEXT,
-    "showBackgroundSvg" BOOLEAN NOT NULL DEFAULT false,
-    "website" TEXT,
-    "twitter" TEXT,
-    "instagram" TEXT,
-    "status" "ArtistStatus" NOT NULL DEFAULT 'PENDING',
-    "storageAccountId" TEXT,
-    "fanTokenItemId" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "artists_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "membership_tiers" (
-    "id" TEXT NOT NULL,
-    "artistId" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
-    "features" TEXT[],
-    "color" TEXT,
-    "isPopular" BOOLEAN NOT NULL DEFAULT false,
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "requiredTokens" DECIMAL(20,7) NOT NULL,
-    "sortOrder" INTEGER NOT NULL DEFAULT 0,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "membership_tiers_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "follows" (
-    "userId" TEXT NOT NULL,
-    "artistId" TEXT NOT NULL,
-    "isTemporary" BOOLEAN NOT NULL DEFAULT false,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "follows_pkey" PRIMARY KEY ("userId","artistId")
-);
-
--- CreateTable
-CREATE TABLE "vanity_urls" (
-    "artistId" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "status" "VanityStatus" NOT NULL DEFAULT 'TRIAL',
-    "startedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "paidUntil" TIMESTAMP(3) NOT NULL,
-    "graceEndsAt" TIMESTAMP(3),
-    "reservedUntil" TIMESTAMP(3),
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "vanity_urls_pkey" PRIMARY KEY ("artistId")
-);
-
--- CreateTable
-CREATE TABLE "vanity_payments" (
-    "id" TEXT NOT NULL,
-    "artistId" TEXT NOT NULL,
-    "kind" "VanityPaymentKind" NOT NULL,
-    "currency" "Currency" NOT NULL,
-    "amount" DECIMAL(20,7) NOT NULL,
-    "orderId" TEXT,
-    "periodEnd" TIMESTAMP(3) NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "vanity_payments_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "custom_domains" (
-    "id" TEXT NOT NULL,
-    "artistId" TEXT NOT NULL,
-    "domain" TEXT NOT NULL,
-    "verifiedAt" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "custom_domains_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "page_layouts" (
-    "id" TEXT NOT NULL,
-    "artistId" TEXT,
-    "name" TEXT NOT NULL,
-    "templateKey" TEXT,
-    "isDefault" BOOLEAN NOT NULL DEFAULT false,
-    "isPublic" BOOLEAN NOT NULL DEFAULT false,
-    "isActive" BOOLEAN NOT NULL DEFAULT false,
-    "status" "LayoutStatus" NOT NULL DEFAULT 'DRAFT',
-    "theme" JSONB,
-    "draftBlocks" JSONB,
-    "publishedBlocks" JSONB,
-    "publishedAt" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "page_layouts_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "page_widgets" (
-    "id" TEXT NOT NULL,
-    "layoutId" TEXT NOT NULL,
-    "widgetType" TEXT NOT NULL,
-    "size" TEXT NOT NULL,
-    "sortOrder" INTEGER NOT NULL,
-    "pinned" BOOLEAN NOT NULL DEFAULT false,
-    "groupId" TEXT,
-    "customWidth" DOUBLE PRECISION,
-    "settings" JSONB,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "page_widgets_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "page_templates" (
-    "id" TEXT NOT NULL,
-    "key" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
-    "previewImageUrl" TEXT,
-    "isSeedDefault" BOOLEAN NOT NULL DEFAULT false,
-    "sortOrder" INTEGER NOT NULL DEFAULT 0,
-    "blocks" JSONB NOT NULL,
-    "theme" JSONB,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "page_templates_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "facebook_connections" (
-    "artistId" TEXT NOT NULL,
-    "pageId" TEXT NOT NULL,
-    "pageName" TEXT NOT NULL,
-    "pageTokenEncrypted" TEXT NOT NULL,
-    "autoPublish" BOOLEAN NOT NULL DEFAULT false,
-    "connectedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "facebook_connections_pkey" PRIMARY KEY ("artistId")
-);
-
--- CreateTable
-CREATE TABLE "lastfm_accounts" (
-    "userId" TEXT NOT NULL,
-    "username" TEXT NOT NULL,
-    "realName" TEXT,
-    "country" TEXT,
-    "sessionKey" TEXT,
-    "profileUrl" TEXT NOT NULL,
-    "imageUrl" TEXT,
-    "playCount" INTEGER NOT NULL DEFAULT 0,
-    "isConnected" BOOLEAN NOT NULL DEFAULT false,
-
-    CONSTRAINT "lastfm_accounts_pkey" PRIMARY KEY ("userId")
-);
-
--- CreateTable
 CREATE TABLE "bounties" (
     "id" TEXT NOT NULL,
-    "artistId" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "summary" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "instructions" TEXT[],
-    "prizeCurrency" "Currency" NOT NULL,
+    "prizeCurrency" "Currency",
+    "prizeAssetCode" TEXT,
+    "prizeAssetIssuer" TEXT,
     "prizeAmount" DECIMAL(20,7) NOT NULL,
     "rewardNote" TEXT,
     "maxWinners" INTEGER NOT NULL DEFAULT 1,
@@ -677,6 +624,8 @@ CREATE TABLE "bounties" (
     "fundTxHash" TEXT,
     "fundedFromStorage" BOOLEAN NOT NULL DEFAULT false,
     "requiresActionCam" BOOLEAN NOT NULL DEFAULT false,
+    "hiddenAt" TIMESTAMP(3),
+    "hiddenReason" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "eventId" TEXT,
@@ -809,16 +758,19 @@ CREATE TABLE "items" (
     "coverUrl" TEXT NOT NULL,
     "accentColor" TEXT,
     "visibility" "Visibility" NOT NULL DEFAULT 'PUBLIC',
+    "membersOnly" BOOLEAN NOT NULL DEFAULT false,
     "tierId" TEXT,
     "supply" INTEGER,
     "royaltyPercent" DECIMAL(7,4),
     "releaseAt" TIMESTAMP(3),
     "saleEndsAt" TIMESTAMP(3),
     "playCount" INTEGER NOT NULL DEFAULT 0,
-    "artistId" TEXT,
+    "organizationId" TEXT,
     "createdById" TEXT NOT NULL,
     "collectionId" TEXT,
     "deletedAt" TIMESTAMP(3),
+    "hiddenAt" TIMESTAMP(3),
+    "hiddenReason" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -890,7 +842,7 @@ CREATE TABLE "tracks" (
 -- CreateTable
 CREATE TABLE "albums" (
     "id" TEXT NOT NULL,
-    "artistId" TEXT,
+    "organizationId" TEXT,
     "title" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
     "description" TEXT,
@@ -942,6 +894,15 @@ CREATE TABLE "item_likes" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "item_likes_pkey" PRIMARY KEY ("userId","itemId")
+);
+
+-- CreateTable
+CREATE TABLE "item_dislikes" (
+    "userId" TEXT NOT NULL,
+    "itemId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "item_dislikes_pkey" PRIMARY KEY ("userId","itemId")
 );
 
 -- CreateTable
@@ -1005,6 +966,8 @@ CREATE TABLE "users" (
     "signUpMethod" TEXT,
     "signedUpFromApp" BOOLEAN NOT NULL DEFAULT false,
     "showCollection" BOOLEAN NOT NULL DEFAULT true,
+    "suspendedAt" TIMESTAMP(3),
+    "suspendedReason" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -1018,6 +981,7 @@ CREATE TABLE "chain_accounts" (
     "publicKey" TEXT NOT NULL,
     "secretEncrypted" TEXT NOT NULL,
     "ownerId" TEXT,
+    "activatedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "chain_accounts_pkey" PRIMARY KEY ("id")
@@ -1036,6 +1000,9 @@ CREATE TABLE "listings" (
     "quantity" INTEGER,
     "quantitySold" INTEGER NOT NULL DEFAULT 0,
     "isFeatured" BOOLEAN NOT NULL DEFAULT false,
+    "bundleAmount" DECIMAL(20,7),
+    "priceXlm" DECIMAL(20,7),
+    "note" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -1058,6 +1025,10 @@ CREATE TABLE "orders" (
     "method" "PayMethod" NOT NULL,
     "status" "OrderStatus" NOT NULL DEFAULT 'QUOTED',
     "quoteExpiresAt" TIMESTAMP(3),
+    "breakdown" JSONB,
+    "rateUsd" DECIMAL(20,7),
+    "sellerAmount" DECIMAL(20,7),
+    "royaltyAmount" DECIMAL(20,7),
     "txHash" TEXT,
     "cardPaymentId" TEXT,
     "failureCode" TEXT,
@@ -1130,7 +1101,7 @@ CREATE TABLE "royalty_reports" (
 CREATE TABLE "royalty_payouts" (
     "id" TEXT NOT NULL,
     "itemId" TEXT NOT NULL,
-    "artistId" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
     "reportId" TEXT,
     "currency" "Currency" NOT NULL,
     "totalAmount" DECIMAL(20,7) NOT NULL,
@@ -1152,6 +1123,15 @@ CREATE TABLE "royalty_payout_lines" (
     "status" "PayoutLineStatus" NOT NULL DEFAULT 'PENDING',
 
     CONSTRAINT "royalty_payout_lines_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "declined_gifts" (
+    "userId" TEXT NOT NULL,
+    "balanceId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "declined_gifts_pkey" PRIMARY KEY ("userId","balanceId")
 );
 
 -- CreateTable
@@ -1212,11 +1192,16 @@ CREATE TABLE "stem_mixes" (
 -- CreateTable
 CREATE TABLE "posts" (
     "id" TEXT NOT NULL,
-    "artistId" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "body" TEXT NOT NULL,
     "summary" TEXT,
+    "audience" "PostAudience" NOT NULL DEFAULT 'EVERYONE',
     "tierId" TEXT,
+    "commentAccess" "PostAccess" NOT NULL DEFAULT 'VIEWERS',
+    "commentTierId" TEXT,
+    "collectAccess" "PostAccess" NOT NULL DEFAULT 'VIEWERS',
+    "collectTierId" TEXT,
     "facebookPostId" TEXT,
     "isImportOnly" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1297,19 +1282,257 @@ CREATE TABLE "notifications" (
 );
 
 -- CreateTable
+CREATE TABLE "stories" (
+    "id" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "type" "MediaType" NOT NULL,
+    "url" TEXT NOT NULL,
+    "thumbnailUrl" TEXT,
+    "caption" TEXT,
+    "audience" "PostAudience" NOT NULL DEFAULT 'EVERYONE',
+    "tierId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "removedAt" TIMESTAMP(3),
+    "removedReason" TEXT,
+
+    CONSTRAINT "stories_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "story_views" (
+    "storyId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "viewedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "story_views_pkey" PRIMARY KEY ("storyId","userId")
+);
+
+-- CreateTable
+CREATE TABLE "organizations" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "bio" TEXT,
+    "avatarUrl" TEXT,
+    "coverUrl" TEXT,
+    "coverHeights" JSONB,
+    "sectionLayouts" JSONB,
+    "backgroundSvg" TEXT,
+    "showBackgroundSvg" BOOLEAN NOT NULL DEFAULT false,
+    "website" TEXT,
+    "twitter" TEXT,
+    "instagram" TEXT,
+    "status" "OrganizationStatus" NOT NULL DEFAULT 'PENDING',
+    "rejectionReason" TEXT,
+    "storageAccountId" TEXT,
+    "issuerAccountId" TEXT,
+    "fanTokenItemId" TEXT,
+    "pendingFanToken" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "organizations_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "organization_slug_history" (
+    "slug" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "organization_slug_history_pkey" PRIMARY KEY ("slug")
+);
+
+-- CreateTable
+CREATE TABLE "membership_tiers" (
+    "id" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "features" TEXT[],
+    "color" TEXT,
+    "isPopular" BOOLEAN NOT NULL DEFAULT false,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "requiredTokens" DECIMAL(20,7) NOT NULL,
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "membership_tiers_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "follows" (
+    "userId" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "isTemporary" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "follows_pkey" PRIMARY KEY ("userId","organizationId")
+);
+
+-- CreateTable
+CREATE TABLE "vanity_urls" (
+    "organizationId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "status" "VanityStatus" NOT NULL DEFAULT 'TRIAL',
+    "startedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "paidUntil" TIMESTAMP(3) NOT NULL,
+    "graceEndsAt" TIMESTAMP(3),
+    "reservedUntil" TIMESTAMP(3),
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "vanity_urls_pkey" PRIMARY KEY ("organizationId")
+);
+
+-- CreateTable
+CREATE TABLE "vanity_payments" (
+    "id" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "kind" "VanityPaymentKind" NOT NULL,
+    "currency" "Currency" NOT NULL,
+    "amount" DECIMAL(20,7) NOT NULL,
+    "orderId" TEXT,
+    "periodEnd" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "vanity_payments_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "custom_domains" (
+    "id" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "domain" TEXT NOT NULL,
+    "status" "CustomDomainStatus" NOT NULL DEFAULT 'PENDING',
+    "withWww" BOOLEAN NOT NULL DEFAULT false,
+    "verifiedAt" TIMESTAMP(3),
+    "lastCheckedAt" TIMESTAMP(3),
+    "brokenSince" TIMESTAMP(3),
+    "lastError" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "custom_domains_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "page_layouts" (
+    "id" TEXT NOT NULL,
+    "organizationId" TEXT,
+    "name" TEXT NOT NULL,
+    "templateKey" TEXT,
+    "isDefault" BOOLEAN NOT NULL DEFAULT false,
+    "isPublic" BOOLEAN NOT NULL DEFAULT false,
+    "isActive" BOOLEAN NOT NULL DEFAULT false,
+    "status" "LayoutStatus" NOT NULL DEFAULT 'DRAFT',
+    "theme" JSONB,
+    "draftBlocks" JSONB,
+    "publishedBlocks" JSONB,
+    "publishedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "page_layouts_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "page_widgets" (
+    "id" TEXT NOT NULL,
+    "layoutId" TEXT NOT NULL,
+    "widgetType" TEXT NOT NULL,
+    "size" TEXT NOT NULL,
+    "sortOrder" INTEGER NOT NULL,
+    "pinned" BOOLEAN NOT NULL DEFAULT false,
+    "groupId" TEXT,
+    "customWidth" DOUBLE PRECISION,
+    "settings" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "page_widgets_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "page_templates" (
+    "id" TEXT NOT NULL,
+    "key" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "previewImageUrl" TEXT,
+    "isSeedDefault" BOOLEAN NOT NULL DEFAULT false,
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
+    "blocks" JSONB NOT NULL,
+    "theme" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "page_templates_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "facebook_connections" (
+    "organizationId" TEXT NOT NULL,
+    "pageId" TEXT NOT NULL,
+    "pageName" TEXT NOT NULL,
+    "pageTokenEncrypted" TEXT NOT NULL,
+    "autoPublish" BOOLEAN NOT NULL DEFAULT false,
+    "connectedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "facebook_connections_pkey" PRIMARY KEY ("organizationId")
+);
+
+-- CreateTable
+CREATE TABLE "lastfm_accounts" (
+    "userId" TEXT NOT NULL,
+    "username" TEXT NOT NULL,
+    "realName" TEXT,
+    "country" TEXT,
+    "sessionKey" TEXT,
+    "profileUrl" TEXT NOT NULL,
+    "imageUrl" TEXT,
+    "playCount" INTEGER NOT NULL DEFAULT 0,
+    "isConnected" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "lastfm_accounts_pkey" PRIMARY KEY ("userId")
+);
+
+-- CreateTable
+CREATE TABLE "ai_usage" (
+    "userId" TEXT NOT NULL,
+    "day" DATE NOT NULL,
+    "text" INTEGER NOT NULL DEFAULT 0,
+    "image" INTEGER NOT NULL DEFAULT 0,
+
+    CONSTRAINT "ai_usage_pkey" PRIMARY KEY ("userId","day")
+);
+
+-- CreateTable
 CREATE TABLE "app_settings" (
     "id" INTEGER NOT NULL DEFAULT 1,
     "nearbyPinRadiusMeters" DOUBLE PRECISION NOT NULL DEFAULT 500,
+    "fanTokenStartSupply" DECIMAL(20,7) NOT NULL DEFAULT 1000000,
     "platformFeeBps" INTEGER NOT NULL DEFAULT 250,
     "platformFeeRecipient" TEXT,
     "vanityMonthlyBandcoin" DECIMAL(20,7),
     "vanityMonthlyUsd" DECIMAL(20,7),
     "vanityNameChangeBandcoin" DECIMAL(20,7),
     "vanityNameChangeUsd" DECIMAL(20,7),
-    "studioPrices" JSONB,
+    "alertRules" JSONB,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "app_settings_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "admin_alert_reviews" (
+    "key" TEXT NOT NULL,
+    "kind" TEXT NOT NULL,
+    "reviewerId" TEXT,
+    "note" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "admin_alert_reviews_pkey" PRIMARY KEY ("key")
 );
 
 -- CreateTable
@@ -1377,133 +1600,31 @@ CREATE TABLE "legacy_id_map" (
 );
 
 -- CreateTable
-CREATE TABLE "studio_balances" (
-    "userId" TEXT NOT NULL,
-    "balance" DECIMAL(20,7) NOT NULL DEFAULT 0,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "studio_balances_pkey" PRIMARY KEY ("userId")
-);
-
--- CreateTable
-CREATE TABLE "studio_ledger_entries" (
+CREATE TABLE "mcp_tokens" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
-    "kind" "StudioLedgerKind" NOT NULL,
-    "status" "LedgerStatus" NOT NULL DEFAULT 'PENDING',
-    "amount" DECIMAL(20,7) NOT NULL,
-    "txHash" TEXT,
-    "generationId" TEXT,
-    "note" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "studio_ledger_entries_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "studio_packages" (
-    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "description" TEXT,
-    "coins" DECIMAL(20,7) NOT NULL,
-    "bonusCoins" DECIMAL(20,7) NOT NULL DEFAULT 0,
-    "priceBandcoin" DECIMAL(20,7) NOT NULL,
-    "priceUsd" DECIMAL(20,7) NOT NULL,
-    "isPopular" BOOLEAN NOT NULL DEFAULT false,
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "sortOrder" INTEGER NOT NULL DEFAULT 0,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "studio_packages_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "generations" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "artistId" TEXT,
-    "type" "GenerationType" NOT NULL,
-    "prompt" TEXT NOT NULL,
-    "model" TEXT,
-    "status" "JobStatus" NOT NULL DEFAULT 'QUEUED',
-    "progress" INTEGER,
-    "message" TEXT,
-    "cost" DECIMAL(20,7) NOT NULL DEFAULT 0,
-    "tokensUsed" INTEGER,
-    "outputs" JSONB,
-    "error" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "generations_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "agent_jobs" (
-    "id" TEXT NOT NULL,
-    "artistId" TEXT NOT NULL,
-    "status" "JobStatus" NOT NULL DEFAULT 'QUEUED',
-    "payload" JSONB NOT NULL,
-    "result" JSONB,
-    "error" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "agent_jobs_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "stem_projects" (
-    "id" TEXT NOT NULL,
-    "ownerId" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "data" JSONB NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "stem_projects_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "agent_conversations" (
-    "id" TEXT NOT NULL,
-    "artistId" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "title" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "agent_conversations_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "agent_messages" (
-    "id" TEXT NOT NULL,
-    "conversationId" TEXT NOT NULL,
-    "role" TEXT NOT NULL,
-    "text" TEXT NOT NULL,
-    "blocks" JSONB,
-    "steps" JSONB,
+    "tokenHash" TEXT NOT NULL,
+    "prefix" TEXT NOT NULL,
+    "walletType" TEXT NOT NULL,
+    "lastUsedAt" TIMESTAMP(3),
+    "revokedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "agent_messages_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "mcp_tokens_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "agent_actions" (
-    "id" TEXT NOT NULL,
-    "conversationId" TEXT NOT NULL,
-    "artistId" TEXT NOT NULL,
-    "type" TEXT NOT NULL,
-    "payload" JSONB NOT NULL,
-    "status" TEXT NOT NULL,
-    "result" JSONB,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+-- CreateIndex
+CREATE INDEX "agent_jobs_organizationId_createdAt_idx" ON "agent_jobs"("organizationId", "createdAt");
 
-    CONSTRAINT "agent_actions_pkey" PRIMARY KEY ("id")
-);
+-- CreateIndex
+CREATE INDEX "agent_conversations_organizationId_updatedAt_idx" ON "agent_conversations"("organizationId", "updatedAt");
+
+-- CreateIndex
+CREATE INDEX "agent_messages_conversationId_createdAt_idx" ON "agent_messages"("conversationId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "agent_actions_conversationId_idx" ON "agent_actions"("conversationId");
 
 -- CreateIndex
 CREATE INDEX "murals_status_idx" ON "murals"("status");
@@ -1533,7 +1654,7 @@ CREATE INDEX "coin_ledger_entries_userId_createdAt_idx" ON "coin_ledger_entries"
 CREATE INDEX "coin_ledger_entries_muralId_idx" ON "coin_ledger_entries"("muralId");
 
 -- CreateIndex
-CREATE INDEX "events_artistId_idx" ON "events"("artistId");
+CREATE INDEX "events_organizationId_idx" ON "events"("organizationId");
 
 -- CreateIndex
 CREATE INDEX "events_startsAt_idx" ON "events"("startsAt");
@@ -1545,7 +1666,7 @@ CREATE UNIQUE INDEX "event_rsvps_eventId_userId_key" ON "event_rsvps"("eventId",
 CREATE INDEX "event_comments_eventId_createdAt_idx" ON "event_comments"("eventId", "createdAt");
 
 -- CreateIndex
-CREATE INDEX "announcements_artistId_idx" ON "announcements"("artistId");
+CREATE INDEX "announcements_organizationId_idx" ON "announcements"("organizationId");
 
 -- CreateIndex
 CREATE INDEX "announcements_createdAt_idx" ON "announcements"("createdAt");
@@ -1554,16 +1675,19 @@ CREATE INDEX "announcements_createdAt_idx" ON "announcements"("createdAt");
 CREATE INDEX "announcement_comments_announcementId_createdAt_idx" ON "announcement_comments"("announcementId", "createdAt");
 
 -- CreateIndex
-CREATE INDEX "map_embeds_artistId_idx" ON "map_embeds"("artistId");
+CREATE INDEX "map_embeds_organizationId_idx" ON "map_embeds"("organizationId");
 
 -- CreateIndex
-CREATE INDEX "pins_artistId_createdAt_idx" ON "pins"("artistId", "createdAt");
+CREATE INDEX "pins_organizationId_createdAt_idx" ON "pins"("organizationId", "createdAt");
 
 -- CreateIndex
 CREATE INDEX "pins_approval_endsAt_idx" ON "pins"("approval", "endsAt");
 
 -- CreateIndex
 CREATE INDEX "pins_latitude_longitude_idx" ON "pins"("latitude", "longitude");
+
+-- CreateIndex
+CREATE INDEX "pins_layerId_idx" ON "pins"("layerId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "pins_unlockEditionId_unlockLockedContentId_key" ON "pins"("unlockEditionId", "unlockLockedContentId");
@@ -1584,61 +1708,25 @@ CREATE INDEX "pin_claims_spotId_idx" ON "pin_claims"("spotId");
 CREATE INDEX "hotspots_isActive_nextDropAt_idx" ON "hotspots"("isActive", "nextDropAt");
 
 -- CreateIndex
+CREATE INDEX "hotspots_layerId_idx" ON "hotspots"("layerId");
+
+-- CreateIndex
+CREATE INDEX "pin_layers_organizationId_idx" ON "pin_layers"("organizationId");
+
+-- CreateIndex
+CREATE INDEX "pin_shapes_organizationId_archived_idx" ON "pin_shapes"("organizationId", "archived");
+
+-- CreateIndex
+CREATE INDEX "pin_templates_organizationId_formType_updatedAt_idx" ON "pin_templates"("organizationId", "formType", "updatedAt");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "pin_tags_name_key" ON "pin_tags"("name");
 
 -- CreateIndex
-CREATE INDEX "pin_batch_jobs_artistId_createdAt_idx" ON "pin_batch_jobs"("artistId", "createdAt");
+CREATE INDEX "pin_batch_jobs_organizationId_createdAt_idx" ON "pin_batch_jobs"("organizationId", "createdAt");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "artists_userId_key" ON "artists"("userId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "artists_slug_key" ON "artists"("slug");
-
--- CreateIndex
-CREATE UNIQUE INDEX "artists_storageAccountId_key" ON "artists"("storageAccountId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "artists_fanTokenItemId_key" ON "artists"("fanTokenItemId");
-
--- CreateIndex
-CREATE INDEX "artists_status_createdAt_idx" ON "artists"("status", "createdAt");
-
--- CreateIndex
-CREATE UNIQUE INDEX "membership_tiers_artistId_name_key" ON "membership_tiers"("artistId", "name");
-
--- CreateIndex
-CREATE INDEX "follows_artistId_idx" ON "follows"("artistId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "vanity_urls_name_key" ON "vanity_urls"("name");
-
--- CreateIndex
-CREATE UNIQUE INDEX "vanity_payments_orderId_key" ON "vanity_payments"("orderId");
-
--- CreateIndex
-CREATE INDEX "vanity_payments_artistId_createdAt_idx" ON "vanity_payments"("artistId", "createdAt");
-
--- CreateIndex
-CREATE UNIQUE INDEX "custom_domains_artistId_key" ON "custom_domains"("artistId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "custom_domains_domain_key" ON "custom_domains"("domain");
-
--- CreateIndex
-CREATE INDEX "page_layouts_artistId_isActive_idx" ON "page_layouts"("artistId", "isActive");
-
--- CreateIndex
-CREATE INDEX "page_widgets_layoutId_idx" ON "page_widgets"("layoutId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "page_templates_key_key" ON "page_templates"("key");
-
--- CreateIndex
-CREATE UNIQUE INDEX "lastfm_accounts_sessionKey_key" ON "lastfm_accounts"("sessionKey");
-
--- CreateIndex
-CREATE INDEX "bounties_artistId_idx" ON "bounties"("artistId");
+CREATE INDEX "bounties_organizationId_idx" ON "bounties"("organizationId");
 
 -- CreateIndex
 CREATE INDEX "bounties_status_createdAt_idx" ON "bounties"("status", "createdAt");
@@ -1677,7 +1765,7 @@ CREATE INDEX "bounty_tracks_bountyId_idx" ON "bounty_tracks"("bountyId");
 CREATE UNIQUE INDEX "items_slug_key" ON "items"("slug");
 
 -- CreateIndex
-CREATE INDEX "items_artistId_createdAt_idx" ON "items"("artistId", "createdAt");
+CREATE INDEX "items_organizationId_createdAt_idx" ON "items"("organizationId", "createdAt");
 
 -- CreateIndex
 CREATE INDEX "items_type_visibility_createdAt_idx" ON "items"("type", "visibility", "createdAt");
@@ -1704,7 +1792,7 @@ CREATE INDEX "tracks_albumId_idx" ON "tracks"("albumId");
 CREATE UNIQUE INDEX "albums_slug_key" ON "albums"("slug");
 
 -- CreateIndex
-CREATE INDEX "albums_artistId_idx" ON "albums"("artistId");
+CREATE INDEX "albums_organizationId_idx" ON "albums"("organizationId");
 
 -- CreateIndex
 CREATE INDEX "item_stems_itemId_idx" ON "item_stems"("itemId");
@@ -1717,6 +1805,9 @@ CREATE UNIQUE INDEX "item_collections_ownerId_name_key" ON "item_collections"("o
 
 -- CreateIndex
 CREATE INDEX "item_likes_itemId_idx" ON "item_likes"("itemId");
+
+-- CreateIndex
+CREATE INDEX "item_dislikes_itemId_idx" ON "item_dislikes"("itemId");
 
 -- CreateIndex
 CREATE INDEX "locked_contents_itemId_idx" ON "locked_contents"("itemId");
@@ -1782,13 +1873,16 @@ CREATE UNIQUE INDEX "locked_content_redeems_editionId_lockedContentId_key" ON "l
 CREATE INDEX "royalty_payouts_itemId_idx" ON "royalty_payouts"("itemId");
 
 -- CreateIndex
-CREATE INDEX "royalty_payouts_artistId_idx" ON "royalty_payouts"("artistId");
+CREATE INDEX "royalty_payouts_organizationId_idx" ON "royalty_payouts"("organizationId");
 
 -- CreateIndex
 CREATE INDEX "royalty_payout_lines_payoutId_idx" ON "royalty_payout_lines"("payoutId");
 
 -- CreateIndex
 CREATE INDEX "royalty_payout_lines_holderAddress_idx" ON "royalty_payout_lines"("holderAddress");
+
+-- CreateIndex
+CREATE INDEX "declined_gifts_balanceId_idx" ON "declined_gifts"("balanceId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "playlists_ownerId_name_key" ON "playlists"("ownerId", "name");
@@ -1806,7 +1900,7 @@ CREATE INDEX "play_events_sessionId_itemId_createdAt_idx" ON "play_events"("sess
 CREATE UNIQUE INDEX "posts_facebookPostId_key" ON "posts"("facebookPostId");
 
 -- CreateIndex
-CREATE INDEX "posts_artistId_createdAt_idx" ON "posts"("artistId", "createdAt");
+CREATE INDEX "posts_organizationId_createdAt_idx" ON "posts"("organizationId", "createdAt");
 
 -- CreateIndex
 CREATE INDEX "post_media_postId_idx" ON "post_media"("postId");
@@ -1828,6 +1922,72 @@ CREATE INDEX "notification_events_actorId_createdAt_idx" ON "notification_events
 
 -- CreateIndex
 CREATE INDEX "notifications_recipientId_isForArtist_createdAt_idx" ON "notifications"("recipientId", "isForArtist", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "stories_organizationId_expiresAt_idx" ON "stories"("organizationId", "expiresAt");
+
+-- CreateIndex
+CREATE INDEX "stories_expiresAt_idx" ON "stories"("expiresAt");
+
+-- CreateIndex
+CREATE INDEX "story_views_userId_idx" ON "story_views"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "organizations_userId_key" ON "organizations"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "organizations_slug_key" ON "organizations"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "organizations_storageAccountId_key" ON "organizations"("storageAccountId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "organizations_issuerAccountId_key" ON "organizations"("issuerAccountId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "organizations_fanTokenItemId_key" ON "organizations"("fanTokenItemId");
+
+-- CreateIndex
+CREATE INDEX "organizations_status_createdAt_idx" ON "organizations"("status", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "organization_slug_history_organizationId_idx" ON "organization_slug_history"("organizationId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "membership_tiers_organizationId_name_key" ON "membership_tiers"("organizationId", "name");
+
+-- CreateIndex
+CREATE INDEX "follows_organizationId_idx" ON "follows"("organizationId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "vanity_urls_name_key" ON "vanity_urls"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "vanity_payments_orderId_key" ON "vanity_payments"("orderId");
+
+-- CreateIndex
+CREATE INDEX "vanity_payments_organizationId_createdAt_idx" ON "vanity_payments"("organizationId", "createdAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "custom_domains_organizationId_key" ON "custom_domains"("organizationId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "custom_domains_domain_key" ON "custom_domains"("domain");
+
+-- CreateIndex
+CREATE INDEX "custom_domains_status_lastCheckedAt_idx" ON "custom_domains"("status", "lastCheckedAt");
+
+-- CreateIndex
+CREATE INDEX "page_layouts_organizationId_isActive_idx" ON "page_layouts"("organizationId", "isActive");
+
+-- CreateIndex
+CREATE INDEX "page_widgets_layoutId_idx" ON "page_widgets"("layoutId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "page_templates_key_key" ON "page_templates"("key");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "lastfm_accounts_sessionKey_key" ON "lastfm_accounts"("sessionKey");
 
 -- CreateIndex
 CREATE INDEX "uploads_userId_createdAt_idx" ON "uploads"("userId", "createdAt");
@@ -1854,28 +2014,22 @@ CREATE INDEX "jobs_type_createdAt_idx" ON "jobs"("type", "createdAt");
 CREATE INDEX "legacy_id_map_newId_idx" ON "legacy_id_map"("newId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "studio_ledger_entries_txHash_key" ON "studio_ledger_entries"("txHash");
+CREATE UNIQUE INDEX "mcp_tokens_tokenHash_key" ON "mcp_tokens"("tokenHash");
 
 -- CreateIndex
-CREATE INDEX "studio_ledger_entries_userId_createdAt_idx" ON "studio_ledger_entries"("userId", "createdAt");
+CREATE INDEX "mcp_tokens_userId_idx" ON "mcp_tokens"("userId");
 
--- CreateIndex
-CREATE INDEX "generations_userId_createdAt_idx" ON "generations"("userId", "createdAt");
+-- AddForeignKey
+ALTER TABLE "agent_jobs" ADD CONSTRAINT "agent_jobs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE INDEX "agent_jobs_artistId_createdAt_idx" ON "agent_jobs"("artistId", "createdAt");
+-- AddForeignKey
+ALTER TABLE "agent_conversations" ADD CONSTRAINT "agent_conversations_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE INDEX "stem_projects_ownerId_updatedAt_idx" ON "stem_projects"("ownerId", "updatedAt");
+-- AddForeignKey
+ALTER TABLE "agent_messages" ADD CONSTRAINT "agent_messages_conversationId_fkey" FOREIGN KEY ("conversationId") REFERENCES "agent_conversations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE INDEX "agent_conversations_artistId_updatedAt_idx" ON "agent_conversations"("artistId", "updatedAt");
-
--- CreateIndex
-CREATE INDEX "agent_messages_conversationId_createdAt_idx" ON "agent_messages"("conversationId", "createdAt");
-
--- CreateIndex
-CREATE INDEX "agent_actions_conversationId_idx" ON "agent_actions"("conversationId");
+-- AddForeignKey
+ALTER TABLE "agent_actions" ADD CONSTRAINT "agent_actions_conversationId_fkey" FOREIGN KEY ("conversationId") REFERENCES "agent_conversations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "murals" ADD CONSTRAINT "murals_discovererId_fkey" FOREIGN KEY ("discovererId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1905,7 +2059,7 @@ ALTER TABLE "coin_ledger_entries" ADD CONSTRAINT "coin_ledger_entries_userId_fke
 ALTER TABLE "coin_ledger_entries" ADD CONSTRAINT "coin_ledger_entries_muralId_fkey" FOREIGN KEY ("muralId") REFERENCES "murals"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "events" ADD CONSTRAINT "events_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "events" ADD CONSTRAINT "events_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "event_rsvps" ADD CONSTRAINT "event_rsvps_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "events"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1920,7 +2074,7 @@ ALTER TABLE "event_comments" ADD CONSTRAINT "event_comments_eventId_fkey" FOREIG
 ALTER TABLE "event_comments" ADD CONSTRAINT "event_comments_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "announcements" ADD CONSTRAINT "announcements_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "announcements" ADD CONSTRAINT "announcements_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "announcement_comments" ADD CONSTRAINT "announcement_comments_announcementId_fkey" FOREIGN KEY ("announcementId") REFERENCES "announcements"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1929,13 +2083,13 @@ ALTER TABLE "announcement_comments" ADD CONSTRAINT "announcement_comments_announ
 ALTER TABLE "announcement_comments" ADD CONSTRAINT "announcement_comments_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "map_embeds" ADD CONSTRAINT "map_embeds_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "map_embeds" ADD CONSTRAINT "map_embeds_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "map_embed_daily_stats" ADD CONSTRAINT "map_embed_daily_stats_embedId_fkey" FOREIGN KEY ("embedId") REFERENCES "map_embeds"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "pins" ADD CONSTRAINT "pins_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "pins" ADD CONSTRAINT "pins_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "pins" ADD CONSTRAINT "pins_tierId_fkey" FOREIGN KEY ("tierId") REFERENCES "membership_tiers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -1962,6 +2116,12 @@ ALTER TABLE "pins" ADD CONSTRAINT "pins_unlockLockedContentId_fkey" FOREIGN KEY 
 ALTER TABLE "pins" ADD CONSTRAINT "pins_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "events"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "pins" ADD CONSTRAINT "pins_layerId_fkey" FOREIGN KEY ("layerId") REFERENCES "pin_layers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "pins" ADD CONSTRAINT "pins_pinShapeId_fkey" FOREIGN KEY ("pinShapeId") REFERENCES "pin_shapes"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "pin_spots" ADD CONSTRAINT "pin_spots_pinId_fkey" FOREIGN KEY ("pinId") REFERENCES "pins"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1971,10 +2131,25 @@ ALTER TABLE "pin_claims" ADD CONSTRAINT "pin_claims_userId_fkey" FOREIGN KEY ("u
 ALTER TABLE "pin_claims" ADD CONSTRAINT "pin_claims_spotId_fkey" FOREIGN KEY ("spotId") REFERENCES "pin_spots"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "hotspots" ADD CONSTRAINT "hotspots_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "hotspots" ADD CONSTRAINT "hotspots_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "pin_tags" ADD CONSTRAINT "pin_tags_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "hotspots" ADD CONSTRAINT "hotspots_layerId_fkey" FOREIGN KEY ("layerId") REFERENCES "pin_layers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "hotspots" ADD CONSTRAINT "hotspots_pinShapeId_fkey" FOREIGN KEY ("pinShapeId") REFERENCES "pin_shapes"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "pin_layers" ADD CONSTRAINT "pin_layers_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "pin_shapes" ADD CONSTRAINT "pin_shapes_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "pin_templates" ADD CONSTRAINT "pin_templates_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "pin_tags" ADD CONSTRAINT "pin_tags_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "pin_tag_links" ADD CONSTRAINT "pin_tag_links_pinId_fkey" FOREIGN KEY ("pinId") REFERENCES "pins"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1983,52 +2158,10 @@ ALTER TABLE "pin_tag_links" ADD CONSTRAINT "pin_tag_links_pinId_fkey" FOREIGN KE
 ALTER TABLE "pin_tag_links" ADD CONSTRAINT "pin_tag_links_tagId_fkey" FOREIGN KEY ("tagId") REFERENCES "pin_tags"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "pin_batch_jobs" ADD CONSTRAINT "pin_batch_jobs_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "pin_batch_jobs" ADD CONSTRAINT "pin_batch_jobs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "artists" ADD CONSTRAINT "artists_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "artists" ADD CONSTRAINT "artists_storageAccountId_fkey" FOREIGN KEY ("storageAccountId") REFERENCES "chain_accounts"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "artists" ADD CONSTRAINT "artists_fanTokenItemId_fkey" FOREIGN KEY ("fanTokenItemId") REFERENCES "items"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "membership_tiers" ADD CONSTRAINT "membership_tiers_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "follows" ADD CONSTRAINT "follows_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "follows" ADD CONSTRAINT "follows_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "vanity_urls" ADD CONSTRAINT "vanity_urls_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "vanity_payments" ADD CONSTRAINT "vanity_payments_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "vanity_payments" ADD CONSTRAINT "vanity_payments_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "orders"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "custom_domains" ADD CONSTRAINT "custom_domains_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "page_layouts" ADD CONSTRAINT "page_layouts_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "page_widgets" ADD CONSTRAINT "page_widgets_layoutId_fkey" FOREIGN KEY ("layoutId") REFERENCES "page_layouts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "facebook_connections" ADD CONSTRAINT "facebook_connections_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "lastfm_accounts" ADD CONSTRAINT "lastfm_accounts_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "bounties" ADD CONSTRAINT "bounties_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "bounties" ADD CONSTRAINT "bounties_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "bounties" ADD CONSTRAINT "bounties_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "events"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -2073,7 +2206,7 @@ ALTER TABLE "bounty_track_progress" ADD CONSTRAINT "bounty_track_progress_trackI
 ALTER TABLE "items" ADD CONSTRAINT "items_tierId_fkey" FOREIGN KEY ("tierId") REFERENCES "membership_tiers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "items" ADD CONSTRAINT "items_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "items" ADD CONSTRAINT "items_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "items" ADD CONSTRAINT "items_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -2106,7 +2239,7 @@ ALTER TABLE "tracks" ADD CONSTRAINT "tracks_itemId_fkey" FOREIGN KEY ("itemId") 
 ALTER TABLE "tracks" ADD CONSTRAINT "tracks_albumId_fkey" FOREIGN KEY ("albumId") REFERENCES "albums"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "albums" ADD CONSTRAINT "albums_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "albums" ADD CONSTRAINT "albums_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "item_stems" ADD CONSTRAINT "item_stems_itemId_fkey" FOREIGN KEY ("itemId") REFERENCES "items"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -2122,6 +2255,12 @@ ALTER TABLE "item_likes" ADD CONSTRAINT "item_likes_userId_fkey" FOREIGN KEY ("u
 
 -- AddForeignKey
 ALTER TABLE "item_likes" ADD CONSTRAINT "item_likes_itemId_fkey" FOREIGN KEY ("itemId") REFERENCES "items"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "item_dislikes" ADD CONSTRAINT "item_dislikes_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "item_dislikes" ADD CONSTRAINT "item_dislikes_itemId_fkey" FOREIGN KEY ("itemId") REFERENCES "items"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "collection_likes" ADD CONSTRAINT "collection_likes_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -2187,13 +2326,16 @@ ALTER TABLE "royalty_reports" ADD CONSTRAINT "royalty_reports_itemId_fkey" FOREI
 ALTER TABLE "royalty_payouts" ADD CONSTRAINT "royalty_payouts_itemId_fkey" FOREIGN KEY ("itemId") REFERENCES "items"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "royalty_payouts" ADD CONSTRAINT "royalty_payouts_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "royalty_payouts" ADD CONSTRAINT "royalty_payouts_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "royalty_payouts" ADD CONSTRAINT "royalty_payouts_reportId_fkey" FOREIGN KEY ("reportId") REFERENCES "royalty_reports"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "royalty_payout_lines" ADD CONSTRAINT "royalty_payout_lines_payoutId_fkey" FOREIGN KEY ("payoutId") REFERENCES "royalty_payouts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "declined_gifts" ADD CONSTRAINT "declined_gifts_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "playlists" ADD CONSTRAINT "playlists_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -2217,10 +2359,16 @@ ALTER TABLE "play_events" ADD CONSTRAINT "play_events_itemId_fkey" FOREIGN KEY (
 ALTER TABLE "stem_mixes" ADD CONSTRAINT "stem_mixes_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "posts" ADD CONSTRAINT "posts_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "posts" ADD CONSTRAINT "posts_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "posts" ADD CONSTRAINT "posts_tierId_fkey" FOREIGN KEY ("tierId") REFERENCES "membership_tiers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "posts" ADD CONSTRAINT "posts_commentTierId_fkey" FOREIGN KEY ("commentTierId") REFERENCES "membership_tiers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "posts" ADD CONSTRAINT "posts_collectTierId_fkey" FOREIGN KEY ("collectTierId") REFERENCES "membership_tiers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "post_media" ADD CONSTRAINT "post_media_postId_fkey" FOREIGN KEY ("postId") REFERENCES "posts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -2256,37 +2404,77 @@ ALTER TABLE "notifications" ADD CONSTRAINT "notifications_eventId_fkey" FOREIGN 
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_recipientId_fkey" FOREIGN KEY ("recipientId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "stories" ADD CONSTRAINT "stories_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "stories" ADD CONSTRAINT "stories_tierId_fkey" FOREIGN KEY ("tierId") REFERENCES "membership_tiers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "story_views" ADD CONSTRAINT "story_views_storyId_fkey" FOREIGN KEY ("storyId") REFERENCES "stories"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "story_views" ADD CONSTRAINT "story_views_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "organizations" ADD CONSTRAINT "organizations_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "organizations" ADD CONSTRAINT "organizations_storageAccountId_fkey" FOREIGN KEY ("storageAccountId") REFERENCES "chain_accounts"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "organizations" ADD CONSTRAINT "organizations_issuerAccountId_fkey" FOREIGN KEY ("issuerAccountId") REFERENCES "chain_accounts"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "organizations" ADD CONSTRAINT "organizations_fanTokenItemId_fkey" FOREIGN KEY ("fanTokenItemId") REFERENCES "items"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "organization_slug_history" ADD CONSTRAINT "organization_slug_history_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "membership_tiers" ADD CONSTRAINT "membership_tiers_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "follows" ADD CONSTRAINT "follows_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "follows" ADD CONSTRAINT "follows_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "vanity_urls" ADD CONSTRAINT "vanity_urls_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "vanity_payments" ADD CONSTRAINT "vanity_payments_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "vanity_payments" ADD CONSTRAINT "vanity_payments_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "orders"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "custom_domains" ADD CONSTRAINT "custom_domains_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "page_layouts" ADD CONSTRAINT "page_layouts_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "page_widgets" ADD CONSTRAINT "page_widgets_layoutId_fkey" FOREIGN KEY ("layoutId") REFERENCES "page_layouts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "facebook_connections" ADD CONSTRAINT "facebook_connections_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "lastfm_accounts" ADD CONSTRAINT "lastfm_accounts_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ai_usage" ADD CONSTRAINT "ai_usage_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "admin_alert_reviews" ADD CONSTRAINT "admin_alert_reviews_reviewerId_fkey" FOREIGN KEY ("reviewerId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "uploads" ADD CONSTRAINT "uploads_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "activity_logs" ADD CONSTRAINT "activity_logs_actorId_fkey" FOREIGN KEY ("actorId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "studio_balances" ADD CONSTRAINT "studio_balances_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "mcp_tokens" ADD CONSTRAINT "mcp_tokens_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "studio_ledger_entries" ADD CONSTRAINT "studio_ledger_entries_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "studio_ledger_entries" ADD CONSTRAINT "studio_ledger_entries_generationId_fkey" FOREIGN KEY ("generationId") REFERENCES "generations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "generations" ADD CONSTRAINT "generations_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "generations" ADD CONSTRAINT "generations_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "agent_jobs" ADD CONSTRAINT "agent_jobs_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "stem_projects" ADD CONSTRAINT "stem_projects_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "agent_conversations" ADD CONSTRAINT "agent_conversations_artistId_fkey" FOREIGN KEY ("artistId") REFERENCES "artists"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "agent_messages" ADD CONSTRAINT "agent_messages_conversationId_fkey" FOREIGN KEY ("conversationId") REFERENCES "agent_conversations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "agent_actions" ADD CONSTRAINT "agent_actions_conversationId_fkey" FOREIGN KEY ("conversationId") REFERENCES "agent_conversations"("id") ON DELETE CASCADE ON UPDATE CASCADE;

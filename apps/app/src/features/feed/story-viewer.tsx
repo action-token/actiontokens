@@ -17,7 +17,7 @@ type LiveStory = RouterOutputs["story"]["byArtist"]["stories"][number];
 /** What the viewer needs of a story; a past story has no "seen" and no end time. */
 type Story = Omit<LiveStory, "seen" | "expiresAt"> & { seen?: boolean };
 export type StorySource = {
-  artist: { name: string; slug: string; avatarUrl: string | null };
+  organization: { name: string; slug: string; avatarUrl: string | null };
   stories: Story[];
 };
 
@@ -61,7 +61,7 @@ export function StoryViewer({
   const started = useRef(false);
   const stories = data.data?.stories ?? [];
   const story: Story | undefined = stories[index];
-  const artist = data.data?.artist;
+  const artist = data.data?.organization;
 
   // Open on the first story not seen yet.
   useEffect(() => {
@@ -135,7 +135,7 @@ export function StoryViewer({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={`Stories from ${data.data?.artist.name ?? "an artist"}`}
+      aria-label={`Stories from ${data.data?.organization.name ?? "an artist"}`}
       className="fixed inset-0 z-[70] grid place-items-center bg-black/90 backdrop-blur-sm"
     >
       <button

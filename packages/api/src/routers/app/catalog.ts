@@ -46,7 +46,7 @@ export const catalogRouter = createRouter({
         take: HOME_ROW,
         select: itemCardSelect,
       }),
-      ctx.db.artist.findMany({
+      ctx.db.organization.findMany({
         where: { status: "APPROVED" },
         orderBy: [{ followers: { _count: "desc" } }, { createdAt: "asc" }],
         take: HOME_ROW,
@@ -69,7 +69,7 @@ export const catalogRouter = createRouter({
           prizeCurrency: true,
           prizeAssetCode: true,
           prizeAssetIssuer: true,
-          artist: { select: { name: true, slug: true, avatarUrl: true } },
+          organization: { select: { name: true, slug: true, avatarUrl: true } },
           _count: { select: { participants: true } },
         },
       }),
@@ -102,7 +102,7 @@ export const catalogRouter = createRouter({
         title: bounty.title,
         summary: bounty.summary,
         prize: prizeView(bounty, ctx.chain.config),
-        artist: bounty.artist,
+        artist: bounty.organization,
         participants: bounty._count.participants,
       })),
     };
@@ -114,16 +114,16 @@ export const catalogRouter = createRouter({
     .query(async ({ ctx, input }) => {
       const item = await ctx.db.item.findUnique({
         where: { slug: input.itemSlug },
-        select: { id: true, artistId: true, artist: { select: { name: true, slug: true } } },
+        select: { id: true, organizationId: true, organization: { select: { name: true, slug: true } } },
       });
-      if (!item?.artistId) return null;
+      if (!item?.organizationId) return null;
       const rows = await ctx.db.item.findMany({
-        where: { ...listedItemWhere, artistId: item.artistId, id: { not: item.id } },
+        where: { ...listedItemWhere, organizationId: item.organizationId, id: { not: item.id } },
         orderBy: SORTS.popular,
         take: 5,
         select: itemCardSelect,
       });
-      return { artist: item.artist, items: rows.map(toItemCard) };
+      return { artist: item.organization, items: rows.map(toItemCard) };
     }),
 
   /** The marketplace grid: everything for sale, by type, search and sort, a page at a time. `locked`: only NFTs with locked content (the old Bandcoin's gated list). */
@@ -148,7 +148,7 @@ export const catalogRouter = createRouter({
           ? {
               OR: [
                 { title: { contains: input.search, mode: "insensitive" } },
-                { artist: { name: { contains: input.search, mode: "insensitive" } } },
+                { organization: { name: { contains: input.search, mode: "insensitive" } } },
               ],
             }
           : {}),

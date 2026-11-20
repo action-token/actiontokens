@@ -44,7 +44,7 @@ const balanceIn = (account: Horizon.AccountResponse | null, code: string, issuer
 
 async function loadToken(ctx: ServiceCtx, artist: ArtistRef, itemId: string) {
   const item = await ctx.db.item.findFirst({
-    where: { id: itemId, artistId: artist.id, deletedAt: null },
+    where: { id: itemId, organizationId: artist.id, deletedAt: null },
     select: {
       id: true,
       supply: true,
@@ -56,7 +56,7 @@ async function loadToken(ctx: ServiceCtx, artist: ArtistRef, itemId: string) {
           issuerAccount: { select: { publicKey: true } },
         },
       },
-      artist: { select: { issuerAccount: { select: { publicKey: true, activatedAt: true } } } },
+      organization: { select: { issuerAccount: { select: { publicKey: true, activatedAt: true } } } },
     },
   });
   if (!item) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Item not found" });
@@ -83,7 +83,7 @@ async function prepare(ctx: ServiceCtx, user: SessionUser, artist: ArtistRef, in
       })
     : null;
   const minter =
-    token && !token.isExternal ? minterOf(token, item.artist?.issuerAccount ?? null) : null;
+    token && !token.isExternal ? minterOf(token, item.organization?.issuerAccount ?? null) : null;
 
   if (!storage?.activatedAt)
     problems.push(unavailable("Open your storage account first (Settings › Accounts)."));
@@ -294,7 +294,7 @@ export async function submitStock(
   // The keys that co-sign are looked up here, never taken from the request.
   const item = await loadToken(ctx, artist, stock.itemId);
   const minter = item.classicToken
-    ? minterOf(item.classicToken, item.artist?.issuerAccount ?? null)
+    ? minterOf(item.classicToken, item.organization?.issuerAccount ?? null)
     : null;
   const storage = artist.storageAccountId
     ? await db.chainAccount.findUnique({

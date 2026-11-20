@@ -43,7 +43,7 @@ function setup(opts: {
 }) {
   const artists = [otherArtist, ...(opts.artists ?? [])];
   const db = {
-    artist: {
+    organization: {
       findUnique: vi.fn(({ where }: { where: { id?: string; userId?: string } }) => {
         if (where.userId) return Promise.resolve(where.userId === "u1" ? (opts.own ?? null) : null);
         return Promise.resolve(artists.find((artist) => artist.id === where.id) ?? null);
@@ -73,7 +73,7 @@ describe("an admin acting as an artist", () => {
     const { caller, db } = setup({ role: "ADMIN", header: "a2" });
     await caller.layers.list();
     expect(db.pinLayer.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { artistId: "a2" } }),
+      expect.objectContaining({ where: { organizationId: "a2" } }),
     );
   });
 
@@ -134,7 +134,7 @@ describe("who may act as an artist", () => {
     const { caller, db } = setup({ role: "ARTIST", own: ownArtist });
     await caller.layers.list();
     expect(db.pinLayer.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { artistId: "a1" } }),
+      expect.objectContaining({ where: { organizationId: "a1" } }),
     );
   });
 });
@@ -144,7 +144,7 @@ describe("the header is ignored everywhere else", () => {
     const { caller, db } = setup({ role: "ADMIN", header: "a2", own: ownArtist });
     await caller.templates.list();
     expect(db.pinTemplate.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { artistId: "a1" } }),
+      expect.objectContaining({ where: { organizationId: "a1" } }),
     );
   });
 });

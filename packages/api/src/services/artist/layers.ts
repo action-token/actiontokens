@@ -28,7 +28,7 @@ function cleanLayer(input: LayerInput): LayerInput {
 /** The artist's layers by name, each with how many pins and hotspots are in it. */
 export async function listLayers(ctx: Pick<Context, "db">, artist: ArtistRef) {
   const layers = await ctx.db.pinLayer.findMany({
-    where: { artistId: artist.id },
+    where: { organizationId: artist.id },
     orderBy: { name: "asc" },
     select: {
       id: true,
@@ -47,13 +47,13 @@ export async function listLayers(ctx: Pick<Context, "db">, artist: ArtistRef) {
 
 export async function createLayer(ctx: ServiceCtx, artist: ArtistRef, input: LayerInput) {
   const data = cleanLayer(input);
-  const have = await ctx.db.pinLayer.count({ where: { artistId: artist.id } });
+  const have = await ctx.db.pinLayer.count({ where: { organizationId: artist.id } });
   if (have >= MAX_LAYERS_PER_ARTIST)
     throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
       message: `You can have up to ${MAX_LAYERS_PER_ARTIST} layers. Delete one to make another.`,
     });
   const layer = await ctx.db.pinLayer.create({
-    data: { ...data, artistId: artist.id },
+    data: { ...data, organizationId: artist.id },
     select: { id: true, name: true, icon: true, color: true },
   });
   ctx.activity.set({ targetType: "PinLayer", targetId: layer.id });
@@ -67,7 +67,7 @@ export async function updateLayer(
 ) {
   const data = cleanLayer(input);
   const own = await ctx.db.pinLayer.findFirst({
-    where: { id: input.id, artistId: artist.id },
+    where: { id: input.id, organizationId: artist.id },
     select: { id: true },
   });
   if (!own) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Layer not found" });
@@ -81,7 +81,7 @@ export async function updateLayer(
 
 export async function deleteLayer(ctx: ServiceCtx, artist: ArtistRef, layerId: string) {
   const own = await ctx.db.pinLayer.findFirst({
-    where: { id: layerId, artistId: artist.id },
+    where: { id: layerId, organizationId: artist.id },
     select: { id: true },
   });
   if (!own) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Layer not found" });
@@ -97,7 +97,7 @@ export async function deleteLayer(ctx: ServiceCtx, artist: ArtistRef, layerId: s
  */
 export async function checkLayer(
   db: Pick<Db, "pinLayer">,
-  artistId: string,
+  organizationId: string,
   layerId: string | null | undefined,
   keep?: string | null,
 ): Promise<string | null | undefined> {
@@ -105,9 +105,9 @@ export async function checkLayer(
   if (keep && layerId === keep) return layerId;
   const layer = await db.pinLayer.findUnique({
     where: { id: layerId },
-    select: { artistId: true },
+    select: { organizationId: true },
   });
-  if (layer?.artistId !== artistId)
+  if (layer?.organizationId !== organizationId)
     throw invalid("That map layer isn't one of yours. Pick another or choose No layer.");
   return layerId;
 }

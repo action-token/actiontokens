@@ -35,15 +35,15 @@ const DAY = 86_400_000;
 
 export async function loadArtistContext(
   ctx: Pick<Context, "db">,
-  artistId: string,
+  organizationId: string,
   now = new Date(),
 ): Promise<ArtistContext> {
-  const artist = await ctx.db.artist.findUnique({
-    where: { id: artistId },
+  const artist = await ctx.db.organization.findUnique({
+    where: { id: organizationId },
     select: { name: true, bio: true },
   });
   if (!artist) throw new Error("Artist not found");
-  const mine = { artistId, isHidden: false, ...PUBLIC_PINS } as const;
+  const mine = { organizationId, isHidden: false, ...PUBLIC_PINS } as const;
   const [active, upcoming, expired, inReview, hotspotsActive, hotspotsPaused, byType, recent] =
     await Promise.all([
       ctx.db.pin.count({
@@ -52,8 +52,8 @@ export async function loadArtistContext(
       ctx.db.pin.count({ where: { ...mine, approval: "APPROVED", startsAt: { gt: now } } }),
       ctx.db.pin.count({ where: { ...mine, endsAt: { lt: now } } }),
       ctx.db.pin.count({ where: { ...mine, approval: "PENDING", endsAt: { gte: now } } }),
-      ctx.db.hotspot.count({ where: { artistId, isHidden: false, isActive: true } }),
-      ctx.db.hotspot.count({ where: { artistId, isHidden: false, isActive: false } }),
+      ctx.db.hotspot.count({ where: { organizationId, isHidden: false, isActive: true } }),
+      ctx.db.hotspot.count({ where: { organizationId, isHidden: false, isActive: false } }),
       ctx.db.pin.groupBy({
         by: ["type"],
         where: { ...mine, endsAt: { gte: now } },
@@ -73,7 +73,7 @@ export async function loadArtistContext(
       }),
     ]);
   return {
-    id: artistId,
+    id: organizationId,
     name: artist.name,
     bio: artist.bio,
     counts: {

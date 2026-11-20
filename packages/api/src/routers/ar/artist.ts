@@ -21,9 +21,9 @@ const artistSelect = {
   status: true,
   _count: { select: { followers: true } },
   fanTokenItem: { select: { classicToken: { select: { code: true, issuer: true } } } },
-} satisfies Prisma.ArtistSelect;
+} satisfies Prisma.OrganizationSelect;
 
-type ArtistRow = Prisma.ArtistGetPayload<{ select: typeof artistSelect }>;
+type ArtistRow = Prisma.OrganizationGetPayload<{ select: typeof artistSelect }>;
 
 type Standing = { following: boolean; subscribed: boolean };
 const STRANGER: Standing = { following: false, subscribed: false };
@@ -54,36 +54,36 @@ function toArArtist(
 }
 
 /** Live pin counts and tag labels per artist, by the same "live" the map uses. */
-async function pinFacets(db: Db, artistIds: string[], viewerId: string | null) {
+async function pinFacets(db: Db, organizationIds: string[], viewerId: string | null) {
   const live = {
     ...livePinWhere(viewerId),
-    artistId: { in: artistIds },
+    organizationId: { in: organizationIds },
   } satisfies Prisma.PinWhereInput;
   const [counts, tags] = await Promise.all([
-    db.pin.groupBy({ by: ["artistId"], where: live, _count: true }),
+    db.pin.groupBy({ by: ["organizationId"], where: live, _count: true }),
     db.pinTagLink.findMany({
       where: { pin: live },
-      select: { pin: { select: { artistId: true } }, tag: { select: { label: true } } },
+      select: { pin: { select: { organizationId: true } }, tag: { select: { label: true } } },
     }),
   ]);
   const categories = new Map<string, Set<string>>();
   for (const { pin, tag } of tags)
-    categories.set(pin.artistId, (categories.get(pin.artistId) ?? new Set()).add(tag.label));
+    categories.set(pin.organizationId, (categories.get(pin.organizationId) ?? new Set()).add(tag.label));
   return {
-    pinCount: (id: string) => counts.find((row) => row.artistId === id)?._count ?? 0,
+    pinCount: (id: string) => counts.find((row) => row.organizationId === id)?._count ?? 0,
     categoriesOf: (id: string) => [...(categories.get(id) ?? [])].sort(),
   };
 }
 
 /** Who the viewer follows, and which of those they subscribe to (the saved flag). */
-async function standingsOf(db: Db, userId: string | null, artistIds: string[]) {
+async function standingsOf(db: Db, userId: string | null, organizationIds: string[]) {
   if (!userId) return new Map<string, Standing>();
   const rows = await db.follow.findMany({
-    where: { userId, artistId: { in: artistIds } },
-    select: { artistId: true, isTemporary: true },
+    where: { userId, organizationId: { in: organizationIds } },
+    select: { organizationId: true, isTemporary: true },
   });
   return new Map(
-    rows.map((row) => [row.artistId, { following: true, subscribed: !row.isTemporary }]),
+    rows.map((row) => [row.organizationId, { following: true, subscribed: !row.isTemporary }]),
   );
 }
 
@@ -91,7 +91,7 @@ export const artistRouter = createRouter({
   /** Approved artists, with live pin counts and whether the viewer follows them. */
   list: publicProcedure.query(async ({ ctx }): Promise<ArArtist[]> => {
     const viewerId = ctx.session?.user.id ?? null;
-    const artists = await ctx.db.artist.findMany({
+    const artists = await ctx.db.organization.findMany({
       where: { status: "APPROVED" },
       select: artistSelect,
       orderBy: { createdAt: "desc" },
@@ -116,7 +116,7 @@ export const artistRouter = createRouter({
     .input(z.object({ id: z.string().min(1) }))
     .query(async ({ ctx, input }): Promise<ArArtist> => {
       const viewerId = ctx.session?.user.id ?? null;
-      const artist = await ctx.db.artist.findFirst({
+      const artist = await ctx.db.organization.findFirst({
         where: { id: input.id, status: "APPROVED" },
         select: artistSelect,
       });
@@ -142,8 +142,8 @@ export const artistRouter = createRouter({
    * follower pins; holding their token (members and tier pins) is separate.
    */
   setFollowing: authedProcedure
-    .input(z.object({ artistId: z.string().min(1), following: z.boolean() }))
+    .input(z.object({ organizationId: z.string().min(1), following: z.boolean() }))
     .mutation(({ ctx, input }) =>
-      setFollowing(ctx, ctx.session.user, { id: input.artistId }, input.following),
+      setFollowing(ctx, ctx.session.user, { id: input.organizationId }, input.following),
     ),
 });

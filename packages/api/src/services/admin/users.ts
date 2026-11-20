@@ -38,7 +38,7 @@ function whereOf(input: UserFilter): Prisma.UserWhereInput {
             { email: { contains: q, mode: "insensitive" } },
             { username: { contains: q.replace(/^@/, ""), mode: "insensitive" } },
             { displayName: { contains: q, mode: "insensitive" } },
-            { artist: { name: { contains: q, mode: "insensitive" } } },
+            { organization: { name: { contains: q, mode: "insensitive" } } },
           ],
         }
       : {}),
@@ -63,7 +63,7 @@ export async function listUsers(ctx: Pick<Context, "db">, input: UserFilter) {
       role: true,
       createdAt: true,
       suspendedAt: true,
-      artist: { select: { id: true, name: true, status: true } },
+      organization: { select: { id: true, name: true, status: true } },
       _count: { select: { pinClaims: true, ownerships: true } },
     },
   });
@@ -79,7 +79,7 @@ export async function listUsers(ctx: Pick<Context, "db">, input: UserFilter) {
   return {
     users: page.map((row) => ({
       id: row.id,
-      name: row.artist?.name ?? row.displayName ?? row.username,
+      name: row.organization?.name ?? row.displayName ?? row.username,
       username: row.username,
       avatarUrl: row.avatarUrl,
       email: row.email,
@@ -88,7 +88,7 @@ export async function listUsers(ctx: Pick<Context, "db">, input: UserFilter) {
       role: row.role,
       createdAt: row.createdAt,
       suspended: row.suspendedAt !== null,
-      artist: row.artist,
+      artist: row.organization,
       collected: row._count.pinClaims,
       owned: row._count.ownerships,
       lastActiveAt: lastActive.get(row.id) ?? null,
@@ -120,7 +120,7 @@ async function loadPerson(ctx: ServiceCtx, userId: string) {
       id: true,
       role: true,
       suspendedAt: true,
-      artist: { select: { status: true } },
+      organization: { select: { status: true } },
     },
   });
   if (!user) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "User not found" });
@@ -172,7 +172,7 @@ export async function setAdmin(
   const user = await loadPerson(ctx, input.userId);
   const role: UserRole = input.admin
     ? "ADMIN"
-    : user.artist?.status === "APPROVED"
+    : user.organization?.status === "APPROVED"
       ? "ARTIST"
       : "FAN";
   if (user.role === role) return { userId: user.id, role };

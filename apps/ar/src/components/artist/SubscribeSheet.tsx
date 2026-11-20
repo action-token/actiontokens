@@ -31,13 +31,13 @@ const CURRENCIES: { id: SubscribeCurrency; label: string }[] = [
 export function SubscribeSheet({
   open,
   onClose,
-  artistId,
+  organizationId,
   artistName,
   code,
 }: {
   open: boolean;
   onClose: () => void;
-  artistId: string;
+  organizationId: string;
   artistName: string;
   code: string;
 }) {
@@ -45,10 +45,10 @@ export function SubscribeSheet({
   const [currency, setCurrency] = useState<SubscribeCurrency>("BANDCOIN");
   const byCard = currency === "USD";
   const quote = api.subscribe.quote.useQuery(
-    { artistId, currency },
+    { organizationId, currency },
     { enabled: open && status === "authenticated", staleTime: 20_000 },
   );
-  const flow = useSubscribe(artistId, code, currency);
+  const flow = useSubscribe(organizationId, code, currency);
   const { container: cardField, ...card } = useSquareCard(open && byCard);
   // Never show another currency's price while the new one loads.
   const q =

@@ -38,7 +38,7 @@ function caller(db: object, user: SessionUser | null = me, chain: Partial<ChainG
   );
 }
 
-const running = { id: "b1", status: "RUNNING", artist: { userId: "artist-user" } };
+const running = { id: "b1", status: "RUNNING", organization: { userId: "artist-user" } };
 const claimXdr = (bountyId = "b1", winner = winnerKey) =>
   buildBountyClaim({
     source: new Account(winner, "1"),
@@ -144,7 +144,7 @@ describe("bounties", () => {
     expect(args.where).toMatchObject({
       status: { not: "COMPLETED" },
       participants: { none: { userId: "me" } },
-      artist: { userId: { not: "me" } },
+      organization: { userId: { not: "me" } },
     });
 
     findMany.mockClear();

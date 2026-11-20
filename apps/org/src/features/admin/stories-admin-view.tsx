@@ -83,7 +83,7 @@ export function StoriesAdminView() {
                 )}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{story.artist.name}</p>
+                <p className="truncate text-sm font-semibold">{story.organization.name}</p>
                 <p className="text-fg-muted truncate text-xs">{story.caption ?? "No caption"}</p>
                 <p className="text-fg-muted mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
                   <span>{WHO[story.audience]}</span>
@@ -102,7 +102,7 @@ export function StoriesAdminView() {
       )}
       <HideDialog
         open={taking !== null}
-        title={`Take down ${taking?.artist.name ?? "this"}'s story?`}
+        title={`Take down ${taking?.organization.name ?? "this"}'s story?`}
         description="Fans can't watch it any more. The artist can share a new one."
         busy={takeDown.isPending}
         onClose={() => setTaking(null)}

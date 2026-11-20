@@ -170,31 +170,31 @@ model CoinLedgerEntry {
 
 /// A gig, signing or listening party. In person, online, or both.
 model Event {
-  id          String   @id @default(cuid())
-  artistId    String
-  artist      Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  title       String
-  description String
-  coverUrl    String?
-  startsAt    DateTime
-  endsAt      DateTime
-  venueName   String?
-  address     String?
-  latitude    Float?
-  longitude   Float?
-  link        String?
-  linkLabel   String?
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  title          String
+  description    String
+  coverUrl       String?
+  startsAt       DateTime
+  endsAt         DateTime
+  venueName      String?
+  address        String?
+  latitude       Float?
+  longitude      Float?
+  link           String?
+  linkLabel      String?
   /// null = unlimited RSVPs
-  capacity    Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  capacity       Int?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   pins     Pin[]
   bounties Bounty[]
   rsvps    EventRsvp[]
   comments EventComment[]
 
-  @@index([artistId])
+  @@index([organizationId])
   @@index([startsAt])
   @@map("events")
 }
@@ -227,23 +227,23 @@ model EventComment {
 // ── Announcements ────────────────────────────────────────────────────────
 
 model Announcement {
-  id        String    @id @default(cuid())
-  artistId  String
-  artist    Artist    @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  title     String
-  body      String
-  imageUrls String[]  @default([])
-  isPinned  Boolean   @default(false)
-  ctaLabel  String?
-  ctaUrl    String?
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  title          String
+  body           String
+  imageUrls      String[]     @default([])
+  isPinned       Boolean      @default(false)
+  ctaLabel       String?
+  ctaUrl         String?
   /// Hidden from the feed after this; null = never expires
-  expiresAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  expiresAt      DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   comments AnnouncementComment[]
 
-  @@index([artistId])
+  @@index([organizationId])
   @@index([createdAt])
   @@map("announcements")
 }
@@ -286,8 +286,8 @@ enum EmbedGesture {
 /// A pin map an artist embeds on their own website.
 model MapEmbed {
   id               String         @id @default(cuid())
-  artistId         String
-  artist           Artist         @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  organizationId   String
+  organization     Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   name             String
   isEnabled        Boolean        @default(true)
   centerLat        Float
@@ -316,7 +316,7 @@ model MapEmbed {
 
   stats MapEmbedDailyStat[]
 
-  @@index([artistId])
+  @@index([organizationId])
   @@map("map_embeds")
 }
 

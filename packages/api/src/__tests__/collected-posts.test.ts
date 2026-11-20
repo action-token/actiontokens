@@ -11,7 +11,7 @@ const post = (media: { type: string; url: string; thumbnailUrl: string | null }[
   title: "Tour diary",
   body: "Day 3",
   createdAt: at,
-  artist: { name: "DJ Tamsin", slug: "dj-tamsin", avatarUrl: "https://x/avatar.jpg" },
+  organization: { name: "DJ Tamsin", slug: "dj-tamsin", avatarUrl: "https://x/avatar.jpg" },
   media: media.map((file, i) => ({ id: `m${i}`, title: null, ...file })),
 });
 

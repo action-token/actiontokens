@@ -13,14 +13,14 @@ export type ItemAccessInput = { kind: "PUBLIC" | "MEMBERS" | "TIER"; tierId?: st
 
 export async function resolveItemAccess(
   ctx: Pick<Context, "db">,
-  artist: { id: string },
+  organization: { id: string },
   access: ItemAccessInput | undefined,
 ) {
   if (!access) return {};
   if (access.kind === "PUBLIC") return { membersOnly: false, tierId: null };
 
-  const owner = await ctx.db.artist.findUnique({
-    where: { id: artist.id },
+  const owner = await ctx.db.organization.findUnique({
+    where: { id: organization.id },
     select: {
       fanTokenItemId: true,
       tiers: { where: { isActive: true }, select: { id: true } },

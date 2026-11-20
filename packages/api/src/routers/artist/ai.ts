@@ -25,7 +25,7 @@ const context = z.record(z.string(), z.string().max(4000)).default({});
  * from the wizard's `context.name` before there is one.
  */
 const aiUserProcedure = authedProcedure.use(async ({ ctx, next }) => {
-  const artist = await ctx.db.artist.findUnique({
+  const artist = await ctx.db.organization.findUnique({
     where: { userId: ctx.session.user.id },
     select: { name: true, bio: true, status: true },
   });
@@ -73,7 +73,7 @@ export const aiRouter = createRouter({
       fillForm(
         ctx,
         openaiModel,
-        { artist: ctx.artist, unlimited: ctx.session.user.role === "ADMIN" },
+        { organization: ctx.artist, unlimited: ctx.session.user.role === "ADMIN" },
         input,
       ),
     ),
@@ -93,7 +93,7 @@ export const aiRouter = createRouter({
       writeField(
         ctx,
         openaiModel,
-        { artist: actorOf(ctx.aiActor, input.context), unlimited: ctx.unlimited },
+        { organization: actorOf(ctx.aiActor, input.context), unlimited: ctx.unlimited },
         input,
       ),
     ),
@@ -110,7 +110,7 @@ export const aiRouter = createRouter({
       generateImage(
         ctx,
         openaiModel,
-        { artist: actorOf(ctx.aiActor, {}), unlimited: ctx.unlimited },
+        { organization: actorOf(ctx.aiActor, {}), unlimited: ctx.unlimited },
         input,
       ),
     ),
@@ -127,7 +127,7 @@ export const aiRouter = createRouter({
       suggestTokenCodes(
         ctx,
         openaiModel,
-        { artist: actorOf(ctx.aiActor, input), unlimited: ctx.unlimited },
+        { organization: actorOf(ctx.aiActor, input), unlimited: ctx.unlimited },
         input,
       ),
     ),
@@ -145,7 +145,7 @@ export const aiRouter = createRouter({
       suggestPinTags(
         ctx,
         openaiModel,
-        { artist: ctx.artist, unlimited: ctx.session.user.role === "ADMIN" },
+        { organization: ctx.artist, unlimited: ctx.session.user.role === "ADMIN" },
         input,
       ),
     ),

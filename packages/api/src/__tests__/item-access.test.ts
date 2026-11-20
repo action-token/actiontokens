@@ -8,7 +8,7 @@ const row = (extra: Partial<Parameters<typeof accessOf>[0]> = {}) =>
   ({
     membersOnly: false,
     tier: null,
-    artist: {
+    organization: {
       tiers: [
         { requiredTokens: { toString: () => "100" } },
         { requiredTokens: { toString: () => "25" } },
@@ -46,7 +46,7 @@ describe("item access", () => {
     );
     expect(checkAccess(members, { account: holding("25") })).toMatchObject({ ok: true });
     const broken = accessOf(
-      row({ membersOnly: true, artist: { tiers: [], fanTokenItem: null } } as never),
+      row({ membersOnly: true, organization: { tiers: [], fanTokenItem: null } } as never),
     )!;
     expect(checkAccess(broken, { account: holding("999") })).toMatchObject({
       ok: false,

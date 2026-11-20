@@ -47,8 +47,8 @@ model Item {
   saleEndsAt     DateTime?
   playCount      Int             @default(0)
   /// null = a platform (admin) item
-  artistId       String?
-  artist         Artist?         @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  organizationId String?
+  organization   Organization?   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   createdById    String
   createdBy      User            @relation("ItemCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
   collectionId   String?
@@ -80,9 +80,9 @@ model Item {
   playEvents     PlayEvent[]
   rewardPins     Pin[]           @relation("PinRewardItem")
   unlockPins     Pin[]           @relation("PinUnlockItem")
-  fanTokenOf     Artist?         @relation("ArtistFanToken")
+  fanTokenOf     Organization?   @relation("OrganizationFanToken")
 
-  @@index([artistId, createdAt])
+  @@index([organizationId, createdAt])
   @@index([type, visibility, createdAt])
   @@index([collectionId])
   @@map("items")
@@ -187,18 +187,18 @@ model Track {
 }
 
 model Album {
-  id          String   @id @default(cuid())
-  artistId    String?
-  artist      Artist?  @relation(fields: [artistId], references: [id], onDelete: SetNull)
-  title       String
-  slug        String   @unique
-  description String?
-  coverUrl    String
-  createdAt   DateTime @default(now())
+  id             String        @id @default(cuid())
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  title          String
+  slug           String        @unique
+  description    String?
+  coverUrl       String
+  createdAt      DateTime      @default(now())
 
   tracks Track[]
 
-  @@index([artistId])
+  @@index([organizationId])
   @@map("albums")
 }
 

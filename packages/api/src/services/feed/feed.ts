@@ -22,7 +22,7 @@ const postSelect = (viewerId: string | null) =>
     collectAccess: true,
     commentTier: { select: { name: true, requiredTokens: true } },
     collectTier: { select: { name: true, requiredTokens: true } },
-    artist: {
+    organization: {
       select: {
         id: true,
         name: true,
@@ -73,12 +73,12 @@ const needs = (row: PostRow, kind: "MEMBERS" | "FOLLOWERS" | "SUBSCRIBERS") =>
 async function heldFor(ctx: ServiceCtx, viewer: SessionUser | null, rows: PostRow[]) {
   const gated = rows.some(
     (row) =>
-      (needs(row, "MEMBERS") || needs(row, "SUBSCRIBERS")) && row.artist.userId !== viewer?.id,
+      (needs(row, "MEMBERS") || needs(row, "SUBSCRIBERS")) && row.organization.userId !== viewer?.id,
   );
   const account =
     gated && viewer ? await ctx.chain.loadAccount(viewer.walletAddress).catch(() => null) : null;
   return (row: PostRow) => {
-    const token = row.artist.fanTokenItem?.classicToken ?? null;
+    const token = row.organization.fanTokenItem?.classicToken ?? null;
     return {
       held: token ? tokenHeld(account, token) : 0,
       trusts: token ? tokenTrusted(account, token) : false,
@@ -115,10 +115,10 @@ async function followedIn(ctx: ServiceCtx, viewer: SessionUser | null, rows: Pos
   const asks = rows.filter((row) => needs(row, "FOLLOWERS"));
   if (!viewer || asks.length === 0) return new Set<string>();
   const follows = await ctx.db.follow.findMany({
-    where: { userId: viewer.id, artistId: { in: [...new Set(asks.map((row) => row.artist.id))] } },
-    select: { artistId: true },
+    where: { userId: viewer.id, organizationId: { in: [...new Set(asks.map((row) => row.organization.id))] } },
+    select: { organizationId: true },
   });
-  return new Set(follows.map((follow) => follow.artistId));
+  return new Set(follows.map((follow) => follow.organizationId));
 }
 
 /**
@@ -136,10 +136,10 @@ async function toCards(ctx: ServiceCtx, viewer: SessionUser | null, rows: PostRo
   ]);
   return rows.map((row) => {
     const who = {
-      token: row.artist.fanTokenItem?.classicToken ?? null,
+      token: row.organization.fanTokenItem?.classicToken ?? null,
       ...wallet(row),
-      follows: followed.has(row.artist.id),
-      isOwner: row.artist.userId === viewer?.id,
+      follows: followed.has(row.organization.id),
+      isOwner: row.organization.userId === viewer?.id,
     };
     const lock = postLock({ audience: row.audience, tier: tierRule(row.tier), ...who });
     const gate = (
@@ -148,7 +148,7 @@ async function toCards(ctx: ServiceCtx, viewer: SessionUser | null, rows: PostRo
       tier: Parameters<typeof tierRule>[0],
     ) => {
       const result = postGate({ access, tier: tierRule(tier), viewLocked: lock !== null, ...who });
-      return { ...result, message: gateMessage(result, action, row.artist.name) };
+      return { ...result, message: gateMessage(result, action, row.organization.name) };
     };
     const copy = copies.get(row.id) ?? { total: 0, collected: 0 };
     return {
@@ -157,7 +157,7 @@ async function toCards(ctx: ServiceCtx, viewer: SessionUser | null, rows: PostRo
       body: lock ? null : row.body,
       media: lock ? [] : row.media,
       createdAt: row.createdAt,
-      artist: { name: row.artist.name, slug: row.artist.slug, avatarUrl: row.artist.avatarUrl },
+      organization: { name: row.organization.name, slug: row.organization.slug, avatarUrl: row.organization.avatarUrl },
       audience: row.audience,
       tierName: row.audience === "MEMBERS" ? (row.tier?.name ?? null) : null,
       lock,
@@ -199,19 +199,19 @@ export async function feedPage(
   cursor: string | null,
   scope: FeedScope = "following",
 ) {
-  let where: Prisma.PostWhereInput = { isImportOnly: false, artist: { status: "APPROVED" } };
+  let where: Prisma.PostWhereInput = { isImportOnly: false, organization: { status: "APPROVED" } };
   let following: number | null = null;
   if (scope === "following") {
     if (!viewer) throw new AppError(ErrorCodes.AUTH_REQUIRED);
     const [follows, own] = await Promise.all([
-      ctx.db.follow.findMany({ where: { userId: viewer.id }, select: { artistId: true } }),
-      ctx.db.artist.findFirst({ where: { userId: viewer.id }, select: { id: true } }),
+      ctx.db.follow.findMany({ where: { userId: viewer.id }, select: { organizationId: true } }),
+      ctx.db.organization.findFirst({ where: { userId: viewer.id }, select: { id: true } }),
     ]);
-    const artistIds = [
-      ...new Set([...follows.map((follow) => follow.artistId), ...(own ? [own.id] : [])]),
+    const organizationIds = [
+      ...new Set([...follows.map((follow) => follow.organizationId), ...(own ? [own.id] : [])]),
     ];
-    if (artistIds.length === 0) return { posts: [], next: null, following: 0 };
-    where = { artistId: { in: artistIds }, isImportOnly: false };
+    if (organizationIds.length === 0) return { posts: [], next: null, following: 0 };
+    where = { organizationId: { in: organizationIds }, isImportOnly: false };
     following = follows.length;
   }
 
@@ -241,5 +241,5 @@ export async function viewPost(ctx: ServiceCtx, viewer: SessionUser | null, post
   });
   if (!row) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Post not found" });
   const [card] = await toCards(ctx, viewer, [row]);
-  return { card: card!, artistUserId: row.artist.userId };
+  return { card: card!, artistUserId: row.organization.userId };
 }

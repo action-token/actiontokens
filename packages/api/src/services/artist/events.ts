@@ -94,7 +94,7 @@ function eventData(input: Partial<EventInput>) {
 
 async function ownEvent(ctx: ServiceCtx, artist: ArtistRef, eventId: string) {
   const event = await ctx.db.event.findFirst({
-    where: { id: eventId, artistId: artist.id },
+    where: { id: eventId, organizationId: artist.id },
     select: {
       id: true,
       startsAt: true,
@@ -110,7 +110,7 @@ async function ownEvent(ctx: ServiceCtx, artist: ArtistRef, eventId: string) {
 
 export async function listEvents(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef) {
   const rows = await ctx.db.event.findMany({
-    where: { artistId: artist.id },
+    where: { organizationId: artist.id },
     orderBy: { startsAt: "desc" },
     include: { _count: { select: { rsvps: true, pins: true, bounties: true } } },
   });
@@ -128,7 +128,7 @@ export async function createEvent(ctx: ServiceCtx, artist: ArtistRef, input: Eve
   const event = await ctx.db.event.create({
     data: {
       ...eventData(input),
-      artistId: artist.id,
+      organizationId: artist.id,
       title: input.title.trim(),
       description: input.description.trim(),
       startsAt: input.startsAt,

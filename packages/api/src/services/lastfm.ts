@@ -105,7 +105,7 @@ export async function lastFmSession(token: string) {
 
 type Scrobble = {
   name?: string;
-  artist?: { "#text"?: string; name?: string } | string;
+  organization?: { "#text"?: string; name?: string } | string;
   "@attr"?: { nowplaying?: string };
 };
 
@@ -145,9 +145,9 @@ export async function countScrobbles(
     for (const track of tracks) {
       if (track["@attr"]?.nowplaying === "true") continue;
       const artist =
-        typeof track.artist === "string"
-          ? track.artist
-          : (track.artist?.["#text"] ?? track.artist?.name ?? "");
+        typeof track.organization === "string"
+          ? track.organization
+          : (track.organization?.["#text"] ?? track.organization?.name ?? "");
       if (track.name?.toLowerCase().trim() === wanted && artistNamesMatch(artist, artistName))
         total++;
     }

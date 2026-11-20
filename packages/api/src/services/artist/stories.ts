@@ -30,8 +30,8 @@ export type StoryInput = {
   tierId?: string | null;
 };
 
-const liveWhere = (artistId: string, now: Date) => ({
-  artistId,
+const liveWhere = (organizationId: string, now: Date) => ({
+  organizationId,
   removedAt: null,
   expiresAt: { gt: now },
 });
@@ -55,7 +55,7 @@ export async function createStory(
   if (audience === "MEMBERS") {
     const tier = input.tierId
       ? await ctx.db.membershipTier.findFirst({
-          where: { id: input.tierId, artistId: artist.id, isActive: true },
+          where: { id: input.tierId, organizationId: artist.id, isActive: true },
           select: { id: true },
         })
       : null;
@@ -71,7 +71,7 @@ export async function createStory(
 
   const story = await ctx.db.story.create({
     data: {
-      artistId: artist.id,
+      organizationId: artist.id,
       type: input.type,
       url: input.url,
       thumbnailUrl: input.thumbnailUrl ?? null,
@@ -83,7 +83,7 @@ export async function createStory(
     select: { id: true },
   });
   ctx.activity.set({ targetType: "Story", targetId: story.id });
-  await announceStory(ctx, { artist, audience, now });
+  await announceStory(ctx, { organization: artist, audience, now });
   return { storyId: story.id };
 }
 
@@ -100,7 +100,7 @@ export async function listMyStories(
   now = new Date(),
 ) {
   const rows = await ctx.db.story.findMany({
-    where: { artistId: artist.id, removedAt: null },
+    where: { organizationId: artist.id, removedAt: null },
     orderBy: { createdAt: "desc" },
     take: MY_STORIES_LIMIT,
     select: {
@@ -136,7 +136,7 @@ export async function removeStory(
   now = new Date(),
 ) {
   const story = await ctx.db.story.findFirst({
-    where: { id: storyId, artistId: artist.id, removedAt: null },
+    where: { id: storyId, organizationId: artist.id, removedAt: null },
     select: { id: true },
   });
   if (!story) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Story not found" });
@@ -161,7 +161,7 @@ export async function updateStory(
   },
 ) {
   const story = await ctx.db.story.findFirst({
-    where: { id: input.storyId, artistId: artist.id, removedAt: null },
+    where: { id: input.storyId, organizationId: artist.id, removedAt: null },
     select: { id: true },
   });
   if (!story) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Story not found" });
@@ -179,7 +179,7 @@ export async function updateStory(
     if (input.audience === "MEMBERS") {
       const tier = input.tierId
         ? await ctx.db.membershipTier.findFirst({
-            where: { id: input.tierId, artistId: artist.id, isActive: true },
+            where: { id: input.tierId, organizationId: artist.id, isActive: true },
             select: { id: true },
           })
         : null;

@@ -254,22 +254,22 @@ enum PayoutStatus {
 /// The artist pays holders of a ROYALTY item, in proportion to their balance,
 /// in batches of up to 100 payments per transaction.
 model RoyaltyPayout {
-  id          String         @id @default(cuid())
-  itemId      String
-  item        Item           @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  artistId    String
-  artist      Artist         @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  reportId    String?
-  report      RoyaltyReport? @relation(fields: [reportId], references: [id], onDelete: SetNull)
-  currency    Currency
-  totalAmount Decimal        @db.Decimal(20, 7)
-  status      PayoutStatus   @default(DRAFT)
-  createdAt   DateTime       @default(now())
+  id             String         @id @default(cuid())
+  itemId         String
+  item           Item           @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  reportId       String?
+  report         RoyaltyReport? @relation(fields: [reportId], references: [id], onDelete: SetNull)
+  currency       Currency
+  totalAmount    Decimal        @db.Decimal(20, 7)
+  status         PayoutStatus   @default(DRAFT)
+  createdAt      DateTime       @default(now())
 
   lines RoyaltyPayoutLine[]
 
   @@index([itemId])
-  @@index([artistId])
+  @@index([organizationId])
   @@map("royalty_payouts")
 }
 

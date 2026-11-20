@@ -5,7 +5,7 @@ import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
 type Status = "PENDING" | "APPROVED" | "REJECTED" | "BANNED";
 
 /** An artist's review state; a waiting artist who hasn't paid says so. */
-export function ArtistStatus({ status, paid }: { status: Status; paid: boolean }) {
+export function OrganizationStatus({ status, paid }: { status: Status; paid: boolean }) {
   if (status === "APPROVED")
     return (
       <StatusPill tone="success" icon={UserCheck}>

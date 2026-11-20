@@ -2,34 +2,34 @@
 
 /// A run of the pin/hotspot AI agent.
 model AgentJob {
-  id        String    @id @default(cuid())
-  artistId  String
-  artist    Artist    @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  status    JobStatus @default(QUEUED)
-  payload   Json
-  result    Json?
-  error     String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  status         JobStatus    @default(QUEUED)
+  payload        Json
+  result         Json?
+  error          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
-  @@index([artistId, createdAt])
+  @@index([organizationId, createdAt])
   @@map("agent_jobs")
 }
 
 /// A chat with the pin/hotspot AI agent.
 model AgentConversation {
-  id        String   @id @default(cuid())
-  artistId  String
-  artist    Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  userId    String
-  title     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  title          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   messages AgentMessage[]
   actions  AgentAction[]
 
-  @@index([artistId, updatedAt])
+  @@index([organizationId, updatedAt])
   @@map("agent_conversations")
 }
 
@@ -55,7 +55,7 @@ model AgentAction {
   id             String            @id @default(cuid())
   conversationId String
   conversation   AgentConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  artistId       String
+  organizationId String
   type           String
   payload        Json
   /// "proposed" | "confirmed" | "rejected" | "done" | "failed"

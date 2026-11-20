@@ -175,7 +175,7 @@ describe("collection.favorites", () => {
         supply: null,
         playCount: 12,
         createdAt: new Date(),
-        artist: { name: "Lumen Avenue", slug: "lumen" },
+        organization: { name: "Lumen Avenue", slug: "lumen" },
         track: null,
         media: { mediaType: "AUDIO", durationSec: 211 },
         listings: [],

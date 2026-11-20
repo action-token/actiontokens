@@ -30,9 +30,9 @@ export async function loadSale(db: Db, listingId: string) {
         include: {
           classicToken: { include: { issuerAccount: { select: { publicKey: true } } } },
           tier: accessSelect.tier,
-          artist: {
+          organization: {
             select: {
-              ...accessSelect.artist.select,
+              ...accessSelect.organization.select,
               id: true,
               user: { select: { walletAddress: true } },
               issuerAccount: { select: { publicKey: true, activatedAt: true } },
@@ -91,17 +91,17 @@ export async function loadSale(db: Db, listingId: string) {
     asset: token && !offChain ? new Asset(token.code, token.issuer) : null,
     seller: listing.seller.walletAddress,
     /** The artist's wallet, paid the royalty on resales */
-    creator: item.artist?.user.walletAddress ?? null,
+    creator: item.organization?.user.walletAddress ?? null,
     /** The key that can mint more copies: the artist's one issuer, or the token's own legacy issuer */
     minter:
-      token && !offChain && !bundle ? minterOf(token, item.artist?.issuerAccount ?? null) : null,
+      token && !offChain && !bundle ? minterOf(token, item.organization?.issuerAccount ?? null) : null,
     /** Fan tokens one bundle delivers; null for every other listing */
     bundleAmount: bundle ? listing.bundleAmount!.toString() : null,
     /** Copies already minted and waiting: the artist's storage (primary) or the seller's (resale) */
     stockAccount: offChain
       ? null
       : listing.kind === "PRIMARY" || bundle
-        ? (item.artist?.storageAccount?.publicKey ?? null)
+        ? (item.organization?.storageAccount?.publicKey ?? null)
         : (listing.seller.chainAccounts[0]?.publicKey ?? null),
     remaining: remainingCopies(listing, item.supply),
   };

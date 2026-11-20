@@ -22,20 +22,20 @@ const artistRow = {
 
 function setup(user: SessionUser | null = me) {
   const db = {
-    artist: {
+    organization: {
       findMany: vi.fn().mockResolvedValue([artistRow]),
       findFirst: vi.fn().mockResolvedValue(artistRow),
     },
-    pin: { groupBy: vi.fn().mockResolvedValue([{ artistId: "a1", _count: 3 }]) },
+    pin: { groupBy: vi.fn().mockResolvedValue([{ organizationId: "a1", _count: 3 }]) },
     pinTagLink: {
       findMany: vi.fn().mockResolvedValue([
-        { pin: { artistId: "a1" }, tag: { label: "vinyl" } },
-        { pin: { artistId: "a1" }, tag: { label: "launch" } },
-        { pin: { artistId: "a1" }, tag: { label: "vinyl" } },
+        { pin: { organizationId: "a1" }, tag: { label: "vinyl" } },
+        { pin: { organizationId: "a1" }, tag: { label: "launch" } },
+        { pin: { organizationId: "a1" }, tag: { label: "vinyl" } },
       ]),
     },
     follow: {
-      findMany: vi.fn().mockResolvedValue([{ artistId: "a1" }]),
+      findMany: vi.fn().mockResolvedValue([{ organizationId: "a1" }]),
       findUnique: vi.fn().mockResolvedValue({ userId: "u1" }),
       upsert: vi.fn().mockResolvedValue({}),
       deleteMany: vi.fn().mockResolvedValue({ count: 1 }),
@@ -73,13 +73,13 @@ describe("ar artist.byId and list", () => {
 
   it("lists the fan token and who subscribes from the saved follow", async () => {
     const { caller, db } = setup();
-    db.artist.findMany.mockResolvedValue([
+    db.organization.findMany.mockResolvedValue([
       { ...artistRow, fanTokenItem: { classicToken: { code: "LUNA", issuer: "GISSUER" } } },
       { ...artistRow, id: "a2", fanTokenItem: null },
     ]);
     db.follow.findMany.mockResolvedValue([
-      { artistId: "a1", isTemporary: false },
-      { artistId: "a2", isTemporary: true },
+      { organizationId: "a1", isTemporary: false },
+      { organizationId: "a2", isTemporary: true },
     ]);
     const [luna, other] = await caller.artist.list();
     expect(luna).toMatchObject({ fanToken: "LUNA", followed: true, subscribed: true });
@@ -88,7 +88,7 @@ describe("ar artist.byId and list", () => {
 
   it("checks the wallet on the artist's page, as the fan app does", async () => {
     const { caller, db, chain } = setup();
-    db.artist.findFirst.mockResolvedValue({
+    db.organization.findFirst.mockResolvedValue({
       ...artistRow,
       fanTokenItem: { classicToken: { code: "LUNA", issuer: "GISSUER" } },
     });
@@ -121,11 +121,11 @@ describe("ar artist.byId and list", () => {
 
   it("only finds approved artists", async () => {
     const { caller, db } = setup();
-    db.artist.findFirst.mockResolvedValue(null);
+    db.organization.findFirst.mockResolvedValue(null);
     await expect(caller.artist.byId({ id: "pending" })).rejects.toMatchObject({
       message: "This artist doesn't exist.",
     });
-    expect(db.artist.findFirst).toHaveBeenCalledWith(
+    expect(db.organization.findFirst).toHaveBeenCalledWith(
       expect.objectContaining({ where: { id: "pending", status: "APPROVED" } }),
     );
   });
@@ -134,7 +134,7 @@ describe("ar artist.byId and list", () => {
 describe("ar artist.setFollowing", () => {
   it("follows and unfollows for free, returning the follower count", async () => {
     const { caller, db } = setup();
-    await expect(caller.artist.setFollowing({ artistId: "a1", following: true })).resolves.toEqual({
+    await expect(caller.artist.setFollowing({ organizationId: "a1", following: true })).resolves.toEqual({
       following: true,
       subscribed: false,
       followers: 13,
@@ -142,17 +142,17 @@ describe("ar artist.setFollowing", () => {
       fanToken: null,
     });
     expect(db.follow.upsert).toHaveBeenCalledWith({
-      where: { userId_artistId: { userId: "me", artistId: "a1" } },
-      create: { userId: "me", artistId: "a1", isTemporary: true },
+      where: { userId_organizationId: { userId: "me", organizationId: "a1" } },
+      create: { userId: "me", organizationId: "a1", isTemporary: true },
       update: { isTemporary: true },
     });
-    await caller.artist.setFollowing({ artistId: "a1", following: false });
-    expect(db.follow.deleteMany).toHaveBeenCalledWith({ where: { userId: "me", artistId: "a1" } });
+    await caller.artist.setFollowing({ organizationId: "a1", following: false });
+    expect(db.follow.deleteMany).toHaveBeenCalledWith({ where: { userId: "me", organizationId: "a1" } });
   });
 
   it("needs a signed-in fan", async () => {
     await expect(
-      setup(null).caller.artist.setFollowing({ artistId: "a1", following: true }),
+      setup(null).caller.artist.setFollowing({ organizationId: "a1", following: true }),
     ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });
@@ -165,7 +165,7 @@ describe("ar bounty", () => {
         title: "Stream it",
         prizeAmount: 30000,
         prizeCurrency: "XLM",
-        artist: { name: "Luna Vale", avatarUrl: null },
+        organization: { name: "Luna Vale", avatarUrl: null },
       },
     ]);
     const chain = { config: { name: "testnet", assets: {} } } as unknown as ChainGateway;

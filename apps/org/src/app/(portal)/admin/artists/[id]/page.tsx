@@ -4,5 +4,5 @@ export const metadata = { title: "Artist" };
 
 export default async function AdminArtistPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  return <ArtistDetailView artistId={id} />;
+  return <ArtistDetailView organizationId={id} />;
 }

@@ -47,7 +47,7 @@ export const authedProcedure = baseProcedure.use(({ ctx, next }) => {
 
 /** Artists (and admins acting as one): `ctx.artist` is the caller's approved artist profile. */
 export const artistProcedure = authedProcedure.use(async ({ ctx, next }) => {
-  const artist = await ctx.db.artist.findUnique({ where: { userId: ctx.session.user.id } });
+  const artist = await ctx.db.organization.findUnique({ where: { userId: ctx.session.user.id } });
   if (!artist) throw new AppError(ErrorCodes.AUTH_NOT_A_CREATOR);
   if (artist.status !== "APPROVED") {
     throw new AppError(ErrorCodes.AUTH_FORBIDDEN, {
@@ -64,10 +64,10 @@ export const artistProcedure = authedProcedure.use(async ({ ctx, next }) => {
  * the caller's own artist. Nothing else honours the header, so acting can't reach money or settings.
  */
 export const actingArtistProcedure = authedProcedure.use(async ({ ctx, next }) => {
-  const own = await ctx.db.artist.findUnique({ where: { userId: ctx.session.user.id } });
+  const own = await ctx.db.organization.findUnique({ where: { userId: ctx.session.user.id } });
   if (ctx.actAs && ctx.actAs !== own?.id) {
     if (ctx.session.user.role !== "ADMIN") throw new AppError(ErrorCodes.AUTH_ADMIN_ONLY);
-    const artist = await ctx.db.artist.findUnique({ where: { id: ctx.actAs } });
+    const artist = await ctx.db.organization.findUnique({ where: { id: ctx.actAs } });
     if (artist?.status !== "APPROVED")
       throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Artist not found" });
     return next({ ctx: { artist, acting: true } });

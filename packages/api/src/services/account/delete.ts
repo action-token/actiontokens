@@ -44,7 +44,7 @@ export async function deleteAccount(
       role: true,
       email: true,
       walletAddress: true,
-      artist: { select: { id: true } },
+      organization: { select: { id: true } },
     },
   });
   if (!row) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Account not found" });
@@ -52,7 +52,7 @@ export async function deleteAccount(
     throw refuse(
       "Admins can't delete themselves. Ask another admin to remove your admin access first.",
     );
-  if (row.artist)
+  if (row.organization)
     throw refuse(
       `Artist accounts have items, tokens and sales attached, so Bandcoin support removes them. ${SUPPORT}`,
     );

@@ -82,7 +82,7 @@ describe("deleting your account", () => {
     await expect(deleteAccount(admin.ctx, fan, { confirm: "DELETE" })).rejects.toThrow(
       /Ask another admin/,
     );
-    const artist = setup({ row: { artist: { id: "a1" } } });
+    const artist = setup({ row: { organization: { id: "a1" } } });
     await expect(deleteAccount(artist.ctx, fan, { confirm: "DELETE" })).rejects.toThrow(
       /support removes them/,
     );

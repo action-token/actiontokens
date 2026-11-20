@@ -19,7 +19,7 @@ export function PostSong({ file, post }: { file: FeedPost["media"][number]; post
   const [at, setAt] = useState(0);
   const [length, setLength] = useState(0);
   const pausePlayer = usePlayer((state) => state.setPlaying);
-  const cover = file.thumbnailUrl ?? post.artist.avatarUrl;
+  const cover = file.thumbnailUrl ?? post.organization.avatarUrl;
 
   useEffect(() => {
     const element = audio.current;
@@ -69,7 +69,7 @@ export function PostSong({ file, post }: { file: FeedPost["media"][number]; post
       </div>
       <div className="grid min-w-0 flex-1 gap-1">
         <p className="truncate text-sm font-semibold">{file.title ?? "Untitled song"}</p>
-        <p className="text-fg-muted truncate text-xs">{post.artist.name}</p>
+        <p className="text-fg-muted truncate text-xs">{post.organization.name}</p>
         <div className="flex items-center gap-2">
           <input
             type="range"

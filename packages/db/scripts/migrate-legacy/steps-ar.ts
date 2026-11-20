@@ -19,7 +19,7 @@ export async function copyPins(copy: Copier) {
       copy.skip("LocationGroup.hotspot", pin.id, "hotspot not copied: link dropped");
     pins.push({
       id: copy.map("LocationGroup", pin.id, true),
-      artistId: copy.must("Creator", pin.creatorId),
+      organizationId: copy.must("Creator", pin.creatorId),
       type: pin.type,
       title: pin.title,
       description: pin.description,
@@ -97,7 +97,7 @@ export async function copyPins(copy: Copier) {
     "pin_tags",
     (await copy.read("LocationTag")).map((tag: Row) => ({
       id: copy.map("LocationTag", tag.id, true),
-      artistId: copy.must("Creator", tag.creatorId),
+      organizationId: copy.must("Creator", tag.creatorId),
       name: tag.name,
       label: tag.label,
     })),
@@ -138,7 +138,7 @@ export async function copyPins(copy: Copier) {
     "pin_batch_jobs",
     (await copy.read("LocationGroupJob")).map((job: Row) => ({
       id: job.id,
-      artistId: copy.must("Creator", job.creatorId),
+      organizationId: copy.must("Creator", job.creatorId),
       status: finishedJobStatus(job.status),
       total: job.total,
       completed: job.completed,

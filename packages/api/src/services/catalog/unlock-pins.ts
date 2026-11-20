@@ -32,7 +32,7 @@ export async function ensureUnlockPins(
   const [item, pieces, existing] = await Promise.all([
     db.item.findUnique({
       where: { id: itemId },
-      select: { title: true, coverUrl: true, artistId: true },
+      select: { title: true, coverUrl: true, organizationId: true },
     }),
     db.lockedContent.findMany({
       where: { itemId, unlockRule: { isNot: null } },
@@ -56,7 +56,7 @@ export async function ensureUnlockPins(
       select: { unlockEditionId: true, unlockLockedContentId: true },
     }),
   ]);
-  if (!item?.artistId || pieces.length === 0) return 0;
+  if (!item?.organizationId || pieces.length === 0) return 0;
   const have = new Set(
     existing.map((pin) => `${pin.unlockEditionId}:${pin.unlockLockedContentId}`),
   );
@@ -72,7 +72,7 @@ export async function ensureUnlockPins(
       try {
         await db.pin.create({
           data: {
-            artistId: item.artistId,
+            organizationId: item.organizationId,
             type: "OTHER",
             title: piece.label ? `Unlock: ${piece.label}` : `Unlock: ${item.title}`,
             description: `A place to visit to unlock locked content in ${item.title}.`,

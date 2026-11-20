@@ -52,7 +52,7 @@ function setup(opts: { trusts?: boolean; xlm?: string; declined?: { balanceId: s
         {
           code: "LUNA",
           issuer,
-          item: { id: "fan-item", title: "Luna fan token", artist: { name: "Luna", slug: "luna" } },
+          item: { id: "fan-item", title: "Luna fan token", organization: { name: "Luna", slug: "luna" } },
         },
       ]),
       findUnique: vi.fn().mockResolvedValue({ itemId: "fan-item" }),

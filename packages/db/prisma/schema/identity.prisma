@@ -31,7 +31,7 @@ model User {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  artist               Artist?
+  organization         Organization?
   chainAccounts        ChainAccount[]
   follows              Follow[]
   declinedGifts        DeclinedGift[]
@@ -102,8 +102,8 @@ model ChainAccount {
   activatedAt     DateTime?
   createdAt       DateTime         @default(now())
 
-  storageOf    Artist?        @relation("ArtistStorage")
-  issuerOf     Artist?        @relation("ArtistIssuer")
+  storageOf    Organization?  @relation("OrganizationStorage")
+  issuerOf     Organization?  @relation("OrganizationIssuer")
   issuedTokens ClassicToken[]
 
   @@index([ownerId, kind])

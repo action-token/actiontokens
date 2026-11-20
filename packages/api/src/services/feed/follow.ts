@@ -16,10 +16,10 @@ type ServiceCtx = Pick<Context, "db" | "activity" | "chain">;
 export async function setFollowing(
   ctx: ServiceCtx,
   user: { id: string; walletAddress: string },
-  where: Prisma.ArtistWhereInput,
+  where: Prisma.OrganizationWhereInput,
   following: boolean,
 ) {
-  const artist = await ctx.db.artist.findFirst({
+  const artist = await ctx.db.organization.findFirst({
     where: { ...where, status: "APPROVED" },
     select: {
       id: true,
@@ -31,19 +31,19 @@ export async function setFollowing(
     throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "This artist doesn't exist." });
   ctx.activity.set({ targetType: "Artist", targetId: artist.id });
   const userId = user.id;
-  const key = { userId, artistId: artist.id };
+  const key = { userId, organizationId: artist.id };
   const token = tokenOf(artist);
 
   let subscribed = false;
   if (following) {
     const before = await ctx.db.follow.findUnique({
-      where: { userId_artistId: key },
+      where: { userId_organizationId: key },
       select: { userId: true },
     });
     // Trusting the token makes them a subscriber; an unreadable wallet counts as a follower for now.
     const trusts = (await walletTrusts(ctx, user.walletAddress, token)) === true;
     await ctx.db.follow.upsert({
-      where: { userId_artistId: key },
+      where: { userId_organizationId: key },
       create: { ...key, isTemporary: !trusts },
       update: { isTemporary: !trusts },
     });
@@ -70,8 +70,8 @@ export async function setFollowing(
     await ctx.db.follow.deleteMany({ where: key });
   }
   const [followers, subscribers] = await Promise.all([
-    ctx.db.follow.count({ where: { artistId: artist.id } }),
-    ctx.db.follow.count({ where: { artistId: artist.id, isTemporary: false } }),
+    ctx.db.follow.count({ where: { organizationId: artist.id } }),
+    ctx.db.follow.count({ where: { organizationId: artist.id, isTemporary: false } }),
   ]);
   // A follower can subscribe by trusting the artist's fan token (see recharge TOKEN_TRUST).
   return {
@@ -79,6 +79,6 @@ export async function setFollowing(
     subscribed,
     followers,
     subscribers,
-    fanToken: following && !subscribed && token ? { code: token.code, artistId: artist.id } : null,
+    fanToken: following && !subscribed && token ? { code: token.code, organizationId: artist.id } : null,
   };
 }

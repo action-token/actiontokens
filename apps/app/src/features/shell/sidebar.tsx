@@ -52,7 +52,7 @@ function Frame({
   const { status } = useSession();
   const openWallet = useConnectWalletDialogStore((state) => state.setIsOpen);
   const me = api.account.me.useQuery(undefined, { enabled: status === "authenticated" });
-  const artist = artistEntry(me.data?.artist ?? null);
+  const artist = artistEntry(me.data?.organization ?? null);
   const signedIn = status === "authenticated";
   const balances = me.data?.balances;
 

@@ -10,7 +10,7 @@ function setup(item: Record<string, unknown>, sent = false) {
         visibility: "PUBLIC",
         deletedAt: null,
         hiddenAt: null,
-        artist: { id: "a1", userId: "artist-user" },
+        organization: { id: "a1", userId: "artist-user" },
         ...item,
       }),
     },

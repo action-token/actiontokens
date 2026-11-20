@@ -52,10 +52,10 @@ function setup(
   } = {},
 ) {
   const links = new Map<string, Row>(
-    (opts.links ?? []).map((link) => [link.artistId as string, { ...link }]),
+    (opts.links ?? []).map((link) => [link.organizationId as string, { ...link }]),
   );
   const payments: Row[] = opts.trialUsed
-    ? [{ kind: "FREE_TRIAL", artistId: "a1", amount: "0" }]
+    ? [{ kind: "FREE_TRIAL", organizationId: "a1", amount: "0" }]
     : [];
   const orders = new Map<string, Row>();
   const byName = (name: string) => [...links.values()].find((link) => link.name === name) ?? null;
@@ -73,10 +73,10 @@ function setup(
   const db = {
     appSetting: { findUnique: vi.fn().mockResolvedValue(settings) },
     vanityUrl: {
-      findUnique: vi.fn(({ where }: { where: { artistId?: string; name?: string } }) =>
+      findUnique: vi.fn(({ where }: { where: { organizationId?: string; name?: string } }) =>
         Promise.resolve(
-          where.artistId
-            ? (links.get(where.artistId) ?? null)
+          where.organizationId
+            ? (links.get(where.organizationId) ?? null)
             : where.name
               ? byName(where.name)
               : null,
@@ -85,15 +85,15 @@ function setup(
       create: vi.fn(({ data }: { data: Row }) => {
         if (byName(data.name as string))
           return Promise.reject(Object.assign(new Error("unique"), { code: "P2002" }));
-        links.set(data.artistId as string, data);
+        links.set(data.organizationId as string, data);
         return Promise.resolve(data);
       }),
-      update: vi.fn(({ where, data }: { where: { artistId: string }; data: Row }) => {
-        Object.assign(links.get(where.artistId)!, data);
-        return Promise.resolve(links.get(where.artistId));
+      update: vi.fn(({ where, data }: { where: { organizationId: string }; data: Row }) => {
+        Object.assign(links.get(where.organizationId)!, data);
+        return Promise.resolve(links.get(where.organizationId));
       }),
-      delete: vi.fn(({ where }: { where: { artistId: string } }) => {
-        links.delete(where.artistId);
+      delete: vi.fn(({ where }: { where: { organizationId: string } }) => {
+        links.delete(where.organizationId);
         return Promise.resolve({});
       }),
     },
@@ -188,13 +188,13 @@ describe("checkVanityName", () => {
   });
 
   it("says taken for another artist's link, but not for your own or one past its reserved days", async () => {
-    const live = { artistId: "b2", name: "luna", status: "ACTIVE", paidUntil: days(10) };
+    const live = { organizationId: "b2", name: "luna", status: "ACTIVE", paidUntil: days(10) };
     expect(await checkVanityName(setup({ links: [live] }).ctx, artist, "luna")).toMatchObject({
       ok: false,
       reason: "That name is taken",
     });
     expect(
-      await checkVanityName(setup({ links: [{ ...live, artistId: "a1" }] }).ctx, artist, "luna"),
+      await checkVanityName(setup({ links: [{ ...live, organizationId: "a1" }] }).ctx, artist, "luna"),
     ).toMatchObject({ ok: true });
     const stale = { ...live, paidUntil: days(-60) };
     expect(await checkVanityName(setup({ links: [stale] }).ctx, artist, "luna")).toMatchObject({
@@ -217,7 +217,7 @@ describe("claimVanity", () => {
     await expect(claimVanity(setup({ trialUsed: true }).ctx, artist, "luna")).rejects.toThrow(
       /free month was already used/,
     );
-    const link = { artistId: "a1", name: "old", status: "TRIAL", paidUntil: days(5) };
+    const link = { organizationId: "a1", name: "old", status: "TRIAL", paidUntil: days(5) };
     await expect(claimVanity(setup({ links: [link] }).ctx, artist, "luna")).rejects.toThrow(
       /already have a link/,
     );
@@ -232,7 +232,7 @@ describe("claimVanity", () => {
   });
 
   it("takes over a name whose owner let it go completely", async () => {
-    const stale = { artistId: "b2", name: "luna", status: "ACTIVE", paidUntil: days(-60) };
+    const stale = { organizationId: "b2", name: "luna", status: "ACTIVE", paidUntil: days(-60) };
     const { ctx, links } = setup({ links: [stale] });
     await claimVanity(ctx, artist, "luna");
     expect(links.get("b2")).toBeUndefined();
@@ -242,7 +242,7 @@ describe("claimVanity", () => {
 
 describe("getVanity", () => {
   it("reports where the link stands and what is on offer", async () => {
-    const link = { artistId: "a1", name: "luna", status: "ACTIVE", paidUntil: days(-2) };
+    const link = { organizationId: "a1", name: "luna", status: "ACTIVE", paidUntil: days(-2) };
     const overview = await getVanity(setup({ links: [link] }).ctx, artist);
     expect(overview.link).toMatchObject({ name: "luna", status: "GRACE", works: true });
     expect(overview.canClaimFree).toBe(false);
@@ -256,7 +256,7 @@ describe("getVanity", () => {
 });
 
 describe("quoteVanity", () => {
-  const link = { artistId: "a1", name: "luna", status: "ACTIVE", paidUntil: days(10) };
+  const link = { organizationId: "a1", name: "luna", status: "ACTIVE", paidUntil: days(10) };
 
   it("prices a month in BANDCOIN with the platform fee and the network fee on top", async () => {
     const quote = await quoteVanity(setup({ links: [link] }).ctx, me, artist, renew);
@@ -327,7 +327,7 @@ describe("quoteVanity", () => {
 });
 
 describe("pay for the link", () => {
-  const link = { artistId: "a1", name: "luna", status: "TRIAL", paidUntil: days(10) };
+  const link = { organizationId: "a1", name: "luna", status: "TRIAL", paidUntil: days(10) };
 
   async function started(opts: Parameters<typeof setup>[0], input = renew) {
     const env = setup({ links: [link], ...opts });
@@ -397,10 +397,10 @@ describe("pay for the link", () => {
       { ...renew, purpose: "NAME_CHANGE", name: "luna-vale" },
     );
     db.vanityUrl.findUnique.mockImplementation(
-      ({ where }: { where: { name?: string; artistId?: string } }) =>
+      ({ where }: { where: { name?: string; organizationId?: string } }) =>
         Promise.resolve(
           where.name
-            ? { artistId: "b2", name: where.name, status: "ACTIVE", paidUntil: days(9) }
+            ? { organizationId: "b2", name: where.name, status: "ACTIVE", paidUntil: days(9) }
             : link,
         ),
     );
@@ -441,7 +441,7 @@ describe("pay for the link", () => {
 });
 
 describe("pay for the link by card, with the platform fee (plan 33)", () => {
-  const link = { artistId: "a1", name: "luna", status: "TRIAL", paidUntil: days(10) };
+  const link = { organizationId: "a1", name: "luna", status: "TRIAL", paidUntil: days(10) };
   const byCard: VanityPayInput = { purpose: "RENEWAL", currency: "USD" };
 
   it("adds the platform fee to a crypto payment", async () => {
@@ -494,10 +494,10 @@ describe("pay for the link by card, with the platform fee (plan 33)", () => {
       name: "luna-vale",
     });
     env.db.vanityUrl.findUnique.mockImplementation(
-      ({ where }: { where: { name?: string; artistId?: string } }) =>
+      ({ where }: { where: { name?: string; organizationId?: string } }) =>
         Promise.resolve(
           where.name
-            ? { artistId: "b2", name: where.name, status: "ACTIVE", paidUntil: days(9) }
+            ? { organizationId: "b2", name: where.name, status: "ACTIVE", paidUntil: days(9) }
             : link,
         ),
     );
@@ -530,7 +530,7 @@ describe("resolveVanity", () => {
     name: "luna",
     status: "ACTIVE",
     paidUntil,
-    artist: { ...artistRow, status: artistStatus },
+    organization: { ...artistRow, status: artistStatus },
   });
   const ctxWith = (row: unknown) =>
     ({ db: { vanityUrl: { findUnique: vi.fn().mockResolvedValue(row) } } }) as unknown as {

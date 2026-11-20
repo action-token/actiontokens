@@ -106,7 +106,7 @@ function Slide({ artist, rank }: { artist: Artist; rank: number }) {
           slug={artist.slug}
           initialFollowing={artist.following}
           initialSubscribed={artist.subscribed}
-          token={artist.tokenCode ? { code: artist.tokenCode, artistId: artist.id } : null}
+          token={artist.tokenCode ? { code: artist.tokenCode, organizationId: artist.id } : null}
           onFollowers={setFollowers}
           onJoined={() => setFollowers((current) => current + 1)}
         />

@@ -64,9 +64,9 @@ export function CollectionReportView({ admin = false }: { admin?: boolean }) {
   const [period, setPeriod] = useState<Period>(() => periodRange("30d"));
   const [query, setQuery] = useState("");
   const [onlyCollected, setOnlyCollected] = useState(false);
-  const [artistId, setArtistId] = useState(EVERYONE);
+  const [organizationId, setArtistId] = useState(EVERYONE);
   const scope = { from: period.from, to: period.to };
-  const adminScope = { ...scope, artistId: artistId === EVERYONE ? undefined : artistId };
+  const adminScope = { ...scope, organizationId: organizationId === EVERYONE ? undefined : organizationId };
 
   const options = { refetchOnWindowFocus: false, placeholderData: <T,>(previous: T) => previous };
   const own = api.reports.summary.useQuery(scope, { ...options, enabled: !admin });
@@ -93,7 +93,7 @@ export function CollectionReportView({ admin = false }: { admin?: boolean }) {
             (!onlyCollected || pin.collected > 0) &&
             (!query ||
               pin.title.toLowerCase().includes(query) ||
-              (admin && pin.artist.name.toLowerCase().includes(query))),
+              (admin && pin.organization.name.toLowerCase().includes(query))),
         )
         .sort(
           (a, b) => b.collected - a.collected || +new Date(b.createdAt) - +new Date(a.createdAt),
@@ -160,7 +160,7 @@ export function CollectionReportView({ admin = false }: { admin?: boolean }) {
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{pin.title}</p>
             <p className="text-fg-muted truncate text-xs">
-              {admin && `${pin.artist.name} · `}
+              {admin && `${pin.organization.name} · `}
               {pin.spots.toLocaleString()} spot{pin.spots === 1 ? "" : "s"}
             </p>
           </div>
@@ -245,7 +245,7 @@ export function CollectionReportView({ admin = false }: { admin?: boolean }) {
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
         <PeriodPicker value={period} onChange={setPeriod} />
         {admin && (
-          <Select value={artistId} onValueChange={setArtistId}>
+          <Select value={organizationId} onValueChange={setArtistId}>
             <SelectTrigger className="w-full lg:w-60" aria-label="Artist">
               <SelectValue />
             </SelectTrigger>

@@ -48,7 +48,7 @@ export function MapSearch({
   fix,
   onPickPin,
   onPickPlace,
-  artistId,
+  organizationId,
 }: {
   open: boolean;
   onClose: () => void;
@@ -56,7 +56,7 @@ export function MapSearch({
   onPickPin: (pin: ArPin) => void;
   onPickPlace: (coords: Coords) => void;
   /** Only this brand's drops (a website embed set to "only my brand"). */
-  artistId?: string;
+  organizationId?: string;
 }) {
   const [query, setQuery] = useState("");
   const q = query.trim();
@@ -84,7 +84,7 @@ export function MapSearch({
       lat: term.near?.lat,
       lng: term.near?.lng,
       limit: 12,
-      artistId,
+      organizationId,
     },
     {
       enabled: open && debounced.length >= 2,

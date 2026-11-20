@@ -50,7 +50,7 @@ function setup(over: { embed?: Row | null; stats?: Row[] } = {}) {
         over.embed === undefined
           ? {
               id: "e1",
-              artistId: "a1",
+              organizationId: "a1",
               createdAt: new Date(),
               updatedAt: new Date(),
               ...base,
@@ -122,7 +122,7 @@ describe("embeds", () => {
   it("creates a map for the artist and logs it", async () => {
     const { ctx, created, activity } = setup();
     await expect(createEmbed(ctx, artist, base)).resolves.toEqual({ embedId: "e2" });
-    expect(created[0]).toMatchObject({ artistId: "a1", name: "Tour map" });
+    expect(created[0]).toMatchObject({ organizationId: "a1", name: "Tour map" });
     expect(activity.set).toHaveBeenCalledWith({ targetType: "MapEmbed", targetId: "e2" });
   });
 
@@ -130,7 +130,7 @@ describe("embeds", () => {
     const { ctx, db } = setup({ embed: null });
     await expect(updateEmbed(ctx, artist, "e9", base)).rejects.toThrow(/Map not found/);
     await expect(removeEmbed(ctx, artist, "e9")).rejects.toThrow(/Map not found/);
-    expect(db.mapEmbed.findFirst).toHaveBeenCalledWith({ where: { id: "e9", artistId: "a1" } });
+    expect(db.mapEmbed.findFirst).toHaveBeenCalledWith({ where: { id: "e9", organizationId: "a1" } });
     expect(db.mapEmbed.update).not.toHaveBeenCalled();
     expect(db.mapEmbed.delete).not.toHaveBeenCalled();
   });
@@ -147,7 +147,7 @@ describe("embeds", () => {
   it("duplicates with a new name and without ids or dates", async () => {
     const { ctx, created } = setup();
     await duplicateEmbed(ctx, artist, "e1");
-    expect(created[0]).toMatchObject({ name: "Tour map (copy)", artistId: "a1" });
+    expect(created[0]).toMatchObject({ name: "Tour map (copy)", organizationId: "a1" });
     expect(created[0]).not.toHaveProperty("id");
     expect(created[0]).not.toHaveProperty("createdAt");
   });

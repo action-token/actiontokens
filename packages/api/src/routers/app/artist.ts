@@ -39,7 +39,7 @@ export const artistRouter = createRouter({
    */
   bySlug: publicProcedure.input(slugInput).query(async ({ ctx, input }) => {
     const viewerId = ctx.session?.user.id;
-    const artist = await ctx.db.artist.findFirst({
+    const artist = await ctx.db.organization.findFirst({
       where: { slug: input.slug, status: "APPROVED" },
       select: {
         id: true,
@@ -58,7 +58,7 @@ export const artistRouter = createRouter({
     if (!artist)
       throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "This artist doesn't exist." });
 
-    const mine = { ...listedItemWhere, artistId: artist.id };
+    const mine = { ...listedItemWhere, organizationId: artist.id };
     const [popular, forSale, albums, bounties, standing, subscribers, tiers, events, design] =
       await Promise.all([
         ctx.db.item.findMany({
@@ -74,7 +74,7 @@ export const artistRouter = createRouter({
           select: itemCardSelect,
         }),
         ctx.db.album.findMany({
-          where: { artistId: artist.id },
+          where: { organizationId: artist.id },
           orderBy: { createdAt: "desc" },
           select: {
             title: true,
@@ -85,7 +85,7 @@ export const artistRouter = createRouter({
           },
         }),
         ctx.db.bounty.findMany({
-          where: { ...publicBountyWhere, artistId: artist.id, status: "RUNNING" },
+          where: { ...publicBountyWhere, organizationId: artist.id, status: "RUNNING" },
           orderBy: { createdAt: "desc" },
           take: 4,
           select: {
@@ -103,9 +103,9 @@ export const artistRouter = createRouter({
         ctx.session?.user
           ? syncViewerSubscription(ctx, ctx.session.user, artist)
           : { following: false, subscribed: false },
-        ctx.db.follow.count({ where: { artistId: artist.id, isTemporary: false } }),
+        ctx.db.follow.count({ where: { organizationId: artist.id, isTemporary: false } }),
         ctx.db.membershipTier.findMany({
-          where: { artistId: artist.id, isActive: true },
+          where: { organizationId: artist.id, isActive: true },
           orderBy: [{ requiredTokens: "asc" }, { sortOrder: "asc" }],
           select: {
             id: true,
@@ -118,7 +118,7 @@ export const artistRouter = createRouter({
           },
         }),
         ctx.db.event.findMany({
-          where: { artistId: artist.id, endsAt: { gte: new Date() } },
+          where: { organizationId: artist.id, endsAt: { gte: new Date() } },
           orderBy: { startsAt: "asc" },
           take: 10,
           select: {
@@ -134,10 +134,10 @@ export const artistRouter = createRouter({
         publishedDesign(ctx, artist.id),
       ]);
 
-    const { _count, id: artistId, fanTokenItem, ...profile } = artist;
+    const { _count, id: organizationId, fanTokenItem, ...profile } = artist;
     return {
       ...profile,
-      artistId,
+      organizationId,
       /** The page the artist designed in the page builder, or null for the standard page */
       design,
       tokenCode: fanTokenItem?.classicToken?.code ?? null,
@@ -174,7 +174,7 @@ export const artistRouter = createRouter({
    */
   pageAssets: publicProcedure.input(slugInput).query(async ({ ctx, input }) => {
     const viewerId = ctx.session?.user.id;
-    const artist = await ctx.db.artist.findFirst({
+    const artist = await ctx.db.organization.findFirst({
       where: { slug: input.slug, status: "APPROVED" },
       select: {
         fanTokenItem: {
@@ -222,7 +222,7 @@ export const artistRouter = createRouter({
 
   /** The unpublished design, for the artist's own live preview in the page builder. */
   draftDesign: authedProcedure.input(slugInput).query(async ({ ctx, input }) => {
-    const artist = await ctx.db.artist.findFirst({
+    const artist = await ctx.db.organization.findFirst({
       where: { slug: input.slug },
       select: { id: true, userId: true },
     });
@@ -252,7 +252,7 @@ export const artistRouter = createRouter({
       where: {
         ...listedItemWhere,
         type: "TRACK",
-        artist: { slug: input.slug, status: "APPROVED" },
+        organization: { slug: input.slug, status: "APPROVED" },
       },
       orderBy: [{ playCount: "desc" }, { createdAt: "desc" }],
       take: 20,

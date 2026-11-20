@@ -219,7 +219,7 @@ async function createArtist(opts: {
       ownerId: user.id,
     },
   });
-  const artist = await db.artist.create({
+  const artist = await db.organization.create({
     data: {
       userId: user.id,
       issuerAccountId: issuerAccount.id,
@@ -242,18 +242,18 @@ async function createArtist(opts: {
       title: `$${opts.token}`,
       slug: `${opts.slug}-token`,
       coverUrl: cover(`${opts.slug}-token`),
-      artistId: artist.id,
+      organizationId: artist.id,
       createdById: user.id,
       classicToken: { create: { code: opts.token, issuer } },
       listings: { create: { sellerId: user.id, priceBandcoin: 500, priceUsd: 0.05 } },
     },
   });
-  await db.artist.update({ where: { id: artist.id }, data: { fanTokenItemId: fanToken.id } });
+  await db.organization.update({ where: { id: artist.id }, data: { fanTokenItemId: fanToken.id } });
 
   for (const [i, tier] of opts.tiers.entries())
     await db.membershipTier.create({
       data: {
-        artistId: artist.id,
+        organizationId: artist.id,
         name: tier.name,
         description: tier.features.length ? `${tier.features[0]} and more.` : "",
         features: tier.features,
@@ -267,7 +267,7 @@ async function createArtist(opts: {
   for (const [a, album] of opts.albums.entries()) {
     const row = await db.album.create({
       data: {
-        artistId: artist.id,
+        organizationId: artist.id,
         title: album.title,
         slug: `${opts.slug}-album-${a + 1}`,
         coverUrl: cover(`${opts.slug}-album-${a}`),
@@ -287,7 +287,7 @@ async function createArtist(opts: {
           supply: 100,
           visibility: "PUBLIC",
           playCount: 1500 - n * 97,
-          artistId: artist.id,
+          organizationId: artist.id,
           createdById: user.id,
           classicToken: { create: { code: `${opts.token.slice(0, 6)}T${n}`, issuer } },
           media: {
@@ -317,7 +317,7 @@ async function createArtist(opts: {
         description: "A limited collectible.",
         coverUrl: cover(`${opts.slug}-collectible-${i}`),
         supply: 25,
-        artistId: artist.id,
+        organizationId: artist.id,
         createdById: user.id,
         contractNft: { create: { status: "MINTED", mintedCount: 0, royaltyBps: 500 } },
         listings: { create: { sellerId: user.id, priceBandcoin: 40000 + i * 20000, priceUsd: 5 } },
@@ -327,7 +327,7 @@ async function createArtist(opts: {
   for (const [i, event] of opts.events.entries())
     await db.event.create({
       data: {
-        artistId: artist.id,
+        organizationId: artist.id,
         title: event.title,
         description: "Doors at seven.",
         coverUrl: opts.pictures ? cover(`${opts.slug}-event-${i}`) : null,
@@ -344,18 +344,18 @@ async function createArtist(opts: {
 }
 
 /** A few demo fans follow them (if the main seed has run). Safe to run again. */
-async function addFollowers(artistId: string) {
+async function addFollowers(organizationId: string) {
   const fans = await db.user.findMany({
     where: { email: { endsWith: "@demo.bandcoin.io" }, role: "FAN" },
     take: 4,
   });
   await db.follow.createMany({
-    data: fans.map((fan) => ({ userId: fan.id, artistId })),
+    data: fans.map((fan) => ({ userId: fan.id, organizationId })),
     skipDuplicates: true,
   });
 }
 
-async function publish(artistId: string, theme: Theme, specs: Spec[]) {
+async function publish(organizationId: string, theme: Theme, specs: Spec[]) {
   const blocks = [
     { uid: "cover", type: "cover", width: 4, hidden: false, settings: { align: "left" } },
     ...specs.map((spec, i) => ({
@@ -367,7 +367,7 @@ async function publish(artistId: string, theme: Theme, specs: Spec[]) {
     })),
   ];
   const design = { blocks, theme };
-  const existing = await db.pageLayout.findFirst({ where: { artistId } });
+  const existing = await db.pageLayout.findFirst({ where: { organizationId } });
   const data = {
     name: "My page",
     isActive: true,
@@ -378,7 +378,7 @@ async function publish(artistId: string, theme: Theme, specs: Spec[]) {
     publishedAt: new Date(),
   };
   if (existing) await db.pageLayout.update({ where: { id: existing.id }, data });
-  else await db.pageLayout.create({ data: { ...data, artistId } });
+  else await db.pageLayout.create({ data: { ...data, organizationId } });
 }
 
 async function main() {
@@ -389,7 +389,7 @@ async function main() {
   if (!layout) throw new Error(`No layout "${preset}". Try: ${Object.keys(LAYOUTS).join(", ")}`);
 
   const full =
-    (await db.artist.findUnique({ where: { slug: FULL } })) ??
+    (await db.organization.findUnique({ where: { slug: FULL } })) ??
     (await createArtist({
       slug: FULL,
       name: "Harbor Lights",
@@ -451,7 +451,7 @@ async function main() {
   console.log(`${FULL}: published the "${preset}" layout`);
 
   const sparse =
-    (await db.artist.findUnique({ where: { slug: SPARSE } })) ??
+    (await db.organization.findUnique({ where: { slug: SPARSE } })) ??
     (await createArtist({
       slug: SPARSE,
       name: "The Extraordinarily Long-Named Orchestra of the Southern Harbours",

@@ -27,9 +27,9 @@ function checkPreview(startSec: number, durationSec: number) {
   }
 }
 
-async function ownAlbum(db: ServiceCtx["db"], artistId: string, albumId: string) {
+async function ownAlbum(db: ServiceCtx["db"], organizationId: string, albumId: string) {
   const album = await db.album.findFirst({
-    where: { id: albumId, artistId },
+    where: { id: albumId, organizationId },
     select: { id: true },
   });
   if (!album) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Album not found" });
@@ -86,7 +86,7 @@ export async function createSong(
 
 export async function listSongs(ctx: Pick<ServiceCtx, "db">, artist: Pick<ArtistRef, "id">) {
   const rows = await ctx.db.item.findMany({
-    where: { artistId: artist.id, deletedAt: null, type: "TRACK" },
+    where: { organizationId: artist.id, deletedAt: null, type: "TRACK" },
     orderBy: { createdAt: "desc" },
     take: 300,
     select: {
@@ -154,7 +154,7 @@ export async function getSong(
   itemId: string,
 ) {
   const song = await ctx.db.item.findFirst({
-    where: { id: itemId, artistId: artist.id, deletedAt: null, type: "TRACK" },
+    where: { id: itemId, organizationId: artist.id, deletedAt: null, type: "TRACK" },
     select: {
       id: true,
       title: true,
@@ -221,7 +221,7 @@ export async function updateSong(
   input: UpdateSongInput,
 ) {
   const song = await ctx.db.item.findFirst({
-    where: { id: input.itemId, artistId: artist.id, deletedAt: null, type: "TRACK" },
+    where: { id: input.itemId, organizationId: artist.id, deletedAt: null, type: "TRACK" },
     select: { id: true, type: true, media: { select: { durationSec: true } } },
   });
   if (!song) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Song not found" });
@@ -256,7 +256,7 @@ export async function retrySongProcessing(
   itemId: string,
 ) {
   const song = await ctx.db.item.findFirst({
-    where: { id: itemId, artistId: artist.id, deletedAt: null, type: "TRACK" },
+    where: { id: itemId, organizationId: artist.id, deletedAt: null, type: "TRACK" },
     select: { id: true },
   });
   if (!song) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Song not found" });
@@ -266,7 +266,7 @@ export async function retrySongProcessing(
 
 export async function listAlbums(ctx: Pick<ServiceCtx, "db">, artist: Pick<ArtistRef, "id">) {
   const rows = await ctx.db.album.findMany({
-    where: { artistId: artist.id },
+    where: { organizationId: artist.id },
     orderBy: { createdAt: "desc" },
     take: 100,
     select: {
@@ -293,7 +293,7 @@ export async function createAlbum(
   const slug = taken ? `${base}-${crypto.randomBytes(3).toString("hex").slice(0, 4)}` : base;
   const album = await ctx.db.album.create({
     data: {
-      artistId: artist.id,
+      organizationId: artist.id,
       title: input.title.trim(),
       slug,
       description: input.description?.trim() || null,

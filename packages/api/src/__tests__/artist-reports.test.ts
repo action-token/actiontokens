@@ -73,7 +73,7 @@ describe("pinReport", () => {
     const { ctx, db } = setup(null);
     await expect(pinReport(ctx, artist, "p9")).rejects.toThrow(/Pin not found/);
     expect(db.pin.findFirst).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { id: "p9", artistId: "a1" } }),
+      expect.objectContaining({ where: { id: "p9", organizationId: "a1" } }),
     );
   });
 
@@ -191,7 +191,7 @@ describe("collectionSummary", () => {
     expect(summary.totals).toEqual({ collections: 0, collectors: 0, redeemed: 0 });
     expect(db.pin.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { artistId: "a1", isHidden: false, unlockLockedContentId: null },
+        where: { organizationId: "a1", isHidden: false, unlockLockedContentId: null },
       }),
     );
   });
@@ -218,7 +218,7 @@ describe("every artist (admins)", () => {
         take: 500,
       }),
     );
-    for (const call of db.$queryRaw.mock.calls) expect(sqlOf(call)).not.toContain('"artistId"');
+    for (const call of db.$queryRaw.mock.calls) expect(sqlOf(call)).not.toContain('"organizationId"');
   });
 
   it("still filters by the artist when one is picked", async () => {
@@ -227,7 +227,7 @@ describe("every artist (admins)", () => {
       pin: { findMany: vi.fn().mockResolvedValue([]) },
     };
     await collectionSummary({ db: db as unknown as Db }, artist, {}, now);
-    expect(db.$queryRaw.mock.calls.some((call) => sqlOf(call).includes('"artistId"'))).toBe(true);
+    expect(db.$queryRaw.mock.calls.some((call) => sqlOf(call).includes('"organizationId"'))).toBe(true);
   });
 
   it("opens any artist's pin report", async () => {

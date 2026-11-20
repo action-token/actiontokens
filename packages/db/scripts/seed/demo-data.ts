@@ -156,8 +156,8 @@ export const REAL_ARTISTS = [
 ];
 
 /** A listening bounty: play every song on the album twice to qualify. */
-export const musicBounty = (artistId: string, demo: DemoArtist) => ({
-  artistId,
+export const musicBounty = (organizationId: string, demo: DemoArtist) => ({
+  organizationId,
   title: `Stream ${demo.album.title}`,
   summary: `Play ${demo.album.title} and win BANDCOIN.`,
   description: `Listen to every song on ${demo.album.title} twice. Three listeners who finish share the prize.`,

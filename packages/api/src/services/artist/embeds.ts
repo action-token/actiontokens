@@ -99,7 +99,7 @@ export function checkEmbed(input: EmbedInput): EmbedInput {
 }
 
 async function ownEmbed(ctx: ServiceCtx, artist: ArtistRef, embedId: string) {
-  const row = await ctx.db.mapEmbed.findFirst({ where: { id: embedId, artistId: artist.id } });
+  const row = await ctx.db.mapEmbed.findFirst({ where: { id: embedId, organizationId: artist.id } });
   if (!row) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Map not found" });
   ctx.activity.set({ targetType: "MapEmbed", targetId: row.id });
   return row;
@@ -107,7 +107,7 @@ async function ownEmbed(ctx: ServiceCtx, artist: ArtistRef, embedId: string) {
 
 export async function listEmbeds(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef) {
   const rows = await ctx.db.mapEmbed.findMany({
-    where: { artistId: artist.id },
+    where: { organizationId: artist.id },
     orderBy: { createdAt: "desc" },
     include: { stats: { where: { day: { gte: utcDay(29) } } } },
   });
@@ -133,7 +133,7 @@ export async function listEmbeds(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef)
 }
 
 export async function getEmbed(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef, embedId: string) {
-  const row = await ctx.db.mapEmbed.findFirst({ where: { id: embedId, artistId: artist.id } });
+  const row = await ctx.db.mapEmbed.findFirst({ where: { id: embedId, organizationId: artist.id } });
   if (!row) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Map not found" });
   return row;
 }
@@ -173,7 +173,7 @@ export async function embedStats(
 
 export async function createEmbed(ctx: ServiceCtx, artist: ArtistRef, input: EmbedInput) {
   const row = await ctx.db.mapEmbed.create({
-    data: { ...checkEmbed(input), artistId: artist.id },
+    data: { ...checkEmbed(input), organizationId: artist.id },
     select: { id: true },
   });
   ctx.activity.set({ targetType: "MapEmbed", targetId: row.id });

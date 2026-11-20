@@ -86,7 +86,7 @@ function setup(
         classicToken: { code: "LUNA", issuer },
       }),
     },
-    artist: {
+    organization: {
       findUnique: vi.fn().mockResolvedValue({
         issuerAccount: { publicKey: issuer },
         storageAccount: { publicKey: storage },
@@ -102,7 +102,7 @@ function setup(
       findFirst: vi.fn(({ where }: { where: Where }) =>
         Promise.resolve(
           [...payouts.values()].find((row) =>
-            matches(row, { id: where.id, artistId: where.artistId }),
+            matches(row, { id: where.id, organizationId: where.organizationId }),
           ) ?? null,
         ),
       ),

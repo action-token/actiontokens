@@ -20,13 +20,13 @@ export async function searchAll(ctx: ServiceCtx, query: string) {
       where: {
         ...listedItemWhere,
         listings: { some: { status: "ACTIVE", kind: { not: "BUNDLE" } } },
-        OR: [{ title: like }, { artist: { name: like } }],
+        OR: [{ title: like }, { organization: { name: like } }],
       },
       orderBy: [{ playCount: "desc" }, { id: "asc" }],
       take: 5,
       select: itemCardSelect,
     }),
-    ctx.db.artist.findMany({
+    ctx.db.organization.findMany({
       where: { status: "APPROVED", name: like },
       orderBy: [{ followers: { _count: "desc" } }, { id: "asc" }],
       take: 5,

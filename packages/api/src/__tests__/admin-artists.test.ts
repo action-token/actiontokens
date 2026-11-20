@@ -44,13 +44,13 @@ type Row = Record<string, unknown>;
 
 function setup(
   opts: {
-    artist?: Row | null;
+    organization?: Row | null;
     issuerOnChain?: boolean;
     submit?: (xdr: string) => Promise<{ hash: string }>;
   } = {},
 ) {
   const artist: Row | null =
-    opts.artist === null
+    opts.organization === null
       ? null
       : {
           id: "a1",
@@ -69,10 +69,10 @@ function setup(
             displayName: "Luna",
           },
           issuerAccount: { id: "chain1", publicKey: issuerKey },
-          ...opts.artist,
+          ...opts.organization,
         };
   const db = {
-    artist: {
+    organization: {
       findUnique: vi.fn().mockResolvedValue(artist),
       findUniqueOrThrow: vi.fn(() => Promise.resolve(artist)),
       findMany: vi.fn().mockResolvedValue(artist ? [artist] : []),
@@ -104,12 +104,12 @@ describe("approveArtist", () => {
   it("approves a paid application and makes the owner an artist", async () => {
     const { ctx, db, activity } = setup();
     await expect(approveArtist(ctx, "a1")).resolves.toEqual({
-      artistId: "a1",
+      organizationId: "a1",
       status: "APPROVED",
       fanToken: { status: "NONE" },
       storage: { status: "OPENED", supply: "1000000" },
     });
-    expect(db.artist.update).toHaveBeenCalledWith(
+    expect(db.organization.update).toHaveBeenCalledWith(
       expect.objectContaining({ data: { status: "APPROVED", rejectionReason: null } }),
     );
     expect(db.user.update).toHaveBeenCalledWith({ where: { id: "u1" }, data: { role: "ARTIST" } });
@@ -133,7 +133,7 @@ describe("approveArtist", () => {
     createFanToken.mockResolvedValueOnce({ itemId: "i1", code: "LUNA" });
     const chosen = { mode: "NEW", code: "LUNA", coverUrl: "https://cdn.example/t.png" };
     const { ctx, db, artist } = setup({
-      artist: { pendingFanToken: chosen, fanTokenItemId: null },
+      organization: { pendingFanToken: chosen, fanTokenItemId: null },
     });
     await expect(approveArtist(ctx, "a1")).resolves.toMatchObject({
       fanToken: { status: "CREATED", code: "LUNA" },
@@ -144,7 +144,7 @@ describe("approveArtist", () => {
       { id: "u1" },
       { mode: "CUSTOM", code: "LUNA", coverUrl: "https://cdn.example/t.png" },
     );
-    expect(db.artist.update).toHaveBeenLastCalledWith(
+    expect(db.organization.update).toHaveBeenLastCalledWith(
       expect.objectContaining({ where: { id: "a1" } }),
     );
     expect(artist).toMatchObject({ status: "APPROVED" });
@@ -158,7 +158,7 @@ describe("approveArtist", () => {
       issuer: issuerKey,
       coverUrl: "https://cdn.example/t.png",
     };
-    const { ctx, artist } = setup({ artist: { pendingFanToken: chosen, fanTokenItemId: null } });
+    const { ctx, artist } = setup({ organization: { pendingFanToken: chosen, fanTokenItemId: null } });
     await expect(approveArtist(ctx, "a1")).resolves.toMatchObject({
       status: "APPROVED",
       fanToken: { status: "FAILED", message: "The fan token couldn't be made." },
@@ -174,7 +174,7 @@ describe("approveArtist", () => {
 
   it("never lowers an admin's role", async () => {
     const { ctx, db } = setup({
-      artist: { user: { id: "u1", role: "ADMIN", walletAddress: artistWallet } },
+      organization: { user: { id: "u1", role: "ADMIN", walletAddress: artistWallet } },
     });
     await approveArtist(ctx, "a1");
     expect(db.user.update).not.toHaveBeenCalled();
@@ -182,14 +182,14 @@ describe("approveArtist", () => {
 
   it("won't approve someone who hasn't opened their artist account, or who isn't waiting", async () => {
     await expect(
-      approveArtist(setup({ artist: { issuerAccountId: null, issuerAccount: null } }).ctx, "a1"),
+      approveArtist(setup({ organization: { issuerAccountId: null, issuerAccount: null } }).ctx, "a1"),
     ).rejects.toMatchObject({
       message: "They haven't opened their artist account yet.",
     });
     await expect(
-      approveArtist(setup({ artist: { status: "APPROVED" } }).ctx, "a1"),
+      approveArtist(setup({ organization: { status: "APPROVED" } }).ctx, "a1"),
     ).rejects.toMatchObject({ message: "This application isn't waiting for review." });
-    await expect(approveArtist(setup({ artist: null }).ctx, "a1")).rejects.toMatchObject({
+    await expect(approveArtist(setup({ organization: null }).ctx, "a1")).rejects.toMatchObject({
       message: "Artist not found",
     });
   });
@@ -199,8 +199,8 @@ describe("rejectArtist", () => {
   it("returns the XLM first: the issuer closes into the artist's wallet, signed by the platform", async () => {
     const { ctx, chain, db, artist } = setup();
     await expect(
-      rejectArtist(ctx, { artistId: "a1", reason: "Use your real name" }),
-    ).resolves.toEqual({ artistId: "a1", status: "REJECTED", refundTxHash: "refundhash" });
+      rejectArtist(ctx, { organizationId: "a1", reason: "Use your real name" }),
+    ).resolves.toEqual({ organizationId: "a1", status: "REJECTED", refundTxHash: "refundhash" });
 
     expect(chain.signWithServerKeys).toHaveBeenCalledWith(expect.any(String), [issuerKey]);
     const sent = TransactionBuilder.fromXDR(
@@ -219,17 +219,17 @@ describe("rejectArtist", () => {
 
   it("keeps everything as it was when the refund fails", async () => {
     const { ctx, db, artist } = setup({ submit: () => Promise.reject(new Error("tx_failed")) });
-    await expect(rejectArtist(ctx, { artistId: "a1", reason: "No" })).rejects.toThrow("tx_failed");
+    await expect(rejectArtist(ctx, { organizationId: "a1", reason: "No" })).rejects.toThrow("tx_failed");
     expect(artist).toMatchObject({ status: "PENDING", issuerAccountId: "chain1" });
     expect(db.chainAccount.delete).not.toHaveBeenCalled();
   });
 
   it("rejects an unpaid application without sending anything", async () => {
     const { ctx, chain, artist } = setup({
-      artist: { issuerAccountId: null, issuerAccount: null },
+      organization: { issuerAccountId: null, issuerAccount: null },
     });
     await expect(
-      rejectArtist(ctx, { artistId: "a1", reason: "Not a band" }),
+      rejectArtist(ctx, { organizationId: "a1", reason: "Not a band" }),
     ).resolves.toMatchObject({ status: "REJECTED", refundTxHash: null });
     expect(chain.submit).not.toHaveBeenCalled();
     expect(artist).toMatchObject({ status: "REJECTED" });
@@ -237,7 +237,7 @@ describe("rejectArtist", () => {
 
   it("skips the refund when the issuer account is already gone from the network", async () => {
     const { ctx, chain } = setup({ issuerOnChain: false });
-    await expect(rejectArtist(ctx, { artistId: "a1", reason: "Duplicate" })).resolves.toMatchObject(
+    await expect(rejectArtist(ctx, { organizationId: "a1", reason: "Duplicate" })).resolves.toMatchObject(
       { status: "REJECTED", refundTxHash: null },
     );
     expect(chain.submit).not.toHaveBeenCalled();
@@ -245,8 +245,8 @@ describe("rejectArtist", () => {
 
   it("only rejects applications that are waiting for review", async () => {
     await expect(
-      rejectArtist(setup({ artist: { status: "APPROVED" } }).ctx, {
-        artistId: "a1",
+      rejectArtist(setup({ organization: { status: "APPROVED" } }).ctx, {
+        organizationId: "a1",
         reason: "Too late",
       }),
     ).rejects.toMatchObject({
@@ -257,35 +257,35 @@ describe("rejectArtist", () => {
 
 describe("banArtist", () => {
   it("bans without a refund", async () => {
-    const { ctx, chain, artist } = setup({ artist: { status: "APPROVED" } });
-    await expect(banArtist(ctx, "a1")).resolves.toEqual({ artistId: "a1", status: "BANNED" });
+    const { ctx, chain, artist } = setup({ organization: { status: "APPROVED" } });
+    await expect(banArtist(ctx, "a1")).resolves.toEqual({ organizationId: "a1", status: "BANNED" });
     expect(artist).toMatchObject({ status: "BANNED" });
     expect(chain.submit).not.toHaveBeenCalled();
   });
 
   it("says so when they're already banned", async () => {
     await expect(
-      banArtist(setup({ artist: { status: "BANNED" } }).ctx, "a1"),
+      banArtist(setup({ organization: { status: "BANNED" } }).ctx, "a1"),
     ).rejects.toMatchObject({ message: "They are already banned." });
   });
 });
 
 describe("unbanArtist", () => {
   it("approves again someone who had opened their artist account", async () => {
-    const { ctx, artist, activity } = setup({ artist: { status: "BANNED" } });
-    await expect(unbanArtist(ctx, "a1")).resolves.toEqual({ artistId: "a1", status: "APPROVED" });
+    const { ctx, artist, activity } = setup({ organization: { status: "BANNED" } });
+    await expect(unbanArtist(ctx, "a1")).resolves.toEqual({ organizationId: "a1", status: "APPROVED" });
     expect(artist).toMatchObject({ status: "APPROVED" });
     expect(activity.set).toHaveBeenCalledWith({ targetType: "Artist", targetId: "a1" });
   });
 
   it("puts someone without an artist account back to waiting", async () => {
-    const { ctx } = setup({ artist: { status: "BANNED", issuerAccountId: null } });
-    await expect(unbanArtist(ctx, "a1")).resolves.toEqual({ artistId: "a1", status: "PENDING" });
+    const { ctx } = setup({ organization: { status: "BANNED", issuerAccountId: null } });
+    await expect(unbanArtist(ctx, "a1")).resolves.toEqual({ organizationId: "a1", status: "PENDING" });
   });
 
   it("only unbans the banned", async () => {
     await expect(
-      unbanArtist(setup({ artist: { status: "APPROVED" } }).ctx, "a1"),
+      unbanArtist(setup({ organization: { status: "APPROVED" } }).ctx, "a1"),
     ).rejects.toMatchObject({ message: "They aren't banned." });
   });
 });
@@ -293,7 +293,7 @@ describe("unbanArtist", () => {
 describe("getArtist", () => {
   it("shows the artist, their accounts, counts and recent pins", async () => {
     const db = {
-      artist: {
+      organization: {
         findUnique: vi.fn().mockResolvedValue({
           id: "a1",
           name: "Luna Vale",
@@ -344,12 +344,12 @@ describe("getArtist", () => {
       recentPins: [{ id: "p1", approval: "PENDING", spots: 2, claimed: 4, paused: false }],
     });
     expect(db.pinClaim.count).toHaveBeenCalledWith({
-      where: { spot: { pin: { artistId: "a1" } } },
+      where: { spot: { pin: { organizationId: "a1" } } },
     });
   });
 
   it("says when the artist doesn't exist", async () => {
-    const db = { artist: { findUnique: vi.fn().mockResolvedValue(null) } };
+    const db = { organization: { findUnique: vi.fn().mockResolvedValue(null) } };
     await expect(getArtist({ db: db as unknown as Db }, "x")).rejects.toThrow(/Artist not found/);
   });
 });
@@ -357,7 +357,7 @@ describe("getArtist", () => {
 describe("listApplications", () => {
   it("shows waiting applications first, with who owns them and whether they paid", async () => {
     const { ctx, db } = setup();
-    db.artist.findMany.mockResolvedValue([
+    db.organization.findMany.mockResolvedValue([
       {
         id: "a2",
         name: "Old",
@@ -416,7 +416,7 @@ describe("admin router", () => {
       code: "UNAUTHORIZED",
     });
     await expect(
-      caller({ ...admin, role: "ARTIST" }).admin.artists.approve({ artistId: "a1" }),
+      caller({ ...admin, role: "ARTIST" }).admin.artists.approve({ organizationId: "a1" }),
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(caller({ ...admin, role: "FAN" }).admin.activity.list({})).rejects.toMatchObject({
       code: "FORBIDDEN",
@@ -425,7 +425,7 @@ describe("admin router", () => {
 
   it("needs a reason to reject", async () => {
     await expect(
-      caller(admin).admin.artists.reject({ artistId: "a1", reason: "" }),
+      caller(admin).admin.artists.reject({ organizationId: "a1", reason: "" }),
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 });

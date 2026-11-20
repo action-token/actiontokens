@@ -41,7 +41,7 @@ function setup(opts: { follow?: { isTemporary: boolean } | null; account?: unkno
       deleteMany: vi.fn().mockResolvedValue({ count: 1 }),
       count: vi.fn().mockResolvedValue(3),
     },
-    artist: { findMany: vi.fn().mockResolvedValue([]) },
+    organization: { findMany: vi.fn().mockResolvedValue([]) },
     user: { findMany: vi.fn().mockResolvedValue([]) },
   };
   const chain = {
@@ -60,8 +60,8 @@ describe("syncViewerSubscription", () => {
       subscribed: true,
     });
     expect(db.follow.upsert).toHaveBeenCalledWith({
-      where: { userId_artistId: { userId: "u1", artistId: "a1" } },
-      create: { userId: "u1", artistId: "a1", isTemporary: false },
+      where: { userId_organizationId: { userId: "u1", organizationId: "a1" } },
+      create: { userId: "u1", organizationId: "a1", isTemporary: false },
       update: { isTemporary: false },
     });
   });
@@ -88,7 +88,7 @@ describe("syncViewerSubscription", () => {
       subscribed: false,
     });
     expect(db.follow.updateMany).toHaveBeenCalledWith({
-      where: { userId: "u1", artistId: "a1" },
+      where: { userId: "u1", organizationId: "a1" },
       data: { isTemporary: true },
     });
   });
@@ -118,7 +118,7 @@ describe("setSubscribed", () => {
     const { db } = setup();
     await setSubscribed(db as never, "u1", "a1");
     expect(db.follow.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({ create: { userId: "u1", artistId: "a1", isTemporary: false } }),
+      expect.objectContaining({ create: { userId: "u1", organizationId: "a1", isTemporary: false } }),
     );
   });
 });
@@ -126,7 +126,7 @@ describe("setSubscribed", () => {
 describe("the worker sync", () => {
   it("subscribes known users who trust the token, creates their follows, and demotes the rest", async () => {
     const { ctx, db, chain } = setup();
-    db.artist.findMany.mockResolvedValue([artist()]);
+    db.organization.findMany.mockResolvedValue([artist()]);
     chain.assetTrustees.mockResolvedValue({ addresses: ["GA", "GB", "GUNKNOWN"], complete: true });
     db.user.findMany.mockResolvedValue([
       { id: "uA", walletAddress: "GA" },
@@ -139,15 +139,15 @@ describe("the worker sync", () => {
     ]);
     expect(await syncAllSubscribers(ctx)).toEqual({ artists: 1, subscribed: 2, demoted: 1 });
     expect(db.follow.createMany).toHaveBeenCalledWith({
-      data: [{ userId: "uB", artistId: "a1", isTemporary: false }],
+      data: [{ userId: "uB", organizationId: "a1", isTemporary: false }],
       skipDuplicates: true,
     });
     expect(db.follow.updateMany).toHaveBeenCalledWith({
-      where: { artistId: "a1", userId: { in: ["uA"] } },
+      where: { organizationId: "a1", userId: { in: ["uA"] } },
       data: { isTemporary: false },
     });
     expect(db.follow.updateMany).toHaveBeenCalledWith({
-      where: { artistId: "a1", userId: { in: ["uC"] } },
+      where: { organizationId: "a1", userId: { in: ["uC"] } },
       data: { isTemporary: true },
     });
   });
@@ -158,7 +158,7 @@ describe("the worker sync", () => {
     expect(db.follow.updateMany).toHaveBeenCalledWith({
       where: {
         isTemporary: false,
-        artist: { OR: [{ fanTokenItem: null }, { fanTokenItem: { classicToken: null } }] },
+        organization: { OR: [{ fanTokenItem: null }, { fanTokenItem: { classicToken: null } }] },
       },
       data: { isTemporary: true },
     });
@@ -166,7 +166,7 @@ describe("the worker sync", () => {
 
   it("never demotes anyone from a list it couldn't read in full", async () => {
     const { ctx, db, chain } = setup();
-    db.artist.findMany.mockResolvedValue([artist()]);
+    db.organization.findMany.mockResolvedValue([artist()]);
     chain.assetTrustees.mockResolvedValue({ addresses: [], complete: false });
     db.follow.findMany.mockResolvedValue([{ userId: "uC", isTemporary: false }]);
     expect(await syncAllSubscribers(ctx)).toMatchObject({ demoted: 0 });
@@ -174,7 +174,7 @@ describe("the worker sync", () => {
 
   it("skips an artist whose list can't be read and carries on", async () => {
     const { ctx, db, chain } = setup();
-    db.artist.findMany.mockResolvedValue([artist({ id: "a1" }), artist({ id: "a2" })]);
+    db.organization.findMany.mockResolvedValue([artist({ id: "a1" }), artist({ id: "a2" })]);
     chain.assetTrustees
       .mockRejectedValueOnce(new Error("horizon down"))
       .mockResolvedValueOnce({ addresses: [], complete: true });
@@ -186,7 +186,7 @@ describe("setFollowing", () => {
   const noop = { set: vi.fn() };
   const withArtist = (account: unknown) => {
     const made = setup({ account });
-    (made.db as Record<string, unknown>).artist = {
+    (made.db as Record<string, unknown>).organization = {
       findFirst: vi.fn().mockResolvedValue({
         id: "a1",
         userId: "artist-user",
@@ -204,7 +204,7 @@ describe("setFollowing", () => {
     const done = await setFollowing(ctx, user, { slug: "nova" }, true);
     expect(done).toMatchObject({ following: true, subscribed: true, fanToken: null });
     expect(db.follow.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({ create: { userId: "u1", artistId: "a1", isTemporary: false } }),
+      expect.objectContaining({ create: { userId: "u1", organizationId: "a1", isTemporary: false } }),
     );
   });
 
@@ -214,10 +214,10 @@ describe("setFollowing", () => {
     expect(done).toMatchObject({
       following: true,
       subscribed: false,
-      fanToken: { code: "NOVA", artistId: "a1" },
+      fanToken: { code: "NOVA", organizationId: "a1" },
     });
     expect(db.follow.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({ create: { userId: "u1", artistId: "a1", isTemporary: true } }),
+      expect.objectContaining({ create: { userId: "u1", organizationId: "a1", isTemporary: true } }),
     );
   });
 

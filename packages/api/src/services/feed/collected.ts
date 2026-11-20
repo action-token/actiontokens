@@ -12,7 +12,7 @@ const postSelect = {
   title: true,
   body: true,
   createdAt: true,
-  artist: { select: { name: true, slug: true, avatarUrl: true } },
+  organization: { select: { name: true, slug: true, avatarUrl: true } },
   media: {
     orderBy: { sortOrder: "asc" },
     select: { id: true, type: true, url: true, title: true, thumbnailUrl: true },
@@ -22,12 +22,12 @@ const postSelect = {
 /** The picture a post's card shows: its first photo, a video's still, else the artist. */
 export function postCover(post: {
   media: { type: string; url: string; thumbnailUrl: string | null }[];
-  artist: { avatarUrl: string | null };
+  organization: { avatarUrl: string | null };
 }) {
   const image = post.media.find((file) => file.type === "IMAGE");
   if (image) return image.url;
   const still = post.media.find((file) => file.thumbnailUrl)?.thumbnailUrl;
-  return still ?? post.artist.avatarUrl;
+  return still ?? post.organization.avatarUrl;
 }
 
 /** Posts the fan has collected by scanning their QR, newest first. */
@@ -50,7 +50,7 @@ export async function collectedPosts(ctx: ServiceCtx, user: SessionUser, cursor:
     items: page.map(({ post, collectedAt }) => ({
       postId: post.id,
       title: post.title,
-      artist: post.artist,
+      artist: post.organization,
       cover: postCover(post),
       kinds: [...new Set(post.media.map((file) => file.type))],
       collectedAt,

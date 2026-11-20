@@ -88,7 +88,7 @@ export async function runAgent(
 
   let artist: ArtistContext;
   try {
-    artist = await loadArtistContext(ctx, payload.artistId, deps.now);
+    artist = await loadArtistContext(ctx, payload.organizationId, deps.now);
   } catch (error) {
     await ctx.db.agentJob.update({
       where: { id: agentJobId },

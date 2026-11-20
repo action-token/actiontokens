@@ -113,10 +113,10 @@ const stateSignature = (payload: string) =>
   createHmac("sha256", sealKey()).update(payload).digest("hex");
 
 /** The state sent to Facebook and back: who started it, when, and where to return. Signed, so it can't be forged. */
-export function makeState(input: { artistId: string; redirect: string }, now = Date.now()) {
+export function makeState(input: { organizationId: string; redirect: string }, now = Date.now()) {
   const payload = Buffer.from(
     JSON.stringify({
-      a: input.artistId,
+      a: input.organizationId,
       r: input.redirect,
       n: randomBytes(12).toString("hex"),
       t: now,
@@ -141,7 +141,7 @@ export function readState(state: string | null | undefined, now = Date.now()) {
       t?: unknown;
     };
     if (typeof a !== "string" || typeof r !== "string" || typeof t !== "number") return null;
-    return now - t > STATE_TTL_MS ? null : { artistId: a, redirect: r };
+    return now - t > STATE_TTL_MS ? null : { organizationId: a, redirect: r };
   } catch {
     return null;
   }

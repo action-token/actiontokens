@@ -20,7 +20,7 @@ export async function stemsFor(db: Db, viewerId: string | null, itemId: string):
     where: { id: itemId, deletedAt: null },
     select: {
       createdById: true,
-      artist: { select: { userId: true } },
+      organization: { select: { userId: true } },
       stems: {
         orderBy: [{ trackIndex: "asc" }, { createdAt: "asc" }],
         select: { id: true, name: true, color: true },

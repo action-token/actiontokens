@@ -58,10 +58,10 @@ export async function checkExistingToken(
     };
   const used = await ctx.db.classicToken.findUnique({
     where: { code_issuer: { code, issuer: input.issuer } },
-    select: { item: { select: { title: true, artistId: true } } },
+    select: { item: { select: { title: true, organizationId: true } } },
   });
   if (used) {
-    const byYou = used.item?.artistId === artist.id;
+    const byYou = used.item?.organizationId === artist.id;
     return {
       status: "USED",
       byYou,
@@ -142,13 +142,13 @@ export async function createFanToken(
         coverUrl: input.coverUrl,
         visibility: "PUBLIC",
         supply: null,
-        artistId: artist.id,
+        organizationId: artist.id,
         createdById: user.id,
         classicToken: { create: token },
       },
       select: { id: true },
     });
-    await tx.artist.update({ where: { id: artist.id }, data: { fanTokenItemId: item.id } });
+    await tx.organization.update({ where: { id: artist.id }, data: { fanTokenItemId: item.id } });
     return item.id;
   });
   ctx.activity.set({ targetType: "Item", targetId: itemId });

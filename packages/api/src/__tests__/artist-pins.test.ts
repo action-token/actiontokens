@@ -133,7 +133,7 @@ function setup(
     event: {
       findFirst: vi.fn().mockResolvedValue(over.event === undefined ? { id: "e1" } : over.event),
     },
-    artist: {
+    organization: {
       findUnique: vi
         .fn()
         .mockResolvedValue(over.owner === undefined ? { fanTokenItemId: "ft1" } : over.owner),
@@ -161,7 +161,7 @@ describe("creating a pin", () => {
       };
     };
     expect(data).toMatchObject({
-      artistId: "a1",
+      organizationId: "a1",
       title: "Secret show",
       approval: "PENDING",
       claimLimit: 0,
@@ -204,7 +204,7 @@ describe("creating a pin", () => {
     expect(db.pinTag.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { name: "street-art" },
-        create: { name: "street-art", label: "street art", artistId: "a1" },
+        create: { name: "street-art", label: "street art", organizationId: "a1" },
         update: {},
       }),
     );
@@ -316,7 +316,7 @@ describe("creating a pin", () => {
       expect.objectContaining({
         where: {
           id: "i1",
-          artistId: "a1",
+          organizationId: "a1",
           deletedAt: null,
           chainType: "CLASSIC_TOKEN",
           type: { notIn: ["FAN_TOKEN", "ROYALTY"] },
@@ -628,7 +628,7 @@ describe("the pin list", () => {
     event: null,
     layer: null,
     pinShape: null,
-    artist: { avatarUrl: "https://cdn.example/artist.png" },
+    organization: { avatarUrl: "https://cdn.example/artist.png" },
     markerShape: null,
     markerFill: "ARTIST",
     markerColor: null,
@@ -701,7 +701,7 @@ describe("tag names", () => {
 });
 
 describe("AI tag suggestions", () => {
-  const actor = { artist: { userId: "u1", name: "Luna", bio: null }, unlimited: false };
+  const actor = { organization: { userId: "u1", name: "Luna", bio: null }, unlimited: false };
   const input = {
     title: "Secret show",
     description: "By the fountain",
@@ -754,7 +754,7 @@ describe("pin options", () => {
       membershipTier: { findMany: vi.fn().mockResolvedValue([]) },
       event: { findMany: vi.fn().mockResolvedValue([]) },
       pinTag: { findMany: vi.fn().mockResolvedValue([]) },
-      artist: {
+      organization: {
         findUnique: vi.fn().mockResolvedValue({
           fanTokenItem: {
             title: "Luna",

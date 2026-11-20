@@ -21,7 +21,7 @@ import { api, type RouterOutputs } from "~/trpc/react";
 
 import { FAN_APP_URL } from "../../shell/links";
 import { useArtistActions } from "./artist-actions";
-import { ArtistStatus } from "./artist-status";
+import { OrganizationStatus } from "./artist-status";
 
 type Row = RouterOutputs["admin"]["artists"]["list"][number];
 type Filter = "all" | Row["status"];
@@ -75,7 +75,7 @@ export function ArtistsView() {
       skeleton: "pill",
       cell: (row) => (
         <div className="flex items-center gap-2" onClick={(event) => event.stopPropagation()}>
-          <ArtistStatus status={row.status} paid={row.paid} />
+          <OrganizationStatus status={row.status} paid={row.paid} />
           {row.status === "PENDING" && row.paid && (
             <Button size="xs" disabled={act.busy} onClick={() => act.approve(row)}>
               <Check /> Approve

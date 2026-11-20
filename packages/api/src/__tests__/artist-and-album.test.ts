@@ -34,7 +34,7 @@ describe("artist.setFollowing", () => {
       create: vi.fn().mockResolvedValue({}),
     };
     const db = {
-      artist: { findFirst: vi.fn().mockResolvedValue({ id: "a1", userId: "artist-user" }) },
+      organization: { findFirst: vi.fn().mockResolvedValue({ id: "a1", userId: "artist-user" }) },
       follow,
       notificationEvent,
     };
@@ -48,7 +48,7 @@ describe("artist.setFollowing", () => {
     });
     // No fan token, so no trustline: just a follower.
     expect(follow.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({ create: { userId: "u1", artistId: "a1", isTemporary: true } }),
+      expect.objectContaining({ create: { userId: "u1", organizationId: "a1", isTemporary: true } }),
     );
 
     expect(notificationEvent.create).toHaveBeenCalledWith({
@@ -56,7 +56,7 @@ describe("artist.setFollowing", () => {
     });
 
     await caller(db).artist.setFollowing({ slug: "dj-tamsin", following: false });
-    expect(follow.deleteMany).toHaveBeenCalledWith({ where: { userId: "u1", artistId: "a1" } });
+    expect(follow.deleteMany).toHaveBeenCalledWith({ where: { userId: "u1", organizationId: "a1" } });
   });
 
   it("tells the artist about a fan's first follow only", async () => {
@@ -65,7 +65,7 @@ describe("artist.setFollowing", () => {
       create: vi.fn().mockResolvedValue({}),
     };
     const db = {
-      artist: { findFirst: vi.fn().mockResolvedValue({ id: "a1", userId: "artist-user" }) },
+      organization: { findFirst: vi.fn().mockResolvedValue({ id: "a1", userId: "artist-user" }) },
       follow: {
         findUnique: vi.fn().mockResolvedValue(null),
         upsert: vi.fn().mockResolvedValue({}),
@@ -78,7 +78,7 @@ describe("artist.setFollowing", () => {
   });
 
   it("needs a signed-in fan and a real artist", async () => {
-    const db = { artist: { findFirst: vi.fn().mockResolvedValue(null) }, follow: {} };
+    const db = { organization: { findFirst: vi.fn().mockResolvedValue(null) }, follow: {} };
     await expect(
       caller(db, null).artist.setFollowing({ slug: "x", following: true }),
     ).rejects.toThrow();
@@ -99,7 +99,7 @@ describe("music.album", () => {
       supply: null,
       playCount: 0,
       createdAt: new Date(),
-      artist: { name: "DJ Tamsin", slug: "dj-tamsin" },
+      organization: { name: "DJ Tamsin", slug: "dj-tamsin" },
       track: null,
       media: { mediaType: "AUDIO", durationSec },
       listings: [],
@@ -115,7 +115,7 @@ describe("music.album", () => {
           description: null,
           coverUrl: "c",
           createdAt: new Date("2026-01-01"),
-          artist: { name: "DJ Tamsin", slug: "dj-tamsin", avatarUrl: null },
+          organization: { name: "DJ Tamsin", slug: "dj-tamsin", avatarUrl: null },
           tracks: [track("a", 305), track("b", 274), track("c", null)],
         }),
       },

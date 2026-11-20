@@ -6,7 +6,7 @@ export const commentAuthorSelect = {
   username: true,
   displayName: true,
   avatarUrl: true,
-  artist: { select: { name: true, slug: true } },
+  organization: { select: { name: true, slug: true } },
 } satisfies Prisma.UserSelect;
 
 type AuthorRow = Prisma.UserGetPayload<{ select: typeof commentAuthorSelect }>;
@@ -15,10 +15,10 @@ type AuthorRow = Prisma.UserGetPayload<{ select: typeof commentAuthorSelect }>;
 export function commentAuthor(author: AuthorRow) {
   return {
     id: author.id,
-    name: author.artist?.name ?? author.displayName ?? author.username ?? "Fan",
+    name: author.organization?.name ?? author.displayName ?? author.username ?? "Fan",
     avatarUrl: author.avatarUrl,
-    href: author.artist
-      ? `/artist/${author.artist.slug}`
+    href: author.organization
+      ? `/artist/${author.organization.slug}`
       : author.username
         ? `/u/${author.username}`
         : null,

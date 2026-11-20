@@ -90,7 +90,7 @@ const [artistUser, sellerUser, buyerUser] = await Promise.all([
   mkUser(sellerKeys, "nr_seller"),
   mkUser(buyerKeys, "nr_buyer"),
 ]);
-const artist = await db.artist.create({
+const artist = await db.organization.create({
   data: {
     userId: artistUser.id,
     name: "NFT Resale Test",
@@ -107,7 +107,7 @@ const item = await db.item.create({
     coverUrl: "https://example.com/x.png",
     supply: 20,
     royaltyPercent: "5",
-    artistId: artist.id,
+    organizationId: artist.id,
     createdById: artistUser.id,
     contractNft: { create: { royaltyBps: 500, status: "PENDING" } },
   },
@@ -287,7 +287,7 @@ try {
   await db.order.deleteMany({ where: { OR: [{ buyerId: { in: users } }, { itemId: item.id }] } });
   await db.listing.deleteMany({ where: { itemId: item.id } });
   await db.item.delete({ where: { id: item.id } });
-  await db.artist.delete({ where: { id: artist.id } });
+  await db.organization.delete({ where: { id: artist.id } });
   await db.chainAccount.deleteMany({ where: { ownerId: { in: users } } });
   await db.user.deleteMany({ where: { id: { in: users } } });
   await db.$disconnect();

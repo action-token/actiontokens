@@ -15,12 +15,12 @@ const HISTORY_MESSAGES = 30;
 export type HistoryTurn = { role: "user" | "assistant"; text: string };
 
 /** The conversation's recent turns as text the model can read, plus its earlier cards. */
-export async function loadHistory(db: Db, conversationId: string, artistId: string) {
+export async function loadHistory(db: Db, conversationId: string, organizationId: string) {
   const conversation = await db.agentConversation.findUnique({
     where: { id: conversationId },
-    select: { artistId: true },
+    select: { organizationId: true },
   });
-  if (!conversation || conversation.artistId !== artistId)
+  if (!conversation || conversation.organizationId !== organizationId)
     throw new Error("Conversation not found for this artist");
 
   const [rows, actions] = await Promise.all([
@@ -98,7 +98,7 @@ export async function saveAnswer(run: Run, text: string): Promise<string> {
         data: run.actions.map((a) => ({
           id: a.id,
           conversationId: run.conversationId,
-          artistId: run.artist.id,
+          organizationId: run.artist.id,
           type: a.action.type,
           payload: a.action as unknown as Prisma.InputJsonValue,
           status: "pending",

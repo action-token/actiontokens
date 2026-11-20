@@ -65,7 +65,7 @@ const notFound = (what: string) =>
 /** The person's own conversation for this artist (not found otherwise). */
 async function ownConversation(ctx: ServiceCtx, artist: ArtistRef, user: SessionUser, id: string) {
   const conversation = await ctx.db.agentConversation.findFirst({
-    where: { id, artistId: artist.id, userId: user.id },
+    where: { id, organizationId: artist.id, userId: user.id },
     select: { id: true, title: true },
   });
   if (!conversation) throw notFound("Conversation");
@@ -75,7 +75,7 @@ async function ownConversation(ctx: ServiceCtx, artist: ArtistRef, user: Session
 export function overview(artist: ArtistRef, area?: string) {
   const where = area ?? "my area";
   return {
-    artist: { id: artist.id, name: artist.name },
+    organization: { id: artist.id, name: artist.name },
     suggestions: [
       `Find all public parks in ${where} and pin them`,
       "Which of my pins were collected most this month?",
@@ -87,7 +87,7 @@ export function overview(artist: ArtistRef, area?: string) {
 
 export const listConversations = (ctx: ServiceCtx, artist: ArtistRef, user: SessionUser) =>
   ctx.db.agentConversation.findMany({
-    where: { artistId: artist.id, userId: user.id },
+    where: { organizationId: artist.id, userId: user.id },
     orderBy: { updatedAt: "desc" },
     take: 40,
     select: { id: true, title: true, updatedAt: true },
@@ -195,7 +195,7 @@ export async function sendMessage(
       const conversation = input.conversationId
         ? await ownConversation(ctx, artist, user, input.conversationId)
         : await ctx.db.agentConversation.create({
-            data: { artistId: artist.id, userId: user.id, title: text.slice(0, 80) },
+            data: { organizationId: artist.id, userId: user.id, title: text.slice(0, 80) },
             select: { id: true, title: true },
           });
       if (input.answer) await markAnswered(ctx, conversation.id, input.answer);
@@ -210,12 +210,12 @@ export async function sendMessage(
       });
 
       const agentJob = await ctx.db.agentJob.create({
-        data: { artistId: artist.id, status: "QUEUED", payload: {} },
+        data: { organizationId: artist.id, status: "QUEUED", payload: {} },
         select: { id: true },
       });
       const payload: AgentRunPayload = {
         conversationId: conversation.id,
-        artistId: artist.id,
+        organizationId: artist.id,
         agentJobId: agentJob.id,
         timeZone: input.timeZone,
       };
@@ -244,7 +244,7 @@ export async function pollRun(
   now = new Date(),
 ) {
   const job = await ctx.db.agentJob.findFirst({
-    where: { id: jobId, artistId: artist.id },
+    where: { id: jobId, organizationId: artist.id },
     select: { status: true, payload: true, result: true, updatedAt: true },
   });
   const conversationId = (job?.payload as { conversationId?: string } | null)?.conversationId;
@@ -281,7 +281,7 @@ export async function confirmAction(
   input: { actionId: string; edits?: ActionEdits; layerId?: string | null },
 ) {
   const action = await ctx.db.agentAction.findFirst({
-    where: { id: input.actionId, artistId: artist.id, conversation: { userId: user.id } },
+    where: { id: input.actionId, organizationId: artist.id, conversation: { userId: user.id } },
     select: { id: true, payload: true },
   });
   if (!action) throw notFound("Proposal");
@@ -331,7 +331,7 @@ export async function cancelAction(
   const { count } = await ctx.db.agentAction.updateMany({
     where: {
       id: actionId,
-      artistId: artist.id,
+      organizationId: artist.id,
       status: "pending",
       conversation: { userId: user.id },
     },

@@ -157,7 +157,7 @@ export async function finishAccountOpening(
     if (!account || account.kind !== kind || account.ownerId !== order.buyerId || !order.buyerId)
       throw new AppError(ErrorCodes.INTERNAL, { message: "This order's account doesn't match." });
     await db.chainAccount.update({ where: { id: account.id }, data: { activatedAt: new Date() } });
-    await db.artist.update({
+    await db.organization.update({
       where: { userId: order.buyerId },
       data: kind === "ISSUER" ? { issuerAccountId: account.id } : { storageAccountId: account.id },
     });

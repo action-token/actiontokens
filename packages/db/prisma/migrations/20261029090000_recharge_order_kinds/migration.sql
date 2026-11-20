@@ -1,3 +1,0 @@
--- AlterEnum
-ALTER TYPE "OrderKind" ADD VALUE 'RECHARGE';
-ALTER TYPE "OrderKind" ADD VALUE 'XLM_SWAP';

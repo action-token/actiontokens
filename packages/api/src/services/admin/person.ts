@@ -28,7 +28,7 @@ export async function getPerson(ctx: ServiceCtx, userId: string) {
       createdAt: true,
       suspendedAt: true,
       suspendedReason: true,
-      artist: {
+      organization: {
         select: {
           id: true,
           name: true,
@@ -99,7 +99,7 @@ export async function getPerson(ctx: ServiceCtx, userId: string) {
                   title: true,
                   type: true,
                   imageUrl: true,
-                  artist: { select: { id: true, name: true } },
+                  organization: { select: { id: true, name: true } },
                 },
               },
             },
@@ -129,7 +129,7 @@ export async function getPerson(ctx: ServiceCtx, userId: string) {
 
   return {
     id: user.id,
-    name: user.artist?.name ?? user.displayName ?? user.username,
+    name: user.organization?.name ?? user.displayName ?? user.username,
     username: user.username,
     avatarUrl: user.avatarUrl,
     email: user.email,
@@ -148,16 +148,16 @@ export async function getPerson(ctx: ServiceCtx, userId: string) {
       following: user._count.follows,
       orders: user._count.orders,
     },
-    artist: user.artist
+    artist: user.organization
       ? {
-          id: user.artist.id,
-          name: user.artist.name,
-          slug: user.artist.slug,
-          status: user.artist.status,
-          appliedAt: user.artist.createdAt,
-          issuer: user.artist.issuerAccount?.publicKey ?? null,
-          storage: user.artist.storageAccount?.publicKey ?? null,
-          counts: user.artist._count,
+          id: user.organization.id,
+          name: user.organization.name,
+          slug: user.organization.slug,
+          status: user.organization.status,
+          appliedAt: user.organization.createdAt,
+          issuer: user.organization.issuerAccount?.publicKey ?? null,
+          storage: user.organization.storageAccount?.publicKey ?? null,
+          counts: user.organization._count,
         }
       : null,
     orders: orders.map((order) => ({ ...order, total: order.total.toString() })),

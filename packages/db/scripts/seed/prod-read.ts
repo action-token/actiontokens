@@ -21,22 +21,22 @@ export async function readProduction(client: pg.Client, slug: string) {
   if (!artist) return null;
   const id = artist.id as string;
   const [layout] = await q(
-    `select "publishedBlocks" from page_layouts where "artistId" = $1 and status = 'PUBLISHED' and "isActive" = true limit 1`,
+    `select "publishedBlocks" from page_layouts where "organizationId" = $1 and status = 'PUBLISHED' and "isActive" = true limit 1`,
     [id],
   );
   return {
     artist,
     layout: layout?.publishedBlocks as unknown,
     albums: await q(
-      `select id, title, slug, description, "coverUrl" from albums where "artistId" = $1`,
+      `select id, title, slug, description, "coverUrl" from albums where "organizationId" = $1`,
       [id],
     ),
     tiers: await q(
-      `select name, description, features, "requiredTokens", "isPopular", "isActive", "sortOrder" from membership_tiers where "artistId" = $1`,
+      `select name, description, features, "requiredTokens", "isPopular", "isActive", "sortOrder" from membership_tiers where "organizationId" = $1`,
       [id],
     ),
     events: await q(
-      `select title, description, "coverUrl", "startsAt", "endsAt", "venueName", address, latitude, longitude, link, "linkLabel", capacity from events where "artistId" = $1`,
+      `select title, description, "coverUrl", "startsAt", "endsAt", "venueName", address, latitude, longitude, link, "linkLabel", capacity from events where "organizationId" = $1`,
       [id],
     ),
     items: await q(
@@ -48,7 +48,7 @@ export async function readProduction(client: pg.Client, slug: string) {
          left join item_media m on m."itemId" = i.id and m."mediaType" = 'AUDIO'
          left join tracks t on t."itemId" = i.id
          left join lateral (select "priceBandcoin", "priceUsd" from listings where "itemId" = i.id and status = 'ACTIVE' order by "createdAt" limit 1) l on true
-        where i."artistId" = $1 and i."deletedAt" is null and i."hiddenAt" is null and (i.visibility <> 'DRAFT' or i.type = 'FAN_TOKEN')`,
+        where i."organizationId" = $1 and i."deletedAt" is null and i."hiddenAt" is null and (i.visibility <> 'DRAFT' or i.type = 'FAN_TOKEN')`,
       [id],
     ),
   };

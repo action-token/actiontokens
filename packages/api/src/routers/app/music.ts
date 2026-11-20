@@ -27,7 +27,7 @@ const albumCardSelect = {
   slug: true,
   coverUrl: true,
   createdAt: true,
-  artist: { select: { name: true, slug: true } },
+  organization: { select: { name: true, slug: true } },
   _count: { select: { tracks: true } },
 } satisfies Prisma.AlbumSelect;
 
@@ -92,7 +92,7 @@ export const musicRouter = createRouter({
           description: true,
           coverUrl: true,
           createdAt: true,
-          artist: { select: { name: true, slug: true, avatarUrl: true } },
+          organization: { select: { name: true, slug: true, avatarUrl: true } },
           tracks: {
             where: { item: listedItemWhere },
             orderBy: [{ trackNumber: "asc" }, { item: { createdAt: "asc" } }],
@@ -109,7 +109,7 @@ export const musicRouter = createRouter({
         description: album.description,
         coverUrl: album.coverUrl,
         year: album.createdAt.getFullYear(),
-        artist: album.artist,
+        artist: album.organization,
         tracks,
         durationSec: tracks.reduce((sum, track) => sum + (track.durationSec ?? 0), 0),
       };

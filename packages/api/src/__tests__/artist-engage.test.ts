@@ -91,7 +91,7 @@ describe("events", () => {
       }),
     ).resolves.toEqual({ eventId: "e1" });
     expect(written[0]).toMatchObject({
-      artistId: "a1",
+      organizationId: "a1",
       title: "Album launch",
       venueName: "The Hall",
       link: "https://tickets.example/x",
@@ -154,7 +154,7 @@ describe("events", () => {
     const { ctx, db } = setup({ event: null });
     await expect(removeEvent(ctx, artist, "someone-elses")).rejects.toThrow(/Event not found/);
     expect(db.event.findFirst).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { id: "someone-elses", artistId: "a1" } }),
+      expect.objectContaining({ where: { id: "someone-elses", organizationId: "a1" } }),
     );
     expect(db.event.delete).not.toHaveBeenCalled();
   });
@@ -191,7 +191,7 @@ describe("announcements", () => {
       now,
     );
     expect(written[0]).toMatchObject({
-      artistId: "a1",
+      organizationId: "a1",
       isPinned: true,
       ctaLabel: "Listen",
       ctaUrl: "https://bandcoin.io/x",

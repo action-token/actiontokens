@@ -77,7 +77,7 @@ describe.skipIf(!hasFfmpeg)("transcodeItem (real ffmpeg)", () => {
         sourceUrl: "https://cdn/song.wav",
         previewStartSec: 25,
         status: "PENDING",
-        item: { artistId: "a1" },
+        item: { organizationId: "a1" },
       },
       [
         { id: "s1", sourceUrl: "https://cdn/vocals.wav" },

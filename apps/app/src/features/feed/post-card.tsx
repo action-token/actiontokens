@@ -32,7 +32,7 @@ export function PostCard({ post, full = false }: { post: FeedPost; full?: boolea
   const input = useRef<HTMLTextAreaElement>(null);
   const href = `/feed/${post.id}`;
   const commentsOff = !post.comment.open && post.comment.reason === "OFF";
-  const artistHref = `/artist/${post.artist.slug}`;
+  const artistHref = `/artist/${post.organization.slug}`;
 
   return (
     <article
@@ -41,14 +41,14 @@ export function PostCard({ post, full = false }: { post: FeedPost; full?: boolea
     >
       <header className="flex items-center gap-3">
         <Link href={artistHref} className="shrink-0">
-          <Avatar name={post.artist.name} url={post.artist.avatarUrl} />
+          <Avatar name={post.organization.name} url={post.organization.avatarUrl} />
         </Link>
         <div className="min-w-0 flex-1">
           <Link
             href={artistHref}
             className="block truncate text-[15px] font-semibold hover:underline"
           >
-            {post.artist.name}
+            {post.organization.name}
           </Link>
           <p className="text-fg-muted flex items-center gap-1 text-xs">
             <Link href={href} className="hover:underline">
@@ -192,12 +192,12 @@ function LockedNote({ post, artistHref }: { post: FeedPost; artistHref: string }
         <p className="flex items-center gap-2 text-sm font-semibold">
           <Users className="text-fg-muted size-4 shrink-0" /> For followers
         </p>
-        <p className="text-fg-muted text-sm">Follow {post.artist.name} to open it.</p>
+        <p className="text-fg-muted text-sm">Follow {post.organization.name} to open it.</p>
         <Link
           href={artistHref}
           className="text-primary-text flex items-center gap-1.5 justify-self-start text-sm font-semibold hover:underline"
         >
-          <UserPlus className="size-4" /> Follow on {post.artist.name}&apos;s page
+          <UserPlus className="size-4" /> Follow on {post.organization.name}&apos;s page
         </Link>
       </div>
     );
@@ -209,7 +209,7 @@ function LockedNote({ post, artistHref }: { post: FeedPost; artistHref: string }
         </p>
         <p className="text-fg-muted text-sm">
           {lock.code
-            ? `Subscribe to ${post.artist.name} (trust ${lock.code}) to open it.`
+            ? `Subscribe to ${post.organization.name} (trust ${lock.code}) to open it.`
             : "This artist's subscriptions open soon."}
         </p>
         {lock.code && (
@@ -217,7 +217,7 @@ function LockedNote({ post, artistHref }: { post: FeedPost; artistHref: string }
             href={artistHref}
             className="text-primary-text justify-self-start text-sm font-semibold hover:underline"
           >
-            Subscribe on {post.artist.name}&apos;s page
+            Subscribe on {post.organization.name}&apos;s page
           </Link>
         )}
       </div>
@@ -238,7 +238,7 @@ function LockedNote({ post, artistHref }: { post: FeedPost; artistHref: string }
           href={artistHref}
           className="text-primary-text justify-self-start text-sm font-semibold hover:underline"
         >
-          Get {lock.code} on {post.artist.name}&apos;s page
+          Get {lock.code} on {post.organization.name}&apos;s page
         </Link>
       )}
     </div>

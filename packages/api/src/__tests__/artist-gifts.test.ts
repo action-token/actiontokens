@@ -26,12 +26,12 @@ const issuerKey = Keypair.random().publicKey();
 const network = { passphrase: Networks.TESTNET, baseFee: "100" };
 const ORDER = "cmvorder0000000000000007";
 const storageKey = Keypair.random().publicKey();
-const artist: { id: string; fanTokenItemId: string | null; storageAccountId: string | null } = {
+const organization: { id: string; fanTokenItemId: string | null; storageAccountId: string | null } = {
   id: "a1",
   fanTokenItemId: "tok1",
   storageAccountId: null,
 };
-const withStorage = { ...artist, storageAccountId: "st1" };
+const withStorage = { ...organization, storageAccountId: "st1" };
 const me: SessionUser = {
   id: "u-artist",
   role: "ARTIST",
@@ -214,7 +214,7 @@ describe("findRecipient", () => {
 
 describe("quoteGift", () => {
   it("prices only the network fee; the gift itself is newly issued", async () => {
-    const quote = await quoteGift(setup().ctx, me, artist, ask);
+    const quote = await quoteGift(setup().ctx, me, organization, ask);
     expect(quote).toMatchObject({
       ok: true,
       total: "0.0000100",
@@ -227,9 +227,9 @@ describe("quoteGift", () => {
   });
 
   it("explains what's in the way", async () => {
-    const problems = async (opts: Parameters<typeof setup>[0], input = ask, who = artist) =>
+    const problems = async (opts: Parameters<typeof setup>[0], input = ask, who = organization) =>
       (await quoteGift(setup(opts).ctx, me, who, input)).problems.map((p) => p.message);
-    expect(await problems({}, ask, { ...artist, fanTokenItemId: null })).toEqual([
+    expect(await problems({}, ask, { ...organization, fanTokenItemId: null })).toEqual([
       expect.stringContaining("Create your fan token"),
     ]);
     expect(
@@ -256,7 +256,7 @@ describe("quoteGift", () => {
     expect(await problems({ fanTrusts: false })).toEqual([
       expect.stringContaining("hasn't added your token"),
     ]);
-    expect((await quoteGift(setup({ xlm: "0" }).ctx, me, artist, ask)).problems).toMatchObject([
+    expect((await quoteGift(setup({ xlm: "0" }).ctx, me, organization, ask)).problems).toMatchObject([
       { code: "INSUFFICIENT_FUNDS" },
     ]);
   });
@@ -333,7 +333,7 @@ describe("gifts from storage", () => {
 describe("startGift", () => {
   it("issues from the issuer to the fan with the artist's wallet as source, and signs nothing yet", async () => {
     const { ctx, chain, orders } = setup();
-    const started = await startGift(ctx, me, artist, ask);
+    const started = await startGift(ctx, me, organization, ask);
     expect(started).toMatchObject({ orderId: ORDER, signer: "wallet" });
     const tx = TransactionBuilder.fromXDR(started.xdr, Networks.TESTNET) as Transaction;
     expect(tx.source).toBe(wallet.publicKey());
@@ -357,7 +357,7 @@ describe("startGift", () => {
 
   it("refuses to start when the quote isn't ok", async () => {
     const { ctx, db } = setup({ fanTrusts: false });
-    await expect(startGift(ctx, me, artist, ask)).rejects.toMatchObject({
+    await expect(startGift(ctx, me, organization, ask)).rejects.toMatchObject({
       message: expect.stringContaining("hasn't added your token") as unknown,
     });
     expect(db.order.create).not.toHaveBeenCalled();
@@ -367,8 +367,8 @@ describe("startGift", () => {
 describe("submitGift", () => {
   it("has the issuer co-sign, sends it, and records the fan's new tokens", async () => {
     const { ctx, chain, db, orders, activity } = setup();
-    const { xdr } = await startGift(ctx, me, artist, ask);
-    await expect(submitGift(ctx, me, artist, { orderId: ORDER, xdr })).resolves.toEqual({
+    const { xdr } = await startGift(ctx, me, organization, ask);
+    await expect(submitGift(ctx, me, organization, { orderId: ORDER, xdr })).resolves.toEqual({
       orderId: ORDER,
       status: "DELIVERED",
     });
@@ -385,15 +385,15 @@ describe("submitGift", () => {
 
   it("fails the order and gives nothing when the network says no", async () => {
     const { ctx, db, orders } = setup({ submit: () => Promise.reject(new Error("tx_failed")) });
-    const { xdr } = await startGift(ctx, me, artist, ask);
-    await expect(submitGift(ctx, me, artist, { orderId: ORDER, xdr })).rejects.toThrow("tx_failed");
+    const { xdr } = await startGift(ctx, me, organization, ask);
+    await expect(submitGift(ctx, me, organization, { orderId: ORDER, xdr })).rejects.toThrow("tx_failed");
     expect(db.ownership.upsert).not.toHaveBeenCalled();
     expect(orders.get(ORDER)).toMatchObject({ status: "FAILED" });
   });
 
   it("won't send a different transaction than the one it built", async () => {
     const { ctx, chain } = setup();
-    const { xdr } = await startGift(ctx, me, artist, ask);
+    const { xdr } = await startGift(ctx, me, organization, ask);
     const other = new TransactionBuilder(new Account(wallet.publicKey(), "50"), {
       fee: "100",
       networkPassphrase: Networks.TESTNET,
@@ -402,7 +402,7 @@ describe("submitGift", () => {
       .build()
       .toXDR();
     expect(xdr).not.toBe(other);
-    await expect(submitGift(ctx, me, artist, { orderId: ORDER, xdr: other })).rejects.toMatchObject(
+    await expect(submitGift(ctx, me, organization, { orderId: ORDER, xdr: other })).rejects.toMatchObject(
       {
         message: "That transaction doesn't belong to this order.",
       },
@@ -412,26 +412,26 @@ describe("submitGift", () => {
 
   it("won't take someone else's order or another kind of order, and only sends once", async () => {
     const { ctx, orders, chain } = setup();
-    const { xdr } = await startGift(ctx, me, artist, ask);
+    const { xdr } = await startGift(ctx, me, organization, ask);
     await expect(
-      submitGift(ctx, { ...me, id: "other" }, artist, { orderId: ORDER, xdr }),
+      submitGift(ctx, { ...me, id: "other" }, organization, { orderId: ORDER, xdr }),
     ).rejects.toMatchObject({ message: "Order not found" });
-    await submitGift(ctx, me, artist, { orderId: ORDER, xdr });
-    await expect(submitGift(ctx, me, artist, { orderId: ORDER, xdr })).rejects.toMatchObject({
+    await submitGift(ctx, me, organization, { orderId: ORDER, xdr });
+    await expect(submitGift(ctx, me, organization, { orderId: ORDER, xdr })).rejects.toMatchObject({
       message: expect.stringContaining("already") as unknown,
     });
     expect(chain.submit).toHaveBeenCalledTimes(1);
     orders.get(ORDER)!.kind = "ISSUER_SETUP";
-    await expect(submitGift(ctx, me, artist, { orderId: ORDER, xdr })).rejects.toMatchObject({
+    await expect(submitGift(ctx, me, organization, { orderId: ORDER, xdr })).rejects.toMatchObject({
       message: "Order not found",
     });
   });
 
   it("fails an expired quote instead of sending", async () => {
     const { ctx, orders, chain } = setup();
-    const { xdr } = await startGift(ctx, me, artist, ask);
+    const { xdr } = await startGift(ctx, me, organization, ask);
     orders.get(ORDER)!.quoteExpiresAt = new Date(Date.now() - 1000);
-    await expect(submitGift(ctx, me, artist, { orderId: ORDER, xdr })).rejects.toBeTruthy();
+    await expect(submitGift(ctx, me, organization, { orderId: ORDER, xdr })).rejects.toBeTruthy();
     expect(chain.submit).not.toHaveBeenCalled();
     expect(orders.get(ORDER)).toMatchObject({ status: "FAILED" });
   });
@@ -458,7 +458,7 @@ describe("lists", () => {
       },
       { id: "o2", createdAt: new Date(), txHash: "h2", item: null, breakdown: null },
     ]);
-    const sent = await listSentGifts(ctx, me, artist);
+    const sent = await listSentGifts(ctx, me, organization);
     const recipient = { id: "u-fan", name: "Ana B", image: null };
     expect(sent).toEqual([
       {
@@ -491,12 +491,12 @@ describe("lists", () => {
 
   it("lists followers that have a wallet", async () => {
     const { ctx, db } = setup();
-    const followers = await listFollowers(ctx, artist, " an ");
+    const followers = await listFollowers(ctx, organization, " an ");
     expect(followers).toEqual([
       { id: "u-fan", name: "Ana B", username: "ana", wallet: fanWallet, image: null },
     ]);
     expect(db.follow.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: expect.objectContaining({ artistId: "a1" }) as unknown }),
+      expect.objectContaining({ where: expect.objectContaining({ organizationId: "a1" }) as unknown }),
     );
   });
 });

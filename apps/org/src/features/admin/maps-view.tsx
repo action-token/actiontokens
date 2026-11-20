@@ -36,11 +36,11 @@ export function MapsView() {
   const artist = artists.data?.find((entry) => entry.id === wanted) ?? artists.data?.[0];
 
   // The layer you were in belongs to the last artist: start on the regular map for each.
-  const artistId = artist?.id;
+  const organizationId = artist?.id;
   useEffect(() => {
     useSelectedLayer.setState({ id: null, shown: [] });
     return () => useSelectedLayer.setState({ id: null, shown: [] });
-  }, [artistId]);
+  }, [organizationId]);
 
   if (artists.isError)
     return (
@@ -90,7 +90,7 @@ export function MapsView() {
 
   return (
     // A fresh cache and map per artist: their own pins, framing and layer choice.
-    <ActingTRPCProvider key={artist.id} artistId={artist.id}>
+    <ActingTRPCProvider key={artist.id} organizationId={artist.id}>
       <ActingArtistProvider value={{ id: artist.id, name: artist.name }}>
         <PinsMap toolbarStart={picker} />
       </ActingArtistProvider>

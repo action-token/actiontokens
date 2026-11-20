@@ -50,8 +50,8 @@ const TARGET = z.object({ kind: z.enum(["event", "announcement"]), id: z.string(
 async function followedIds(db: Db, userId: string | undefined) {
   if (!userId)
     throw new AppError(ErrorCodes.AUTH_REQUIRED, { message: "Sign in to see artists you follow." });
-  const rows = await db.follow.findMany({ where: { userId }, select: { artistId: true } });
-  return rows.map((r) => r.artistId);
+  const rows = await db.follow.findMany({ where: { userId }, select: { organizationId: true } });
+  return rows.map((r) => r.organizationId);
 }
 
 const liveAnnouncement = (now: Date): Prisma.AnnouncementWhereInput => ({
@@ -60,7 +60,7 @@ const liveAnnouncement = (now: Date): Prisma.AnnouncementWhereInput => ({
 
 function cardInclude(userId: string | undefined) {
   return {
-    artist: { select: artistSelect },
+    organization: { select: artistSelect },
     _count: { select: { rsvps: true } },
     // Only the viewer's own RSVP, to answer "am I going?" without a second query.
     rsvps: { where: { userId: userId ?? "" }, select: { id: true }, take: 1 },
@@ -80,7 +80,7 @@ function toCard(row: CardRow): ArEventCard {
     address: row.address,
     hasVenue: row.latitude != null && row.longitude != null,
     hasLink: webUrl(row.link) !== null,
-    artist: artistOf(row.artist),
+    artist: artistOf(row.organization),
     goingCount: row._count.rsvps,
     capacity: row.capacity,
     viewer: { going: row.rsvps.length > 0 },
@@ -88,7 +88,7 @@ function toCard(row: CardRow): ArEventCard {
 }
 
 const announcementInclude = {
-  artist: { select: artistSelect },
+  organization: { select: artistSelect },
   _count: { select: { comments: true } },
 } as const;
 
@@ -105,7 +105,7 @@ function toAnnouncement(
     ctaUrl: webUrl(row.ctaUrl),
     expiresAt: row.expiresAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
-    artist: artistOf(row.artist),
+    artist: artistOf(row.organization),
     commentCount: row._count.comments,
   };
 }
@@ -129,7 +129,7 @@ export const eventRouter = createRouter({
       z.object({
         when: z.enum(["upcoming", "past"]).default("upcoming"),
         following: z.boolean().default(false),
-        artistId: z.string().optional(),
+        organizationId: z.string().optional(),
         ...PAGE,
       }),
     )
@@ -138,9 +138,9 @@ export const eventRouter = createRouter({
       const now = new Date();
       const where: Prisma.EventWhereInput = {
         endsAt: input.when === "upcoming" ? { gte: now } : { lt: now },
-        ...(input.artistId ? { artistId: input.artistId } : {}),
+        ...(input.organizationId ? { organizationId: input.organizationId } : {}),
       };
-      if (input.following) where.AND = [{ artistId: { in: await followedIds(ctx.db, userId) } }];
+      if (input.following) where.AND = [{ organizationId: { in: await followedIds(ctx.db, userId) } }];
 
       // Upcoming reads soonest first; past reads most recent first.
       const dir = input.when === "upcoming" ? "asc" : "desc";
@@ -172,7 +172,7 @@ export const eventRouter = createRouter({
             select: {
               title: true,
               imageUrl: true,
-              artist: { select: { avatarUrl: true } },
+              organization: { select: { avatarUrl: true } },
               spots: { where: { isHidden: false }, select: { id: true }, take: 1 },
             },
           },
@@ -197,7 +197,7 @@ export const eventRouter = createRouter({
                 {
                   id: spot.id,
                   title: p.title,
-                  imageUrl: p.imageUrl ?? p.artist.avatarUrl ?? site.assets.mark,
+                  imageUrl: p.imageUrl ?? p.organization.avatarUrl ?? site.assets.mark,
                 },
               ]
             : [];
@@ -271,21 +271,21 @@ export const eventRouter = createRouter({
 
   announcements: publicProcedure
     .input(
-      z.object({ following: z.boolean().default(false), artistId: z.string().optional(), ...PAGE }),
+      z.object({ following: z.boolean().default(false), organizationId: z.string().optional(), ...PAGE }),
     )
     .query(async ({ ctx, input }) => {
       const where: Prisma.AnnouncementWhereInput = {
         AND: [
           liveAnnouncement(new Date()),
-          ...(input.artistId ? [{ artistId: input.artistId }] : []),
+          ...(input.organizationId ? [{ organizationId: input.organizationId }] : []),
           ...(input.following
-            ? [{ artistId: { in: await followedIds(ctx.db, ctx.session?.user.id) } }]
+            ? [{ organizationId: { in: await followedIds(ctx.db, ctx.session?.user.id) } }]
             : []),
         ],
       };
       // "Pin to top" puts a post first on the artist's own list. In the
       // all-artists feed it's only a badge, so the feed stays newest first.
-      const orderBy: Prisma.AnnouncementOrderByWithRelationInput[] = input.artistId
+      const orderBy: Prisma.AnnouncementOrderByWithRelationInput[] = input.organizationId
         ? [{ isPinned: "desc" }, { createdAt: "desc" }, { id: "desc" }]
         : [{ createdAt: "desc" }, { id: "desc" }];
       const rows = await ctx.db.announcement.findMany({
@@ -367,7 +367,7 @@ export const eventRouter = createRouter({
     .input(z.object({ kind: TARGET.shape.kind, commentId: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
-      const owner = { select: { artist: { select: { userId: true } } } };
+      const owner = { select: { organization: { select: { userId: true } } } };
       const row =
         input.kind === "event"
           ? await ctx.db.eventComment.findUnique({
@@ -380,7 +380,7 @@ export const eventRouter = createRouter({
             });
       if (!row)
         throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Comment not found." });
-      const ownerId = "event" in row ? row.event.artist.userId : row.announcement.artist.userId;
+      const ownerId = "event" in row ? row.event.organization.userId : row.announcement.organization.userId;
       if (row.authorId !== userId && ownerId !== userId) {
         throw new AppError(ErrorCodes.AUTH_FORBIDDEN, {
           message: "You can't delete this comment.",

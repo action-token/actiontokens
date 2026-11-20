@@ -44,7 +44,7 @@ import { decidePins, deletePins, listPins, pinCounts, pinsForMap } from "../../s
 import { getMuralSettings } from "../../services/ar/murals";
 import { adminProcedure, createRouter } from "../../trpc";
 
-const artistId = z.object({ artistId: z.string().min(1) });
+const organizationId = z.object({ organizationId: z.string().min(1) });
 const muralId = z.object({ muralId: z.string().min(1) });
 const userId = z.object({ userId: z.string().min(1) });
 const pinIds = z.object({ pinIds: z.array(z.string().min(1)).min(1).max(500) });
@@ -69,11 +69,11 @@ const amount = z
   .regex(/^\d+(\.\d{1,7})?$/, "A number, up to 7 decimals")
   .nullable();
 const reportScope = z.object({
-  artistId: z.string().min(1).optional(),
+  organizationId: z.string().min(1).optional(),
   from: z.coerce.date().optional(),
   to: z.coerce.date().optional(),
 });
-const scopeOf = (input: { artistId?: string }) => (input.artistId ? { id: input.artistId } : null);
+const scopeOf = (input: { organizationId?: string }) => (input.organizationId ? { id: input.organizationId } : null);
 const contractFee = z.object({
   feeBps: z.number().int().min(0).max(NFT_MAX_PLATFORM_FEE_BPS),
   treasury: stellarAccount,
@@ -85,23 +85,23 @@ export const adminRouter = createRouter({
     list: adminProcedure
       .input(z.object({ status: z.enum(["PENDING", "APPROVED", "REJECTED", "BANNED"]).optional() }))
       .query(({ ctx, input }) => listApplications(ctx, input)),
-    get: adminProcedure.input(artistId).query(({ ctx, input }) => getArtist(ctx, input.artistId)),
+    get: adminProcedure.input(organizationId).query(({ ctx, input }) => getArtist(ctx, input.organizationId)),
     approve: adminProcedure
-      .input(artistId)
-      .mutation(({ ctx, input }) => approveArtist(ctx, input.artistId)),
+      .input(organizationId)
+      .mutation(({ ctx, input }) => approveArtist(ctx, input.organizationId)),
     reject: adminProcedure
       .input(
-        artistId.extend({
+        organizationId.extend({
           reason: z.string().trim().min(3, "Tell them why, in a few words").max(300),
         }),
       )
       .mutation(({ ctx, input }) => rejectArtist(ctx, input)),
     ban: adminProcedure
-      .input(artistId)
-      .mutation(({ ctx, input }) => banArtist(ctx, input.artistId)),
+      .input(organizationId)
+      .mutation(({ ctx, input }) => banArtist(ctx, input.organizationId)),
     unban: adminProcedure
-      .input(artistId)
-      .mutation(({ ctx, input }) => unbanArtist(ctx, input.artistId)),
+      .input(organizationId)
+      .mutation(({ ctx, input }) => unbanArtist(ctx, input.organizationId)),
   }),
   users: createRouter({
     list: adminProcedure
@@ -138,7 +138,7 @@ export const adminRouter = createRouter({
     counts: adminProcedure.query(({ ctx }) => pinCounts(ctx)),
     map: adminProcedure
       .input(
-        z.object({ artistId: z.string().min(1).optional(), includeEnded: z.boolean().optional() }),
+        z.object({ organizationId: z.string().min(1).optional(), includeEnded: z.boolean().optional() }),
       )
       .query(({ ctx, input }) => pinsForMap(ctx, input)),
     decide: adminProcedure
@@ -243,7 +243,7 @@ export const adminRouter = createRouter({
         updateMuralSettings({ ...ctx, adminId: ctx.session.user.id }, input),
       ),
   }),
-  /** The collection report over every artist, or one picked (artistId). */
+  /** The collection report over every artist, or one picked (organizationId). */
   reports: createRouter({
     summary: adminProcedure
       .input(reportScope)

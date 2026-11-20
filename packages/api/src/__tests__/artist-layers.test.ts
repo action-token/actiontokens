@@ -25,7 +25,7 @@ function setup(
   const pins: { data: Record<string, unknown> }[] = [];
   const hotspot = {
     id: "h1",
-    artistId: "a1",
+    organizationId: "a1",
     title: "Drops",
     layerId: opts.hotspotLayer ?? null,
     template: {
@@ -57,11 +57,11 @@ function setup(
       create: vi.fn(({ data }: { data: Record<string, unknown> }) =>
         Promise.resolve({ id: "L-new", ...data }),
       ),
-      findFirst: vi.fn(({ where }: { where: { id: string; artistId: string } }) =>
-        Promise.resolve(owners[where.id] === where.artistId ? { id: where.id } : null),
+      findFirst: vi.fn(({ where }: { where: { id: string; organizationId: string } }) =>
+        Promise.resolve(owners[where.id] === where.organizationId ? { id: where.id } : null),
       ),
       findUnique: vi.fn(({ where }: { where: { id: string } }) =>
-        Promise.resolve(where.id in owners ? { artistId: owners[where.id] } : null),
+        Promise.resolve(where.id in owners ? { organizationId: owners[where.id] } : null),
       ),
       update: vi.fn(({ data }: { data: Record<string, unknown> }) =>
         Promise.resolve({ id: "L1", ...data }),
@@ -103,7 +103,7 @@ describe("artist layers", () => {
     const { ctx, db } = setup();
     await createLayer(ctx, artist, { ...venue, name: "  Venue " });
     expect(db.pinLayer.create).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { ...venue, artistId: "a1" } }),
+      expect.objectContaining({ data: { ...venue, organizationId: "a1" } }),
     );
     await updateLayer(ctx, artist, { id: "L1", ...venue, name: "Merch", color: "#0090FF" });
     expect(db.pinLayer.update).toHaveBeenCalledWith(
@@ -214,14 +214,14 @@ describe("the fan map's layer filter", () => {
             name: "Venue",
             icon: "Music",
             color: "#111111",
-            artist: { name: "Beta", avatarUrl: null },
+            organization: { name: "Beta", avatarUrl: null },
           },
           {
             id: "L1",
             name: "Venue",
             icon: "Music",
             color: "#222222",
-            artist: { name: "Acme", avatarUrl: "a.png" },
+            organization: { name: "Acme", avatarUrl: "a.png" },
           },
         ]),
       },

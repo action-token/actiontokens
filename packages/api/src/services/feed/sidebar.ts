@@ -15,12 +15,12 @@ export async function suggestedArtists(
   viewerId: string | null,
   options: { limit: number; excludeFollowed?: boolean },
 ) {
-  const where: Prisma.ArtistWhereInput = { status: "APPROVED" };
+  const where: Prisma.OrganizationWhereInput = { status: "APPROVED" };
   if (options.excludeFollowed && viewerId) {
     where.userId = { not: viewerId };
     where.followers = { none: { userId: viewerId } };
   }
-  const rows = await ctx.db.artist.findMany({
+  const rows = await ctx.db.organization.findMany({
     where,
     orderBy: [{ followers: { _count: "desc" } }, { createdAt: "desc" }],
     take: options.limit,
@@ -47,7 +47,7 @@ export async function upcomingEvents(
   now = new Date(),
 ) {
   return ctx.db.event.findMany({
-    where: { endsAt: { gte: now }, artist: { status: "APPROVED" } },
+    where: { endsAt: { gte: now }, organization: { status: "APPROVED" } },
     orderBy: { startsAt: "asc" },
     take: options.limit,
     select: {
@@ -57,7 +57,7 @@ export async function upcomingEvents(
       startsAt: true,
       endsAt: true,
       venueName: true,
-      artist: { select: { name: true, slug: true, avatarUrl: true } },
+      organization: { select: { name: true, slug: true, avatarUrl: true } },
     },
   });
 }
@@ -66,7 +66,7 @@ export type DirectorySort = "popular" | "newest";
 const DIRECTORY_ORDER = {
   popular: [{ followers: { _count: "desc" } }, { createdAt: "desc" }, { id: "desc" }],
   newest: [{ createdAt: "desc" }, { id: "desc" }],
-} satisfies Record<DirectorySort, Prisma.ArtistOrderByWithRelationInput[]>;
+} satisfies Record<DirectorySort, Prisma.OrganizationOrderByWithRelationInput[]>;
 
 /**
  * Every approved artist for the Artists page: search by name, most followed or
@@ -88,7 +88,7 @@ export async function artistDirectory(
 ) {
   if (options.following && !viewerId) return { artists: [], next: null };
   const search = options.search?.trim();
-  const rows = await ctx.db.artist.findMany({
+  const rows = await ctx.db.organization.findMany({
     where: {
       status: "APPROVED",
       ...(search ? { name: { contains: search, mode: "insensitive" } } : {}),

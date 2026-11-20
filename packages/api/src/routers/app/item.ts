@@ -34,9 +34,9 @@ export const itemRouter = createRouter({
           releaseAt: true,
           saleEndsAt: true,
           playCount: true,
-          artist: {
+          organization: {
             select: {
-              ...accessSelect.artist.select,
+              ...accessSelect.organization.select,
               name: true,
               slug: true,
               avatarUrl: true,
@@ -98,9 +98,9 @@ export const itemRouter = createRouter({
         item.chainType === "CONTRACT_NFT" ? lockedPreview(ctx.db, item.id) : [],
       ]);
 
-      const { listings, _count, membersOnly: _, tier, artist, ...rest } = item;
-      const artistView = artist
-        ? { name: artist.name, slug: artist.slug, avatarUrl: artist.avatarUrl, bio: artist.bio }
+      const { listings, _count, membersOnly: _, tier, organization, ...rest } = item;
+      const artistView = organization
+        ? { name: organization.name, slug: organization.slug, avatarUrl: organization.avatarUrl, bio: organization.bio }
         : null;
       const allowed = gate && checkAccess(gate, user ? { account } : null);
       return {

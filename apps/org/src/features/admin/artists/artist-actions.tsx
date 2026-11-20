@@ -94,7 +94,7 @@ export function useArtistActions() {
         }
         confirmLabel="Approve"
         busy={busy}
-        onConfirm={() => pending && approve.mutate({ artistId: pending.artist.id })}
+        onConfirm={() => pending && approve.mutate({ organizationId: pending.artist.id })}
       />
       <ConfirmDialog
         open={pending?.action === "ban" || pending?.action === "unban"}
@@ -110,7 +110,7 @@ export function useArtistActions() {
         busy={busy}
         onConfirm={() => {
           if (!pending) return;
-          const input = { artistId: pending.artist.id };
+          const input = { organizationId: pending.artist.id };
           if (pending.action === "unban") unban.mutate(input);
           else ban.mutate(input);
         }}
@@ -120,7 +120,7 @@ export function useArtistActions() {
         artist={pending?.action === "reject" ? pending.artist : null}
         busy={reject.isPending}
         onClose={() => setPending(null)}
-        onReject={(artist, reason) => reject.mutate({ artistId: artist.id, reason })}
+        onReject={(artist, reason) => reject.mutate({ organizationId: artist.id, reason })}
       />
     </>
   );

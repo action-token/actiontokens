@@ -72,7 +72,7 @@ export async function receiveWebhook(
       const pageId = String(entry.id ?? "");
       const connection = await ctx.db.facebookConnection.findFirst({
         where: { pageId },
-        select: { artistId: true },
+        select: { organizationId: true },
       });
       if (!connection) continue;
       for (const change of entry.changes ?? []) {
@@ -86,7 +86,7 @@ export async function receiveWebhook(
           ctx.db,
           FACEBOOK_IMPORT_JOB,
           {
-            artistId: connection.artistId,
+            organizationId: connection.organizationId,
             fbPostId,
             fallback: {
               message: value.message,
@@ -114,7 +114,7 @@ const createdAtOf = (post: FbPost | null, fallback?: ImportPayload["fallback"]) 
 /** The worker's `facebook.import`. Returns what happened; only a lost token or a missing artist stops it. */
 export async function importFacebookPost(
   ctx: ServiceCtx,
-  artistId: string,
+  organizationId: string,
   input: ImportPayload,
   deps: {
     getPost?: typeof getPagePost;
@@ -126,8 +126,8 @@ export async function importFacebookPost(
   if (await ctx.db.post.findUnique({ where: { facebookPostId: fbPostId }, select: { id: true } }))
     return { outcome: "DUPLICATE" as const };
 
-  const artist = await ctx.db.artist.findUnique({
-    where: { id: artistId },
+  const artist = await ctx.db.organization.findUnique({
+    where: { id: organizationId },
     select: { id: true, userId: true, facebook: { select: { pageTokenEncrypted: true } } },
   });
   if (!artist?.facebook) return { outcome: "DISCONNECTED" as const };
@@ -141,7 +141,7 @@ export async function importFacebookPost(
   } catch (error) {
     if (error instanceof GraphApiError && error.tokenRevoked) {
       // They removed our access on Facebook: the connection can't work again.
-      await ctx.db.facebookConnection.delete({ where: { artistId } }).catch(() => undefined);
+      await ctx.db.facebookConnection.delete({ where: { organizationId } }).catch(() => undefined);
       return { outcome: "TOKEN_REVOKED" as const };
     }
     // Anything else: use what the webhook carried, if it carried enough.
@@ -171,7 +171,7 @@ export async function importFacebookPost(
         type: kind,
         url: await (deps.upload ?? uploadBufferToS3)(file.bytes, file.contentType, {
           keyPrefix: "facebook-",
-          placement: { owner: "artists", ownerId: artistId, kind: "facebook" },
+          placement: { owner: "artists", ownerId: organizationId, kind: "facebook" },
         }),
       });
     } catch {
@@ -185,7 +185,7 @@ export async function importFacebookPost(
 
   const created = await ctx.db.post.create({
     data: {
-      artistId,
+      organizationId,
       title: firstLine(message) || "Facebook update",
       body: [message, link].filter(Boolean).join("\n\n"),
       facebookPostId: fbPostId,
@@ -201,7 +201,7 @@ export async function importFacebookPost(
   ctx.activity.set({ targetType: "Post", targetId: created.id });
   await notifyFollowers(ctx, {
     type: "POST",
-    artist: { id: artist.id, userId: artist.userId },
+    organization: { id: artist.id, userId: artist.userId },
     entityId: created.id,
   });
   return { outcome: "IMPORTED" as const, postId: created.id, media: media.length };

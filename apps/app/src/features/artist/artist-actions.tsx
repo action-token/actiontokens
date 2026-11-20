@@ -16,7 +16,7 @@ export function ArtistActions({
 }: {
   slug: string;
   /** The artist's fan token; null when they have none (nobody can subscribe yet) */
-  token: { code: string; artistId: string } | null;
+  token: { code: string; organizationId: string } | null;
   popular: ItemCardData[];
 }) {
   const standing = useArtistStanding(slug)?.standing;

@@ -56,7 +56,7 @@ export function AlbumsCarousel({ action }: { action?: ReactNode }) {
       }}
     >
       {list.map((album) => (
-        <AlbumCard key={album.slug} album={{ ...album, artistName: album.artist?.name }} />
+        <AlbumCard key={album.slug} album={{ ...album, artistName: album.organization?.name }} />
       ))}
       {(albums.isPending || albums.isFetchingNextPage) && (
         <AlbumSkeletons count={albums.isPending ? 6 : 3} />
@@ -85,7 +85,7 @@ export function AlbumsGrid() {
     <div className="grid gap-6">
       <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
         {list.map((album) => (
-          <AlbumCard key={album.slug} album={{ ...album, artistName: album.artist?.name }} />
+          <AlbumCard key={album.slug} album={{ ...album, artistName: album.organization?.name }} />
         ))}
         {albums.isPending && <AlbumSkeletons count={12} />}
       </div>

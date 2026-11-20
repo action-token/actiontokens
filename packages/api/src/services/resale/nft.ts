@@ -78,7 +78,7 @@ async function resalableNft(ctx: Pick<ServiceCtx, "db">, itemId: string) {
     select: {
       id: true,
       title: true,
-      artist: { select: { user: { select: { walletAddress: true } } } },
+      organization: { select: { user: { select: { walletAddress: true } } } },
       contractNft: { select: { royaltyBps: true, status: true } },
     },
   });
@@ -206,10 +206,10 @@ function priceOf(prepared: Awaited<ReturnType<typeof prepareList>>, input: NftLi
 
 /** The artist's own resale of a copy pays no royalty (the contract nets it out). */
 function isSelf(
-  item: { artist: { user: { walletAddress: string | null } } | null },
+  item: { organization: { user: { walletAddress: string | null } } | null },
   mine: { accountId(): string } | null,
 ) {
-  return Boolean(mine && item.artist?.user.walletAddress === mine.accountId());
+  return Boolean(mine && item.organization?.user.walletAddress === mine.accountId());
 }
 
 export async function quoteListNft(ctx: ServiceCtx, user: SessionUser, input: NftListInput) {

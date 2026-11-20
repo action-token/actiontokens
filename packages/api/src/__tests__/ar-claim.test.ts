@@ -81,7 +81,7 @@ function claimRow(
         rewardsFanToken: over.rewardsFanToken ?? true,
         rewardAmount: over.amount ?? "1",
         rewardItem: null,
-        artist: {
+        organization: {
           name: "Luna Vale",
           issuerAccount: { publicKey: issuer, activatedAt: new Date() },
           storageAccount: over.noStorage ? null : { publicKey: storage },

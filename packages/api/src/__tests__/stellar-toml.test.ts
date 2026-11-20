@@ -10,7 +10,7 @@ const row = (over: Record<string, unknown> = {}, item: Record<string, unknown> =
     description: "A song",
     coverUrl: "https://cdn.example/luna.png",
     type: "TRACK",
-    artist: { name: "Nova" },
+    organization: { name: "Nova" },
     ...item,
   },
   ...over,

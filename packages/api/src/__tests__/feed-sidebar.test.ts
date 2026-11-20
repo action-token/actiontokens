@@ -6,7 +6,7 @@ const now = new Date("2026-11-05T12:00:00Z");
 
 function setup(artists: object[] = [], events: object[] = []) {
   const db = {
-    artist: { findMany: vi.fn().mockResolvedValue(artists) },
+    organization: { findMany: vi.fn().mockResolvedValue(artists) },
     event: { findMany: vi.fn().mockResolvedValue(events) },
   };
   return { ctx: { db } as never, db };
@@ -25,7 +25,7 @@ describe("artists to follow", () => {
   it("lists approved artists by followers for anyone, signed in or not", async () => {
     const { ctx, db } = setup([artistRow()]);
     const list = await suggestedArtists(ctx, null, { limit: 6 });
-    expect(db.artist.findMany).toHaveBeenCalledWith(
+    expect(db.organization.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { status: "APPROVED" },
         orderBy: [{ followers: { _count: "desc" } }, { createdAt: "desc" }],
@@ -52,7 +52,7 @@ describe("artists to follow", () => {
   it("can leave out the viewer's own artist and the ones they already follow", async () => {
     const { ctx, db } = setup([]);
     await suggestedArtists(ctx, "fan", { limit: 5, excludeFollowed: true });
-    expect(db.artist.findMany).toHaveBeenCalledWith(
+    expect(db.organization.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {
           status: "APPROVED",
@@ -73,13 +73,13 @@ describe("upcoming events", () => {
       startsAt: new Date("2026-11-08T18:00:00Z"),
       endsAt: new Date("2026-11-08T21:00:00Z"),
       venueName: "The fountain",
-      artist: { name: "DJ Tamsin", slug: "dj-tamsin", avatarUrl: null },
+      organization: { name: "DJ Tamsin", slug: "dj-tamsin", avatarUrl: null },
     };
     const { ctx, db } = setup([], [event]);
     expect(await upcomingEvents(ctx, { limit: 4 }, now)).toEqual([event]);
     expect(db.event.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { endsAt: { gte: now }, artist: { status: "APPROVED" } },
+        where: { endsAt: { gte: now }, organization: { status: "APPROVED" } },
         orderBy: { startsAt: "asc" },
         take: 4,
       }),
@@ -104,7 +104,7 @@ describe("the artist directory", () => {
   it("lists approved artists, most followed first, a page at a time", async () => {
     const { ctx, db } = setup([row(), row({ id: "b", slug: "b" }), row({ id: "c", slug: "c" })]);
     const page = await artistDirectory(ctx, null, { limit: 2, sort: "popular" }, now);
-    expect(db.artist.findMany).toHaveBeenCalledWith(
+    expect(db.organization.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { status: "APPROVED" },
         orderBy: [{ followers: { _count: "desc" } }, { createdAt: "desc" }, { id: "desc" }],
@@ -138,7 +138,7 @@ describe("the artist directory", () => {
       { limit: 24, sort: "newest", search: "  tam ", cursor: "b" },
       now,
     );
-    expect(db.artist.findMany).toHaveBeenCalledWith(
+    expect(db.organization.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { status: "APPROVED", name: { contains: "tam", mode: "insensitive" } },
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],
@@ -151,7 +151,7 @@ describe("the artist directory", () => {
   it("Following: only artists the viewer follows, and nobody when signed out", async () => {
     const { ctx, db } = setup([row({ followers: [{ userId: "fan", isTemporary: true }] })]);
     await artistDirectory(ctx, "fan", { limit: 24, sort: "popular", following: true }, now);
-    expect(db.artist.findMany.mock.calls[0]![0].where).toMatchObject({
+    expect(db.organization.findMany.mock.calls[0]![0].where).toMatchObject({
       status: "APPROVED",
       followers: { some: { userId: "fan" } },
     });
@@ -163,7 +163,7 @@ describe("the artist directory", () => {
       now,
     );
     expect(signedOut).toEqual({ artists: [], next: null });
-    expect(db.artist.findMany).toHaveBeenCalledTimes(1);
+    expect(db.organization.findMany).toHaveBeenCalledTimes(1);
   });
 
   it("counts only stories that are live now, and marks the ones the viewer follows", async () => {
@@ -177,7 +177,7 @@ describe("the artist directory", () => {
       ["a", true, false],
       ["b", true, true],
     ]);
-    const select = db.artist.findMany.mock.calls[0]![0].select;
+    const select = db.organization.findMany.mock.calls[0]![0].select;
     expect(select._count.select.stories).toEqual({
       where: { removedAt: null, expiresAt: { gt: now } },
     });

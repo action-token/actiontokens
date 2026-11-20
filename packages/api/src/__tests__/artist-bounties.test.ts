@@ -228,7 +228,7 @@ describe("creating a bounty", () => {
       }),
     ).resolves.toEqual({ bountyId: "b1", tokenSetup: false });
     expect(written[0]).toMatchObject({
-      artistId: "a1",
+      organizationId: "a1",
       title: "Cover my song",
       prizeAmount: "250",
       prizeCurrency: "BANDCOIN",
@@ -337,7 +337,7 @@ describe("managing a bounty", () => {
       /not found/,
     );
     expect(db.bounty.findFirst).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { id: "x", artistId: "a1" } }),
+      expect.objectContaining({ where: { id: "x", organizationId: "a1" } }),
     );
   });
 

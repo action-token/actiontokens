@@ -2,9 +2,9 @@ import type { Placement } from "@actiontokens/storage";
 
 /** Where a file made for this artist (or, with no artist profile, this user) lives in the bucket. */
 export const ownerPlacement = (
-  owner: { artistId?: string | null; userId: string },
+  owner: { organizationId?: string | null; userId: string },
   kind: string,
 ): Placement =>
-  owner.artistId
-    ? { owner: "artists", ownerId: owner.artistId, kind }
+  owner.organizationId
+    ? { owner: "artists", ownerId: owner.organizationId, kind }
     : { owner: "users", ownerId: owner.userId, kind };

@@ -33,14 +33,14 @@ export async function getOverview(ctx: Pick<Context, "db">, now = new Date()) {
     liveStories,
   ] = await Promise.all([
     listAlerts(ctx, now),
-    db.artist.count({ where: { status: "PENDING" } }),
+    db.organization.count({ where: { status: "PENDING" } }),
     pinCounts(ctx),
     muralCounts(ctx),
     db.order.count({ where: { status: "FAILED", updatedAt: { gte: today } } }),
     db.job.count({ where: { status: "FAILED", updatedAt: { gte: today } } }),
     db.customDomain.count({ where: { status: "BROKEN" } }),
     db.user.count(),
-    db.artist.count({ where: { status: "APPROVED" } }),
+    db.organization.count({ where: { status: "APPROVED" } }),
     db.item.count({ where: { deletedAt: null } }),
     db.order.count({
       where: {

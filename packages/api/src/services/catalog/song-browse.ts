@@ -49,7 +49,7 @@ export function songWhere(
     and.push({
       OR: [
         { title: { contains: search, mode: "insensitive" } },
-        { artist: { name: { contains: search, mode: "insensitive" } } },
+        { organization: { name: { contains: search, mode: "insensitive" } } },
         { track: { artistName: { contains: search, mode: "insensitive" } } },
       ],
     });

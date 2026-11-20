@@ -37,7 +37,7 @@ const eventRow = {
   link: "javascript:alert(1)",
   linkLabel: null,
   capacity: null,
-  artist: { id: "a1", name: "Luna Vale", avatarUrl: null },
+  organization: { id: "a1", name: "Luna Vale", avatarUrl: null },
   _count: { rsvps: 2, comments: 1 },
   rsvps: [],
   pins: [],
@@ -118,7 +118,7 @@ describe("ar event", () => {
   });
 
   it("lets only the author or the artist delete a comment", async () => {
-    const comment = { authorId: "someone", event: { artist: { userId: "artist-user" } } };
+    const comment = { authorId: "someone", event: { organization: { userId: "artist-user" } } };
     const db = {
       eventComment: {
         findUnique: vi.fn().mockResolvedValue(comment),

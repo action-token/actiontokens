@@ -22,10 +22,10 @@ export type ProfileInput = {
 };
 
 /** Everything the Settings page shows: the profile, what the artist has made, and their accounts. */
-export async function getProfile(ctx: Pick<Context, "db">, artist: { id: string }) {
+export async function getProfile(ctx: Pick<Context, "db">, organization: { id: string }) {
   const [row, subscribers] = await Promise.all([
-    ctx.db.artist.findUniqueOrThrow({
-      where: { id: artist.id },
+    ctx.db.organization.findUniqueOrThrow({
+      where: { id: organization.id },
       select: {
         id: true,
         name: true,
@@ -53,7 +53,7 @@ export async function getProfile(ctx: Pick<Context, "db">, artist: { id: string 
       },
     }),
     // Followers who also trust the fan token.
-    ctx.db.follow.count({ where: { artistId: artist.id, isTemporary: false } }),
+    ctx.db.follow.count({ where: { organizationId: organization.id, isTemporary: false } }),
   ]);
   const { _count, fanTokenItem, ...profile } = row;
   return {
@@ -115,10 +115,10 @@ export async function updateProfile(ctx: ServiceCtx, artist: ArtistRef, input: P
     const problem = validateSlug(slug);
     if (problem) throw invalid(`That name makes the page address "${slug}": ${problem}.`);
     const [current, previous] = await Promise.all([
-      ctx.db.artist.findUnique({ where: { slug }, select: { id: true } }),
-      ctx.db.artistSlugHistory.findUnique({ where: { slug }, select: { artistId: true } }),
+      ctx.db.organization.findUnique({ where: { slug }, select: { id: true } }),
+      ctx.db.organizationSlugHistory.findUnique({ where: { slug }, select: { organizationId: true } }),
     ]);
-    if ((current && current.id !== artist.id) || (previous && previous.artistId !== artist.id))
+    if ((current && current.id !== artist.id) || (previous && previous.organizationId !== artist.id))
       throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
         message: `Another artist already uses the page address "${slug}". Try a slightly different name.`,
       });
@@ -127,14 +127,14 @@ export async function updateProfile(ctx: ServiceCtx, artist: ArtistRef, input: P
   await ctx.db.$transaction(async (tx) => {
     if (renamed) {
       // Taking back one of your own old addresses removes it from the history.
-      await tx.artistSlugHistory.deleteMany({ where: { slug, artistId: artist.id } });
-      await tx.artistSlugHistory.upsert({
+      await tx.organizationSlugHistory.deleteMany({ where: { slug, organizationId: artist.id } });
+      await tx.organizationSlugHistory.upsert({
         where: { slug: artist.slug },
-        create: { slug: artist.slug, artistId: artist.id },
+        create: { slug: artist.slug, organizationId: artist.id },
         update: {},
       });
     }
-    await tx.artist.update({
+    await tx.organization.update({
       where: { id: artist.id },
       data: renamed ? { ...details, slug } : details,
     });
@@ -147,23 +147,23 @@ export async function updateProfile(ctx: ServiceCtx, artist: ArtistRef, input: P
 /** A new profile picture or cover, uploaded to our own storage first. */
 export async function setProfileImage(
   ctx: ServiceCtx,
-  artist: { id: string },
+  organization: { id: string },
   input: { kind: "avatar" | "cover"; url: string | null },
 ) {
   if (input.url !== null && !isOwnS3Url(input.url)) throw invalid("Upload the picture again.");
-  await ctx.db.artist.update({
-    where: { id: artist.id },
+  await ctx.db.organization.update({
+    where: { id: organization.id },
     data: input.kind === "avatar" ? { avatarUrl: input.url } : { coverUrl: input.url },
   });
-  ctx.activity.set({ targetType: "Artist", targetId: artist.id });
+  ctx.activity.set({ targetType: "Artist", targetId: organization.id });
   return { url: input.url };
 }
 
 /** Where an old page address now points, for the fan app's redirect; null when it was never used. */
 export async function currentSlugFor(ctx: Pick<Context, "db">, slug: string) {
-  const previous = await ctx.db.artistSlugHistory.findUnique({
+  const previous = await ctx.db.organizationSlugHistory.findUnique({
     where: { slug },
-    select: { artist: { select: { slug: true, status: true } } },
+    select: { organization: { select: { slug: true, status: true } } },
   });
-  return previous?.artist.status === "APPROVED" ? previous.artist.slug : null;
+  return previous?.organization.status === "APPROVED" ? previous.organization.slug : null;
 }

@@ -63,7 +63,7 @@ export function ItemBody({
             )}
           </p>
           {item.access && !item.access.ok && (
-            <AccessNotice access={item.access} artist={item.artist} />
+            <AccessNotice access={item.access} organization={item.artist} />
           )}
           {item.ownedQuantity === 0 && <UnlockNotice pieces={item.lockedContent} />}
           <ItemPurchase

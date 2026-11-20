@@ -41,7 +41,7 @@ const cardSelect = {
   maxWinners: true,
   status: true,
   createdAt: true,
-  artist: { select: artistSelect },
+  organization: { select: artistSelect },
   musicRule: {
     select: {
       tracks: {
@@ -59,7 +59,7 @@ type CardRow = Prisma.BountyGetPayload<{ select: typeof cardSelect }>;
 const snippet = (text: string) => (text.length > SNIPPET ? `${text.slice(0, SNIPPET)}…` : text);
 
 function toCard(row: CardRow, config: ChainConfig, viewerId: string | undefined, joined: boolean) {
-  const { userId: artistUserId, ...artist } = row.artist;
+  const { userId: artistUserId, ...artist } = row.organization;
   return {
     id: row.id,
     title: row.title,
@@ -81,11 +81,11 @@ function toCard(row: CardRow, config: ChainConfig, viewerId: string | undefined,
 async function runningBounty(db: Db, bountyId: string, userId: string) {
   const bounty = await db.bounty.findFirst({
     where: { id: bountyId, ...publicBountyWhere },
-    select: { id: true, status: true, artist: { select: { userId: true } } },
+    select: { id: true, status: true, organization: { select: { userId: true } } },
   });
   if (!bounty)
     throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "This bounty doesn't exist." });
-  if (bounty.artist.userId === userId)
+  if (bounty.organization.userId === userId)
     throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, {
       message: "You can't join your own bounty.",
     });
@@ -156,7 +156,7 @@ export const bountyRouter = createRouter({
           ? { participants: { some: { userId: viewerId } } }
           : { status: { not: "COMPLETED" } }),
         ...(input.filter === "not_joined" && viewerId
-          ? { participants: { none: { userId: viewerId } }, artist: { userId: { not: viewerId } } }
+          ? { participants: { none: { userId: viewerId } }, organization: { userId: { not: viewerId } } }
           : {}),
       };
       const rows = await ctx.db.bounty.findMany({
@@ -200,13 +200,13 @@ export const bountyRouter = createRouter({
         prizeCurrency: true,
         prizeAssetCode: true,
         prizeAssetIssuer: true,
-        artist: { select: { name: true, avatarUrl: true } },
+        organization: { select: { name: true, avatarUrl: true } },
       },
     });
     return rows.map((row) => ({
       id: row.id,
       title: row.title,
-      artist: row.artist,
+      artist: row.organization,
       prize: prizeView(row, ctx.chain.config),
     }));
   }),
@@ -398,7 +398,7 @@ export const bountyRouter = createRouter({
       type: "BOUNTY_JOINED",
       actorId: userId,
       entityId: bounty.id,
-      artistUserId: bounty.artist.userId,
+      artistUserId: bounty.organization.userId,
     });
     ctx.activity.set({ targetType: "Bounty", targetId: bounty.id });
     return { joined: true };
@@ -423,7 +423,7 @@ export const bountyRouter = createRouter({
         type: "BOUNTY_SUBMISSION",
         actorId: userId,
         entityId: bounty.id,
-        artistUserId: bounty.artist.userId,
+        artistUserId: bounty.organization.userId,
       });
       ctx.activity.set({ targetType: "Bounty", targetId: bounty.id });
       return submission;

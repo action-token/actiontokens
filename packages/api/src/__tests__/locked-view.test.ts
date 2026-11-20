@@ -50,7 +50,7 @@ function setup({ owned = true, visited = [1, 0] } = {}) {
     },
     pinClaim: { findFirst: vi.fn().mockResolvedValue(null) },
     item: {
-      findUnique: vi.fn().mockResolvedValue({ title: "VIP", coverUrl: null, artistId: "a1" }),
+      findUnique: vi.fn().mockResolvedValue({ title: "VIP", coverUrl: null, organizationId: "a1" }),
     },
     pin: {
       findMany: vi.fn().mockResolvedValue([

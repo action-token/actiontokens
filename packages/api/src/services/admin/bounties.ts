@@ -36,7 +36,7 @@ export async function listBounties(ctx: Pick<Context, "db" | "chain">, input: Bo
             OR: [
               { id: q },
               { title: { contains: q, mode: "insensitive" } },
-              { artist: { name: { contains: q, mode: "insensitive" } } },
+              { organization: { name: { contains: q, mode: "insensitive" } } },
             ],
           }
         : {}),
@@ -58,7 +58,7 @@ export async function listBounties(ctx: Pick<Context, "db" | "chain">, input: Bo
       hiddenAt: true,
       hiddenReason: true,
       createdAt: true,
-      artist: { select: { id: true, name: true, userId: true } },
+      organization: { select: { id: true, name: true, userId: true } },
       _count: { select: { participants: true, submissions: true, winners: true } },
     },
   });
@@ -67,7 +67,7 @@ export async function listBounties(ctx: Pick<Context, "db" | "chain">, input: Bo
     bounties: page.map((row) => ({
       id: row.id,
       title: row.title,
-      artist: row.artist,
+      artist: row.organization,
       prize: prizeView(row, ctx.chain.config),
       maxWinners: row.maxWinners,
       /** Where the prize is: not funded yet, held by the escrow, or all paid out */

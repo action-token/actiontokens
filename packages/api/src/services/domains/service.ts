@@ -51,7 +51,7 @@ function hostFailed(error: unknown): never {
  */
 export async function refreshDomain(
   ctx: Pick<Context, "db">,
-  row: CustomDomain & { artist: { userId: string } },
+  row: CustomDomain & { organization: { userId: string } },
   host: DomainHost,
   now = new Date(),
 ): Promise<{ row: CustomDomain; records: DnsRecord[] }> {
@@ -65,7 +65,7 @@ export async function refreshDomain(
   if (moved.count === 1 && event) {
     await notifySelf(ctx, {
       type: "DOMAIN",
-      userId: row.artist.userId,
+      userId: row.organization.userId,
       entityId: domainKey({ stage: event, domain: row.domain }),
       isForArtist: true,
     });
@@ -87,8 +87,8 @@ const view = (row: CustomDomain, records: DnsRecord[]) => ({
 /** Settings › Custom domain: the artist's domain, read fresh from the host. */
 export async function getDomain(ctx: ServiceCtx, artist: ArtistRef, host = domainHostFromEnv()) {
   const row = await ctx.db.customDomain.findUnique({
-    where: { artistId: artist.id },
-    include: { artist: { select: { userId: true } } },
+    where: { organizationId: artist.id },
+    include: { organization: { select: { userId: true } } },
   });
   if (!row) return { available: host.available, domain: null };
   try {
@@ -117,7 +117,7 @@ export async function addDomain(
   if (invalid) throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: invalid });
 
   const [mine, taken] = await Promise.all([
-    ctx.db.customDomain.findUnique({ where: { artistId: artist.id } }),
+    ctx.db.customDomain.findUnique({ where: { organizationId: artist.id } }),
     ctx.db.customDomain.findUnique({ where: { domain } }),
   ]);
   if (mine) {
@@ -134,7 +134,7 @@ export async function addDomain(
   const { withWww } = await host.add(domain).catch(hostFailed);
   try {
     const row = await ctx.db.customDomain.create({
-      data: { artistId: artist.id, domain, withWww, status: "PENDING" },
+      data: { organizationId: artist.id, domain, withWww, status: "PENDING" },
     });
     ctx.activity.set({ targetType: "CustomDomain", targetId: row.id });
     return { domain: row.domain, withWww };
@@ -151,7 +151,7 @@ export async function reconnectDomain(
   artist: ArtistRef,
   host = domainHostFromEnv(),
 ) {
-  const row = await ctx.db.customDomain.findUnique({ where: { artistId: artist.id } });
+  const row = await ctx.db.customDomain.findUnique({ where: { organizationId: artist.id } });
   if (!row) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "You have no domain." });
   if (row.status !== "NEEDS_SETUP") return { domain: row.domain };
   if (!host.available) {
@@ -173,7 +173,7 @@ async function detach(ctx: Pick<Context, "db">, row: CustomDomain, host: DomainH
 }
 
 export async function removeDomain(ctx: ServiceCtx, artist: ArtistRef, host = domainHostFromEnv()) {
-  const row = await ctx.db.customDomain.findUnique({ where: { artistId: artist.id } });
+  const row = await ctx.db.customDomain.findUnique({ where: { organizationId: artist.id } });
   if (!row) return { removed: false };
   await detach(ctx, row, host);
   ctx.activity.set({ targetType: "CustomDomain", targetId: row.id });
@@ -183,7 +183,7 @@ export async function removeDomain(ctx: ServiceCtx, artist: ArtistRef, host = do
 /** Admin › Domains: every domain with its artist, broken ones first. */
 export async function listDomainsForAdmin(ctx: Pick<Context, "db">) {
   const rows = await ctx.db.customDomain.findMany({
-    include: { artist: { select: { id: true, name: true, slug: true } } },
+    include: { organization: { select: { id: true, name: true, slug: true } } },
     orderBy: [{ status: "asc" }, { domain: "asc" }],
   });
   const order = { BROKEN: 0, PENDING: 1, NEEDS_SETUP: 2, LIVE: 3 } as const;
@@ -198,7 +198,7 @@ export async function listDomainsForAdmin(ctx: Pick<Context, "db">) {
       brokenSince: row.brokenSince,
       lastError: row.lastError,
       createdAt: row.createdAt,
-      artist: row.artist,
+      artist: row.organization,
     }));
 }
 
@@ -213,14 +213,14 @@ export async function removeDomainAsAdmin(
     throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "Say why it's removed." });
   const row = await ctx.db.customDomain.findUnique({
     where: { id: input.id },
-    include: { artist: { select: { userId: true } } },
+    include: { organization: { select: { userId: true } } },
   });
   if (!row) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND);
   await detach(ctx, row, host);
   ctx.activity.set({ targetType: "CustomDomain", targetId: row.id });
   await notifySelf(ctx, {
     type: "DOMAIN",
-    userId: row.artist.userId,
+    userId: row.organization.userId,
     entityId: domainKey({ stage: "REMOVED", domain: row.domain, reason }),
     isForArtist: true,
   });
@@ -249,7 +249,7 @@ export async function checkDomains(
         },
       ],
     },
-    include: { artist: { select: { userId: true } } },
+    include: { organization: { select: { userId: true } } },
   });
   let failed = 0;
   for (const row of rows) {
@@ -269,8 +269,8 @@ export async function liveDomainArtist(ctx: Pick<Context, "db">, rawHost: string
   if (!domain) return null;
   const row = await ctx.db.customDomain.findUnique({
     where: { domain },
-    select: { status: true, domain: true, artist: { select: { slug: true, status: true } } },
+    select: { status: true, domain: true, organization: { select: { slug: true, status: true } } },
   });
-  if (row?.status !== "LIVE" || row.artist.status !== "APPROVED") return null;
-  return { slug: row.artist.slug, domain: row.domain };
+  if (row?.status !== "LIVE" || row.organization.status !== "APPROVED") return null;
+  return { slug: row.organization.slug, domain: row.domain };
 }

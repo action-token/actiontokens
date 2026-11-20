@@ -170,7 +170,7 @@ describe("listAlerts", () => {
           brokenSince: since,
           lastError: "The DNS records aren't pointing at Bandcoin yet.",
           createdAt: since,
-          artist: { userId: "artist1", name: "Luna" },
+          organization: { userId: "artist1", name: "Luna" },
         },
       ],
     });

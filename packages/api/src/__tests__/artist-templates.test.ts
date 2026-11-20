@@ -32,9 +32,9 @@ function setup(opts: { have?: number; rows?: ReturnType<typeof row>[] } = {}) {
     pinTemplate: {
       count: vi.fn().mockResolvedValue(opts.have ?? 0),
       findMany: vi.fn().mockResolvedValue(rows),
-      findFirst: vi.fn(({ where }: { where: { id: string; artistId: string } }) =>
+      findFirst: vi.fn(({ where }: { where: { id: string; organizationId: string } }) =>
         Promise.resolve(
-          rows.find((entry) => entry.id === where.id && where.artistId === "a1") ?? null,
+          rows.find((entry) => entry.id === where.id && where.organizationId === "a1") ?? null,
         ),
       ),
       create: vi.fn(({ data }: { data: Record<string, unknown> }) =>
@@ -55,7 +55,7 @@ describe("pin templates", () => {
     const [template] = await listTemplates(ctx, artist, "PIN");
     expect(db.pinTemplate.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { artistId: "a1", formType: "PIN" },
+        where: { organizationId: "a1", formType: "PIN" },
         orderBy: { updatedAt: "desc" },
       }),
     );
@@ -71,7 +71,7 @@ describe("pin templates", () => {
     });
     expect(db.pinTemplate.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ artistId: "a1", formType: "PIN", hasLocation: true }),
+        data: expect.objectContaining({ organizationId: "a1", formType: "PIN", hasLocation: true }),
       }),
     );
     await createTemplate(ctx, artist, { name: "Bare", formType: "PIN", data: {} });
@@ -115,7 +115,7 @@ describe("pin templates", () => {
     await duplicateTemplate(ctx, artist, "T1");
     expect(db.pinTemplate.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ name: "Weekend drop (copy)", artistId: "a1" }),
+        data: expect.objectContaining({ name: "Weekend drop (copy)", organizationId: "a1" }),
       }),
     );
     await deleteTemplate(ctx, artist, "T1");

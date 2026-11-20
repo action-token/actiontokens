@@ -30,7 +30,7 @@ function setup(rows: Row[]) {
     item: {
       findMany: vi
         .fn()
-        .mockResolvedValue([{ id: "i1", title: "Gold Hour", artist: { name: "Luna Vale" } }]),
+        .mockResolvedValue([{ id: "i1", title: "Gold Hour", organization: { name: "Luna Vale" } }]),
     },
     itemMedia: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
   };

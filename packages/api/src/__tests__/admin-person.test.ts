@@ -26,7 +26,7 @@ function setup(
           createdAt: new Date("2026-10-01"),
           suspendedAt: new Date("2026-10-29"),
           suspendedReason: "Fake claims",
-          artist: {
+          organization: {
             id: "a1",
             name: "Luna Vale",
             slug: "luna-vale",
@@ -84,7 +84,7 @@ function setup(
                 title: "Rooftop",
                 type: "OTHER",
                 imageUrl: null,
-                artist: { id: "a1", name: "Luna Vale" },
+                organization: { id: "a1", name: "Luna Vale" },
               },
             },
           },

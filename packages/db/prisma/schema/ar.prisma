@@ -18,8 +18,8 @@ enum ApprovalStatus {
 /// A reward drop on the map (was LocationGroup). It has one or more spots.
 model Pin {
   id                    String          @id @default(cuid())
-  artistId              String
-  artist                Artist          @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  organizationId        String
+  organization          Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   type                  PinType         @default(OTHER)
   title                 String
   description           String?
@@ -68,7 +68,7 @@ model Pin {
   eventId String?
   /// The map layer it is in; null is a regular pin
   layerId String?
-  layer   PinLayer? @relation(fields: [layerId], references: [id], onDelete: SetNull)
+  layer   PinLayer?    @relation(fields: [layerId], references: [id], onDelete: SetNull)
 
   /// How it looks on the maps (plan 43): a built-in shape id, or the artist's own shape
   markerShape     String?
@@ -82,7 +82,7 @@ model Pin {
   markerAutoBadge Boolean   @default(true)
 
   @@unique([unlockEditionId, unlockLockedContentId])
-  @@index([artistId, createdAt])
+  @@index([organizationId, createdAt])
   @@index([approval, endsAt])
   @@index([latitude, longitude])
   @@index([layerId])
@@ -128,29 +128,29 @@ model PinClaim {
 
 /// An area where pins drop on a schedule.
 model Hotspot {
-  id              String    @id @default(cuid())
-  artistId        String
-  artist          Artist    @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  id              String       @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   /// Every drop's pin carries this title
-  title           String    @default("")
+  title           String       @default("")
   /// The rest of each drop's pin: description, image, link, type, who can collect, reward, limit, tags
-  template        Json      @default("{}")
+  template        Json         @default("{}")
   /// Spots each drop scatters inside the area
-  spotsPerDrop    Int       @default(1)
+  spotsPerDrop    Int          @default(1)
   lastDropAt      DateTime?
   dropEveryDays   Int
   pinDurationDays Int
   startsAt        DateTime
   endsAt          DateTime
-  autoCollect     Boolean   @default(false)
-  isMultiSpot     Boolean   @default(false)
+  autoCollect     Boolean      @default(false)
+  isMultiSpot     Boolean      @default(false)
   shape           String
   geoJson         Json
-  isActive        Boolean   @default(true)
-  isHidden        Boolean   @default(false)
+  isActive        Boolean      @default(true)
+  isHidden        Boolean      @default(false)
   nextDropAt      DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
   /// The map layer its drops go in; null is regular
   layerId String?
@@ -176,40 +176,40 @@ model Hotspot {
 
 /// An artist's map layer (Hospital, Venue, Merch…): fans switch layers on one at a time (plan 42).
 model PinLayer {
-  id        String   @id @default(cuid())
-  artistId  String
-  artist    Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  name      String
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
   /// A lucide icon name from LAYER_ICONS
-  icon      String
+  icon           String
   /// #rrggbb
-  color     String
-  createdAt DateTime @default(now())
+  color          String
+  createdAt      DateTime     @default(now())
 
   pins     Pin[]
   hotspots Hotspot[]
 
-  @@index([artistId])
+  @@index([organizationId])
   @@map("pin_layers")
 }
 
 /// An artist's own pin shape: an outline path in a 100×100 box (checked on save, never an upload).
 model PinShape {
-  id        String   @id @default(cuid())
-  artistId  String
-  artist    Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  name      String
-  path      String
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  path           String
   /// Which point touches the map: center or bottom
-  anchor    String   @default("center")
-  archived  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  anchor         String       @default("center")
+  archived       Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   pins     Pin[]
   hotspots Hotspot[]
 
-  @@index([artistId, archived])
+  @@index([organizationId, archived])
   @@map("pin_shapes")
 }
 
@@ -217,29 +217,29 @@ model PinShape {
 /// values in the shape `@actiontokens/ar-core/pin-template` reads (versioned by `schemaVersion`); dates are
 /// kept as durations so a template never goes stale.
 model PinTemplate {
-  id            String   @id @default(cuid())
-  artistId      String
-  artist        Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  name          String
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
   /// PIN or HOTSPOT
-  formType      String
-  data          Json
-  schemaVersion Int      @default(1)
+  formType       String
+  data           Json
+  schemaVersion  Int          @default(1)
   /// Whether `data` carries a location (pin) or a drawn area (hotspot)
-  hasLocation   Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  hasLocation    Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
-  @@index([artistId, formType, updatedAt])
+  @@index([organizationId, formType, updatedAt])
   @@map("pin_templates")
 }
 
 model PinTag {
-  id       String @id @default(cuid())
-  artistId String
-  artist   Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  name     String @unique
-  label    String
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String       @unique
+  label          String
 
   pins PinTagLink[]
 
@@ -277,20 +277,20 @@ model GeoCache {
 
 /// Progress of a batch "create many pins" run (agent or CSV).
 model PinBatchJob {
-  id         String    @id @default(cuid())
-  artistId   String
-  artist     Artist    @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  status     JobStatus @default(QUEUED)
-  total      Int       @default(0)
-  completed  Int       @default(0)
-  payload    Json
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  status         JobStatus    @default(QUEUED)
+  total          Int          @default(0)
+  completed      Int          @default(0)
+  payload        Json
   /// "separate" | "shared" redeem codes
-  redeemMode String    @default("separate")
-  log        Json      @default("[]")
-  error      String?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  redeemMode     String       @default("separate")
+  log            Json         @default("[]")
+  error          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
-  @@index([artistId, createdAt])
+  @@index([organizationId, createdAt])
   @@map("pin_batch_jobs")
 }

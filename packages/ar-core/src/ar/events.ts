@@ -103,7 +103,7 @@ export type IcsEvent = Pick<
   | "longitude"
   | "startDate"
   | "endDate"
-> & { artist: { name: string } };
+> & { organization: { name: string } };
 
 export function eventIcs(e: IcsEvent, pageUrl: string) {
   const location = [e.venueName, e.address].filter(Boolean).join(", ");
@@ -124,7 +124,7 @@ export function eventIcs(e: IcsEvent, pageUrl: string) {
     location && `LOCATION:${icsText(location)}`,
     e.latitude != null && e.longitude != null && `GEO:${e.latitude};${e.longitude}`,
     `URL:${pageUrl}`,
-    `ORGANIZER;CN=${icsText(e.artist.name)}:MAILTO:${site.contact.supportEmail}`,
+    `ORGANIZER;CN=${icsText(e.organization.name)}:MAILTO:${site.contact.supportEmail}`,
     "END:VEVENT",
     "END:VCALENDAR",
   ].filter((l): l is string => Boolean(l));

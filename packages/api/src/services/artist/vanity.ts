@@ -47,7 +47,7 @@ export type VanityCurrency = OnChainCurrency | "USD";
 export type VanityPayInput = { purpose: VanityPurpose; name?: string; currency: VanityCurrency };
 
 /** What the order remembers, so delivering it needs nothing from the request. */
-type VanityOrder = { artistId: string; purpose: VanityPurpose; name: string | null };
+type VanityOrder = { organizationId: string; purpose: VanityPurpose; name: string | null };
 
 const unavailable = (message: string): QuoteProblem => ({ code: "UNAVAILABLE", message });
 
@@ -66,7 +66,7 @@ export async function checkVanityName(
 
   const holder = await ctx.db.vanityUrl.findUnique({ where: { name } });
   if (!holder) return { name, ok: true };
-  if (holder.artistId === artist.id) return { name, ok: true };
+  if (holder.organizationId === artist.id) return { name, ok: true };
   // Another artist's link that ran out and is past its reserved days is free again.
   if (vanityTimeline(holder, new Date()).heldUntil < new Date()) return { name, ok: true };
   return { name, ok: false, reason: "That name is taken" };
@@ -75,11 +75,11 @@ export async function checkVanityName(
 /** The artist's link, where it stands, and what each step costs. */
 export async function getVanity(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef) {
   const [link, trialUsed, settings, payments] = await Promise.all([
-    ctx.db.vanityUrl.findUnique({ where: { artistId: artist.id } }),
-    ctx.db.vanityPayment.findFirst({ where: { artistId: artist.id, kind: "FREE_TRIAL" } }),
+    ctx.db.vanityUrl.findUnique({ where: { organizationId: artist.id } }),
+    ctx.db.vanityPayment.findFirst({ where: { organizationId: artist.id, kind: "FREE_TRIAL" } }),
     ctx.db.appSetting.findUnique({ where: { id: 1 } }),
     ctx.db.vanityPayment.findMany({
-      where: { artistId: artist.id },
+      where: { organizationId: artist.id },
       orderBy: { createdAt: "desc" },
       take: 12,
       select: {
@@ -118,8 +118,8 @@ export async function claimVanity(ctx: ServiceCtx, artist: ArtistRef, raw: strin
   const { name } = checked;
 
   const [existing, trialUsed] = await Promise.all([
-    ctx.db.vanityUrl.findUnique({ where: { artistId: artist.id } }),
-    ctx.db.vanityPayment.findFirst({ where: { artistId: artist.id, kind: "FREE_TRIAL" } }),
+    ctx.db.vanityUrl.findUnique({ where: { organizationId: artist.id } }),
+    ctx.db.vanityPayment.findFirst({ where: { organizationId: artist.id, kind: "FREE_TRIAL" } }),
   ]);
   if (existing)
     throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "You already have a link." });
@@ -133,11 +133,11 @@ export async function claimVanity(ctx: ServiceCtx, artist: ArtistRef, raw: strin
     await ctx.db.$transaction(async (tx) => {
       await releaseStaleHolder(tx, name);
       await tx.vanityUrl.create({
-        data: { artistId: artist.id, name, status: "TRIAL", paidUntil },
+        data: { organizationId: artist.id, name, status: "TRIAL", paidUntil },
       });
       await tx.vanityPayment.create({
         data: {
-          artistId: artist.id,
+          organizationId: artist.id,
           kind: "FREE_TRIAL",
           currency: "BANDCOIN",
           amount: "0",
@@ -162,7 +162,7 @@ async function price(
   const { chain, db } = ctx;
   const problems: QuoteProblem[] = [];
   const [link, settings, account] = await Promise.all([
-    db.vanityUrl.findUnique({ where: { artistId: artist.id } }),
+    db.vanityUrl.findUnique({ where: { organizationId: artist.id } }),
     db.appSetting.findUnique({ where: { id: 1 } }),
     user ? chain.loadAccount(user.walletAddress) : null,
   ]);
@@ -267,7 +267,7 @@ export async function startVanity(
   // Price and fee go to the treasury together, in the chosen currency.
   const amount =
     quote.totals.find((total) => total.currency === input.currency)?.amount ?? linePrice;
-  const vanity: VanityOrder = { artistId: artist.id, purpose: input.purpose, name };
+  const vanity: VanityOrder = { organizationId: artist.id, purpose: input.purpose, name };
   const order = await ctx.db.order.create({
     data: {
       kind: "VANITY",
@@ -338,7 +338,7 @@ export async function submitVanity(
   const vanity = vanityOf(order.breakdown);
   // Someone may have taken the name since the price was shown: find out before any money moves.
   if (vanity.name) {
-    const checked = await checkVanityName(ctx, { id: vanity.artistId }, vanity.name);
+    const checked = await checkVanityName(ctx, { id: vanity.organizationId }, vanity.name);
     if (!checked.ok) {
       await transitionOrder(db, order.id, "CANCELED");
       throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: checked.reason });
@@ -389,7 +389,7 @@ export async function deliverVanity(ctx: ServiceCtx, orderId: string) {
       await transitionOrder(tx, orderId, "CONFIRMED");
       const order = await tx.order.findUniqueOrThrow({ where: { id: orderId } });
       const vanity = vanityOf(order.breakdown);
-      const link = await tx.vanityUrl.findUnique({ where: { artistId: vanity.artistId } });
+      const link = await tx.vanityUrl.findUnique({ where: { organizationId: vanity.organizationId } });
       let paidUntil = link?.paidUntil ?? now;
 
       if (vanity.purpose === "NAME_CHANGE") {
@@ -397,7 +397,7 @@ export async function deliverVanity(ctx: ServiceCtx, orderId: string) {
           throw new AppError(ErrorCodes.INTERNAL, { message: "This order has no link to change." });
         await releaseStaleHolder(tx, vanity.name);
         await tx.vanityUrl.update({
-          where: { artistId: link.artistId },
+          where: { organizationId: link.organizationId },
           data: { name: vanity.name },
         });
       } else {
@@ -406,19 +406,19 @@ export async function deliverVanity(ctx: ServiceCtx, orderId: string) {
         if (!kept) throw new AppError(ErrorCodes.INTERNAL, { message: "This order has no name." });
         if (link) {
           await tx.vanityUrl.update({
-            where: { artistId: link.artistId },
+            where: { organizationId: link.organizationId },
             data: { status: "ACTIVE", paidUntil },
           });
         } else {
           await releaseStaleHolder(tx, kept);
           await tx.vanityUrl.create({
-            data: { artistId: vanity.artistId, name: kept, status: "ACTIVE", paidUntil },
+            data: { organizationId: vanity.organizationId, name: kept, status: "ACTIVE", paidUntil },
           });
         }
       }
       await tx.vanityPayment.create({
         data: {
-          artistId: vanity.artistId,
+          organizationId: vanity.organizationId,
           kind: vanity.purpose,
           currency: order.currency,
           amount: order.total,
@@ -439,7 +439,7 @@ export async function deliverVanity(ctx: ServiceCtx, orderId: string) {
 async function releaseStaleHolder(tx: Pick<Prisma.TransactionClient, "vanityUrl">, name: string) {
   const holder = await tx.vanityUrl.findUnique({ where: { name } });
   if (holder && vanityTimeline(holder, new Date()).heldUntil < new Date())
-    await tx.vanityUrl.delete({ where: { artistId: holder.artistId } });
+    await tx.vanityUrl.delete({ where: { organizationId: holder.organizationId } });
 }
 
 /** A unique-name clash (someone won the race) reads as "taken", not as a crash. */
@@ -465,10 +465,10 @@ export async function resolveVanity(ctx: Pick<ServiceCtx, "db">, raw: string) {
   const name = normalizeVanityName(raw);
   const link = await ctx.db.vanityUrl.findUnique({
     where: { name },
-    select: { status: true, paidUntil: true, artist: { select: { slug: true, status: true } } },
+    select: { status: true, paidUntil: true, organization: { select: { slug: true, status: true } } },
   });
-  if (link?.artist.status !== "APPROVED") return null;
-  return { slug: link.artist.slug, works: vanityTimeline(link, new Date()).works };
+  if (link?.organization.status !== "APPROVED") return null;
+  return { slug: link.organization.slug, works: vanityTimeline(link, new Date()).works };
 }
 
 export type VanityOverview = Awaited<ReturnType<typeof getVanity>>;

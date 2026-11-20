@@ -252,7 +252,7 @@ export type ActionResult = { message: string; pinJobId?: string; id?: string };
 /** What starts a run. History is read from the database. */
 export type AgentRunPayload = {
   conversationId: string;
-  artistId: string;
+  organizationId: string;
   /** The AgentJob row that carries this run's live steps and its answer. */
   agentJobId: string;
   /** The person's IANA time zone, so "today" and "this weekend" mean their dates. */

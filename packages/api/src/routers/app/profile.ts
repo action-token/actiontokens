@@ -24,7 +24,7 @@ export const profileRouter = createRouter({
           coverUrl: true,
           createdAt: true,
           showCollection: true,
-          artist: { select: { slug: true, status: true } },
+          organization: { select: { slug: true, status: true } },
         },
       });
       if (!user)
@@ -64,18 +64,18 @@ export const profileRouter = createRouter({
           },
         }),
         ctx.db.follow.findMany({
-          where: { userId: user.id, artist: { status: "APPROVED" } },
+          where: { userId: user.id, organization: { status: "APPROVED" } },
           orderBy: { createdAt: "desc" },
           take: 20,
-          select: { artist: { select: { name: true, slug: true, avatarUrl: true } } },
+          select: { organization: { select: { name: true, slug: true, avatarUrl: true } } },
         }),
       ]);
 
-      const { id: _id, artist, ...profile } = user;
+      const { id: _id, organization, ...profile } = user;
       return {
         ...profile,
         isSelf,
-        artistSlug: artist?.status === "APPROVED" ? artist.slug : null,
+        artistSlug: organization?.status === "APPROVED" ? organization.slug : null,
         stats: { owned: ownedCount, playlists: playlists.length, following: follows.length },
         collection: showCollection
           ? owned.map((row) => ({ ...toItemCard(row.item), quantity: Number(row.quantity) }))
@@ -88,7 +88,7 @@ export const profileRouter = createRouter({
             : playlist.tracks.map((track) => track.item.coverUrl),
           trackCount: playlist._count.tracks,
         })),
-        following: follows.map((follow) => follow.artist),
+        following: follows.map((follow) => follow.organization),
       };
     }),
 });

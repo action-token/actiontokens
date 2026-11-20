@@ -137,7 +137,7 @@ export function EmbedClient({
     {
       ...(area ?? {}),
       types: config.pinTypes.length ? config.pinTypes : undefined,
-      artistId: artistFilter(config),
+      organizationId: artistFilter(config),
     },
     {
       enabled: area != null,
@@ -470,7 +470,7 @@ export function EmbedClient({
         </div>
 
         <MapSearch
-          artistId={artistFilter(config)}
+          organizationId={artistFilter(config)}
           open={searchOpen}
           onClose={() => setSearchOpen(false)}
           fix={meFix}

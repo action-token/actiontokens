@@ -34,7 +34,7 @@ async function sequenceOf(publicKey: string) {
   return new Account(publicKey, body.sequence);
 }
 
-const artist = await db.artist.findUniqueOrThrow({
+const artist = await db.organization.findUniqueOrThrow({
   where: { slug },
   select: { id: true, name: true, userId: true, issuerAccountId: true },
 });
@@ -69,9 +69,9 @@ await db.$transaction(async (tx) => {
   const account = artist.issuerAccountId
     ? await tx.chainAccount.update({ where: { id: artist.issuerAccountId }, data })
     : await tx.chainAccount.create({ data: { ...data, kind: "ISSUER", ownerId: artist.userId } });
-  await tx.artist.update({ where: { id: artist.id }, data: { issuerAccountId: account.id } });
+  await tx.organization.update({ where: { id: artist.id }, data: { issuerAccountId: account.id } });
   await tx.classicToken.updateMany({
-    where: { item: { artistId: artist.id } },
+    where: { item: { organizationId: artist.id } },
     data: { issuer: issuer.publicKey(), issuerAccountId: null },
   });
 });

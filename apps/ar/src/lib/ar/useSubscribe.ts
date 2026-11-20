@@ -13,7 +13,7 @@ type CardToken = { sourceId: string; verificationToken?: string };
  * Subscribing to an artist: trusting their fan token, paid in BANDCOIN, XLM,
  * USDC or by card (plan 33). A card is charged only after the fan signed.
  */
-export function useSubscribe(artistId: string, code: string, currency: SubscribeCurrency) {
+export function useSubscribe(organizationId: string, code: string, currency: SubscribeCurrency) {
   const utils = api.useUtils();
   const start = api.subscribe.start.useMutation();
   const submit = api.subscribe.submit.useMutation();
@@ -24,7 +24,7 @@ export function useSubscribe(artistId: string, code: string, currency: Subscribe
   const flow = useSignedTransaction({
     preparing: "Preparing your subscription…",
     prepare: async () => {
-      const started = await start.mutateAsync({ artistId, currency });
+      const started = await start.mutateAsync({ organizationId, currency });
       orderId.current = started.orderId;
       return started;
     },

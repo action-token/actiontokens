@@ -71,7 +71,7 @@ export async function stellarToml(db: Db) {
           description: true,
           coverUrl: true,
           type: true,
-          artist: { select: { name: true } },
+          organization: { select: { name: true } },
         },
       },
     },
@@ -86,9 +86,9 @@ export async function stellarToml(db: Db) {
     body += currencyToml({
       code: token.code,
       issuer: token.issuer,
-      name: isFanToken ? (token.item.artist?.name ?? token.item.title) : token.item.title,
+      name: isFanToken ? (token.item.organization?.name ?? token.item.title) : token.item.title,
       description: isFanToken
-        ? `Fan token of ${token.item.artist?.name ?? "an artist"}`
+        ? `Fan token of ${token.item.organization?.name ?? "an artist"}`
         : token.item.description,
       image: token.item.coverUrl,
     });

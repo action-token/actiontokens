@@ -1,7 +1,7 @@
 import { Account } from "@stellar/stellar-sdk";
 
 import { buildIssuerRefund } from "@actiontokens/chain";
-import { type ArtistStatus, Prisma } from "@actiontokens/db";
+import { type OrganizationStatus, Prisma } from "@actiontokens/db";
 import { AppError, ErrorCodes, isAppError } from "@actiontokens/errors";
 
 import type { Context } from "../../context";
@@ -19,10 +19,10 @@ import { openStorage } from "../artist/storage-account";
  */
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 
-const ORDER: Record<ArtistStatus, number> = { PENDING: 0, APPROVED: 1, REJECTED: 2, BANNED: 3 };
+const ORDER: Record<OrganizationStatus, number> = { PENDING: 0, APPROVED: 1, REJECTED: 2, BANNED: 3 };
 
-export async function listApplications(ctx: Pick<Context, "db">, input: { status?: ArtistStatus }) {
-  const rows = await ctx.db.artist.findMany({
+export async function listApplications(ctx: Pick<Context, "db">, input: { status?: OrganizationStatus }) {
+  const rows = await ctx.db.organization.findMany({
     where: input.status ? { status: input.status } : undefined,
     orderBy: { createdAt: "desc" },
     take: 200,
@@ -69,9 +69,9 @@ export async function listApplications(ctx: Pick<Context, "db">, input: { status
     }));
 }
 
-async function loadArtist(ctx: Pick<ServiceCtx, "db">, artistId: string) {
-  const artist = await ctx.db.artist.findUnique({
-    where: { id: artistId },
+async function loadArtist(ctx: Pick<ServiceCtx, "db">, organizationId: string) {
+  const artist = await ctx.db.organization.findUnique({
+    where: { id: organizationId },
     select: {
       id: true,
       userId: true,
@@ -89,15 +89,15 @@ async function loadArtist(ctx: Pick<ServiceCtx, "db">, artistId: string) {
   return artist;
 }
 
-function mustBeWaiting(status: ArtistStatus) {
+function mustBeWaiting(status: OrganizationStatus) {
   if (status !== "PENDING")
     throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
       message: "This application isn't waiting for review.",
     });
 }
 
-export async function approveArtist(ctx: ServiceCtx, artistId: string) {
-  const artist = await loadArtist(ctx, artistId);
+export async function approveArtist(ctx: ServiceCtx, organizationId: string) {
+  const artist = await loadArtist(ctx, organizationId);
   ctx.activity.set({ targetType: "Artist", targetId: artist.id });
   mustBeWaiting(artist.status);
   if (!artist.issuerAccountId) {
@@ -106,7 +106,7 @@ export async function approveArtist(ctx: ServiceCtx, artistId: string) {
     });
   }
   await ctx.db.$transaction(async (tx) => {
-    await tx.artist.update({
+    await tx.organization.update({
       where: { id: artist.id },
       data: { status: "APPROVED", rejectionReason: null },
     });
@@ -117,7 +117,7 @@ export async function approveArtist(ctx: ServiceCtx, artistId: string) {
   const fanToken = await createChosenFanToken(ctx, artist);
   const storage = await openStorageOnApproval(ctx, artist.id);
   ctx.activity.set({ targetType: "Artist", targetId: artist.id });
-  return { artistId: artist.id, status: "APPROVED" as const, fanToken, storage };
+  return { organizationId: artist.id, status: "APPROVED" as const, fanToken, storage };
 }
 
 /**
@@ -127,12 +127,12 @@ export async function approveArtist(ctx: ServiceCtx, artistId: string) {
  */
 async function openStorageOnApproval(
   ctx: ServiceCtx,
-  artistId: string,
+  organizationId: string,
 ): Promise<{ status: "OPENED"; supply: string | null } | { status: "FAILED"; message: string }> {
   try {
     // Read again: the fan token was just made.
-    const artist = await ctx.db.artist.findUniqueOrThrow({
-      where: { id: artistId },
+    const artist = await ctx.db.organization.findUniqueOrThrow({
+      where: { id: organizationId },
       select: {
         id: true,
         userId: true,
@@ -174,7 +174,7 @@ async function createChosenFanToken(
         ? { mode: "CUSTOM", code: chosen.code, coverUrl: chosen.coverUrl }
         : { mode: "EXISTING", code: chosen.code, issuer: chosen.issuer, coverUrl: chosen.coverUrl },
     );
-    await ctx.db.artist.update({
+    await ctx.db.organization.update({
       where: { id: artist.id },
       data: { pendingFanToken: Prisma.DbNull },
     });
@@ -187,8 +187,8 @@ async function createChosenFanToken(
   }
 }
 
-export async function rejectArtist(ctx: ServiceCtx, input: { artistId: string; reason: string }) {
-  const artist = await loadArtist(ctx, input.artistId);
+export async function rejectArtist(ctx: ServiceCtx, input: { organizationId: string; reason: string }) {
+  const artist = await loadArtist(ctx, input.organizationId);
   ctx.activity.set({ targetType: "Artist", targetId: artist.id });
   mustBeWaiting(artist.status);
 
@@ -215,32 +215,32 @@ export async function rejectArtist(ctx: ServiceCtx, input: { artistId: string; r
 
   const issuerId = artist.issuerAccount?.id;
   await ctx.db.$transaction(async (tx) => {
-    await tx.artist.update({
+    await tx.organization.update({
       where: { id: artist.id },
       data: { status: "REJECTED", rejectionReason: input.reason, issuerAccountId: null },
     });
     // The account no longer exists on the network, so its key is no use to anyone.
     if (issuerId) await tx.chainAccount.delete({ where: { id: issuerId } });
   });
-  return { artistId: artist.id, status: "REJECTED" as const, refundTxHash };
+  return { organizationId: artist.id, status: "REJECTED" as const, refundTxHash };
 }
 
-export async function banArtist(ctx: ServiceCtx, artistId: string) {
-  const artist = await loadArtist(ctx, artistId);
+export async function banArtist(ctx: ServiceCtx, organizationId: string) {
+  const artist = await loadArtist(ctx, organizationId);
   ctx.activity.set({ targetType: "Artist", targetId: artist.id });
   if (artist.status === "BANNED")
     throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "They are already banned." });
-  await ctx.db.artist.update({ where: { id: artist.id }, data: { status: "BANNED" } });
-  return { artistId: artist.id, status: "BANNED" as const };
+  await ctx.db.organization.update({ where: { id: artist.id }, data: { status: "BANNED" } });
+  return { organizationId: artist.id, status: "BANNED" as const };
 }
 
 /** Undoes a ban. Someone who had opened their artist account is approved again; otherwise they're back to waiting. */
-export async function unbanArtist(ctx: ServiceCtx, artistId: string) {
-  const artist = await loadArtist(ctx, artistId);
+export async function unbanArtist(ctx: ServiceCtx, organizationId: string) {
+  const artist = await loadArtist(ctx, organizationId);
   ctx.activity.set({ targetType: "Artist", targetId: artist.id });
   if (artist.status !== "BANNED")
     throw new AppError(ErrorCodes.RESOURCE_CONFLICT, { message: "They aren't banned." });
   const status = artist.issuerAccountId ? ("APPROVED" as const) : ("PENDING" as const);
-  await ctx.db.artist.update({ where: { id: artist.id }, data: { status } });
-  return { artistId: artist.id, status };
+  await ctx.db.organization.update({ where: { id: artist.id }, data: { status } });
+  return { organizationId: artist.id, status };
 }

@@ -12,7 +12,7 @@ const admin: SessionUser = { ...fan, id: "u2", role: "ADMIN" };
 
 function setup(user: SessionUser | null, artist: Record<string, unknown> | null = null) {
   const db = {
-    artist: { findUnique: vi.fn().mockResolvedValue(artist) },
+    organization: { findUnique: vi.fn().mockResolvedValue(artist) },
     activityLog: { create: vi.fn().mockResolvedValue({}) },
   };
   const caller = createCallerFactory(portalRouter)(

@@ -24,7 +24,7 @@ function setup({
     item: {
       findFirst: vi.fn().mockResolvedValue({
         createdById: creator ? "me" : "other",
-        artist: { userId: "artist-user" },
+        organization: { userId: "artist-user" },
         stems,
       }),
     },

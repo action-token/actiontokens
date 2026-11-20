@@ -84,7 +84,7 @@ function describeClaim(claim: FoundClaim) {
 const ownClaim = (artist: ArtistRef, code: string) => ({
   redeemCode: code,
   isHidden: false,
-  spot: { pin: { artistId: artist.id } },
+  spot: { pin: { organizationId: artist.id } },
 });
 
 export type LookupResult =
@@ -166,9 +166,9 @@ async function redeemContent(
 
 /** Rewards, waiting and redeemed across all the artist's live pins. */
 export async function redeemSummary(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef) {
-  const claims = { isHidden: false, spot: { pin: { artistId: artist.id, isHidden: false } } };
+  const claims = { isHidden: false, spot: { pin: { organizationId: artist.id, isHidden: false } } };
   const [rewards, collected, redeemed] = await Promise.all([
-    ctx.db.pin.count({ where: { artistId: artist.id, isHidden: false, ...notUnlockPin } }),
+    ctx.db.pin.count({ where: { organizationId: artist.id, isHidden: false, ...notUnlockPin } }),
     ctx.db.pinClaim.count({ where: claims }),
     ctx.db.pinClaim.count({ where: { ...claims, isRedeemed: true } }),
   ]);
@@ -187,7 +187,7 @@ export async function listRewards(
   const limit = pageSize(input.limit);
   const search = input.search?.trim();
   const where: Prisma.PinWhereInput = {
-    artistId: artist.id,
+    organizationId: artist.id,
     isHidden: false,
     ...notUnlockPin,
     ...(search ? { title: { contains: search, mode: "insensitive" } } : {}),
@@ -280,7 +280,7 @@ export async function redeemHistory(
   const where: Prisma.PinClaimWhereInput = {
     isRedeemed: true,
     isHidden: false,
-    spot: { pin: { artistId: artist.id, isHidden: false } },
+    spot: { pin: { organizationId: artist.id, isHidden: false } },
     ...(search
       ? {
           OR: [
