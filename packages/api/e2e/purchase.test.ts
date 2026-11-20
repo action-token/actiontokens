@@ -15,6 +15,7 @@ import { createContext, type SessionUser } from "../src/context";
 import { appRouter } from "../src/root-app";
 import type { ChainGateway } from "../src/services/chain-gateway";
 import { createCallerFactory } from "../src/trpc";
+import { assertWritable } from "../../db/scripts/guard";
 
 /**
  * The whole buy flow against the dev database, with a fake chain: quote,
@@ -22,8 +23,7 @@ import { createCallerFactory } from "../src/trpc";
  * are created here and removed afterwards.
  */
 
-const host = new URL(process.env.DATABASE_URL ?? "postgresql://x@missing/x").hostname;
-if (!host.startsWith("ep-red-sea-")) throw new Error(`Refusing to run against ${host}`);
+assertWritable(process.env.DATABASE_URL, "run against the database");
 
 const BANDCOIN = {
   code: "BANDCOIN",

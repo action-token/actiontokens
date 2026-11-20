@@ -16,10 +16,10 @@ import "dotenv/config";
 import { Keypair } from "@stellar/stellar-sdk";
 
 import { db } from "../../src/client";
+import { assertWritable } from "../guard";
 import type { Prisma } from "../../src/index";
 import { audio, banner, cover, nudge } from "./demo-data";
 
-const DEV_HOST_PREFIX = "ep-red-sea-";
 const DAY = 86_400_000;
 const daysFromNow = (d: number) => new Date(Date.now() + d * DAY);
 const fakeAddress = () => Keypair.random().publicKey();
@@ -180,9 +180,7 @@ const SPARSE_BLOCKS: Spec[] = [
 ];
 
 function assertDevDatabase() {
-  const host = new URL(process.env.DATABASE_URL ?? "postgresql://x@missing/x").hostname;
-  if (!host.startsWith(DEV_HOST_PREFIX))
-    throw new Error(`Refusing to seed ${host}: only the Bandcoin dev database.`);
+  assertWritable(process.env.DATABASE_URL, "seed");
 }
 
 type Album = { title: string; tracks: string[] };

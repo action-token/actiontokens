@@ -15,9 +15,9 @@ import { Account, Asset, Keypair, Operation } from "@stellar/stellar-sdk";
 import { buildIssuerSetup, finish, startTransaction } from "@actiontokens/chain";
 import { addSignatures, chainConfig, encryptSecret, submit } from "@actiontokens/chain/server";
 import { db } from "@actiontokens/db/server";
+import { assertWritable } from "../../db/scripts/guard";
 
-const host = new URL(process.env.DATABASE_URL ?? "postgresql://x@missing/x").hostname;
-if (!host.startsWith("ep-red-sea-")) throw new Error(`Refusing to run against ${host}`);
+assertWritable(process.env.DATABASE_URL, "run against the database");
 const config = chainConfig();
 if (config.name !== "testnet") throw new Error("Testnet only");
 

@@ -2,11 +2,11 @@
  * Copies the old layout (read only, from the backup) into the new schema, in
  * one transaction: any problem leaves the target untouched.
  *
- *   LEGACY_SOURCE_URL=… LEGACY_TARGET_URL=… pnpm --filter @actiontokens/db legacy:copy
+ *   LEGACY_DATABASE_URL=… DATABASE_URL=… pnpm --filter @actiontokens/db legacy:copy
  *
- * Without --cutover it rehearses in the backup database's `rehearsal` schema,
- * with a throwaway key that's never saved. With --cutover it also needs
- * CHAIN_ACCOUNT_KEY and CUTOVER_CONFIRM=ep-soft-term. Nothing here signs or
+ * Without --cutover it rehearses on a local database, with a throwaway key that's never
+ * saved. With --cutover it also needs CHAIN_ACCOUNT_KEY, the target in CUTOVER_ALLOWED_HOSTS
+ * and CUTOVER_CONFIRM=<its host name>. Nothing here signs or
  * sends a Stellar transaction, and no secret is ever printed.
  */
 import { randomBytes } from "node:crypto";
@@ -26,18 +26,16 @@ import { accountsOnMainnet, verify } from "./verify";
 
 const cutover = process.argv.includes("--cutover");
 const target = checkTargets({
-  sourceUrl: process.env.LEGACY_SOURCE_URL,
-  targetUrl: process.env.LEGACY_TARGET_URL,
+  sourceUrl: process.env.LEGACY_DATABASE_URL,
+  targetUrl: process.env.DATABASE_URL,
   cutover,
 });
-if (cutover && process.env.CUTOVER_CONFIRM !== "ep-soft-term")
-  throw new Error("Set CUTOVER_CONFIRM=ep-soft-term to write to the main database.");
 const chainKey = cutover ? process.env.CHAIN_ACCOUNT_KEY : randomBytes(32).toString("hex");
 if (!chainKey || !/^[0-9a-f]{64}$/i.test(chainKey))
   throw new Error("CHAIN_ACCOUNT_KEY must be 64 hex characters.");
 
-const source = new pg.Client({ connectionString: process.env.LEGACY_SOURCE_URL });
-const dest = new pg.Client({ connectionString: process.env.LEGACY_TARGET_URL });
+const source = new pg.Client({ connectionString: process.env.LEGACY_DATABASE_URL });
+const dest = new pg.Client({ connectionString: process.env.DATABASE_URL });
 await source.connect();
 await dest.connect();
 await source.query("SET default_transaction_read_only = on");

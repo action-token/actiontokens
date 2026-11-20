@@ -13,6 +13,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { db } from "../src/client";
+import { assertWritable } from "./guard";
 
 const RATE = 22050;
 const BPM = 96;
@@ -132,8 +133,7 @@ const remove = process.argv.includes("--remove");
 if (!title || !displayName)
   throw new Error('Usage: seed-demo-stems.ts "<song title>" "<display name>" [--remove]');
 
-if (!/ep-red-sea/.test(process.env.DATABASE_URL ?? ""))
-  throw new Error("Refusing to run: DATABASE_URL is not the development database.");
+assertWritable(process.env.DATABASE_URL, "seed demo stems");
 
 const item = await db.item.findFirst({
   where: { title, type: "TRACK", deletedAt: null },

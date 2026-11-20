@@ -20,9 +20,9 @@ import { createContext } from "../src/context";
 import { appRouter } from "../src/root-app";
 import { createChainGateway } from "../src/services/chain-gateway";
 import { createCallerFactory } from "../src/trpc";
+import { assertWritable } from "../../db/scripts/guard";
 
-const host = new URL(process.env.DATABASE_URL ?? "postgresql://x@missing/x").hostname;
-if (!host.startsWith("ep-red-sea-")) throw new Error(`Refusing to run against ${host}`);
+assertWritable(process.env.DATABASE_URL, "run against the database");
 const chain = createChainGateway(db);
 if (chain.config.name !== "testnet") throw new Error("Testnet only");
 const mother = chain.config.mother;

@@ -10,9 +10,9 @@
 import "dotenv/config";
 
 import { db } from "../../src/client";
+import { assertWritable } from "../guard";
 import { audio, cover } from "./demo-data";
 
-const DEV_HOST_PREFIX = "ep-red-sea-";
 const HOUR = 3_600_000;
 const VIDEO = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
 /** Free copies fans collect by scanning the post's QR, as for posts made in the portal. */
@@ -91,9 +91,7 @@ const COMMENTS = [
 ];
 
 function assertDevDatabase() {
-  const host = new URL(process.env.DATABASE_URL ?? "postgresql://x@missing/x").hostname;
-  if (!host.startsWith(DEV_HOST_PREFIX))
-    throw new Error(`Refusing to add posts to ${host}: only the Bandcoin dev database.`);
+  assertWritable(process.env.DATABASE_URL, "seed");
 }
 
 function followArg() {

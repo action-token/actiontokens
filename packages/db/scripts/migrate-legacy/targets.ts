@@ -1,44 +1,44 @@
+import { assertLegacySource, assertWritable, dbParts } from "../guard";
+
 /**
- * Where the copy may read and write. The source must be the backup, never the
- * live database. The target must be the rehearsal schema inside the backup
- * database, or the main database with --cutover. Anything else is refused, so
- * a wrong URL in the environment can't write to the wrong place.
+ * Where the copy may read and write. The source is the legacy Actionverse database
+ * (LEGACY_DATABASE_URL, read only); the target is the new database (DATABASE_URL). A rehearsal
+ * writes only to a local database (or a host in ALLOW_DESTRUCTIVE_HOSTS). A --cutover write
+ * additionally needs the target host in CUTOVER_ALLOWED_HOSTS and CUTOVER_CONFIRM set to that
+ * host name, so a wrong URL in the environment can't write to the wrong place.
  */
-const BACKUP = { hostPrefix: "ep-steep-wildflower-", database: "fan" };
-const MAIN = { hostPrefix: "ep-soft-term-", database: "fan" };
-export const REHEARSAL_SCHEMA = "rehearsal";
-
-const parts = (url: string) => {
-  const { hostname, pathname } = new URL(url);
-  return { hostname, database: pathname.replace(/^\//, "") };
-};
-const isDb = (url: string, db: typeof BACKUP) => {
-  const { hostname, database } = parts(url);
-  return hostname.startsWith(db.hostPrefix) && database === db.database;
-};
-
 export type Target = { schema: string; cutover: boolean };
 
-export function checkTargets(input: {
-  sourceUrl: string | undefined;
-  targetUrl: string | undefined;
-  cutover: boolean;
-}): Target {
+export function checkTargets(
+  input: { sourceUrl: string | undefined; targetUrl: string | undefined; cutover: boolean },
+  env: Record<string, string | undefined> = process.env,
+): Target {
   const { sourceUrl, targetUrl, cutover } = input;
   if (!sourceUrl || !targetUrl)
-    throw new Error("Set LEGACY_SOURCE_URL (the backup) and LEGACY_TARGET_URL.");
-  if (!isDb(sourceUrl, BACKUP))
-    throw new Error(`Refusing source ${parts(sourceUrl).hostname}: only the backup may be read.`);
-  if (cutover) {
-    if (!isDb(targetUrl, MAIN))
-      throw new Error(`Refusing --cutover target ${parts(targetUrl).hostname}.`);
-    return { schema: "public", cutover: true };
+    throw new Error("Set LEGACY_DATABASE_URL (read only) and DATABASE_URL (the new database).");
+  assertLegacySource(sourceUrl, targetUrl);
+  const { hostname } = dbParts(targetUrl);
+  if (!cutover) {
+    assertWritable(targetUrl, "copy legacy data", env);
+    return { schema: "public", cutover: false };
   }
-  if (!isDb(targetUrl, BACKUP))
-    throw new Error(
-      `Refusing rehearsal target ${parts(targetUrl).hostname}: rehearsals stay in the backup database.`,
-    );
-  return { schema: REHEARSAL_SCHEMA, cutover: false };
+  const allowed = (env.CUTOVER_ALLOWED_HOSTS ?? "")
+    .split(",")
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+  if (!allowed.includes(hostname.toLowerCase()))
+    throw new Error(`Refusing --cutover to ${hostname}: not listed in CUTOVER_ALLOWED_HOSTS.`);
+  if (env.CUTOVER_CONFIRM !== hostname)
+    throw new Error(`Set CUTOVER_CONFIRM=${hostname} to write to that database.`);
+  if (
+    (env.PROTECTED_HOSTS ?? "")
+      .toLowerCase()
+      .split(",")
+      .map((h) => h.trim())
+      .includes(hostname.toLowerCase())
+  )
+    throw new Error(`Refusing --cutover to ${hostname}: it is listed in PROTECTED_HOSTS.`);
+  return { schema: "public", cutover: true };
 }
 
 /** Old tables this tool doesn't copy. They're empty today; rows appearing later must stop it. */

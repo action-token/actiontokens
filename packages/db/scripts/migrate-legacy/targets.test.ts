@@ -1,53 +1,94 @@
 import { describe, expect, it } from "vitest";
 
+import { assertLegacySource, assertWritable } from "../guard";
 import { checkTargets } from "./targets";
 
-const backup = "postgresql://u:p@ep-steep-wildflower-a6si6pn6.us-west-2.aws.neon.tech/fan";
-const main = "postgresql://u:p@ep-soft-term-a6gzwjv8.us-west-2.aws.neon.tech/fan";
-const legacy = "postgresql://u:p@ep-icy-wildflower-a4kxp94q.aws.neon.tech/old-bandcoin";
+const legacy = "postgresql://u:p@legacy.example.com/actionverse";
+const local = "postgresql://actiontokens:actiontokens@127.0.0.1:55432/actiontokens_dev";
+const remote = "postgresql://u:p@new-db.example.com/actiontokens";
+
+describe("which databases a script may write", () => {
+  it("allows a local database", () => {
+    expect(() => assertWritable(local, "seed", {})).not.toThrow();
+    expect(() => assertWritable("postgresql://u:p@localhost/x", "seed", {})).not.toThrow();
+  });
+
+  it("refuses any other host unless the owner listed it", () => {
+    expect(() => assertWritable(remote, "seed", {})).toThrow(/ALLOW_DESTRUCTIVE_HOSTS/);
+    expect(() =>
+      assertWritable(remote, "seed", { ALLOW_DESTRUCTIVE_HOSTS: "new-db.example.com" }),
+    ).not.toThrow();
+  });
+
+  it("refuses a protected host even when it is allowed", () => {
+    expect(() =>
+      assertWritable(remote, "seed", {
+        ALLOW_DESTRUCTIVE_HOSTS: "new-db.example.com",
+        PROTECTED_HOSTS: "New-DB.example.com",
+      }),
+    ).toThrow(/PROTECTED_HOSTS/);
+    expect(() => assertWritable(local, "seed", { PROTECTED_HOSTS: "127.0.0.1" })).toThrow(
+      /PROTECTED_HOSTS/,
+    );
+  });
+
+  it("refuses when nothing is set", () => {
+    expect(() => assertWritable(undefined, "seed", {})).toThrow(/not set/);
+  });
+});
+
+describe("the legacy source", () => {
+  it("must be set and must not be the database being written", () => {
+    expect(() => assertLegacySource(undefined, local)).toThrow(/LEGACY_DATABASE_URL/);
+    expect(() => assertLegacySource(legacy, legacy)).toThrow(/same database/);
+    expect(assertLegacySource(legacy, local)).toEqual({
+      hostname: "legacy.example.com",
+      database: "actionverse",
+    });
+  });
+});
 
 describe("where the copy may read and write", () => {
-  it("rehearses inside the backup database, in its own schema", () => {
-    expect(checkTargets({ sourceUrl: backup, targetUrl: backup, cutover: false })).toEqual({
-      schema: "rehearsal",
+  it("rehearses on a local database", () => {
+    expect(checkTargets({ sourceUrl: legacy, targetUrl: local, cutover: false }, {})).toEqual({
+      schema: "public",
       cutover: false,
     });
   });
 
-  it("writes to the main database only with --cutover", () => {
-    expect(checkTargets({ sourceUrl: backup, targetUrl: main, cutover: true })).toEqual({
-      schema: "public",
-      cutover: true,
-    });
-    expect(() => checkTargets({ sourceUrl: backup, targetUrl: main, cutover: false })).toThrow(
-      /rehearsals stay/,
-    );
+  it("won't rehearse onto a remote database or onto the legacy one", () => {
+    expect(() =>
+      checkTargets({ sourceUrl: legacy, targetUrl: remote, cutover: false }, {}),
+    ).toThrow(/ALLOW_DESTRUCTIVE_HOSTS/);
+    expect(() =>
+      checkTargets({ sourceUrl: legacy, targetUrl: legacy, cutover: false }, {}),
+    ).toThrow(/same database/);
   });
 
-  it("never reads from the live database", () => {
-    expect(() => checkTargets({ sourceUrl: main, targetUrl: backup, cutover: false })).toThrow(
-      /only the backup/,
+  it("cuts over only to a listed host, with the host name typed back", () => {
+    const input = { sourceUrl: legacy, targetUrl: remote, cutover: true };
+    expect(() => checkTargets(input, {})).toThrow(/CUTOVER_ALLOWED_HOSTS/);
+    expect(() => checkTargets(input, { CUTOVER_ALLOWED_HOSTS: "new-db.example.com" })).toThrow(
+      /CUTOVER_CONFIRM=new-db.example.com/,
     );
-    expect(() => checkTargets({ sourceUrl: main, targetUrl: main, cutover: true })).toThrow(
-      /only the backup/,
-    );
+    expect(
+      checkTargets(input, {
+        CUTOVER_ALLOWED_HOSTS: "new-db.example.com",
+        CUTOVER_CONFIRM: "new-db.example.com",
+      }),
+    ).toEqual({ schema: "public", cutover: true });
+    expect(() =>
+      checkTargets(input, {
+        CUTOVER_ALLOWED_HOSTS: "new-db.example.com",
+        CUTOVER_CONFIRM: "new-db.example.com",
+        PROTECTED_HOSTS: "new-db.example.com",
+      }),
+    ).toThrow(/PROTECTED_HOSTS/);
   });
 
-  it("won't cut over onto the backup or any other database", () => {
-    expect(() => checkTargets({ sourceUrl: backup, targetUrl: backup, cutover: true })).toThrow(
-      /Refusing --cutover/,
-    );
-    expect(() => checkTargets({ sourceUrl: backup, targetUrl: legacy, cutover: true })).toThrow(
-      /Refusing --cutover/,
-    );
-    expect(() => checkTargets({ sourceUrl: legacy, targetUrl: backup, cutover: false })).toThrow(
-      /only the backup/,
-    );
-  });
-
-  it("needs both addresses", () => {
-    expect(() => checkTargets({ sourceUrl: undefined, targetUrl: backup, cutover: false })).toThrow(
-      /Set LEGACY_SOURCE_URL/,
-    );
+  it("needs both urls", () => {
+    expect(() =>
+      checkTargets({ sourceUrl: undefined, targetUrl: local, cutover: false }, {}),
+    ).toThrow(/LEGACY_DATABASE_URL/);
   });
 });

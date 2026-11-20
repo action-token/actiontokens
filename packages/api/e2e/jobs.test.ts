@@ -3,10 +3,10 @@ import { afterAll, describe, expect, it } from "vitest";
 import { db } from "@actiontokens/db/server";
 
 import { claimJob, completeJob } from "../src/services/jobs/queue";
+import { assertWritable } from "../../db/scripts/guard";
 
 // Only the dev database: the queue's locking needs a real Postgres.
-const host = new URL(process.env.DATABASE_URL ?? "postgresql://x@missing/x").hostname;
-if (!host.startsWith("ep-red-sea-")) throw new Error(`Refusing to run against ${host}`);
+assertWritable(process.env.DATABASE_URL, "run against the database");
 
 /** A type no real worker handles, so the test can't take a real job (or a real worker this one). */
 const TYPE = `test.claim.${Date.now()}`;

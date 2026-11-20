@@ -19,6 +19,7 @@ import "dotenv/config";
 import { Keypair } from "@stellar/stellar-sdk";
 
 import { db } from "../../src/client";
+import { assertWritable } from "../guard";
 import type { Prisma } from "../../src/index";
 import { factsFrom, pageJson } from "./artist-designs";
 import { audio, cover } from "./demo-data";
@@ -37,16 +38,13 @@ const SLUGS = [
   "creator-hannah",
 ];
 
-const DEV_HOST_PREFIX = "ep-red-sea-";
 const fakeAddress = () => Keypair.random().publicKey();
 
 /** Prisma wants JSON columns typed as its own JSON type; these are plain objects. */
 const json = (value: unknown) => value as Prisma.InputJsonValue;
 
 function assertDevDatabase() {
-  const host = new URL(process.env.DATABASE_URL ?? "postgresql://x@missing/x").hostname;
-  if (!host.startsWith(DEV_HOST_PREFIX))
-    throw new Error(`Refusing to write to ${host}: only the Bandcoin dev database.`);
+  assertWritable(process.env.DATABASE_URL, "seed");
 }
 
 async function importArtist(slug: string, data: ProdData) {
