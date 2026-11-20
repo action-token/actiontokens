@@ -73,7 +73,7 @@ It replaces three legacy codebases with one monorepo of five apps:
 | `web`     | `app.action-tokens.com`     | Everyone: homepage, marketplace, bounties, communities, organizations, wallet |
 | `org`     | `org.action-tokens.com`     | Organizations: their command center, plus `/admin` for platform admins |
 | `ar`      | `ar.action-tokens.com`      | The real-world layer: map, pins, AR collect, QR, action-cam |
-| `gallery` | `gallary.action-tokens.com` | 3D walkable museum per organization                     |
+| `gallery` | `gallery.action-tokens.com` | 3D walkable museum per organization                     |
 | `worker`  | internal                    | Background jobs                                         |
 
 Bare `action-tokens.com` 301-redirects to `app.action-tokens.com`.
@@ -96,7 +96,7 @@ All decided by the owner on 2026-11-19.
 | Gallery      | Its own app (`apps/gallery`); 3D engine in `packages/gallery-core`. |
 | Look         | Neon-green phonk (§12). |
 | UI/UX        | Unique to ActionTokens (§11). Bandcoin is the engineering reference only. |
-| Domains      | `app.` / `org.` / `ar.` / `gallary.` `.action-tokens.com`. Auth cookie on `.action-tokens.com`. |
+| Domains      | `app.` / `org.` / `ar.` / `gallery.` `.action-tokens.com`. Auth cookie on `.action-tokens.com`. |
 
 ---
 
@@ -196,7 +196,7 @@ actiontokens/
 │  ├─ web/        @actiontokens/web      app.action-tokens.com      :3000
 │  ├─ org/        @actiontokens/org      org.action-tokens.com      :3001  (+ /admin)
 │  ├─ ar/         @actiontokens/ar       ar.action-tokens.com       :3002
-│  ├─ gallery/    @actiontokens/gallery  gallary.action-tokens.com  :3003
+│  ├─ gallery/    @actiontokens/gallery  gallery.action-tokens.com  :3003
 │  └─ worker/     @actiontokens/worker   internal                   :3010 (health)
 ├─ packages/
 │  ├─ db/            Prisma schema (one file per domain), client, migrate-legacy, safety guard
@@ -552,7 +552,7 @@ Each section is a scroll-reveal; data comes from Server Components with streamin
 2. **Bounty board**: WANTED posters, total prize in escrow.
 3. **Organizations**: chrome logo wall, follow, token prices.
 4. **Crews**: active crews, activity feed, top collectors leaderboard.
-5. **Enter the gallery**: a short looping R3F hallway teaser → `gallary.action-tokens.com`.
+5. **Enter the gallery**: a short looping R3F hallway teaser → `gallery.action-tokens.com`.
 6. **Go out there**: phone mockup + mini map of nearby pins → `ar.action-tokens.com`.
 7. **Footer**.
 
@@ -582,7 +582,7 @@ Features: `home`, `drops` (marketplace, item, collection, resale), `bounties` (b
 
 Map (Mapbox via `packages/map`), nearby pins sheet, navigate, **AR collect** (location-based AR from `lib/augmented-reality`), QR scan (`html5-qrcode` / `jsqr`), **action-cam** capture with sealing + HMAC validation (`lib/action-cam`, `ACTION_CAM_HMAC_SECRET`), collection, an embeddable pin map (`/embed`).
 
-### 14.4 `apps/gallery` (`gallary.action-tokens.com`)
+### 14.4 `apps/gallery` (`gallery.action-tokens.com`)
 
 - `/` lists organizations with galleries; `/[orgSlug]` is the museum walk-through; `/[orgSlug]/[artworkId]` deep-links to a piece.
 - `packages/gallery-core` splits `MuseumHallway.tsx` into `Hallway`, `Room`, `Door`, `Painting`, `FramePreview`, `controls/` (WASD + pointer lock on desktop, virtual joystick on touch), `use-room-grid.ts`, `layout.ts` (pure grid maths, unit-tested).
@@ -736,7 +736,7 @@ Rule: before starting a phase, write `docs/plans/NN-<name>.md` with its detailed
 3. Full `migrate-legacy` from legacy prod (read-only) → new prod. Review the report.
 4. Announce a maintenance window. Put legacy actionverse and gallery into **read-only mode** (a maintenance banner; writes disabled in the app; no data is changed).
 5. Delta run `migrate-legacy --since <step 3 start>`. Review the report again.
-6. Point DNS: `app.`, `org.`, `ar.`, `gallary.` `.action-tokens.com`; bare domain → `app.`.
+6. Point DNS: `app.`, `org.`, `ar.`, `gallery.` `.action-tokens.com`; bare domain → `app.`.
 7. 301 redirects from legacy paths (Appendix A).
 8. Keep the legacy DB untouched for at least 30 days. The owner decides when to archive it; it is never dropped by this project.
 9. Owner rotates the secrets carried over from the legacy env files.
@@ -776,7 +776,7 @@ Rule: before starting a phase, write `docs/plans/NN-<name>.md` with its detailed
 | 2026-11-19 | Drop Christmas/seasonal and Beam + game; keep everything else. |
 | 2026-11-19 | Gallery is its own app. |
 | 2026-11-19 | Neon-green phonk look; UI/UX unique to ActionTokens (bandcoin is the engineering reference only). |
-| 2026-11-19 | Domains `app.` / `org.` / `ar.` / `gallary.` `.action-tokens.com`. |
+| 2026-11-19 | Domains `app.` / `org.` / `ar.` / `gallery.` `.action-tokens.com`. |
 | 2026-11-19 | Reuse actionverse env values for dev and prod for now; the owner replaces them later. |
 | 2026-11-19 | New schema lives in a new database next to the legacy one (§4.2), because renaming tables in place would alter production data. |
 | 2026-11-19 | Homepage mockup `docs/mockups/home.html` reviewed. Sidebar appears after the hero on desktop; dock on phones; Maggie-style boot loader (§11.3). Performance rules in §12.6. |
@@ -786,7 +786,7 @@ Rule: before starting a phase, write `docs/plans/NN-<name>.md` with its detailed
 
 ### Open questions (ask the owner when the phase needs them)
 
-- **Q1 (Phase 0):** Is `gallary.action-tokens.com` spelled as intended, or should it be `gallery.`?
+- **Q1 (Phase 0):** Is the gallery domain spelled `gallery.`? (Answered 2026-11-20: yes, `gallery.action-tokens.com`.)
 - **Q2 (Phase 1 dev, Phase 12 prod):** OK to create a new database next to the legacy one: `action_tokens_dev` in the Neon project, and `action_tokens` on the existing production Postgres host (or a new Neon project)?
 - **Q3 (Phase 2):** Final font choice after the preview (Anton/Unbounded/UnifrakturCook/Onest).
 - **Q4 (Phase 11):** Build the Rep/XP feature (§11.6)?
@@ -826,7 +826,7 @@ are Communities, the 3D gallery, holder rewards and Telegram broadcast. Details 
 | `/organization/{map,map/collection-report,qr,redeem,gift,post,music,settings}` | `org./pins`, `/pins/reports`, `/qr`, `/codes`, `/gifts`, `/posts`, `/music`, `/settings` | yes |
 | `/smart-contract/*` | `org./drops/contract/*` | yes |
 | `/admin/*` | `org./admin/*` | yes |
-| gallery `/museum/[id]` | `gallary./[orgSlug]` | yes |
+| gallery `/museum/[id]` | `gallery./[orgSlug]` | yes |
 | gallery `/settings` | `org./gallery` | yes |
 | `/beam/*`, `/api/game/*`, `/test`, `/albedo` | removed (`/albedo` callback moves into `packages/wallet` if still required) | 410 |
 

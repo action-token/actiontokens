@@ -54,7 +54,7 @@ Writing ActionTokens from scratch would mean re-creating most of those 1,558 fil
 | # | Feature | Actionverse source | Tables | Port as |
 |---|---|---|---|---|
 | E1 | **Communities**: token-gated groups (asset + min balance, AND/OR), members, posts with media and likes, comments, activity feed, per-member notification settings, trending | `routers/community/*` (5 routers), `pages/community/*` | `Community`, `CommunityMember`, `CommunityPost`, `CommunityPostMedia`, `CommunityPostLike`, `CommunityComment`, `CommunityActivity`, `CommunityNotificationPreference`, `CommunityTokenRequirement` | `community.prisma`, `routers/app/community.ts` (+ org/admin moderation), app pages `/crews/*` (the "Crews" of PLAN.md §11) |
-| E2 | **3D gallery / museum**: per-org rooms, artwork slot overrides, slot likes, gallery music/title | `gallery-actiontokens` repo (107 files), gallery models | `CreatorGallery`, `MuseumRoom`, `GallerySlotOverride`, `GallerySlotLike` | `gallery.prisma`, `routers/gallery/*`, new `apps/gallery` (gallary.action-tokens.com), port r3f 8 → 9 / React 19 |
+| E2 | **3D gallery / museum**: per-org rooms, artwork slot overrides, slot likes, gallery music/title | `gallery-actiontokens` repo (107 files), gallery models | `CreatorGallery`, `MuseumRoom`, `GallerySlotOverride`, `GallerySlotLike` | `gallery.prisma`, `routers/gallery/*`, new `apps/gallery` (gallery.action-tokens.com), port r3f 8 → 9 / React 19 |
 | E3 | **Holder rewards**: monthly "origin" rewards and quarterly rewards paid to token holders, block lists, distribution status, retries | `action-token/checker.ts` (17 procedures), `trigger/{distribute,quarter-reward,status}.ts`, `reward-checker` page | `OriginReward`, `QuarterReward`, `OriginBlockedUser`, `QuarterBlockedUser` | `rewards.prisma`, admin pages in the org portal, worker jobs (replace Trigger.dev) |
 | E4 | **Telegram broadcast**: admin sets a bot token + channel; events are posted to Telegram | `admin/telegram.ts` | `TelegramConfig` | an admin setting + a worker notifier (secret stays server-side) |
 | E5 | **ActionTokens UI/UX** | PLAN.md §11–13, `docs/mockups/home.html` | — | new design system and screens on top of the forked apps |
@@ -84,7 +84,7 @@ General: **stories**, **events + RSVPs + announcements**, **murals** (AR wall ar
    org portal. DB: rename models in the new schema (the new database is empty, so no `@@map` needed).
 4. **Remove** what §6 Q1 drops (apps, routers, schema files, worker handlers, nav entries, tests).
 5. **Apps**: `app` → `web` (app.action-tokens.com), `artist` → `org` (org.action-tokens.com, incl. `/admin`),
-   `ar` → `ar` (ar.action-tokens.com), `worker` stays, new `gallery` (gallary.action-tokens.com).
+   `ar` → `ar` (ar.action-tokens.com), `worker` stays, new `gallery` (gallery.action-tokens.com).
 6. **Env**: reuse Actionverse values (PLAN.md §4). The new schema goes into a **new database**; the Actionverse
    database is only ever read (`LEGACY_DATABASE_URL`, read-only session). Guards from PLAN.md §4.3 apply.
 7. **Data migration**: point Bandcoin's `migrate-legacy` at the Actionverse database. Diff Actionverse's
@@ -138,6 +138,10 @@ Dry runs done read-only against both Actionverse DBs: `docs/migration-report-dev
 ### Shared contracts and keys (owner, 2026-11-20)
 
 ActionTokens uses **the same NFT and escrow contracts as Bandcoin**, and the same keys (treasury, mother, issuer-signing) the env already shares. `scripts/import-actionverse-env.mjs <actionverse> <bandcoin>` copies `NFT_CONTRACT` / `ESCROW_CONTRACT` from Bandcoin's `apps/app/.env.local` (dev, testnet) and `.env.production` (prod, mainnet) into the generated env files (gitignored; values never printed). Consequence to keep in mind: both apps write to the same contracts and treasury, so a contract upgrade or a key rotation must be done for both together, and treasury/mother balances are shared. Holder-reward payouts spend from the shared mother account.
+
+### Gallery domain and S3 (owner, 2026-11-20)
+
+The gallery lives at **`gallery.action-tokens.com`** (the earlier "gallary" spelling was a typo, now fixed everywhere). Storage keeps using **the S3 bucket already in Actionverse's env** (`NEXT_AWS_BUCKET_NAME`), shared by dev and prod for now, so existing media URLs keep working. Risk: a dev upload lands in the production bucket; a separate dev bucket can be added later by changing one env value.
 
 ### Package policy (owner, 2026-11-20)
 
