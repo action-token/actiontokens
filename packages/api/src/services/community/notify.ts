@@ -17,7 +17,8 @@ export async function notifyCommunity(
     type: NotificationType;
     actorId: string;
     communityId: string;
-    switch: Switch;
+    /** Which of the member's switches silences this; omitted means it can't be silenced. */
+    switch?: Switch;
     /** Who to tell; omitted means every member. */
     only?: string[];
   },
@@ -30,10 +31,12 @@ export async function notifyCommunity(
             where: { communityId: event.communityId },
             select: { userId: true },
           }),
-      ctx.db.communityNotificationPreference.findMany({
-        where: { communityId: event.communityId, [event.switch]: false },
-        select: { userId: true },
-      }),
+      event.switch
+        ? ctx.db.communityNotificationPreference.findMany({
+            where: { communityId: event.communityId, [event.switch]: false },
+            select: { userId: true },
+          })
+        : Promise.resolve([]),
     ]);
     const off = new Set(muted.map((row) => row.userId));
     await notify(ctx, {

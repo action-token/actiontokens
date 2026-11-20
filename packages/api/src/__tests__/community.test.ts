@@ -192,3 +192,36 @@ describe("community notifications (central system)", () => {
     ).resolves.toEqual({ id: "p1" });
   });
 });
+
+describe("community.invite", () => {
+  const inviteDb = () => ({
+    communityMember: {
+      findUnique: vi.fn().mockResolvedValue({ id: "m1", role: "MEMBER" }),
+      findMany: vi.fn().mockResolvedValue([{ userId: "in" }]),
+    },
+    notificationEvent: { create: vi.fn().mockResolvedValue({}) },
+    communityActivity: { create: vi.fn().mockResolvedValue({}) },
+  });
+
+  it("notifies only people who aren't members yet, even if muted elsewhere", async () => {
+    const db = inviteDb();
+    const result = await caller(db).community.invite({
+      communityId: "c1",
+      userIds: ["in", "new1", "new1", "me"],
+    });
+    expect(result).toEqual({ invited: 1 });
+    const call = db.notificationEvent.create.mock.calls[0]![0] as {
+      data: { type: string; notifications: { createMany: { data: { recipientId: string }[] } } };
+    };
+    expect(call.data.type).toBe("COMMUNITY_INVITE");
+    expect(call.data.notifications.createMany.data.map((n) => n.recipientId)).toEqual(["new1"]);
+  });
+
+  it("is for members only", async () => {
+    const db = inviteDb();
+    db.communityMember.findUnique.mockResolvedValue(null);
+    await expect(
+      caller(db).community.invite({ communityId: "c1", userIds: ["x"] }),
+    ).rejects.toThrow(/Join the community/);
+  });
+});

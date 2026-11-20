@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { Db } from "@actiontokens/db";
 import { AppError, ErrorCodes } from "@actiontokens/errors";
 
+import { searchAssets } from "../../services/community/assets";
 import { checkGate } from "../../services/community/gate";
 import { notifyCommunity } from "../../services/community/notify";
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
@@ -105,6 +106,85 @@ const communityRouter = createRouter({
       });
       const next = rows.length > PAGE ? rows.pop() : undefined;
       return { items: rows, nextCursor: next?.id ?? null };
+    }),
+
+  /** The biggest communities, for the discover screen. */
+  trending: publicProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(20).default(5) }))
+    .query(({ ctx, input }) =>
+      ctx.db.community.findMany({
+        take: input.limit,
+        orderBy: [{ members: { _count: "desc" } }, { id: "asc" }],
+        include: {
+          owner: { select: userSelect },
+          requirements: { select: { assetCode: true, assetImageUrl: true } },
+          _count: { select: { members: true, posts: true } },
+        },
+      }),
+    ),
+
+  /** Finds Stellar assets for the gate's token picker. */
+  searchAssets: authedProcedure
+    .input(z.object({ search: z.string().trim().min(1).max(50) }))
+    .query(({ input }) => searchAssets(input.search)),
+
+  /** People to invite: by name, username or email, leaving out the caller and current members. */
+  searchUsers: authedProcedure
+    .input(
+      z.object({
+        search: z.string().trim().max(50).optional(),
+        communityId: z.string().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const members = input.communityId
+        ? await ctx.db.communityMember.findMany({
+            where: { communityId: input.communityId },
+            select: { userId: true },
+          })
+        : [];
+      const exclude = [ctx.session.user.id, ...members.map((m) => m.userId)];
+      const term = input.search && input.search.length >= 2 ? input.search : null;
+      return ctx.db.user.findMany({
+        where: {
+          id: { notIn: exclude },
+          ...(term
+            ? {
+                OR: [
+                  { displayName: { contains: term, mode: "insensitive" } },
+                  { username: { contains: term, mode: "insensitive" } },
+                  { email: { equals: term, mode: "insensitive" } },
+                ],
+              }
+            : {}),
+        },
+        select: userSelect,
+        orderBy: { createdAt: "desc" },
+        take: PAGE,
+      });
+    }),
+
+  /** A member invites people who aren't in yet; they get a notification. */
+  invite: authedProcedure
+    .input(idInput.extend({ userIds: z.array(z.string().min(1)).min(1).max(50) }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      await requireMember(ctx.db, input.communityId, userId);
+      const existing = await ctx.db.communityMember.findMany({
+        where: { communityId: input.communityId, userId: { in: input.userIds } },
+        select: { userId: true },
+      });
+      const inside = new Set(existing.map((m) => m.userId));
+      const invited = [...new Set(input.userIds)].filter((id) => id !== userId && !inside.has(id));
+      if (invited.length === 0) return { invited: 0 };
+      await notifyCommunity(ctx, {
+        type: "COMMUNITY_INVITE",
+        actorId: userId,
+        communityId: input.communityId,
+        only: invited,
+      });
+      await logActivity(ctx.db, input.communityId, userId, "MEMBER_INVITED");
+      return { invited: invited.length };
     }),
 
   mine: authedProcedure.query(({ ctx }) =>
