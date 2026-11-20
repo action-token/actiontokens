@@ -4,7 +4,7 @@
  */
 
 /** Bandcoin's own names, and hosting names that aren't the artist's. */
-const RESERVED_SUFFIXES = ["bandcoin.io", "vercel.app", "sslip.io", "localhost"];
+const RESERVED_SUFFIXES = ["action-tokens.com", "vercel.app", "sslip.io", "localhost"];
 
 const LABEL = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
 

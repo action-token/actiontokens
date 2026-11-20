@@ -265,7 +265,7 @@ function SavedForm({ saved, treasury }: { saved: Saved; treasury: string }) {
           <SettingCard
             icon={Link2}
             title="Short link prices"
-            description="What an artist pays for a bandcoin.io/name link. Until both prices of a kind are set, artists can't pay for it."
+            description="What an artist pays for a action-tokens.com/name link. Until both prices of a kind are set, artists can't pay for it."
           >
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="bg-surface-2 grid gap-4 rounded-2xl p-4">

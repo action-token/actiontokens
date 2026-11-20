@@ -48,7 +48,7 @@ describe("embed config", () => {
     expect(frameAncestors([])).toBe("frame-ancestors *");
     const policy = frameAncestors(["https://www.Example.com/page", "not a domain!"]);
     expect(policy).toContain("https://example.com https://*.example.com");
-    expect(policy).toContain("https://artist.bandcoin.io");
+    expect(policy).toContain("https://org.action-tokens.com");
     expect(policy).not.toContain("not");
     expect(normalizeDomain("localhost")).toBe("localhost");
   });

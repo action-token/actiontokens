@@ -22,7 +22,7 @@ type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 export const CONFIRM_WORD = "DELETE";
 /** XLM a Bandcoin-held wallet may still hold: its reserve and a little change. */
 const DUST_XLM = 2;
-const SUPPORT = "Email support@bandcoin.io and we'll help.";
+const SUPPORT = "Email support@action-tokens.com and we'll help.";
 
 const refuse = (message: string) => new AppError(ErrorCodes.PRECONDITION_NOT_MET, { message });
 

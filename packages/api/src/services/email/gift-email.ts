@@ -95,7 +95,7 @@ export async function notifyNftGift(
       (entry) => entry.tokenId === gift.tokenId,
     );
     const pieces = copy?.pieces ?? [];
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.bandcoin.io";
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.action-tokens.com";
     const message = giftEmail({
       to: recipient.email,
       recipientName: recipient.displayName ?? recipient.username,

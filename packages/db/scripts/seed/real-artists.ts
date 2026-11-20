@@ -51,7 +51,7 @@ async function importArtist(slug: string, data: ProdData) {
   const a = data.artist;
   const user = await db.user.create({
     data: {
-      email: `${slug}@demo.bandcoin.io`,
+      email: `${slug}@demo.action-tokens.com`,
       username: slug.replace(/[^a-z0-9_-]/g, "").slice(0, 30),
       displayName: a.name,
       role: "ARTIST",
@@ -270,7 +270,7 @@ async function main() {
   assertDevDatabase();
   const only = process.argv.slice(2).filter((arg) => !arg.startsWith("--"));
   const fans = await db.user.findMany({
-    where: { email: { endsWith: "@demo.bandcoin.io" }, role: "FAN" },
+    where: { email: { endsWith: "@demo.action-tokens.com" }, role: "FAN" },
     take: 4,
   });
   const prod = await connectProduction();

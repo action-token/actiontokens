@@ -10,12 +10,10 @@ import type { Context } from "../../context";
 type Db = Pick<Context, "db">["db"];
 
 const HEADER = `[DOCUMENTATION]
-ORG_NAME="Bandcoin"
-ORG_URL="https://bandcoin.io/"
-ORG_LOGO="https://raw.githubusercontent.com/Bandcoin2023/assets/refs/heads/main/public/bandcoin.png"
-ORG_DESCRIPTION="Bandcoin : Collect, Connect, Listen"
-ORG_TWITTER="bandcoinio"
-ORG_OFFICIAL_EMAIL="support@bandcoin.io"
+ORG_NAME="ActionTokens"
+ORG_URL="https://action-tokens.com/"
+ORG_DESCRIPTION="ActionTokens"
+ORG_OFFICIAL_EMAIL="support@action-tokens.com"
 
 `;
 

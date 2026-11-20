@@ -582,7 +582,7 @@ describe("other builders", () => {
       artist: account(artist),
       network,
       issuer,
-      homeDomain: "bandcoin.io",
+      homeDomain: "action-tokens.com",
     });
     const tx = parse(built.xdr);
     expect(tx.source).toBe(artist);
@@ -810,7 +810,7 @@ describe("signersNeeded", () => {
       artist: account(creator),
       network,
       issuer: issuerKey,
-      homeDomain: "bandcoin.io",
+      homeDomain: "action-tokens.com",
     });
     expect([...signersNeeded(withDomain.xdr, Networks.TESTNET)]).toEqual([creator, issuerKey]);
   });

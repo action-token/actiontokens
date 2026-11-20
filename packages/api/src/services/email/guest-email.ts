@@ -55,7 +55,7 @@ export async function notifyGuestPurchase(
       select: { title: true, coverUrl: true, slug: true },
     });
     if (!item) return;
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.bandcoin.io";
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.action-tokens.com";
     const sent = await ctx.chain.sendEmail(
       guestPurchaseEmail({
         to: order.guestEmail,

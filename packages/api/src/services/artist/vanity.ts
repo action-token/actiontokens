@@ -25,7 +25,7 @@ import { transitionOrder } from "../order-state";
 import { failOrder, ownOrder, userSignature } from "../purchase";
 
 /**
- * An artist's short link, bandcoin.io/their-name.
+ * An artist's short link, action-tokens.com/their-name.
  *
  *   claim   the first month is free, once per artist
  *   renew   a month more, paid
@@ -457,7 +457,7 @@ function vanityOf(breakdown: unknown): VanityOrder {
 }
 
 /**
- * Who answers at bandcoin.io/name. A working link (including its grace days)
+ * Who answers at action-tokens.com/name. A working link (including its grace days)
  * shows the artist's page under that address; a lapsed one sends visitors to
  * the page's normal address; an unknown name is nothing.
  */

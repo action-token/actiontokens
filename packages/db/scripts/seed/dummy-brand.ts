@@ -199,7 +199,7 @@ async function createArtist(opts: {
 }) {
   const user = await db.user.create({
     data: {
-      email: `${opts.slug}@demo.bandcoin.io`,
+      email: `${opts.slug}@demo.action-tokens.com`,
       username: opts.slug.slice(0, 30),
       displayName: opts.name,
       role: "ARTIST",
@@ -344,7 +344,7 @@ async function createArtist(opts: {
 /** A few demo fans follow them (if the main seed has run). Safe to run again. */
 async function addFollowers(organizationId: string) {
   const fans = await db.user.findMany({
-    where: { email: { endsWith: "@demo.bandcoin.io" }, role: "FAN" },
+    where: { email: { endsWith: "@demo.action-tokens.com" }, role: "FAN" },
     take: 4,
   });
   await db.follow.createMany({

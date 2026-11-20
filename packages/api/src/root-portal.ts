@@ -33,7 +33,7 @@ import { domainRouter } from "./routers/artist/domain";
 import { portalStatusRouter } from "./routers/artist/portal";
 import { createRouter } from "./trpc";
 
-/** The artist portal's API (artist.bandcoin.io, including /admin). */
+/** The artist portal's API (org.action-tokens.com, including /admin). */
 export const portalRouter = createRouter({
   notifications: notificationsRouter,
   hotspots: hotspotsRouter,

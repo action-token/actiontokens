@@ -2,7 +2,7 @@
  * ── Shared theme ───────────────────────────────────────────────────────────
  *
  * One theme choice for every Bandcoin site in a browser (AR, the fan app, the artist portal and
- * Studio), the way the login is shared: a cookie on the parent domain (`.bandcoin.io`), which
+ * Studio), the way the login is shared: a cookie on the parent domain (`.action-tokens.com`), which
  * every subdomain reads. Each app still keeps its own copy in localStorage, where its theme code
  * reads it; this cookie is what keeps those copies in step.
  *
@@ -26,7 +26,7 @@ export function isSharedTheme(value: unknown): value is SharedTheme {
   return value === "light" || value === "dark" || value === "system";
 }
 
-/** The parent domain to share across (`app.bandcoin.io` → `.bandcoin.io`); none for localhost or an IP. */
+/** The parent domain to share across (`app.action-tokens.com` → `.action-tokens.com`); none for localhost or an IP. */
 export function parentDomain(host: string): string | null {
   if (!host.includes(".") || /^[\d.]+$/.test(host) || host.includes(":")) return null;
   const parts = host.split(".");

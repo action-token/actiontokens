@@ -41,7 +41,7 @@ import { usePinQrs, type QrPin } from "./use-pin-qrs";
  * their pocket and collects it: no app, no account, no location permission,
  * which is the only path that works indoors or with no signal.
  *
- * One spot, one code; it holds `ar.bandcoin.io/scan?pin=<spotId>`. The only
+ * One spot, one code; it holds `ar.action-tokens.com/scan?pin=<spotId>`. The only
  * choices are the two things a print run needs (file type and layout), and they
  * reset on close: the sticker is the artefact, this is a printing desk.
  */

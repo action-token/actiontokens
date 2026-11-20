@@ -51,143 +51,143 @@ const AuthErrorMessages = {
 
   // Software/Backend Errors
   ADMIN_ONLY_OPERATION:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR001",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR001",
   APP_NOT_AUTHORIZED:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR003",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR003",
   APP_NOT_INSTALLED:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR004",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR004",
   CORDOVA_NOT_READY:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR007",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR007",
   CORS_UNSUPPORTED:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR008",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR008",
   DEPENDENT_SDK_INIT_BEFORE_AUTH:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR012",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR012",
   DYNAMIC_LINK_NOT_ACTIVATED:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR013",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR013",
   EMULATOR_CONFIG_FAILED:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR016",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR016",
   INTERNAL_ERROR:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR103",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR103",
   INVALID_API_KEY:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR019",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR019",
   INVALID_APP_CREDENTIAL:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR020",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR020",
   INVALID_APP_ID:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR021",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR021",
   INVALID_AUTH:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR022",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR022",
   INVALID_AUTH_EVENT:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR023",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR023",
   INVALID_CERT_HASH:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR024",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR024",
   INVALID_CONTINUE_URI:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR026",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR026",
   INVALID_CORDOVA_CONFIGURATION:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR027",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR027",
   INVALID_CUSTOM_TOKEN:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR028",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR028",
   INVALID_DYNAMIC_LINK_DOMAIN:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR029",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR029",
   INVALID_EMULATOR_SCHEME:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR031",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR031",
   INVALID_IDP_RESPONSE:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR032",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR032",
   INVALID_MESSAGE_PAYLOAD:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR034",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR034",
   INVALID_MFA_SESSION:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR035",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR035",
   INVALID_OAUTH_CLIENT_ID:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR036",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR036",
   INVALID_OAUTH_PROVIDER:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR037",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR037",
   INVALID_OOB_CODE:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR038",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR038",
   INVALID_ORIGIN:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR039",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR039",
   INVALID_PERSISTENCE:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR041",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR041",
   INVALID_PROVIDER_ID:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR043",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR043",
   INVALID_RECIPIENT_EMAIL:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR044",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR044",
   INVALID_SENDER:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR045",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR045",
   INVALID_SESSION_INFO:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR046",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR046",
   INVALID_TENANT_ID:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR047",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR047",
   MFA_INFO_NOT_FOUND:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR048",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR048",
   MFA_REQUIRED:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR049",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR049",
   MISSING_ANDROID_PACKAGE_NAME:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR050",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR050",
   MISSING_APP_CREDENTIAL:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR051",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR051",
   MISSING_AUTH_DOMAIN:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR052",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR052",
   MISSING_CODE:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR053",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR053",
   MISSING_CONTINUE_URI:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR054",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR054",
   MISSING_IFRAME_START:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR055",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR055",
   MISSING_IOS_BUNDLE_ID:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR056",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR056",
   MISSING_OR_INVALID_NONCE:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR057",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR057",
   MISSING_MFA_INFO:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR058",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR058",
   MISSING_MFA_SESSION:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR059",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR059",
   MISSING_SESSION_INFO:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR061",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR061",
   NO_AUTH_EVENT:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR065",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR065",
   NO_SUCH_PROVIDER:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR066",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR066",
   OPERATION_NOT_ALLOWED:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR067",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR067",
   OPERATION_NOT_SUPPORTED:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR068",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR068",
   REDIRECT_OPERATION_PENDING:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR074",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR074",
   REJECTED_CREDENTIAL:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR075",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR075",
   SECOND_FACTOR_ALREADY_ENROLLED:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR076",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR076",
   SECOND_FACTOR_LIMIT_EXCEEDED:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR077",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR077",
   TENANT_ID_MISMATCH:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR078",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR078",
   UNAUTHORIZED_DOMAIN:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR082",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR082",
   UNSUPPORTED_FIRST_FACTOR:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR083",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR083",
   UNSUPPORTED_PERSISTENCE:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR084",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR084",
   UNSUPPORTED_TENANT_OPERATION:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR085",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR085",
   WEB_STORAGE_UNSUPPORTED:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR093",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR093",
   ALREADY_INITIALIZED:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR094",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR094",
   RECAPTCHA_NOT_ENABLED:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR095",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR095",
   MISSING_RECAPTCHA_TOKEN:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR096",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR096",
   INVALID_RECAPTCHA_TOKEN:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR097",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR097",
   INVALID_RECAPTCHA_ACTION:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR098",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR098",
   MISSING_CLIENT_TYPE:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR099",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR099",
   MISSING_RECAPTCHA_VERSION:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR100",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR100",
   INVALID_RECAPTCHA_VERSION:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR101",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR101",
   INVALID_REQ_TYPE:
-    "An error has occurred. Please contact an admin or write an email to support@bandcoin.io with the following error code. Error Code: WZAR102",
+    "An error has occurred. Please contact an admin or write an email to support@action-tokens.com with the following error code. Error Code: WZAR102",
 };
 
 interface ShowFirebaseAuthErrorInput {

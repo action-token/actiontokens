@@ -66,7 +66,7 @@ export function ArtistsView() {
       header: "Artist",
       skeleton: "person",
       cell: (row) => (
-        <Person name={row.name} image={row.avatarUrl} sub={`bandcoin.io/${row.slug}`} />
+        <Person name={row.name} image={row.avatarUrl} sub={`action-tokens.com/${row.slug}`} />
       ),
     },
     {

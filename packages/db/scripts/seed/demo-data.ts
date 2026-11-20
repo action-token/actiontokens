@@ -46,7 +46,7 @@ export const ARTISTS: DemoArtist[] = [
   {
     slug: "lumen-avenue",
     name: "Lumen Avenue",
-    email: "lumen@demo.bandcoin.io",
+    email: "lumen@demo.action-tokens.com",
     bio: "Night-drive synth pop from a two-piece who record everything in one take.",
     fanToken: "LUMEN",
     city: { lat: 40.7128, lng: -74.006, name: "New York" },
@@ -74,7 +74,7 @@ export const ARTISTS: DemoArtist[] = [
   {
     slug: "mira-okafor",
     name: "Mira Okafor",
-    email: "mira@demo.bandcoin.io",
+    email: "mira@demo.action-tokens.com",
     bio: "Afro-soul singer and producer. Every holder gets the stems.",
     fanToken: "MIRA",
     city: { lat: 51.5072, lng: -0.1276, name: "London" },
@@ -102,7 +102,7 @@ export const ARTISTS: DemoArtist[] = [
   {
     slug: "dj-tamsin",
     name: "DJ Tamsin",
-    email: "tamsin@demo.bandcoin.io",
+    email: "tamsin@demo.action-tokens.com",
     bio: "Club edits and late-night mixes. Find me on the map after every set.",
     fanToken: "TAMSIN",
     city: { lat: 23.8103, lng: 90.4125, name: "Dhaka" },
@@ -123,16 +123,16 @@ export const ARTISTS: DemoArtist[] = [
 ];
 
 export const FANS = [
-  { username: "nadia", displayName: "Nadia Rahman", email: "nadia@demo.bandcoin.io" },
-  { username: "theo", displayName: "Theo Marsh", email: "theo@demo.bandcoin.io" },
-  { username: "kenji", displayName: "Kenji Ito", email: "kenji@demo.bandcoin.io" },
-  { username: "ama", displayName: "Ama Boateng", email: "ama@demo.bandcoin.io" },
+  { username: "nadia", displayName: "Nadia Rahman", email: "nadia@demo.action-tokens.com" },
+  { username: "theo", displayName: "Theo Marsh", email: "theo@demo.action-tokens.com" },
+  { username: "kenji", displayName: "Kenji Ito", email: "kenji@demo.action-tokens.com" },
+  { username: "ama", displayName: "Ama Boateng", email: "ama@demo.action-tokens.com" },
 ];
 
 export const ADMIN = {
   username: "admin",
   displayName: "Bandcoin Admin",
-  email: "admin@demo.bandcoin.io",
+  email: "admin@demo.action-tokens.com",
 };
 
 /** A small offset in metres → degrees, to scatter pins around a city centre. */

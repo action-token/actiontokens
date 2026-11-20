@@ -18,7 +18,7 @@ import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 const slugInput = z.object({ slug: z.string().min(1).max(120) });
 
 export const artistRouter = createRouter({
-  /** Who answers at bandcoin.io/name: the artist's slug, and whether the link still works or only redirects. */
+  /** Who answers at action-tokens.com/name: the artist's slug, and whether the link still works or only redirects. */
   /** Where an old page address points after a rename (null if it never existed). */
   renamedTo: publicProcedure
     .input(z.object({ slug: z.string().min(1).max(60) }))

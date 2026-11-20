@@ -144,7 +144,7 @@ enum VanityPaymentKind {
   NAME_CHANGE
 }
 
-/// bandcoin.io/name. First month free, then a monthly renewal; on lapse a
+/// action-tokens.com/name. First month free, then a monthly renewal; on lapse a
 /// 7-day grace, then the name is reserved for 30 days.
 model VanityUrl {
   organizationId String       @id

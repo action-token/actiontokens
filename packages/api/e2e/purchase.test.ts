@@ -140,7 +140,7 @@ beforeAll(async () => {
   const buyerUser = await db.user.create({
     data: {
       username: `${run}-buyer`,
-      email: `${run}@demo.bandcoin.io`,
+      email: `${run}@demo.action-tokens.com`,
       walletAddress: keys.buyer.publicKey(),
     },
   });

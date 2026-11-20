@@ -23,7 +23,7 @@ const shortDay = (date: Date) =>
 export function describeVanity(vanity: NotificationSubject["vanity"]) {
   const href = "/settings?tab=short-link";
   if (!vanity) return { text: "Your short link needs a look.", href };
-  const link = `bandcoin.io/${vanity.name}`;
+  const link = `action-tokens.com/${vanity.name}`;
   const grace = new Date(vanity.paidUntil.getTime() + VANITY_GRACE_DAYS * 86_400_000);
   switch (vanity.stage) {
     case "SOON":

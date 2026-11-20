@@ -27,7 +27,7 @@ const config = {
 
   // The page builder's preview may only be framed by the artist portal.
   async headers() {
-    const portal = new URL(process.env.NEXT_PUBLIC_ORG_URL ?? "https://artist.bandcoin.io")
+    const portal = new URL(process.env.NEXT_PUBLIC_ORG_URL ?? "https://org.action-tokens.com")
       .origin;
     const frameAncestors =
       process.env.NODE_ENV === "production"

@@ -24,7 +24,7 @@ const ROLE_REFRESH_MS = 5 * 60_000;
 
 /**
  * NextAuth options for one app. Every app shares the same JWT session (and,
- * in production, one cookie across *.bandcoin.io), and every sign-in attempt
+ * in production, one cookie across *.action-tokens.com), and every sign-in attempt
  * is written to the activity log with the app's name.
  */
 export function createAuthOptions(input: {

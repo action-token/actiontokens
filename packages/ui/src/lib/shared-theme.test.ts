@@ -41,15 +41,15 @@ describe("the shared theme cookie", () => {
   });
 
   it("shares across the parent domain, but not for localhost or an IP", () => {
-    expect(parentDomain("app.bandcoin.io")).toBe(".bandcoin.io");
-    expect(parentDomain("www.bandcoin.io")).toBe(".bandcoin.io");
+    expect(parentDomain("app.action-tokens.com")).toBe(".action-tokens.com");
+    expect(parentDomain("ar.action-tokens.com")).toBe(".action-tokens.com");
     expect(parentDomain("localhost")).toBeNull();
     expect(parentDomain("127.0.0.1")).toBeNull();
     expect(parentDomain("localhost:3000")).toBeNull();
   });
 
   it("writes and reads a choice", () => {
-    const { jar } = fakeBrowser("artist.bandcoin.io");
+    const { jar } = fakeBrowser("org.action-tokens.com");
     expect(readSharedTheme()).toBeNull();
     writeSharedTheme("dark");
     expect(jar.get(SHARED_THEME_COOKIE)).toBe("dark");
@@ -57,13 +57,13 @@ describe("the shared theme cookie", () => {
   });
 
   it("ignores a value that isn't a theme", () => {
-    const { jar } = fakeBrowser("app.bandcoin.io");
+    const { jar } = fakeBrowser("app.action-tokens.com");
     jar.set(SHARED_THEME_COOKIE, "purple");
     expect(readSharedTheme()).toBeNull();
   });
 
   it("doesn't rewrite what is already there", () => {
-    const { jar } = fakeBrowser("app.bandcoin.io");
+    const { jar } = fakeBrowser("app.action-tokens.com");
     writeSharedTheme("light");
     const set = vi.spyOn(jar, "set");
     writeSharedTheme("light");

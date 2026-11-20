@@ -3,7 +3,7 @@
  * Bandcoin map embed loader.
  *
  *   <div data-bandcoin-embed="EMBED_ID" style="height:520px"></div>
- *   <script async src="https://ar.bandcoin.io/embed.js"></script>
+ *   <script async src="https://ar.action-tokens.com/embed.js"></script>
  *
  * Turns every [data-bandcoin-embed] element into the embed's iframe, sized to
  * fill the element. Several maps per page are fine, and elements added later

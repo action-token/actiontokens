@@ -185,7 +185,7 @@ describe("announcements", () => {
         ...news,
         isPinned: true,
         ctaLabel: "Listen",
-        ctaUrl: "https://bandcoin.io/x",
+        ctaUrl: "https://action-tokens.com/x",
         expiresAt: new Date("2026-12-01T00:00:00Z"),
       },
       now,
@@ -194,7 +194,7 @@ describe("announcements", () => {
       organizationId: "a1",
       isPinned: true,
       ctaLabel: "Listen",
-      ctaUrl: "https://bandcoin.io/x",
+      ctaUrl: "https://action-tokens.com/x",
       imageUrls: [],
     });
   });
@@ -231,7 +231,7 @@ describe("announcements", () => {
 
   it("checks a new label against the saved link", async () => {
     const { ctx, db } = setup({
-      announcement: { id: "n1", ctaLabel: null, ctaUrl: "https://bandcoin.io/x" },
+      announcement: { id: "n1", ctaLabel: null, ctaUrl: "https://action-tokens.com/x" },
     });
     await expect(
       updateAnnouncement(ctx, artist, { announcementId: "n1", ctaUrl: null }, now),

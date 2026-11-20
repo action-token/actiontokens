@@ -9,7 +9,7 @@ const base = {
   title: "Night Drive",
   coverUrl: "https://cdn.example/c.jpg",
   tokenId: "12",
-  link: "https://bandcoin.io/item/night-drive",
+  link: "https://action-tokens.com/item/night-drive",
   newAccount: false,
   locked: { unlocked: 1, total: 2 },
   codes: [{ label: "Backstage", code: "AB12CD" }],
@@ -22,7 +22,7 @@ describe("gift email", () => {
     expect(email.subject).toBe("Luna <3 sent you Night Drive #12");
     expect(email.text).toContain("1 of 2 locked pieces are unlocked.");
     expect(email.text).toContain("Backstage: AB12CD");
-    expect(email.text).toContain("See it: https://bandcoin.io/item/night-drive");
+    expect(email.text).toContain("See it: https://action-tokens.com/item/night-drive");
     expect(email.html).toContain("Luna &#60;3");
     expect(email.html).not.toContain("Luna <3");
   });

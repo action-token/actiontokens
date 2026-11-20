@@ -441,7 +441,7 @@ export function AddressStep({ draft, set, check }: { draft: Draft; set: Set; che
           )}
         >
           <span className="bg-surface-2 text-fg-muted flex h-full items-center gap-1.5 border-r px-3 text-sm">
-            <Link2 className="size-4" /> bandcoin.io/artist/
+            <Link2 className="size-4" /> action-tokens.com/artist/
           </span>
           <input
             id="ob-slug"
@@ -462,7 +462,7 @@ export function AddressStep({ draft, set, check }: { draft: Draft; set: Set; che
         )}
       </div>
       <p className="text-fg-faint text-xs">
-        Want a short bandcoin.io/name link too? You can add one in Settings once you&apos;re in.
+        Want a short action-tokens.com/name link too? You can add one in Settings once you&apos;re in.
       </p>
     </div>
   );
@@ -584,7 +584,7 @@ export function PageCard({ draft, onEdit }: { draft: Draft; onEdit?: (step: numb
           </span>
         </Row>
         <Row label="Page" onEdit={onEdit && (() => onEdit(2))}>
-          <span className="font-medium">bandcoin.io/artist/{draft.slug}</span>
+          <span className="font-medium">action-tokens.com/artist/{draft.slug}</span>
         </Row>
       </dl>
     </div>

@@ -92,8 +92,8 @@ describe("custom domain names", () => {
     expect(validateDomain("music.coldplay.co.uk")).toBeNull();
     expect(validateDomain("coldplay")).toMatch(/whole domain/);
     expect(validateDomain("cold play.com")).toMatch(/letters/);
-    expect(validateDomain("luna.bandcoin.io")).toMatch(/Bandcoin address/);
-    expect(validateDomain("bandcoin.io")).toMatch(/Bandcoin address/);
+    expect(validateDomain("luna.action-tokens.com")).toMatch(/Bandcoin address/);
+    expect(validateDomain("action-tokens.com")).toMatch(/Bandcoin address/);
     expect(validateDomain("luna.mysite.app", ["https://mysite.app"])).toMatch(/Bandcoin address/);
   });
 });

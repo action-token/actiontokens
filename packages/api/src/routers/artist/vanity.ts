@@ -18,7 +18,7 @@ const payInput = z.object({
   currency: z.enum(["BANDCOIN", "XLM", "USDC", "USD"]),
 });
 
-/** The artist's short link, bandcoin.io/name (see services/artist/vanity). */
+/** The artist's short link, action-tokens.com/name (see services/artist/vanity). */
 export const vanityRouter = createRouter({
   overview: artistProcedure.query(({ ctx }) => getVanity(ctx, ctx.artist)),
 

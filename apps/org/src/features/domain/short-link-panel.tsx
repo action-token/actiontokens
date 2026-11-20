@@ -30,7 +30,7 @@ const STATUS: Record<Link["status"], { warn: boolean; say: (link: Link) => strin
 };
 
 /**
- * The artist's short link, bandcoin.io/their-name: free for the first month,
+ * The artist's short link, action-tokens.com/their-name: free for the first month,
  * then renewed monthly (the grace and name-keeping rules live in
  * services/artist/vanity). Every payment shows its full price first.
  * Shown as a tab of Settings.

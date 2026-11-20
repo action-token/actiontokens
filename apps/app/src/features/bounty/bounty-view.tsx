@@ -37,7 +37,7 @@ import { BountySide, canSubmitReport, useBountyTab } from "./bounty-side";
 
 type Bounty = RouterOutputs["bounty"]["byId"];
 
-const ORG_URL = process.env.NEXT_PUBLIC_ORG_URL ?? "https://artist.bandcoin.io";
+const ORG_URL = process.env.NEXT_PUBLIC_ORG_URL ?? "https://org.action-tokens.com";
 
 const STATUS: Record<Bounty["status"], { label: string; tone: string }> = {
   RUNNING: { label: "Running", tone: "bg-primary text-primary-foreground border-transparent" },

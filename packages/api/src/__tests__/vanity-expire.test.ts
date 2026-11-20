@@ -94,7 +94,7 @@ describe("short-link reminders", () => {
       vanity: { stage: "SOON", paidUntil: at(2), name: "tamsin" },
     });
     expect(soon).toEqual({
-      text: "bandcoin.io/tamsin runs out on Nov 5. Renew to keep it working.",
+      text: "action-tokens.com/tamsin runs out on Nov 5. Renew to keep it working.",
       href: "/settings?tab=short-link",
     });
     expect(

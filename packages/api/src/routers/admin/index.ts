@@ -79,7 +79,7 @@ const contractFee = z.object({
   treasury: stellarAccount,
 });
 
-/** Admin tools (artist.bandcoin.io/admin). Every procedure here is admin-only. */
+/** Admin tools (org.action-tokens.com/admin). Every procedure here is admin-only. */
 export const adminRouter = createRouter({
   artists: createRouter({
     list: adminProcedure

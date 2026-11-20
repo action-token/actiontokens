@@ -123,15 +123,15 @@ describe("authorizeCredentials", () => {
     const user = await authorizeCredentials(asDb, {
       walletType: "google",
       token: "t",
-      email: "nadia@demo.bandcoin.io",
+      email: "nadia@demo.action-tokens.com",
     });
     expect(db.user.update.mock.calls[0]?.[0]).toMatchObject({
       where: { id: "u1" },
-      data: { email: "nadia@demo.bandcoin.io" },
+      data: { email: "nadia@demo.action-tokens.com" },
     });
     expect(user).toMatchObject({
       role: "ARTIST",
-      email: "nadia@demo.bandcoin.io",
+      email: "nadia@demo.action-tokens.com",
       walletType: "google",
     });
   });

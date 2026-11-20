@@ -1,7 +1,7 @@
 import type { NextRequest, NextResponse } from "next/server";
 
 /**
- * Single sign-on across bandcoin.io and every *.bandcoin.io app (app, artist, ar, studio): when AUTH_COOKIE_DOMAIN is set (".bandcoin.io" in
+ * Single sign-on across action-tokens.com and every *.action-tokens.com app (app, artist, ar, studio): when AUTH_COOKIE_DOMAIN is set (".action-tokens.com" in
  * production only), the NextAuth session cookie is written for the whole domain, so every
  * Bandcoin app on a subdomain reads the same login. All of them must share NEXTAUTH_SECRET:
  * an app that can't decrypt the cookie deletes it, which signs the user out everywhere.
@@ -49,7 +49,7 @@ export const sharedSessionCookie = AUTH_COOKIE_DOMAIN
     : undefined;
 
 /**
- * Clears the old single-site session cookie (bandfan's, on bandcoin.io) left from before the login became shared. A browser
+ * Clears the old single-site session cookie (bandfan's, on action-tokens.com) left from before the login became shared. A browser
  * would send both copies and the stale one would win, so signing out elsewhere would not sign the
  * user out here. The expiry has no Domain, so it only touches that old host-only copy; the shared
  * cookie is left alone. Safe to delete once every old cookie has expired (30 days after

@@ -86,7 +86,7 @@ export interface ArPin {
 export interface ArArtist {
   id: string;
   name: string;
-  /** The artist's slug, as on bandcoin.io/artist/[slug]. */
+  /** The artist's slug, as on action-tokens.com/artist/[slug]. */
   handle: string;
   /** No column backs a short line yet, so always null (never a slice of the bio). */
   tagline: string | null;

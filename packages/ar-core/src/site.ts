@@ -27,10 +27,10 @@ export const site = {
     packDoneGlow: "hsl(60 71% 52% / 0.35)",
   },
   urls: {
-    arWeb: process.env.NEXT_PUBLIC_AR_URL ?? "https://www.bandcoin.io",
-    orgPortal: process.env.NEXT_PUBLIC_ORG_URL ?? "https://artist.bandcoin.io",
-    fanApp: process.env.NEXT_PUBLIC_APP_URL ?? "https://app.bandcoin.io",
+    arWeb: process.env.NEXT_PUBLIC_AR_URL ?? "https://ar.action-tokens.com",
+    orgPortal: process.env.NEXT_PUBLIC_ORG_URL ?? "https://org.action-tokens.com",
+    fanApp: process.env.NEXT_PUBLIC_APP_URL ?? "https://app.action-tokens.com",
   },
-  contact: { supportEmail: "support@bandcoin.io" },
-  calendar: { productId: "Bandcoin", uidDomain: "bandcoin.io" },
+  contact: { supportEmail: "support@action-tokens.com" },
+  calendar: { productId: "Bandcoin", uidDomain: "action-tokens.com" },
 } as const;

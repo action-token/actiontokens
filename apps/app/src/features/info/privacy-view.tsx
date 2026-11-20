@@ -285,12 +285,12 @@ export function PrivacyView() {
               <InfoCard title="Contact us">
                 <p>
                   Questions about this policy? Email{" "}
-                  <a href="mailto:support@bandcoin.io" className="text-fg underline">
-                    support@bandcoin.io
+                  <a href="mailto:support@action-tokens.com" className="text-fg underline">
+                    support@action-tokens.com
                   </a>{" "}
                   or visit{" "}
-                  <a href="https://bandcoin.io" className="text-fg underline">
-                    bandcoin.io
+                  <a href="https://action-tokens.com" className="text-fg underline">
+                    action-tokens.com
                   </a>
                   .
                 </p>

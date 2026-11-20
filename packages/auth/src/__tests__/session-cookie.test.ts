@@ -12,7 +12,7 @@ async function load(domain?: string) {
 }
 
 function request(cookie?: string) {
-  return new NextRequest("https://app.bandcoin.io/", cookie ? { headers: { cookie } } : undefined);
+  return new NextRequest("https://app.action-tokens.com/", cookie ? { headers: { cookie } } : undefined);
 }
 
 afterEach(() => {
@@ -26,10 +26,10 @@ describe("sharedSessionCookie", () => {
   });
 
   it("writes the session cookie for the whole domain, keeping the default name", async () => {
-    const { sharedSessionCookie } = await load(".bandcoin.io");
+    const { sharedSessionCookie } = await load(".action-tokens.com");
     expect(sharedSessionCookie?.sessionToken.name).toBe(SESSION);
     expect(sharedSessionCookie?.sessionToken.options).toMatchObject({
-      domain: ".bandcoin.io",
+      domain: ".action-tokens.com",
       secure: true,
       httpOnly: true,
     });
@@ -54,7 +54,7 @@ describe("local development", () => {
 
 describe("clearLegacySessionCookie", () => {
   it("expires the host-only copy (no Domain) when the request carries a session", async () => {
-    const { clearLegacySessionCookie } = await load(".bandcoin.io");
+    const { clearLegacySessionCookie } = await load(".action-tokens.com");
     const res = NextResponse.next();
     clearLegacySessionCookie(request(`${SESSION}=abc; other=1`), res);
     const cleared = res.headers.get("set-cookie") ?? "";
@@ -63,7 +63,7 @@ describe("clearLegacySessionCookie", () => {
   });
 
   it("also expires chunked session cookies", async () => {
-    const { clearLegacySessionCookie } = await load(".bandcoin.io");
+    const { clearLegacySessionCookie } = await load(".action-tokens.com");
     const res = NextResponse.next();
     clearLegacySessionCookie(request(`${SESSION}.0=a; ${SESSION}.1=b`), res);
     const cleared = res.headers.get("set-cookie") ?? "";
@@ -72,7 +72,7 @@ describe("clearLegacySessionCookie", () => {
   });
 
   it("does nothing without a session cookie or without a shared domain", async () => {
-    const shared = await load(".bandcoin.io");
+    const shared = await load(".action-tokens.com");
     const res = NextResponse.next();
     shared.clearLegacySessionCookie(request("other=1"), res);
     expect(res.headers.get("set-cookie")).toBeNull();

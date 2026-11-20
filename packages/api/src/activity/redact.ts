@@ -36,7 +36,7 @@ export function redact(value: unknown, depth = 0): unknown {
   return out;
 }
 
-/** "nadia@demo.bandcoin.io" → "n***@demo.bandcoin.io" */
+/** "nadia@demo.action-tokens.com" → "n***@demo.action-tokens.com" */
 export function maskEmail(email: string) {
   const at = email.indexOf("@");
   return at < 1 ? REDACTED : `${email[0]}***${email.slice(at)}`;

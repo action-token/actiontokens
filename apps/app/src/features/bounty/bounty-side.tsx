@@ -29,7 +29,7 @@ import { useClaim } from "./use-claim";
 type Bounty = RouterOutputs["bounty"]["byId"];
 export type BountyTab = "description" | "participants" | "reports";
 
-const ORG_URL = process.env.NEXT_PUBLIC_ORG_URL ?? "https://artist.bandcoin.io";
+const ORG_URL = process.env.NEXT_PUBLIC_ORG_URL ?? "https://org.action-tokens.com";
 
 /** Which tab the page shows lives in the URL, so the page and the side panel agree. */
 export function useBountyTab() {

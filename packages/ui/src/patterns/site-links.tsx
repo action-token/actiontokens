@@ -4,14 +4,6 @@
  */
 
 /* Brand marks lucide-react no longer ships. */
-function XIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className={className}>
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-    </svg>
-  );
-}
-
 function InstagramIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -44,9 +36,8 @@ function FacebookIcon({ className }: { className?: string }) {
 }
 
 export const SOCIALS = [
-  { href: "https://facebook.com/bandcoinio", label: "Facebook", icon: FacebookIcon },
-  { href: "https://x.com/bandcoinio", label: "X", icon: XIcon },
-  { href: "https://www.instagram.com/bandcoin", label: "Instagram", icon: InstagramIcon },
+  { href: "https://www.facebook.com/actiontokens/", label: "Facebook", icon: FacebookIcon },
+  { href: "https://www.instagram.com/actiontokens/", label: "Instagram", icon: InstagramIcon },
 ];
 
 /** Info pages on the fan app; join with its base URL from another app. */
@@ -56,4 +47,4 @@ export const INFO_LINKS = [
   { path: "/support", label: "Support" },
 ];
 
-export const copyrightLine = (year = new Date().getFullYear()) => `© ${year} bandcoin.io`;
+export const copyrightLine = (year = new Date().getFullYear()) => `© ${year} action-tokens.com`;

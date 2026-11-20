@@ -5,7 +5,7 @@ import { clearLegacySessionCookie } from "@actiontokens/auth";
 import { routeCustomHost } from "./lib/custom-host";
 
 /**
- * One login across bandcoin.io and every *.bandcoin.io app: the session cookie
+ * One login across action-tokens.com and every *.action-tokens.com app: the session cookie
  * is shared (AUTH_COOKIE_DOMAIN), and the old host-only bandfan cookie is
  * cleared so it can't shadow the shared one.
  *

@@ -20,7 +20,7 @@ import { createCallerFactory, createRouter, publicProcedure } from "../trpc";
 describe("redact", () => {
   it("removes secrets, signed transactions and card tokens, and masks emails", () => {
     const out = redact({
-      email: "nadia@demo.bandcoin.io",
+      email: "nadia@demo.action-tokens.com",
       xdr: "AAAAAgAAAAB…",
       card: { sourceId: "cnon:123", verificationToken: "vt" },
       password: "hunter2",
@@ -28,7 +28,7 @@ describe("redact", () => {
       quantity: 2,
     });
     expect(out).toEqual({
-      email: "n***@demo.bandcoin.io",
+      email: "n***@demo.action-tokens.com",
       xdr: REDACTED,
       card: { sourceId: REDACTED, verificationToken: REDACTED },
       password: REDACTED,
@@ -88,7 +88,7 @@ const fan: SessionUser = {
   role: "FAN",
   walletAddress: "GABC",
   walletType: "emailPass",
-  email: "nadia@demo.bandcoin.io",
+  email: "nadia@demo.action-tokens.com",
 };
 
 function harness(session: Context["session"] = { user: fan }) {

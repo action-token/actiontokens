@@ -440,13 +440,13 @@ describe("opening the issuer", () => {
     vi.unstubAllEnvs();
   });
 
-  it("sets the issuer's home domain (bandcoin.io) so wallets read stellar.toml, and the issuer signs that step", async () => {
+  it("sets the issuer's home domain (action-tokens.com) so wallets read stellar.toml, and the issuer signs that step", async () => {
     const { ctx, chain, chainAccounts } = setup({ organization: pending });
     const { xdr } = await startIssuerOpening(ctx, me);
     const [issuerKey] = [...chainAccounts.keys()];
     const tx = TransactionBuilder.fromXDR(xdr, Networks.TESTNET) as Transaction;
     expect(tx.operations.map((op) => op.type)).toEqual(["createAccount", "setOptions"]);
-    expect(tx.operations[1]).toMatchObject({ source: issuerKey, homeDomain: "bandcoin.io" });
+    expect(tx.operations[1]).toMatchObject({ source: issuerKey, homeDomain: "app.action-tokens.com" });
 
     await submitIssuerOpening(ctx, me, { orderId: ORDER, xdr });
     expect(chain.signWithServerKeys).toHaveBeenCalledWith(xdr, [issuerKey]);

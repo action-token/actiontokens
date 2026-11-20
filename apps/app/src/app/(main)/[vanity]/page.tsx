@@ -18,7 +18,7 @@ function safeDecode(text: string) {
   }
 }
 
-/** The artist behind bandcoin.io/name; names that couldn't be a link never reach the database. */
+/** The artist behind action-tokens.com/name; names that couldn't be a link never reach the database. */
 const resolve = cache(async (raw: string) => {
   const name = normalizeVanityName(safeDecode(raw));
   if (validateVanityName(name)) return null;

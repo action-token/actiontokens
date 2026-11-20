@@ -6,9 +6,9 @@
  */
 
 /** Where the marketplace lives; links from a custom domain land here. */
-export const FAN_APP_ORIGIN = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.bandcoin.io";
+export const FAN_APP_ORIGIN = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.action-tokens.com";
 
-const OWN_SUFFIXES = ["bandcoin.io", "vercel.app", "sslip.io", "localhost"];
+const OWN_SUFFIXES = ["action-tokens.com", "vercel.app", "sslip.io", "localhost"];
 
 /** "Coldplay.com:443" → "coldplay.com" */
 export const bareHost = (host: string | null) =>

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { appSetups, SERVER_NAME } from "./ai-app-setups";
 
-const URL = "https://artist.bandcoin.io/api/mcp";
+const URL = "https://org.action-tokens.com/api/mcp";
 const TOKEN = "bc_mcp_abc123";
 
 describe("how each AI app is told about the server", () => {

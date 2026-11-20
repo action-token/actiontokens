@@ -7,10 +7,10 @@ import { STICKER } from "./info-card";
 import { InfoHero } from "./info-hero";
 
 const CONTACTS = [
-  { icon: LifeBuoy, title: "Technical support", email: "support@bandcoin.io" },
-  { icon: Wallet, title: "Sales questions", email: "sales@bandcoin.io" },
-  { icon: Megaphone, title: "Press", email: "press@bandcoin.io" },
-  { icon: Bug, title: "Bug report", email: "bugs@bandcoin.io" },
+  { icon: LifeBuoy, title: "Technical support", email: "support@action-tokens.com" },
+  { icon: Wallet, title: "Sales questions", email: "sales@action-tokens.com" },
+  { icon: Megaphone, title: "Press", email: "press@action-tokens.com" },
+  { icon: Bug, title: "Bug report", email: "bugs@action-tokens.com" },
 ];
 
 const FAQ = [
