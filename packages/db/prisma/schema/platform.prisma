@@ -79,7 +79,7 @@ model ActivityLog {
   txHash     String?
   amount     Decimal?       @db.Decimal(20, 7)
   currency   Currency?
-  /// "app" | "artist" | "ar" | "worker"
+  /// "app" | "org" | "ar" | "worker"
   app        String
   ip         String?
   userAgent  String?

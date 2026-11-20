@@ -58,7 +58,7 @@ function setup(opts: {
     createContext({
       db: db as unknown as Db,
       chain: {} as ChainGateway,
-      app: "artist",
+      app: "org",
       session: {
         user: { id: "u1", role: opts.role, walletAddress: "GX", walletType: "freighter" },
       },

@@ -3,7 +3,7 @@ import { ErrorCodes, isAppError } from "@actiontokens/errors";
 
 import type { AuthenticatedUser } from "./authorize-credentials";
 
-type App = "app" | "artist" | "ar";
+type App = "app" | "org" | "ar";
 
 /**
  * Writes one ActivityLog row per sign-in attempt, so admins see sign-ins and

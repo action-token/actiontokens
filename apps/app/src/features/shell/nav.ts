@@ -1,7 +1,7 @@
 import { Home, Layers, ListMusic, Newspaper, Star, Store, Tag, Trophy } from "lucide-react";
 
 export const AR_URL = process.env.NEXT_PUBLIC_AR_URL ?? "https://www.bandcoin.io";
-export const ARTIST_URL = process.env.NEXT_PUBLIC_ARTIST_URL ?? "https://artist.bandcoin.io";
+export const ORG_URL = process.env.NEXT_PUBLIC_ORG_URL ?? "https://artist.bandcoin.io";
 
 export type NavItem = {
   href: string;

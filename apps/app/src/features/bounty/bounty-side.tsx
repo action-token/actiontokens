@@ -29,7 +29,7 @@ import { useClaim } from "./use-claim";
 type Bounty = RouterOutputs["bounty"]["byId"];
 export type BountyTab = "description" | "participants" | "reports";
 
-const ARTIST_URL = process.env.NEXT_PUBLIC_ARTIST_URL ?? "https://artist.bandcoin.io";
+const ORG_URL = process.env.NEXT_PUBLIC_ORG_URL ?? "https://artist.bandcoin.io";
 
 /** Which tab the page shows lives in the URL, so the page and the side panel agree. */
 export function useBountyTab() {
@@ -107,7 +107,7 @@ function BountyAction({
   if (bounty.isCreator) {
     action = (
       <Button asChild size="lg" className="w-full">
-        <a href={`${ARTIST_URL}/bounties/${bounty.id}`}>
+        <a href={`${ORG_URL}/bounties/${bounty.id}`}>
           Manage in artist portal <ExternalLink className="size-4" />
         </a>
       </Button>

@@ -19,7 +19,7 @@ function setup(user: SessionUser | null, artist: Record<string, unknown> | null 
     createContext({
       db: db as unknown as Db,
       chain: {} as ChainGateway,
-      app: "artist",
+      app: "org",
       session: user ? { user } : null,
     }),
   );

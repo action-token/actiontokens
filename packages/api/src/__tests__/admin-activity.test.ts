@@ -15,7 +15,7 @@ const row = (id: number, extra: Record<string, unknown> = {}) => ({
   txHash: null,
   amount: null,
   currency: null,
-  app: "artist",
+  app: "org",
   createdAt: new Date("2026-10-29T10:00:00Z"),
   actor: { username: "root", displayName: null },
   ...extra,

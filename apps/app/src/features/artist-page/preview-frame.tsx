@@ -13,7 +13,7 @@ import { api } from "~/trpc/react";
 import { PageRenderer } from "./page-renderer";
 
 /** Who may drive the preview: the artist portal, and localhost in development. */
-const PORTAL_ORIGIN = new URL(process.env.NEXT_PUBLIC_ARTIST_URL ?? "https://artist.bandcoin.io")
+const PORTAL_ORIGIN = new URL(process.env.NEXT_PUBLIC_ORG_URL ?? "https://artist.bandcoin.io")
   .origin;
 const ALLOWED_ORIGINS =
   process.env.NODE_ENV === "production"

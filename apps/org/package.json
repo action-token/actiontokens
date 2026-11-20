@@ -1,9 +1,9 @@
 {
-  "name": "@actiontokens/artist",
+  "name": "@actiontokens/org",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Bandcoin artist portal (artist.bandcoin.io): onboarding, catalog, music, pins, bounties, page, money, and /admin.",
+  "description": "ActionTokens organization portal: onboarding, catalog, music, pins, bounties, page, money, and /admin.",
   "scripts": {
     "build": "next build",
     "dev": "next dev --port 3001",

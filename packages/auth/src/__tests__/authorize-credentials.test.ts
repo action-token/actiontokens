@@ -184,7 +184,7 @@ describe("sign-in log", () => {
     db.activityLog.create.mockRejectedValueOnce(new Error("db down"));
     const spy = vi.spyOn(console, "error").mockImplementation(() => undefined);
     mocks.verifyLoginChallenge.mockReturnValue(true);
-    const options = createAuthOptions({ app: "artist", db: asDb });
+    const options = createAuthOptions({ app: "org", db: asDb });
     const provider = options.providers[0] as unknown as {
       options: {
         authorize: (
@@ -202,7 +202,7 @@ describe("sign-in log", () => {
       data: {
         actorId: "u1",
         status: "SUCCESS",
-        app: "artist",
+        app: "org",
         input: { walletType: "frieghter", publicKey: PUBLIC_KEY },
       },
     });

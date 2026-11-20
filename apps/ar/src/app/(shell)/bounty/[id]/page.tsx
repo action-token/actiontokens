@@ -624,7 +624,7 @@ function ManageInPortal({ bountyId }: { bountyId: string }) {
         Read entries, pick winners and change the bounty&rsquo;s status from your artist portal.
       </p>
       <a
-        href={`${site.urls.artistPortal}/bounties/${bountyId}`}
+        href={`${site.urls.orgPortal}/bounties/${bountyId}`}
         className="ar-key text-ar-text rounded-ar mt-4 inline-flex h-11 items-center gap-2 px-4 text-[13.5px] font-semibold"
       >
         Open artist portal <ExternalLink size={15} strokeWidth={2.3} />
@@ -726,7 +726,7 @@ function PrimaryAction({
       <>
         {note("You posted this bounty")}
         <a
-          href={`${site.urls.artistPortal}/bounties/${bounty.id}`}
+          href={`${site.urls.orgPortal}/bounties/${bounty.id}`}
           className="ar-key ar-key-primary rounded-ar-lg flex h-[54px] w-full items-center justify-center gap-2.5 px-6 text-[15px] font-semibold"
         >
           Manage in artist portal <ExternalLink size={18} strokeWidth={2.3} />

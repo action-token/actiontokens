@@ -169,7 +169,7 @@ describe("admin overview", () => {
         createContext({
           db: setup().ctx.db,
           chain: {} as ChainGateway,
-          app: "artist",
+          app: "org",
           session: {
             user: { id: "u1", role, walletAddress: "GADMIN", walletType: "freighter" },
           },

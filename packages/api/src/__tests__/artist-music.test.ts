@@ -465,7 +465,7 @@ describe("music router", () => {
           artist: { findUnique: vi.fn().mockResolvedValue(artistRow) },
         } as unknown as Db,
         chain: {} as ChainGateway,
-        app: "artist",
+        app: "org",
         session: signedIn
           ? { user: { id: "u9", role: "FAN", walletAddress: "GW", walletType: "freighter" } }
           : null,

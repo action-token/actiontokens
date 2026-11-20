@@ -17,7 +17,7 @@ import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 import { Money } from "~/components/money";
 import { api } from "~/trpc/react";
 
-import { AR_URL, ARTIST_URL, artistEntry, GROUPS, isActive } from "./nav";
+import { AR_URL, ORG_URL, artistEntry, GROUPS, isActive } from "./nav";
 import { HeaderTools } from "./sidebar-search";
 
 /**
@@ -93,7 +93,7 @@ function Frame({
       groups={groups}
       tiles={[
         { href: AR_URL, title: "Go to AR", hint: "Collect drops", icon: ScanLine, tone: "ink" },
-        { href: ARTIST_URL, title: artist.title, hint: artist.hint, icon: Mic2, tone: "mint" },
+        { href: ORG_URL, title: artist.title, hint: artist.hint, icon: Mic2, tone: "mint" },
       ]}
       balance={
         signedIn && (

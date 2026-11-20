@@ -1,4 +1,4 @@
-import { ARTIST_URL } from "../shell/nav";
+import { ORG_URL } from "../shell/nav";
 
 /** Where the box leads, and what it says, for who is looking. */
 export function composerTarget(
@@ -6,7 +6,7 @@ export function composerTarget(
   artist: { name: string; status: string } | null,
   displayName: string | null,
 ) {
-  const portal = ARTIST_URL.replace(/\/$/, "");
+  const portal = ORG_URL.replace(/\/$/, "");
   if (!signedIn)
     return { href: null, prompt: "Share something with your fans…", action: "Sign in" };
   if (artist?.status === "APPROVED")

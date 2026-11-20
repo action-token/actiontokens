@@ -9,7 +9,7 @@ This is the monorepo behind [bandcoin.io](https://bandcoin.io). It is a Turborep
 | App                          | Address              | Local port | What it is                                                                                             |
 | ---------------------------- | -------------------- | ---------- | ------------------------------------------------------------------------------------------------------ |
 | [`apps/app`](apps/app)       | `bandcoin.io`        | 3000       | Fan app: home, music, marketplace, items, collection, playlists, bounties, artist pages, wallet        |
-| [`apps/artist`](apps/artist) | `artist.bandcoin.io` | 3001       | Artist portal: onboarding, catalog, music, memberships, pins, bounties, events, posts, gifts, `/admin` |
+| [`apps/org`](apps/org) | `artist.bandcoin.io` | 3001       | Organization portal: onboarding, catalog, music, memberships, pins, bounties, events, posts, gifts, `/admin` |
 | [`apps/ar`](apps/ar)         | `ar.bandcoin.io`     | 3002       | AR collector: find pins on a map, collect them, scan murals, the embeddable pin map                    |
 | `apps/worker`                | _planned_            |            | Background jobs (transcoding, hotspot drops, payouts, reconciliation)                                  |
 
@@ -59,12 +59,12 @@ pnpm install
 
 # One env file per app: copy the example and fill it in.
 cp apps/app/.env.example    apps/app/.env.local
-cp apps/artist/.env.example apps/artist/.env.local
+cp apps/org/.env.example apps/org/.env.local
 cp apps/ar/.env.example     apps/ar/.env.local
 cp packages/db/.env.example packages/db/.env
 
 pnpm db:generate            # generate the Prisma client
-pnpm dev:app                # or dev:artist, dev:ar, or `pnpm dev` for all of them
+pnpm dev:app                # or dev:org, dev:ar, or `pnpm dev` for all of them
 ```
 
 Development runs against Stellar **testnet**. Set `NEXT_PUBLIC_STELLAR_NETWORK=mainnet` (and the mainnet asset and contract addresses) only in production.
@@ -80,7 +80,7 @@ Real values never go in git: `.env`, `.env.local` and `.env.production` are igno
 | Command                                  | What it does                                   |
 | ---------------------------------------- | ---------------------------------------------- |
 | `pnpm dev`                               | Run every app in development                   |
-| `pnpm dev:app` / `dev:artist` / `dev:ar` | Run one app                                    |
+| `pnpm dev:app` / `dev:org` / `dev:ar` | Run one app                                    |
 | `pnpm typecheck`                         | Type-check every package                       |
 | `pnpm lint`                              | Lint every package                             |
 | `pnpm test`                              | Run every test suite                           |

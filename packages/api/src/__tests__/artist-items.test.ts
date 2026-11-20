@@ -578,7 +578,7 @@ describe("catalog router", () => {
           artist: { findUnique: vi.fn().mockResolvedValue(artistRow) },
         } as unknown as Db,
         chain: {} as ChainGateway,
-        app: "artist",
+        app: "org",
         session: user ? { user } : null,
       }),
     );

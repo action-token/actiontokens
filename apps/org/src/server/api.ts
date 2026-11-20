@@ -25,7 +25,7 @@ export async function createPortalContext(requestHeaders: Headers) {
   return createContext({
     db,
     chain: chain(),
-    app: "artist",
+    app: "org",
     session: await liveSession(db, sessionUserOf(await getSession())),
     headers: requestHeaders,
   });
@@ -42,7 +42,7 @@ export const agentCallerFor = (user: SessionUser, requestHeaders: Headers) =>
     createContext({
       db,
       chain: chain(),
-      app: "artist",
+      app: "org",
       session: { user },
       headers: requestHeaders,
     }),

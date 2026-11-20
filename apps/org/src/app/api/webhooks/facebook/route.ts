@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   const ctx = createContext({
     db,
     chain: createChainGateway(db),
-    app: "artist",
+    app: "org",
     session: null,
     headers: request.headers,
   });

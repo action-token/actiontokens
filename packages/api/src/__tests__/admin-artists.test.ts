@@ -406,7 +406,7 @@ describe("admin router", () => {
       createContext({
         db: { activityLog: { create: vi.fn() } } as unknown as Db,
         chain: {} as ChainGateway,
-        app: "artist",
+        app: "org",
         session: user ? { user } : null,
       }),
     );

@@ -28,7 +28,7 @@ export const site = {
   },
   urls: {
     arWeb: process.env.NEXT_PUBLIC_AR_URL ?? "https://www.bandcoin.io",
-    artistPortal: process.env.NEXT_PUBLIC_ARTIST_URL ?? "https://artist.bandcoin.io",
+    orgPortal: process.env.NEXT_PUBLIC_ORG_URL ?? "https://artist.bandcoin.io",
     fanApp: process.env.NEXT_PUBLIC_APP_URL ?? "https://app.bandcoin.io",
   },
   contact: { supportEmail: "support@bandcoin.io" },

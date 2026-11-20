@@ -4,7 +4,7 @@ import { cache } from "react";
 import {
   decodePreview,
   normalizeConfig,
-  artistPortalOrigins,
+  orgPortalOrigins,
   type EmbedConfig,
 } from "@actiontokens/ar-core/embed/config";
 import { db } from "@actiontokens/db/server";
@@ -30,7 +30,7 @@ const load = cache(async (id: string, c: string | undefined): Promise<Loaded> =>
   if (id === "preview") {
     return {
       config: normalizeConfig(decodePreview(c) ?? {}, "preview"),
-      previewOrigins: artistPortalOrigins(),
+      previewOrigins: orgPortalOrigins(),
     };
   }
   const row = id ? await db.mapEmbed.findUnique({ where: { id } }) : null;

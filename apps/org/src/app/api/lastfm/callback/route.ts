@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
         targetType: "LastFmAccount",
         targetId: userId,
         status: "SUCCESS",
-        app: "artist",
+        app: "org",
       },
     });
     return back(["lastfm", "connected"]);

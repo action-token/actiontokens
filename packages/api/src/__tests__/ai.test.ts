@@ -220,7 +220,7 @@ describe("who can use AI", () => {
           activityLog: { create: vi.fn() },
         } as unknown as Db,
         chain: {} as ChainGateway,
-        app: "artist",
+        app: "org",
         session: { user },
       }),
     );

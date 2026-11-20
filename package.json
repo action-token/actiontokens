@@ -13,7 +13,7 @@
     "db:studio": "pnpm --filter @actiontokens/db studio",
     "dev": "turbo run dev --parallel",
     "dev:app": "turbo run dev --filter=@actiontokens/app",
-    "dev:artist": "turbo run dev --filter=@actiontokens/artist",
+    "dev:org": "turbo run dev --filter=@actiontokens/org",
     "dev:ar": "turbo run dev --filter=@actiontokens/ar",
     "dev:worker": "turbo run dev --filter=@actiontokens/worker",
     "format": "prettier --write \"**/*.{ts,tsx,js,mjs,cjs,json,md,css,yml}\" --ignore-path .prettierignore",

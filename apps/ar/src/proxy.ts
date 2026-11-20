@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { artistPortalOrigins } from "@actiontokens/ar-core/embed/config";
+import { orgPortalOrigins } from "@actiontokens/ar-core/embed/config";
 import { clearLegacySessionCookie } from "@actiontokens/auth";
 
 /**
@@ -34,7 +34,7 @@ async function embedPolicy(request: NextRequest) {
     // Otherwise it would put the map on any site with no allowlist at all.
     response.headers.set(
       "Content-Security-Policy",
-      `frame-ancestors 'self' ${artistPortalOrigins().join(" ")}`,
+      `frame-ancestors 'self' ${orgPortalOrigins().join(" ")}`,
     );
     return response;
   }

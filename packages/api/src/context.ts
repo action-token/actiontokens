@@ -6,7 +6,7 @@ import { isCustodialWallet } from "@actiontokens/wallet/shared";
 import type { ChainGateway } from "./services/chain-gateway";
 
 /** The five apps that call the API, written to every activity log row. */
-export type AppName = "app" | "artist" | "ar" | "worker";
+export type AppName = "app" | "org" | "ar" | "worker";
 
 /** The signed-in user, from the NextAuth session (`@actiontokens/auth` `sessionUserOf`). */
 export type SessionUser = {

@@ -113,8 +113,8 @@ export function decodePreview(c: string | undefined): Record<string, unknown> | 
 }
 
 /** Origins of the artist portal, which may always frame embeds (editor preview). */
-export function artistPortalOrigins(): string[] {
-  return (process.env.ARTIST_APP_ORIGINS ?? `${site.urls.artistPortal} http://localhost:3001`)
+export function orgPortalOrigins(): string[] {
+  return (process.env.ORG_APP_ORIGINS ?? `${site.urls.orgPortal} http://localhost:3001`)
     .split(/[\s,]+/)
     .filter(Boolean);
 }
@@ -149,7 +149,7 @@ export function frameAncestors(domains: string[]): string {
       ? ["http://localhost:*", "https://localhost:*"]
       : [`https://${h}`, `https://*.${h}`, `http://${h}`, `http://*.${h}`],
   );
-  return `frame-ancestors 'self' ${[...artistPortalOrigins(), ...sources].join(" ")}`;
+  return `frame-ancestors 'self' ${[...orgPortalOrigins(), ...sources].join(" ")}`;
 }
 
 /** "#dbdc2c" → "60 72% 52%" — the triplet format the `--ar-*` tokens use. */

@@ -135,7 +135,7 @@ describe("suspending", () => {
       createContext({
         db: db as unknown as Db,
         chain: {} as ChainGateway,
-        app: "artist",
+        app: "org",
         session,
       }),
     );
