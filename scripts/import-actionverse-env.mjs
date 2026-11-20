@@ -125,6 +125,18 @@ function write(file, wanted, src, derived, header) {
 
 const dev = read(".env.development");
 const prod = read(".env.production");
+// The real Actionverse databases may differ from the ones in its env files; packages/db/.env.legacy
+// (gitignored) wins. Every host seen anywhere stays protected.
+const seenHosts = new Set([hostOf(dev.DATABASE_URL), hostOf(prod.DATABASE_URL)].filter(Boolean));
+const legacyFile = resolve(root, "packages/db/.env.legacy");
+if (existsSync(legacyFile)) {
+  const o = parse(readFileSync(legacyFile));
+  if (o.ACTIONVERSE_DEV_DATABASE_URL) dev.DATABASE_URL = o.ACTIONVERSE_DEV_DATABASE_URL;
+  if (o.ACTIONVERSE_PROD_DATABASE_URL) prod.DATABASE_URL = o.ACTIONVERSE_PROD_DATABASE_URL;
+  console.log("using the Actionverse database URLs from packages/db/.env.legacy");
+}
+for (const u of [dev.DATABASE_URL, prod.DATABASE_URL]) if (u) seenHosts.add(hostOf(u));
+const protectedList = [...seenHosts].join(",");
 const chainKey =
   existingKey(resolve(root, "packages/db/.env")) ?? randomBytes(32).toString("hex");
 
@@ -151,7 +163,7 @@ for (const kind of ["development", "production"]) {
   const src = kind === "development" ? dev : prod;
   const derived = derive(src, kind, "app", kind === "development" ? chainKey : "");
   derived.LEGACY_DATABASE_URL = src.DATABASE_URL ?? "";
-  derived.PROTECTED_HOSTS = [hostOf(dev.DATABASE_URL), hostOf(prod.DATABASE_URL)].filter(Boolean).join(",");
+  derived.PROTECTED_HOSTS = protectedList;
   const values = new Map();
   for (const name of allNames) values.set(name, derived[name] ?? src[name] ?? "");
   const empty = [...values].filter(([, v]) => v === "").length;
@@ -173,7 +185,7 @@ for (const kind of ["development", "production"]) {
 }
 
 // packages/db/.env: the new local DB, plus the legacy sources (read only) and the protected hosts.
-const protectedHosts = [hostOf(dev.DATABASE_URL), hostOf(prod.DATABASE_URL)].filter(Boolean).join(",");
+const protectedHosts = protectedList;
 writeFileSync(
   resolve(root, "packages/db/.env"),
   render(
