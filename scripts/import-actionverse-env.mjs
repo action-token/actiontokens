@@ -2,7 +2,12 @@
 /**
  * Builds ActionTokens env files from the Actionverse ones (.env.development, .env.production).
  *
- *   node scripts/import-actionverse-env.mjs /Volumes/Data/Projects/actionverse
+ *   node scripts/import-actionverse-env.mjs /Volumes/Data/Projects/actionverse [/Volumes/Data/Projects/bandcoin]
+ *
+ * The optional second path is the Bandcoin repo: ActionTokens shares Bandcoin's NFT and escrow
+ * contracts (owner decision 2026-11-20), so NFT_CONTRACT and ESCROW_CONTRACT are copied from
+ * Bandcoin's apps/app/.env.local (development, testnet) and .env.production (production,
+ * mainnet). They fill only what Actionverse doesn't have.
  *
  * Values are copied straight from file to file and NEVER printed. Only variables an app lists
  * in its .env.example are written to it. Written (all gitignored):
@@ -33,6 +38,15 @@ if (!sourceDir) throw new Error("Usage: import-actionverse-env.mjs <path to the 
 const root = resolve(new URL("..", import.meta.url).pathname);
 const LOCAL_DB = "postgresql://actiontokens:actiontokens@127.0.0.1:55432/actiontokens_dev";
 const PORTS = { app: 3000, org: 3001, ar: 3002 };
+
+const bandcoinDir = process.argv[3];
+const SHARED_CONTRACTS = ["NFT_CONTRACT", "ESCROW_CONTRACT"];
+const readShared = (file) => {
+  const path = bandcoinDir && resolve(bandcoinDir, "apps/app", file);
+  if (!path || !existsSync(path)) return {};
+  const all = parse(readFileSync(path));
+  return Object.fromEntries(SHARED_CONTRACTS.filter((k) => all[k]).map((k) => [k, all[k]]));
+};
 
 const read = (name) => parse(readFileSync(resolve(sourceDir, name)));
 const quote = (v) => (/^[A-Za-z0-9_./:@,+=-]*$/.test(v) ? v : JSON.stringify(v));
@@ -123,8 +137,8 @@ function write(file, wanted, src, derived, header) {
   console.log(`wrote ${file.replace(root + "/", "")} (${values.size} variables)`);
 }
 
-const dev = read(".env.development");
-const prod = read(".env.production");
+const dev = { ...readShared(".env.local"), ...read(".env.development") };
+const prod = { ...readShared(".env.production"), ...read(".env.production") };
 // The real Actionverse databases may differ from the ones in its env files; packages/db/.env.legacy
 // (gitignored) wins. Every host seen anywhere stays protected.
 const seenHosts = new Set([hostOf(dev.DATABASE_URL), hostOf(prod.DATABASE_URL)].filter(Boolean));
