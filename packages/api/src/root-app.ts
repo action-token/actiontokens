@@ -5,6 +5,7 @@ import { storyRouter } from "./routers/app/story";
 import { notificationRouter } from "./routers/app/notification";
 import { bountyRouter } from "./routers/app/bounty";
 import { communitiesRouter } from "./routers/app/community";
+import { galleryRouter } from "./routers/app/gallery";
 import { rewardRouter } from "./routers/app/reward";
 import { catalogRouter } from "./routers/app/catalog";
 import { collectionRouter } from "./routers/app/collection";
@@ -30,6 +31,7 @@ export const appRouter = createRouter({
   bounty: bountyRouter,
   community: communitiesRouter,
   reward: rewardRouter,
+  gallery: galleryRouter,
   event: eventRouter,
   story: storyRouter,
   notification: notificationRouter,

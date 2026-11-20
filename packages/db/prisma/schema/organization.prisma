@@ -72,6 +72,10 @@ model Organization {
   announcements      Announcement[]
   mapEmbeds          MapEmbed[]
   previousSlugs      OrganizationSlugHistory[]
+  gallery            CreatorGallery?
+  gallerySlots       GallerySlotOverride[]
+  gallerySlotLikes   GallerySlotLike[]
+  museumRooms        MuseumRoom[]
 
   @@index([status, createdAt])
   @@map("organizations")

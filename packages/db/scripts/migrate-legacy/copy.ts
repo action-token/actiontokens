@@ -20,6 +20,7 @@ import pg from "pg";
 import { Copier } from "./copier";
 import { copyAssets, copyFanTokens, copyMarket, copyNfts } from "./steps-catalog";
 import { copyCommunities } from "./steps-community";
+import { copyGallery } from "./steps-gallery";
 import { copyRewards, copyTelegram } from "./steps-rewards";
 import { copyAgent, copyAppSettings, copyBounties } from "./steps-bounty";
 import { copyArtistExtras, copyArtists, copyUsers } from "./steps-people";
@@ -81,6 +82,7 @@ try {
     ["bounties", copyBounties],
     ["holder rewards", copyRewards],
     ["telegram", copyTelegram],
+    ["gallery", copyGallery],
     ["agent", copyAgent],
     ["platform settings", copyAppSettings],
   ] as const) {

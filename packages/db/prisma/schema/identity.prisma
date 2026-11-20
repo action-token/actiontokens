@@ -63,6 +63,7 @@ model User {
   uploads              Upload[]
   communitiesOwned     Community[]                       @relation("CommunityOwner")
   communityMemberships CommunityMember[]                 @relation("CommunityMembership")
+  gallerySlotLikes     GallerySlotLike[]                 @relation("GallerySlotLiker")
   communityPosts       CommunityPost[]                   @relation("CommunityPostAuthor")
   communityPostLikes   CommunityPostLike[]               @relation("CommunityPostLiker")
   communityComments    CommunityComment[]                @relation("CommunityCommenter")

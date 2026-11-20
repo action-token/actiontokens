@@ -1081,6 +1081,62 @@ CREATE TABLE "community_notification_preferences" (
 );
 
 -- CreateTable
+CREATE TABLE "creator_galleries" (
+    "organizationId" TEXT NOT NULL,
+    "musicUrl" TEXT,
+    "creatorTitle" TEXT,
+    "creatorDescription" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "creator_galleries_pkey" PRIMARY KEY ("organizationId")
+);
+
+-- CreateTable
+CREATE TABLE "gallery_slot_overrides" (
+    "id" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "slotId" TEXT NOT NULL,
+    "roomIndex" INTEGER NOT NULL DEFAULT 0,
+    "imageUrl" TEXT,
+    "title" TEXT,
+    "description" TEXT,
+    "aspectRatio" TEXT,
+    "photoDescription" TEXT,
+    "photoDescPlacement" TEXT,
+    "gridCell" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "gallery_slot_overrides_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "gallery_slot_likes" (
+    "id" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "slotId" TEXT NOT NULL,
+    "roomIndex" INTEGER NOT NULL DEFAULT 0,
+    "userId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "gallery_slot_likes_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "museum_rooms" (
+    "id" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "roomIndex" INTEGER NOT NULL,
+    "label" TEXT,
+    "northDoorCell" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "museum_rooms_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
     "walletAddress" TEXT,
@@ -2063,6 +2119,18 @@ CREATE INDEX "community_activities_actorId_idx" ON "community_activities"("actor
 CREATE UNIQUE INDEX "community_notification_preferences_communityId_userId_key" ON "community_notification_preferences"("communityId", "userId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "gallery_slot_overrides_organizationId_slotId_roomIndex_key" ON "gallery_slot_overrides"("organizationId", "slotId", "roomIndex");
+
+-- CreateIndex
+CREATE INDEX "gallery_slot_likes_organizationId_roomIndex_idx" ON "gallery_slot_likes"("organizationId", "roomIndex");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "gallery_slot_likes_organizationId_slotId_roomIndex_userId_key" ON "gallery_slot_likes"("organizationId", "slotId", "roomIndex", "userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "museum_rooms_organizationId_roomIndex_key" ON "museum_rooms"("organizationId", "roomIndex");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "users_walletAddress_key" ON "users"("walletAddress");
 
 -- CreateIndex
@@ -2580,6 +2648,21 @@ ALTER TABLE "community_notification_preferences" ADD CONSTRAINT "community_notif
 
 -- AddForeignKey
 ALTER TABLE "community_notification_preferences" ADD CONSTRAINT "community_notification_preferences_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "creator_galleries" ADD CONSTRAINT "creator_galleries_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "gallery_slot_overrides" ADD CONSTRAINT "gallery_slot_overrides_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "gallery_slot_likes" ADD CONSTRAINT "gallery_slot_likes_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "gallery_slot_likes" ADD CONSTRAINT "gallery_slot_likes_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "museum_rooms" ADD CONSTRAINT "museum_rooms_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "chain_accounts" ADD CONSTRAINT "chain_accounts_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;

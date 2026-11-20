@@ -1,0 +1,72 @@
+// The 3D gallery: each artist's museum (rooms, framed artworks, music) that fans walk through.
+// An artist's frames are stored as overrides of the museum's fixed slots (see the slot list in
+// services/gallery/slots.ts): a slot with no row shows its default.
+
+/// One row per artist: the gallery's music and welcome text.
+model CreatorGallery {
+  organizationId     String       @id
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  musicUrl           String?
+  creatorTitle       String?
+  creatorDescription String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@map("creator_galleries")
+}
+
+/// What hangs in one slot of one room. `gridCell` (0–3) moves it along its wall.
+model GallerySlotOverride {
+  id                 String       @id @default(cuid())
+  organizationId     String
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  slotId             String
+  roomIndex          Int          @default(0)
+  imageUrl           String?
+  title              String?
+  description        String?
+  /// "16:9" | "1:1" | "9:16"
+  aspectRatio        String?
+  photoDescription   String?
+  /// "left" | "right"
+  photoDescPlacement String?
+  gridCell           Int?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@unique([organizationId, slotId, roomIndex])
+  @@map("gallery_slot_overrides")
+}
+
+/// A fan liked what hangs in a slot.
+model GallerySlotLike {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  slotId         String
+  roomIndex      Int          @default(0)
+  userId         String
+  user           User         @relation("GallerySlotLiker", fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@unique([organizationId, slotId, roomIndex, userId])
+  @@index([organizationId, roomIndex])
+  @@map("gallery_slot_likes")
+}
+
+/// A room of the museum. No rows means the single default room; rows exist once an artist adds a
+/// second room (rooms are a chain: each door leads to the next).
+model MuseumRoom {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  roomIndex      Int
+  label          String?
+  /// Which cell (0–3) of the north wall is the door to the next room
+  northDoorCell  Int?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, roomIndex])
+  @@map("museum_rooms")
+}

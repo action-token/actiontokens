@@ -1,6 +1,6 @@
 # Data copy report (rehearsal)
 
-Generated 2026-11-20T14:31:16.047Z. Took 42 s. Target schema: `public`.
+Generated 2026-11-20T14:42:06.797Z. Took 56 s. Target schema: `public`.
 
 ## Checks
 
@@ -78,6 +78,10 @@ Generated 2026-11-20T14:31:16.047Z. Took 42 s. Target schema: `public`.
 | OriginBlockedUser | 0 | origin_blocked_users | 0 | 0 |
 | QuarterBlockedUser | 0 | quarter_blocked_users | 0 | 0 |
 | TelegramConfig | 1 | telegram_config | 1 | 0 |
+| CreatorGallery | 1 | creator_galleries | 1 | 0 |
+| MuseumRoom | 3 | museum_rooms | 3 | 0 |
+| GallerySlotOverride | 3 | gallery_slot_overrides | 3 | 0 |
+| GallerySlotLike | 0 | gallery_slot_likes | 0 | 0 |
 | AgentJob | 3 | agent_jobs | 3 | 0 |
 | AgentConversation | 0 | agent_conversations | 0 | 0 |
 | AgentMessage | 0 | agent_messages | 0 | 0 |

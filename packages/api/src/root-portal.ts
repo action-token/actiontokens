@@ -8,6 +8,7 @@ import { aiRouter } from "./routers/artist/ai";
 import { facebookRouter } from "./routers/artist/facebook";
 import { mcpTokensRouter } from "./routers/artist/mcp-tokens";
 import { bountiesRouter } from "./routers/artist/bounties";
+import { galleryEditRouter } from "./routers/artist/gallery";
 import { catalogRouter } from "./routers/artist/catalog";
 import { embedsRouter } from "./routers/artist/embeds";
 import { engageRouter } from "./routers/artist/engage";
@@ -36,6 +37,7 @@ import { createRouter } from "./trpc";
 /** The artist portal's API (org.action-tokens.com, including /admin). */
 export const portalRouter = createRouter({
   notifications: notificationsRouter,
+  gallery: galleryEditRouter,
   hotspots: hotspotsRouter,
   layers: layersRouter,
   shapes: shapesRouter,
