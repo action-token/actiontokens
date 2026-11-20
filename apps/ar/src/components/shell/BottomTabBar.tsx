@@ -19,7 +19,7 @@ type Tab = {
 
 export const LEFT: Tab[] = [
   { href: "/map", label: "Map", icon: MapIcon },
-  { href: "/collection", label: "Collection", short: "Stash", icon: LayoutGrid },
+  { href: "/collection", label: "Collection", icon: LayoutGrid },
 ];
 
 // Profile is not a tab — it's the avatar in each screen's header
@@ -86,7 +86,7 @@ export function BottomTabBar() {
                     <path key={d} d={d} stroke="hsl(var(--st-ink))" strokeWidth="3.2" strokeLinecap="round" />
                   ))}
                 </svg>
-                <span className="font-display relative text-[17px] leading-none">AR</span>
+                <span className="font-display relative text-[24px] leading-none">AR</span>
               </span>
             </button>
           </div>
@@ -127,7 +127,7 @@ function TabButton({ tab, active }: { tab: Tab; active: boolean }) {
       />
       <span
         className={cn(
-          "font-display relative z-10 max-w-full truncate px-0.5 text-[8.5px] leading-none tracking-[0.02em] uppercase",
+          "font-display relative z-10 max-w-full truncate px-0.5 text-[13px] leading-none tracking-[0.04em] uppercase",
           active ? "st-on-ink text-ar-accent" : "text-[hsl(var(--st-ink)/0.75)]",
         )}
       >

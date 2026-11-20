@@ -14,6 +14,7 @@
     "lint": "eslint src",
     "test": "vitest run",
     "test:e2e": "vitest run --config vitest.e2e.config.mts",
+    "testnet:seed": "tsx --env-file=../../apps/ar/.env.development.local scripts/testnet-seed.ts",
     "testnet:demo": "tsx --env-file=../db/.env --env-file=../../apps/app/.env.local scripts/testnet-demo.ts",
     "testnet:buy": "tsx --env-file=../db/.env --env-file=../../apps/app/.env.local scripts/testnet-buy.ts",
     "testnet:trust": "tsx --env-file=../db/.env --env-file=../../apps/app/.env.local scripts/testnet-trust.ts",

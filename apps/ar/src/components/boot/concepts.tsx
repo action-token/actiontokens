@@ -384,7 +384,7 @@ function PosterBand({ t, rotate, top, delay, ink, dir }: { t: number; rotate: nu
       }}
     >
       <div
-        className="font-display text-[18px] leading-none whitespace-nowrap"
+        className="font-display text-[28px] leading-[0.9] pt-1 whitespace-nowrap"
         style={{ color: ink ? GREEN : INK, transform: `translateX(${run - 260}px)` }}
       >
         {"ACTIONTOKENS ★ AR ★ ".repeat(8)}
@@ -427,7 +427,7 @@ export function BootPosterTape({ t }: { t: number }) {
         </div>
 
         <div className="relative flex h-full flex-col px-5 pt-14 pb-8">
-          <div className="font-display flex justify-between text-[10px]" style={{ opacity: seg(t, 0, 300) }}>
+          <div className="font-display flex justify-between text-[16px] tracking-[0.04em]" style={{ opacity: seg(t, 0, 300) }}>
             <span>N°001</span>
             <span>STREET DROPS</span>
           </div>
@@ -437,11 +437,11 @@ export function BootPosterTape({ t }: { t: number }) {
           />
 
           <div className="mt-auto">
-            <Rise t={t} at={420} className="font-display text-[44px] leading-[0.92]">ACTION</Rise>
-            <Rise t={t} at={560} className="font-display text-[44px] leading-[0.92]">TOKENS</Rise>
+            <Rise t={t} at={420} className="font-display text-[92px] leading-[0.78]">ACTION</Rise>
+            <Rise t={t} at={560} className="font-display text-[92px] leading-[0.78]">TOKENS</Rise>
             <div className="mt-2 flex items-center gap-2">
               <span
-                className="font-display inline-flex h-[40px] items-center rounded-[12px] bg-black px-3 text-[22px] text-[hsl(var(--ar-accent))]"
+                className="font-display inline-flex h-[44px] items-center rounded-[12px] bg-black px-3 pt-1 text-[34px] text-[hsl(var(--ar-accent))]"
                 style={{
                   transform: `scale(${lerp(2.6, 1, ar)}) rotate(${lerp(-30, -6, ar)}deg)`,
                   opacity: ar > 0 ? 1 : 0,
@@ -450,7 +450,7 @@ export function BootPosterTape({ t }: { t: number }) {
               >
                 AR
               </span>
-              <Rise t={t} at={700} className="font-display text-[11px] leading-tight">
+              <Rise t={t} at={700} className="font-display text-[17px] leading-[0.9] tracking-[0.03em]">
                 COLLECT THE
                 <br />
                 REAL WORLD
@@ -460,10 +460,10 @@ export function BootPosterTape({ t }: { t: number }) {
 
           <div className="mt-5" style={{ opacity: seg(t, 700, 250) }}>
             <div className="flex items-end justify-between gap-3">
-              <p className="font-display mb-1.5 min-w-0 text-[10px] leading-tight">{statusLine(p)}…</p>
+              <p className="font-display mb-2 min-w-0 text-[16px] leading-[0.95] tracking-[0.03em]">{statusLine(p)}…</p>
               <div className="flex shrink-0 items-start gap-1">
-                <span className="font-display text-[54px] leading-[0.85]">{pct3(p)}</span>
-                <span className="font-display rotate-6 border-[3px] border-black bg-[hsl(var(--st-paper))] px-1.5 py-0.5 text-[14px] shadow-[2px_2px_0_0_#000]">
+                <span className="font-display text-[96px] leading-[0.75]">{pct3(p)}</span>
+                <span className="font-display rotate-6 border-[3px] border-black bg-[hsl(var(--st-paper))] px-1.5 pt-1 text-[22px] leading-none shadow-[2px_2px_0_0_#000]">
                   %
                 </span>
               </div>

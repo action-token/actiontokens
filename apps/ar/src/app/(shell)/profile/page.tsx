@@ -146,7 +146,7 @@ export default function ProfileScreen() {
               ) : (
                 <span
                   title={`${me.data.balances.XLM} XLM · ${me.data.balances.USDC} USDC`}
-                  className="font-hud text-glow-soft text-ar-accent-hot text-[14px] leading-none font-bold tabular-nums"
+                  className="font-hud text-glow-soft text-ar-accent-hot text-[24px] leading-none font-bold tabular-nums"
                 >
                   {Number(me.data.balances.BANDCOIN).toLocaleString(undefined, {
                     maximumFractionDigits: 2,

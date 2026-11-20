@@ -84,11 +84,11 @@ export function ScreenHeader({
       {back && <BackButton className="mb-0.5 self-end" />}
       <div className="min-w-0 flex-1">
         {eyebrow && (
-          <p className="st-green font-display mb-2 inline-block -rotate-2 px-2 py-[3px] text-[9.5px] leading-none tracking-[0.04em] uppercase shadow-[2px_2px_0_0_hsl(var(--st-ink))]">
+          <p className="st-green font-display mb-2 inline-block -rotate-2 px-2 pt-[4px] pb-[2px] text-[13px] leading-none tracking-[0.08em] uppercase shadow-[2px_2px_0_0_hsl(var(--st-ink))]">
             {eyebrow}
           </p>
         )}
-        <h1 className="font-display text-ar-text truncate text-[24px] leading-[1.05] uppercase">
+        <h1 className="font-display text-ar-text truncate text-[38px] leading-[0.9] uppercase">
           {title}
         </h1>
       </div>

@@ -30,3 +30,6 @@ npm-debug.log*
 
 # generated demo audio for stems (scripts/seed-demo-stems.ts)
 apps/app/public/demo-stems
+
+# Local-only files (testnet demo wallet secrets)
+.local/

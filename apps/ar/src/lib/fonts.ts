@@ -1,6 +1,6 @@
 import {
-  Rubik,
-  Rubik_Mono_One,
+  Barlow,
+  Teko,
   Bungee,
   Bungee_Shade,
   Faster_One,
@@ -10,24 +10,24 @@ import {
 
 /**
  * ActionTokens type (docs/PLAN.md §11.3, §12.3; chosen by the owner from docs/mockups/fonts.html):
- *   display  Rubik Mono One: wide and blocky, skate-deck graphics, the Street Sticker voice (picked
- *            2026-11-20 from /review/fonts)
- *   body     Rubik
+ *   display  Teko: condensed, Bandcoin's simple headline face (the owner's pick, 2026-11-20;
+ *            shown at weight 600 by default, see globals.css)
+ *   body     Barlow
  *   mono     JetBrains Mono: prices, counts, countdowns
  *   brand    Bungee: labels, names, buttons that shout
  *   shade    Bungee Shade: the ACTIONTOKENS word, big numbers
  *   neon     Faster One: section labels in neon green
  *   pixel    Silkscreen: the glimmer glyph and tiny HUD tags
  */
-const display = Rubik_Mono_One({
+const display = Teko({
   subsets: ["latin"],
-  weight: "400",
+  weight: ["400", "500", "600", "700"],
   display: "swap",
   variable: "--nf-display",
 });
-const body = Rubik({
+const body = Barlow({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
   variable: "--nf-body",
 });

@@ -98,7 +98,7 @@ export default function CollectionScreen() {
       <div className="flex h-full flex-col">
         <ScreenHeader
           eyebrow="Your collection"
-          title="Stash"
+          title="Collection"
           trailing={
             tab === "drops" && (
               <button

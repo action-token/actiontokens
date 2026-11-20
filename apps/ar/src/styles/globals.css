@@ -68,3 +68,12 @@
   --font-neon: var(--nf-neon), var(--nf-brand), system-ui, sans-serif;
   --font-pixel: var(--nf-pixel), ui-monospace, monospace;
 }
+
+/* Teko is thin at 400; the sticker look wants it heavy. In the base layer, so an explicit
+   font-medium / font-bold utility still wins. */
+@layer base {
+  .font-display,
+  .font-hud {
+    font-weight: 600;
+  }
+}
