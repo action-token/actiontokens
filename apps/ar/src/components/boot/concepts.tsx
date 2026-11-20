@@ -356,8 +356,124 @@ export function BootLock({ t }: { t: number }) {
 }
 
 export const BOOT_CONCEPTS = [
+  { id: "1+2", name: "Poster Tape (picked)", idea: "The green poster from 2 with the crossing tape bands, logo slap and giant counter from 1. Peels off onto the map.", C: BootPosterTape },
   { id: "1", name: "Caution Tape", idea: "Two tape bands with the name running along them cross the screen, the logo slaps on, a giant counter runs to 100.", C: BootTape },
   { id: "2", name: "Poster Peel", idea: "A full green street poster with the name stacked big. When loaded it peels off the corner onto the map.", C: BootPoster },
   { id: "3", name: "Drop Stack", idea: "Collectible stickers fall into a messy pile, one per loading step, then scatter away.", C: BootStack },
   { id: "4", name: "Lock On", idea: "AR viewfinder corners close in on the logo with a scan line, LOCKED stamps on, then they blow open.", C: BootLock },
 ] as const;
+
+// ═════════════════════════════════════════════════════════════════════════════
+// 1 + 2 · Poster Tape (the owner's pick, 2026-11-20): the green street poster with
+//     two tape bands crossing it, the logo slapped where they cross, the name
+//     stacked big, a giant counter, and the poster peeling off onto the map.
+// ═════════════════════════════════════════════════════════════════════════════
+
+function PosterBand({ t, rotate, top, delay, ink, dir }: { t: number; rotate: number; top: string; delay: number; ink: boolean; dir: 1 | -1 }) {
+  const inP = outCubic(seg(t, delay, 420));
+  const x = lerp(-130 * dir, 0, inP);
+  const run = (t * 0.06 * dir) % 260;
+  return (
+    <div
+      className="absolute left-[-30%] w-[160%] border-y-[3px] border-black py-1.5"
+      style={{
+        top,
+        background: ink ? INK : PAPER,
+        transform: `translateX(${x}%) rotate(${rotate}deg)`,
+        boxShadow: `0 5px 0 0 ${ink ? PAPER : INK}`,
+      }}
+    >
+      <div
+        className="font-display text-[18px] leading-none whitespace-nowrap"
+        style={{ color: ink ? GREEN : INK, transform: `translateX(${run - 260}px)` }}
+      >
+        {"ACTIONTOKENS ★ AR ★ ".repeat(8)}
+      </div>
+    </div>
+  );
+}
+
+export function BootPosterTape({ t }: { t: number }) {
+  const p = loadP(t, 700);
+  const peel = inCubic(seg(t, EXIT, 520));
+  const logo = outBack(seg(t, 560, 380));
+  const ar = outBack(seg(t, 1_000, 340));
+  return (
+    <div className="bg-ar-void absolute inset-0 overflow-hidden select-none">
+      <div
+        className="absolute inset-0 overflow-hidden text-black"
+        style={{
+          background: GREEN,
+          transformOrigin: "100% 100%",
+          transform: `translate(${-peel * 40}%, ${-peel * 120}%) rotate(${-peel * 28}deg)`,
+          boxShadow: peel > 0 ? `-10px 14px 0 0 ${PAPER}` : undefined,
+        }}
+      >
+        {/* Halftone in ink, like a printed poster */}
+        <div className="absolute inset-0 bg-[radial-gradient(rgba(0,0,0,0.09)_1px,transparent_1.4px)] [background-size:9px_9px]" />
+
+        <PosterBand t={t} rotate={-11} top="27%" delay={120} ink dir={1} />
+        <PosterBand t={t} rotate={8} top="38%" delay={300} ink={false} dir={-1} />
+        <div
+          className="absolute top-[35%] left-1/2 flex size-[92px] items-center justify-center rounded-full border-[3px] border-black"
+          style={{
+            background: PAPER,
+            boxShadow: `5px 5px 0 0 ${INK}`,
+            opacity: logo > 0 ? 1 : 0,
+            transform: `translate(-50%, -50%) scale(${lerp(2.4, 1, logo)}) rotate(${lerp(-40, -8, logo)}deg)`,
+          }}
+        >
+          <BrandMark className="h-[58px] w-auto" />
+        </div>
+
+        <div className="relative flex h-full flex-col px-5 pt-14 pb-8">
+          <div className="font-display flex justify-between text-[10px]" style={{ opacity: seg(t, 0, 300) }}>
+            <span>N°001</span>
+            <span>STREET DROPS</span>
+          </div>
+          <div
+            className="mt-2 h-[3px] w-full bg-black"
+            style={{ transform: `scaleX(${outCubic(seg(t, 80, 500))})`, transformOrigin: "0 0" }}
+          />
+
+          <div className="mt-auto">
+            <Rise t={t} at={420} className="font-display text-[44px] leading-[0.92]">ACTION</Rise>
+            <Rise t={t} at={560} className="font-display text-[44px] leading-[0.92]">TOKENS</Rise>
+            <div className="mt-2 flex items-center gap-2">
+              <span
+                className="font-display inline-flex h-[40px] items-center rounded-[12px] bg-black px-3 text-[22px] text-[hsl(var(--ar-accent))]"
+                style={{
+                  transform: `scale(${lerp(2.6, 1, ar)}) rotate(${lerp(-30, -6, ar)}deg)`,
+                  opacity: ar > 0 ? 1 : 0,
+                  boxShadow: `3px 3px 0 0 ${PAPER}`,
+                }}
+              >
+                AR
+              </span>
+              <Rise t={t} at={700} className="font-display text-[11px] leading-tight">
+                COLLECT THE
+                <br />
+                REAL WORLD
+              </Rise>
+            </div>
+          </div>
+
+          <div className="mt-5" style={{ opacity: seg(t, 700, 250) }}>
+            <div className="flex items-end justify-between gap-3">
+              <p className="font-display mb-1.5 min-w-0 text-[10px] leading-tight">{statusLine(p)}…</p>
+              <div className="flex shrink-0 items-start gap-1">
+                <span className="font-display text-[54px] leading-[0.85]">{pct3(p)}</span>
+                <span className="font-display rotate-6 border-[3px] border-black bg-[hsl(var(--st-paper))] px-1.5 py-0.5 text-[14px] shadow-[2px_2px_0_0_#000]">
+                  %
+                </span>
+              </div>
+            </div>
+            <div className="mt-2 h-[14px] w-full border-[3px] border-black bg-[hsl(var(--st-paper))]">
+              <div className="h-full bg-black" style={{ width: `${p * 100}%` }} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
