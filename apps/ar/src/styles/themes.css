@@ -1,0 +1,154 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   ActionTokens AR themes: light and high contrast (dark lives in arcade.css and
+   sticker.css). Loaded last. lib/ar/theme.ts and the boot script in
+   app/layout.tsx set the classes on <html>:
+
+     dark            .dark
+     light           (no .dark)
+     high contrast   .dark.hc
+
+   Selectors are `:root:not(.dark)` and `.dark.hc` (two classes' worth of
+   specificity), so they beat both arcade.css's `:root`/`.dark` palettes and the
+   shared theme's `:root[data-theme=…]` tokens regardless of order.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Light: the same stickers on a paper wall ───────────────────────────── */
+:root:not(.dark) {
+  --ar-void: 100 18% 92%;
+  --ar-bg: 100 20% 94%;
+  --ar-surface: 0 0% 100%;
+  --ar-surface-2: 100 25% 97%;
+  --ar-surface-3: 100 16% 90%;
+  --ar-line: 100 12% 80%;
+  --ar-line-bright: 100 10% 62%;
+
+  --ar-text: 120 12% 5%;
+  --ar-text-dim: 120 7% 30%;
+  --ar-text-faint: 120 5% 44%;
+
+  /* Neon green stays the sticker fill (always with ink text on it). Green used as
+     text or a thin line can't be neon on white, so those read the deep green. */
+  --ar-accent: 110 100% 50%;
+  --ar-accent-hot: 112 80% 27%;
+  --ar-accent-deep: 112 80% 24%;
+  --ar-accent-ink: 120 69% 4%;
+  --ar-accent-text: 112 80% 27%;
+
+  --rarity-common: 120 6% 40%;
+  --rarity-rare: 200 88% 38%;
+  --rarity-epic: 272 62% 50%;
+  --rarity-legendary: 32 95% 40%;
+  --rarity-mythic: 322 72% 44%;
+
+  --ar-danger: 350 82% 46%;
+  --ar-locked: 120 5% 55%;
+
+  --st-line: var(--st-ink);
+  --st-pop: var(--st-ink);
+  --st-dot: hsl(120 10% 2% / 0.07);
+
+  /* The shared components (wallet dialog) inside AR. */
+  --bc-bg: #eef3ec;
+  --bc-surface: #ffffff;
+  --bc-surface-2: #f5f8f4;
+  --bc-surface-3: #e5ebe3;
+  --bc-border: #c8d2c5;
+  --bc-border-strong: #9aa996;
+  --bc-fg: #070a07;
+  --bc-fg-muted: #3f4c3f;
+  --bc-fg-faint: #65736a;
+  --bc-primary: #33ff00;
+  --bc-primary-strong: #1f7a0c;
+  --bc-primary-ink: #031003;
+  --bc-primary-text: #1f7a0c;
+  --bc-primary-soft: rgb(31 122 12 / 0.1);
+  --bc-danger: #d61f45;
+  --bc-danger-soft: rgb(214 31 69 / 0.1);
+  --bc-overlay: rgb(10 20 10 / 0.45);
+  --bc-shadow: 0 16px 40px -18px rgb(0 0 0 / 0.35);
+  color-scheme: light;
+}
+
+/* Neon text can't be read on white: green text reads the deep green. Text that
+   sits on an ink chip (the dock's active tab, black tags) keeps the neon. */
+:root:not(.dark) .text-ar-accent {
+  color: hsl(var(--ar-accent-text));
+}
+:root:not(.dark) :is(.bg-black, .st-on-ink) .text-ar-accent,
+:root:not(.dark) :is(.bg-black, .st-on-ink).text-ar-accent {
+  color: hsl(110 100% 58%);
+}
+
+/* ── High contrast: pure black and white, brighter green, heavier lines ─── */
+.dark.hc {
+  --ar-void: 0 0% 0%;
+  --ar-bg: 0 0% 0%;
+  --ar-surface: 0 0% 0%;
+  --ar-surface-2: 0 0% 7%;
+  --ar-surface-3: 0 0% 13%;
+  --ar-line: 0 0% 72%;
+  --ar-line-bright: 0 0% 100%;
+
+  --ar-text: 0 0% 100%;
+  --ar-text-dim: 0 0% 90%;
+  --ar-text-faint: 0 0% 80%;
+
+  --ar-accent: 108 100% 60%;
+  --ar-accent-hot: 106 100% 70%;
+  --ar-accent-deep: 108 100% 60%;
+
+  --rarity-common: 0 0% 85%;
+  --rarity-rare: 192 100% 65%;
+  --rarity-epic: 275 100% 78%;
+  --rarity-legendary: 45 100% 60%;
+  --rarity-mythic: 320 100% 72%;
+
+  --ar-danger: 352 100% 66%;
+  --ar-locked: 0 0% 70%;
+
+  --st-paper: 0 0% 100%;
+  --st-ink: 0 0% 0%;
+  --st-line: 0 0% 100%;
+  --st-pop: var(--ar-accent);
+  --st-dot: transparent;
+
+  --bc-bg: #000000;
+  --bc-surface: #000000;
+  --bc-surface-2: #121212;
+  --bc-surface-3: #212121;
+  --bc-border: #bdbdbd;
+  --bc-border-strong: #ffffff;
+  --bc-fg: #ffffff;
+  --bc-fg-muted: #e8e8e8;
+  --bc-fg-faint: #cfcfcf;
+  --bc-primary: #5cff33;
+  --bc-primary-text: #6dff4d;
+  --bc-overlay: rgb(0 0 0 / 0.88);
+}
+
+/* Heavier outlines everywhere a card or key is drawn. */
+.dark.hc :is(.ar-bevel, .ar-key, .ar-glass, .st-card) {
+  border-width: 3px;
+  border-color: hsl(var(--st-line));
+}
+/* No texture behind text. */
+.dark.hc .st-halftone {
+  background-image: none;
+}
+/* Translucent white washes (bg-white/[0.04] …) become a visible surface. */
+.dark.hc [class*="bg-white/"] {
+  background-color: hsl(var(--ar-surface-3));
+}
+/* Faded text classes (text-white/55 …) are lifted to full strength. */
+.dark.hc [class*="text-white/"] {
+  color: hsl(var(--ar-text));
+}
+/* A loud, unmissable focus ring. */
+.dark.hc :focus-visible {
+  outline: 3px solid hsl(var(--ar-accent)) !important;
+  outline-offset: 2px;
+}
+/* Nothing glows or blurs. */
+.dark.hc :is(.text-glow, .text-glow-soft) {
+  text-shadow: none;
+}

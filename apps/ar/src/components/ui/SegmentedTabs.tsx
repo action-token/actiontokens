@@ -56,7 +56,7 @@ export function SegmentedTabs<T extends string>({
             aria-pressed={active}
             className={cn(
               "relative flex-1 rounded-[8px]",
-              !active && "bg-ar-surface border-2 border-[hsl(var(--st-paper)/0.6)]",
+              !active && "bg-ar-surface border-2 border-[hsl(var(--st-line)/0.6)]",
             )}
           >
             {active && (

@@ -4,11 +4,15 @@ import "~/styles/globals.css";
 import "~/styles/arcade.css";
 // After arcade, so the ActionTokens sticker language replaces its console primitives.
 import "~/styles/sticker.css";
+// Last: the light and high-contrast palettes.
+import "~/styles/themes.css";
 
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
 import { site } from "@actiontokens/ar-core/site";
+
+import { SHARED_THEME_COOKIE } from "@actiontokens/ui/lib/shared-theme";
 
 import { fontVariables } from "~/lib/fonts";
 import { TRPCReactProvider } from "~/trpc/react";
@@ -31,14 +35,38 @@ export const viewport: Viewport = {
 };
 
 /**
- * ActionTokens AR is dark only (docs/PLAN.md §12.2): whatever theme was stored before,
- * the page stays dark, with both `.dark` (arcade palette) and `data-theme` set.
+ * Applies the saved theme before first paint, so the page never flashes the wrong one. Dark,
+ * light or high contrast (lib/ar/theme.ts holds the same logic for after hydration; keep the two
+ * in step). The key is `THEME_STORAGE_KEY` there. The shared cookie (one choice across the ActionTokens sites) wins when it says
+ * something different, except that high contrast is shared as "dark" and stays as it is.
  */
 const themeBootScript = `
 (function () {
   try {
-    document.documentElement.classList.add("dark");
-    document.documentElement.setAttribute("data-theme", "dark");
+    var key = "bandcoin-ar-theme";
+    var pref = null;
+    try { pref = localStorage.getItem(key); } catch (e) {}
+    if (["auto", "light", "dark", "contrast"].indexOf(pref) < 0) pref = "dark";
+    var m = document.cookie.match(/(?:^|;\\s*)${SHARED_THEME_COOKIE}=(light|dark|system)(?:;|$)/);
+    if (m) {
+      var shared = m[1] === "system" ? "auto" : m[1];
+      var mine = pref === "contrast" ? "dark" : pref;
+      if (shared !== mine) {
+        pref = shared;
+        try { localStorage.setItem(key, pref); } catch (e) {}
+      }
+    }
+    var mq = function (q) { return window.matchMedia && window.matchMedia(q).matches; };
+    var theme = pref;
+    if (pref === "auto") {
+      theme = mq("(prefers-contrast: more)") ? "contrast" : mq("(prefers-color-scheme: light)") ? "light" : "dark";
+    }
+    var root = document.documentElement;
+    root.classList.toggle("dark", theme !== "light");
+    root.classList.toggle("hc", theme === "contrast");
+    root.setAttribute("data-theme", theme === "light" ? "light" : "dark");
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", theme === "light" ? ${JSON.stringify(site.colors.themeLight)} : theme === "contrast" ? "#000000" : ${JSON.stringify(site.colors.themeDark)});
   } catch (e) {}
 })();
 `;

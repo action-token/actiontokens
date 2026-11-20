@@ -39,6 +39,22 @@ The reference is `apps/ar/src/app/(bare)/review/concept-sticker.tsx`. Match it.
 Business logic, data and routes don't change. Tests must stay green: run `pnpm --filter ar test`,
 `tsc` and `eslint`.
 
+## Themes
+
+Dark (the default), light and high contrast, plus Auto (follows the phone, including its "more
+contrast" setting). Picked in Profile → Settings → Theme, saved on the device and shared with the
+other ActionTokens sites as light/dark (high contrast is shared as dark).
+
+- `<html>` classes: dark `.dark`, light none, high contrast `.dark.hc`. `data-theme` is light or dark.
+- `lib/ar/theme.ts` holds the logic; the boot script in `app/layout.tsx` repeats it before first paint.
+- `styles/themes.css` holds the light and high-contrast palettes, including the shared `--bc-*`
+  tokens, so the wallet dialog follows the theme inside AR only.
+- Outlines and card shadows on the page use `--st-line` and `--st-pop` (`--sticker-line` as a full
+  colour for shared code), never a hard-coded paper colour. Stickers themselves (paper or green
+  faces with ink text) look the same in every theme.
+- In light, neon green is a fill only; green text reads `--ar-accent-text`. Text on an ink chip keeps
+  the neon via `.st-on-ink`.
+
 ## Naming
 
 In ActionTokens, the people who drop items are **organizations**, not artists. User-facing text says

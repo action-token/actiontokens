@@ -26,15 +26,19 @@ import {
  * step dedicated to it, which is a lot of machinery for four lines of logic.
  */
 
-export type ThemePreference = "auto" | "light" | "dark";
+/** "contrast" is high contrast: a dark palette with pure black, pure white and heavier outlines. */
+export type ThemePreference = "auto" | "light" | "dark" | "contrast";
+/** What the page is drawn in. Maps only know light and dark: see `useResolvedTheme`. */
+export type AppliedTheme = "light" | "dark" | "contrast";
 export type ResolvedTheme = "light" | "dark";
 
 export const THEME_STORAGE_KEY = "bandcoin-ar-theme";
 
 /** The two `theme-color` values — see the matching hex in app/layout.tsx. */
-const THEME_COLOR: Record<ResolvedTheme, string> = {
+const THEME_COLOR: Record<AppliedTheme, string> = {
   dark: site.colors.themeDark,
   light: site.colors.themeLight,
+  contrast: "#000000",
 };
 
 /**
@@ -76,17 +80,19 @@ export function useMapStyle(): string {
 }
 
 function isThemePreference(value: unknown): value is ThemePreference {
-  return value === "auto" || value === "light" || value === "dark";
+  return value === "auto" || value === "light" || value === "dark" || value === "contrast";
 }
 
-/** Safe against SSR (no `window`) and a disabled/unavailable localStorage. */
+/** With nothing chosen yet the app is dark, its home look. Safe against SSR and blocked storage. */
+export const DEFAULT_THEME: ThemePreference = "dark";
+
 export function readStoredPreference(): ThemePreference {
-  if (typeof window === "undefined") return "auto";
+  if (typeof window === "undefined") return DEFAULT_THEME;
   try {
     const raw = window.localStorage.getItem(THEME_STORAGE_KEY);
-    return isThemePreference(raw) ? raw : "auto";
+    return isThemePreference(raw) ? raw : DEFAULT_THEME;
   } catch {
-    return "auto";
+    return DEFAULT_THEME;
   }
 }
 
@@ -94,7 +100,8 @@ export function readStoredPreference(): ThemePreference {
  * The theme is shared with the other Bandcoin sites through a cookie (`@actiontokens/ui/lib/shared-theme`),
  * whose word for "auto" is "system".
  */
-export const toShared = (pref: ThemePreference): SharedTheme => (pref === "auto" ? "system" : pref);
+export const toShared = (pref: ThemePreference): SharedTheme =>
+  pref === "auto" ? "system" : pref === "contrast" ? "dark" : pref;
 export const fromShared = (theme: SharedTheme): ThemePreference =>
   theme === "system" ? "auto" : theme;
 
@@ -109,20 +116,26 @@ function writeStoredPreference(pref: ThemePreference) {
 }
 
 
-/** "auto" resolved against the OS preference; "light"/"dark" pass through. */
-export function resolveTheme(_pref: ThemePreference): ResolvedTheme {
-  // ActionTokens AR is dark only (docs/PLAN.md §12.2); a stored "light" is ignored.
-  return "dark";
+/**
+ * "auto" resolved against the OS: "more contrast" wins, then a light system theme; otherwise dark.
+ * Keep in step with the boot script in app/layout.tsx.
+ */
+export function resolveTheme(pref: ThemePreference): AppliedTheme {
+  if (pref !== "auto") return pref;
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return "dark";
+  if (window.matchMedia("(prefers-contrast: more)").matches) return "contrast";
+  return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
 }
 
-/** Apply a resolved theme to the document: the `.dark` class (arcade
- * palette), `data-theme` (shared Bandcoin components) and the `theme-color`
- * meta tag. Everything else repaints on its own once the class changes,
- * because every color in the app is one `--ar-*` token away from `.dark`. */
-export function applyTheme(theme: ResolvedTheme) {
+/** Apply a theme to the document: `.dark` (dark and high contrast), `.hc` (high contrast),
+ * `data-theme` (shared components, which know only light and dark) and the `theme-color` meta.
+ * Everything else repaints on its own, because every colour is a token away from these classes. */
+export function applyTheme(theme: AppliedTheme) {
   if (typeof document === "undefined") return;
-  document.documentElement.classList.toggle("dark", theme === "dark");
-  document.documentElement.setAttribute("data-theme", theme);
+  const root = document.documentElement;
+  root.classList.toggle("dark", theme !== "light");
+  root.classList.toggle("hc", theme === "contrast");
+  root.setAttribute("data-theme", theme === "light" ? "light" : "dark");
 
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute("content", THEME_COLOR[theme]);
@@ -193,7 +206,7 @@ export function useThemeRead(): boolean {
  */
 export function useTheme() {
   const [preference, setPreferenceState] = useState<ThemePreference>(readStoredPreference);
-  const [resolved, setResolved] = useState<ResolvedTheme>(() => resolveTheme(preference));
+  const [resolved, setResolved] = useState<AppliedTheme>(() => resolveTheme(preference));
 
   const setPreference = useCallback((pref: ThemePreference) => {
     setPreferenceState(pref);
@@ -224,14 +237,16 @@ export function useTheme() {
     if (preference !== "auto" || typeof window === "undefined") return;
     if (typeof window.matchMedia !== "function") return;
 
-    const mql = window.matchMedia("(prefers-color-scheme: light)");
+    const queries = ["(prefers-color-scheme: light)", "(prefers-contrast: more)"].map((q) =>
+      window.matchMedia(q),
+    );
     const onChange = () => {
       const next = resolveTheme("auto");
       setResolved(next);
       applyTheme(next);
     };
-    mql.addEventListener("change", onChange);
-    return () => mql.removeEventListener("change", onChange);
+    queries.forEach((mql) => mql.addEventListener("change", onChange));
+    return () => queries.forEach((mql) => mql.removeEventListener("change", onChange));
   }, [preference]);
 
   return { preference, resolved, setPreference };
@@ -252,7 +267,8 @@ export function useSharedThemeSync() {
       const shared = readSharedTheme();
       if (!shared) return;
       const pref = fromShared(shared);
-      if (pref === readStoredPreference()) return;
+      // High contrast is shared as "dark"; another site saying "dark" leaves it alone.
+      if (toShared(readStoredPreference()) === shared) return;
       writeStoredPreference(pref);
       applyTheme(resolveTheme(pref));
       themeListeners.forEach((listener) => listener());

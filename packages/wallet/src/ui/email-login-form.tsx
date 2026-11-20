@@ -92,7 +92,7 @@ export function EmailLoginForm({ onForgotPassword }: EmailLoginFormProps) {
             required
             {...register("email")}
             placeholder="you@example.com"
-            className="bg-surface h-11 rounded-[10px] border-2 border-[#f2f7f2]/80 pl-10 font-medium shadow-none focus-visible:border-[#f2f7f2] focus-visible:shadow-[3px_3px_0_0_var(--color-primary)]"
+            className="bg-surface h-11 rounded-[10px] border-2 border-[var(--sticker-line,#f2f7f2)] pl-10 font-medium shadow-none focus-visible:border-[var(--sticker-line,#f2f7f2)] focus-visible:shadow-[3px_3px_0_0_var(--color-primary)]"
           />
         </div>
         {errors.email && <p className="text-destructive text-xs">{errors.email.message}</p>}
@@ -108,7 +108,7 @@ export function EmailLoginForm({ onForgotPassword }: EmailLoginFormProps) {
             required
             {...register("password")}
             placeholder="••••••••"
-            className="bg-surface h-11 rounded-[10px] border-2 border-[#f2f7f2]/80 pr-10 pl-10 font-medium shadow-none focus-visible:border-[#f2f7f2] focus-visible:shadow-[3px_3px_0_0_var(--color-primary)]"
+            className="bg-surface h-11 rounded-[10px] border-2 border-[var(--sticker-line,#f2f7f2)] pr-10 pl-10 font-medium shadow-none focus-visible:border-[var(--sticker-line,#f2f7f2)] focus-visible:shadow-[3px_3px_0_0_var(--color-primary)]"
           />
           <button
             type="button"
@@ -152,7 +152,7 @@ export function EmailLoginForm({ onForgotPassword }: EmailLoginFormProps) {
       <Button
         disabled={loginMutation.isPending}
         type="submit"
-        className="font-display h-12 w-full rounded-[10px] border-[2.5px] border-black text-[18px] tracking-[0.05em] uppercase shadow-[4px_4px_0_0_#f2f7f2] transition-[transform,box-shadow] duration-100 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
+        className="font-display h-12 w-full rounded-[10px] border-[2.5px] border-black text-[18px] tracking-[0.05em] uppercase shadow-[4px_4px_0_0_var(--sticker-line,#f2f7f2)] transition-[transform,box-shadow] duration-100 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
       >
         {loginMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Sign In

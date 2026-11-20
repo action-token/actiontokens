@@ -20,6 +20,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { HoloCard } from "~/components/cards/HoloCard";
 import { DeleteAccountPanel } from "~/components/profile/DeleteAccountPanel";
+import { ThemeSetting } from "~/components/profile/ThemeSetting";
 import { lastMapView, MapStyleOptions } from "~/components/map/MapLayersSheet";
 import { MuralPackSettings } from "~/components/murals/MuralPackSettings";
 import { Skeleton } from "~/components/ui/Skeleton";
@@ -323,6 +324,9 @@ export default function ProfileScreen() {
                 </button>
               );
             })}
+
+            <ThemeSetting />
+
 
             <MuralLayerSetting />
 

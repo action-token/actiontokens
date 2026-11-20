@@ -97,7 +97,7 @@ function WalletButton({
           "shadow-[3px_3px_0_0_var(--color-primary)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none",
           selected
             ? "bg-primary border-black text-black"
-            : "bg-surface-2 text-foreground border-[#f2f7f2]/80",
+            : "bg-surface-2 text-foreground border-[var(--sticker-line,#f2f7f2)]",
         )}
       >
         <span className="flex size-7 shrink-0 items-center justify-center rounded-full border-2 border-black bg-[#f2f7f2] text-black [&_svg]:size-4">
@@ -209,7 +209,7 @@ export function ConnectWalletDialog() {
     const initials = name.slice(0, 2).toUpperCase();
     const walletLabel = getWalletLabel(user.walletType ?? "");
     return (
-      <div className="bg-surface-2 relative shrink-0 overflow-hidden rounded-[14px] border-[2.5px] border-[#f2f7f2] p-3.5 shadow-[4px_4px_0_0_var(--color-primary)]">
+      <div className="bg-surface-2 relative shrink-0 overflow-hidden rounded-[14px] border-[2.5px] border-[var(--sticker-line,#f2f7f2)] p-3.5 shadow-[4px_4px_0_0_var(--color-primary)]">
         
         <div className="border-border relative mb-3 flex items-center gap-2 border-b pr-8 pb-2.5">
           <Image src={brandMark} alt="" width={22} height={22} />
@@ -222,7 +222,7 @@ export function ConnectWalletDialog() {
           </span>
         </div>
         <div className="relative flex items-center gap-3">
-          <div className="bg-primary font-display flex size-14 shrink-0 -rotate-3 items-center justify-center overflow-hidden rounded-full border-[3px] border-black text-[20px] text-black shadow-[2px_2px_0_0_#f2f7f2]">
+          <div className="bg-primary font-display flex size-14 shrink-0 -rotate-3 items-center justify-center overflow-hidden rounded-full border-[3px] border-black text-[20px] text-black shadow-[2px_2px_0_0_var(--sticker-line,#f2f7f2)]">
             {image ? <img src={image} alt="" className="size-full object-cover" /> : initials}
           </div>
           <div className="min-w-0 flex-1">
@@ -253,7 +253,7 @@ export function ConnectWalletDialog() {
               onClick={disconnectWallet}
               title="Sign out"
               aria-label="Sign out"
-              className="bg-destructive flex size-9 items-center justify-center rounded-[10px] border-2 border-black text-white shadow-[2px_2px_0_0_#f2f7f2] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+              className="bg-destructive flex size-9 items-center justify-center rounded-[10px] border-2 border-black text-white shadow-[2px_2px_0_0_var(--sticker-line,#f2f7f2)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
             >
               <LogOut className="size-4" />
             </button>
@@ -348,7 +348,7 @@ export function ConnectWalletDialog() {
         </button>
         <button
           onClick={() => void appleProvider.login()}
-          className={clsx(base, "border-[2.5px] border-[#f2f7f2] bg-black text-white shadow-[4px_4px_0_0_var(--color-primary)]")}
+          className={clsx(base, "border-[2.5px] border-[var(--sticker-line,#f2f7f2)] bg-black text-white shadow-[4px_4px_0_0_var(--color-primary)]")}
         >
           <AppleLogo />
           Continue with Apple
@@ -449,7 +449,7 @@ export function ConnectWalletDialog() {
       !isAccountActivate ? (
         <DialogContent
           portalContainer={frameContainer}
-          className="bg-surface max-w-sm rounded-[20px] border-[3px] border-[#f2f7f2] p-6 shadow-[6px_6px_0_0_var(--color-primary)]"
+          className="bg-surface max-w-sm rounded-[20px] border-[3px] border-[var(--sticker-line,#f2f7f2)] p-6 shadow-[6px_6px_0_0_var(--color-primary)]"
         >
           <DialogTitle className="sr-only">Account status</DialogTitle>
           <NotActivatedUser />
@@ -464,7 +464,7 @@ export function ConnectWalletDialog() {
         <DialogContent
           portalContainer={frameContainer}
           className={clsx(
-            "bg-surface gap-0 overflow-hidden border-[3px] border-[#f2f7f2] p-0 shadow-[6px_6px_0_0_var(--color-primary)]",
+            "bg-surface gap-0 overflow-hidden border-[3px] border-[var(--sticker-line,#f2f7f2)] p-0 shadow-[6px_6px_0_0_var(--color-primary)]",
             isFramedHost
               ? "mx-auto flex max-h-[88vh] w-full max-w-[420px] flex-col rounded-[22px]"
               : "flex max-h-[92dvh] max-w-[860px] rounded-[22px] lg:grid lg:grid-cols-[330px_1fr]",
@@ -555,7 +555,7 @@ export function ConnectWalletDialog() {
               <button
                 type="button"
                 onClick={() => setActiveTab(onWallets ? "action" : "stellar")}
-                className="group bg-surface-2 relative mt-auto flex -rotate-1 items-center gap-3 rounded-[12px] border-[2.5px] border-[#f2f7f2] px-4 py-3 text-left shadow-[4px_4px_0_0_var(--color-primary)] transition-[transform,box-shadow] duration-100 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
+                className="group bg-surface-2 relative mt-auto flex -rotate-1 items-center gap-3 rounded-[12px] border-[2.5px] border-[var(--sticker-line,#f2f7f2)] px-4 py-3 text-left shadow-[4px_4px_0_0_var(--color-primary)] transition-[transform,box-shadow] duration-100 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
               >
                 <span aria-hidden className="absolute -top-2 left-1/2 h-4 w-12 -translate-x-1/2 rotate-3 bg-[#f2f7f2]/70" />
                 <span className="bg-primary flex size-9 items-center justify-center rounded-full border-2 border-black text-black">
@@ -677,7 +677,7 @@ function BrandHeader({ framed }: { framed: boolean }) {
   return (
     <div
       className={clsx(
-        "relative flex h-[96px] shrink-0 items-center gap-3.5 overflow-hidden border-b-[3px] border-[#f2f7f2] bg-black pr-12",
+        "relative flex h-[96px] shrink-0 items-center gap-3.5 overflow-hidden border-b-[3px] border-[var(--sticker-line,#f2f7f2)] bg-black pr-12",
         "bg-[radial-gradient(color-mix(in_oklab,var(--color-primary)_14%,transparent)_1px,transparent_1.4px)] [background-size:8px_8px]",
         framed ? "-mx-5 -mt-8 pl-5" : "-mx-6 -mt-6 pl-6 sm:-mx-8 sm:-mt-8 sm:pl-8",
       )}
@@ -686,7 +686,7 @@ function BrandHeader({ framed }: { framed: boolean }) {
         <Image src={brandMark} alt="" width={36} height={36} priority />
       </span>
       <span className="relative flex min-w-0 flex-col items-start gap-1.5">
-        <span className="font-display bg-primary inline-block -rotate-2 border-[2.5px] border-black px-2 py-0.5 text-[22px] leading-none tracking-[0.03em] text-black shadow-[3px_3px_0_0_#f2f7f2]">
+        <span className="font-display bg-primary inline-block -rotate-2 border-[2.5px] border-black px-2 py-0.5 text-[22px] leading-none tracking-[0.03em] text-black shadow-[3px_3px_0_0_var(--sticker-line,#f2f7f2)]">
           ACTIONTOKENS
         </span>
         <span className="font-display ml-2 inline-block rotate-2 bg-[#f2f7f2] px-1.5 py-[3px] text-[11px] leading-none tracking-[0.1em] text-black">
@@ -762,10 +762,10 @@ function WCButton({
           "font-display flex w-full items-center gap-2.5 rounded-[10px] border-2 text-[15px] tracking-[0.03em] uppercase transition-[transform,box-shadow] duration-100 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none disabled:opacity-60",
           inGrid ? "px-3 py-2.5" : "justify-center px-4 py-2.5",
           isSelected
-            ? "bg-primary border-black text-black shadow-[3px_3px_0_0_#f2f7f2]"
+            ? "bg-primary border-black text-black shadow-[3px_3px_0_0_var(--sticker-line,#f2f7f2)]"
             : onDark
-              ? "bg-primary border-black text-black shadow-[3px_3px_0_0_#f2f7f2]"
-              : "bg-surface-2 text-foreground border-[#f2f7f2]/80 shadow-[3px_3px_0_0_var(--color-primary)]",
+              ? "bg-primary border-black text-black shadow-[3px_3px_0_0_var(--sticker-line,#f2f7f2)]"
+              : "bg-surface-2 text-foreground border-[var(--sticker-line,#f2f7f2)] shadow-[3px_3px_0_0_var(--color-primary)]",
         )}
       >
         <span

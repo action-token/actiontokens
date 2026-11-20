@@ -61,7 +61,7 @@ export function AuthGate() {
         <div className="px-6 pt-4 pb-2">
           {/* Emblem */}
           <motion.div
-            className="mx-auto mb-5 flex size-[66px] -rotate-6 items-center justify-center rounded-full border-[3px] border-[hsl(var(--st-ink))] bg-ar-accent shadow-[4px_4px_0_0_hsl(var(--st-paper))]"
+            className="mx-auto mb-5 flex size-[66px] -rotate-6 items-center justify-center rounded-full border-[3px] border-[hsl(var(--st-ink))] bg-ar-accent shadow-[4px_4px_0_0_hsl(var(--st-line))]"
             animate={{ y: [0, -3, 0] }}
             transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
           >
@@ -89,7 +89,7 @@ export function AuthGate() {
 
           {/* What "connect" actually covers — a wallet-only prompt reads as
               crypto-gated to people who just want a free coffee. */}
-          <div className="mt-5 border-t-2 border-dashed border-[hsl(var(--st-paper)/0.25)] pt-4">
+          <div className="mt-5 border-t-2 border-dashed border-[hsl(var(--st-line)/0.25)] pt-4">
             <p className="font-display text-ar-dim mb-2.5 text-center text-[12px] tracking-[0.1em] uppercase">
               Sign in with
             </p>
@@ -98,7 +98,7 @@ export function AuthGate() {
                 <span
                   key={m}
                   className={
-                    "font-display bg-ar-surface-2 text-ar-text rounded-[4px] border-2 border-[hsl(var(--st-paper)/0.7)] px-2 py-0.5 text-[11px] tracking-[0.06em] uppercase " +
+                    "font-display bg-ar-surface-2 text-ar-text rounded-[4px] border-2 border-[hsl(var(--st-line)/0.7)] px-2 py-0.5 text-[11px] tracking-[0.06em] uppercase " +
                     (i % 2 ? "rotate-2" : "-rotate-2")
                   }
                 >

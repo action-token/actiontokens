@@ -17,7 +17,7 @@ export const site = {
   },
   colors: {
     themeDark: "#050605",
-    themeLight: "#050605",
+    themeLight: "#eef3ec",
     mapRoute: "#4dff2a",
     mapRouteCasing: "#0f3a08",
     mapNavAccent: "#3ea024",

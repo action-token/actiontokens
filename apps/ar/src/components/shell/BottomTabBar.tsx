@@ -122,13 +122,13 @@ function TabButton({ tab, active }: { tab: Tab; active: boolean }) {
         strokeWidth={2.4}
         className={cn(
           "relative z-10 size-[19px] transition-colors duration-200",
-          active ? "text-ar-accent" : "text-[hsl(var(--st-ink)/0.75)]",
+          active ? "st-on-ink text-ar-accent" : "text-[hsl(var(--st-ink)/0.75)]",
         )}
       />
       <span
         className={cn(
           "font-display relative z-10 max-w-full truncate px-0.5 text-[8.5px] leading-none tracking-[0.02em] uppercase",
-          active ? "text-ar-accent" : "text-[hsl(var(--st-ink)/0.75)]",
+          active ? "st-on-ink text-ar-accent" : "text-[hsl(var(--st-ink)/0.75)]",
         )}
       >
         {tab.short ?? tab.label}

@@ -13,13 +13,23 @@
   --st-paper: 120 25% 96%;
   --st-ink: 120 10% 2%;
   --st-off: 3px;
+  /* Theme-dependent (themes.css sets light and high contrast):
+     --st-line  outline of a card or key drawn on the page background
+     --st-pop   hard shadow of a card on the page background
+     --st-dot   halftone dot colour */
+  --st-line: var(--st-paper);
+  --st-pop: var(--ar-accent);
+  --st-dot: hsl(var(--ar-accent) / 0.05);
+  /* Full colours for code outside the app's CSS (the shared wallet dialog). */
+  --sticker-line: hsl(var(--st-line));
+  --sticker-pop: hsl(var(--st-pop));
 }
 
 /* ── Utilities ─────────────────────────────────────────────────────────── */
 
 /* Green halftone dot grid: behind screens, over the map. */
 .st-halftone {
-  background-image: radial-gradient(hsl(var(--ar-accent) / 0.05) 1px, transparent 1.3px);
+  background-image: radial-gradient(var(--st-dot) 1px, transparent 1.3px);
   background-size: 9px 9px;
 }
 
@@ -52,8 +62,8 @@
 /* Dark card with a paper outline and a green hard shadow. */
 .st-card {
   background: hsl(var(--ar-surface));
-  border: 2.5px solid hsl(var(--st-paper) / 0.92);
-  box-shadow: 4px 4px 0 0 hsl(var(--ar-accent));
+  border: 2.5px solid hsl(var(--st-line) / 0.92);
+  box-shadow: 4px 4px 0 0 hsl(var(--st-pop));
 }
 
 .st-tilt-l {
@@ -69,17 +79,17 @@
 .ar-bevel,
 .dark .ar-bevel {
   background: hsl(var(--ar-surface));
-  border: 2px solid hsl(var(--st-paper) / 0.85);
-  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--ar-accent) / 0.9);
+  border: 2px solid hsl(var(--st-line) / 0.85);
+  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--st-pop) / 0.9);
 }
 
 /* Key: a dark sticker that presses into its shadow. */
 .ar-key,
 .dark .ar-key {
   background: hsl(var(--ar-surface-2));
-  border: 2px solid hsl(var(--st-paper) / 0.9);
+  border: 2px solid hsl(var(--st-line) / 0.9);
   color: hsl(var(--ar-text));
-  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--ar-accent));
+  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--st-pop));
   transition:
     transform 110ms cubic-bezier(0.2, 0.8, 0.2, 1),
     box-shadow 110ms cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -101,7 +111,7 @@
   background: hsl(var(--ar-accent));
   border: 2.5px solid hsl(var(--st-ink));
   color: hsl(var(--st-ink));
-  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--st-paper));
+  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--st-line));
 }
 
 .ar-key-gold,
@@ -109,7 +119,7 @@
   background: hsl(var(--rarity-legendary));
   border: 2.5px solid hsl(var(--st-ink));
   color: hsl(var(--st-ink));
-  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--st-paper));
+  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--st-line));
 }
 
 .ar-key-danger,
@@ -117,7 +127,7 @@
   background: hsl(var(--ar-danger));
   border: 2.5px solid hsl(var(--st-ink));
   color: hsl(0 0% 100%);
-  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--st-paper));
+  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--st-line));
 }
 
 /* Filled keys sit on dark screens, so their hard shadow is paper, not ink. */
@@ -129,7 +139,7 @@
   background: hsl(var(--ar-surface) / 0.94);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  border: 2px solid hsl(var(--st-paper) / 0.9);
+  border: 2px solid hsl(var(--st-line) / 0.9);
   box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--st-ink));
 }
 
@@ -156,12 +166,6 @@
   transition:
     transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1),
     box-shadow 140ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-/* Content runs under the floating dock: the dock (≈56px) plus its 14px lift
-   plus breathing room. */
-.ar-tabbed {
-  --ar-tabbar-space: calc(92px + max(0px, var(--ar-safe-bottom)));
 }
 
 /* The AR sticker's motion: a gentle bob and a scan line sweeping top to

@@ -48,7 +48,7 @@ const TONE: Record<string, string> = {
   accent: "border-[hsl(var(--st-ink))] bg-ar-accent text-[hsl(var(--st-ink))]",
   gold: "border-[hsl(var(--st-ink))] bg-rarity-legendary text-[hsl(var(--st-ink))]",
   danger: "border-[hsl(var(--st-ink))] bg-ar-danger text-white",
-  muted: "border-[hsl(var(--st-paper)/0.7)] bg-ar-surface text-ar-dim",
+  muted: "border-[hsl(var(--st-line)/0.7)] bg-ar-surface text-ar-dim",
 };
 
 export function StatusBadge({ status, className }: { status: PinStatus; className?: string }) {
@@ -108,7 +108,7 @@ export function DetectionBadge({
   return (
     <span
       className={cn(
-        "font-display text-ar-text bg-ar-surface inline-flex h-[22px] items-center gap-1.5 rounded-[4px] border-2 border-[hsl(var(--st-paper)/0.75)] px-2 text-[10.5px] tracking-[0.08em] uppercase",
+        "font-display text-ar-text bg-ar-surface inline-flex h-[22px] items-center gap-1.5 rounded-[4px] border-2 border-[hsl(var(--st-line)/0.75)] px-2 text-[10.5px] tracking-[0.08em] uppercase",
         className,
       )}
     >
@@ -139,7 +139,7 @@ export function Chip({
         "font-display inline-flex h-8 shrink-0 items-center gap-1.5 rounded-[6px] border-2 px-3 text-[12px] tracking-[0.06em] uppercase transition-[transform,background-color,color]",
         active
           ? "bg-ar-accent -rotate-2 border-[hsl(var(--st-ink))] text-[hsl(var(--st-ink))] shadow-[2px_2px_0_0_hsl(var(--st-ink))]"
-          : "bg-ar-surface text-ar-dim hover:text-ar-text border-[hsl(var(--st-paper)/0.6)]",
+          : "bg-ar-surface text-ar-dim hover:text-ar-text border-[hsl(var(--st-line)/0.6)]",
         onClick && "cursor-pointer",
         className,
       )}
