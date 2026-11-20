@@ -141,7 +141,7 @@ ActionTokens uses **the same NFT and escrow contracts as Bandcoin**, and the sam
 
 ### Gallery domain and S3 (owner, 2026-11-20)
 
-The gallery lives at **`gallery.action-tokens.com`** (the earlier "gallary" spelling was a typo, now fixed everywhere). Storage keeps using **the S3 bucket already in Actionverse's env** (`NEXT_AWS_BUCKET_NAME`), shared by dev and prod for now, so existing media URLs keep working. Risk: a dev upload lands in the production bucket; a separate dev bucket can be added later by changing one env value.
+The gallery lives at **`gallery.action-tokens.com`** (the earlier "gallery" spelling was a typo, now fixed everywhere). Storage keeps using **the S3 bucket already in Actionverse's env** (`NEXT_AWS_BUCKET_NAME`), shared by dev and prod for now, so existing media URLs keep working. Risk: a dev upload lands in the production bucket; a separate dev bucket can be added later by changing one env value.
 
 ### Package policy (owner, 2026-11-20)
 
