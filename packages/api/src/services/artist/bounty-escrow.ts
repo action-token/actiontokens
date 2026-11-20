@@ -6,6 +6,7 @@ import {
   type Transaction,
   TransactionBuilder,
 } from "@stellar/stellar-sdk";
+import { enqueueJob } from "../jobs/queue";
 import { notify, notifyFollowers } from "../notifications/send";
 
 import {
@@ -236,6 +237,10 @@ export async function submitFunding(
     entityId: bounty.id,
     once: true,
   });
+  // The Telegram channel (if on) hears about it from the worker, so a Telegram outage never touches funding.
+  await enqueueJob(ctx.db, "telegram.bounty", { bountyId: bounty.id }, { dedupe: true }).catch(
+    (error: unknown) => console.error("[telegram] couldn't queue the announcement", error),
+  );
   return { txHash: hash };
 }
 

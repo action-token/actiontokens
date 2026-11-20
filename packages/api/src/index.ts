@@ -67,3 +67,10 @@ export { pinTags } from "./services/agent/web";
 export { placePhoto } from "./services/agent/google";
 export { useGeoCache } from "./services/agent/geo-cache";
 export { queueTranscode, type TranscodePart } from "./services/media/processing";
+export { distributeRound, type RoundKind } from "./services/rewards/distribute";
+export {
+  stellarExpertHistory,
+  syncOriginHolders,
+  syncQuarterHolders,
+} from "./services/rewards/sync";
+export { announceBounty } from "./services/telegram/send";

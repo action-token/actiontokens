@@ -20,6 +20,12 @@ import {
   syncUnlocks,
   type ChainGateway,
   type TranscodePart,
+  announceBounty,
+  distributeRound,
+  stellarExpertHistory,
+  syncOriginHolders,
+  syncQuarterHolders,
+  type RoundKind,
 } from "@actiontokens/api";
 import type { Db } from "@actiontokens/db";
 import { AppError, ErrorCodes } from "@actiontokens/errors";
@@ -113,6 +119,40 @@ export function handlersFor(deps: WorkerDeps): Record<string, JobHandler> {
     "hotspot.drop": async () => ({ result: await dropDueHotspots(context()) }),
     // Keep the contract's unlock records from being archived.
     "nft.keep-alive": async () => ({ result: await keepUnlocksAlive(context()) }),
+
+    // Pay a holder-reward round from the mother account. Safe to run again: it never pays a wallet twice.
+    "rewards.distribute": async (job) => {
+      const { kind, id } = job.payload as { kind?: unknown; id?: unknown };
+      if ((kind !== "origin" && kind !== "quarter") || typeof id !== "string")
+        throw new AppError(ErrorCodes.VALIDATION_FAILED, {
+          message: "rewards.distribute needs a kind and a round id",
+        });
+      const result = await distributeRound(context(), kind as RoundKind, id);
+      return {
+        result,
+        target: { type: kind === "origin" ? "OriginReward" : "QuarterReward", id },
+      };
+    },
+    // Find this month's PLOT holders, or this quarter's ACTION holders and what they held for 90 days.
+    "rewards.sync": async (job) => {
+      const { kind } = job.payload as { kind?: unknown };
+      if (kind === "origin") return { result: await syncOriginHolders(context()) };
+      if (kind === "quarter")
+        return { result: await syncQuarterHolders(context(), stellarExpertHistory) };
+      throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "rewards.sync needs a kind" });
+    },
+    // Post a newly funded bounty to the Telegram channel, when it's on. Retries if Telegram is down.
+    "telegram.bounty": async (job) => {
+      const { bountyId } = job.payload as { bountyId?: unknown };
+      if (typeof bountyId !== "string")
+        throw new AppError(ErrorCodes.VALIDATION_FAILED, {
+          message: "telegram.bounty needs a bountyId",
+        });
+      return {
+        result: await announceBounty(context(), bountyId),
+        target: { type: "Bounty", id: bountyId },
+      };
+    },
 
     // A song's stream, preview, waveform and stems (see media/transcode).
     "media.transcode": async (job) => {

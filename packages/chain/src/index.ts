@@ -16,3 +16,4 @@ export * from "./escrow/calls";
 export * from "./recharge";
 export * from "./classic/recharge";
 export * from "./classic/resale";
+export * from "./classic/reward";

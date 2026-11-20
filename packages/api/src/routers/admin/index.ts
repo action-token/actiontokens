@@ -43,6 +43,8 @@ import { collectionSummary, exportCollections, pinReport } from "../../services/
 import { decidePins, deletePins, listPins, pinCounts, pinsForMap } from "../../services/admin/pins";
 import { getMuralSettings } from "../../services/ar/murals";
 import { adminProcedure, createRouter } from "../../trpc";
+import { rewardsRouter } from "./rewards";
+import { telegramRouter } from "./telegram";
 
 const organizationId = z.object({ organizationId: z.string().min(1) });
 const muralId = z.object({ muralId: z.string().min(1) });
@@ -73,7 +75,8 @@ const reportScope = z.object({
   from: z.coerce.date().optional(),
   to: z.coerce.date().optional(),
 });
-const scopeOf = (input: { organizationId?: string }) => (input.organizationId ? { id: input.organizationId } : null);
+const scopeOf = (input: { organizationId?: string }) =>
+  input.organizationId ? { id: input.organizationId } : null;
 const contractFee = z.object({
   feeBps: z.number().int().min(0).max(NFT_MAX_PLATFORM_FEE_BPS),
   treasury: stellarAccount,
@@ -81,11 +84,15 @@ const contractFee = z.object({
 
 /** Admin tools (org.action-tokens.com/admin). Every procedure here is admin-only. */
 export const adminRouter = createRouter({
+  rewards: rewardsRouter,
+  telegram: telegramRouter,
   artists: createRouter({
     list: adminProcedure
       .input(z.object({ status: z.enum(["PENDING", "APPROVED", "REJECTED", "BANNED"]).optional() }))
       .query(({ ctx, input }) => listApplications(ctx, input)),
-    get: adminProcedure.input(organizationId).query(({ ctx, input }) => getArtist(ctx, input.organizationId)),
+    get: adminProcedure
+      .input(organizationId)
+      .query(({ ctx, input }) => getArtist(ctx, input.organizationId)),
     approve: adminProcedure
       .input(organizationId)
       .mutation(({ ctx, input }) => approveArtist(ctx, input.organizationId)),
@@ -138,7 +145,10 @@ export const adminRouter = createRouter({
     counts: adminProcedure.query(({ ctx }) => pinCounts(ctx)),
     map: adminProcedure
       .input(
-        z.object({ organizationId: z.string().min(1).optional(), includeEnded: z.boolean().optional() }),
+        z.object({
+          organizationId: z.string().min(1).optional(),
+          includeEnded: z.boolean().optional(),
+        }),
       )
       .query(({ ctx, input }) => pinsForMap(ctx, input)),
     decide: adminProcedure

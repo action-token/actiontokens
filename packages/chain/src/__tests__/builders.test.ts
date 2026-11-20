@@ -13,6 +13,7 @@ import { describe, expect, it } from "vitest";
 import { buildClassicPurchase, classicPurchaseOperations } from "../classic/purchase";
 import { buildIssuerSetup, ISSUER_STARTING_XLM } from "../classic/issuer";
 import { buildResaleList } from "../classic/resale";
+import { buildRewardBatch } from "../classic/reward";
 import {
   buildActivation,
   buildSwap,
@@ -675,6 +676,34 @@ describe("other builders", () => {
     const txs = batches.map((batch) => parse(batch.xdr));
     expect(txs.map((tx) => tx.operations.length)).toEqual([100, 100, 50]);
     expect(txs.map((tx) => tx.sequence)).toEqual(["101", "102", "103"]);
+  });
+
+  it("pays rewards by payment, or by claimable balance when there's no trustline", () => {
+    const [a, b] = [key(), key()];
+    const batch = buildRewardBatch({
+      payer: account(creator),
+      network,
+      asset: bandcoin,
+      lines: [
+        { to: a, amount: "2.5000000", claimable: false },
+        { to: b, amount: "1.0000000", claimable: true },
+      ],
+      memo: orderId,
+      timeoutSeconds: 300,
+    });
+    const tx = parse(batch.xdr);
+    expect(tx.operations.map((op) => op.type)).toEqual(["payment", "createClaimableBalance"]);
+    expect(memoText(tx)).toBe(orderId);
+    expect(() =>
+      buildRewardBatch({
+        payer: account(creator),
+        network,
+        asset: bandcoin,
+        lines: [],
+        memo: "x",
+        timeoutSeconds: 1,
+      }),
+    ).toThrow(RangeError);
   });
 
   it("encodes nft_oz buys with the buyer as source and the treasury as co-signer", () => {

@@ -1,0 +1,88 @@
+// Holder rewards (paid by the platform's mother account) and the Telegram channel.
+// Amounts are Decimal(20,7): Stellar's own precision. A round is paid by the worker, never by the app.
+
+/// The monthly "origin" reward: holders of PLOT land NFTs share `totalBalance` by plots owned.
+model OriginReward {
+  id                String    @id @default(cuid())
+  /// "2026-11"
+  monthYear         String    @unique
+  /// The holders found by the last sync: [{ pubkey, plotBal, plots: [{ asset_code, asset_issuer, balance }] }]
+  data              Json      @default("[]")
+  /// What the admin set aside to share this month
+  totalBalance      Decimal   @default(0) @db.Decimal(20, 7)
+  isDistributed     Boolean   @default(false)
+  distributedAmount Decimal?  @db.Decimal(20, 7)
+  lastUpdatedAt     DateTime  @default(now())
+  rewardedAt        DateTime?
+
+  /// Wallets already paid: a retry carries on from here instead of paying twice
+  completedUsers String[]  @default([])
+  /// A batch signed and sent whose answer isn't known yet (see services/rewards/distribute)
+  pendingTx      String?
+  pendingUsers   String[]  @default([])
+  pendingUntil   DateTime?
+  /// The worker job paying this round, so the admin sees its state and can't start a second one
+  jobId          String?
+  lastError      Json?
+
+  @@map("origin_rewards")
+}
+
+/// The quarterly reward: ACTION holders are paid by the least they held over the quarter's last 90 days.
+model QuarterReward {
+  id                String    @id @default(cuid())
+  year              Int
+  /// "JAN-MAR" | "APR-JUN" | "JUL-SEP" | "OCT-DEC"
+  quarter           String
+  /// [{ accountId, action }]: `action` is the lowest balance over 90 days
+  data              Json      @default("[]")
+  isDistributed     Boolean   @default(false)
+  distributedAmount Decimal?  @db.Decimal(20, 7)
+  lastUpdatedAt     DateTime  @default(now())
+  rewardedAt        DateTime?
+
+  completedUsers String[]  @default([])
+  pendingTx      String?
+  pendingUsers   String[]  @default([])
+  pendingUntil   DateTime?
+  jobId          String?
+  lastError      Json?
+
+  @@unique([year, quarter])
+  @@map("quarter_rewards")
+}
+
+/// Wallets that get nothing from the monthly reward.
+model OriginBlockedUser {
+  id            String   @id @default(cuid())
+  walletAddress String   @unique
+  reason        String?
+  blockedAt     DateTime @default(now())
+
+  @@map("origin_blocked_users")
+}
+
+/// Wallets that get nothing from the quarterly reward.
+model QuarterBlockedUser {
+  id            String   @id @default(cuid())
+  walletAddress String   @unique
+  reason        String?
+  blockedAt     DateTime @default(now())
+
+  @@map("quarter_blocked_users")
+}
+
+/// One row: the Telegram bot and channel new bounties are posted to. The bot token is a secret:
+/// only the worker and the admin's masked view read it.
+model TelegramConfig {
+  id        String   @id @default(cuid())
+  botToken  String
+  /// Channel or group id (e.g. -100xxxxxxxxxx)
+  chatId    String
+  enabled   Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+  /// The admin who last changed it
+  updatedBy String?
+
+  @@map("telegram_config")
+}

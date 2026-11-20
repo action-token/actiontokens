@@ -1742,6 +1742,78 @@ CREATE TABLE "mcp_tokens" (
     CONSTRAINT "mcp_tokens_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "origin_rewards" (
+    "id" TEXT NOT NULL,
+    "monthYear" TEXT NOT NULL,
+    "data" JSONB NOT NULL DEFAULT '[]',
+    "totalBalance" DECIMAL(20,7) NOT NULL DEFAULT 0,
+    "isDistributed" BOOLEAN NOT NULL DEFAULT false,
+    "distributedAmount" DECIMAL(20,7),
+    "lastUpdatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "rewardedAt" TIMESTAMP(3),
+    "completedUsers" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "pendingTx" TEXT,
+    "pendingUsers" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "pendingUntil" TIMESTAMP(3),
+    "jobId" TEXT,
+    "lastError" JSONB,
+
+    CONSTRAINT "origin_rewards_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "quarter_rewards" (
+    "id" TEXT NOT NULL,
+    "year" INTEGER NOT NULL,
+    "quarter" TEXT NOT NULL,
+    "data" JSONB NOT NULL DEFAULT '[]',
+    "isDistributed" BOOLEAN NOT NULL DEFAULT false,
+    "distributedAmount" DECIMAL(20,7),
+    "lastUpdatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "rewardedAt" TIMESTAMP(3),
+    "completedUsers" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "pendingTx" TEXT,
+    "pendingUsers" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "pendingUntil" TIMESTAMP(3),
+    "jobId" TEXT,
+    "lastError" JSONB,
+
+    CONSTRAINT "quarter_rewards_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "origin_blocked_users" (
+    "id" TEXT NOT NULL,
+    "walletAddress" TEXT NOT NULL,
+    "reason" TEXT,
+    "blockedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "origin_blocked_users_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "quarter_blocked_users" (
+    "id" TEXT NOT NULL,
+    "walletAddress" TEXT NOT NULL,
+    "reason" TEXT,
+    "blockedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "quarter_blocked_users_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "telegram_config" (
+    "id" TEXT NOT NULL,
+    "botToken" TEXT NOT NULL,
+    "chatId" TEXT NOT NULL,
+    "enabled" BOOLEAN NOT NULL DEFAULT false,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedBy" TEXT,
+
+    CONSTRAINT "telegram_config_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE INDEX "agent_jobs_organizationId_createdAt_idx" ON "agent_jobs"("organizationId", "createdAt");
 
@@ -2188,6 +2260,18 @@ CREATE UNIQUE INDEX "mcp_tokens_tokenHash_key" ON "mcp_tokens"("tokenHash");
 
 -- CreateIndex
 CREATE INDEX "mcp_tokens_userId_idx" ON "mcp_tokens"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "origin_rewards_monthYear_key" ON "origin_rewards"("monthYear");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "quarter_rewards_year_quarter_key" ON "quarter_rewards"("year", "quarter");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "origin_blocked_users_walletAddress_key" ON "origin_blocked_users"("walletAddress");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "quarter_blocked_users_walletAddress_key" ON "quarter_blocked_users"("walletAddress");
 
 -- AddForeignKey
 ALTER TABLE "agent_jobs" ADD CONSTRAINT "agent_jobs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
