@@ -213,6 +213,16 @@ export function ConnectWalletDialog() {
     return (
       <div className="border-primary/40 bg-surface-2 relative shrink-0 overflow-hidden rounded-[14px] border p-3.5">
         <div aria-hidden className="at-grid pointer-events-none absolute inset-0 opacity-60" />
+        <div className="border-border relative mb-3 flex items-center gap-2 border-b pr-8 pb-2.5">
+          <Image src={brandMark} alt="" width={22} height={22} />
+          <span className="font-display text-foreground text-[15px] leading-none tracking-[0.05em]">
+            ACTIONTOKENS
+          </span>
+          <span className="text-primary flex items-center gap-1.5 font-mono text-[9px] tracking-[0.16em] uppercase">
+            <span className="bg-primary at-pulse size-1.5 rounded-full" />
+            Action Auth System
+          </span>
+        </div>
         <div className="relative flex items-center gap-3">
           <div className="ring-primary bg-primary text-primary-foreground font-brand flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full text-lg ring-2 ring-offset-2 ring-offset-[var(--color-surface-2)]">
             {image ? <img src={image} alt="" className="size-full object-cover" /> : initials}
@@ -518,7 +528,8 @@ export function ConnectWalletDialog() {
             )}
           >
             {/* first child: its negative margins reach the column's edges */}
-            <BrandHeader framed={isFramedHost} />
+            {/* signed in: the brand row lives inside the profile card instead */}
+            {!authUser && <BrandHeader framed={isFramedHost} />}
 
             {session.data?.user && !session.data.user.emailVerified && (
               <div className="border-warning/40 bg-warning/10 rounded-[12px] border p-4">
