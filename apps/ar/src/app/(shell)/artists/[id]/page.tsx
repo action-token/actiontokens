@@ -113,7 +113,7 @@ export default function ArtistDetail() {
             Artist not found
           </p>
           <ArLinkButton href="/artists" variant="primary" size="md">
-            All artists
+            All organizations
           </ArLinkButton>
         </div>
       </AppShell>
@@ -150,7 +150,7 @@ export default function ArtistDetail() {
               <ChevronLeft size={17} strokeWidth={2.4} />
             </button>
             <button
-              aria-label="Share this artist"
+              aria-label="Share this organization"
               onClick={() => {
                 void navigator
                   .share?.({

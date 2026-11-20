@@ -25,17 +25,17 @@ export function RarityPlate({
   return (
     <span
       className={cn(
-        "font-hud inline-flex items-center gap-1 rounded-[6px] border leading-none font-bold tracking-[0.12em] uppercase",
+        "font-display inline-flex items-center gap-1 rounded-[4px] border-2 leading-none tracking-[0.08em] uppercase",
         size === "sm" ? "h-[18px] px-1.5 text-[8.5px]" : "h-[22px] px-2 text-[10px]",
         mythic && "animate-gradient-x bg-[length:200%_200%]",
       )}
       style={{
-        borderColor: `hsl(${meta.hsl} / 0.55)`,
-        color: mythic ? "hsl(0 0% 100%)" : `hsl(${meta.hsl})`,
+        borderColor: "hsl(var(--st-ink))",
+        color: "hsl(var(--st-ink))",
         background: mythic
           ? "linear-gradient(90deg,hsl(var(--rarity-mythic)/0.85),hsl(var(--rarity-legendary)/0.85),hsl(var(--rarity-rare)/0.85),hsl(var(--rarity-mythic)/0.85))"
-          : `hsl(${meta.hsl} / 0.14)`,
-        boxShadow: `0 0 14px -4px hsl(${meta.hsl} / 0.8)`,
+          : `hsl(${meta.hsl})`,
+        boxShadow: "2px 2px 0 0 hsl(var(--st-ink))",
       }}
     >
       <span>{meta.short}</span>
@@ -45,10 +45,10 @@ export function RarityPlate({
 }
 
 const TONE: Record<string, string> = {
-  accent: "border-ar-accent/50 bg-ar-accent/14 text-ar-accent-hot",
-  gold: "border-rarity-legendary/50 bg-rarity-legendary/14 text-rarity-legendary",
-  danger: "border-ar-danger/50 bg-ar-danger/14 text-ar-danger",
-  muted: "border-ar-line-bright bg-white/[0.05] text-ar-faint",
+  accent: "border-[hsl(var(--st-ink))] bg-ar-accent text-[hsl(var(--st-ink))]",
+  gold: "border-[hsl(var(--st-ink))] bg-rarity-legendary text-[hsl(var(--st-ink))]",
+  danger: "border-[hsl(var(--st-ink))] bg-ar-danger text-white",
+  muted: "border-[hsl(var(--st-paper)/0.7)] bg-ar-surface text-ar-dim",
 };
 
 export function StatusBadge({ status, className }: { status: PinStatus; className?: string }) {
@@ -56,15 +56,15 @@ export function StatusBadge({ status, className }: { status: PinStatus; classNam
   return (
     <span
       className={cn(
-        "font-hud inline-flex h-[22px] items-center gap-1.5 rounded-full border px-2.5 text-[10px] font-semibold tracking-[0.12em] uppercase",
+        "font-display inline-flex h-[22px] items-center gap-1.5 rounded-[4px] border-2 px-2 text-[10.5px] tracking-[0.08em] uppercase shadow-[2px_2px_0_0_hsl(var(--st-ink))]",
         TONE[meta.tone],
         className,
       )}
     >
       {status === "collectible" && (
         <span className="relative flex h-1.5 w-1.5">
-          <span className="animate-pulse-ring bg-ar-accent-hot absolute inset-0 rounded-full" />
-          <span className="bg-ar-accent-hot relative h-1.5 w-1.5 rounded-full" />
+          <span className="animate-pulse-ring absolute inset-0 rounded-full bg-[hsl(var(--st-ink))]" />
+          <span className="relative h-1.5 w-1.5 rounded-full bg-[hsl(var(--st-ink))]" />
         </span>
       )}
       {status === "locked" && <Lock size={10} strokeWidth={2.6} />}
@@ -108,7 +108,7 @@ export function DetectionBadge({
   return (
     <span
       className={cn(
-        "font-hud border-ar-line-bright text-ar-dim inline-flex h-[22px] items-center gap-1.5 rounded-full border bg-white/[0.05] px-2.5 text-[10px] font-semibold tracking-[0.12em] uppercase",
+        "font-display text-ar-text bg-ar-surface inline-flex h-[22px] items-center gap-1.5 rounded-[4px] border-2 border-[hsl(var(--st-paper)/0.75)] px-2 text-[10.5px] tracking-[0.08em] uppercase",
         className,
       )}
     >
@@ -136,10 +136,10 @@ export function Chip({
       onClick={onClick}
       aria-pressed={onClick ? active : undefined}
       className={cn(
-        "font-hud inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-[11px] font-semibold tracking-[0.1em] uppercase transition-colors",
+        "font-display inline-flex h-8 shrink-0 items-center gap-1.5 rounded-[6px] border-2 px-3 text-[12px] tracking-[0.06em] uppercase transition-[transform,background-color,color]",
         active
-          ? "border-ar-accent/60 bg-ar-accent/15 text-ar-accent-hot shadow-[0_0_16px_-6px_hsl(var(--ar-accent)/0.9)]"
-          : "border-ar-line text-ar-dim hover:text-ar-text bg-white/[0.04]",
+          ? "bg-ar-accent -rotate-2 border-[hsl(var(--st-ink))] text-[hsl(var(--st-ink))] shadow-[2px_2px_0_0_hsl(var(--st-ink))]"
+          : "bg-ar-surface text-ar-dim hover:text-ar-text border-[hsl(var(--st-paper)/0.6)]",
         onClick && "cursor-pointer",
         className,
       )}
@@ -163,8 +163,8 @@ export function StatBlock({
     <div className="flex flex-col items-center gap-0.5">
       <span
         className={cn(
-          "font-hud text-[19px] leading-none font-bold tabular-nums",
-          accent ? "text-ar-accent-hot text-glow-soft" : "text-ar-text",
+          "font-display text-[22px] leading-none tabular-nums",
+          accent ? "text-ar-accent" : "text-ar-text",
         )}
       >
         {value}

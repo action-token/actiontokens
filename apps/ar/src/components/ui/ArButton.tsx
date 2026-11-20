@@ -21,9 +21,9 @@ const VARIANTS: Record<Variant, string> = {
 };
 
 const SIZES: Record<Size, string> = {
-  sm: "h-9 px-3.5 text-[12px] gap-1.5 rounded-[11px]",
-  md: "h-11 px-4 text-[13.5px] gap-2 rounded-ar",
-  lg: "h-[54px] px-6 text-[15px] gap-2.5 rounded-ar-lg",
+  sm: "h-9 px-3.5 text-[13px] gap-1.5 rounded-[8px]",
+  md: "h-11 px-4 text-[15px] gap-2 rounded-[10px]",
+  lg: "h-[54px] px-6 text-[18px] gap-2.5 rounded-[12px]",
 };
 
 interface BaseProps {
@@ -45,8 +45,8 @@ interface BaseProps {
 
 const baseClass = ({ variant = "outline", size = "md", block }: BaseProps, extra?: string) =>
   cn(
-    "font-hud relative inline-flex items-center justify-center whitespace-nowrap select-none",
-    "font-semibold tracking-[0.08em] uppercase transition-colors",
+    "font-display relative inline-flex items-center justify-center whitespace-nowrap select-none",
+    "tracking-[0.05em] uppercase",
     "disabled:pointer-events-none disabled:opacity-40",
     "focus-visible:ring-ar-accent focus-visible:ring-offset-ar-bg focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden",
     VARIANTS[variant],

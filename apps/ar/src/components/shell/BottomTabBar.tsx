@@ -1,17 +1,19 @@
-import { AnimatePresence, motion } from "framer-motion";
-import { LayoutGrid, Map as MapIcon, Music2, ShoppingBag } from "lucide-react";
+import { motion } from "framer-motion";
+import { Building2, LayoutGrid, Map as MapIcon, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "~/lib/navigation";
 import { useState } from "react";
 
 import { CameraLauncher } from "~/components/camera/CameraLauncher";
-import { PackRing } from "~/components/murals/PackRing";
+import { PackBar } from "~/components/murals/PackBar";
 
 import { cn } from "@actiontokens/ui/lib/cn";
 
 type Tab = {
   href: string;
   label: string;
+  /** Shorter label for the dock, when the full one doesn't fit. */
+  short?: string;
   icon: typeof MapIcon;
 };
 
@@ -25,117 +27,66 @@ export const LEFT: Tab[] = [
 // Bounty is the map's pill.
 export const RIGHT: Tab[] = [
   { href: "/marketplace", label: "Market", icon: ShoppingBag },
-  { href: "/artists", label: "Artists", icon: Music2 },
+  { href: "/artists", label: "Organizations", short: "Orgs", icon: Building2 },
 ];
 
 /**
- * ── BottomTabBar ───────────────────────────────────────────────────────────
+ * ── BottomTabBar: the sticker dock ─────────────────────────────────────────
  *
- * An edge-to-edge console, rounded along its top edge and flush with both
- * side edges and the true bottom of the screen — not a rounded pill floating
- * with a gap around it. The AR launcher breaks out of the top of it, raised on
- * its own plinth with a rotating conic ring, because it's the one action the
- * whole app exists to deliver and it should never look like a peer of "You".
+ * ActionTokens' "Street Sticker" nav (docs/AR-STICKER-REDESIGN.md): a paper
+ * pill floating above the bottom edge, black outline and a hard green shadow,
+ * with a big tilted green AR sticker in the middle. Tabs are icons; the active
+ * one is a black disc with a green icon. Labels stay as aria-labels/titles.
  *
- * Used to be a floating pill with margin on all four sides. That margin was
- * never part of the bar — it was `<main>`'s own `pb-[80px]` reservation
- * (`AppShell.tsx`) showing through underneath: screen content stops above the
- * bar rather than scrolling under it, so there was never anything back there
- * to see, and the pill read as flat color around its edges no matter how it
- * was styled. Extending the bar to fill that whole reserved strip — corner to
- * corner, edge to the safe-area bottom — removes the gap rather than trying to
- * dress it up: everything inside the reservation is now the bar's own surface,
- * drawn once, instead of a floating shape over an exposed strip of page
- * background.
- *
- * The active plate is a shared `layoutId`, so switching tabs slides one lit
- * cap across the bar instead of cross-fading two.
+ * Screen content runs under the dock (AppShell's `.ar-tabbed`), and each
+ * scroll pane ends with a spacer `--ar-tabbar-space` tall (sticker.css).
  */
 export function BottomTabBar() {
   const { pathname } = useRouter();
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
   // QR is a mode of the same camera screen, reached from the AR tab.
   const arActive = isActive("/ar") || isActive("/scan");
-  // The AR button opens the camera launcher (AR · QR · Murals), same as the
-  // mobile app, instead of going straight to /ar.
+  // The AR button opens the camera launcher (AR · QR · Murals).
   const [launcherOpen, setLauncherOpen] = useState(false);
 
   return (
     <>
-      <nav className="pointer-events-none absolute inset-x-0 bottom-0 z-40">
-        <div className="relative mx-auto w-full max-w-[420px]">
-          {/* ── AR launcher ─────────────────────────────────────────────── */}
-          <div className="pointer-events-auto absolute -top-[26px] left-1/2 z-10 -translate-x-1/2">
+      <nav
+        className="pointer-events-none absolute inset-x-3 z-40 flex flex-col items-center gap-[50px]"
+        style={{ bottom: "max(12px, var(--ar-safe-bottom))" }}
+      >
+        {/* mural pack download progress, above the dock */}
+        <PackBar />
+
+        <div className="st-dock pointer-events-auto grid h-[62px] w-full max-w-[420px] grid-cols-5 items-center rounded-[22px] px-1.5">
+          {LEFT.map((tab) => (
+            <TabButton key={tab.href} tab={tab} active={isActive(tab.href)} />
+          ))}
+
+          {/* ── AR sticker: wobbles, pings and has a turning dashed ring ── */}
+          <div className="relative flex justify-center">
             <button
               type="button"
               onClick={() => setLauncherOpen(true)}
               aria-label="Open camera"
               aria-haspopup="dialog"
               aria-current={arActive ? "page" : undefined}
-              className="group relative block h-[62px] w-[62px]"
+              className="group relative -mt-9 size-[68px]"
             >
-              {/* Expanding sonar pulse — only while AR is the live tab */}
-              {arActive && (
-                <span
-                  aria-hidden
-                  className="animate-pulse-ring border-ar-accent-hot absolute inset-0 rounded-full border"
-                />
-              )}
+              <span aria-hidden className="st-ar-ping absolute inset-0 rounded-full" />
               <span
-                className={cn(
-                  "ar-key ar-key-launcher absolute inset-0 flex items-center justify-center rounded-full",
-                  arActive && "ar-glow",
-                )}
-              >
-                {/* Spinning arc INSIDE the key, just within its border —
-                    same as the mobile app (it used to be a halo outside). */}
-                <span
-                  aria-hidden
-                  className={cn(
-                    "ar-conic-ring ar-conic-ring-inner pointer-events-none absolute inset-[1.5px] rounded-full transition-opacity duration-300",
-                    arActive ? "opacity-100" : "opacity-[0.85] group-hover:opacity-100",
-                  )}
-                />
-                <ArGlyph active={arActive} />
+                aria-hidden
+                className="st-ar-ring absolute -inset-[7px] rounded-full border-2 border-dashed border-[hsl(var(--st-ink))]"
+              />
+              <span className="st-ar-key st-ar-wobble font-display absolute inset-0 flex items-center justify-center rounded-full text-[24px] leading-none">
+                AR
               </span>
             </button>
-            {/* Mural pack "charging" the camera while it downloads. A sibling,
-                not a child: its % badge is its own button, and buttons can't
-                nest. Overlaid on the 62px key above. */}
-            <PackRing />
           </div>
 
-          {/* ── The bar ─────────────────────────────────────────────────── */}
-          {/* One element, rounded on top. `.ar-tabbar-surface` carries no
-            `backdrop-filter` — see its doc comment in arcade.css for why, but
-            in short: nothing scrolls behind this bar for a blur to act on, and
-            WebKit refuses to clip a backdrop-filtered layer to a rounded
-            corner (by its own radius *or* an ancestor's `overflow: hidden`),
-            which is what was rendering these corners square.
-
-            The safe-area inset lives in this element's own bottom padding
-            rather than as margin outside it, so the surface runs flush to the
-            true screen edge instead of floating above a gap. The tab row
-            inside stays a fixed 64px tall regardless, so icons and labels
-            don't drift toward whatever the safe-area measures on a given
-            phone. */}
-          <div
-            className="ar-tabbar-surface rounded-t-ar-xl pointer-events-auto relative"
-            style={{ paddingBottom: "max(12px, var(--ar-safe-bottom))" }}
-          >
-            <div className="flex h-[64px] items-stretch px-1.5">
-              {LEFT.map((tab) => (
-                <TabButton key={tab.href} tab={tab} active={isActive(tab.href)} />
-              ))}
-
-              {/* Reserved footprint under the raised AR launcher. */}
-              <div aria-hidden className="w-[74px] shrink-0" />
-
-              {RIGHT.map((tab) => (
-                <TabButton key={tab.href} tab={tab} active={isActive(tab.href)} />
-              ))}
-            </div>
-          </div>
+          {RIGHT.map((tab) => (
+            <TabButton key={tab.href} tab={tab} active={isActive(tab.href)} />
+          ))}
         </div>
       </nav>
       <CameraLauncher open={launcherOpen} onClose={() => setLauncherOpen(false)} />
@@ -143,111 +94,38 @@ export function BottomTabBar() {
   );
 }
 
-function TabButton({
-  tab,
-  active,
-  dot = false,
-}: {
-  tab: Tab;
-  active: boolean;
-  /** Something behind this tab needs you — a win, a reply. */
-  dot?: boolean;
-}) {
+function TabButton({ tab, active }: { tab: Tab; active: boolean }) {
   const Icon = tab.icon;
-
   return (
     <Link
       href={tab.href}
+      title={tab.label}
       aria-current={active ? "page" : undefined}
-      className="group rounded-ar relative flex flex-1 flex-col items-center justify-center gap-[3px] select-none"
+      className="relative mx-0.5 flex h-[50px] flex-col items-center justify-center gap-[3px] rounded-[14px] select-none"
     >
       {active && (
         <motion.span
-          layoutId="tab-plate"
+          layoutId="dock-active"
           aria-hidden
-          className="bg-ar-accent/12 border-ar-accent/35 absolute inset-x-1 inset-y-[7px] rounded-[13px] border shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_0_18px_-4px_hsl(var(--ar-accent)/0.5)]"
-          transition={{
-            type: "spring",
-            stiffness: 520,
-            damping: 38,
-            mass: 0.7,
-          }}
+          className="absolute inset-0 -rotate-2 rounded-[14px] bg-[hsl(var(--st-ink))]"
+          transition={{ type: "spring", stiffness: 520, damping: 38, mass: 0.7 }}
         />
       )}
-
-      <motion.span
-        animate={{ y: active ? -1 : 0, scale: active ? 1.06 : 1 }}
-        transition={{ type: "spring", stiffness: 480, damping: 26 }}
-        className="relative z-10"
-      >
-        <Icon
-          strokeWidth={active ? 2.4 : 1.9}
-          className={cn(
-            "h-[21px] w-[21px] transition-colors duration-200",
-            active
-              ? "text-ar-accent-hot drop-shadow-[0_0_9px_hsl(var(--ar-accent)/0.85)]"
-              : "text-ar-faint group-hover:text-ar-dim",
-          )}
-        />
-        {dot && (
-          <span
-            aria-hidden
-            className="bg-ar-accent-hot absolute -top-0.5 -right-1 h-2 w-2 rounded-full shadow-[0_0_8px_hsl(var(--ar-accent)/0.9)]"
-          />
+      <Icon
+        strokeWidth={2.4}
+        className={cn(
+          "relative z-10 size-[19px] transition-colors duration-200",
+          active ? "text-ar-accent" : "text-[hsl(var(--st-ink)/0.75)]",
         )}
-      </motion.span>
-
+      />
       <span
         className={cn(
-          "font-hud relative z-10 text-[9.5px] font-semibold tracking-[0.14em] uppercase transition-colors duration-200",
-          active ? "text-ar-text" : "text-ar-faint group-hover:text-ar-dim",
+          "font-display relative z-10 max-w-full truncate px-0.5 text-[10px] leading-none tracking-[0.04em] uppercase",
+          active ? "text-ar-accent" : "text-[hsl(var(--st-ink)/0.75)]",
         )}
       >
-        {tab.label}
+        {tab.short ?? tab.label}
       </span>
     </Link>
-  );
-}
-
-/**
- * The AR mark: viewfinder corners closing on the letters. Drawn rather than
- * imported so the corners can animate independently of the type.
- */
-function ArGlyph({ active }: { active: boolean }) {
-  return (
-    <span className="relative flex h-[30px] w-[30px] items-center justify-center">
-      <AnimatePresence>
-        <motion.svg
-          key="corners"
-          viewBox="0 0 30 30"
-          fill="none"
-          className="absolute inset-0"
-          animate={{ scale: active ? [1, 0.9, 1] : 1 }}
-          transition={{
-            duration: 2.4,
-            repeat: active ? Infinity : 0,
-            ease: "easeInOut",
-          }}
-        >
-          {[
-            "M1 8V3.5A2.5 2.5 0 0 1 3.5 1H8",
-            "M22 1h4.5A2.5 2.5 0 0 1 29 3.5V8",
-            "M29 22v4.5a2.5 2.5 0 0 1-2.5 2.5H22",
-            "M8 29H3.5A2.5 2.5 0 0 1 1 26.5V22",
-          ].map((d) => (
-            <path
-              key={d}
-              d={d}
-              stroke="hsl(var(--ar-accent-hot))"
-              strokeWidth="1.7"
-              strokeLinecap="round"
-            />
-          ))}
-        </motion.svg>
-      </AnimatePresence>
-      <span className="font-hud text-ar-text text-[13px] leading-none font-bold tracking-tight drop-shadow-[0_0_8px_hsl(var(--ar-accent)/0.9)]">
-        AR
-      </span>
-    </span>
   );
 }

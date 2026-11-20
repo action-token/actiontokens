@@ -164,7 +164,7 @@ function ClaimSheet({
               {q.source && (
                 <p className="text-ar-faint mt-2 text-[11.5px]">
                   {q.source === "stock"
-                    ? "Sent from the artist's stock."
+                    ? "Sent from the organization's stock."
                     : `A new ${code} is minted for you when you claim.`}
                 </p>
               )}

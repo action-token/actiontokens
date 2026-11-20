@@ -1,0 +1,219 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   ActionTokens "Street Sticker" language (docs/AR-STICKER-REDESIGN.md)
+
+   Loaded after arcade.css, so these rules replace the Bandcoin console look of
+   the shared primitives (.ar-key, .ar-bevel, .ar-glass, …) everywhere at once:
+   thick outlines, hard offset shadows with no blur, paper and neon-green faces.
+   The .dark-scoped selectors are repeated so they win over arcade.css's own
+   .dark rules of the same specificity.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root,
+.dark {
+  --st-paper: 120 25% 96%;
+  --st-ink: 120 10% 2%;
+  --st-off: 3px;
+}
+
+/* ── Utilities ─────────────────────────────────────────────────────────── */
+
+/* Green halftone dot grid: behind screens, over the map. */
+.st-halftone {
+  background-image: radial-gradient(hsl(var(--ar-accent) / 0.14) 1px, transparent 1.4px);
+  background-size: 7px 7px;
+}
+
+/* A strip of translucent tape, stuck across a card's top edge. */
+.st-tape {
+  position: absolute;
+  z-index: 10;
+  height: 16px;
+  width: 48px;
+  background: hsl(var(--st-paper) / 0.7);
+  box-shadow: 0 1px 0 hsl(0 0% 0% / 0.3);
+}
+
+/* Paper sticker: light face, black outline, hard black shadow. */
+.st-paper {
+  background: hsl(var(--st-paper));
+  color: hsl(var(--st-ink));
+  border: 3px solid hsl(var(--st-ink));
+  box-shadow: 4px 4px 0 0 hsl(var(--st-ink));
+}
+
+/* Green sticker. */
+.st-green {
+  background: hsl(var(--ar-accent));
+  color: hsl(var(--st-ink));
+  border: 3px solid hsl(var(--st-ink));
+  box-shadow: 4px 4px 0 0 hsl(var(--st-ink));
+}
+
+/* Dark card with a paper outline and a green hard shadow. */
+.st-card {
+  background: hsl(var(--ar-surface));
+  border: 2.5px solid hsl(var(--st-paper) / 0.92);
+  box-shadow: 4px 4px 0 0 hsl(var(--ar-accent));
+}
+
+.st-tilt-l {
+  transform: rotate(-2deg);
+}
+.st-tilt-r {
+  transform: rotate(2deg);
+}
+
+/* ── Primitives, restyled ──────────────────────────────────────────────── */
+
+/* Card stock: dark face, light outline, green hard shadow. */
+.ar-bevel,
+.dark .ar-bevel {
+  background: hsl(var(--ar-surface));
+  border: 2px solid hsl(var(--st-paper) / 0.85);
+  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--ar-accent) / 0.9);
+}
+
+/* Key: a dark sticker that presses into its shadow. */
+.ar-key,
+.dark .ar-key {
+  background: hsl(var(--ar-surface-2));
+  border: 2px solid hsl(var(--st-paper) / 0.9);
+  color: hsl(var(--ar-text));
+  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--ar-accent));
+  transition:
+    transform 110ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 110ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.ar-key:active,
+.dark .ar-key:active,
+.ar-key-primary:active,
+.dark .ar-key-primary:active,
+.ar-key-gold:active,
+.dark .ar-key-gold:active,
+.ar-key-danger:active {
+  transform: translate(var(--st-off), var(--st-off));
+  box-shadow: 0 0 0 0 transparent;
+}
+
+.ar-key-primary,
+.dark .ar-key-primary {
+  background: hsl(var(--ar-accent));
+  border: 2.5px solid hsl(var(--st-ink));
+  color: hsl(var(--st-ink));
+  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--st-ink));
+}
+
+.ar-key-gold,
+.dark .ar-key-gold {
+  background: hsl(var(--rarity-legendary));
+  border: 2.5px solid hsl(var(--st-ink));
+  color: hsl(var(--st-ink));
+  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--st-ink));
+}
+
+.ar-key-danger,
+.dark .ar-key-danger {
+  background: hsl(var(--ar-danger));
+  border: 2.5px solid hsl(var(--st-ink));
+  color: hsl(0 0% 100%);
+  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--st-ink));
+}
+
+/* Floating over the map or camera: a near-solid dark sticker with a paper
+   outline and a hard black shadow, so it reads on any background. */
+.ar-glass,
+.dark .ar-glass {
+  background: hsl(var(--ar-surface) / 0.94);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 2px solid hsl(var(--st-paper) / 0.9);
+  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--st-ink));
+}
+
+/* Soft glows don't belong in this language: flatten them. */
+.dark .ar-glow {
+  box-shadow: var(--st-off) var(--st-off) 0 0 hsl(var(--st-ink));
+}
+
+/* ── Shell ─────────────────────────────────────────────────────────────── */
+
+/* The floating dock (BottomTabBar). */
+.st-dock {
+  background: hsl(var(--st-paper));
+  border: 3px solid hsl(var(--st-ink));
+  box-shadow: 4px 4px 0 0 hsl(var(--ar-accent));
+}
+
+/* The big AR sticker in the dock's middle. */
+.st-ar-key {
+  background: hsl(var(--ar-accent));
+  color: hsl(var(--st-ink));
+  border: 3px solid hsl(var(--st-ink));
+  box-shadow: 3px 3px 0 0 hsl(var(--st-ink));
+  transition:
+    transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 140ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.st-ar-key:active {
+  transform: translate(3px, 3px) rotate(0deg);
+  box-shadow: 0 0 0 0 transparent;
+}
+
+/* Content runs under the floating dock: the dock (≈56px) plus its 14px lift
+   plus breathing room. */
+.ar-tabbed {
+  --ar-tabbar-space: calc(92px + max(0px, var(--ar-safe-bottom)));
+}
+
+/* The AR sticker's motion: a slow wobble, a green ping and a turning dashed
+   ring. Still for reduced motion. */
+@keyframes st-wobble {
+  0%,
+  100% {
+    transform: rotate(-7deg);
+  }
+  50% {
+    transform: rotate(5deg) scale(1.04);
+  }
+}
+@keyframes st-ping {
+  0% {
+    box-shadow: 0 0 0 0 hsl(var(--ar-accent) / 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 16px hsl(var(--ar-accent) / 0);
+  }
+}
+@keyframes st-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.st-ar-wobble {
+  animation: st-wobble 2.6s ease-in-out infinite;
+}
+.st-ar-ping {
+  animation: st-ping 1.8s ease-out infinite;
+}
+.st-ar-ring {
+  background: hsl(var(--st-paper));
+  animation: st-turn 9s linear infinite;
+}
+button:active > .st-ar-wobble {
+  animation: none;
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 0 transparent;
+}
+@media (prefers-reduced-motion: reduce) {
+  .st-ar-wobble,
+  .st-ar-ping,
+  .st-ar-ring {
+    animation: none;
+  }
+}
+
+/* The dock with labels is 62px tall; content clears it plus its lift. */
+.ar-tabbed {
+  --ar-tabbar-space: calc(96px + max(0px, var(--ar-safe-bottom)));
+}

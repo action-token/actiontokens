@@ -62,7 +62,7 @@ export function BottomSheet({
             aria-modal="true"
             aria-labelledby={labelledBy}
             className={cn(
-              "ar-glass rounded-t-ar-xl relative w-full border-b-0 pb-[max(18px,var(--ar-safe-bottom))]",
+              "bg-ar-surface relative w-full rounded-t-[24px] border-x-[3px] border-t-[3px] border-[hsl(var(--st-paper))] pb-[max(18px,var(--ar-safe-bottom))] shadow-[0_-4px_0_0_hsl(var(--ar-accent))]",
               "max-h-[86%] overflow-hidden",
               className,
             )}
@@ -82,7 +82,7 @@ export function BottomSheet({
           >
             {dismissible && (
               <div className="flex justify-center pt-2.5 pb-1">
-                <span className="bg-ar-line-bright h-[4px] w-9 rounded-full" />
+                <span className="h-[5px] w-10 rounded-full bg-[hsl(var(--st-paper)/0.85)]" />
               </div>
             )}
             {children}

@@ -161,7 +161,7 @@ export function MapSearch({
                 autoFocus
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search drops, artists or places"
+                placeholder="Search drops, organizations or places"
                 aria-label="Search"
                 enterKeyHint="search"
                 autoComplete="off"
@@ -229,7 +229,7 @@ export function MapSearch({
                       No matches
                     </p>
                     <p className="text-ar-faint mt-1 text-[12px]">
-                      Try an artist name, a drop title, or a street or area.
+                      Try an organization name, a drop title, or a street or area.
                     </p>
                   </div>
                 )}

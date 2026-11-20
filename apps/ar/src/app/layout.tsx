@@ -2,6 +2,8 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import "~/styles/globals.css";
 // After globals, so the arcade palette wins on equal specificity.
 import "~/styles/arcade.css";
+// After arcade, so the ActionTokens sticker language replaces its console primitives.
+import "~/styles/sticker.css";
 
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";

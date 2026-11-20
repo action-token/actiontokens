@@ -85,7 +85,7 @@ export default function EventsScreen() {
   return (
     <AppShell tabs={false}>
       <div className="flex h-full flex-col">
-        <ScreenHeader back eyebrow="From artists" title="Events" />
+        <ScreenHeader back eyebrow="From organizations" title="Events" />
 
         <div className="ar-scroll flex-1 pb-6">
           <SegmentedTabs
@@ -175,21 +175,21 @@ function Empty({ segment, when, following }: { segment: Segment; when: When; fol
   const [title, body] =
     segment === "announcements"
       ? following
-        ? ["Nothing from your artists", "Artists you follow haven't posted any news yet."]
-        : ["No news yet", "When artists post announcements, they'll show up here."]
+        ? ["Nothing from your organizations", "Organizations you follow haven't posted any news yet."]
+        : ["No news yet", "When organizations post announcements, they'll show up here."]
       : when === "past"
         ? [
             "No past events",
             following
-              ? "Artists you follow haven't held any events yet."
+              ? "Organizations you follow haven't held any events yet."
               : "Nothing has happened here yet.",
           ]
         : following
           ? [
               "Nothing coming up",
-              "Artists you follow have no upcoming events. Turn off Following to see everything.",
+              "Organizations you follow have no upcoming events. Turn off Following to see everything.",
             ]
-          : ["Nothing coming up", "Artists post events here — check back soon."];
+          : ["Nothing coming up", "Organizations post events here — check back soon."];
   return (
     <div className="py-14 text-center">
       <p className="font-hud text-ar-dim text-[13px] font-bold tracking-[0.14em] uppercase">

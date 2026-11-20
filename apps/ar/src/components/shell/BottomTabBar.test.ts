@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("~/components/camera/CameraLauncher", () => ({ CameraLauncher: () => null }));
-vi.mock("~/components/murals/PackRing", () => ({ PackRing: () => null }));
+vi.mock("~/components/murals/PackBar", () => ({ PackBar: () => null }));
 vi.mock("~/lib/navigation", () => ({ useRouter: () => ({ pathname: "/" }) }));
 
 import { LEFT, RIGHT } from "./BottomTabBar";

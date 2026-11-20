@@ -44,7 +44,7 @@ export function SegmentedTabs<T extends string>({
   className?: string;
 }) {
   return (
-    <div className={cn("ar-bevel rounded-ar flex h-11 gap-1 p-1", className)}>
+    <div className={cn("flex h-11 gap-2", className)}>
       {tabs.map((tab) => {
         const active = tab.id === value;
         const Icon = tab.icon;
@@ -54,40 +54,34 @@ export function SegmentedTabs<T extends string>({
             key={tab.id}
             onClick={() => onChange(tab.id)}
             aria-pressed={active}
-            className="relative flex-1"
+            className={cn(
+              "relative flex-1 rounded-[8px]",
+              !active && "bg-ar-surface border-2 border-[hsl(var(--st-paper)/0.6)]",
+            )}
           >
             {active && (
               <motion.span
                 layoutId={layoutId}
-                className="border-ar-accent/40 bg-ar-accent/16 absolute inset-0 rounded-[10px] border"
-                style={{
-                  boxShadow:
-                    "inset 0 1px 0 rgba(255,255,255,0.12), 0 0 14px -4px hsl(var(--ar-accent) / 0.75)",
-                }}
-                transition={{
-                  type: "spring",
-                  stiffness: 460,
-                  damping: 34,
-                  mass: 0.7,
-                }}
+                className="st-green absolute inset-0 -rotate-1 rounded-[8px] shadow-[3px_3px_0_0_hsl(var(--st-ink))]"
+                transition={{ type: "spring", stiffness: 460, damping: 34, mass: 0.7 }}
               />
             )}
 
             <span
               className={cn(
-                "font-hud relative z-10 flex items-center justify-center gap-1.5 text-[11px] font-semibold tracking-[0.1em] uppercase transition-colors",
-                active ? "text-ar-accent-hot" : "text-ar-faint",
+                "font-display relative z-10 flex items-center justify-center gap-1.5 text-[13px] tracking-[0.05em] uppercase",
+                active ? "-rotate-1 text-[hsl(var(--st-ink))]" : "text-ar-dim",
               )}
             >
-              {Icon && <Icon size={12} strokeWidth={2.4} />}
+              {Icon && <Icon size={13} strokeWidth={2.6} />}
               <span className="truncate">{tab.label}</span>
               {tab.count != null && (
                 <span
                   className={cn(
-                    "font-hud inline-flex h-[17px] min-w-[19px] items-center justify-center rounded-full px-1 text-[9.5px] font-bold tabular-nums transition-colors",
+                    "inline-flex h-[17px] min-w-[19px] items-center justify-center rounded-[4px] px-1 text-[10px] tabular-nums",
                     active
-                      ? "bg-ar-accent-hot/20 text-ar-accent-hot"
-                      : "text-ar-faint bg-white/[0.07]",
+                      ? "bg-[hsl(var(--st-ink))] text-ar-accent"
+                      : "text-ar-dim bg-white/[0.08]",
                   )}
                 >
                   {tab.count}

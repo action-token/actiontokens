@@ -618,7 +618,7 @@ function ManageInPortal({ bountyId }: { bountyId: string }) {
     <div className="py-10 text-center">
       <FileText size={20} strokeWidth={2.2} className="text-ar-faint mx-auto" />
       <p className="font-hud text-ar-dim mt-3 text-[13px] font-bold tracking-[0.14em] uppercase">
-        Review reports in the artist portal
+        Review reports in the organization portal
       </p>
       <p className="text-ar-faint mx-auto mt-1.5 max-w-[17rem] text-[12.5px] leading-relaxed">
         Read entries, pick winners and change the bounty&rsquo;s status from your artist portal.

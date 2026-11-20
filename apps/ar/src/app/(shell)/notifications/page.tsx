@@ -56,7 +56,7 @@ export default function NotificationsScreen() {
         <ScreenHeader back eyebrow="Inbox" title="Notifications" />
         <div className="ar-scroll flex-1 px-5 pb-8">
           {!signedIn ? (
-            <Empty text="Sign in to see news from the artists you follow.">
+            <Empty text="Sign in to see news from the organizations you follow.">
               <ArButton
                 variant="primary"
                 size="md"
@@ -73,7 +73,7 @@ export default function NotificationsScreen() {
               ))}
             </div>
           ) : items.length === 0 ? (
-            <Empty text="Follow artists and join bounties: their news shows up here." />
+            <Empty text="Follow organizations and join bounties: their news shows up here." />
           ) : (
             <>
               <ul className="rounded-ar border-ar-line divide-ar-line divide-y overflow-hidden border">

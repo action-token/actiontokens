@@ -67,7 +67,7 @@ const TOGGLES: {
     key: "followingOnly",
     icon: Users,
     title: "Following only",
-    body: "Hide drops from artists you don't follow. Quieter map, fewer pins.",
+    body: "Hide drops from organizations you don't follow. Quieter map, fewer pins.",
   },
   {
     key: "haptics",
@@ -203,7 +203,7 @@ export default function ProfileScreen() {
           <span className="bg-ar-line h-8 w-px" />
           <StatBlock label="Following" value={following} />
           <span className="bg-ar-line h-8 w-px" />
-          <StatBlock label="Artists" value={latest.facets?.artists ?? 0} />
+          <StatBlock label="Orgs" value={latest.facets?.artists ?? 0} />
         </div>
 
         {/* ── Rarity breakdown ─────────────────────────────────────── */}
@@ -506,7 +506,7 @@ function SignedOut({ onSignIn }: { onSignIn: () => void }) {
   const perks = [
     { icon: Footprints, text: "Capture pins and keep them forever" },
     { icon: Zap, text: "Auto-collect drops as you walk past them" },
-    { icon: Users, text: "Follow artists and unlock their follower-only pins" },
+    { icon: Users, text: "Follow organizations and unlock their follower-only pins" },
     { icon: Wallet, text: "Redeem codes tied to your own wallet" },
   ];
 

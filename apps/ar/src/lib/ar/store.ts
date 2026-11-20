@@ -77,7 +77,7 @@ export const GATE_COPY: Record<GateIntent, { title: string; body: string }> = {
   },
   follow: {
     title: "Sign in to follow",
-    body: "Following an artist unlocks their follower-only pins on your map.",
+    body: "Following an organization unlocks their follower-only pins on your map.",
   },
   profile: {
     title: "Sign in to see your profile",
@@ -97,7 +97,7 @@ export const GATE_COPY: Record<GateIntent, { title: string; body: string }> = {
   },
   events: {
     title: "Sign in to join in",
-    body: "RSVPs and comments are saved to your account, so the artist knows who's coming.",
+    body: "RSVPs and comments are saved to your account, so the organization knows who's coming.",
   },
   murals: {
     title: "Sign in to collect this mural",

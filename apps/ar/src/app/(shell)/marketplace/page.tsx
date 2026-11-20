@@ -41,7 +41,7 @@ export default function MarketplaceScreen() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value.slice(0, 80))}
-              placeholder="Search items or artists"
+              placeholder="Search items or organizations"
               aria-label="Search the marketplace"
               className="text-ar-text placeholder:text-ar-faint min-w-0 flex-1 bg-transparent text-[13px] outline-hidden"
             />

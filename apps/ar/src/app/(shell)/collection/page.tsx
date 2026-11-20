@@ -28,7 +28,7 @@ type CollectionTab = "drops" | "posts" | "murals";
 const SORTS: { id: Sort; label: string }[] = [
   { id: "newest", label: "Newest" },
   { id: "rarest", label: "Rarest" },
-  { id: "artist", label: "Artist" },
+  { id: "artist", label: "Organization" },
 ];
 
 /**
@@ -143,7 +143,7 @@ export default function CollectionScreen() {
               <div className="rounded-ar border-ar-line mx-5 flex items-center justify-around border bg-white/[0.03] py-3">
                 <StatBlock label="Collectibles" value={stats.total} accent />
                 <span className="bg-ar-line h-8 w-px" />
-                <StatBlock label="Artists" value={stats.artists} />
+                <StatBlock label="Orgs" value={stats.artists} />
                 <span className="bg-ar-line h-8 w-px" />
                 <StatBlock
                   label="Best find"

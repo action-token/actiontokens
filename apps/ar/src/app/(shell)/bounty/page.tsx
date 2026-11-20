@@ -76,7 +76,7 @@ export default function BountyScreen() {
   return (
     <AppShell>
       <div className="flex h-full flex-col">
-        <ScreenHeader eyebrow="Earn from artists" title="Bounty" />
+        <ScreenHeader eyebrow="Earn from organizations" title="Bounty" />
 
         <div className="ar-scroll flex-1 pb-6">
           {/* ── Top bounties ───────────────────────────────────────── */}
@@ -220,7 +220,7 @@ export default function BountyScreen() {
                         ? "Nothing matches that search."
                         : segment === "joined"
                           ? "Join a bounty and it'll show up here with your reports and results."
-                          : "Artists post bounties here. Check back soon."
+                          : "Organizations post bounties here. Check back soon."
                     }
                   />
                 )}

@@ -63,7 +63,7 @@ export default function ArtistsScreen() {
   return (
     <AppShell>
       <div className="flex h-full flex-col">
-        <ScreenHeader eyebrow="Who's dropping" title="Artists" />
+        <ScreenHeader eyebrow="Who's dropping" title="Organizations" />
 
         {/* ── Search ───────────────────────────────────────────────── */}
         <div className="px-5">
@@ -72,8 +72,8 @@ export default function ArtistsScreen() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search artists"
-              aria-label="Search artists"
+              placeholder="Search organizations"
+              aria-label="Search organizations"
               className="text-ar-text placeholder:text-ar-faint min-w-0 flex-1 bg-transparent text-[13px] outline-hidden"
             />
             {query && (
@@ -146,11 +146,11 @@ export default function ArtistsScreen() {
           {!artistsLoading && shown.length === 0 && (
             <div className="py-16 text-center">
               <p className="font-hud text-ar-dim text-[13px] font-bold tracking-[0.14em] uppercase">
-                No artists here
+                No organizations here
               </p>
               <p className="text-ar-faint mx-auto mt-1.5 max-w-[16rem] text-[12.5px] leading-relaxed">
                 {tab === "following"
-                  ? "Follow an artist and their follower-only pins start showing up on your map."
+                  ? "Follow an organization and their follower-only pins start showing up on your map."
                   : "Nothing matches that search."}
               </p>
             </div>

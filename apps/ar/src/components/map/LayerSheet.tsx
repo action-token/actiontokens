@@ -154,7 +154,7 @@ export function LayerSheet({
 
         {layers.length === 0 && (
           <p className="text-ar-dim px-1 pt-2 text-[12px]">
-            No artist layers right now. When artists group their drops (venues, merch, events…),
+            No organization layers right now. When organizations group their drops (venues, merch, events…),
             they show up here.
           </p>
         )}
