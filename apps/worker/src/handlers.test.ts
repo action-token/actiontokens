@@ -21,7 +21,7 @@ describe("the worker's job list", () => {
   });
 
   it("never schedules the jobs that cost money or are asked for by a person", () => {
-    const asked = ["studio.music", "studio.generate", "pins.batch", "agent.run", "media.transcode"];
+    const asked = ["pins.batch", "agent.run", "media.transcode"];
     expect(SCHEDULES.filter((s) => asked.includes(s.type))).toEqual([]);
   });
 });

@@ -459,34 +459,10 @@ export const CHECKS: TableCheck[] = [
     newTable: "bounty_track_progress",
   },
 
-  // ── Studio ─────────────────────────────────────────────────────────────
+  // ── Agent ──────────────────────────────────────────────────────────────
+  { domain: "Agent", oldTable: "AgentJob", newTable: "agent_jobs" },
   {
-    domain: "Studio",
-    oldTable: "CreditBalance",
-    newTable: "studio_balances + studio_ledger_entries (MIGRATED)",
-    note: "Old database credits become deposited studio coins 1:1 (to confirm).",
-    breakdown: {
-      label: "Total credits",
-      sql: `SELECT 'sum' AS k, coalesce(round(sum(balance)::numeric, 2), 0) AS n FROM "CreditBalance"`,
-    },
-  },
-  {
-    domain: "Studio",
-    oldTable: "CreditTransaction",
-    newTable: "(history kept in the report only)",
-    note: "Old history is summarised into one MIGRATED entry per user.",
-  },
-  {
-    domain: "Studio",
-    oldTable: "CreditPackage",
-    newTable: "studio_packages",
-    note: "Old priceBand/priceUSDC become priceBandcoin/priceUsd.",
-  },
-  { domain: "Studio", oldTable: "GenerationJob", newTable: "generations" },
-  { domain: "Studio", oldTable: "AiGeneratedContent", newTable: "generations" },
-  { domain: "Studio", oldTable: "AgentJob", newTable: "agent_jobs" },
-  {
-    domain: "Studio",
+    domain: "Agent",
     oldTable: "AgentConversation",
     newTable: "agent_conversations",
     note: "Agent chat history (in the DB, missing from bandfan's schema file).",
@@ -496,7 +472,7 @@ export const CHECKS: TableCheck[] = [
     },
   },
   {
-    domain: "Studio",
+    domain: "Agent",
     oldTable: "AgentMessage",
     newTable: "agent_messages",
     breakdown: {
@@ -505,7 +481,7 @@ export const CHECKS: TableCheck[] = [
     },
   },
   {
-    domain: "Studio",
+    domain: "Agent",
     oldTable: "AgentAction",
     newTable: "agent_actions",
     breakdown: {

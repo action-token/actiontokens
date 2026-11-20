@@ -39,12 +39,6 @@ import { listJobs, retryAdminJob } from "../../services/admin/jobs";
 import { changeContractFee, readContractFee } from "../../services/admin/contract-fee";
 import { getPerson } from "../../services/admin/person";
 import { getSettings, updateSettings } from "../../services/admin/settings";
-import {
-  getStudioSettings,
-  saveStudioPackage,
-  updateStudioPricing,
-} from "../../services/admin/studio";
-import { studioEarnings } from "../../services/admin/studio-earnings";
 import { collectionSummary, exportCollections, pinReport } from "../../services/artist/reports";
 import { decidePins, deletePins, listPins, pinCounts, pinsForMap } from "../../services/admin/pins";
 import { getMuralSettings } from "../../services/ar/murals";
@@ -276,7 +270,6 @@ export const adminRouter = createRouter({
             "fastClaims",
             "largeOrder",
             "stuck",
-            "studioBalance",
             "brokenDomain",
           ]),
           note: z.string().max(300).optional(),
@@ -307,34 +300,6 @@ export const adminRouter = createRouter({
         }),
       )
       .mutation(({ ctx, input }) => updateSettings(ctx, input)),
-    studio: adminProcedure.query(({ ctx }) => getStudioSettings(ctx)),
-    /** What Studio earns, from the coin ledger: per model, over the last `days` (all time when omitted). */
-    studioEarnings: adminProcedure
-      .input(z.object({ days: z.number().int().min(1).max(3650).optional() }))
-      .query(({ ctx, input }) => studioEarnings(ctx, input)),
-    updateStudioPricing: adminProcedure
-      .input(
-        z.object({
-          feePercent: z.number().min(0).max(500),
-          /** USD per unit, keyed by model id or music tool (services/studio/pricing PRICE_KEYS) */
-          apiCostUsd: z.record(z.string().max(80), z.number().min(0).max(100)),
-        }),
-      )
-      .mutation(({ ctx, input }) => updateStudioPricing(ctx, input)),
-    saveStudioPackage: adminProcedure
-      .input(
-        z.object({
-          packageId: z.string().min(1).nullish(),
-          name: z.string().max(60),
-          description: z.string().max(200).nullish(),
-          priceUsd: z.number().min(0).max(10_000),
-          bonusCoins: z.number().int().min(0).max(1_000_000),
-          isPopular: z.boolean(),
-          isActive: z.boolean(),
-          sortOrder: z.number().int().min(0).max(1000),
-        }),
-      )
-      .mutation(({ ctx, input }) => saveStudioPackage(ctx, input)),
     contractFee: adminProcedure.query(({ ctx }) => readContractFee(ctx)),
     changeContractFee: adminProcedure
       .input(contractFee)

@@ -95,8 +95,6 @@ export const notificationType = (type: string) =>
   })[type] ?? fail(`notification type ${type}`);
 
 /** The old app charged credits at dollar rates, and a coin is a cent (decided 2026-11-04). */
-export const creditsToCoins = (credits: number) => Math.round(credits * 100);
-
 export function prize(code: string, issuer: string | null) {
   const upper = code.toUpperCase();
   if (upper === "BANDCOIN")
@@ -124,31 +122,6 @@ export const orderStatus = (status: string) => (status === "CONFIRMED" ? "DELIVE
 export const orderCurrency = (token: string) =>
   ({ asset: "BANDCOIN", usd: "USD", xlm: "XLM", usdc: "USDC" })[token.toLowerCase()] ??
   fail(`payment token ${token}`);
-
-/** What an old generation job made, from its stored result. */
-export function generationFromResult(result: unknown) {
-  const items = ((result as { items?: unknown[] } | null)?.items ?? []) as {
-    url?: string;
-    type?: string;
-    content?: string;
-  }[];
-  const first = items[0]?.type ?? "";
-  const type = /seo/i.test(first)
-    ? "SEO"
-    : /social/i.test(first)
-      ? "SOCIAL"
-      : /video/i.test(first)
-        ? "VIDEO"
-        : /text/i.test(first)
-          ? "TEXT"
-          : "IMAGE";
-  const outputs = items.map((item) =>
-    item.content
-      ? { type: "text", text: item.content }
-      : { type: type === "VIDEO" ? "video" : "image", url: item.url ?? "", mimeType: null },
-  );
-  return { type, outputs };
-}
 
 function fail(what: string): never {
   throw new Error(`Unknown ${what}: the mapping needs a rule for it.`);

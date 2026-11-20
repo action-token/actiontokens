@@ -4,24 +4,17 @@ import {
   dropDueHotspots,
   expireVanityLinks,
   checkDomains,
-  lyriaProvider,
-  generateInput,
   importFacebookPost,
   type ImportPayload,
-  googleProvider,
-  openaiProvider,
-  runGeneration,
   openaiAgentModel,
   pinTags,
   placePhoto,
   runAgent,
-  runMusic,
   runPinBatch,
   useGeoCache,
   endStaleNftListings,
   syncAllSubscribers,
   sweepStories,
-  sweepStuckRuns,
   keepUnlocksAlive,
   reconcileOrders,
   syncUnlocks,
@@ -47,29 +40,6 @@ export function handlersFor(deps: WorkerDeps): Record<string, JobHandler> {
 
     // Record NFT unlocks the app couldn't (see catalog/unlock-chain); not a payment, so it retries.
     "nft.unlocks": async () => ({ result: await syncUnlocks(context()) }),
-    // A Studio music run: Lyria, then storage; coins kept or refunded (see studio/music). Never retried.
-    "studio.music": async (job) => {
-      const { generationId } = job.payload as { generationId?: unknown };
-      if (typeof generationId !== "string")
-        throw new AppError(ErrorCodes.VALIDATION_FAILED, {
-          message: "studio.music needs a generationId",
-        });
-      const result = await runMusic(deps, generationId, { provider: lyriaProvider() });
-      return { result, target: { type: "Generation", id: generationId } };
-    },
-    // A Studio image, video or writing run: the model's provider (Google or OpenAI), then storage; coins kept or refunded. Never retried.
-    "studio.generate": async (job) => {
-      const payload = job.payload as { generationId?: unknown; input?: unknown };
-      const input = generateInput.safeParse(payload.input);
-      if (typeof payload.generationId !== "string" || !input.success)
-        throw new AppError(ErrorCodes.VALIDATION_FAILED, {
-          message: "studio.generate needs a generationId and its input",
-        });
-      const result = await runGeneration(deps, payload.generationId, input.data, {
-        providers: { google: googleProvider(), openai: openaiProvider() },
-      });
-      return { result, target: { type: "Generation", id: payload.generationId } };
-    },
     // One chat message to the map agent: OpenAI and Google, steps shown live, answer saved. Never retried.
     "agent.run": async (job) => {
       const payload = job.payload as {
@@ -129,8 +99,6 @@ export function handlersFor(deps: WorkerDeps): Record<string, JobHandler> {
       });
       return { result, target: { type: "PinBatchJob", id: batchId } };
     },
-    // Refund Studio runs that a stopped worker never finished.
-    "studio.sweep": async () => ({ result: await sweepStuckRuns(deps) }),
     // Clear stories that ended a day ago.
     "stories.sweep": async () => ({ result: await sweepStories(context()) }),
     // End resale listings of NFT copies the seller moved away.

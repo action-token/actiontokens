@@ -60,10 +60,6 @@ model User {
   bountyEntries        BountyParticipant[]
   bountySubmissions    BountySubmission[]
   bountyWins           BountyWinner[]
-  studioBalance        StudioBalance?
-  studioLedger         StudioLedgerEntry[]
-  generations          Generation[]
-  stemProjects         StemProject[]
   uploads              Upload[]
   activity             ActivityLog[]
   discoveredMurals     Mural[]               @relation("MuralDiscoverer")

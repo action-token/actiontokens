@@ -2,14 +2,11 @@ import { fundsOf } from "@bandcoin/chain/server";
 import { AppError, ErrorCodes } from "@bandcoin/errors";
 
 import type { Context } from "../../context";
-import { studioUsage } from "../studio/usage";
 
 /**
  * One person for /admin/users/[id]: who they are, their wallet and what's in
  * it, what they did (counts), their artist profile if any, latest orders and
- * what they own, and their Studio coins (balance now; spent and bought over
- * all time, as the Studio Coins page counts them). The timeline comes from the
- * activity log separately.
+ * what they own. The timeline comes from the activity log separately.
  */
 type ServiceCtx = Pick<Context, "db" | "chain">;
 
@@ -56,7 +53,7 @@ export async function getPerson(ctx: ServiceCtx, userId: string) {
   });
   if (!user) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "User not found" });
 
-  const [orders, owned, pinClaims, redeemed, account, lastActive, coins, usage] = await Promise.all(
+  const [orders, owned, pinClaims, redeemed, account, lastActive] = await Promise.all(
     [
       db.order.findMany({
         where: { buyerId: user.id },
@@ -127,8 +124,6 @@ export async function getPerson(ctx: ServiceCtx, userId: string) {
         orderBy: { id: "desc" },
         select: { createdAt: true },
       }),
-      db.studioBalance.findUnique({ where: { userId: user.id }, select: { balance: true } }),
-      studioUsage(ctx, user.id),
     ],
   );
 
@@ -152,12 +147,6 @@ export async function getPerson(ctx: ServiceCtx, userId: string) {
       redeemed: user._count.redeemClaims,
       following: user._count.follows,
       orders: user._count.orders,
-    },
-    studio: {
-      coins: Number(coins?.balance ?? 0),
-      spent: usage.spent,
-      bought: usage.bought,
-      bonus: usage.bonus,
     },
     artist: user.artist
       ? {

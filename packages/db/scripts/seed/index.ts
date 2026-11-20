@@ -18,8 +18,6 @@ import {
   ARTISTS,
   FANS,
   REAL_ARTISTS,
-  STUDIO_PACKAGES,
-  STUDIO_PRICES,
   audio,
   banner,
   cover,
@@ -63,11 +61,9 @@ async function seedSettings() {
       vanityMonthlyUsd: 1,
       vanityNameChangeBandcoin: 200,
       vanityNameChangeUsd: 4,
-      studioPrices: STUDIO_PRICES,
     },
   });
   await db.muralSettings.create({ data: { id: 1 } });
-  await db.studioPackage.createMany({ data: STUDIO_PACKAGES });
 }
 
 /** Page-builder templates are product data: copy them from the old dev DB. */
@@ -443,18 +439,6 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
       },
     });
   }
-
-  // Studio: a starting coin balance with its ledger entry
-  await db.studioLedgerEntry.create({
-    data: {
-      userId: user.id,
-      kind: "BONUS",
-      status: "CONFIRMED",
-      amount: 100,
-      note: "Welcome bonus",
-    },
-  });
-  await db.studioBalance.create({ data: { userId: user.id, balance: 100 } });
 
   return { artist, tracks };
 }

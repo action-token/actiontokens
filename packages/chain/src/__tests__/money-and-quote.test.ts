@@ -29,7 +29,7 @@ describe("money", () => {
 
 describe("paymentOptions", () => {
   it("offers all four currencies wherever it can", () => {
-    for (const kind of ["ITEM_PURCHASE", "FAN_TOKEN", "GIFT", "VANITY", "STUDIO_COINS"] as const) {
+    for (const kind of ["ITEM_PURCHASE", "FAN_TOKEN", "GIFT", "VANITY"] as const) {
       expect(paymentOptions(kind)).toEqual(["BANDCOIN", "XLM", "USDC", "USD"]);
     }
   });

@@ -24,8 +24,6 @@ function setup(
     jobs?: Row[];
     artists?: Row[];
     reviewed?: string[];
-    balances?: number[];
-    ledger?: { kind: string; status: string; amount: number }[];
   } = {},
 ) {
   const matches = (row: Row, where: Where = {}) =>
@@ -97,24 +95,6 @@ function setup(
     },
     activityLog: { groupBy: vi.fn().mockResolvedValue([]), create: vi.fn().mockResolvedValue({}) },
     pinClaim: { findMany: vi.fn().mockResolvedValue([]) },
-    studioBalance: {
-      ...table((opts.balances ?? []).map((balance) => ({ balance }))),
-      findMany: vi.fn().mockResolvedValue([]),
-      aggregate: vi.fn(() =>
-        Promise.resolve({
-          _sum: { balance: opts.balances?.reduce((total, value) => total + value, 0) ?? null },
-        }),
-      ),
-    },
-    studioLedgerEntry: {
-      groupBy: vi.fn().mockResolvedValue([]),
-      aggregate: vi.fn(({ where }: { where: Where }) => {
-        const rows = (opts.ledger ?? []).filter((row) => matches(row, where));
-        return Promise.resolve({
-          _sum: { amount: rows.length ? rows.reduce((total, row) => total + row.amount, 0) : null },
-        });
-      }),
-    },
     adminAlertReview: {
       findMany: vi.fn(() => Promise.resolve((opts.reviewed ?? []).map((key) => ({ key })))),
     },
@@ -159,7 +139,6 @@ describe("admin overview", () => {
         brokenDomains: 1,
       },
       totals: { users: 3, artists: 1, items: 2, salesThisWeek: 1, liveStories: 1 },
-      studio: { coinsHeld: 0, holders: 0, carriedOver: 0 },
       stuckMinutes: 10,
     });
   });
@@ -177,23 +156,6 @@ describe("admin overview", () => {
     );
     // Reviewing the alert hides it there; the payment is still stuck.
     expect(reviewed.attention).toMatchObject({ stuckPayments: 1, openAlerts: 0 });
-  });
-
-  it("adds up Studio coins held, who holds any, and every coin carried over", async () => {
-    const { studio } = await getOverview(
-      setup({
-        balances: [250, 0, 1000],
-        ledger: [
-          { kind: "MIGRATED", status: "CONFIRMED", amount: 400 },
-          { kind: "MIGRATED", status: "CONFIRMED", amount: 100 },
-          { kind: "MIGRATED", status: "FAILED", amount: 900 },
-          { kind: "DEPOSIT", status: "CONFIRMED", amount: 5000 },
-        ],
-      }).ctx,
-      now,
-    );
-    // An empty balance isn't a holder; only settled carry-overs count.
-    expect(studio).toEqual({ coinsHeld: 1250, holders: 2, carriedOver: 500 });
   });
 
   it("shows zeros on an empty platform", async () => {

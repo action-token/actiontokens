@@ -28,7 +28,6 @@ import { api, type RouterOutputs } from "~/trpc/react";
 import { messageOf } from "../murals/model";
 import { ContractFeeCard } from "./contract-fee-card";
 import { SettingCard, UnitInput } from "./setting-card";
-import { StudioCard } from "./studio-card";
 
 type Saved = RouterOutputs["admin"]["settings"]["get"]["saved"];
 type Rules = Saved["alertRules"];
@@ -89,14 +88,13 @@ function errorsOf(form: Form) {
   return errors;
 }
 
-type TabId = "fees" | "prices" | "map" | "alerts" | "nft" | "studio";
+type TabId = "fees" | "prices" | "map" | "alerts" | "nft";
 const TABS: { id: TabId; label: string; icon: LucideIcon }[] = [
   { id: "fees", label: "Fees", icon: Percent },
   { id: "prices", label: "Prices", icon: Link2 },
   { id: "map", label: "Map & artists", icon: MapPin },
   { id: "alerts", label: "Alerts", icon: BellRing },
   { id: "nft", label: "Contract NFT", icon: Gem },
-  { id: "studio", label: "Studio", icon: Sparkles },
 ];
 /** Which tab each form field lives on (so a tab can show it has a mistake). */
 const TAB_OF: Partial<Record<keyof Form, TabId>> = {
@@ -390,9 +388,6 @@ function SavedForm({ saved, treasury }: { saved: Saved; treasury: string }) {
       </form>
       <div role="tabpanel" id="panel-nft" aria-labelledby="tab-nft" hidden={tab !== "nft"}>
         {tab === "nft" && <ContractFeeCard />}
-      </div>
-      <div role="tabpanel" id="panel-studio" aria-labelledby="tab-studio" hidden={tab !== "studio"}>
-        {tab === "studio" && <StudioCard />}
       </div>
     </div>
   );

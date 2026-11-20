@@ -17,7 +17,7 @@ import pg from "pg";
 
 import { Copier } from "./copier";
 import { copyAssets, copyFanTokens, copyMarket, copyNfts } from "./steps-catalog";
-import { copyBounties, copyStudio } from "./steps-bounty-studio";
+import { copyAgent, copyBounties } from "./steps-bounty";
 import { copyArtistExtras, copyArtists, copyUsers } from "./steps-people";
 import { copyPins } from "./steps-ar";
 import { copyNotifications, copyPosts } from "./steps-social";
@@ -67,7 +67,7 @@ try {
     ["notifications", copyNotifications],
     ["pins", copyPins],
     ["bounties", copyBounties],
-    ["studio", copyStudio],
+    ["agent", copyAgent],
   ] as const) {
     await step(copy);
     console.log(`copied ${name}`);
@@ -96,7 +96,7 @@ try {
     `- Every count below adds up (old rows = new rows + rows skipped for a stated reason).`,
     `- ${result.keysChecked} stored keys open correctly and match their public keys.`,
     `- ${mainnet.found} of ${keys.length} stored accounts exist on mainnet (read only).${mainnet.missing.length ? ` Not found: ${mainnet.missing.join(", ")}.` : ""}`,
-    `- ${result.facts.admins} admins, ${result.facts.walletless} users without a wallet, ${Number(result.facts.coins)} coins in balances.`,
+    `- ${result.facts.admins} admins, ${result.facts.walletless} users without a wallet.`,
     `- No unfinished orders or jobs carried over, so the new worker has nothing to act on.`,
     "",
     "## Left out, and why",

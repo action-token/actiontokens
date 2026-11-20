@@ -9,33 +9,9 @@ import { api } from "~/trpc/react";
 import { AlbumForm } from "./album-form";
 import { SongForm } from "./song-form";
 
-/**
- * A new song; `studioProjectId` starts it from a Studio mixer project (title,
- * the rendered mix as its audio, and its stems added once it's created).
- */
-export function NewSongView({
-  albumId,
-  studioProjectId,
-}: {
-  albumId?: string;
-  studioProjectId?: string;
-}) {
-  const draft = api.music.fromStudio.useQuery(
-    { projectId: studioProjectId ?? "" },
-    { enabled: Boolean(studioProjectId), retry: false },
-  );
-  if (!studioProjectId) return <SongForm defaultAlbumId={albumId} />;
-  if (draft.data) return <SongForm defaultAlbumId={albumId} fromStudio={draft.data} />;
-  return (
-    <PageBody className="grid gap-6">
-      <PageHeader back={{ href: "/music", label: "Music" }} eyebrow="Music" title="New song" />
-      {draft.isPending ? (
-        <Skeleton className="h-96 w-full max-w-3xl rounded-xl" />
-      ) : (
-        <ErrorState message={draft.error?.message ?? "Couldn't open that Studio project."} />
-      )}
-    </PageBody>
-  );
+/** A new song. */
+export function NewSongView({ albumId }: { albumId?: string }) {
+  return <SongForm defaultAlbumId={albumId} />;
 }
 
 export function EditSongView({ itemId }: { itemId: string }) {

@@ -6,7 +6,7 @@ import { isCustodialWallet } from "@bandcoin/wallet/shared";
 import type { ChainGateway } from "./services/chain-gateway";
 
 /** The five apps that call the API, written to every activity log row. */
-export type AppName = "app" | "artist" | "ar" | "studio" | "worker";
+export type AppName = "app" | "artist" | "ar" | "worker";
 
 /** The signed-in user, from the NextAuth session (`@bandcoin/auth` `sessionUserOf`). */
 export type SessionUser = {

@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { studioDraft } from "../../services/artist/studio-import";
 
 import {
   addStem,
@@ -100,11 +99,6 @@ export const musicRouter = createRouter({
   stems: artistProcedure
     .input(z.object({ itemId: z.string().min(1) }))
     .query(({ ctx, input }) => listStems(ctx, ctx.artist, input.itemId)),
-
-  /** A Studio mixer project to start a song from (see services/artist/studio-import). */
-  fromStudio: artistProcedure
-    .input(z.object({ projectId: z.string().min(1) }))
-    .query(({ ctx, input }) => studioDraft(ctx, ctx.session.user, input.projectId)),
 
   addStem: artistProcedure
     .input(

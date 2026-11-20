@@ -176,28 +176,6 @@ function Details({ person }: { person: Person }) {
         />
         <StatCard label="Items owned" icon={Package} value={person.counts.owned.toLocaleString()} />
         <StatCard label="Following" icon={Heart} value={person.counts.following.toLocaleString()} />
-        <StatCard
-          label="Studio coins"
-          icon={Coins}
-          value={person.studio.coins.toLocaleString()}
-          hint="Balance now"
-        />
-        <StatCard
-          label="Coins spent"
-          icon={Sparkles}
-          value={person.studio.spent.toLocaleString()}
-          hint="On Studio runs, all time"
-        />
-        <StatCard
-          label="Coins bought"
-          icon={ShoppingBag}
-          value={person.studio.bought.toLocaleString()}
-          hint={
-            person.studio.bonus > 0
-              ? `+${person.studio.bonus.toLocaleString()} bonus, all time`
-              : "All time"
-          }
-        />
       </dl>
 
       <Tabs defaultValue="pins" className="mt-8">

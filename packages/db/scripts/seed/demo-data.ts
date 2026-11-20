@@ -135,31 +135,6 @@ export const ADMIN = {
   email: "admin@demo.bandcoin.io",
 };
 
-/** Coin packages: priced in dollars, one coin a cent, plus bonus coins (BANDCOIN follows the live rate). */
-export const STUDIO_PACKAGES = [
-  { name: "Starter", coins: 200, bonusCoins: 0, priceBandcoin: 0, priceUsd: 2, sortOrder: 0 },
-  {
-    name: "Creator",
-    coins: 900,
-    bonusCoins: 100,
-    priceBandcoin: 0,
-    priceUsd: 9,
-    sortOrder: 1,
-    isPopular: true,
-  },
-  { name: "Studio", coins: 3000, bonusCoins: 500, priceBandcoin: 0, priceUsd: 30, sortOrder: 2 },
-];
-
-/**
- * The platform fee on top of the AI provider's costs (see api services/studio/
- * pricing). Each model's cost comes from the model catalog until an admin sets
- * it; music's are listed here.
- */
-export const STUDIO_PRICES = {
-  feePercent: 30,
-  apiCostUsd: { MUSIC_CLIP: 0.04, MUSIC_SONG: 0.08, MUSIC_LIVE: 0.05 },
-};
-
 /** A small offset in metres → degrees, to scatter pins around a city centre. */
 export function nudge(lat: number, lng: number, northM: number, eastM: number) {
   return {

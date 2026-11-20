@@ -114,7 +114,7 @@ General: **stories**, **events + RSVPs + announcements**, **murals** (AR wall ar
 | Phase | State |
 |---|---|
 | F0 | **Done 2026-11-20.** `/Volumes/Data/Projects/actiontokens` is a clone of Bandcoin `430af8b` with full history. Remote `upstream` = Bandcoin (push disabled); no `origin` yet. `pnpm install`, `db:generate`, `typecheck` (19/19) and `test` (20/20, 1,241 API tests) all green. |
-| F1 | Next: studio removal (map in §6 Q1), workspace rename, Artist → Organization. |
+| F1 | **Step 1 done 2026-11-20: AI studio removed.** Deleted `apps/studio`, studio routers/services/tests/scripts, `studio.prisma` (kept the agent models in `agent.prisma`), the `STUDIO_COINS` order kind, studio admin pages, alerts, overview/person stats, worker `studio.*` jobs and the live-music relay (and the `ws` dependency). `migrate-legacy` now copies only the agent tables (`steps-bounty.ts`, `copyAgent`). Typecheck 18/18, lint 0 errors, tests green (API 1,138). **Left for F2:** the init migration still creates the studio tables, so regenerate it for the new database. **Next:** workspace rename `@bandcoin/*` → `@actiontokens/*`, then Artist → Organization. |
 | F2–F8 | Not started. |
 
 ## 5. What this saves

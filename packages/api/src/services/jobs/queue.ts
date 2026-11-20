@@ -22,12 +22,9 @@ export type JobType =
   | "nft.keep-alive"
   | "hotspot.drop"
   | "vanity.expire"
-  | "studio.music"
-  | "studio.generate"
   | "pins.batch"
   | "agent.run"
   | "facebook.import"
-  | "studio.sweep"
   | "stories.sweep"
   | "resale.verify"
   | "follows.sync"
@@ -39,12 +36,9 @@ export const JOB_TYPES: readonly JobType[] = [
   "nft.keep-alive",
   "hotspot.drop",
   "vanity.expire",
-  "studio.music",
-  "studio.generate",
   "pins.batch",
   "agent.run",
   "facebook.import",
-  "studio.sweep",
   "stories.sweep",
   "resale.verify",
   "follows.sync",

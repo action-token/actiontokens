@@ -13,8 +13,6 @@ model AppSetting {
   vanityMonthlyUsd         Decimal? @db.Decimal(20, 7)
   vanityNameChangeBandcoin Decimal? @db.Decimal(20, 7)
   vanityNameChangeUsd      Decimal? @db.Decimal(20, 7)
-  /// { TEXT: per 1k tokens, IMAGE: per image, MUSIC: per 30 s, VIDEO: per 5 s }
-  studioPrices             Json?
   /// Admin › Alerts thresholds; missing keys use the defaults in services/admin/alerts.ts
   alertRules               Json?
   updatedAt                DateTime @updatedAt
@@ -81,7 +79,7 @@ model ActivityLog {
   txHash     String?
   amount     Decimal?       @db.Decimal(20, 7)
   currency   Currency?
-  /// "app" | "artist" | "ar" | "studio" | "worker"
+  /// "app" | "artist" | "ar" | "worker"
   app        String
   ip         String?
   userAgent  String?

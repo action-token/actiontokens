@@ -142,11 +142,11 @@ describe("runOnce", () => {
 });
 
 describe("slotsFor", () => {
-  const all = ["order.reconcile", "agent.run", "studio.music", "media.transcode"];
+  const all = ["order.reconcile", "agent.run", "pins.batch", "media.transcode"];
 
   it("gives ffmpeg work its own loops, apart from everything else", () => {
     expect(slotsFor(all, { general: 3, heavy: 1 })).toEqual([
-      { types: ["order.reconcile", "agent.run", "studio.music"], count: 3 },
+      { types: ["order.reconcile", "agent.run", "pins.batch"], count: 3 },
       { types: ["media.transcode"], count: 1 },
     ]);
     expect(HEAVY_TYPES).toContain("media.transcode");

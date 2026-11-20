@@ -7,8 +7,6 @@ export const SCHEDULES: { type: JobType; everyMs: number }[] = [
   { type: "order.reconcile", everyMs: 60_000 },
   // Record NFT unlocks a collect couldn't record right away.
   { type: "nft.unlocks", everyMs: 5 * 60_000 },
-  // Studio runs a stopped worker left behind: failed and their coins refunded.
-  { type: "studio.sweep", everyMs: 10 * 60_000 },
   // Stories that ended a day ago: rows cleared (see feed/stories).
   { type: "stories.sweep", everyMs: 60 * 60_000 },
   // Resale listings of NFT copies the seller no longer owns are ended.

@@ -33,8 +33,6 @@ const KIND: Record<string, string> = {
   "hotspot.drop": "Hotspot drops",
   "vanity.expire": "Short links",
   "domains.check": "Custom domains",
-  "studio.music": "Studio music",
-  "studio.sweep": "Studio clean-up",
 };
 
 const STATUS: Record<Row["status"], { tone: Tone; label: string }> = {

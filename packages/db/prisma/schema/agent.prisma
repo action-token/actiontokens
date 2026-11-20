@@ -1,0 +1,69 @@
+// The pin/hotspot AI agent: runs, chat history and proposed changes.
+
+/// A run of the pin/hotspot AI agent.
+model AgentJob {
+  id        String    @id @default(cuid())
+  artistId  String
+  artist    Artist    @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  status    JobStatus @default(QUEUED)
+  payload   Json
+  result    Json?
+  error     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([artistId, createdAt])
+  @@map("agent_jobs")
+}
+
+/// A chat with the pin/hotspot AI agent.
+model AgentConversation {
+  id        String   @id @default(cuid())
+  artistId  String
+  artist    Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  userId    String
+  title     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages AgentMessage[]
+  actions  AgentAction[]
+
+  @@index([artistId, updatedAt])
+  @@map("agent_conversations")
+}
+
+model AgentMessage {
+  id             String            @id @default(cuid())
+  conversationId String
+  conversation   AgentConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  /// "user" | "assistant"
+  role           String
+  text           String
+  /// Rich blocks shown in the chat (pin cards, maps…)
+  blocks         Json?
+  /// Tool steps the agent took
+  steps          Json?
+  createdAt      DateTime          @default(now())
+
+  @@index([conversationId, createdAt])
+  @@map("agent_messages")
+}
+
+/// Something the agent proposed (create pins, a hotspot…) that the artist confirms.
+model AgentAction {
+  id             String            @id @default(cuid())
+  conversationId String
+  conversation   AgentConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  artistId       String
+  type           String
+  payload        Json
+  /// "proposed" | "confirmed" | "rejected" | "done" | "failed"
+  status         String
+  result         Json?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([conversationId])
+  @@map("agent_actions")
+}

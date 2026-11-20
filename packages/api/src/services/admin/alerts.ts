@@ -37,7 +37,6 @@ export type AlertKind =
   | "fastClaims"
   | "largeOrder"
   | "stuck"
-  | "studioBalance"
   | "brokenDomain";
 
 export type Alert = {
@@ -176,47 +175,6 @@ async function stuckPayments(ctx: Pick<Context, "db">, rules: AlertRules, now: D
   }));
 }
 
-/**
- * A Studio balance that doesn't equal its ledger: the confirmed entries plus
- * coins held by runs still going (they're written together, so a difference
- * means something went wrong). Shown for a person to look at; nothing is changed.
- */
-export async function studioBalances(ctx: Pick<Context, "db">) {
-  const [balances, ledger] = await Promise.all([
-    ctx.db.studioBalance.findMany({ select: { userId: true, balance: true, updatedAt: true } }),
-    ctx.db.studioLedgerEntry.groupBy({
-      by: ["userId"],
-      where: { status: { in: ["CONFIRMED", "PENDING"] } },
-      _sum: { amount: true },
-      _max: { createdAt: true },
-    }),
-  ]);
-  const cached = new Map(balances.map((row) => [row.userId, row]));
-  const summed = new Map(ledger.map((row) => [row.userId, row]));
-  const users = new Set([...cached.keys(), ...summed.keys()]);
-  const coins = (value: number) => value.toLocaleString("en-US", { maximumFractionDigits: 7 });
-
-  return [...users].flatMap((userId): Alert[] => {
-    const shown = Number(cached.get(userId)?.balance ?? 0);
-    const records = Number(summed.get(userId)?._sum.amount ?? 0);
-    // Seven decimal places, as stored; anything smaller is rounding.
-    if (Math.abs(shown - records) < 1e-7) return [];
-    const at = [cached.get(userId)?.updatedAt, summed.get(userId)?._max.createdAt]
-      .filter((date): date is Date => Boolean(date))
-      .sort((a, b) => +b - +a)[0]!;
-    return [
-      {
-        key: `studioBalance:${userId}:${shown}:${records}`,
-        kind: "studioBalance",
-        title: "Studio balance doesn't match its records",
-        detail: `The balance shows ${coins(shown)} coins, but its records add up to ${coins(records)} (${shown > records ? "+" : ""}${coins(shown - records)}). Nothing was changed.`,
-        at,
-        userId,
-      },
-    ];
-  });
-}
-
 /** Custom domains that were live and now fail (plan 32); one alert per time it broke. */
 async function brokenDomains(ctx: Pick<Context, "db">) {
   const rows = await ctx.db.customDomain.findMany({
@@ -298,7 +256,6 @@ export async function listAlerts(ctx: Pick<Context, "db">, now = new Date()) {
       fastClaims(ctx, rules, now),
       largeOrders(ctx, rules, now),
       stuckPayments(ctx, rules, now),
-      studioBalances(ctx),
       brokenDomains(ctx),
     ])
   ).flat();

@@ -4,7 +4,7 @@ import { finish, type NetworkParams, startTransaction } from "../transaction";
 
 /**
  * A user paying the platform for something that isn't an item: a vanity URL
- * renewal or a studio coin top-up. The order id in the memo ties the payment
+ * renewal. The order id in the memo ties the payment
  * to its order.
  */
 export function buildPlatformPayment(input: {

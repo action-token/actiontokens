@@ -3,7 +3,7 @@ import { ErrorCodes, isAppError } from "@bandcoin/errors";
 
 import type { AuthenticatedUser } from "./authorize-credentials";
 
-type App = "app" | "artist" | "ar" | "studio";
+type App = "app" | "artist" | "ar";
 
 /**
  * Writes one ActivityLog row per sign-in attempt, so admins see sign-ins and

@@ -66,7 +66,6 @@ model Artist {
   pinBatchJobs       PinBatchJob[]
   bounties           Bounty[]
   royaltyPayouts     RoyaltyPayout[]
-  generations        Generation[]
   agentJobs          AgentJob[]
   agentConversations AgentConversation[]
   events             Event[]

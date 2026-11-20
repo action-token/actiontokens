@@ -13,7 +13,6 @@ import { type Context, isCustodial, type SessionUser } from "../../context";
  *   - an admin (another admin removes them),
  *   - an artist (their items, tokens and sales need Bandcoin support),
  *   - a payment still going through,
- *   - Studio coins left (they were paid for),
  *   - a Bandcoin-held (email, Google, Apple) wallet that still holds tokens or
  *     more than a little XLM: Bandcoin holds its key, so deleting would lock
  *     the money away for good. Self-custody wallets keep their own key.
@@ -46,7 +45,6 @@ export async function deleteAccount(
       email: true,
       walletAddress: true,
       artist: { select: { id: true } },
-      studioBalance: { select: { balance: true } },
     },
   });
   if (!row) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Account not found" });
@@ -57,12 +55,6 @@ export async function deleteAccount(
   if (row.artist)
     throw refuse(
       `Artist accounts have items, tokens and sales attached, so Bandcoin support removes them. ${SUPPORT}`,
-    );
-
-  const coins = Number(row.studioBalance?.balance.toString() ?? 0);
-  if (coins > 0)
-    throw refuse(
-      `You still have ${coins.toLocaleString("en-US")} Studio coins. Use them first: they can't be refunded.`,
     );
 
   const inFlight = await ctx.db.order.count({

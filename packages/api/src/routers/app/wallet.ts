@@ -49,8 +49,6 @@ function orderTitle(
       return `Gift: ${itemTitle ?? "an item"}`;
     case "VANITY":
       return "Artist page link";
-    case "STUDIO_COINS":
-      return "Studio coins";
     case "RECHARGE":
       return "Top-up with card";
     case "XLM_SWAP":

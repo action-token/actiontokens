@@ -116,33 +116,7 @@ const TOTALS: Tile<keyof Overview["totals"]>[] = [
   },
 ];
 
-const STUDIO: Tile<keyof Overview["studio"]>[] = [
-  {
-    key: "coinsHeld",
-    label: "Coins held",
-    hint: "Everyone's Studio balance now",
-    href: "/admin/studio-earnings",
-    icon: Coins,
-  },
-  {
-    key: "holders",
-    label: "People with coins",
-    hint: "A Studio balance above zero",
-    href: "/admin/studio-earnings",
-    icon: Wallet,
-  },
-  {
-    key: "carriedOver",
-    label: "Carried over",
-    hint: "From the old credits, all time",
-    href: "/admin/studio-earnings",
-    icon: History,
-  },
-];
-
 const count = (value: number) => value.toLocaleString("en-US");
-const usd = (coins: number) =>
-  (coins / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
 
 /** Admin › Overview: what needs a look, each number linking to its page, and a few totals. */
 export function OverviewView() {
@@ -170,16 +144,6 @@ export function OverviewView() {
             highlight
           />
           <TileGroup title="Totals" tiles={TOTALS} values={overview.data?.totals} />
-          <TileGroup
-            title="Studio coins"
-            tiles={STUDIO}
-            values={overview.data?.studio}
-            hintFor={(tile) =>
-              tile.key === "coinsHeld" && overview.data
-                ? `Worth ${usd(overview.data.studio.coinsHeld)}, a cent a coin`
-                : tile.hint
-            }
-          />
         </>
       )}
     </PageBody>

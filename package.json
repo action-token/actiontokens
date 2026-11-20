@@ -1,7 +1,7 @@
 {
   "name": "bandcoin",
   "private": true,
-  "description": "Bandcoin monorepo: fan app, artist portal, AR collector, AI studio, worker and the shared packages behind them.",
+  "description": "Bandcoin monorepo: fan app, artist portal, AR collector, worker and the shared packages behind them.",
   "packageManager": "pnpm@12.9.1",
   "engines": {
     "node": ">=20.19.0"
@@ -15,7 +15,6 @@
     "dev:app": "turbo run dev --filter=@bandcoin/app",
     "dev:artist": "turbo run dev --filter=@bandcoin/artist",
     "dev:ar": "turbo run dev --filter=@bandcoin/ar",
-    "dev:studio": "turbo run dev --filter=@bandcoin/studio",
     "dev:worker": "turbo run dev --filter=@bandcoin/worker",
     "format": "prettier --write \"**/*.{ts,tsx,js,mjs,cjs,json,md,css,yml}\" --ignore-path .prettierignore",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,cjs,json,md,css,yml}\" --ignore-path .prettierignore",

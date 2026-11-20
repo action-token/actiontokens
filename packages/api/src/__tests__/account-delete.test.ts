@@ -27,7 +27,6 @@ function setup(
           email: "fan@example.com",
           walletAddress: "GFAN",
           artist: null,
-          studioBalance: null,
           ...over.row,
         };
   const db = {
@@ -91,11 +90,7 @@ describe("deleting your account", () => {
     expect(artist.db.user.delete).not.toHaveBeenCalled();
   });
 
-  it("won't delete with Studio coins left or a payment going through", async () => {
-    const coins = setup({ row: { studioBalance: { balance: { toString: () => "250" } } } });
-    await expect(deleteAccount(coins.ctx, fan, { confirm: "DELETE" })).rejects.toThrow(
-      /250 Studio coins/,
-    );
+  it("won't delete while a payment is going through", async () => {
     const paying = setup({ orders: 1 });
     await expect(deleteAccount(paying.ctx, fan, { confirm: "DELETE" })).rejects.toThrow(
       /payment is still going through/,

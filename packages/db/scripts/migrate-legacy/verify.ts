@@ -42,7 +42,6 @@ const PAIRS: [old: string, next: string][] = [
   ["BountyWinner", "bounty_winners"],
   ["BountyMusicConfig", "bounty_music_rules"],
   ["BountyTrack", "bounty_tracks"],
-  ["CreditBalance", "studio_balances"],
   ["AgentJob", "agent_jobs"],
   ["AgentConversation", "agent_conversations"],
   ["AgentMessage", "agent_messages"],
@@ -138,15 +137,13 @@ export async function verify(copy: Copier) {
     )
       throw new Error(`Stored key for ${account.publicKey} doesn't open correctly.`);
 
-  // Facts that must survive: admins, the credit holder's coins, purchases' on-chain proof.
+  // Facts that must survive: admins, purchases' on-chain proof.
   const facts = {
     admins: (await copy.target.query(`SELECT count(*) n FROM users WHERE role = 'ADMIN'`)).rows[0]
       .n,
     walletless: (
       await copy.target.query(`SELECT count(*) n FROM users WHERE "walletAddress" IS NULL`)
     ).rows[0].n,
-    coins: (await copy.target.query(`SELECT coalesce(sum(balance), 0) n FROM studio_balances`))
-      .rows[0].n,
     openOrders: (
       await copy.target.query(
         `SELECT count(*) n FROM orders WHERE status NOT IN ('DELIVERED', 'FAILED')`,

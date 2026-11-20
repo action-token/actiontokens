@@ -71,11 +71,6 @@ const KIND: Record<
     tone: "bg-warning/12 text-warning",
     rule: (rules) => `Waiting on the network for ${rules.stuckMinutes}+ minutes`,
   },
-  studioBalance: {
-    icon: Coins,
-    tone: "bg-danger-soft text-danger",
-    rule: () => "A Studio balance that doesn't match its coin history",
-  },
   brokenDomain: {
     icon: Globe,
     tone: "bg-warning/12 text-warning",

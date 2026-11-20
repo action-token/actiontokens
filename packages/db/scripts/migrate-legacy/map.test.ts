@@ -3,10 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   approval,
   artistStatus,
-  creditsToCoins,
   dec,
   finishedJobStatus,
-  generationFromResult,
   itemType,
   listingStatus,
   mediaType,
@@ -22,11 +20,6 @@ import {
 } from "./map";
 
 describe("old values to new", () => {
-  it("gives credits the same buying power: one credit is a dollar, a coin is a cent", () => {
-    expect(creditsToCoins(53.97)).toBe(5397);
-    expect(creditsToCoins(0)).toBe(0);
-  });
-
   it("keeps money at Stellar's 7 places", () => {
     expect(dec(1.5)).toBe("1.5000000");
     expect(dec(null)).toBe("0.0000000");
@@ -102,19 +95,5 @@ describe("old values to new", () => {
   it("makes ids that look like the new schema's", () => {
     expect(newId()).toMatch(/^c[a-z0-9]{24}$/);
     expect(newId()).not.toBe(newId());
-  });
-
-  it("reads what an old generation made", () => {
-    expect(
-      generationFromResult({ items: [{ type: "seoContent", url: "", content: "hello" }] }),
-    ).toEqual({
-      type: "SEO",
-      outputs: [{ type: "text", text: "hello" }],
-    });
-    expect(generationFromResult({ items: [{ type: "image", url: "https://x/a.png" }] })).toEqual({
-      type: "IMAGE",
-      outputs: [{ type: "image", url: "https://x/a.png", mimeType: null }],
-    });
-    expect(generationFromResult(null)).toEqual({ type: "IMAGE", outputs: [] });
   });
 });

@@ -25,7 +25,6 @@ export type PaymentKind =
   | "FAN_TOKEN"
   | "GIFT"
   | "VANITY"
-  | "STUDIO_COINS"
   | "BOUNTY_FUND"
   | "ROYALTY_PAYOUT";
 

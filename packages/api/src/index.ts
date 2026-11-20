@@ -21,7 +21,6 @@ export {
 export { appRouter, type AppRouter } from "./root-app";
 export { arRouter, type ArRouter } from "./root-ar";
 export { portalRouter, type PortalRouter } from "./root-portal";
-export { studioRouter, type StudioRouter } from "./root-studio";
 export type { OnboardingStep } from "./routers/artist/portal";
 export { canPlayFull, PREVIEW_SECONDS, previewByteRange } from "./services/media/playback";
 export { wavPreview } from "./services/media/wav";
@@ -47,7 +46,6 @@ export { checkDomains, liveDomainArtist } from "./services/domains";
 export { sweepStories } from "./services/feed/stories";
 export { endStaleNftListings } from "./services/resale/nft";
 export { syncAllSubscribers } from "./services/feed/subscribe";
-export { runMusic, sweepStuckRuns } from "./services/studio/music";
 export { stellarToml } from "./services/platform/toml";
 export {
   FACEBOOK_IMPORT_JOB,
@@ -68,11 +66,4 @@ export { openaiAgentModel } from "./services/agent/model";
 export { pinTags } from "./services/agent/web";
 export { placePhoto } from "./services/agent/google";
 export { useGeoCache } from "./services/agent/geo-cache";
-export { runGeneration, GENERATE_JOB } from "./services/studio/generate";
-export { generateInput } from "./services/studio/generate-input";
-export { googleProvider } from "./services/studio/google";
-export { openaiProvider } from "./services/studio/openai";
-export { lyriaProvider, lyriaLive, type LiveConnect } from "./services/studio/lyria";
-export { LiveSession, type LiveIn, type LiveOut } from "./services/studio/live-session";
-export { liveTicket, readTicket } from "./services/studio/live";
 export { queueTranscode, type TranscodePart } from "./services/media/processing";

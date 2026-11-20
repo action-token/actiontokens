@@ -11,7 +11,7 @@ This is the monorepo behind [bandcoin.io](https://bandcoin.io). It is a Turborep
 | [`apps/app`](apps/app)       | `bandcoin.io`        | 3000       | Fan app: home, music, marketplace, items, collection, playlists, bounties, artist pages, wallet        |
 | [`apps/artist`](apps/artist) | `artist.bandcoin.io` | 3001       | Artist portal: onboarding, catalog, music, memberships, pins, bounties, events, posts, gifts, `/admin` |
 | [`apps/ar`](apps/ar)         | `ar.bandcoin.io`     | 3002       | AR collector: find pins on a map, collect them, scan murals, the embeddable pin map                    |
-| `apps/studio`, `apps/worker` | _planned_            |            | AI studio, and background jobs (transcoding, hotspot drops, payouts, reconciliation)                   |
+| `apps/worker`                | _planned_            |            | Background jobs (transcoding, hotspot drops, payouts, reconciliation)                                  |
 
 All apps share one login (`NEXTAUTH_SECRET` and the `.bandcoin.io` cookie domain), one database and one API package.
 

@@ -1,11 +1,10 @@
 import { hostname } from "node:os";
 
-import { createChainGateway, lyriaLive } from "@bandcoin/api";
+import { createChainGateway } from "@bandcoin/api";
 import { db } from "@bandcoin/db/server";
 
 import { handlersFor } from "./handlers";
 import { startHealthServer } from "./health";
-import { attachLiveRelay } from "./live-relay";
 import { DEFAULT_TIMEOUT_MS, newState, positiveInt, slotsFor, startWorker } from "./runner";
 import { startSchedules } from "./schedule";
 
@@ -19,7 +18,6 @@ const handlers = handlersFor({ db, chain: createChainGateway(db) });
 
 const stopSchedules = startSchedules(db);
 const health = startHealthServer(db, state, Number(process.env.PORT ?? 8080));
-const live = attachLiveRelay(health, { ctx: { db }, connect: lyriaLive() });
 console.log(`[worker] ${workerId} running: ${Object.keys(handlers).join(", ")}`);
 
 // How many jobs run at once: ffmpeg jobs have their own loops (the box has two CPUs).
@@ -37,7 +35,6 @@ async function stop(signal: string) {
   state.stopped = true;
   stopSchedules();
   health.close();
-  await live.close();
   await worker.stop();
   await db.$disconnect();
   process.exit(0);

@@ -28,7 +28,7 @@ const ROLE_REFRESH_MS = 5 * 60_000;
  * is written to the activity log with the app's name.
  */
 export function createAuthOptions(input: {
-  app: "app" | "artist" | "ar" | "studio";
+  app: "app" | "artist" | "ar";
   db: Db;
 }): NextAuthOptions {
   const { app, db } = input;
