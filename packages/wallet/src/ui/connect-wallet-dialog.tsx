@@ -197,14 +197,6 @@ export function ConnectWalletDialog() {
   const authUser =
     session.status === "authenticated" && !!session.data?.user.emailVerified && isAccountActivate;
 
-  const subtitle = authUser
-    ? activeTab === "stellar"
-      ? "Pick another Stellar wallet."
-      : "Sign in with another email, Google or Apple account."
-    : activeTab === "stellar"
-      ? "Choose the wallet you already use."
-      : "One account for drops, bounties, crews and the map. We keep a Stellar wallet for you.";
-
   // ── Profile card ──
   // Who is signed in: a brand-colour cover with the avatar breaking out of it, the name, how they
   // signed in and their wallet address, plus copy and sign-out. The login tabs below it switch
@@ -542,19 +534,9 @@ export function ConnectWalletDialog() {
 
             <BrandHeader />
 
-            <header>
-              <p className="font-pixel text-primary-text text-[11px] tracking-[0.25em]">
-                {authUser ? "SWITCH ACCOUNT" : "PRESS START"}
-              </p>
-              <DialogTitle className="font-brand text-foreground mt-1.5 text-[28px] leading-tight">
-                {onWallets
-                  ? "Stellar wallet"
-                  : authUser
-                    ? "Use another account"
-                    : "Enter the network"}
-              </DialogTitle>
-              <p className="text-muted-foreground mt-1.5 text-sm">{subtitle}</p>
-            </header>
+            <DialogTitle className="sr-only">
+              {onWallets ? "Stellar wallet" : authUser ? "Use another account" : "Sign in"}
+            </DialogTitle>
 
             {onWallets ? <StellarTabContent /> : <ActionTabContent />}
 
@@ -681,18 +663,13 @@ function LogoStack({ items, more = 0 }: { items: StackItem[]; more?: number }) {
  */
 function BrandHeader() {
   return (
-    <div className="border-border flex items-center gap-3 border-b pb-4">
-      <span className="border-primary/40 relative flex size-12 shrink-0 items-center justify-center rounded-[14px] border bg-black shadow-[0_0_20px_-6px_var(--color-primary)]">
-        <Image src={brandMark} alt="" width={36} height={36} priority />
+    <div className="flex flex-col items-center pt-1 text-center">
+      <Image src={brandMark} alt="" width={44} height={44} priority />
+      <span className="font-display text-foreground mt-3 text-[24px] leading-none tracking-[0.04em]">
+        ACTIONTOKENS
       </span>
-      <span className="min-w-0">
-        <span className="font-shade text-foreground block truncate text-[20px] leading-none">
-          ACTIONTOKENS
-        </span>
-        <span className="font-pixel at-neon-text mt-1.5 flex items-center gap-1.5 text-[10px] tracking-[0.22em]">
-          <span className="bg-primary at-pulse size-1.5 rounded-full" />
-          ACTION AUTH SYSTEM
-        </span>
+      <span className="text-muted-foreground mt-2 text-[11px] font-medium tracking-[0.18em] uppercase">
+        Action Auth System
       </span>
     </div>
   );
