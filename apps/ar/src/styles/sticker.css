@@ -19,8 +19,8 @@
 
 /* Green halftone dot grid: behind screens, over the map. */
 .st-halftone {
-  background-image: radial-gradient(hsl(var(--ar-accent) / 0.14) 1px, transparent 1.4px);
-  background-size: 7px 7px;
+  background-image: radial-gradient(hsl(var(--ar-accent) / 0.05) 1px, transparent 1.3px);
+  background-size: 9px 9px;
 }
 
 /* A strip of translucent tape, stuck across a card's top edge. */
@@ -155,10 +155,6 @@
     transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1),
     box-shadow 140ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.st-ar-key:active {
-  transform: translate(3px, 3px) rotate(0deg);
-  box-shadow: 0 0 0 0 transparent;
-}
 
 /* Content runs under the floating dock: the dock (≈56px) plus its 14px lift
    plus breathing room. */
@@ -166,49 +162,50 @@
   --ar-tabbar-space: calc(92px + max(0px, var(--ar-safe-bottom)));
 }
 
-/* The AR sticker's motion: a slow wobble, a green ping and a turning dashed
-   ring. Still for reduced motion. */
-@keyframes st-wobble {
+/* The AR sticker's motion: a gentle bob and a scan line sweeping top to
+   bottom through it. Still for reduced motion. */
+@keyframes st-bob {
   0%,
   100% {
-    transform: rotate(-7deg);
+    transform: translateY(0);
   }
   50% {
-    transform: rotate(5deg) scale(1.04);
+    transform: translateY(-3px);
   }
 }
-@keyframes st-ping {
+@keyframes st-scan {
   0% {
-    box-shadow: 0 0 0 0 hsl(var(--ar-accent) / 0.55);
+    top: 14%;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
   }
   100% {
-    box-shadow: 0 0 0 16px hsl(var(--ar-accent) / 0);
+    top: 84%;
+    opacity: 0;
   }
 }
-@keyframes st-turn {
-  to {
-    transform: rotate(360deg);
-  }
+.st-ar-bob {
+  animation: st-bob 2.4s ease-in-out infinite;
 }
-.st-ar-wobble {
-  animation: st-wobble 2.6s ease-in-out infinite;
+.st-ar-scan {
+  background: hsl(var(--st-ink) / 0.55);
+  animation: st-scan 1.9s ease-in-out infinite;
 }
-.st-ar-ping {
-  animation: st-ping 1.8s ease-out infinite;
-}
-.st-ar-ring {
-  background: hsl(var(--st-paper));
-  animation: st-turn 9s linear infinite;
-}
-button:active > .st-ar-wobble {
+.st-ar-bob:active {
   animation: none;
-  transform: translate(3px, 3px);
+}
+.st-ar-bob:active > .st-ar-key {
+  transform: translate(3px, 3px) rotate(-6deg);
   box-shadow: 0 0 0 0 transparent;
 }
 @media (prefers-reduced-motion: reduce) {
-  .st-ar-wobble,
-  .st-ar-ping,
-  .st-ar-ring {
+  .st-ar-bob,
+  .st-ar-scan {
     animation: none;
   }
 }

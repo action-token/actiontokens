@@ -2,7 +2,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("./StatusBar", () => ({ StatusBar: () => null }));
-vi.mock("./BottomTabBar", () => ({ BottomTabBar: () => <nav data-bar /> }));
 vi.mock("./NotificationsButton", () => ({ NotificationsButton: () => null }));
 vi.mock("./ProfileButton", () => ({ ProfileButton: () => null }));
 vi.mock("~/lib/navigation", () => ({ useRouter: () => ({ back: vi.fn(), push: vi.fn() }) }));
@@ -14,12 +13,12 @@ describe("AppShell", () => {
     const html = renderToStaticMarkup(<AppShell>x</AppShell>);
     expect(html).toContain("ar-tabbed");
     expect(html).not.toContain("pb-[80px]");
-    expect(html).toContain("data-bar");
+    // the dock itself is mounted once in AppFrame, never per screen
+    expect(html).not.toContain("<nav");
   });
 
-  it("without tabs has neither", () => {
+  it("without tabs has no tab-bar space", () => {
     const html = renderToStaticMarkup(<AppShell tabs={false}>x</AppShell>);
     expect(html).not.toContain("ar-tabbed");
-    expect(html).not.toContain("data-bar");
   });
 });

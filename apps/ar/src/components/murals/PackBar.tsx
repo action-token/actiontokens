@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 
 import { packProgress, usePackSheet, useMuralPack } from "~/lib/murals/pack";
 
+/** The last finished download we already announced, so remounting (the dock
+ *  hiding and coming back) never replays "MURALS READY" for the same one. */
+let announced = 0;
+
 /**
  * ── PackBar ────────────────────────────────────────────────────────────────
  *
@@ -19,7 +23,8 @@ export function PackBar() {
   const [flash, setFlash] = useState(false);
 
   useEffect(() => {
-    if (!s.justFinished) return;
+    if (!s.justFinished || s.justFinished === announced) return;
+    announced = s.justFinished;
     setFlash(true);
     const t = setTimeout(() => setFlash(false), 2200);
     return () => clearTimeout(t);

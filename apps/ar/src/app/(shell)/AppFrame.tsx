@@ -13,11 +13,14 @@ import { AuthGate } from "~/components/auth/AuthGate";
 import { SessionSync } from "~/components/auth/SessionSync";
 import { BootSequence } from "~/components/boot/BootSequence";
 import { MuralPackHud } from "~/components/murals/MuralPackHud";
+import { BottomTabBar } from "~/components/shell/BottomTabBar";
 import { DeviceFrame } from "~/components/shell/DeviceFrame";
+import { useDock } from "~/lib/ar/dock";
 import { hasBooted, markBooted } from "~/lib/ar/store";
 
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const dock = useDock((s) => s.visible);
 
   // Plays on a cold tab, not on client-side navigation back to the map.
   const [booting, setBooting] = useState(() => !hasBooted());
@@ -53,12 +56,16 @@ export function AppFrame({ children }: { children: ReactNode }) {
         <motion.div
           key={pathname}
           className="h-full w-full"
-          initial={{ opacity: 0, scale: 0.985 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.15, ease: "easeOut" }}
         >
           {children}
         </motion.div>
+
+        {/* The dock, mounted once outside the per-route tree so a tab switch
+            only swaps the screen above it. Screens opt in via AppShell. */}
+        {dock && <BottomTabBar />}
 
         <AuthGate />
 

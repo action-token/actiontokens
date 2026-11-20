@@ -63,7 +63,8 @@ export function BottomTabBar() {
             <TabButton key={tab.href} tab={tab} active={isActive(tab.href)} />
           ))}
 
-          {/* ── AR sticker: wobbles, pings and has a turning dashed ring ── */}
+          {/* ── AR sticker: a tilted green squircle with camera corners and a
+               scan line sweeping through it, bobbing gently ── */}
           <div className="relative flex justify-center">
             <button
               type="button"
@@ -71,15 +72,21 @@ export function BottomTabBar() {
               aria-label="Open camera"
               aria-haspopup="dialog"
               aria-current={arActive ? "page" : undefined}
-              className="group relative -mt-9 size-[68px]"
+              className="st-ar-bob relative -mt-8 size-[60px]"
             >
-              <span aria-hidden className="st-ar-ping absolute inset-0 rounded-full" />
-              <span
-                aria-hidden
-                className="st-ar-ring absolute -inset-[7px] rounded-full border-2 border-dashed border-[hsl(var(--st-ink))]"
-              />
-              <span className="st-ar-key st-ar-wobble font-display absolute inset-0 flex items-center justify-center rounded-full text-[24px] leading-none">
-                AR
+              <span className="st-ar-key absolute inset-0 flex -rotate-6 items-center justify-center overflow-hidden rounded-[18px]">
+                <span aria-hidden className="st-ar-scan absolute inset-x-1.5 h-[2px] rounded-full" />
+                <svg aria-hidden viewBox="0 0 40 40" fill="none" className="absolute inset-[9px]">
+                  {[
+                    "M2 11V5a3 3 0 0 1 3-3h6",
+                    "M29 2h6a3 3 0 0 1 3 3v6",
+                    "M38 29v6a3 3 0 0 1-3 3h-6",
+                    "M11 38H5a3 3 0 0 1-3-3v-6",
+                  ].map((d) => (
+                    <path key={d} d={d} stroke="hsl(var(--st-ink))" strokeWidth="3.2" strokeLinecap="round" />
+                  ))}
+                </svg>
+                <span className="font-display relative text-[19px] leading-none">AR</span>
               </span>
             </button>
           </div>

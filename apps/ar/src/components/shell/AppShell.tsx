@@ -1,9 +1,9 @@
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "~/lib/navigation";
-import { type ReactNode } from "react";
+import { useLayoutEffect, type ReactNode } from "react";
 
 import { cn } from "@actiontokens/ui/lib/cn";
-import { BottomTabBar } from "./BottomTabBar";
+import { useDock } from "~/lib/ar/dock";
 import { NotificationsButton } from "./NotificationsButton";
 import { ProfileButton } from "./ProfileButton";
 import { StatusBar } from "./StatusBar";
@@ -23,6 +23,15 @@ export function AppShell({
   tabs?: boolean;
   bleed?: boolean;
 }) {
+  // The dock lives in AppFrame (mounted once); this screen just says whether it
+  // wants it. A layout effect, so the dock flips in the same paint as the screen.
+  // Deliberately no cleanup: while the next route loads, Next shows nothing for a
+  // moment, and hiding on unmount would drop and rebuild the dock on every tab
+  // switch. Every (shell) screen renders an AppShell, so the next one sets it.
+  useLayoutEffect(() => {
+    useDock.setState({ visible: tabs });
+  }, [tabs]);
+
   return (
     <div className="st-halftone relative flex h-full w-full flex-col overflow-hidden">
       {!bleed && <StatusBar />}
@@ -40,7 +49,6 @@ export function AppShell({
         {children}
       </main>
 
-      {tabs && <BottomTabBar />}
     </div>
   );
 }
