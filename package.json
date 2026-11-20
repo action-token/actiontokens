@@ -28,7 +28,7 @@
     "@actiontokens/prettier-config": "workspace:*",
     "prettier": "catalog:",
     "prettier-plugin-tailwindcss": "catalog:",
-    "turbo": "^2.5.0",
+    "turbo": "^2.11.13",
     "typescript": "catalog:"
   },
   "prettier": "@actiontokens/prettier-config"
