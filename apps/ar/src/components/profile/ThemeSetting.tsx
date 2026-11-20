@@ -8,10 +8,10 @@ import { type ThemePreference, useTheme } from "~/lib/ar/theme";
 
 /** Each choice with a tiny swatch of its page, sticker and outline colours. */
 const OPTIONS: { value: ThemePreference; label: string; page: string; sticker: string; line: string }[] = [
-  { value: "dark", label: "Dark", page: "#050605", sticker: "#4dff2a", line: "#f2f7f2" },
-  { value: "light", label: "Light", page: "#eef3ec", sticker: "#33ff00", line: "#050605" },
-  { value: "contrast", label: "High contrast", page: "#000000", sticker: "#5cff33", line: "#ffffff" },
-  { value: "auto", label: "Auto", page: "linear-gradient(135deg,#050605 50%,#eef3ec 50%)", sticker: "#4dff2a", line: "#7a857a" },
+  { value: "dark", label: "Dark", page: "#050605", sticker: "#0aff54", line: "#f2f7f2" },
+  { value: "light", label: "Light", page: "#ecf3ee", sticker: "#00ff4c", line: "#050605" },
+  { value: "contrast", label: "High contrast", page: "#000000", sticker: "#29ff69", line: "#ffffff" },
+  { value: "auto", label: "Auto", page: "linear-gradient(135deg,#050605 50%,#ecf3ee 50%)", sticker: "#0aff54", line: "#7a857a" },
 ];
 
 const BODY: Record<ThemePreference, string> = {

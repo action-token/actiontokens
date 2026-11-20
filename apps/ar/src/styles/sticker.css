@@ -10,8 +10,8 @@
 
 :root,
 .dark {
-  --st-paper: 120 25% 96%;
-  --st-ink: 120 10% 2%;
+  --st-paper: 140 25% 96%;
+  --st-ink: 140 10% 2%;
   --st-off: 3px;
   /* Theme-dependent (themes.css sets light and high contrast):
      --st-line  outline of a card or key drawn on the page background

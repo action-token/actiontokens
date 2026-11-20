@@ -36,7 +36,7 @@ describe("embed config", () => {
       userLocation: true,
       pinSource: "ARTIST",
       organizationId: "a1",
-      accentColor: "#4dff2a",
+      accentColor: "#0aff54",
       eventsUrl: null,
       zoom: 18,
     });

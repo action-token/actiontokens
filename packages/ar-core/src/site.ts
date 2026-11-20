@@ -1,6 +1,6 @@
 /**
  * ActionTokens' name, colours and links as the AR app shows them. One brand, so this is a
- * constant. Colours: neon green #4dff2a on near-black green (docs/PLAN.md §12).
+ * constant. Colours: neon green #0aff54 (the logo green #007a23, brightened) on near-black green (docs/PLAN.md §12).
  */
 export const site = {
   name: "ActionTokens",
@@ -17,16 +17,16 @@ export const site = {
   },
   colors: {
     themeDark: "#050605",
-    themeLight: "#eef3ec",
-    mapRoute: "#4dff2a",
-    mapRouteCasing: "#0f3a08",
-    mapNavAccent: "#3ea024",
-    mapLoadingRoute: "#4dff2a",
-    embedAccent: "#4dff2a",
+    themeLight: "#ecf3ee",
+    mapRoute: "#0aff54",
+    mapRouteCasing: "#063715",
+    mapNavAccent: "#00a331",
+    mapLoadingRoute: "#0aff54",
+    embedAccent: "#0aff54",
     cardBorder: "#1f3a1a",
     cardGlow: "rgba(77,255,42,0.35)",
-    packDone: "hsl(110 100% 58%)",
-    packDoneGlow: "hsl(110 100% 58% / 0.35)",
+    packDone: "hsl(138 100% 52%)",
+    packDoneGlow: "hsl(138 100% 52% / 0.35)",
   },
   urls: {
     arWeb: process.env.NEXT_PUBLIC_AR_URL ?? "https://ar.action-tokens.com",

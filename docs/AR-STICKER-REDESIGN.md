@@ -10,7 +10,7 @@ The reference is `apps/ar/src/app/(bare)/review/concept-sticker.tsx`. Match it.
 
 | Element | Rule |
 |---|---|
-| Palette | Black `#050605` background, neon green `#4dff2a` accent, paper `#f2f7f2` for sticker faces. Rarity colours stay the same. |
+| Palette | Black `#050605` background, neon green `#0aff54` accent (the Actionverse logo green `#007a23`, brightened; see Themes), paper `#f2f7f2` for sticker faces. Rarity colours stay the same. |
 | Type | Rubik Mono One (`font-display` / `font-hud`), uppercase, for titles, buttons, tags and tabs; it is wide, so keep titles around 24px. Rubik (`font-sans`) for body text. Picked on 2026-11-20 from `/review/fonts`. |
 | Outline | 3px solid black on light or green stickers, and 3px paper on dark cards. Never a 1px hairline as the main edge. |
 | Shadow | A hard offset shadow with no blur: `4px 4px 0` black on green or paper, and `4px 4px 0` green on dark cards. No soft glows. |
@@ -54,6 +54,20 @@ other ActionTokens sites as light/dark (high contrast is shared as dark).
   faces with ink text) look the same in every theme.
 - In light, neon green is a fill only; green text reads `--ar-accent-text`. Text on an ink chip keeps
   the neon via `.st-on-ink`.
+
+## Colour
+
+The Actionverse logo is a deep green, `#007a23` (hue 137°); the old neon `#4dff2a` (hue 110°) was a
+different, yellower green. The AR palette is now built on the logo's hue:
+
+| Token | Dark | Light | High contrast |
+|---|---|---|---|
+| Sticker fill (`--ar-accent`) | `#0aff54` | `#00ff4c` | `#29ff69` |
+| Green text and lines | `#0aff54` | `#007a23` (the logo) | `#66ff94` |
+| Ink on green | `#021207` | `#021207` | `#000000` |
+
+Neutrals (surfaces, lines, text, paper, ink) lean to the same hue (135 to 140°). Map route, embed
+accent and the mural-pack colour live in `packages/ar-core/src/site.ts`.
 
 ## Naming
 

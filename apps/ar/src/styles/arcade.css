@@ -2,7 +2,7 @@
  * ── Bandcoin AR: arcade design layer ───────────────────────────────────────
  *
  * Wadzzo AR's collector HUD (bevelled card stock, trading-card holo foil,
- * scanlines, a terrain grid) re-tinted to Bandcoin: chartreuse #4dff2a on
+ * scanlines, a terrain grid) re-tinted to Bandcoin: green #0aff54 on
  * olive-dark ground, with olive-biased neutrals. Loaded after the Bandcoin
  * theme, so these win on equal specificity.
  *
@@ -16,23 +16,23 @@
  */
 
 :root {
-  --ar-void: 120 9% 2%;
-  --ar-bg: 120 10% 3%;
-  --ar-surface: 120 11% 5%;
-  --ar-surface-2: 120 11% 8%;
-  --ar-surface-3: 120 13% 12%;
-  --ar-line: 120 15% 14%;
-  --ar-line-bright: 120 15% 22%;
+  --ar-void: 140 9% 2%;
+  --ar-bg: 140 10% 3%;
+  --ar-surface: 140 11% 5%;
+  --ar-surface-2: 140 11% 8%;
+  --ar-surface-3: 140 13% 12%;
+  --ar-line: 140 15% 14%;
+  --ar-line-bright: 140 15% 22%;
 
-  --ar-text: 120 39% 94%;
-  --ar-text-dim: 120 10% 60%;
-  --ar-text-faint: 120 8% 39%;
+  --ar-text: 140 39% 94%;
+  --ar-text-dim: 140 10% 60%;
+  --ar-text-faint: 140 8% 39%;
 
-  /* ActionTokens neon green #4dff2a, near-black ink on it */
-  --ar-accent: 110 100% 58%;
-  --ar-accent-hot: 108 100% 66%;
-  --ar-accent-deep: 105 63% 38%;
-  --ar-accent-ink: 120 69% 4%;
+  /* ActionTokens neon green #0aff54 (the logo's #007a23 at full brightness), near-black ink on it */
+  --ar-accent: 138 100% 52%;
+  --ar-accent-hot: 138 100% 62%;
+  --ar-accent-deep: 137 100% 30%;
+  --ar-accent-ink: 140 80% 4%;
 
   --rarity-common: 120 8% 62%;
   --rarity-rare: 192 88% 56%;
@@ -68,23 +68,23 @@
 
 /* ── Dark palette (colour tokens only; geometry and insets are shared). ── */
 .dark {
-  --ar-void: 120 9% 2%;
-  --ar-bg: 120 10% 3%;
-  --ar-surface: 120 11% 5%;
-  --ar-surface-2: 120 11% 8%;
-  --ar-surface-3: 120 13% 12%;
-  --ar-line: 120 15% 14%;
-  --ar-line-bright: 120 15% 22%;
+  --ar-void: 140 9% 2%;
+  --ar-bg: 140 10% 3%;
+  --ar-surface: 140 11% 5%;
+  --ar-surface-2: 140 11% 8%;
+  --ar-surface-3: 140 13% 12%;
+  --ar-line: 140 15% 14%;
+  --ar-line-bright: 140 15% 22%;
 
-  --ar-text: 120 39% 94%;
-  --ar-text-dim: 120 10% 60%;
-  --ar-text-faint: 120 8% 39%;
+  --ar-text: 140 39% 94%;
+  --ar-text-dim: 140 10% 60%;
+  --ar-text-faint: 140 8% 39%;
 
-  /* ActionTokens neon green #4dff2a, near-black ink on it */
-  --ar-accent: 110 100% 58%;
-  --ar-accent-hot: 108 100% 66%;
-  --ar-accent-deep: 105 63% 38%;
-  --ar-accent-ink: 120 69% 4%;
+  /* ActionTokens neon green #0aff54 (the logo's #007a23 at full brightness), near-black ink on it */
+  --ar-accent: 138 100% 52%;
+  --ar-accent-hot: 138 100% 62%;
+  --ar-accent-deep: 137 100% 30%;
+  --ar-accent-ink: 140 80% 4%;
 
   --rarity-common: 120 8% 62%;
   --rarity-rare: 192 88% 56%;

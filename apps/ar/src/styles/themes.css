@@ -14,25 +14,25 @@
 
 /* ── Light: the same stickers on a paper wall ───────────────────────────── */
 :root:not(.dark) {
-  --ar-void: 100 18% 92%;
-  --ar-bg: 100 20% 94%;
+  --ar-void: 135 18% 92%;
+  --ar-bg: 135 20% 94%;
   --ar-surface: 0 0% 100%;
-  --ar-surface-2: 100 25% 97%;
-  --ar-surface-3: 100 16% 90%;
-  --ar-line: 100 12% 80%;
-  --ar-line-bright: 100 10% 62%;
+  --ar-surface-2: 135 25% 97%;
+  --ar-surface-3: 135 16% 90%;
+  --ar-line: 135 12% 80%;
+  --ar-line-bright: 135 10% 62%;
 
-  --ar-text: 120 12% 5%;
-  --ar-text-dim: 120 7% 30%;
-  --ar-text-faint: 120 5% 44%;
+  --ar-text: 140 12% 5%;
+  --ar-text-dim: 140 7% 30%;
+  --ar-text-faint: 140 5% 44%;
 
-  /* Neon green stays the sticker fill (always with ink text on it). Green used as
+  /* Neon green stays the sticker fill (the logo green, #007a23, is the text colour) (always with ink text on it). Green used as
      text or a thin line can't be neon on white, so those read the deep green. */
-  --ar-accent: 110 100% 50%;
-  --ar-accent-hot: 112 80% 27%;
-  --ar-accent-deep: 112 80% 24%;
-  --ar-accent-ink: 120 69% 4%;
-  --ar-accent-text: 112 80% 27%;
+  --ar-accent: 138 100% 50%;
+  --ar-accent-hot: 137 100% 24%;
+  --ar-accent-deep: 137 100% 24%;
+  --ar-accent-ink: 140 80% 4%;
+  --ar-accent-text: 137 100% 24%;
 
   --rarity-common: 120 6% 40%;
   --rarity-rare: 200 88% 38%;
@@ -48,20 +48,20 @@
   --st-dot: hsl(120 10% 2% / 0.07);
 
   /* The shared components (wallet dialog) inside AR. */
-  --bc-bg: #eef3ec;
+  --bc-bg: #ecf3ee;
   --bc-surface: #ffffff;
-  --bc-surface-2: #f5f8f4;
-  --bc-surface-3: #e5ebe3;
-  --bc-border: #c8d2c5;
-  --bc-border-strong: #9aa996;
+  --bc-surface-2: #f4f8f5;
+  --bc-surface-3: #e3ebe6;
+  --bc-border: #c5d2c9;
+  --bc-border-strong: #96a99c;
   --bc-fg: #070a07;
   --bc-fg-muted: #3f4c3f;
   --bc-fg-faint: #65736a;
-  --bc-primary: #33ff00;
-  --bc-primary-strong: #1f7a0c;
-  --bc-primary-ink: #031003;
-  --bc-primary-text: #1f7a0c;
-  --bc-primary-soft: rgb(31 122 12 / 0.1);
+  --bc-primary: #00ff4c;
+  --bc-primary-strong: #007a23;
+  --bc-primary-ink: #021207;
+  --bc-primary-text: #007a23;
+  --bc-primary-soft: rgb(0 122 35 / 0.1);
   --bc-danger: #d61f45;
   --bc-danger-soft: rgb(214 31 69 / 0.1);
   --bc-overlay: rgb(10 20 10 / 0.45);
@@ -76,7 +76,17 @@
 }
 :root:not(.dark) :is(.bg-black, .st-on-ink) .text-ar-accent,
 :root:not(.dark) :is(.bg-black, .st-on-ink).text-ar-accent {
-  color: hsl(110 100% 58%);
+  color: hsl(138 100% 52%);
+}
+
+/* ── Dark: the shared components (wallet dialog) take the logo-green accent too ── */
+:root.dark:not(.hc) {
+  --bc-primary: #0aff54;
+  --bc-primary-strong: #00a331;
+  --bc-primary-ink: #021207;
+  --bc-primary-text: #0aff54;
+  --bc-primary-soft: rgb(10 255 84 / 0.12);
+  --bc-success: #0aff54;
 }
 
 /* ── High contrast: pure black and white, brighter green, heavier lines ─── */
@@ -93,9 +103,9 @@
   --ar-text-dim: 0 0% 90%;
   --ar-text-faint: 0 0% 80%;
 
-  --ar-accent: 108 100% 60%;
-  --ar-accent-hot: 106 100% 70%;
-  --ar-accent-deep: 108 100% 60%;
+  --ar-accent: 138 100% 58%;
+  --ar-accent-hot: 138 100% 70%;
+  --ar-accent-deep: 138 100% 58%;
 
   --rarity-common: 0 0% 85%;
   --rarity-rare: 192 100% 65%;
@@ -121,8 +131,8 @@
   --bc-fg: #ffffff;
   --bc-fg-muted: #e8e8e8;
   --bc-fg-faint: #cfcfcf;
-  --bc-primary: #5cff33;
-  --bc-primary-text: #6dff4d;
+  --bc-primary: #29ff69;
+  --bc-primary-text: #66ff94;
   --bc-overlay: rgb(0 0 0 / 0.88);
 }
 
