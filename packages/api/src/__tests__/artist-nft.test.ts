@@ -1,14 +1,14 @@
 import { Keypair } from "@stellar/stellar-sdk";
 import { describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 import type { SessionUser } from "../context";
 import { createNft } from "../services/artist/nft";
 import type { ChainGateway } from "../services/chain-gateway";
 import type { LockedContentInput } from "../services/artist/locked-content";
 
-vi.mock("@bandcoin/storage", () => ({
+vi.mock("@actiontokens/storage", () => ({
   isOwnS3Url: (url: string) => url.startsWith("https://cdn.example/"),
 }));
 

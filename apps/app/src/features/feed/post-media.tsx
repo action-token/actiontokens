@@ -3,8 +3,8 @@
 import { ChevronLeft, ChevronRight, Play, X } from "lucide-react";
 import { useState } from "react";
 
-import { Dialog, DialogContent, DialogTitle } from "@bandcoin/ui/components/dialog";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { Dialog, DialogContent, DialogTitle } from "@actiontokens/ui/components/dialog";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { mediaLayout } from "./media-layout";
 import type { FeedPost } from "./post-card";

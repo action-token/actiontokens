@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
-vi.mock("@bandcoin/storage", () => ({
+vi.mock("@actiontokens/storage", () => ({
   signedMediaUrl: (key: string) => Promise.resolve(`https://signed/${key}`),
 }));
 

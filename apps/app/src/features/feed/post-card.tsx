@@ -6,9 +6,9 @@ import { useSession } from "next-auth/react";
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
 
-import { Badge } from "@bandcoin/ui/components/badge";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { useConnectWalletDialogStore } from "@bandcoin/wallet";
+import { Badge } from "@actiontokens/ui/components/badge";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
 import { timeAgo } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";

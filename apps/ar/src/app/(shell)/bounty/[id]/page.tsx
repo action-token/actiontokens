@@ -21,9 +21,9 @@ import {
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { site } from "@bandcoin/ar-core/site";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
+import { site } from "@actiontokens/ar-core/site";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { TransactionToast } from "@actiontokens/ui/patterns/transaction-toast";
 
 import { ArtistAvatar } from "~/components/artist/ArtistAvatar";
 import { PrizeIcon } from "~/components/bounty/PrizeIcon";

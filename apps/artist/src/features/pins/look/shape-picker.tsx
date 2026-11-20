@@ -4,10 +4,10 @@ import { Check, ChevronsUpDown, Pencil, Plus, Search } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import { BUILTIN_SHAPE_IDS, BUILTIN_SHAPES } from "@bandcoin/ar-core/pin-look";
-import { Popover, PopoverContent, PopoverTrigger } from "@bandcoin/ui/components/popover";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { PinGlyph } from "@bandcoin/ui/patterns/pin-glyph";
+import { BUILTIN_SHAPE_IDS, BUILTIN_SHAPES } from "@actiontokens/ar-core/pin-look";
+import { Popover, PopoverContent, PopoverTrigger } from "@actiontokens/ui/components/popover";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { PinGlyph } from "@actiontokens/ui/patterns/pin-glyph";
 
 export type ShapeOption = { id: string; name: string; path: string; own: boolean };
 

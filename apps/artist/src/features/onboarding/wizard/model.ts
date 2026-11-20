@@ -1,5 +1,5 @@
-import { normalizeAssetCode, validateAssetCode } from "@bandcoin/utils/asset-code";
-import { validateSlug } from "@bandcoin/utils/slug";
+import { normalizeAssetCode, validateAssetCode } from "@actiontokens/utils/asset-code";
+import { validateSlug } from "@actiontokens/utils/slug";
 
 import type { RouterOutputs } from "~/trpc/react";
 

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
-import { Switch } from "@bandcoin/ui/components/switch";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { Switch } from "@actiontokens/ui/components/switch";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 /** Small building blocks of the website-map editor. */
 

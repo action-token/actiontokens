@@ -1,4 +1,4 @@
-// Models, enums and the `Prisma` namespace: import them from "@bandcoin/db" so the
+// Models, enums and the `Prisma` namespace: import them from "@actiontokens/db" so the
 // generated client has exactly one home. Safe in the browser (no connection code).
 export * from "@prisma/client";
 

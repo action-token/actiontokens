@@ -1,4 +1,4 @@
-import { Prisma } from "@bandcoin/db";
+import { Prisma } from "@actiontokens/db";
 
 import type { Context } from "../../context";
 import { invalid } from "./items";

@@ -1,6 +1,6 @@
 "use client";
 
-import { MapTerrainLayers } from "@bandcoin/map/terrain";
+import { MapTerrainLayers } from "@actiontokens/map/terrain";
 
 import { isStandardStyle, useMapBase, useMapMode, useMapTerrain } from "~/lib/ar/theme";
 

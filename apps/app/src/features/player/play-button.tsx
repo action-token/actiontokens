@@ -2,7 +2,7 @@
 
 import { Pause, Play } from "lucide-react";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { currentTrack, type QueueTrack, usePlayer } from "./player-store";
 

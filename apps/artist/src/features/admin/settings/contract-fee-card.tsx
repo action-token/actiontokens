@@ -4,13 +4,13 @@ import { Gem } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { abbreviateAddress } from "@bandcoin/utils/address";
-import { stellarExpertTxUrl } from "@bandcoin/wallet/config";
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { ConfirmDialog } from "@bandcoin/ui/patterns/confirm-dialog";
-import { Field } from "@bandcoin/ui/patterns/form-page";
+import { abbreviateAddress } from "@actiontokens/utils/address";
+import { stellarExpertTxUrl } from "@actiontokens/wallet/config";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { ConfirmDialog } from "@actiontokens/ui/patterns/confirm-dialog";
+import { Field } from "@actiontokens/ui/patterns/form-page";
 
 import { api } from "~/trpc/react";
 

@@ -1,6 +1,6 @@
 import { cert, getApp, getApps, initializeApp } from "firebase-admin/app";
 
-import { requireEnv } from "@bandcoin/errors";
+import { requireEnv } from "@actiontokens/errors";
 
 import { firebaseConfig } from "./config";
 

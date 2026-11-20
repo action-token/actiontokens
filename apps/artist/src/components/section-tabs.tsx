@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { isActive, type SectionTab } from "~/features/shell/nav";
 

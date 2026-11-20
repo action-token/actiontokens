@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 
-import { Button } from "@bandcoin/ui/components/button";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   ToastViewport,
   TransactionToast,
   type TransactionStep,
-} from "@bandcoin/ui/patterns/transaction-toast";
+} from "@actiontokens/ui/patterns/transaction-toast";
 
 /** What drives the toast: Recharge, Send and Swap all have it. */
 type Flow = {

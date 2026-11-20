@@ -3,9 +3,9 @@
 import { Coins, Lock, RotateCcw, Sparkles } from "lucide-react";
 import { type ReactNode, useEffect, useRef } from "react";
 
-import { Input } from "@bandcoin/ui/components/input";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { Input } from "@actiontokens/ui/components/input";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { api } from "~/trpc/react";
 

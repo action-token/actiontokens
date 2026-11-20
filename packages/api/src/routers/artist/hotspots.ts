@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { StoredFeature } from "@bandcoin/geo/map-geometry";
+import type { StoredFeature } from "@actiontokens/geo/map-geometry";
 
 import {
   createHotspot,

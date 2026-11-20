@@ -50,7 +50,7 @@ import {
 
 import { cn } from "../lib/cn";
 
-/** Map layer icons by the names in LAYER_ICONS (`@bandcoin/ar-core/layers`). */
+/** Map layer icons by the names in LAYER_ICONS (`@actiontokens/ar-core/layers`). */
 export const LAYER_ICON_COMPONENTS: Record<string, LucideIcon> = {
   Hospital,
   Stethoscope,

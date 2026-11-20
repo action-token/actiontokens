@@ -1,4 +1,4 @@
-import type { LatLng } from "@bandcoin/geo/map-geometry";
+import type { LatLng } from "@actiontokens/geo/map-geometry";
 
 /** The public Mapbox token; without it the map is replaced by typed coordinates. */
 export const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_API;

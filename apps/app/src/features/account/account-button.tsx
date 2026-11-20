@@ -5,8 +5,8 @@ import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@bandcoin/ui/components/avatar";
-import { Button } from "@bandcoin/ui/components/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@actiontokens/ui/components/avatar";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,10 +14,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@bandcoin/ui/components/dropdown-menu";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { abbreviateAddress } from "@bandcoin/utils/address";
-import { useConnectWalletDialogStore } from "@bandcoin/wallet";
+} from "@actiontokens/ui/components/dropdown-menu";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { abbreviateAddress } from "@actiontokens/utils/address";
+import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
 import { Money } from "~/components/money";
 import { api, type RouterOutputs } from "~/trpc/react";

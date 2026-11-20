@@ -6,11 +6,11 @@ import {
   normalizeConfig,
   artistPortalOrigins,
   type EmbedConfig,
-} from "@bandcoin/ar-core/embed/config";
-import { db } from "@bandcoin/db/server";
+} from "@actiontokens/ar-core/embed/config";
+import { db } from "@actiontokens/db/server";
 
 import { EmbedClient } from "./EmbedClient";
-import { site } from "@bandcoin/ar-core/site";
+import { site } from "@actiontokens/ar-core/site";
 
 /**
  * ── /embed/[id] ────────────────────────────────────────────────────────────

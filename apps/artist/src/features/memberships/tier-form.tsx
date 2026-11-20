@@ -6,17 +6,17 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { Textarea } from "@bandcoin/ui/components/textarea";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { Textarea } from "@actiontokens/ui/components/textarea";
 import {
   Field,
   FormPage,
   FormSection,
   OptionList,
   SwitchRow,
-} from "@bandcoin/ui/patterns/form-page";
-import { validatePrice } from "@bandcoin/utils/asset-code";
+} from "@actiontokens/ui/patterns/form-page";
+import { validatePrice } from "@actiontokens/utils/asset-code";
 
 import { DeleteCard } from "~/components/delete-card";
 import { api, type RouterOutputs } from "~/trpc/react";

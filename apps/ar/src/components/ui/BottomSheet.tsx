@@ -2,7 +2,7 @@ import { AnimatePresence, motion, type PanInfo } from "framer-motion";
 import { type ReactNode, useEffect } from "react";
 import { createPortal } from "react-dom";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 /**
  * The app's one overlay primitive. Everything that isn't a full screen — pin

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { type Db, Prisma } from "@bandcoin/db";
+import { type Db, Prisma } from "@actiontokens/db";
 
 import { createContext, type SessionUser } from "../context";
 import { appRouter } from "../root-app";
@@ -12,7 +12,7 @@ import {
 } from "../services/account/username";
 import { createCallerFactory } from "../trpc";
 
-vi.mock("@bandcoin/storage", () => ({
+vi.mock("@actiontokens/storage", () => ({
   signImageUpload: (file: { fileName: string }) =>
     Promise.resolve({
       uploadUrl: "https://s3/up",

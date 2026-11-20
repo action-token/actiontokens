@@ -7,15 +7,15 @@ import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { Marker, type MapRef } from "react-map-gl/mapbox";
 
-import { shapeScale } from "@bandcoin/ar-core/shape-size";
-import { PinGlyph } from "@bandcoin/ui/patterns/pin-glyph";
+import { shapeScale } from "@actiontokens/ar-core/shape-size";
+import { PinGlyph } from "@actiontokens/ui/patterns/pin-glyph";
 
-import { toMapboxFeature } from "@bandcoin/geo/map-geometry";
-import { Button } from "@bandcoin/ui/components/button";
-import { Label } from "@bandcoin/ui/components/label";
-import { Switch } from "@bandcoin/ui/components/switch";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { ConfirmDialog } from "@bandcoin/ui/patterns/confirm-dialog";
+import { toMapboxFeature } from "@actiontokens/geo/map-geometry";
+import { Button } from "@actiontokens/ui/components/button";
+import { Label } from "@actiontokens/ui/components/label";
+import { Switch } from "@actiontokens/ui/components/switch";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { ConfirmDialog } from "@actiontokens/ui/patterns/confirm-dialog";
 
 import { AgentChat } from "~/features/agent/agent-chat";
 import { AgentMapLayer } from "~/features/agent/agent-map";
@@ -34,7 +34,7 @@ import { EditHotspotView, NewHotspotView } from "~/features/hotspots/hotspot-pag
 import { DraftAreaLayer, HOTSPOT_FILL, HotspotLayer } from "~/features/hotspots/hotspot-layer";
 import { api } from "~/trpc/react";
 
-import { FormCardProvider } from "@bandcoin/ui/patterns/form-card";
+import { FormCardProvider } from "@actiontokens/ui/patterns/form-card";
 
 import { LayerSwitcher } from "./layers/layer-switcher";
 import { type MapFormCard, useMapFormCard } from "./map-form-card";
@@ -585,7 +585,7 @@ export function PinsMap({ toolbarStart }: { toolbarStart?: ReactNode } = {}) {
 
 /**
  * The form card's content: the same forms as /pins/new, /pins/[id], /hotspots/new and
- * /hotspots/[id], in card mode (`@bandcoin/ui/patterns/form-card`). Keyed per form (and per
+ * /hotspots/[id], in card mode (`@actiontokens/ui/patterns/form-card`). Keyed per form (and per
  * restart), so each opens fresh.
  */
 function MapFormCardHost({

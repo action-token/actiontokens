@@ -1,6 +1,6 @@
-import type { Db } from "@bandcoin/db";
-import { findOrCreateFirebaseUserByEmail } from "@bandcoin/wallet/server";
-import { WalletType } from "@bandcoin/wallet/shared";
+import type { Db } from "@actiontokens/db";
+import { findOrCreateFirebaseUserByEmail } from "@actiontokens/wallet/server";
+import { WalletType } from "@actiontokens/wallet/shared";
 
 import { custodialPublicKey, findOrCreateUser } from "./authorize-credentials";
 import { lookupAccountForEmail } from "./email-lookup";

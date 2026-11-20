@@ -1,4 +1,4 @@
-import type { QuoteProblem } from "@bandcoin/chain/quote";
+import type { QuoteProblem } from "@actiontokens/chain/quote";
 
 export const NOT_SET_UP_MESSAGE = "This artist hasn't finished setting up sales yet.";
 

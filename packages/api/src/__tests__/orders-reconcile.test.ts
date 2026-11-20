@@ -1,7 +1,7 @@
 import { Account, Keypair, Networks, Operation, TransactionBuilder } from "@stellar/stellar-sdk";
 import { describe, expect, it, vi } from "vitest";
 
-import type { Db, OrderKind } from "@bandcoin/db";
+import type { Db, OrderKind } from "@actiontokens/db";
 
 import type { ChainGateway } from "../services/chain-gateway";
 import { finishOrder } from "../services/orders/finish";

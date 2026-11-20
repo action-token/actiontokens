@@ -20,9 +20,9 @@ import { EmbedMap, type EmbedMapHandle, type Viewport } from "~/components/embed
 import type { MapMural } from "~/components/map/MuralMarker";
 import { MapSearch, MapSearchButton } from "~/components/map/MapSearch";
 import { RarityPlate } from "~/components/ui/Badges";
-import { distanceMeters, formatDistance } from "@bandcoin/ar-core/ar/geo";
+import { distanceMeters, formatDistance } from "@actiontokens/ar-core/ar/geo";
 import { applyTheme, setMapMode, useMapMode } from "~/lib/ar/theme";
-import type { ArPin, ArPinType, Coords, GeoFix } from "@bandcoin/ar-core/ar/types";
+import type { ArPin, ArPinType, Coords, GeoFix } from "@actiontokens/ar-core/ar/types";
 import {
   accentVars,
   artistFilter,
@@ -30,10 +30,10 @@ import {
   type EmbedEvent,
   normalizeConfig,
   PIN_TYPE_LABEL,
-} from "@bandcoin/ar-core/embed/config";
-import { cn } from "@bandcoin/ui/lib/cn";
+} from "@actiontokens/ar-core/embed/config";
+import { cn } from "@actiontokens/ui/lib/cn";
 import { api } from "~/trpc/react";
-import { site } from "@bandcoin/ar-core/site";
+import { site } from "@actiontokens/ar-core/site";
 
 // ── The embed ─────────────────────────────────────────────────────────────
 

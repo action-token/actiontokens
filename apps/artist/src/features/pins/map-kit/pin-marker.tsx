@@ -4,10 +4,10 @@ import { Calendar, MapPin, Rocket, Star, Target, Zap, type LucideIcon } from "lu
 import { memo } from "react";
 import { Marker } from "react-map-gl/mapbox";
 
-import type { ResolvedPinLook } from "@bandcoin/ar-core/pin-look";
-import { shapeScale } from "@bandcoin/ar-core/shape-size";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { PinGlyph } from "@bandcoin/ui/patterns/pin-glyph";
+import type { ResolvedPinLook } from "@actiontokens/ar-core/pin-look";
+import { shapeScale } from "@actiontokens/ar-core/shape-size";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { PinGlyph } from "@actiontokens/ui/patterns/pin-glyph";
 
 export type PinLook = "hidden" | "expired" | "collected" | "scheduled" | "active";
 

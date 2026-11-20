@@ -1,6 +1,6 @@
 import { Account, type Horizon } from "@stellar/stellar-sdk";
 
-import { lookupAccountForEmail } from "@bandcoin/auth/email-lookup";
+import { lookupAccountForEmail } from "@actiontokens/auth/email-lookup";
 import {
   buildActivation,
   networkFeeXlm,
@@ -9,9 +9,9 @@ import {
   toCents,
   toDisplay,
   toStroops,
-} from "@bandcoin/chain";
-import type { Quote, QuoteLine, QuoteProblem } from "@bandcoin/chain/quote";
-import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
+} from "@actiontokens/chain";
+import type { Quote, QuoteLine, QuoteProblem } from "@actiontokens/chain/quote";
+import { AppError, ErrorCodes, isAppError } from "@actiontokens/errors";
 
 import type { Context, SessionUser } from "../../context";
 import { transitionOrder } from "../order-state";

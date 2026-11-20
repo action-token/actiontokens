@@ -1,4 +1,4 @@
-import type { PinTemplateData } from "@bandcoin/ar-core/pin-template";
+import type { PinTemplateData } from "@actiontokens/ar-core/pin-template";
 import { create } from "zustand";
 
 /**

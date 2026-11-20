@@ -1,6 +1,6 @@
-import type { Db } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { generateRedeemCode } from "@bandcoin/utils/redeem-code";
+import type { Db } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { generateRedeemCode } from "@actiontokens/utils/redeem-code";
 
 /**
  * Door codes for locked content, as on the old Bandcoin: one per copy and

@@ -19,17 +19,17 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import toast, { type Toast } from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { Switch } from "@bandcoin/ui/components/switch";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { ConfirmDialog } from "@bandcoin/ui/patterns/confirm-dialog";
-import { Check, RowMenu } from "@bandcoin/ui/patterns/data-table";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
-import { Avatar } from "@bandcoin/ui/patterns/person";
-import { FilterChips, SearchInput } from "@bandcoin/ui/patterns/toolbar";
+import { Button } from "@actiontokens/ui/components/button";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { Switch } from "@actiontokens/ui/components/switch";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { ConfirmDialog } from "@actiontokens/ui/patterns/confirm-dialog";
+import { Check, RowMenu } from "@actiontokens/ui/patterns/data-table";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
+import { PageBody, PageHeader } from "@actiontokens/ui/patterns/page-header";
+import { Avatar } from "@actiontokens/ui/patterns/person";
+import { FilterChips, SearchInput } from "@actiontokens/ui/patterns/toolbar";
 
 import { timeAgo } from "~/lib/format";
 import { api } from "~/trpc/react";

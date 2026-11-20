@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import type { Db } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { createContext, type SessionUser } from "../context";
 import { portalRouter } from "../root-portal";
@@ -18,7 +18,7 @@ vi.mock("../services/ai/model", () => ({
     edit: vi.fn().mockResolvedValue(Buffer.from("png")),
   },
 }));
-vi.mock("@bandcoin/storage", () => ({
+vi.mock("@actiontokens/storage", () => ({
   renderOutlinePng: vi.fn().mockResolvedValue(Buffer.from("outline")),
   fetchPublicFile: vi.fn((url: string) =>
     url.includes("10.0.0.1")

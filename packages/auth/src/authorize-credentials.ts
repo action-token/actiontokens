@@ -2,20 +2,20 @@ import { verifyMessageSignature } from "@albedo-link/signature-verification";
 import axios from "axios";
 import { sendEmailVerification, signInWithEmailAndPassword } from "firebase/auth";
 
-import type { Db, UserRole } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { PLATFORM_ASSET, USER_ACCOUNT_URL } from "@bandcoin/wallet/config";
-import { firebaseAuth } from "@bandcoin/wallet/firebase";
+import type { Db, UserRole } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { PLATFORM_ASSET, USER_ACCOUNT_URL } from "@actiontokens/wallet/config";
+import { firebaseAuth } from "@actiontokens/wallet/firebase";
 import {
   getOrCreateFirebaseUserFromApple,
   verifyFirebaseIdToken,
   verifyLoginChallenge,
-} from "@bandcoin/wallet/server";
+} from "@actiontokens/wallet/server";
 import {
   accountServiceResponseSchema,
   authCredentialSchema,
   WalletType,
-} from "@bandcoin/wallet/shared";
+} from "@actiontokens/wallet/shared";
 
 /** What a successful sign-in resolves to (the shape NextAuth keeps in the JWT). */
 export type AuthenticatedUser = {

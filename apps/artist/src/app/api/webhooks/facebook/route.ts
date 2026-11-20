@@ -1,5 +1,5 @@
-import { createChainGateway, createContext, receiveWebhook } from "@bandcoin/api";
-import { db } from "@bandcoin/db/server";
+import { createChainGateway, createContext, receiveWebhook } from "@actiontokens/api";
+import { db } from "@actiontokens/db/server";
 
 /** Meta's check that this address is ours: it sends our verify token and expects its challenge back. */
 export function GET(request: Request) {

@@ -17,9 +17,9 @@ import {
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from "@bandcoin/ui/components/dialog";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
+} from "@actiontokens/ui/components/dialog";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { api } from "~/trpc/react";
 

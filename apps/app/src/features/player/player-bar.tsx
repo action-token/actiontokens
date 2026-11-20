@@ -15,9 +15,9 @@ import {
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { Popover, PopoverContent, PopoverTrigger } from "@bandcoin/ui/components/popover";
+import { Button } from "@actiontokens/ui/components/button";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { Popover, PopoverContent, PopoverTrigger } from "@actiontokens/ui/components/popover";
 
 import { Money } from "~/components/money";
 import { api } from "~/trpc/react";

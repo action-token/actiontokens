@@ -1,6 +1,6 @@
-import type { EmbedGesture, EmbedPinSource, EmbedTheme, PinType } from "@bandcoin/db";
-import { normalizeDomain } from "@bandcoin/ar-core/embed/config";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import type { EmbedGesture, EmbedPinSource, EmbedTheme, PinType } from "@actiontokens/db";
+import { normalizeDomain } from "@actiontokens/ar-core/embed/config";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import type { Context } from "../../context";
 import { webLink } from "./events";

@@ -2,8 +2,8 @@
 
 import type { ReactNode } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { ToastViewport, TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
+import { Button } from "@actiontokens/ui/components/button";
+import { ToastViewport, TransactionToast } from "@actiontokens/ui/patterns/transaction-toast";
 
 import { Money } from "~/components/money";
 import { api } from "~/trpc/react";

@@ -12,7 +12,7 @@ import { AppShell } from "~/components/shell/AppShell";
 import { ArLinkButton } from "~/components/ui/ArButton";
 import { Skeleton, SkeletonText } from "~/components/ui/Skeleton";
 import { shareLink } from "~/lib/ar/share-link";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 import { api } from "~/trpc/react";
 
 /**

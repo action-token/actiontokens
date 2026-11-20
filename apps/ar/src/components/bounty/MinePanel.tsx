@@ -14,7 +14,7 @@ import {
 import { useState } from "react";
 import { createPortal } from "react-dom";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { ArButton } from "~/components/ui/ArButton";
 import { type BountyDetail, musicRuleLabel, timeAgo } from "~/lib/ar/bounty";

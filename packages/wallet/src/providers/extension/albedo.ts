@@ -1,12 +1,12 @@
 import albedo, { type PublicKeyIntentResult } from "@albedo-link/intent";
 import toast from "react-hot-toast";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { stellarNetwork } from "../../config/stellar-network";
 import { StellarTransactionError } from "../../errors/stellar-transaction-error";
 import { signInWithAlbedo } from "../../session/sign-in-with-credentials";
-import { abbreviateAddress, isInvalidPublicKey } from "@bandcoin/utils/address";
+import { abbreviateAddress, isInvalidPublicKey } from "@actiontokens/utils/address";
 import { WalletType } from "../../wallet-type";
 import type { WalletProvider } from "../wallet-provider";
 

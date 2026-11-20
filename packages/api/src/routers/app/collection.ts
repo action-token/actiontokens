@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { ItemType } from "@bandcoin/db";
+import { ItemType } from "@actiontokens/db";
 
 import { itemCardSelect, toItemCard } from "../../services/catalog/item-card";
 import { authedProcedure, createRouter } from "../../trpc";

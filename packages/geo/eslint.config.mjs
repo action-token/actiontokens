@@ -1,3 +1,3 @@
-import { baseConfig } from "@bandcoin/eslint-config";
+import { baseConfig } from "@actiontokens/eslint-config";
 
 export default baseConfig({ tsconfigRootDir: import.meta.dirname });

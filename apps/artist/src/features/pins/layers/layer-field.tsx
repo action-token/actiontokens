@@ -6,9 +6,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@bandcoin/ui/components/select";
-import { Field } from "@bandcoin/ui/patterns/form-page";
-import { LayerBadge } from "@bandcoin/ui/patterns/layer-icon";
+} from "@actiontokens/ui/components/select";
+import { Field } from "@actiontokens/ui/patterns/form-page";
+import { LayerBadge } from "@actiontokens/ui/patterns/layer-icon";
 
 import { useArtistLayers, type ArtistLayer } from "./selected-layer";
 

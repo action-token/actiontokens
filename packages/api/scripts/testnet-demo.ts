@@ -1,7 +1,7 @@
 /**
  * Dev only: makes one demo artist really buyable on Stellar testnet.
  *
- *   pnpm --filter @bandcoin/api testnet:demo [artist-slug]   (default lumen-avenue)
+ *   pnpm --filter @actiontokens/api testnet:demo [artist-slug]   (default lumen-avenue)
  *
  * Gives the artist a funded testnet wallet (Friendbot), has that wallet open
  * the artist's one issuer (the artist pays, as in production), adds BANDCOIN
@@ -12,9 +12,9 @@
  */
 import { Account, Asset, Keypair, Operation } from "@stellar/stellar-sdk";
 
-import { buildIssuerSetup, finish, startTransaction } from "@bandcoin/chain";
-import { addSignatures, chainConfig, encryptSecret, submit } from "@bandcoin/chain/server";
-import { db } from "@bandcoin/db/server";
+import { buildIssuerSetup, finish, startTransaction } from "@actiontokens/chain";
+import { addSignatures, chainConfig, encryptSecret, submit } from "@actiontokens/chain/server";
+import { db } from "@actiontokens/db/server";
 
 const host = new URL(process.env.DATABASE_URL ?? "postgresql://x@missing/x").hostname;
 if (!host.startsWith("ep-red-sea-")) throw new Error(`Refusing to run against ${host}`);

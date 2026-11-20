@@ -18,10 +18,10 @@ import {
   useMuralPack,
   type PackStatus,
 } from "~/lib/murals/pack";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { PackArt } from "./PackArt";
-import { site } from "@bandcoin/ar-core/site";
+import { site } from "@actiontokens/ar-core/site";
 
 /**
  * ── PackPanel ──────────────────────────────────────────────────────────────

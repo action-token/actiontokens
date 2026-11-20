@@ -1,7 +1,7 @@
 /**
  * Dev only: one real fan-token offer on Stellar testnet through the real API.
  *
- *   pnpm --filter @bandcoin/api testnet:trust
+ *   pnpm --filter @actiontokens/api testnet:trust
  *
  * Makes a throwaway artist with a fan token (its own Friendbot issuer) and a
  * throwaway fan with some BANDCOIN from the mother account. The fan then
@@ -11,7 +11,7 @@
  */
 import { Asset, Keypair, Operation, TransactionBuilder } from "@stellar/stellar-sdk";
 
-import { db } from "@bandcoin/db/server";
+import { db } from "@actiontokens/db/server";
 
 import { createContext } from "../src/context";
 import { appRouter } from "../src/root-app";

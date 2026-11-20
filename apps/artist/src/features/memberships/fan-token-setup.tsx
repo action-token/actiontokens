@@ -4,10 +4,10 @@ import { CheckCircle2, Link2, Loader2, Sparkles, SquarePen, XCircle } from "luci
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { assetCodeFrom, normalizeAssetCode, validateAssetCode } from "@bandcoin/utils/asset-code";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { assetCodeFrom, normalizeAssetCode, validateAssetCode } from "@actiontokens/utils/asset-code";
 
 import { useDebounced } from "~/lib/use-debounced";
 import { api, type RouterOutputs } from "~/trpc/react";

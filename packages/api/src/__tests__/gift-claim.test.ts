@@ -9,8 +9,8 @@ import {
 } from "@stellar/stellar-sdk";
 import { describe, expect, it, vi } from "vitest";
 
-import { buildClaimGift } from "@bandcoin/chain";
-import type { Db } from "@bandcoin/db";
+import { buildClaimGift } from "@actiontokens/chain";
+import type { Db } from "@actiontokens/db";
 
 import type { SessionUser } from "../context";
 import type { ChainGateway } from "../services/chain-gateway";

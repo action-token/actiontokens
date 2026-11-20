@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { toDisplay, toStroops } from "@bandcoin/chain";
-import type { OrderKind, OrderStatus } from "@bandcoin/db";
+import { toDisplay, toStroops } from "@actiontokens/chain";
+import type { OrderKind, OrderStatus } from "@actiontokens/db";
 
 import { listGifts, prepareGiftClaim, submitGiftClaim } from "../../services/gifts/claim";
 import { declineGift, undoDecline } from "../../services/gifts/decline";

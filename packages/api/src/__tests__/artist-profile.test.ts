@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 import {
   currentSlugFor,
@@ -11,7 +11,7 @@ import {
   type ProfileInput,
 } from "../services/artist/profile";
 
-vi.mock("@bandcoin/storage", () => ({
+vi.mock("@actiontokens/storage", () => ({
   isOwnS3Url: (url: string) => url.startsWith("https://cdn.example/"),
 }));
 

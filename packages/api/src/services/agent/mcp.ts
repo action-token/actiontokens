@@ -2,7 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 
-import { isAppError } from "@bandcoin/errors";
+import { isAppError } from "@actiontokens/errors";
 
 import { agentRouter } from "../../routers/artist/agent";
 import { createCallerFactory } from "../../trpc";

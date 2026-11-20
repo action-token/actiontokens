@@ -4,8 +4,8 @@ import { Loader2, Pause, Play, Zap } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
+import { Button } from "@actiontokens/ui/components/button";
+import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
 
 import { DeleteCard } from "~/components/delete-card";
 import { formatWhen } from "~/lib/datetime";

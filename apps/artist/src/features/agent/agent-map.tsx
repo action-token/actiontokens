@@ -5,8 +5,8 @@ import { useEffect, useMemo } from "react";
 import { Layer, Marker, Source, useMap } from "react-map-gl/mapbox";
 import { create } from "zustand";
 
-import { toMapboxArea, type AreaFeature } from "@bandcoin/geo/map-geometry";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { toMapboxArea, type AreaFeature } from "@actiontokens/geo/map-geometry";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 export type AgentMarker = {
   id: string;

@@ -1,6 +1,6 @@
-import { NFT_MAX_SUPPLY } from "@bandcoin/chain";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { slugFromName } from "@bandcoin/utils/slug";
+import { NFT_MAX_SUPPLY } from "@actiontokens/chain";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { slugFromName } from "@actiontokens/utils/slug";
 import { announceItem } from "../notifications/item";
 
 import type { Context } from "../../context";

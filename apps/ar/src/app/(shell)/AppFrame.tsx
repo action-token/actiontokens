@@ -7,7 +7,7 @@ import { useState, type ReactNode } from "react";
 
 // The wallet chooser (opened by `useAuth().signIn()`) and the toaster every
 // wallet and payment toast uses, mounted once for every screen.
-import { ConnectWalletPopups } from "@bandcoin/wallet";
+import { ConnectWalletPopups } from "@actiontokens/wallet";
 
 import { AuthGate } from "~/components/auth/AuthGate";
 import { SessionSync } from "~/components/auth/SessionSync";

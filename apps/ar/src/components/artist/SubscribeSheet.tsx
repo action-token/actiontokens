@@ -4,9 +4,9 @@ import { Loader2, Wallet } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
-import { site } from "@bandcoin/ar-core/site";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
+import { site } from "@actiontokens/ar-core/site";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { TransactionToast } from "@actiontokens/ui/patterns/transaction-toast";
 
 import { ArButton, ArLinkButton } from "~/components/ui/ArButton";
 import { BottomSheet } from "~/components/ui/BottomSheet";

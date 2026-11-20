@@ -18,10 +18,10 @@ import { NameMuralSheet } from "~/components/murals/NameMuralSheet";
 import { AppShell, ScreenHeader } from "~/components/shell/AppShell";
 import { ArButton, ArLinkButton } from "~/components/ui/ArButton";
 import { Skeleton } from "~/components/ui/Skeleton";
-import { venueMapImage } from "@bandcoin/ar-core/ar/events";
+import { venueMapImage } from "@actiontokens/ar-core/ar/events";
 import { useResolvedTheme } from "~/lib/ar/theme";
-import type { MuralStatus } from "@bandcoin/ar-core/murals/constants";
-import { cn } from "@bandcoin/ui/lib/cn";
+import type { MuralStatus } from "@actiontokens/ar-core/murals/constants";
+import { cn } from "@actiontokens/ui/lib/cn";
 import { api } from "~/trpc/react";
 
 /**

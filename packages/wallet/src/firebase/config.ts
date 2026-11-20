@@ -1,4 +1,4 @@
-import { AppError, isEnvValidationSkipped } from "@bandcoin/errors";
+import { AppError, isEnvValidationSkipped } from "@actiontokens/errors";
 
 /** Stands in for a missing value only while a build skips env validation (nothing is ever sent). */
 const PLACEHOLDER = "env-validation-skipped";

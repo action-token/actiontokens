@@ -1,4 +1,4 @@
-import { DEFAULT_PIN_LOOK, type MarkerFill, type PinLookInput } from "@bandcoin/ar-core/pin-look";
+import { DEFAULT_PIN_LOOK, type MarkerFill, type PinLookInput } from "@actiontokens/ar-core/pin-look";
 
 /** A look with every field present, as the form and the editor work with it. */
 export type PinLookValue = {

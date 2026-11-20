@@ -4,11 +4,11 @@ import { Loader2, Music2, Plus, Trash2 } from "lucide-react";
 import { type KeyboardEvent, useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { FormSection } from "@bandcoin/ui/patterns/form-page";
-import { formatDuration } from "@bandcoin/utils/preview";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { FormSection } from "@actiontokens/ui/patterns/form-page";
+import { formatDuration } from "@actiontokens/utils/preview";
 
 import { readAudioDuration } from "~/lib/audio";
 import { api } from "~/trpc/react";

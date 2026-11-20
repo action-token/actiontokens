@@ -1,4 +1,4 @@
-import type { Placement } from "@bandcoin/storage";
+import type { Placement } from "@actiontokens/storage";
 
 /** Where a file made for this artist (or, with no artist profile, this user) lives in the bucket. */
 export const ownerPlacement = (

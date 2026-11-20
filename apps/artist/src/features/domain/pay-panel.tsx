@@ -3,11 +3,11 @@
 import { CircleAlert } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { PriceBreakdown, ShortfallNotice } from "@bandcoin/ui/patterns/price-breakdown";
-import { ToastViewport, TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
+import { Button } from "@actiontokens/ui/components/button";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { PriceBreakdown, ShortfallNotice } from "@actiontokens/ui/patterns/price-breakdown";
+import { ToastViewport, TransactionToast } from "@actiontokens/ui/patterns/transaction-toast";
 
 import { Money } from "~/components/money";
 import { api } from "~/trpc/react";

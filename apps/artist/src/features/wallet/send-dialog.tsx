@@ -3,16 +3,16 @@
 import { Gift, UserRound } from "lucide-react";
 import { useDeferredValue, useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@bandcoin/ui/components/dialog";
-import { Input } from "@bandcoin/ui/components/input";
-import { PriceBreakdown, ShortfallNotice } from "@bandcoin/ui/patterns/price-breakdown";
+} from "@actiontokens/ui/components/dialog";
+import { Input } from "@actiontokens/ui/components/input";
+import { PriceBreakdown, ShortfallNotice } from "@actiontokens/ui/patterns/price-breakdown";
 
 import { Money } from "~/components/money";
 import { CURRENCY } from "~/lib/wallet";

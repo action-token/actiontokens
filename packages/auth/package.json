@@ -1,5 +1,5 @@
 {
-  "name": "@bandcoin/auth",
+  "name": "@actiontokens/auth",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -16,10 +16,10 @@
   },
   "dependencies": {
     "@albedo-link/signature-verification": "catalog:",
-    "@bandcoin/db": "workspace:*",
-    "@bandcoin/errors": "workspace:*",
-    "@bandcoin/utils": "workspace:*",
-    "@bandcoin/wallet": "workspace:*",
+    "@actiontokens/db": "workspace:*",
+    "@actiontokens/errors": "workspace:*",
+    "@actiontokens/utils": "workspace:*",
+    "@actiontokens/wallet": "workspace:*",
     "axios": "catalog:",
     "firebase": "catalog:"
   },
@@ -28,9 +28,9 @@
     "next-auth": "catalog:"
   },
   "devDependencies": {
-    "@bandcoin/eslint-config": "workspace:*",
-    "@bandcoin/tsconfig": "workspace:*",
-    "@bandcoin/vitest-config": "workspace:*",
+    "@actiontokens/eslint-config": "workspace:*",
+    "@actiontokens/tsconfig": "workspace:*",
+    "@actiontokens/vitest-config": "workspace:*",
     "@types/node": "catalog:",
     "eslint": "catalog:",
     "next": "catalog:",

@@ -4,12 +4,12 @@ import { RotateCcw, Workflow } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Tabs, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
-import { DataTable, type Column } from "@bandcoin/ui/patterns/data-table";
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
-import { StatusPill, type Tone } from "@bandcoin/ui/patterns/status-pill";
-import { Toolbar } from "@bandcoin/ui/patterns/toolbar";
+import { Button } from "@actiontokens/ui/components/button";
+import { Tabs, TabsList, TabsTrigger } from "@actiontokens/ui/components/tabs";
+import { DataTable, type Column } from "@actiontokens/ui/patterns/data-table";
+import { PageBody, PageHeader } from "@actiontokens/ui/patterns/page-header";
+import { StatusPill, type Tone } from "@actiontokens/ui/patterns/status-pill";
+import { Toolbar } from "@actiontokens/ui/patterns/toolbar";
 
 import { timeAgo } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";

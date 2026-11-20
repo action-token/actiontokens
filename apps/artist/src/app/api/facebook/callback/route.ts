@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { readState, sealToken, userTokenFor } from "@bandcoin/api";
+import { readState, sealToken, userTokenFor } from "@actiontokens/api";
 
 /** Where Facebook sends the artist back: checks the state, keeps the user token sealed for 15 minutes. */
 export async function GET(request: Request) {

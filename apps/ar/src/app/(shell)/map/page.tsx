@@ -19,16 +19,16 @@ import { AppShell } from "~/components/shell/AppShell";
 import { NotificationsButton } from "~/components/shell/NotificationsButton";
 import { ProfileButton } from "~/components/shell/ProfileButton";
 import { CollectCelebration } from "~/components/fx/CollectCelebration";
-import { AR_CAPTURE_RADIUS, distanceMeters } from "@bandcoin/ar-core/ar/geo";
+import { AR_CAPTURE_RADIUS, distanceMeters } from "@actiontokens/ar-core/ar/geo";
 import { LocationGate } from "~/components/shell/LocationGate";
 import { FALLBACK_CENTER } from "~/lib/ar/defaults";
-import { pinStatus } from "@bandcoin/ar-core/ar/rarity";
+import { pinStatus } from "@actiontokens/ar-core/ar/rarity";
 import { useMapLayer } from "~/lib/ar/layers";
 import { useFeedback } from "~/lib/ar/feedback";
 import { useDeviceHeading } from "~/lib/ar/useDeviceHeading";
 import { useMuralLayer } from "~/lib/ar/mural-layer";
 import { useAuth, useSettings } from "~/lib/ar/store";
-import type { ArPin, TravelMode } from "@bandcoin/ar-core/ar/types";
+import type { ArPin, TravelMode } from "@actiontokens/ar-core/ar/types";
 import { useGeolocation } from "~/lib/ar/useGeolocation";
 import {
   filterPins,
@@ -39,7 +39,7 @@ import {
   useDiscoveryPinsQuery,
   type PinFilterId,
 } from "~/lib/ar/usePins";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 import { api } from "~/trpc/react";
 
 /**

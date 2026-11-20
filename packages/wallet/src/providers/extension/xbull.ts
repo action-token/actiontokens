@@ -1,6 +1,6 @@
 import { xBullWalletConnect } from "@creit.tech/xbull-wallet-connect";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { stellarNetwork } from "../../config/stellar-network";
 import { WalletType } from "../../wallet-type";

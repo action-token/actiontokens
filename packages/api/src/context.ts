@@ -1,14 +1,14 @@
 import { randomUUID } from "node:crypto";
 
-import type { Currency, Db, UserRole } from "@bandcoin/db";
-import { isCustodialWallet } from "@bandcoin/wallet/shared";
+import type { Currency, Db, UserRole } from "@actiontokens/db";
+import { isCustodialWallet } from "@actiontokens/wallet/shared";
 
 import type { ChainGateway } from "./services/chain-gateway";
 
 /** The five apps that call the API, written to every activity log row. */
 export type AppName = "app" | "artist" | "ar" | "worker";
 
-/** The signed-in user, from the NextAuth session (`@bandcoin/auth` `sessionUserOf`). */
+/** The signed-in user, from the NextAuth session (`@actiontokens/auth` `sessionUserOf`). */
 export type SessionUser = {
   id: string;
   role: UserRole;

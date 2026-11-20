@@ -53,13 +53,13 @@ import { AppShell } from "~/components/shell/AppShell";
 import { LocationGate } from "~/components/shell/LocationGate";
 import { ArButton, ArLinkButton } from "~/components/ui/ArButton";
 import { Skeleton } from "~/components/ui/Skeleton";
-import { distanceMeters, formatDistance } from "@bandcoin/ar-core/ar/geo";
+import { distanceMeters, formatDistance } from "@actiontokens/ar-core/ar/geo";
 import { formatDuration, formatNavDistance } from "~/lib/ar/navigation";
-import { RARITY_META } from "@bandcoin/ar-core/ar/rarity";
+import { RARITY_META } from "@actiontokens/ar-core/ar/rarity";
 import { MapLayersButton, MapViewProbe } from "~/components/map/MapLayersSheet";
 import { MapTerrain } from "~/components/map/MapTerrain";
 import { mapStyleFor, useMapBase, useMapMode, useResolvedTheme } from "~/lib/ar/theme";
-import type { TravelMode } from "@bandcoin/ar-core/ar/types";
+import type { TravelMode } from "@actiontokens/ar-core/ar/types";
 import {
   firstText,
   PROFILE_LABEL,
@@ -71,9 +71,9 @@ import { useDeviceHeading } from "~/lib/ar/useDeviceHeading";
 import { useGeolocation } from "~/lib/ar/useGeolocation";
 import { useNavigation } from "~/lib/ar/useNavigation";
 import { usePinsQuery } from "~/lib/ar/usePins";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 import { api } from "~/trpc/react";
-import { site } from "@bandcoin/ar-core/site";
+import { site } from "@actiontokens/ar-core/site";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_API;
 

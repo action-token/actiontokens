@@ -3,11 +3,11 @@
 import { ArrowDown, ArrowUp, Eye, EyeOff, GripVertical, Plus, Trash2, X } from "lucide-react";
 import { useState } from "react";
 
-import { BLOCK_DEFS, type Block, type BlockWidth } from "@bandcoin/page/blocks";
-import { Button } from "@bandcoin/ui/components/button";
-import { Label } from "@bandcoin/ui/components/label";
-import { Switch } from "@bandcoin/ui/components/switch";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { BLOCK_DEFS, type Block, type BlockWidth } from "@actiontokens/page/blocks";
+import { Button } from "@actiontokens/ui/components/button";
+import { Label } from "@actiontokens/ui/components/label";
+import { Switch } from "@actiontokens/ui/components/switch";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { Segmented } from "../embeds/embed-fields";
 

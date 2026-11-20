@@ -1,9 +1,9 @@
 import { z } from "zod";
 
-import { fundsOf } from "@bandcoin/chain/server";
-import { Prisma } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { isOwnS3Url, signImageUpload } from "@bandcoin/storage";
+import { fundsOf } from "@actiontokens/chain/server";
+import { Prisma } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { isOwnS3Url, signImageUpload } from "@actiontokens/storage";
 
 import { isCustodial } from "../../context";
 import { deleteAccount } from "../../services/account/delete";

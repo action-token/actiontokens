@@ -4,10 +4,10 @@ import { Camera, ExternalLink, Loader2, Pencil } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@bandcoin/ui/components/avatar";
-import { Badge } from "@bandcoin/ui/components/badge";
-import { Button } from "@bandcoin/ui/components/button";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { Avatar, AvatarFallback, AvatarImage } from "@actiontokens/ui/components/avatar";
+import { Badge } from "@actiontokens/ui/components/badge";
+import { Button } from "@actiontokens/ui/components/button";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 

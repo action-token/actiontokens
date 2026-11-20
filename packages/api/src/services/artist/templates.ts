@@ -1,4 +1,4 @@
-import { Prisma } from "@bandcoin/db";
+import { Prisma } from "@actiontokens/db";
 import {
   MAX_TEMPLATES_PER_ARTIST,
   hotspotTemplateDataSchema,
@@ -9,8 +9,8 @@ import {
   type HotspotTemplateData,
   type PinTemplateData,
   type PinTemplateFormType,
-} from "@bandcoin/ar-core/pin-template";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+} from "@actiontokens/ar-core/pin-template";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import type { Context } from "../../context";
 

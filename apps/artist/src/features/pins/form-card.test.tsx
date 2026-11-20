@@ -1,8 +1,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-import { FormCardProvider } from "@bandcoin/ui/patterns/form-card";
-import { CardTab, FormPage, FormSection, MoreOptions } from "@bandcoin/ui/patterns/form-page";
+import { FormCardProvider } from "@actiontokens/ui/patterns/form-card";
+import { CardTab, FormPage, FormSection, MoreOptions } from "@actiontokens/ui/patterns/form-page";
 
 const card = { onClose: vi.fn(), onDone: vi.fn(), at: null };
 

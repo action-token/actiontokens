@@ -16,12 +16,12 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { Markdown } from "@bandcoin/ui/patterns/markdown";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { PageBody } from "@bandcoin/ui/patterns/page-header";
+import { Button } from "@actiontokens/ui/components/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@actiontokens/ui/components/tabs";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { Markdown } from "@actiontokens/ui/patterns/markdown";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { PageBody } from "@actiontokens/ui/patterns/page-header";
 
 import { Money } from "~/components/money";
 import { timeAgo } from "~/lib/format";

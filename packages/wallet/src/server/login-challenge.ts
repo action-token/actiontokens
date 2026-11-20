@@ -1,6 +1,6 @@
 import { Asset, Keypair, Operation, Transaction, TransactionBuilder } from "@stellar/stellar-sdk";
 
-import { requireEnv } from "@bandcoin/errors";
+import { requireEnv } from "@actiontokens/errors";
 
 import { stellarNetwork } from "../config/stellar-network";
 import { horizonServer } from "../stellar/horizon";

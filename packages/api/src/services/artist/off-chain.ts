@@ -1,4 +1,4 @@
-import { slugFromName } from "@bandcoin/utils/slug";
+import { slugFromName } from "@actiontokens/utils/slug";
 import { announceItem } from "../notifications/item";
 
 import type { Context } from "../../context";

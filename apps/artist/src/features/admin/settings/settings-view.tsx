@@ -14,14 +14,14 @@ import {
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { Tabs, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
-import { Field } from "@bandcoin/ui/patterns/form-page";
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@actiontokens/ui/components/tabs";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
+import { Field } from "@actiontokens/ui/patterns/form-page";
+import { PageBody, PageHeader } from "@actiontokens/ui/patterns/page-header";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 

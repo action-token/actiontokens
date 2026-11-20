@@ -29,16 +29,16 @@ import { AppShell, BackButton, ScreenHeader } from "~/components/shell/AppShell"
 import { ArButton, ArLinkButton } from "~/components/ui/ArButton";
 import { StatBlock } from "~/components/ui/Badges";
 import { CHIME_NOTE_MS, useFeedback, type FeedbackReport } from "~/lib/ar/feedback";
-import { RARITY_META, RARITY_ORDER } from "@bandcoin/ar-core/ar/rarity";
+import { RARITY_META, RARITY_ORDER } from "@actiontokens/ar-core/ar/rarity";
 import { type MuralLayer, useMuralLayer } from "~/lib/ar/mural-layer";
 import { useAuth, useSettings } from "~/lib/ar/store";
 import { api } from "~/trpc/react";
 import { type ThemePreference, useTheme } from "~/lib/ar/theme";
-import type { ArSettings } from "@bandcoin/ar-core/ar/types";
+import type { ArSettings } from "@actiontokens/ar-core/ar/types";
 import { useDragScroll } from "~/lib/ar/useDragScroll";
 import { useArtists, useCollectedPinsQuery } from "~/lib/ar/usePins";
-import { site } from "@bandcoin/ar-core/site";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { site } from "@actiontokens/ar-core/site";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 const THEME_OPTIONS: {
   value: ThemePreference;

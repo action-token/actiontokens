@@ -4,8 +4,8 @@ import { Pause, Play, SkipBack, SkipForward, Volume2, VolumeX, X } from "lucide-
 import Link from "next/link";
 import { type ReactNode, useEffect, useRef } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { Button } from "@actiontokens/ui/components/button";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { Money } from "~/components/money";
 

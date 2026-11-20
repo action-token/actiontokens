@@ -16,8 +16,8 @@ import {
 import dynamic from "next/dynamic";
 import { useState } from "react";
 
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import type { RouterOutputs } from "~/trpc/react";
 

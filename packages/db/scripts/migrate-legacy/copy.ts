@@ -2,7 +2,7 @@
  * Copies the old layout (read only, from the backup) into the new schema, in
  * one transaction: any problem leaves the target untouched.
  *
- *   LEGACY_SOURCE_URL=… LEGACY_TARGET_URL=… pnpm --filter @bandcoin/db legacy:copy
+ *   LEGACY_SOURCE_URL=… LEGACY_TARGET_URL=… pnpm --filter @actiontokens/db legacy:copy
  *
  * Without --cutover it rehearses in the backup database's `rehearsal` schema,
  * with a throwaway key that's never saved. With --cutover it also needs

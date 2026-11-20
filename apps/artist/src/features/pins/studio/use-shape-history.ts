@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-import type { Node } from "@bandcoin/ar-core/shape-geometry";
+import type { Node } from "@actiontokens/ar-core/shape-geometry";
 
 const MAX_STEPS = 80;
 

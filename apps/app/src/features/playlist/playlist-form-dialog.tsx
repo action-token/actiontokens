@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -14,11 +14,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@bandcoin/ui/components/dialog";
-import { Input } from "@bandcoin/ui/components/input";
-import { Label } from "@bandcoin/ui/components/label";
-import { Switch } from "@bandcoin/ui/components/switch";
-import { Textarea } from "@bandcoin/ui/components/textarea";
+} from "@actiontokens/ui/components/dialog";
+import { Input } from "@actiontokens/ui/components/input";
+import { Label } from "@actiontokens/ui/components/label";
+import { Switch } from "@actiontokens/ui/components/switch";
+import { Textarea } from "@actiontokens/ui/components/textarea";
 
 import { api } from "~/trpc/react";
 

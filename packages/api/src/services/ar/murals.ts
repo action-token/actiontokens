@@ -1,7 +1,7 @@
 import tzLookup from "@photostructure/tz-lookup";
 
-import type { MuralCard } from "@bandcoin/ar-core/murals/constants";
-import type { CoinReason, Db, Mural, MuralSettings, Prisma } from "@bandcoin/db";
+import type { MuralCard } from "@actiontokens/ar-core/murals/constants";
+import type { CoinReason, Db, Mural, MuralSettings, Prisma } from "@actiontokens/db";
 
 /**
  * Murals: street art fans find and scan for Mural Coins. Pieces the read

@@ -1,4 +1,4 @@
-import type { Prisma } from "@bandcoin/db";
+import type { Prisma } from "@actiontokens/db";
 
 /** Who wrote a comment, as the feed shows them. */
 export const commentAuthorSelect = {

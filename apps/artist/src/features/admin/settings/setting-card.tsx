@@ -1,8 +1,8 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Input } from "@bandcoin/ui/components/input";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { Input } from "@actiontokens/ui/components/input";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 /**
  * One card of Admin › Settings: an icon on a yellow blob, a display title and

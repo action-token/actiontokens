@@ -1,5 +1,5 @@
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import type { Prisma } from "@bandcoin/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import type { Prisma } from "@actiontokens/db";
 
 import type { Context } from "../../context";
 import { notifyArtist } from "../notifications/send";

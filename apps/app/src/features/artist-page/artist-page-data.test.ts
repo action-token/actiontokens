@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { makeBlock, type Block } from "@bandcoin/page/blocks";
+import { makeBlock, type Block } from "@actiontokens/page/blocks";
 
 import {
   blocksToShow,

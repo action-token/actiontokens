@@ -1,5 +1,5 @@
 {
-  "name": "@bandcoin/ui",
+  "name": "@actiontokens/ui",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -17,7 +17,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@bandcoin/utils": "workspace:*",
+    "@actiontokens/utils": "workspace:*",
     "@fontsource-variable/azeret-mono": "catalog:",
     "@fontsource/barlow": "catalog:",
     "@fontsource-variable/teko": "catalog:",
@@ -40,9 +40,9 @@
     "next": "catalog:"
   },
   "devDependencies": {
-    "@bandcoin/eslint-config": "workspace:*",
-    "@bandcoin/tsconfig": "workspace:*",
-    "@bandcoin/vitest-config": "workspace:*",
+    "@actiontokens/eslint-config": "workspace:*",
+    "@actiontokens/tsconfig": "workspace:*",
+    "@actiontokens/vitest-config": "workspace:*",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",

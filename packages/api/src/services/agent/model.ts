@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import type { ResponseInputItem, ResponseOutputItem } from "openai/resources/responses/responses";
 import { z } from "zod";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 /**
  * The agent's AI: OpenAI's Responses API with function tools, and its web

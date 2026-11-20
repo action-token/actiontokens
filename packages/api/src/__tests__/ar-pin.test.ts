@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { offsetBy } from "@bandcoin/ar-core/ar/geo";
-import type { Db } from "@bandcoin/db";
+import { offsetBy } from "@actiontokens/ar-core/ar/geo";
+import type { Db } from "@actiontokens/db";
 
 import { createContext, type SessionUser } from "../context";
 import { arRouter } from "../root-ar";

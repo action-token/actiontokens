@@ -1,7 +1,7 @@
 // The Shapes tool's starting points: each built-in shape as editable points.
 
-import { regularPolygonPath, starPath } from "@bandcoin/ar-core/pin-look";
-import { pathToPoints, type Node } from "@bandcoin/ar-core/shape-geometry";
+import { regularPolygonPath, starPath } from "@actiontokens/ar-core/pin-look";
+import { pathToPoints, type Node } from "@actiontokens/ar-core/shape-geometry";
 
 export type Base = "circle" | "square" | "polygon" | "star" | "shield" | "teardrop";
 

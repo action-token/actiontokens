@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 /** A titled group in the studio's options column. */
 export function Panel({ title, children }: { title: string; children: React.ReactNode }) {

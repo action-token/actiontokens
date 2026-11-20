@@ -1,7 +1,7 @@
 import { FileText, Music, Trophy, Users } from "lucide-react";
 import Link from "next/link";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { ArtistAvatar } from "~/components/artist/ArtistAvatar";
 import { PrizeIcon } from "~/components/bounty/PrizeIcon";

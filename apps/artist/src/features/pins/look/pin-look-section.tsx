@@ -3,14 +3,14 @@
 import { Image as ImageIcon, Pencil, RotateCcw, Shapes } from "lucide-react";
 import { useRef, useState } from "react";
 
-import { BUILTIN_SHAPES, isBuiltinShape } from "@bandcoin/ar-core/pin-look";
-import { Label } from "@bandcoin/ui/components/label";
-import { Switch } from "@bandcoin/ui/components/switch";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { FormSection } from "@bandcoin/ui/patterns/form-page";
-import { PinGlyph } from "@bandcoin/ui/patterns/pin-glyph";
-import { RangeField } from "@bandcoin/ui/patterns/range-field";
-import { Segmented } from "@bandcoin/ui/patterns/segmented";
+import { BUILTIN_SHAPES, isBuiltinShape } from "@actiontokens/ar-core/pin-look";
+import { Label } from "@actiontokens/ui/components/label";
+import { Switch } from "@actiontokens/ui/components/switch";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { FormSection } from "@actiontokens/ui/patterns/form-page";
+import { PinGlyph } from "@actiontokens/ui/patterns/pin-glyph";
+import { RangeField } from "@actiontokens/ui/patterns/range-field";
+import { Segmented } from "@actiontokens/ui/patterns/segmented";
 
 import { api } from "~/trpc/react";
 

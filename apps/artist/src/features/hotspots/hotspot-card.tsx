@@ -2,8 +2,8 @@
 
 import { Loader2, Pause, Pencil, Play, X, Zap } from "lucide-react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
+import { Button } from "@actiontokens/ui/components/button";
+import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
 
 import { formatWhen } from "~/lib/datetime";
 import type { RouterOutputs } from "~/trpc/react";

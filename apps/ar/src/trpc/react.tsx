@@ -7,7 +7,7 @@ import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import { type ReactNode, useState } from "react";
 import superjson from "superjson";
 
-import type { ArRouter } from "@bandcoin/api";
+import type { ArRouter } from "@actiontokens/api";
 
 export const api = createTRPCReact<ArRouter>();
 

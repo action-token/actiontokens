@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import type { Block } from "@bandcoin/page/blocks";
-import { PAGE_ACTION_MESSAGE, parsePageAction, type PageAction } from "@bandcoin/page/editor";
-import type { PageTheme } from "@bandcoin/page/theme";
-import { cn } from "@bandcoin/ui/lib/cn";
+import type { Block } from "@actiontokens/page/blocks";
+import { PAGE_ACTION_MESSAGE, parsePageAction, type PageAction } from "@actiontokens/page/editor";
+import type { PageTheme } from "@actiontokens/page/theme";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { FAN_APP_URL } from "../shell/links";
 

@@ -6,7 +6,7 @@
  *   - a sparse one with a very long name, no pictures and almost no content
  *     (the-extraordinarily-long-named-orchestra), for the odd cases
  *
- *   pnpm --filter @bandcoin/db exec tsx scripts/seed/dummy-brand.ts [--layout <preset>]
+ *   pnpm --filter @actiontokens/db exec tsx scripts/seed/dummy-brand.ts [--layout <preset>]
  *
  * Creating them happens once; after that only their published page changes, to the
  * chosen layout preset (see LAYOUTS). Only runs against the Bandcoin dev database.

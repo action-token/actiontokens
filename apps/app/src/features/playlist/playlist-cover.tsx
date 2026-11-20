@@ -1,6 +1,6 @@
 import { ListMusic } from "lucide-react";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 /** A playlist's cover: its own image, a 2×2 mosaic of its first songs, or a placeholder. */
 export function PlaylistCover({ covers, className }: { covers: string[]; className?: string }) {

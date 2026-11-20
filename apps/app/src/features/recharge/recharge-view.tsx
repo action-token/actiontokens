@@ -3,10 +3,10 @@
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@bandcoin/ui/components/tabs";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { useConnectWalletDialogStore } from "@bandcoin/wallet";
+import { Button } from "@actiontokens/ui/components/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@actiontokens/ui/components/tabs";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
 import { Money } from "~/components/money";
 import { payOf, shownLines } from "~/lib/recharge";

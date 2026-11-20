@@ -1,5 +1,5 @@
-import { Button } from "@bandcoin/ui/components/button";
-import { Dialog, DialogContent, DialogTitle } from "@bandcoin/ui/components/dialog";
+import { Button } from "@actiontokens/ui/components/button";
+import { Dialog, DialogContent, DialogTitle } from "@actiontokens/ui/components/dialog";
 
 export type ShapeUsage = { pins: number; hotspots: number; templates?: number; total: number };
 

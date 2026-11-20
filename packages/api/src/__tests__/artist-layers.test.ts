@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { MAX_LAYERS_PER_ARTIST } from "@bandcoin/ar-core/layers";
-import { circleAround } from "@bandcoin/geo/map-geometry";
+import { MAX_LAYERS_PER_ARTIST } from "@actiontokens/ar-core/layers";
+import { circleAround } from "@actiontokens/geo/map-geometry";
 
 import { layerFilterWhere, mapLayerChips } from "../services/ar/pins";
 import { updateHotspot, runScheduledDrop } from "../services/artist/hotspots";

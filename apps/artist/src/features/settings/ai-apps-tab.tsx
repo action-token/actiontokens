@@ -5,10 +5,10 @@ import { Check, Copy, KeyRound, Loader2, Trash2 } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { Field } from "@bandcoin/ui/patterns/form-page";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { Field } from "@actiontokens/ui/patterns/form-page";
 
 import { api } from "~/trpc/react";
 

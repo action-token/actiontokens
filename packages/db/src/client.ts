@@ -1,6 +1,6 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
-import { isEnvValidationSkipped, requireEnv } from "@bandcoin/errors";
+import { isEnvValidationSkipped, requireEnv } from "@actiontokens/errors";
 
 /** Neon databases sleep when idle; give a cold start time to wake. */
 const CONNECTION_TIMEOUT_MS = 30_000;

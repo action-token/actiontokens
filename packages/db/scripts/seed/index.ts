@@ -1,8 +1,8 @@
 /**
  * Fills the NEW dev database with demo content for every feature.
  *
- *   pnpm --filter @bandcoin/db seed         refuses if users already exist
- *   pnpm --filter @bandcoin/db seed:reset   empties every table first
+ *   pnpm --filter @actiontokens/db seed         refuses if users already exist
+ *   pnpm --filter @actiontokens/db seed:reset   empties every table first
  *
  * Only runs against the Bandcoin dev database (host check below). Page
  * templates are product data, so they are read from the old dev database.

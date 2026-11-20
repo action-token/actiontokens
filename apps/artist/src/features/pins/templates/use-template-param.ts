@@ -3,7 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-import type { PinTemplateFormType } from "@bandcoin/ar-core/pin-template";
+import type { PinTemplateFormType } from "@actiontokens/ar-core/pin-template";
 
 import { api } from "~/trpc/react";
 

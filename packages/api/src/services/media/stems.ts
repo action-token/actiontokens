@@ -1,4 +1,4 @@
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 import { canPlayFull, PREVIEW_SECONDS } from "./playback";
 

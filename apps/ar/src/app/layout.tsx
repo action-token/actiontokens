@@ -1,4 +1,4 @@
-import { sharedThemeSeedScript } from "@bandcoin/ui/lib/shared-theme";
+import { sharedThemeSeedScript } from "@actiontokens/ui/lib/shared-theme";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "~/styles/globals.css";
 // After globals, so the arcade palette wins on equal specificity.
@@ -7,7 +7,7 @@ import "~/styles/arcade.css";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
-import { site } from "@bandcoin/ar-core/site";
+import { site } from "@actiontokens/ar-core/site";
 
 import { fontVariables } from "~/lib/fonts";
 import { TRPCReactProvider } from "~/trpc/react";

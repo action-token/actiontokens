@@ -1,4 +1,4 @@
-import { isReservedName } from "@bandcoin/utils/slug";
+import { isReservedName } from "@actiontokens/utils/slug";
 
 const MIN = 3;
 const MAX = 20;

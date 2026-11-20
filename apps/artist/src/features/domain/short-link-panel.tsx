@@ -3,9 +3,9 @@
 import { Check, Copy, Link2 } from "lucide-react";
 import { useCallback, useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
+import { Button } from "@actiontokens/ui/components/button";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
 
 import { Money } from "~/components/money";
 import { api, type RouterOutputs } from "~/trpc/react";

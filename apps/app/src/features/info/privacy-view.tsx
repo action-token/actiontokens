@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { PageBody } from "@bandcoin/ui/patterns/page-header";
+import { PageBody } from "@actiontokens/ui/patterns/page-header";
 
 import { InfoCard } from "./info-card";
 import { InfoHero } from "./info-hero";

@@ -1,5 +1,5 @@
-import type { Db } from "@bandcoin/db";
-import { ErrorCodes, isAppError } from "@bandcoin/errors";
+import type { Db } from "@actiontokens/db";
+import { ErrorCodes, isAppError } from "@actiontokens/errors";
 
 import type { AuthenticatedUser } from "./authorize-credentials";
 

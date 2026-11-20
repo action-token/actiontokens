@@ -5,8 +5,8 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { abbreviateAddress } from "@bandcoin/utils/address";
-import { Button } from "@bandcoin/ui/components/button";
+import { abbreviateAddress } from "@actiontokens/utils/address";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -14,13 +14,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@bandcoin/ui/components/dialog";
-import { Input } from "@bandcoin/ui/components/input";
-import { ConfirmDialog } from "@bandcoin/ui/patterns/confirm-dialog";
-import { DataTable, type Column } from "@bandcoin/ui/patterns/data-table";
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
-import { Person } from "@bandcoin/ui/patterns/person";
-import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
+} from "@actiontokens/ui/components/dialog";
+import { Input } from "@actiontokens/ui/components/input";
+import { ConfirmDialog } from "@actiontokens/ui/patterns/confirm-dialog";
+import { DataTable, type Column } from "@actiontokens/ui/patterns/data-table";
+import { PageBody, PageHeader } from "@actiontokens/ui/patterns/page-header";
+import { Person } from "@actiontokens/ui/patterns/person";
+import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
 
 import { timeAgo } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";

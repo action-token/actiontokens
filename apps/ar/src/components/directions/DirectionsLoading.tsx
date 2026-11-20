@@ -2,7 +2,7 @@ import { ChevronLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Skeleton } from "~/components/ui/Skeleton";
-import { site } from "@bandcoin/ar-core/site";
+import { site } from "@actiontokens/ar-core/site";
 
 const LINES = ["Finding the drop…", "Plotting your route…", "Checking every way there…"];
 

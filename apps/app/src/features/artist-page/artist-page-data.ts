@@ -1,4 +1,4 @@
-import type { Block, BlockType, BlockWidth } from "@bandcoin/page/blocks";
+import type { Block, BlockType, BlockWidth } from "@actiontokens/page/blocks";
 
 import type { RouterOutputs } from "~/trpc/react";
 

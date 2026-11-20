@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { pinLookInputSchema } from "@bandcoin/ar-core/pin-look";
+import { pinLookInputSchema } from "@actiontokens/ar-core/pin-look";
 
 import {
   addSpot,

@@ -1,8 +1,8 @@
 import { Keypair, Networks, type Transaction, TransactionBuilder } from "@stellar/stellar-sdk";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
-import { AppError } from "@bandcoin/errors";
+import type { Db } from "@actiontokens/db";
+import { AppError } from "@actiontokens/errors";
 
 import type { ChainGateway } from "../services/chain-gateway";
 import { openStorage, type StorageArtist } from "../services/artist/storage-account";

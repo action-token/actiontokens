@@ -1,4 +1,4 @@
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 import { contentCodeFor } from "./content-codes";
 import { ensureUnlockPins } from "./unlock-pins";

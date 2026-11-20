@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
 
-import { freehandToNodes, type Node, type Pt } from "@bandcoin/ar-core/shape-geometry";
+import { freehandToNodes, type Node, type Pt } from "@actiontokens/ar-core/shape-geometry";
 
 import type { ShapeHistory } from "./use-shape-history";
 import type { Tool } from "./tools";

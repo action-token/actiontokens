@@ -3,7 +3,7 @@
 import { Download, Loader2, QrCode } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
+import { Button } from "@actiontokens/ui/components/button";
 
 import { QrDialog, type QrTarget } from "./qr-dialog";
 import { usePinQrs, type QrPin } from "./use-pin-qrs";

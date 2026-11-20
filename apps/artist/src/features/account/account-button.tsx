@@ -3,8 +3,8 @@
 import { ExternalLink, LogIn, LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@bandcoin/ui/components/avatar";
-import { Button } from "@bandcoin/ui/components/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@actiontokens/ui/components/avatar";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,11 +12,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@bandcoin/ui/components/dropdown-menu";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { abbreviateAddress } from "@bandcoin/utils/address";
-import { useConnectWalletDialogStore } from "@bandcoin/wallet";
+} from "@actiontokens/ui/components/dropdown-menu";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { abbreviateAddress } from "@actiontokens/utils/address";
+import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
 import { api } from "~/trpc/react";
 

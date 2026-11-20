@@ -19,11 +19,11 @@ import Link from "next/link";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Switch } from "@bandcoin/ui/components/switch";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { ConfirmDialog } from "@bandcoin/ui/patterns/confirm-dialog";
-import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
+import { Button } from "@actiontokens/ui/components/button";
+import { Switch } from "@actiontokens/ui/components/switch";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { ConfirmDialog } from "@actiontokens/ui/patterns/confirm-dialog";
+import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
 
 import { usePortal } from "~/features/portal/use-portal";
 import { formatWhen } from "~/lib/datetime";

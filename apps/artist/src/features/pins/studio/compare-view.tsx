@@ -1,9 +1,9 @@
 import { Sparkles } from "lucide-react";
 
-import { Switch } from "@bandcoin/ui/components/switch";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { RangeField } from "@bandcoin/ui/patterns/range-field";
-import { Button } from "@bandcoin/ui/components/button";
+import { Switch } from "@actiontokens/ui/components/switch";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { RangeField } from "@actiontokens/ui/patterns/range-field";
+import { Button } from "@actiontokens/ui/components/button";
 
 import { PIN_STATES, PinPreview } from "./pin-preview";
 

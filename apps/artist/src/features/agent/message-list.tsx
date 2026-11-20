@@ -3,9 +3,9 @@
 import { AlertTriangle, RotateCcw } from "lucide-react";
 import { useEffect, useRef } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import type { AgentBlock } from "@bandcoin/api/agent-contract";
-import type { AgentMessage } from "@bandcoin/api";
+import { Button } from "@actiontokens/ui/components/button";
+import type { AgentBlock } from "@actiontokens/api/agent-contract";
+import type { AgentMessage } from "@actiontokens/api";
 
 import { useAgentMap, type AgentMarker } from "./agent-map";
 import { ChoicesCard } from "./cards/choices-card";

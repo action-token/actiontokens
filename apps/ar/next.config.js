@@ -7,22 +7,22 @@ const config = {
     "firebase-admin",
     "jwks-rsa",
     "jose",
-    "@bandcoin/api",
-    "@bandcoin/ar-core",
-    "@bandcoin/map",
-    "@bandcoin/auth",
-    "@bandcoin/chain",
-    "@bandcoin/db",
-    "@bandcoin/errors",
-    "@bandcoin/storage",
-    "@bandcoin/ui",
-    "@bandcoin/utils",
-    "@bandcoin/wallet",
+    "@actiontokens/api",
+    "@actiontokens/ar-core",
+    "@actiontokens/map",
+    "@actiontokens/auth",
+    "@actiontokens/chain",
+    "@actiontokens/db",
+    "@actiontokens/errors",
+    "@actiontokens/storage",
+    "@actiontokens/ui",
+    "@actiontokens/utils",
+    "@actiontokens/wallet",
   ],
   reactStrictMode: true,
 
   /**
-   * Murals: server-side MobileCLIP (@bandcoin/api services/ar/clip.ts) runs on
+   * Murals: server-side MobileCLIP (@actiontokens/api services/ar/clip.ts) runs on
    * onnxruntime-node, a native module. It must load from node_modules at runtime
    * (it can't be bundled), and only the Linux x64 build ships to Vercel (about
    * 45 MB instead of 287 MB for every platform, which is over Vercel's function

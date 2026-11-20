@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
 
 import { api } from "~/trpc/react";
 

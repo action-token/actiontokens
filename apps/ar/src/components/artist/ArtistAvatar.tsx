@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-import { cn } from "@bandcoin/ui/lib/cn";
-import { site } from "@bandcoin/ar-core/site";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { site } from "@actiontokens/ar-core/site";
 
 /** The stand-in when an artist's picture can't load: the Bandcoin mark, shipped with the app. */
 const FALLBACK_SRC = site.assets.mark;

@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
-import type { ActionEdits, ActionStatus, AgentStep } from "@bandcoin/api/agent-contract";
-import type { AgentMessage } from "@bandcoin/api";
+import type { ActionEdits, ActionStatus, AgentStep } from "@actiontokens/api/agent-contract";
+import type { AgentMessage } from "@actiontokens/api";
 import { useSelectedLayer } from "~/features/pins/layers/selected-layer";
 import { api } from "~/trpc/react";
 

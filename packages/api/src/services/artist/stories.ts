@@ -1,6 +1,6 @@
-import type { MediaType, PostAudience } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { isOwnS3Url } from "@bandcoin/storage";
+import type { MediaType, PostAudience } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { isOwnS3Url } from "@actiontokens/storage";
 
 import type { Context } from "../../context";
 import { announceStory } from "../notifications/story";

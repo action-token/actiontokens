@@ -1,7 +1,7 @@
 import React from "react";
 import toast, { type Toast } from "react-hot-toast";
 import { DocumentDuplicateIcon } from "@heroicons/react/24/solid";
-import { abbreviateAddress } from "@bandcoin/utils/address";
+import { abbreviateAddress } from "@actiontokens/utils/address";
 
 export function showFundAccountToast(pubkey: string) {
   toast.custom(

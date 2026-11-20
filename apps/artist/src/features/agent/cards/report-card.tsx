@@ -4,8 +4,8 @@ import { format } from "date-fns";
 import { BarChart3, Table2 } from "lucide-react";
 import { useState } from "react";
 
-import type { AgentBlock, ReportBar } from "@bandcoin/api/agent-contract";
-import { cn } from "@bandcoin/ui/lib/cn";
+import type { AgentBlock, ReportBar } from "@actiontokens/api/agent-contract";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { Card, n } from "./card-kit";
 

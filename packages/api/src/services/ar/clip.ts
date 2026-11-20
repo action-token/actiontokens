@@ -1,6 +1,6 @@
 import type * as Tjs from "@huggingface/transformers";
 
-export { dot, muralScore } from "@bandcoin/ar-core/murals/score";
+export { dot, muralScore } from "@actiontokens/ar-core/murals/score";
 
 /**
  * ── Server-side MobileCLIP ─────────────────────────────────────────────────

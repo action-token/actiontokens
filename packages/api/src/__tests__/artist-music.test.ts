@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 import { createContext } from "../context";
 import { portalRouter } from "../root-portal";
@@ -18,7 +18,7 @@ import {
   updateSong,
 } from "../services/artist/music";
 
-vi.mock("@bandcoin/storage", () => ({
+vi.mock("@actiontokens/storage", () => ({
   isOwnS3Url: (url: string) => url.startsWith("https://cdn.example/"),
 }));
 

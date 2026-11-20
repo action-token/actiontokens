@@ -1,9 +1,9 @@
 "use client";
 
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
-import { useFormCard } from "@bandcoin/ui/patterns/form-card";
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
+import { useFormCard } from "@actiontokens/ui/patterns/form-card";
+import { PageBody, PageHeader } from "@actiontokens/ui/patterns/page-header";
 
 import { api } from "~/trpc/react";
 

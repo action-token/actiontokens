@@ -2,12 +2,12 @@
 
 import { ListChecks } from "lucide-react";
 
-import { abbreviateAddress } from "@bandcoin/utils/address";
-import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
-import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
+import { abbreviateAddress } from "@actiontokens/utils/address";
+import { Button } from "@actiontokens/ui/components/button";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
+import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
 
 import { timeAgo } from "~/lib/format";
 import { api, type RouterInputs } from "~/trpc/react";

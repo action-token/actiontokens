@@ -12,11 +12,11 @@ import {
 import { CalendarRange } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@bandcoin/ui/components/popover";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { FilterChips } from "@bandcoin/ui/patterns/toolbar";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@actiontokens/ui/components/popover";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { FilterChips } from "@actiontokens/ui/patterns/toolbar";
 
 // ── Period ──────────────────────────────────────────────────────────────────
 

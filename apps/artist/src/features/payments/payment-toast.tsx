@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { ToastViewport, TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
+import { Button } from "@actiontokens/ui/components/button";
+import { ToastViewport, TransactionToast } from "@actiontokens/ui/patterns/transaction-toast";
 
 import type { useWalletPayment } from "./use-wallet-payment";
 

@@ -1,15 +1,15 @@
 import { useCallback, useMemo, useRef } from "react";
 
-import type { GeoFix } from "@bandcoin/ar-core/ar/types";
+import type { GeoFix } from "@actiontokens/ar-core/ar/types";
 import { api } from "~/trpc/react";
 
 import {
   MATCH_SIMILARITY,
   type ScanResult,
   type ScanPlatform,
-} from "@bandcoin/ar-core/murals/constants";
-import { bestSimilarity } from "@bandcoin/ar-core/murals/score";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+} from "@actiontokens/ar-core/murals/constants";
+import { bestSimilarity } from "@actiontokens/ar-core/murals/score";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 /**
  * ── Murals data hooks ──────────────────────────────────────────────────────

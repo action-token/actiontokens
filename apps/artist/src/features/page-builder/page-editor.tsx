@@ -15,10 +15,10 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
-import { BLOCK_DEFS, type Block, type BlockType } from "@bandcoin/page/blocks";
-import type { PageAction } from "@bandcoin/page/editor";
-import type { PageTheme } from "@bandcoin/page/theme";
-import { Button } from "@bandcoin/ui/components/button";
+import { BLOCK_DEFS, type Block, type BlockType } from "@actiontokens/page/blocks";
+import type { PageAction } from "@actiontokens/page/editor";
+import type { PageTheme } from "@actiontokens/page/theme";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,11 +26,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@bandcoin/ui/components/dropdown-menu";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { ConfirmDialog } from "@bandcoin/ui/patterns/confirm-dialog";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
+} from "@actiontokens/ui/components/dropdown-menu";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { ConfirmDialog } from "@actiontokens/ui/patterns/confirm-dialog";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 

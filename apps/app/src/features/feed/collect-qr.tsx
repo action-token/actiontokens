@@ -9,7 +9,7 @@ import {
   DialogDescription,
   DialogTitle,
   DialogTrigger,
-} from "@bandcoin/ui/components/dialog";
+} from "@actiontokens/ui/components/dialog";
 
 import { AR_URL } from "../shell/nav";
 import type { FeedPost } from "./post-card";

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { loginUrl, makeState } from "@bandcoin/api";
-import { db } from "@bandcoin/db/server";
+import { loginUrl, makeState } from "@actiontokens/api";
+import { db } from "@actiontokens/db/server";
 
 import { getSession } from "~/server/auth";
 

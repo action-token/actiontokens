@@ -3,10 +3,10 @@
 import { Gift, Loader2 } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { WalletPanel } from "@bandcoin/ui/patterns/wallet-blocks";
+import { Button } from "@actiontokens/ui/components/button";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { WalletPanel } from "@actiontokens/ui/patterns/wallet-blocks";
 
 import { Money } from "~/components/money";
 import { api, type RouterOutputs } from "~/trpc/react";

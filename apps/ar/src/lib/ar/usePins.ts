@@ -2,12 +2,12 @@ import { keepPreviousData } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
 import { api } from "~/trpc/react";
-import { distanceMeters } from "@bandcoin/ar-core/ar/geo";
-import { pinStatus } from "@bandcoin/ar-core/ar/rarity";
-import { inLayers } from "@bandcoin/ar-core/layers";
+import { distanceMeters } from "@actiontokens/ar-core/ar/geo";
+import { pinStatus } from "@actiontokens/ar-core/ar/rarity";
+import { inLayers } from "@actiontokens/ar-core/layers";
 import { useMapLayer } from "./layers";
 import { useSettings } from "./store";
-import type { ArArtist, ArPin, GeoFix, Rarity } from "@bandcoin/ar-core/ar/types";
+import type { ArArtist, ArPin, GeoFix, Rarity } from "@actiontokens/ar-core/ar/types";
 
 /**
  * ── Pin state ──────────────────────────────────────────────────────────────

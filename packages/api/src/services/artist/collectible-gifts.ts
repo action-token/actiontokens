@@ -6,10 +6,10 @@ import {
   toAmount,
   toDisplay,
   toStroops,
-} from "@bandcoin/chain";
-import { QUOTE_TTL_SECONDS } from "@bandcoin/chain/quote";
-import { fundsOf } from "@bandcoin/chain/server";
-import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
+} from "@actiontokens/chain";
+import { QUOTE_TTL_SECONDS } from "@actiontokens/chain/quote";
+import { fundsOf } from "@actiontokens/chain/server";
+import { AppError, ErrorCodes, isAppError } from "@actiontokens/errors";
 
 import { type Context, isCustodial, type SessionUser } from "../../context";
 import { transitionOrder } from "../order-state";

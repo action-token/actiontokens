@@ -1,4 +1,4 @@
-import { AppError, ErrorCodes, requireEnv } from "@bandcoin/errors";
+import { AppError, ErrorCodes, requireEnv } from "@actiontokens/errors";
 
 /**
  * Card payments through Square's REST API. Always charge before submitting a

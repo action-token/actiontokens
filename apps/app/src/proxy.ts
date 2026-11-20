@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { clearLegacySessionCookie } from "@bandcoin/auth";
+import { clearLegacySessionCookie } from "@actiontokens/auth";
 
 import { routeCustomHost } from "./lib/custom-host";
 

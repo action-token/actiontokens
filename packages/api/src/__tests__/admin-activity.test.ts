@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 import { listActivity } from "../services/admin/activity";
 

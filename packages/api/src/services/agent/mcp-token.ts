@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import type { Context, SessionUser } from "../../context";
 

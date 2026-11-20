@@ -5,7 +5,7 @@ import {
   PIN_TEMPLATE_FORM_TYPES,
   pinTemplateDataSchema,
   templateNameSchema,
-} from "@bandcoin/ar-core/pin-template";
+} from "@actiontokens/ar-core/pin-template";
 
 import {
   createTemplate,

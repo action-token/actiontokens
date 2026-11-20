@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import type { Coords, GeoFix } from "@bandcoin/ar-core/ar/types";
-import { site } from "@bandcoin/ar-core/site";
+import type { Coords, GeoFix } from "@actiontokens/ar-core/ar/types";
+import { site } from "@actiontokens/ar-core/site";
 
 export type GeoStatus = "idle" | "prompting" | "tracking" | "denied" | "unavailable";
 

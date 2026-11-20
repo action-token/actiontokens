@@ -4,13 +4,13 @@ import { Ban, Mic2, Shield, Users, type LucideIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
-import { abbreviateAddress } from "@bandcoin/utils/address";
-import { Button } from "@bandcoin/ui/components/button";
-import { DataTable, type Column } from "@bandcoin/ui/patterns/data-table";
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
-import { Person } from "@bandcoin/ui/patterns/person";
-import { StatusPill, type Tone } from "@bandcoin/ui/patterns/status-pill";
-import { FilterChips, SearchInput, Toolbar } from "@bandcoin/ui/patterns/toolbar";
+import { abbreviateAddress } from "@actiontokens/utils/address";
+import { Button } from "@actiontokens/ui/components/button";
+import { DataTable, type Column } from "@actiontokens/ui/patterns/data-table";
+import { PageBody, PageHeader } from "@actiontokens/ui/patterns/page-header";
+import { Person } from "@actiontokens/ui/patterns/person";
+import { StatusPill, type Tone } from "@actiontokens/ui/patterns/status-pill";
+import { FilterChips, SearchInput, Toolbar } from "@actiontokens/ui/patterns/toolbar";
 
 import { timeAgo } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";

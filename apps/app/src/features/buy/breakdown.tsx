@@ -2,7 +2,7 @@
 
 import { CircleAlert } from "lucide-react";
 
-import { PriceBreakdown, ShortfallNotice } from "@bandcoin/ui/patterns/price-breakdown";
+import { PriceBreakdown, ShortfallNotice } from "@actiontokens/ui/patterns/price-breakdown";
 
 import { Money, MoneyTotals } from "~/components/money";
 import type { RouterOutputs } from "~/trpc/react";

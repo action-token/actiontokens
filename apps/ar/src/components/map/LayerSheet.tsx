@@ -5,9 +5,9 @@ import { Check, Layers, MapPin } from "lucide-react";
 import { type ReactNode, useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 
-import { layerLabels, type MapLayerChip } from "@bandcoin/ar-core/layers";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { LayerIcon } from "@bandcoin/ui/patterns/layer-icon";
+import { layerLabels, type MapLayerChip } from "@actiontokens/ar-core/layers";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { LayerIcon } from "@actiontokens/ui/patterns/layer-icon";
 
 import { ArtistAvatar } from "~/components/artist/ArtistAvatar";
 import { BottomSheet } from "~/components/ui/BottomSheet";

@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { ChevronDown, Crosshair, type LucideIcon } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { useAgentMap } from "../agent-map";
 

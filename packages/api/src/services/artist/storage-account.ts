@@ -6,9 +6,9 @@ import {
   networkFeeXlm,
   storageStartingXlm,
   toStroops,
-} from "@bandcoin/chain";
-import { encryptSecret, fundsOf } from "@bandcoin/chain/server";
-import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
+} from "@actiontokens/chain";
+import { encryptSecret, fundsOf } from "@actiontokens/chain/server";
+import { AppError, ErrorCodes, isAppError } from "@actiontokens/errors";
 
 import type { Context } from "../../context";
 

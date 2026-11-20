@@ -1,5 +1,5 @@
 import { motion, type MotionProps } from "framer-motion";
-import { site } from "@bandcoin/ar-core/site";
+import { site } from "@actiontokens/ar-core/site";
 
 /**
  * ── BrandMark ─────────────────────────────────────────────────────────────

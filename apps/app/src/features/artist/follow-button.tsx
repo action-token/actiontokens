@@ -5,9 +5,9 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { useConnectWalletDialogStore } from "@bandcoin/wallet";
+import { Button } from "@actiontokens/ui/components/button";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
 import { api } from "~/trpc/react";
 

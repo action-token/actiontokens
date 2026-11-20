@@ -2,12 +2,12 @@
 
 import { Gift, Loader2 } from "lucide-react";
 
-import { Badge } from "@bandcoin/ui/components/badge";
-import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
-import { Avatar } from "@bandcoin/ui/patterns/person";
+import { Badge } from "@actiontokens/ui/components/badge";
+import { Button } from "@actiontokens/ui/components/button";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
+import { Avatar } from "@actiontokens/ui/patterns/person";
 
 import { timeAgo } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";

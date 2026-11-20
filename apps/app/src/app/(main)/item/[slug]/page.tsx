@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 
-import { isAppError } from "@bandcoin/errors";
+import { isAppError } from "@actiontokens/errors";
 
 import { ItemBody } from "~/features/catalog/item-body";
 import { CoverBadges, RewardsLine } from "~/features/nft/locked-preview";

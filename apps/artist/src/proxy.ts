@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { clearLegacySessionCookie } from "@bandcoin/auth";
+import { clearLegacySessionCookie } from "@actiontokens/auth";
 
 /**
  * One login across bandcoin.io and every *.bandcoin.io app: the session cookie

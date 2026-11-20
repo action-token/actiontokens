@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 
-import { toMapboxFeature } from "@bandcoin/geo/map-geometry";
+import { toMapboxFeature } from "@actiontokens/geo/map-geometry";
 
 import { AREA } from "./area-draw";
 

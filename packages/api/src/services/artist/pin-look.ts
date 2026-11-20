@@ -1,12 +1,12 @@
-import { Prisma, type Db } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { Prisma, type Db } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 import {
   isBuiltinShape,
   lookToColumns,
   pinLookInputSchema,
   type PinLookColumns,
   type PinLookInput,
-} from "@bandcoin/ar-core/pin-look";
+} from "@actiontokens/ar-core/pin-look";
 
 /**
  * Pin look on the server (plan 43): turning what a form sent into the stored columns, checking

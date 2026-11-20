@@ -7,10 +7,10 @@ import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import type { ReadableStream } from "node:stream/web";
 
-import type { TranscodePart } from "@bandcoin/api";
-import type { Db } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { assertPublicHttpUrl, keyFolder, putMediaFile, storageNetwork } from "@bandcoin/storage";
+import type { TranscodePart } from "@actiontokens/api";
+import type { Db } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { assertPublicHttpUrl, keyFolder, putMediaFile, storageNetwork } from "@actiontokens/storage";
 
 import {
   ffmpeg,

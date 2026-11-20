@@ -8,9 +8,9 @@ import {
   createChainGateway,
   createContext,
   liveSession,
-} from "@bandcoin/api";
-import { sessionUserOf } from "@bandcoin/auth";
-import { db } from "@bandcoin/db/server";
+} from "@actiontokens/api";
+import { sessionUserOf } from "@actiontokens/auth";
+import { db } from "@actiontokens/db/server";
 
 import { getSession } from "./auth";
 

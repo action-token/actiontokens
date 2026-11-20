@@ -5,7 +5,7 @@ import {
   minutesBetween,
   type HotspotTemplateData,
   type PinTemplateData,
-} from "@bandcoin/ar-core/pin-template";
+} from "@actiontokens/ar-core/pin-template";
 
 import type { DrawnArea } from "../../hotspots/area-draw";
 import type { PinLookValue } from "../look/look-value";

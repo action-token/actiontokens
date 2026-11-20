@@ -1,8 +1,8 @@
 import { getServerSession, type NextAuthOptions, type Session } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-import type { Db, UserRole } from "@bandcoin/db";
-import type { WalletType } from "@bandcoin/wallet/shared";
+import type { Db, UserRole } from "@actiontokens/db";
+import type { WalletType } from "@actiontokens/wallet/shared";
 
 import { authorizeCredentials, type AuthenticatedUser } from "./authorize-credentials";
 import { sharedSessionCookie } from "./session-cookie";

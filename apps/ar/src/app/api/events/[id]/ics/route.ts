@@ -1,6 +1,6 @@
-import { eventIcs } from "@bandcoin/ar-core/ar/events";
-import { site } from "@bandcoin/ar-core/site";
-import { db } from "@bandcoin/db/server";
+import { eventIcs } from "@actiontokens/ar-core/ar/events";
+import { site } from "@actiontokens/ar-core/site";
+import { db } from "@actiontokens/db/server";
 
 /**
  * GET /api/events/:id/ics: the event as an iCalendar file, for "Add to

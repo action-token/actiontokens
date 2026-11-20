@@ -2,9 +2,9 @@
 
 import { LogIn } from "lucide-react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { BrandMark } from "@bandcoin/ui/patterns/boot-screen";
-import { useConnectWalletDialogStore } from "@bandcoin/wallet";
+import { Button } from "@actiontokens/ui/components/button";
+import { BrandMark } from "@actiontokens/ui/patterns/boot-screen";
+import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
 /**
  * Signed out: the page beside the sidebar is one card that says what the

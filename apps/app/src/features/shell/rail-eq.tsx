@@ -1,4 +1,4 @@
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 const BARS = 16;
 /** Each bar gets its own speed and start, so the strip looks like a live level meter. */

@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
+import { Button } from "@actiontokens/ui/components/button";
+import { PageBody, PageHeader } from "@actiontokens/ui/patterns/page-header";
 
 import { ActivityList } from "./activity-list";
 

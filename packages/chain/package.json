@@ -1,5 +1,5 @@
 {
-  "name": "@bandcoin/chain",
+  "name": "@actiontokens/chain",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -15,13 +15,13 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@bandcoin/errors": "workspace:*",
+    "@actiontokens/errors": "workspace:*",
     "@stellar/stellar-sdk": "catalog:"
   },
   "devDependencies": {
-    "@bandcoin/eslint-config": "workspace:*",
-    "@bandcoin/tsconfig": "workspace:*",
-    "@bandcoin/vitest-config": "workspace:*",
+    "@actiontokens/eslint-config": "workspace:*",
+    "@actiontokens/tsconfig": "workspace:*",
+    "@actiontokens/vitest-config": "workspace:*",
     "@types/node": "catalog:",
     "eslint": "catalog:",
     "typescript": "catalog:",

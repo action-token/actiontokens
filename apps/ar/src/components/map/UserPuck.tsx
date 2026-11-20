@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-import type { GeoFix } from "@bandcoin/ar-core/ar/types";
+import type { GeoFix } from "@actiontokens/ar-core/ar/types";
 
 /**
  * ── UserPuck ───────────────────────────────────────────────────────────────

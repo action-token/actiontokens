@@ -4,10 +4,10 @@ import { ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { PageBody } from "@bandcoin/ui/patterns/page-header";
+import { Button } from "@actiontokens/ui/components/button";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { PageBody } from "@actiontokens/ui/patterns/page-header";
 
 import { usePortal } from "~/features/portal/use-portal";
 

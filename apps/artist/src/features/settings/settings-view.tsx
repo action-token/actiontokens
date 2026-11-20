@@ -15,12 +15,12 @@ import {
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
-import { PageBody } from "@bandcoin/ui/patterns/page-header";
+import { Button } from "@actiontokens/ui/components/button";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@actiontokens/ui/components/tabs";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
+import { PageBody } from "@actiontokens/ui/patterns/page-header";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import type { Db } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { logActivity } from "../activity/middleware";
 import { maskEmail, REDACTED, redact } from "../activity/redact";

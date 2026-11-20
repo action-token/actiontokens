@@ -5,9 +5,9 @@ import {
   HEARTBEAT_MS,
   heartbeatJob,
   releaseStaleJobs,
-} from "@bandcoin/api";
-import type { Db, Job, Prisma } from "@bandcoin/db";
-import { isAppError } from "@bandcoin/errors";
+} from "@actiontokens/api";
+import type { Db, Job, Prisma } from "@actiontokens/db";
+import { isAppError } from "@actiontokens/errors";
 
 /** What one job type does. Its result is stored on the job; throwing schedules a retry. */
 export type JobHandler = (

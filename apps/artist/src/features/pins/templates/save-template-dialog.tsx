@@ -8,9 +8,9 @@ import type {
   HotspotTemplateData,
   PinTemplateData,
   PinTemplateFormType,
-} from "@bandcoin/ar-core/pin-template";
-import { Button } from "@bandcoin/ui/components/button";
-import { Checkbox } from "@bandcoin/ui/components/checkbox";
+} from "@actiontokens/ar-core/pin-template";
+import { Button } from "@actiontokens/ui/components/button";
+import { Checkbox } from "@actiontokens/ui/components/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -18,10 +18,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@bandcoin/ui/components/dialog";
-import { Input } from "@bandcoin/ui/components/input";
-import { Label } from "@bandcoin/ui/components/label";
-import { RadioGroup, RadioGroupItem } from "@bandcoin/ui/components/radio-group";
+} from "@actiontokens/ui/components/dialog";
+import { Input } from "@actiontokens/ui/components/input";
+import { Label } from "@actiontokens/ui/components/label";
+import { RadioGroup, RadioGroupItem } from "@actiontokens/ui/components/radio-group";
 
 import { api } from "~/trpc/react";
 

@@ -6,9 +6,9 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { isAppError } from "@bandcoin/errors";
-import { Badge } from "@bandcoin/ui/components/badge";
-import { Button } from "@bandcoin/ui/components/button";
+import { isAppError } from "@actiontokens/errors";
+import { Badge } from "@actiontokens/ui/components/badge";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -16,14 +16,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@bandcoin/ui/components/dialog";
-import { Input } from "@bandcoin/ui/components/input";
-import { Label } from "@bandcoin/ui/components/label";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { ToastViewport, TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
-import { useConnectWalletDialogStore } from "@bandcoin/wallet";
+} from "@actiontokens/ui/components/dialog";
+import { Input } from "@actiontokens/ui/components/input";
+import { Label } from "@actiontokens/ui/components/label";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@actiontokens/ui/components/tabs";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { ToastViewport, TransactionToast } from "@actiontokens/ui/patterns/transaction-toast";
+import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
 import { Money } from "~/components/money";
 import { timeAgo } from "~/lib/format";

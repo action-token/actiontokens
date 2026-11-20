@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
+import { PageBody, PageHeader } from "@actiontokens/ui/patterns/page-header";
 
 import { BountiesView } from "~/features/bounty/bounties-view";
 

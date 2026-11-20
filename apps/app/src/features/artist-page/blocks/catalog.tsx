@@ -3,9 +3,9 @@
 import { ArrowUpRight, Check, ChevronDown, MapPin, Ticket } from "lucide-react";
 import { useState } from "react";
 
-import { styleOf, type Block } from "@bandcoin/page/blocks";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { MediaCarousel } from "@bandcoin/ui/patterns/media-carousel";
+import { styleOf, type Block } from "@actiontokens/page/blocks";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { MediaCarousel } from "@actiontokens/ui/patterns/media-carousel";
 
 import { AlbumCard } from "../../catalog/album-card";
 import { ItemCard, POSTER_WIDTH } from "../../catalog/item-card";

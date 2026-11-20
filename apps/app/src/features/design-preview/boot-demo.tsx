@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/patterns/skeleton";
-import { StageLoader } from "@bandcoin/ui/patterns/stage-loader/stage-loader";
+import { Button } from "@actiontokens/ui/components/button";
+import { Skeleton } from "@actiontokens/ui/patterns/skeleton";
+import { StageLoader } from "@actiontokens/ui/patterns/stage-loader/stage-loader";
 
 /** The stage loader over a skeleton page, with simulated progress and a Replay button. */
 export function BootDemo() {

@@ -1,5 +1,5 @@
 {
-  "name": "@bandcoin/map",
+  "name": "@actiontokens/map",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -20,9 +20,9 @@
     "react-map-gl": "catalog:"
   },
   "devDependencies": {
-    "@bandcoin/eslint-config": "workspace:*",
-    "@bandcoin/tsconfig": "workspace:*",
-    "@bandcoin/vitest-config": "workspace:*",
+    "@actiontokens/eslint-config": "workspace:*",
+    "@actiontokens/tsconfig": "workspace:*",
+    "@actiontokens/vitest-config": "workspace:*",
     "@types/react": "catalog:",
     "eslint": "catalog:",
     "typescript": "catalog:",

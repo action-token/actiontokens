@@ -4,8 +4,8 @@ import { CalendarDays, Pause, Play } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { api } from "~/trpc/react";
 

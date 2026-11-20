@@ -3,11 +3,11 @@
 import { Check, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Label } from "@bandcoin/ui/components/label";
-import { Switch } from "@bandcoin/ui/components/switch";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { Segmented } from "@bandcoin/ui/patterns/segmented";
+import { Button } from "@actiontokens/ui/components/button";
+import { Label } from "@actiontokens/ui/components/label";
+import { Switch } from "@actiontokens/ui/components/switch";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { Segmented } from "@actiontokens/ui/patterns/segmented";
 
 import { MAPBOX_TOKEN } from "../mapbox";
 import {

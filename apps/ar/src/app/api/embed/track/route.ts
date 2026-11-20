@@ -1,4 +1,4 @@
-import { db } from "@bandcoin/db/server";
+import { db } from "@actiontokens/db/server";
 
 import { recordEmbedEvent } from "~/lib/embed-track";
 

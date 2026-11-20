@@ -1,5 +1,5 @@
 {
-  "name": "@bandcoin/db",
+  "name": "@actiontokens/db",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -25,15 +25,15 @@
     "seed:posts": "tsx scripts/seed/posts.ts"
   },
   "dependencies": {
-    "@bandcoin/errors": "workspace:*",
+    "@actiontokens/errors": "workspace:*",
     "@prisma/adapter-pg": "catalog:",
     "@prisma/client": "catalog:",
     "dotenv": "catalog:"
   },
   "devDependencies": {
-    "@bandcoin/eslint-config": "workspace:*",
-    "@bandcoin/tsconfig": "workspace:*",
-    "@bandcoin/vitest-config": "workspace:*",
+    "@actiontokens/eslint-config": "workspace:*",
+    "@actiontokens/tsconfig": "workspace:*",
+    "@actiontokens/vitest-config": "workspace:*",
     "@stellar/stellar-sdk": "catalog:",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",

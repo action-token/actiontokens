@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { setFollowing } from "../../services/feed/follow";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { draftDesign, publishedDesign } from "../../services/artist/page";
 import { currentSlugFor } from "../../services/artist/profile";

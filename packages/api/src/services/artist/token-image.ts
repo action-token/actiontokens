@@ -1,4 +1,4 @@
-import { fetchPublicFile } from "@bandcoin/storage";
+import { fetchPublicFile } from "@actiontokens/storage";
 
 import type { Context } from "../../context";
 

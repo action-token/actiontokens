@@ -3,7 +3,7 @@
 import { Image as ImageIcon, Lock, Music, PenSquare, Video } from "lucide-react";
 import { useSession } from "next-auth/react";
 
-import { useConnectWalletDialogStore } from "@bandcoin/wallet";
+import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
 import { api } from "~/trpc/react";
 

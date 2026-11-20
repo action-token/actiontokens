@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { ArButton } from "~/components/ui/ArButton";
 import { detectPlatform, LOCATION_STEPS } from "~/lib/ar/locationHelp";
 import { GEO_REASON_TEXT, type GeoReason, type GeoStatus } from "~/lib/ar/useGeolocation";
-import { site } from "@bandcoin/ar-core/site";
+import { site } from "@actiontokens/ar-core/site";
 
 /**
  * ── LocationGate ───────────────────────────────────────────────────────────

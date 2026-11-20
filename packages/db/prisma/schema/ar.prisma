@@ -214,7 +214,7 @@ model PinShape {
 }
 
 /// An artist's saved pin or hotspot setup, reused to make new ones (plan 43). `data` is the form's
-/// values in the shape `@bandcoin/ar-core/pin-template` reads (versioned by `schemaVersion`); dates are
+/// values in the shape `@actiontokens/ar-core/pin-template` reads (versioned by `schemaVersion`); dates are
 /// kept as durations so a template never goes stale.
 model PinTemplate {
   id            String   @id @default(cuid())

@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 
-import { SectionTitle } from "@bandcoin/ui/patterns/media-carousel";
+import { SectionTitle } from "@actiontokens/ui/patterns/media-carousel";
 
-import type { Block } from "@bandcoin/page/blocks";
+import type { Block } from "@actiontokens/page/blocks";
 
 /** The text setting of a block, or a fallback. */
 export const textSetting = (block: Block, key: string, fallback = ""): string =>

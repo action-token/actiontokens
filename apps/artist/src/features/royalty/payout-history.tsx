@@ -3,12 +3,12 @@
 import { ChevronDown, Coins, FileText, RotateCw } from "lucide-react";
 import { useState } from "react";
 
-import { Badge } from "@bandcoin/ui/components/badge";
-import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
+import { Badge } from "@actiontokens/ui/components/badge";
+import { Button } from "@actiontokens/ui/components/button";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
 
 import { Money } from "~/components/money";
 import { timeAgo } from "~/lib/format";

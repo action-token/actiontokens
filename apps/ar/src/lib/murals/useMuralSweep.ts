@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { angleDelta } from "~/lib/ar/heading";
 
-import { SWEEP_MIN_MS, SWEEP_SIDE_DEG } from "@bandcoin/ar-core/murals/constants";
+import { SWEEP_MIN_MS, SWEEP_SIDE_DEG } from "@actiontokens/ar-core/murals/constants";
 
 /**
  * ── useMuralSweep ──────────────────────────────────────────────────────────

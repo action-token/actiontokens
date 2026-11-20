@@ -6,8 +6,8 @@ import {
   TransactionBuilder,
 } from "@stellar/stellar-sdk";
 
-import { buildBountyClaim } from "@bandcoin/chain";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { buildBountyClaim } from "@actiontokens/chain";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { type Context, isCustodial, type SessionUser } from "../../context";
 

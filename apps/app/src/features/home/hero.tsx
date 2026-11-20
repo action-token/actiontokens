@@ -4,7 +4,7 @@ import { ArrowRight, ChevronLeft, ChevronRight, Play, Zap } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { Money } from "~/components/money";
 import { TYPE_LABEL } from "~/lib/item-types";

@@ -6,16 +6,16 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@bandcoin/ui/components/select";
-import { Textarea } from "@bandcoin/ui/components/textarea";
+} from "@actiontokens/ui/components/select";
+import { Textarea } from "@actiontokens/ui/components/textarea";
 import {
   Field,
   FormPage,
@@ -24,9 +24,9 @@ import {
   OptionGroup,
   OptionList,
   SwitchRow,
-} from "@bandcoin/ui/patterns/form-page";
-import { assetCodeFrom, normalizeAssetCode, validateAssetCode } from "@bandcoin/utils/asset-code";
-import { formatDuration, latestPreviewStart, PREVIEW_SECONDS } from "@bandcoin/utils/preview";
+} from "@actiontokens/ui/patterns/form-page";
+import { assetCodeFrom, normalizeAssetCode, validateAssetCode } from "@actiontokens/utils/asset-code";
+import { formatDuration, latestPreviewStart, PREVIEW_SECONDS } from "@actiontokens/utils/preview";
 
 import { DeleteCard } from "~/components/delete-card";
 import { readAudioDuration } from "~/lib/audio";

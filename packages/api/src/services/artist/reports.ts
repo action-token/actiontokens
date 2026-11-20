@@ -1,5 +1,5 @@
-import { Prisma } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { Prisma } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import type { Context } from "../../context";
 import { statusOf } from "./pins";

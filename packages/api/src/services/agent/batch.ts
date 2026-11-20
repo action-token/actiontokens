@@ -1,4 +1,4 @@
-import { randomLocation } from "@bandcoin/geo";
+import { randomLocation } from "@actiontokens/geo";
 
 import type { Context } from "../../context";
 import { enqueueJob } from "../jobs/queue";

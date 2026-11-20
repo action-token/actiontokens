@@ -14,8 +14,8 @@ import { z } from "zod";
 import { firebaseAuth } from "../firebase/client";
 import { WalletType } from "../wallet-type";
 import { showFirebaseAuthError } from "./firebase-error-toast";
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
 
 const formSchema = z.object({
   email: z.email("Please enter a valid email"),

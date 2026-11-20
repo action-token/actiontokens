@@ -1,4 +1,4 @@
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 /**
  * USD per XLM and per USDC, for quotes. Cached for the quote lifetime so a

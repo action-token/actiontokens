@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
 import { Check, Lock, Zap } from "lucide-react";
 
-import { pinStatus, RARITY_META } from "@bandcoin/ar-core/ar/rarity";
-import type { ArPin } from "@bandcoin/ar-core/ar/types";
-import { shapeScale } from "@bandcoin/ar-core/shape-size";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { PinGlyph } from "@bandcoin/ui/patterns/pin-glyph";
+import { pinStatus, RARITY_META } from "@actiontokens/ar-core/ar/rarity";
+import type { ArPin } from "@actiontokens/ar-core/ar/types";
+import { shapeScale } from "@actiontokens/ar-core/shape-size";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { PinGlyph } from "@actiontokens/ui/patterns/pin-glyph";
 
 /**
  * ── PinMarker ──────────────────────────────────────────────────────────────

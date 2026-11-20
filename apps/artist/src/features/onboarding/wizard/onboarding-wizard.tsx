@@ -5,11 +5,11 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
-import { assetCodeFrom } from "@bandcoin/utils/asset-code";
-import { slugFromName } from "@bandcoin/utils/slug";
-import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { assetCodeFrom } from "@actiontokens/utils/asset-code";
+import { slugFromName } from "@actiontokens/utils/slug";
+import { Button } from "@actiontokens/ui/components/button";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { api } from "~/trpc/react";
 

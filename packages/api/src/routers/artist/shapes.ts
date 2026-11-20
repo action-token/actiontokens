@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { shapePathSchema } from "@bandcoin/ar-core/pin-look";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { shapePathSchema } from "@actiontokens/ar-core/pin-look";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { openaiModel } from "../../services/ai/model";
 import { withAiQuota } from "../../services/ai/quota";

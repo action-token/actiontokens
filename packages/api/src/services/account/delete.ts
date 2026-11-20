@@ -1,6 +1,6 @@
-import { deleteFirebaseUserByEmail } from "@bandcoin/wallet/server";
-import { Prisma } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { deleteFirebaseUserByEmail } from "@actiontokens/wallet/server";
+import { Prisma } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { type Context, isCustodial, type SessionUser } from "../../context";
 

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 const mocks = vi.hoisted(() => ({
   findOrCreateFirebaseUserByEmail: vi.fn(),
@@ -13,8 +13,8 @@ vi.mock("firebase/auth", () => ({
   signInWithEmailAndPassword: vi.fn(),
 }));
 vi.mock("@albedo-link/signature-verification", () => ({ verifyMessageSignature: () => false }));
-vi.mock("@bandcoin/wallet/firebase", () => ({ firebaseAuth: {} }));
-vi.mock("@bandcoin/wallet/server", () => ({
+vi.mock("@actiontokens/wallet/firebase", () => ({ firebaseAuth: {} }));
+vi.mock("@actiontokens/wallet/server", () => ({
   findOrCreateFirebaseUserByEmail: mocks.findOrCreateFirebaseUserByEmail,
 }));
 

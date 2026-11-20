@@ -3,12 +3,12 @@
 import { ArrowLeft, ArrowRight, CircleAlert, Send } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { Label } from "@bandcoin/ui/components/label";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { PriceBreakdown, ShortfallNotice } from "@bandcoin/ui/patterns/price-breakdown";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { Label } from "@actiontokens/ui/components/label";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { PriceBreakdown, ShortfallNotice } from "@actiontokens/ui/patterns/price-breakdown";
 
 import { Money } from "~/components/money";
 import { api, type RouterOutputs } from "~/trpc/react";

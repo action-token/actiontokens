@@ -3,8 +3,8 @@
 import { ScanLine, Store } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 
-import { SideFrame, type SideAccount } from "@bandcoin/ui/patterns/side-frame";
-import { useConnectWalletDialogStore } from "@bandcoin/wallet";
+import { SideFrame, type SideAccount } from "@actiontokens/ui/patterns/side-frame";
+import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
 import { api } from "~/trpc/react";
 

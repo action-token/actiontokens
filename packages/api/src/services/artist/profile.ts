@@ -1,6 +1,6 @@
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { isOwnS3Url } from "@bandcoin/storage";
-import { slugFromName, validateSlug } from "@bandcoin/utils/slug";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { isOwnS3Url } from "@actiontokens/storage";
+import { slugFromName, validateSlug } from "@actiontokens/utils/slug";
 
 import type { Context } from "../../context";
 import { invalid } from "./items";

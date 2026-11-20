@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { NFT_MAX_PLATFORM_FEE_BPS } from "@bandcoin/chain";
+import { NFT_MAX_PLATFORM_FEE_BPS } from "@actiontokens/chain";
 
 import { ACTIVITY_KINDS, listActivity } from "../../services/admin/activity";
 import { listAlerts, listReviewedAlerts, reviewAlert } from "../../services/admin/alerts";

@@ -1,4 +1,4 @@
-import { validatePrice } from "@bandcoin/utils/asset-code";
+import { validatePrice } from "@actiontokens/utils/asset-code";
 
 /** A page-asset offer as the form edits it. */
 export type OfferDraft = {

@@ -1,4 +1,4 @@
-import type { PostAccess, PostAudience } from "@bandcoin/db";
+import type { PostAccess, PostAudience } from "@actiontokens/db";
 
 type Tier = { name: string; requiredTokens: string } | null;
 

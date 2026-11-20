@@ -1,7 +1,7 @@
 import { ShoppingBag } from "lucide-react";
 import Link from "next/link";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { formatPrice, formatUsd, marketItemUrl, TYPE_LABEL } from "~/lib/market";
 

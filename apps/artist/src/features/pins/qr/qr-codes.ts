@@ -1,6 +1,6 @@
 import QRCode from "qrcode";
 
-import { pinScanUrl } from "@bandcoin/ar-core/ar/qr";
+import { pinScanUrl } from "@actiontokens/ar-core/ar/qr";
 
 export type QrFormat = "svg" | "png";
 

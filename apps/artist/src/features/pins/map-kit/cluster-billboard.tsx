@@ -3,7 +3,7 @@
 import { memo } from "react";
 import { Marker } from "react-map-gl/mapbox";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 const W = 66;
 const H = 58;

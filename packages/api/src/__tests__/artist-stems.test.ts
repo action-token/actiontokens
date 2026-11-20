@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 import { addStem, listStems, removeStem, STEM_COLORS, updateStem } from "../services/artist/stems";
 
-vi.mock("@bandcoin/storage", () => ({
+vi.mock("@actiontokens/storage", () => ({
   isOwnS3Url: (url: string) => url.startsWith("https://cdn.example/"),
 }));
 

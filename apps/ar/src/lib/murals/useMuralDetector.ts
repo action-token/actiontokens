@@ -1,9 +1,9 @@
 import type * as Tjs from "@huggingface/transformers";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { HOLD_SCORE, LOCK_SCORE } from "@bandcoin/ar-core/murals/constants";
+import { HOLD_SCORE, LOCK_SCORE } from "@actiontokens/ar-core/murals/constants";
 import { boxFromScores, cropGrid, outlineFor, type Outline } from "./localize";
-import { muralScore } from "@bandcoin/ar-core/murals/score";
+import { muralScore } from "@actiontokens/ar-core/murals/score";
 
 /**
  * ── useMuralDetector ───────────────────────────────────────────────────────

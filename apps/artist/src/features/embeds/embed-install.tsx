@@ -9,8 +9,8 @@ import {
   iframeSnippet,
   scriptSnippet,
   type EmbedDraft,
-} from "@bandcoin/ar-core/embed/snippets";
-import { Button } from "@bandcoin/ui/components/button";
+} from "@actiontokens/ar-core/embed/snippets";
+import { Button } from "@actiontokens/ui/components/button";
 
 /** The "Add to website" tab: the snippets, where to paste them on common site builders, and what to check when the map doesn't show. */
 export function EmbedInstall({ id, draft }: { id: string; draft: EmbedDraft }) {

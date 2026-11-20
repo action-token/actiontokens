@@ -11,7 +11,7 @@
  * by prefix. Every part is checked, so a user-supplied id can't climb out of its folder.
  */
 
-import { AppError, ErrorCodes, isEnvValidationSkipped } from "@bandcoin/errors";
+import { AppError, ErrorCodes, isEnvValidationSkipped } from "@actiontokens/errors";
 
 export type StorageNetwork = "mainnet" | "testnet";
 

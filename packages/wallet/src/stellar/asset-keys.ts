@@ -1,4 +1,4 @@
-import { AppError } from "@bandcoin/errors";
+import { AppError } from "@actiontokens/errors";
 
 /** `CODE-ISSUER`, the key assets are stored and passed around by. */
 export const concatAssetWithIssuer = (assetCode: string, assetIssuer: string): string =>

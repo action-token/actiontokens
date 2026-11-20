@@ -1,7 +1,7 @@
 import axios from "axios";
 import { z } from "zod";
 
-import { AppError, ErrorCodes, requireEnv } from "@bandcoin/errors";
+import { AppError, ErrorCodes, requireEnv } from "@actiontokens/errors";
 
 import { ACCOUNT_SECRET_URL } from "../config/service-urls";
 

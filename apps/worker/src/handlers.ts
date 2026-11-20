@@ -20,9 +20,9 @@ import {
   syncUnlocks,
   type ChainGateway,
   type TranscodePart,
-} from "@bandcoin/api";
-import type { Db } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+} from "@actiontokens/api";
+import type { Db } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { mediaIo, type MediaIo, transcodeItem } from "./media/transcode";
 import type { JobHandler } from "./runner";

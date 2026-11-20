@@ -5,8 +5,8 @@ import { useSession } from "next-auth/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { type ReactNode, useCallback, useEffect, useRef } from "react";
 
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { FilterChips, SearchInput, Toolbar } from "@bandcoin/ui/patterns/toolbar";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { FilterChips, SearchInput, Toolbar } from "@actiontokens/ui/patterns/toolbar";
 
 import { api, type RouterInputs } from "~/trpc/react";
 

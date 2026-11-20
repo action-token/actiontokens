@@ -1,6 +1,6 @@
-import type { Db, LockedContentType, Prisma } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { isOwnS3Url } from "@bandcoin/storage";
+import type { Db, LockedContentType, Prisma } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { isOwnS3Url } from "@actiontokens/storage";
 
 /**
  * Locked content inside a contract NFT, as on the old Bandcoin: songs, images,

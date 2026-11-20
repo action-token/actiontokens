@@ -1,5 +1,5 @@
-import type { EmbedEvent } from "@bandcoin/ar-core/embed/config";
-import type { Db } from "@bandcoin/db";
+import type { EmbedEvent } from "@actiontokens/ar-core/embed/config";
+import type { Db } from "@actiontokens/db";
 
 const COLUMN: Record<
   EmbedEvent,

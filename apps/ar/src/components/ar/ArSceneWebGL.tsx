@@ -13,11 +13,11 @@ import {
   bearingDegrees,
   distanceMeters,
   offsetBy,
-} from "@bandcoin/ar-core/ar/geo";
+} from "@actiontokens/ar-core/ar/geo";
 import { angleDelta } from "~/lib/ar/heading";
 import { cameraFrustum } from "~/lib/ar/projection";
-import { pinStatus } from "@bandcoin/ar-core/ar/rarity";
-import type { ArPin, GeoFix } from "@bandcoin/ar-core/ar/types";
+import { pinStatus } from "@actiontokens/ar-core/ar/rarity";
+import type { ArPin, GeoFix } from "@actiontokens/ar-core/ar/types";
 import { ArPinObject3D, PIN_FLOAT_HEIGHT_M } from "~/lib/ar/webgl/ArPinObject3D";
 import {
   ClickHandler,

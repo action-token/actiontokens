@@ -4,9 +4,9 @@ import { Loader2, Plus, Sparkles, X } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { api } from "~/trpc/react";
 

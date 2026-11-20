@@ -10,10 +10,10 @@ import {
   X,
 } from "lucide-react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { Check, RowMenu, type RowAction } from "@bandcoin/ui/patterns/data-table";
-import { StatusPill, type Tone } from "@bandcoin/ui/patterns/status-pill";
+import { Button } from "@actiontokens/ui/components/button";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { Check, RowMenu, type RowAction } from "@actiontokens/ui/patterns/data-table";
+import { StatusPill, type Tone } from "@actiontokens/ui/patterns/status-pill";
 
 import { timeAgo } from "~/lib/format";
 import type { RouterOutputs } from "~/trpc/react";

@@ -12,9 +12,9 @@ import {
   Video,
 } from "lucide-react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { Field, FormSection, OptionList, SwitchRow } from "@bandcoin/ui/patterns/form-page";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { Field, FormSection, OptionList, SwitchRow } from "@actiontokens/ui/patterns/form-page";
 
 import type { RouterOutputs } from "~/trpc/react";
 

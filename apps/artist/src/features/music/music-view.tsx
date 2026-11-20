@@ -5,14 +5,14 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { Tabs, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
-import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
-import { formatDuration } from "@bandcoin/utils/preview";
+import { Button } from "@actiontokens/ui/components/button";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@actiontokens/ui/components/tabs";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
+import { PageBody, PageHeader } from "@actiontokens/ui/patterns/page-header";
+import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
+import { formatDuration } from "@actiontokens/utils/preview";
 
 import { Money } from "~/components/money";
 import { api, type RouterOutputs } from "~/trpc/react";

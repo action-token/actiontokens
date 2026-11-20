@@ -1,8 +1,8 @@
 import { Check } from "lucide-react";
 import { useState } from "react";
 
-import type { MuralCard } from "@bandcoin/ar-core/murals/constants";
-import { cn } from "@bandcoin/ui/lib/cn";
+import type { MuralCard } from "@actiontokens/ar-core/murals/constants";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 export type MapMural = MuralCard & { scansToday: number };
 

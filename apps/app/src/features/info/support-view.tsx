@@ -1,7 +1,7 @@
 import { Bug, ChevronDown, LifeBuoy, Megaphone, Wallet } from "lucide-react";
 
-import { PageBody } from "@bandcoin/ui/patterns/page-header";
-import { SOCIALS } from "@bandcoin/ui/patterns/site-links";
+import { PageBody } from "@actiontokens/ui/patterns/page-header";
+import { SOCIALS } from "@actiontokens/ui/patterns/site-links";
 
 import { STICKER } from "./info-card";
 import { InfoHero } from "./info-hero";

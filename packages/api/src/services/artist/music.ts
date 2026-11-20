@@ -1,8 +1,8 @@
 import crypto from "node:crypto";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { latestPreviewStart, PREVIEW_SECONDS } from "@bandcoin/utils/preview";
-import { slugFromName } from "@bandcoin/utils/slug";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { latestPreviewStart, PREVIEW_SECONDS } from "@actiontokens/utils/preview";
+import { slugFromName } from "@actiontokens/utils/slug";
 
 import type { Context } from "../../context";
 import { queueRedo, queueTranscode, retryTranscode } from "../media/processing";

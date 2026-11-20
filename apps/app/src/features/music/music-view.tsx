@@ -5,11 +5,11 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState, type ReactNode } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { MediaCarousel, SectionTitle } from "@bandcoin/ui/patterns/media-carousel";
-import { useConnectWalletDialogStore } from "@bandcoin/wallet";
+import { Button } from "@actiontokens/ui/components/button";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { MediaCarousel, SectionTitle } from "@actiontokens/ui/patterns/media-carousel";
+import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
 import { api, type RouterInputs } from "~/trpc/react";
 

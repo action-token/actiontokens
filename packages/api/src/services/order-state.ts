@@ -1,5 +1,5 @@
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import type { Db, OrderStatus, Prisma } from "@bandcoin/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import type { Db, OrderStatus, Prisma } from "@actiontokens/db";
 
 /**
  * The one order flow every payment follows:

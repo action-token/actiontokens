@@ -11,8 +11,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-import type { AgentBlock, PinStatus } from "@bandcoin/api/agent-contract";
-import { StatusPill, type Tone } from "@bandcoin/ui/patterns/status-pill";
+import type { AgentBlock, PinStatus } from "@actiontokens/api/agent-contract";
+import { StatusPill, type Tone } from "@actiontokens/ui/patterns/status-pill";
 
 import { Card, MapRow, ShortList, day, dayTime, n, range } from "./card-kit";
 

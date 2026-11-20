@@ -3,11 +3,11 @@
 import { ArrowDown, ArrowUp, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
 import { Component, type ErrorInfo, type ReactNode } from "react";
 
-import type { Block, BlockType, BlockWidth } from "@bandcoin/page/blocks";
-import { BLOCK_DEFS, styleOf, type StyledBlockType } from "@bandcoin/page/blocks";
-import { stylesFor, type PageAction } from "@bandcoin/page/editor";
-import { type PageTheme, themeVars } from "@bandcoin/page/theme";
-import { cn } from "@bandcoin/ui/lib/cn";
+import type { Block, BlockType, BlockWidth } from "@actiontokens/page/blocks";
+import { BLOCK_DEFS, styleOf, type StyledBlockType } from "@actiontokens/page/blocks";
+import { stylesFor, type PageAction } from "@actiontokens/page/editor";
+import { type PageTheme, themeVars } from "@actiontokens/page/theme";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { blocksToShow, rowSpans, type ArtistPageData } from "./artist-page-data";
 import {

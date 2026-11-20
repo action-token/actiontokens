@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { accessOf, accessSelect, checkAccess } from "../../services/catalog/access";
 import { listedItemWhere } from "../../services/catalog/item-card";

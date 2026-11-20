@@ -12,8 +12,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { PageBody } from "@bandcoin/ui/patterns/page-header";
+import { Button } from "@actiontokens/ui/components/button";
+import { PageBody } from "@actiontokens/ui/patterns/page-header";
 
 import { InfoHero } from "./info-hero";
 import { STICKER } from "./info-card";

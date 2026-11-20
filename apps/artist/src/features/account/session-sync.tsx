@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
-import { forgetAccountData, useConnectWalletDialogStore } from "@bandcoin/wallet";
+import { forgetAccountData, useConnectWalletDialogStore } from "@actiontokens/wallet";
 
 /**
  * Keeps the page in step with who is signed in. When the account changes

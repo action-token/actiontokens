@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { buildLoginChallengeXdr } from "@bandcoin/wallet/server";
+import { buildLoginChallengeXdr } from "@actiontokens/wallet/server";
 
 const publicKey = z.string().regex(/^G[A-Z2-7]{55}$/);
 

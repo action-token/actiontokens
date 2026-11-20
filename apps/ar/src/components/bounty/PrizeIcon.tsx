@@ -1,4 +1,4 @@
-import { CurrencyIcon, type CurrencyIconName } from "@bandcoin/ui/patterns/currency-icon";
+import { CurrencyIcon, type CurrencyIconName } from "@actiontokens/ui/patterns/currency-icon";
 
 /**
  * The prize's currency icon, or, for a prize in another token (say an

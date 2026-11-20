@@ -4,11 +4,11 @@ import { Bell, CheckCheck } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@bandcoin/ui/components/avatar";
-import { Popover, PopoverContent, PopoverTrigger } from "@bandcoin/ui/components/popover";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { sideIconButton } from "@bandcoin/ui/patterns/side-frame";
+import { Avatar, AvatarFallback, AvatarImage } from "@actiontokens/ui/components/avatar";
+import { Popover, PopoverContent, PopoverTrigger } from "@actiontokens/ui/components/popover";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { sideIconButton } from "@actiontokens/ui/patterns/side-frame";
 
 import { timeAgo } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";

@@ -2,9 +2,9 @@
 
 import { Loader2, Undo2 } from "lucide-react";
 
-import { Badge } from "@bandcoin/ui/components/badge";
-import { Button } from "@bandcoin/ui/components/button";
-import { WalletPanel } from "@bandcoin/ui/patterns/wallet-blocks";
+import { Badge } from "@actiontokens/ui/components/badge";
+import { Button } from "@actiontokens/ui/components/button";
+import { WalletPanel } from "@actiontokens/ui/patterns/wallet-blocks";
 
 import { Money } from "~/components/money";
 import { api, type RouterOutputs } from "~/trpc/react";

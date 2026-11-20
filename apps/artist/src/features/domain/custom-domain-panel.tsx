@@ -4,13 +4,13 @@ import { Check, Copy, Globe, Loader2, RefreshCw, Trash2 } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { Label } from "@bandcoin/ui/components/label";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { ConfirmDialog } from "@bandcoin/ui/patterns/confirm-dialog";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
-import { normalizeDomain, validateDomain } from "@bandcoin/utils/domain";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { Label } from "@actiontokens/ui/components/label";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { ConfirmDialog } from "@actiontokens/ui/patterns/confirm-dialog";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
+import { normalizeDomain, validateDomain } from "@actiontokens/utils/domain";
 
 import { timeAgo } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";

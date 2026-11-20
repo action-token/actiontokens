@@ -1,5 +1,5 @@
-import { cn } from "@bandcoin/ui/lib/cn";
-import { CurrencyIcon } from "@bandcoin/ui/patterns/currency-icon";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { CurrencyIcon } from "@actiontokens/ui/patterns/currency-icon";
 
 import { type DisplayCurrency, formatAmount } from "~/lib/format";
 

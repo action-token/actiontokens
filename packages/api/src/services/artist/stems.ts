@@ -1,4 +1,4 @@
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import type { Context } from "../../context";
 import { queueRedo } from "../media/processing";

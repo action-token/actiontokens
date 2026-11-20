@@ -2,17 +2,17 @@
 
 import { useState } from "react";
 
-import { Badge } from "@bandcoin/ui/components/badge";
-import { Button } from "@bandcoin/ui/components/button";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { PriceBreakdown, ShortfallNotice } from "@bandcoin/ui/patterns/price-breakdown";
-import { QuantityStepper } from "@bandcoin/ui/patterns/quantity-stepper";
+import { Badge } from "@actiontokens/ui/components/badge";
+import { Button } from "@actiontokens/ui/components/button";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { PriceBreakdown, ShortfallNotice } from "@actiontokens/ui/patterns/price-breakdown";
+import { QuantityStepper } from "@actiontokens/ui/patterns/quantity-stepper";
 import {
   CUSTODIAL_COUNTDOWN_SECONDS,
   ToastViewport,
   TransactionToast,
   type TransactionStep,
-} from "@bandcoin/ui/patterns/transaction-toast";
+} from "@actiontokens/ui/patterns/transaction-toast";
 
 /*
  * Preview only: sample prices and balances, math in the browser. The real buy

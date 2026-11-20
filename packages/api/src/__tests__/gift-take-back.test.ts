@@ -9,8 +9,8 @@ import {
 } from "@stellar/stellar-sdk";
 import { describe, expect, it, vi } from "vitest";
 
-import { buildStorageTakeBack } from "@bandcoin/chain";
-import type { Db } from "@bandcoin/db";
+import { buildStorageTakeBack } from "@actiontokens/chain";
+import type { Db } from "@actiontokens/db";
 
 import type { SessionUser } from "../context";
 import { prepareGiftTakeBack, submitGiftTakeBack } from "../services/artist/gift-take-back";

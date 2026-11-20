@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { signCreatorUpload } from "@bandcoin/storage";
+import { signCreatorUpload } from "@actiontokens/storage";
 
 import { createNft } from "../../services/artist/nft";
 import { createOffChainItem } from "../../services/artist/off-chain";

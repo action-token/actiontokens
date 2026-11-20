@@ -3,8 +3,8 @@
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { ConfirmDialog } from "@bandcoin/ui/patterns/confirm-dialog";
+import { Button } from "@actiontokens/ui/components/button";
+import { ConfirmDialog } from "@actiontokens/ui/patterns/confirm-dialog";
 
 /** The "delete this" block at the foot of an edit page, with its confirmation. */
 export function DeleteCard({

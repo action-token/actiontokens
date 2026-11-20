@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 vi.mock("../services/order-state", () => ({
   transitionOrder: vi.fn().mockResolvedValue(undefined),

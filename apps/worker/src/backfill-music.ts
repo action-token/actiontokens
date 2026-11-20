@@ -1,12 +1,12 @@
-import { queueTranscode } from "@bandcoin/api";
-import type { Db } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { queueTranscode } from "@actiontokens/api";
+import type { Db } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 /**
  * Songs uploaded before processing existed (LEGACY) still play as uploaded.
  * This queues a batch of them for the worker, oldest first:
  *
- *   pnpm --filter @bandcoin/worker backfill:music [how many, default 50]
+ *   pnpm --filter @actiontokens/worker backfill:music [how many, default 50]
  */
 export async function backfillMusic(db: Db, limit: number) {
   const rows = await db.itemMedia.findMany({
@@ -27,7 +27,7 @@ export async function backfillMusic(db: Db, limit: number) {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const { db } = await import("@bandcoin/db/server");
+  const { db } = await import("@actiontokens/db/server");
   const limit = Number(process.argv[2] ?? 50);
   if (!Number.isInteger(limit) || limit < 1)
     throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "Give how many songs, e.g. 50" });

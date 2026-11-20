@@ -5,9 +5,9 @@ import { useRouter } from "~/lib/navigation";
 import { ArButton, ArLinkButton } from "~/components/ui/ArButton";
 import { CardSkeleton } from "~/components/ui/Skeleton";
 import { useAuth } from "~/lib/ar/store";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 import { api } from "~/trpc/react";
-import { site } from "@bandcoin/ar-core/site";
+import { site } from "@actiontokens/ar-core/site";
 
 /**
  * ── Collection › Murals ────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-import type { Prisma } from "@bandcoin/db";
+import type { Prisma } from "@actiontokens/db";
 
 /**
  * What a card in any grid or carousel shows: cover, title, artist, type, the

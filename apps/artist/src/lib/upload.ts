@@ -1,4 +1,4 @@
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 /** The base64 SHA-256 of a file: the presigned upload only accepts exactly this file. */
 export async function sha256Base64(file: Blob) {

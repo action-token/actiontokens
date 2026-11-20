@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { artistPortalOrigins } from "@bandcoin/ar-core/embed/config";
-import { clearLegacySessionCookie } from "@bandcoin/auth";
+import { artistPortalOrigins } from "@actiontokens/ar-core/embed/config";
+import { clearLegacySessionCookie } from "@actiontokens/auth";
 
 /**
  * One login across bandcoin.io and every *.bandcoin.io app: the session cookie

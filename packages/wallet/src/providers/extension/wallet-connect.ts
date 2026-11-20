@@ -5,11 +5,11 @@ import { Web3Modal } from "@web3modal/standalone";
 import { type W3mModal } from "@web3modal/ui";
 import toast from "react-hot-toast";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { stellarNetwork } from "../../config/stellar-network";
 import { signInWithSignedChallenge } from "../../session/sign-in-with-credentials";
-import { abbreviateAddress, isInvalidPublicKey } from "@bandcoin/utils/address";
+import { abbreviateAddress, isInvalidPublicKey } from "@actiontokens/utils/address";
 import { WalletType } from "../../wallet-type";
 import type { WalletProvider } from "../wallet-provider";
 

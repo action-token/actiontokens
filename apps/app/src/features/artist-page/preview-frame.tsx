@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 
-import { normalizeBlocks, type Block } from "@bandcoin/page/blocks";
-import { PAGE_ACTION_MESSAGE, type PageAction } from "@bandcoin/page/editor";
-import { DEFAULT_THEME, themeSchema, type PageTheme } from "@bandcoin/page/theme";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
+import { normalizeBlocks, type Block } from "@actiontokens/page/blocks";
+import { PAGE_ACTION_MESSAGE, type PageAction } from "@actiontokens/page/editor";
+import { DEFAULT_THEME, themeSchema, type PageTheme } from "@actiontokens/page/theme";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
 
 import { api } from "~/trpc/react";
 

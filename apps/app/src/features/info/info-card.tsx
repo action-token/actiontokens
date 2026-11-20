@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 /** The brand's chunky look: a dark border and a yellow offset shadow. */
 export const STICKER =

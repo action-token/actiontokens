@@ -21,27 +21,27 @@ import { useSession } from "next-auth/react";
 import { type ReactNode, useState } from "react";
 import QRCode from "react-qr-code";
 
-import { Button } from "@bandcoin/ui/components/button";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@bandcoin/ui/components/dialog";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { PageBody } from "@bandcoin/ui/patterns/page-header";
-import { SideBalance } from "@bandcoin/ui/patterns/side-frame";
-import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
-import { TallText } from "@bandcoin/ui/patterns/tall-text";
+} from "@actiontokens/ui/components/dialog";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { PageBody } from "@actiontokens/ui/patterns/page-header";
+import { SideBalance } from "@actiontokens/ui/patterns/side-frame";
+import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
+import { TallText } from "@actiontokens/ui/patterns/tall-text";
 import {
   WalletAssets,
   WalletHero,
   WalletPanel,
   XlmPanel,
   type WalletAction,
-} from "@bandcoin/ui/patterns/wallet-blocks";
+} from "@actiontokens/ui/patterns/wallet-blocks";
 
 import { Money } from "~/components/money";
 import { formatAmount, timeAgo } from "~/lib/format";

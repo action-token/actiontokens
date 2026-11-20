@@ -14,7 +14,7 @@ export const DEFAULT_PIN_PATH = "M50 4 A46 46 0 1 1 49.99 4 Z";
  * following the shape's edge, and an optional ⚡ auto-collect badge.
  *
  * Everything is drawn here from the outline path alone, which the server has
- * already checked (`checkShapePath` in @bandcoin/ar-core/pin-look). If the
+ * already checked (`checkShapePath` in @actiontokens/ar-core/pin-look). If the
  * image fails to load, the shape falls back to the solid colour.
  *
  * (The web maps and the AR app both draw pins with this.)

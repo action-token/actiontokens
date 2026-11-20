@@ -1,11 +1,11 @@
 import crypto from "node:crypto";
 import { announceItem } from "../notifications/item";
 
-import type { ItemType, MediaType, Visibility } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { isOwnS3Url } from "@bandcoin/storage";
-import { normalizeAssetCode, validateAssetCode, validatePrice } from "@bandcoin/utils/asset-code";
-import { slugFromName } from "@bandcoin/utils/slug";
+import type { ItemType, MediaType, Visibility } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { isOwnS3Url } from "@actiontokens/storage";
+import { normalizeAssetCode, validateAssetCode, validatePrice } from "@actiontokens/utils/asset-code";
+import { slugFromName } from "@actiontokens/utils/slug";
 
 import type { Context } from "../../context";
 import { accessKindOf, type ItemAccessInput, resolveItemAccess } from "./item-access";

@@ -2,13 +2,13 @@ import { signOut as nextAuthSignOut } from "next-auth/react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-import { useConnectWalletDialogStore } from "@bandcoin/wallet";
+import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
-import { nonBlank } from "@bandcoin/utils/blank";
-import { truncateMiddle } from "@bandcoin/utils/string";
+import { nonBlank } from "@actiontokens/utils/blank";
+import { truncateMiddle } from "@actiontokens/utils/string";
 import { DEFAULT_SETTINGS } from "./defaults";
-import type { ArSettings, ArUser } from "@bandcoin/ar-core/ar/types";
-import { site } from "@bandcoin/ar-core/site";
+import type { ArSettings, ArUser } from "@actiontokens/ar-core/ar/types";
+import { site } from "@actiontokens/ar-core/site";
 
 /**
  * ── App state ──────────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
-import { Label } from "@bandcoin/ui/components/label";
-import { Switch } from "@bandcoin/ui/components/switch";
-import { PinGlyph } from "@bandcoin/ui/patterns/pin-glyph";
-import { Input } from "@bandcoin/ui/components/input";
+import { Label } from "@actiontokens/ui/components/label";
+import { Switch } from "@actiontokens/ui/components/switch";
+import { PinGlyph } from "@actiontokens/ui/patterns/pin-glyph";
+import { Input } from "@actiontokens/ui/components/input";
 
 /** The pin states the studio shows a shape in. */
 export const PIN_STATES = [

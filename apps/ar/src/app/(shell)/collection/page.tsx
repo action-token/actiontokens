@@ -12,12 +12,12 @@ import { CardSkeleton, StatRowSkeleton } from "~/components/ui/Skeleton";
 import { AppShell, ScreenHeader } from "~/components/shell/AppShell";
 import { ArButton, ArLinkButton } from "~/components/ui/ArButton";
 import { Chip, StatBlock } from "~/components/ui/Badges";
-import { RARITY_META, RARITY_ORDER } from "@bandcoin/ar-core/ar/rarity";
+import { RARITY_META, RARITY_ORDER } from "@actiontokens/ar-core/ar/rarity";
 import { useAuth } from "~/lib/ar/store";
-import type { Rarity } from "@bandcoin/ar-core/ar/types";
+import type { Rarity } from "@actiontokens/ar-core/ar/types";
 import { useDragScroll } from "~/lib/ar/useDragScroll";
 import { useCollectedPinsQuery } from "~/lib/ar/usePins";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 /** Cards mounted per page — same budget as the artist grid. */
 const PAGE_SIZE = 24;

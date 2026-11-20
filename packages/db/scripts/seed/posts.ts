@@ -4,8 +4,8 @@
  * and collectible copies to show. Safe to run again: a post whose title the
  * artist already has is skipped.
  *
- *   pnpm --filter @bandcoin/db seed:posts
- *   pnpm --filter @bandcoin/db seed:posts --follow <userId>   also follow them all
+ *   pnpm --filter @actiontokens/db seed:posts
+ *   pnpm --filter @actiontokens/db seed:posts --follow <userId>   also follow them all
  */
 import "dotenv/config";
 

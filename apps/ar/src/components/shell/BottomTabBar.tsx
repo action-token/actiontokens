@@ -7,7 +7,7 @@ import { useState } from "react";
 import { CameraLauncher } from "~/components/camera/CameraLauncher";
 import { PackRing } from "~/components/murals/PackRing";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 type Tab = {
   href: string;

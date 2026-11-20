@@ -8,7 +8,7 @@ import { AppShell, ScreenHeader } from "~/components/shell/AppShell";
 import { ArButton } from "~/components/ui/ArButton";
 import { SegmentedTabs } from "~/components/ui/SegmentedTabs";
 import { useAuth } from "~/lib/ar/store";
-import type { ArArtist } from "@bandcoin/ar-core/ar/types";
+import type { ArArtist } from "@actiontokens/ar-core/ar/types";
 import { ArtistRowSkeleton } from "~/components/ui/Skeleton";
 import { useArtistsQuery, useToggleFollow } from "~/lib/ar/usePins";
 import { ArtistAvatar } from "~/components/artist/ArtistAvatar";

@@ -1,6 +1,6 @@
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
-import { appRouter } from "@bandcoin/api";
+import { appRouter } from "@actiontokens/api";
 
 import { createAppContext } from "~/server/api";
 

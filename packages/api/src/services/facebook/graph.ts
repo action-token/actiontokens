@@ -6,7 +6,7 @@ import {
   timingSafeEqual,
 } from "node:crypto";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 /**
  * Facebook's Graph API, server side only. The app id and secret, the key that

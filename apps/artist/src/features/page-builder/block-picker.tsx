@@ -16,15 +16,15 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { BLOCK_LIST, type BlockCategory, type BlockType } from "@bandcoin/page/blocks";
-import { stylesFor } from "@bandcoin/page/editor";
+import { BLOCK_LIST, type BlockCategory, type BlockType } from "@actiontokens/page/blocks";
+import { stylesFor } from "@actiontokens/page/editor";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@bandcoin/ui/components/dialog";
+} from "@actiontokens/ui/components/dialog";
 
 export const BLOCK_ICON: Record<BlockType, LucideIcon> = {
   cover: User,

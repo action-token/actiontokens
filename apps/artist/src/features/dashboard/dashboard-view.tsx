@@ -3,12 +3,12 @@
 import { Ban, Mic2 } from "lucide-react";
 import { redirect } from "next/navigation";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
-import { PageBody } from "@bandcoin/ui/patterns/page-header";
-import { useConnectWalletDialogStore } from "@bandcoin/wallet";
+import { Button } from "@actiontokens/ui/components/button";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
+import { PageBody } from "@actiontokens/ui/patterns/page-header";
+import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
 import { WaitingView } from "~/features/onboarding/waiting-view";
 import { OnboardingWizard } from "~/features/onboarding/wizard/onboarding-wizard";

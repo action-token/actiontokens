@@ -13,8 +13,8 @@ import {
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { HeroShare, HeroStat } from "~/components/hero-carousel";
 import { Money } from "~/components/money";

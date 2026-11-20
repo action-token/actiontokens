@@ -8,7 +8,7 @@ import {
 } from "@stellar/stellar-sdk";
 import { describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 import type { SessionUser } from "../context";
 import {
@@ -20,7 +20,7 @@ import {
 } from "../services/artist/royalty";
 import type { ChainGateway } from "../services/chain-gateway";
 
-vi.mock("@bandcoin/storage", () => ({
+vi.mock("@actiontokens/storage", () => ({
   isOwnS3Url: (url: string) => url.startsWith("https://cdn.example/"),
 }));
 

@@ -16,7 +16,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
-import { checkShapePath, type ShapeAnchor } from "@bandcoin/ar-core/pin-look";
+import { checkShapePath, type ShapeAnchor } from "@actiontokens/ar-core/pin-look";
 import {
   flipNodes,
   nodesToPath,
@@ -24,13 +24,13 @@ import {
   pathToNodes,
   type Node,
   type Pt,
-} from "@bandcoin/ar-core/shape-geometry";
-import { pathCoverage, THIN_SHAPE_COVERAGE } from "@bandcoin/ar-core/shape-size";
-import { Label } from "@bandcoin/ui/components/label";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { Segmented } from "@bandcoin/ui/patterns/segmented";
-import { Button } from "@bandcoin/ui/components/button";
-import { Dialog, DialogContent, DialogTitle } from "@bandcoin/ui/components/dialog";
+} from "@actiontokens/ar-core/shape-geometry";
+import { pathCoverage, THIN_SHAPE_COVERAGE } from "@actiontokens/ar-core/shape-size";
+import { Label } from "@actiontokens/ui/components/label";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { Segmented } from "@actiontokens/ui/patterns/segmented";
+import { Button } from "@actiontokens/ui/components/button";
+import { Dialog, DialogContent, DialogTitle } from "@actiontokens/ui/components/dialog";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 

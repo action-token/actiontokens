@@ -3,9 +3,9 @@ import { Sparkles } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 
 import { BrandMark } from "~/components/brand/BrandMark";
-import { RARITY_META } from "@bandcoin/ar-core/ar/rarity";
-import type { Rarity } from "@bandcoin/ar-core/ar/types";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { RARITY_META } from "@actiontokens/ar-core/ar/rarity";
+import type { Rarity } from "@actiontokens/ar-core/ar/types";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 /**
  * ── PackOpening ────────────────────────────────────────────────────────────

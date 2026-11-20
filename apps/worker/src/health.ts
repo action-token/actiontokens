@@ -1,6 +1,6 @@
 import { createServer, type Server } from "node:http";
 
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 import { IDLE_MS, type RunnerState } from "./runner";
 

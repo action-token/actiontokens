@@ -17,8 +17,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { type FormEvent, useEffect, useMemo } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
 import {
   Select,
   SelectContent,
@@ -27,9 +27,9 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@bandcoin/ui/components/select";
-import { Textarea } from "@bandcoin/ui/components/textarea";
-import { cn } from "@bandcoin/ui/lib/cn";
+} from "@actiontokens/ui/components/select";
+import { Textarea } from "@actiontokens/ui/components/textarea";
+import { cn } from "@actiontokens/ui/lib/cn";
 import {
   Field,
   FormPage,
@@ -38,9 +38,9 @@ import {
   OptionGroup,
   OptionList,
   SwitchRow,
-} from "@bandcoin/ui/patterns/form-page";
-import { MarkdownEditor } from "@bandcoin/ui/patterns/markdown-editor";
-import { validatePrice } from "@bandcoin/utils/asset-code";
+} from "@actiontokens/ui/patterns/form-page";
+import { MarkdownEditor } from "@actiontokens/ui/patterns/markdown-editor";
+import { validatePrice } from "@actiontokens/utils/asset-code";
 
 import { Money } from "~/components/money";
 import { formatAmount } from "~/lib/format";

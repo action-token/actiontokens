@@ -1,4 +1,4 @@
-import type { Db, Job, Prisma } from "@bandcoin/db";
+import type { Db, Job, Prisma } from "@actiontokens/db";
 
 /**
  * The background job queue (the `jobs` table). Apps add jobs; the worker

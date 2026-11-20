@@ -2,7 +2,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { describe, expect, it, vi } from "vitest";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import type { SessionUser } from "../context";
 import { createMcpServer, type AgentCaller } from "../services/agent/mcp";
@@ -17,7 +17,7 @@ import {
   revokeMcpToken,
 } from "../services/agent/mcp-token";
 
-vi.mock("@bandcoin/wallet/server", () => ({}));
+vi.mock("@actiontokens/wallet/server", () => ({}));
 
 const user: SessionUser = { id: "u1", role: "ARTIST", walletAddress: "GABC", walletType: "email" };
 

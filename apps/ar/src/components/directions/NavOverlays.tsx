@@ -1,8 +1,8 @@
 import { LocateFixed, Menu, SlidersHorizontal, type LucideIcon } from "lucide-react";
 import { forwardRef, type ReactNode } from "react";
 
-import { cn } from "@bandcoin/ui/lib/cn";
-import { site } from "@bandcoin/ar-core/site";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { site } from "@actiontokens/ar-core/site";
 
 /**
  * ── Directions overlays ────────────────────────────────────────────────────

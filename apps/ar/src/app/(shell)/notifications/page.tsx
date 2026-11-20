@@ -8,8 +8,8 @@ import { AppShell, ScreenHeader } from "~/components/shell/AppShell";
 import { ArButton } from "~/components/ui/ArButton";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { useAuth } from "~/lib/ar/store";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { site } from "@bandcoin/ar-core/site";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { site } from "@actiontokens/ar-core/site";
 import { api } from "~/trpc/react";
 
 const ago = (value: Date | string) => {

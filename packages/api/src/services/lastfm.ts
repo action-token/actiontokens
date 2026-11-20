@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 /**
  * Last.fm, as the old Bandcoin used it for music bounties: connect an account

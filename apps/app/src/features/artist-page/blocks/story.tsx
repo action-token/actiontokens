@@ -1,8 +1,8 @@
 import { ArrowUpRight, Globe, Link2 } from "lucide-react";
 
-import { styleOf, type Block } from "@bandcoin/page/blocks";
-import { videoEmbed } from "@bandcoin/page/links";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { styleOf, type Block } from "@actiontokens/page/blocks";
+import { videoEmbed } from "@actiontokens/page/links";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { socialLinks, type ArtistPageData } from "../artist-page-data";
 import { ArtistHighlights, ArtistStories } from "../artist-stories";

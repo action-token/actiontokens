@@ -4,10 +4,10 @@ import { PackageOpen, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { FilterChips, Toolbar } from "@bandcoin/ui/patterns/toolbar";
+import { Button } from "@actiontokens/ui/components/button";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { FilterChips, Toolbar } from "@actiontokens/ui/patterns/toolbar";
 
 import { api, type RouterInputs } from "~/trpc/react";
 

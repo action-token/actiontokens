@@ -17,7 +17,7 @@ vi.mock("../services/agent/google", async (original) => ({
   ...(await original<typeof import("../services/agent/google")>()),
   ...google,
 }));
-vi.mock("@bandcoin/storage", () => ({ uploadBufferToS3: vi.fn() }));
+vi.mock("@actiontokens/storage", () => ({ uploadBufferToS3: vi.fn() }));
 
 const park = (n: number) => ({
   key: `g${n}`,

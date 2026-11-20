@@ -1,6 +1,6 @@
 import { HOT } from "@hot-wallet/sdk";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { WalletType } from "../../wallet-type";
 import { createExtensionProvider } from "../extension-provider";

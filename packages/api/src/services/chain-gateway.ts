@@ -1,6 +1,6 @@
 import { Asset, Keypair, type Horizon } from "@stellar/stellar-sdk";
 
-import { signersNeeded } from "@bandcoin/chain";
+import { signersNeeded } from "@actiontokens/chain";
 
 import {
   addSignatures,
@@ -28,11 +28,11 @@ import {
   readNftFeeSettings,
   type Rates,
   submit,
-} from "@bandcoin/chain/server";
-import type { EmailAccount } from "@bandcoin/auth/email-account";
-import type { Db } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { fetchCustodialAccountSecret } from "@bandcoin/wallet/server";
+} from "@actiontokens/chain/server";
+import type { EmailAccount } from "@actiontokens/auth/email-account";
+import type { Db } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { fetchCustodialAccountSecret } from "@actiontokens/wallet/server";
 
 import { chargeCard, refundCard } from "../payments/square";
 import { type EmailMessage, sendEmail } from "./email/mailer";
@@ -179,7 +179,7 @@ export function createChainGateway(db: Db): ChainGateway {
     findTransaction,
     async accountForEmail(email) {
       // Loaded on use: it pulls in Firebase, which the worker never needs.
-      const { resolveAccountForEmail } = await import("@bandcoin/auth/email-account");
+      const { resolveAccountForEmail } = await import("@actiontokens/auth/email-account");
       return resolveAccountForEmail(db, email);
     },
     sendEmail,

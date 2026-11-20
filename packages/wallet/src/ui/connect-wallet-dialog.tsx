@@ -23,14 +23,14 @@ import {
 import { useConnectWalletDialogStore } from "../state/connect-dialog-store";
 import { useWalletConnectModalStore } from "../state/wallet-connect-modal-store";
 import { isStellarAccountActive } from "../stellar/horizon";
-import { abbreviateAddress } from "@bandcoin/utils/address";
+import { abbreviateAddress } from "@actiontokens/utils/address";
 import { ForgotPasswordForm } from "./forgot-password-form";
 import { EmailLoginForm } from "./email-login-form";
 import { EmailSignUpForm } from "./email-sign-up-form";
 import { AR_APP_FRAME_SELECTOR } from "./host-frame";
-import { Button } from "@bandcoin/ui/components/button";
-import { Dialog, DialogContent, DialogTitle } from "@bandcoin/ui/components/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
+import { Button } from "@actiontokens/ui/components/button";
+import { Dialog, DialogContent, DialogTitle } from "@actiontokens/ui/components/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@actiontokens/ui/components/tabs";
 import { useFacebookIosUserAgent } from "./use-facebook-ios-user-agent";
 import { HanaIcon, MetaMaskIcon } from "./wallet-icons";
 import { NON_CUSTODIAL_PROVIDERS } from "../providers/registry";

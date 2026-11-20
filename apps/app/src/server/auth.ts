@@ -1,5 +1,5 @@
-import { createAuthOptions, getServerAuthSession } from "@bandcoin/auth";
-import { db } from "@bandcoin/db/server";
+import { createAuthOptions, getServerAuthSession } from "@actiontokens/auth";
+import { db } from "@actiontokens/db/server";
 
 export const authOptions = createAuthOptions({ app: "app", db });
 

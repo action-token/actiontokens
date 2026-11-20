@@ -2,7 +2,7 @@
 
 import { Search } from "lucide-react";
 
-import { sideIconButton } from "@bandcoin/ui/patterns/side-frame";
+import { sideIconButton } from "@actiontokens/ui/patterns/side-frame";
 
 import { openSearch } from "./search-dialog";
 import { SidebarTools } from "./sidebar-tools";

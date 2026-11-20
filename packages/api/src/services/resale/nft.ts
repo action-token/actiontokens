@@ -10,10 +10,10 @@ import {
   tokenAddressOf,
   toDisplay,
   toStroops,
-} from "@bandcoin/chain";
-import { QUOTE_TTL_SECONDS } from "@bandcoin/chain/quote";
-import { spendableXlm } from "@bandcoin/chain/server";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+} from "@actiontokens/chain";
+import { QUOTE_TTL_SECONDS } from "@actiontokens/chain/quote";
+import { spendableXlm } from "@actiontokens/chain/server";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { type Context, isCustodial, type SessionUser } from "../../context";
 import { transitionOrder } from "../order-state";

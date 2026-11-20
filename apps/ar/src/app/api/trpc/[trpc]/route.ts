@@ -1,6 +1,6 @@
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
-import { arRouter } from "@bandcoin/api";
+import { arRouter } from "@actiontokens/api";
 
 import { createArContext } from "~/server/api";
 

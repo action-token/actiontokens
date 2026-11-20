@@ -1,4 +1,4 @@
 {
-  "extends": "@bandcoin/tsconfig/library.json",
+  "extends": "@actiontokens/tsconfig/library.json",
   "include": ["src"]
 }

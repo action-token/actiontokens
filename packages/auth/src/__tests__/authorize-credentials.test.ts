@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import type { Db } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 const mocks = vi.hoisted(() => ({
   verifyLoginChallenge: vi.fn(),
@@ -16,8 +16,8 @@ vi.mock("firebase/auth", () => ({
   signInWithEmailAndPassword: vi.fn(),
 }));
 vi.mock("@albedo-link/signature-verification", () => ({ verifyMessageSignature: () => false }));
-vi.mock("@bandcoin/wallet/firebase", () => ({ firebaseAuth: {} }));
-vi.mock("@bandcoin/wallet/server", () => ({
+vi.mock("@actiontokens/wallet/firebase", () => ({ firebaseAuth: {} }));
+vi.mock("@actiontokens/wallet/server", () => ({
   getOrCreateFirebaseUserFromApple: mocks.getOrCreateFirebaseUserFromApple,
   verifyFirebaseIdToken: mocks.verifyFirebaseIdToken,
   verifyLoginChallenge: mocks.verifyLoginChallenge,

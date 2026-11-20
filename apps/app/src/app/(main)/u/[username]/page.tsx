@@ -4,9 +4,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache, type ReactNode } from "react";
 
-import { isAppError } from "@bandcoin/errors";
-import { SectionTitle } from "@bandcoin/ui/patterns/media-carousel";
-import { PageBody } from "@bandcoin/ui/patterns/page-header";
+import { isAppError } from "@actiontokens/errors";
+import { SectionTitle } from "@actiontokens/ui/patterns/media-carousel";
+import { PageBody } from "@actiontokens/ui/patterns/page-header";
 
 import { ItemCard } from "~/features/catalog/item-card";
 import { PlaylistCover } from "~/features/playlist/playlist-cover";

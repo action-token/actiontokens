@@ -2,7 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useEffect, useRef } from "react";
 
-import { forgetAccountData } from "@bandcoin/wallet";
+import { forgetAccountData } from "@actiontokens/wallet";
 
 import { deriveArUser, useAuth } from "~/lib/ar/store";
 

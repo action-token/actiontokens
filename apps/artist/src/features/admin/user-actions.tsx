@@ -4,7 +4,7 @@ import { Ban, Loader2, ShieldCheck, ShieldOff, Undo2 } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -12,10 +12,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@bandcoin/ui/components/dialog";
-import { Textarea } from "@bandcoin/ui/components/textarea";
-import { ConfirmDialog } from "@bandcoin/ui/patterns/confirm-dialog";
-import type { RowAction } from "@bandcoin/ui/patterns/data-table";
+} from "@actiontokens/ui/components/dialog";
+import { Textarea } from "@actiontokens/ui/components/textarea";
+import { ConfirmDialog } from "@actiontokens/ui/patterns/confirm-dialog";
+import type { RowAction } from "@actiontokens/ui/patterns/data-table";
 
 import { api } from "~/trpc/react";
 

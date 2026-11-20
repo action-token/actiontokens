@@ -7,7 +7,7 @@ import {
 } from "@stellar/stellar-sdk";
 import { describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 import { changeContractFee, readContractFee } from "../services/admin/contract-fee";
 import { DEFAULT_ALERT_RULES } from "../services/admin/alerts";

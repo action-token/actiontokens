@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 import { nameMural, startScan, submitScan } from "../services/ar/mural-scan";
 
@@ -14,7 +14,7 @@ const vision = vi.hoisted(() => ({
   result: { ok: true, report: { units: 4 } } as Record<string, unknown>,
 }));
 vi.mock("../services/ar/vision", () => ({ checkWithVision: () => Promise.resolve(vision.result) }));
-vi.mock("@bandcoin/storage", () => ({
+vi.mock("@actiontokens/storage", () => ({
   getObjectBytes: () => Promise.resolve(Buffer.from([0xff, 0xd8, 1, 2])),
   publicS3Url: (key: string) => `https://cdn/${key}`,
   signMuralFrames: (_id: string, n: number) =>

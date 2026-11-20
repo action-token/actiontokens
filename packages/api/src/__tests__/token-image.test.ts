@@ -4,7 +4,7 @@ import type { ChainGateway } from "../services/chain-gateway";
 import { existingTokenImage, imageFromToml } from "../services/artist/token-image";
 
 const fetchPublicFile = vi.hoisted(() => vi.fn());
-vi.mock("@bandcoin/storage", () => ({ fetchPublicFile }));
+vi.mock("@actiontokens/storage", () => ({ fetchPublicFile }));
 
 const ISSUER = `G${"A".repeat(55)}`;
 const TOML = `

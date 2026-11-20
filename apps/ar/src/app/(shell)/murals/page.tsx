@@ -43,15 +43,15 @@ import {
   MAX_GPS_ACCURACY_M,
   SWEEP_SIDE_DEG,
   type ScanResult as Result,
-} from "@bandcoin/ar-core/murals/constants";
+} from "@actiontokens/ar-core/murals/constants";
 import type { Outline } from "~/lib/murals/localize";
 import { startMuralPack, useMuralPack, verifyMuralPack } from "~/lib/murals/pack";
 import { sfx } from "~/lib/murals/sfx";
 import { captureKeyframe, useMuralDetector } from "~/lib/murals/useMuralDetector";
 import { useCoinBalance, useNearbyMurals, useSubmitMuralScan } from "~/lib/murals/useMurals";
 import { useMuralSweep, type SweepSlot } from "~/lib/murals/useMuralSweep";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { site } from "@bandcoin/ar-core/site";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { site } from "@actiontokens/ar-core/site";
 
 /**
  * ── /murals ────────────────────────────────────────────────────────────────

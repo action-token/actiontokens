@@ -2,9 +2,9 @@
 
 import { Check, Users } from "lucide-react";
 
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { Avatar } from "@bandcoin/ui/patterns/person";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { Avatar } from "@actiontokens/ui/patterns/person";
 
 import { api } from "~/trpc/react";
 

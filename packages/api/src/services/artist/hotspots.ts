@@ -1,8 +1,8 @@
-import { columnsToLook, type PinLookInput } from "@bandcoin/ar-core/pin-look";
-import type { PinType, Prisma } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { generateRandomLocations, type HotspotShape } from "@bandcoin/geo";
-import { featureCenter, haversineMetres, type StoredFeature } from "@bandcoin/geo/map-geometry";
+import { columnsToLook, type PinLookInput } from "@actiontokens/ar-core/pin-look";
+import type { PinType, Prisma } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { generateRandomLocations, type HotspotShape } from "@actiontokens/geo";
+import { featureCenter, haversineMetres, type StoredFeature } from "@actiontokens/geo/map-geometry";
 
 import type { Context } from "../../context";
 import { webLink } from "./events";

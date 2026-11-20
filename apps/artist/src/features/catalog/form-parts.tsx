@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 
-import { Input } from "@bandcoin/ui/components/input";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { Field } from "@bandcoin/ui/patterns/form-page";
-import { validatePrice } from "@bandcoin/utils/asset-code";
+import { Input } from "@actiontokens/ui/components/input";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { Field } from "@actiontokens/ui/patterns/form-page";
+import { validatePrice } from "@actiontokens/utils/asset-code";
 
 export { Field };
 

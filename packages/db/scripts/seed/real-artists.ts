@@ -3,7 +3,7 @@
  * gives each a designed artist page, so the pages can be judged with real names, covers,
  * albums, tour dates and tiers.
  *
- *   PROD_DATABASE_URL=... pnpm --filter @bandcoin/db exec tsx scripts/seed/real-artists.ts
+ *   PROD_DATABASE_URL=... pnpm --filter @actiontokens/db exec tsx scripts/seed/real-artists.ts
  *
  * Production is only ever READ (the session is read-only). Nothing private is copied:
  * artists get a fake user, fake issuer keys and SoundHelix demo audio, never the real

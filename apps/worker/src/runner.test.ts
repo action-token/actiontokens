@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { Db, Job } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import type { Db, Job } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { healthOf, STALE_TICK_MS } from "./health";
 import {

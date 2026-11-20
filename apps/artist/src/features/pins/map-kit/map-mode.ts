@@ -1,11 +1,11 @@
 import { useSyncExternalStore } from "react";
 
-import { createMapPrefs } from "@bandcoin/map/prefs";
+import { createMapPrefs } from "@actiontokens/map/prefs";
 
 /**
  * The portal's map choices (2D / 3D, map type, terrain), shared by every portal map and kept per
  * device under `bandcoin-artist-map-*`. The styles and how they are picked are shared with the AR
- * app (`@bandcoin/map`).
+ * app (`@actiontokens/map`).
  */
 export {
   isStandardStyle,
@@ -16,7 +16,7 @@ export {
   mapStyleFor,
   type MapBase,
   type MapMode,
-} from "@bandcoin/map/style";
+} from "@actiontokens/map/style";
 
 const prefs = createMapPrefs("bandcoin-artist");
 

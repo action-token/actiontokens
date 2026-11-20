@@ -3,12 +3,12 @@
 import { Check, Clock, ExternalLink, LifeBuoy, Sparkles } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
-import { abbreviateAddress } from "@bandcoin/utils/address";
-import { stellarExpertAccountUrl } from "@bandcoin/wallet/config";
-import { Button } from "@bandcoin/ui/components/button";
-import { Progress } from "@bandcoin/ui/components/progress";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { abbreviateAddress } from "@actiontokens/utils/address";
+import { stellarExpertAccountUrl } from "@actiontokens/wallet/config";
+import { Button } from "@actiontokens/ui/components/button";
+import { Progress } from "@actiontokens/ui/components/progress";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { api } from "~/trpc/react";
 

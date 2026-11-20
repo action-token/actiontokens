@@ -1,6 +1,6 @@
-import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
-import type { CustomDomain } from "@bandcoin/db";
-import { normalizeDomain, validateDomain } from "@bandcoin/utils/domain";
+import { AppError, ErrorCodes, isAppError } from "@actiontokens/errors";
+import type { CustomDomain } from "@actiontokens/db";
+import { normalizeDomain, validateDomain } from "@actiontokens/utils/domain";
 
 import type { Context } from "../../context";
 import { notifySelf } from "../notifications/send";

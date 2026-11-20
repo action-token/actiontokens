@@ -3,9 +3,9 @@
 import { ChevronLeft, ChevronRight, Lock, Play } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { SectionTitle } from "@bandcoin/ui/patterns/media-carousel";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { SectionTitle } from "@actiontokens/ui/patterns/media-carousel";
 
 import { timeAgo } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";

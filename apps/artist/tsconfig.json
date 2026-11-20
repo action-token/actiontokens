@@ -1,5 +1,5 @@
 {
-  "extends": "@bandcoin/tsconfig/nextjs.json",
+  "extends": "@actiontokens/tsconfig/nextjs.json",
   "compilerOptions": {
     "paths": { "~/*": ["./src/*"] },
     "plugins": [{ "name": "next" }]

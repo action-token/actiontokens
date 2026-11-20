@@ -1,5 +1,5 @@
-import type { Prisma } from "@bandcoin/db";
-import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
+import type { Prisma } from "@actiontokens/db";
+import { AppError, ErrorCodes, isAppError } from "@actiontokens/errors";
 
 import type { Context, SessionUser } from "../../context";
 import { withAiQuota } from "../ai/quota";

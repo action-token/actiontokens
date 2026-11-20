@@ -1,4 +1,4 @@
-import { type Block, type BlockType, makeBlock } from "@bandcoin/page/blocks";
+import { type Block, type BlockType, makeBlock } from "@actiontokens/page/blocks";
 
 /**
  * Edits to the page being designed, as plain functions on the list of blocks.

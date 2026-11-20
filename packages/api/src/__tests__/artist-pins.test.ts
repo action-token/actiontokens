@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 import { suggestPinTags } from "../services/ai/generate";
 import type { AiModel } from "../services/ai/model";
@@ -18,7 +18,7 @@ import {
   type PinInput,
 } from "../services/artist/pins";
 
-vi.mock("@bandcoin/storage", () => ({
+vi.mock("@actiontokens/storage", () => ({
   isOwnS3Url: (url: string) => url.startsWith("https://cdn.example/"),
   uploadBufferToS3: vi.fn(),
 }));

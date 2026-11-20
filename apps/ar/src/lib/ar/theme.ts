@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import { site } from "@bandcoin/ar-core/site";
-import { createMapPrefs } from "@bandcoin/map/prefs";
-import { mapStyleFor } from "@bandcoin/map/style";
+import { site } from "@actiontokens/ar-core/site";
+import { createMapPrefs } from "@actiontokens/map/prefs";
+import { mapStyleFor } from "@actiontokens/map/style";
 import {
   onTabReturn,
   readSharedTheme,
   writeSharedTheme,
   type SharedTheme,
-} from "@bandcoin/ui/lib/shared-theme";
+} from "@actiontokens/ui/lib/shared-theme";
 
 /**
  * ── Theme ──────────────────────────────────────────────────────────────────
@@ -41,7 +41,7 @@ const THEME_COLOR: Record<ResolvedTheme, string> = {
  * ── Map style: 2D / 3D, map type, terrain ─────────────────────────────────
  *
  * The styles, the stored choices and how a style URL is picked are shared with the artist portal
- * (`@bandcoin/map`); AR keeps its own saved choices under `bandcoin-ar-map-*`. Every map in the
+ * (`@actiontokens/map`); AR keeps its own saved choices under `bandcoin-ar-map-*`. Every map in the
  * app follows them, so flipping 2D/3D on the main map also applies to directions, a collected
  * card's mini-map and the embed.
  */
@@ -52,8 +52,8 @@ export {
   mapStyleFor,
   type MapBase,
   type MapMode,
-} from "@bandcoin/map/style";
-export { storedChoice } from "@bandcoin/map/prefs";
+} from "@actiontokens/map/style";
+export { storedChoice } from "@actiontokens/map/prefs";
 
 const prefs = createMapPrefs("bandcoin-ar");
 
@@ -91,7 +91,7 @@ export function readStoredPreference(): ThemePreference {
 }
 
 /**
- * The theme is shared with the other Bandcoin sites through a cookie (`@bandcoin/ui/lib/shared-theme`),
+ * The theme is shared with the other Bandcoin sites through a cookie (`@actiontokens/ui/lib/shared-theme`),
  * whose word for "auto" is "system".
  */
 export const toShared = (pref: ThemePreference): SharedTheme => (pref === "auto" ? "system" : pref);

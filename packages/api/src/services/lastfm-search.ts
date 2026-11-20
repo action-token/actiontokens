@@ -1,4 +1,4 @@
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 /**
  * Last.fm track lookup for the music-bounty picker, as the old Bandcoin had it:

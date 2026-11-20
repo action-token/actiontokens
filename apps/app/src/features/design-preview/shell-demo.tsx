@@ -18,10 +18,10 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { BrandMark } from "@bandcoin/ui/patterns/boot-screen";
-import { MediaCarousel } from "@bandcoin/ui/patterns/media-carousel";
+import { Button } from "@actiontokens/ui/components/button";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { BrandMark } from "@actiontokens/ui/patterns/boot-screen";
+import { MediaCarousel } from "@actiontokens/ui/patterns/media-carousel";
 
 import { SampleCover, type CoverName } from "./sample-cover";
 

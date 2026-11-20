@@ -1,5 +1,5 @@
-import { enqueueJob, type JobType } from "@bandcoin/api";
-import type { Db } from "@bandcoin/db";
+import { enqueueJob, type JobType } from "@actiontokens/api";
+import type { Db } from "@actiontokens/db";
 
 /** Jobs that run on a clock rather than when something happens. */
 export const SCHEDULES: { type: JobType; everyMs: number }[] = [

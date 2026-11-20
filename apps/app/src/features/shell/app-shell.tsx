@@ -6,10 +6,10 @@ import { usePathname } from "next/navigation";
 import { Search } from "lucide-react";
 import { type CSSProperties, type ReactNode, useEffect } from "react";
 
-import { cn } from "@bandcoin/ui/lib/cn";
-import { PhoneTabBar } from "@bandcoin/ui/patterns/phone-tab-bar";
-import { SiteBackdrop } from "@bandcoin/ui/patterns/site-backdrop";
-import { usePersistedFlag, useSidebarCollapsed } from "@bandcoin/ui/lib/sidebar-collapsed";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { PhoneTabBar } from "@actiontokens/ui/patterns/phone-tab-bar";
+import { SiteBackdrop } from "@actiontokens/ui/patterns/site-backdrop";
+import { usePersistedFlag, useSidebarCollapsed } from "@actiontokens/ui/lib/sidebar-collapsed";
 
 import { AccountButton } from "~/features/account/account-button";
 import { BountiesPanel } from "~/features/bounty/bounties-panel";

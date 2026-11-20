@@ -4,8 +4,8 @@ import { Loader2, Star, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 
-import { cn } from "@bandcoin/ui/lib/cn";
-import { useConnectWalletDialogStore } from "@bandcoin/wallet";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
 import { api } from "~/trpc/react";
 

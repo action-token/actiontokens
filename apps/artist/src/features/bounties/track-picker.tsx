@@ -4,8 +4,8 @@ import { Loader2, Plus, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
 
 import { useDebounced } from "~/lib/use-debounced";
 import { api, type RouterOutputs } from "~/trpc/react";

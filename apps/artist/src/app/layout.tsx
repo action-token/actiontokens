@@ -3,7 +3,7 @@ import "~/styles/globals.css";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
-import { sharedThemeSeedScript } from "@bandcoin/ui/lib/shared-theme";
+import { sharedThemeSeedScript } from "@actiontokens/ui/lib/shared-theme";
 
 import { Providers } from "./providers";
 

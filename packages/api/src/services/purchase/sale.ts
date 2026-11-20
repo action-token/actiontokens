@@ -1,8 +1,8 @@
 import { Asset } from "@stellar/stellar-sdk";
 
-import type { Db } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { toAmount, toStroops } from "@bandcoin/chain";
+import type { Db } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { toAmount, toStroops } from "@actiontokens/chain";
 
 import { accessSelect } from "../catalog/access";
 

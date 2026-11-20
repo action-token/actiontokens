@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { MAX_TEMPLATES_PER_ARTIST } from "@bandcoin/ar-core/pin-template";
+import { MAX_TEMPLATES_PER_ARTIST } from "@actiontokens/ar-core/pin-template";
 
 import {
   createTemplate,

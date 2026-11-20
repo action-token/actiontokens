@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { Layer, Marker, Source, useMap } from "react-map-gl/mapbox";
 
-import { circleFeature, toMapboxFeature } from "@bandcoin/geo/map-geometry";
+import { circleFeature, toMapboxFeature } from "@actiontokens/geo/map-geometry";
 
 import { useMapControlStack } from "./map-control-stack-context";
 

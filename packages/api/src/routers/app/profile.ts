@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { itemCardSelect, listedItemWhere, toItemCard } from "../../services/catalog/item-card";
 import { createRouter, publicProcedure } from "../../trpc";

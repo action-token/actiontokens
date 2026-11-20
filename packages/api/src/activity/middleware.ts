@@ -1,5 +1,5 @@
-import { isAppError } from "@bandcoin/errors";
-import type { Prisma } from "@bandcoin/db";
+import { isAppError } from "@actiontokens/errors";
+import type { Prisma } from "@actiontokens/db";
 
 import type { Context } from "../context";
 import { redact } from "./redact";

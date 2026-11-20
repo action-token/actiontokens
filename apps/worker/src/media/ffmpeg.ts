@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 /**
  * The ffmpeg recipes for playable music, ported from the old bandfan worker

@@ -8,8 +8,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@bandcoin/ui/components/select";
-import { Field } from "@bandcoin/ui/patterns/form-page";
+} from "@actiontokens/ui/components/select";
+import { Field } from "@actiontokens/ui/patterns/form-page";
 
 import { api } from "~/trpc/react";
 

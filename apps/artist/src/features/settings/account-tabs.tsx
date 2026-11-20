@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { abbreviateAddress } from "@bandcoin/utils/address";
-import { stellarExpertAccountUrl } from "@bandcoin/wallet/config";
+import { Button } from "@actiontokens/ui/components/button";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { abbreviateAddress } from "@actiontokens/utils/address";
+import { stellarExpertAccountUrl } from "@actiontokens/wallet/config";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 

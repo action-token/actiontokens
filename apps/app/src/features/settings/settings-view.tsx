@@ -7,16 +7,16 @@ import { signOut, useSession } from "next-auth/react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { Label } from "@bandcoin/ui/components/label";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { Switch } from "@bandcoin/ui/components/switch";
-import { Textarea } from "@bandcoin/ui/components/textarea";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { PageBody } from "@bandcoin/ui/patterns/page-header";
-import { abbreviateAddress } from "@bandcoin/utils/address";
-import { useConnectWalletDialogStore } from "@bandcoin/wallet";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { Label } from "@actiontokens/ui/components/label";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { Switch } from "@actiontokens/ui/components/switch";
+import { Textarea } from "@actiontokens/ui/components/textarea";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { PageBody } from "@actiontokens/ui/patterns/page-header";
+import { abbreviateAddress } from "@actiontokens/utils/address";
+import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
 import { ThemeSwitch } from "~/components/theme-switch";
 import { Avatar } from "~/features/shell/context-panel";

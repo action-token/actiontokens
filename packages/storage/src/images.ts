@@ -1,6 +1,6 @@
 import sharp from "sharp";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { fetchPublicFile } from "./public-url-guard";
 import type { Placement } from "./key-layout";
@@ -48,7 +48,7 @@ export async function createCircularImage(sourceUrl: string): Promise<string> {
 /**
  * A pin outline (an SVG path in a 100×100 box) drawn as a solid black shape on white, as a PNG:
  * what an AI model is shown when it redraws the outline. Pass only a validated path (see
- * `checkShapePath` in `@bandcoin/ar-core/pin-look`).
+ * `checkShapePath` in `@actiontokens/ar-core/pin-look`).
  */
 export async function renderOutlinePng(path: string, size = 1024): Promise<Buffer> {
   if (!/^[MLHVCSQTAZ0-9eE.,\s+-]+$/.test(path))

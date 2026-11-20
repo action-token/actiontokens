@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 import {
   createStory,
@@ -13,7 +13,7 @@ import {
 } from "../services/artist/stories";
 import { announceStory } from "../services/notifications/story";
 
-vi.mock("@bandcoin/storage", () => ({
+vi.mock("@actiontokens/storage", () => ({
   isOwnS3Url: (url: string) => url.startsWith("https://cdn.example/"),
 }));
 vi.mock("../services/notifications/story", () => ({ announceStory: vi.fn() }));

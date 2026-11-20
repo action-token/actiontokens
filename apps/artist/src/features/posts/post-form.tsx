@@ -6,12 +6,12 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { Field, FormPage, FormSection } from "@bandcoin/ui/patterns/form-page";
-import { Markdown } from "@bandcoin/ui/patterns/markdown";
-import { MarkdownEditor } from "@bandcoin/ui/patterns/markdown-editor";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { Field, FormPage, FormSection } from "@actiontokens/ui/patterns/form-page";
+import { Markdown } from "@actiontokens/ui/patterns/markdown";
+import { MarkdownEditor } from "@actiontokens/ui/patterns/markdown-editor";
 
 import { DeleteCard } from "~/components/delete-card";
 import { usePortal } from "~/features/portal/use-portal";

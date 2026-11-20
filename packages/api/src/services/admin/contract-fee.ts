@@ -1,7 +1,7 @@
 import { Account } from "@stellar/stellar-sdk";
 
-import { buildNftSetPlatformFee } from "@bandcoin/chain";
-import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
+import { buildNftSetPlatformFee } from "@actiontokens/chain";
+import { AppError, ErrorCodes, isAppError } from "@actiontokens/errors";
 
 import type { Context } from "../../context";
 

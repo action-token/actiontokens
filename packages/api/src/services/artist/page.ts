@@ -1,15 +1,15 @@
-import { type Block, type BlockType, normalizeBlocks } from "@bandcoin/page/blocks";
-import { DEFAULT_TEMPLATE_KEY, TEMPLATES, blocksOf, templateByKey } from "@bandcoin/page/templates";
-import { DEFAULT_THEME, type PageTheme, themeSchema } from "@bandcoin/page/theme";
-import type { Prisma } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { isOwnS3Url } from "@bandcoin/storage";
+import { type Block, type BlockType, normalizeBlocks } from "@actiontokens/page/blocks";
+import { DEFAULT_TEMPLATE_KEY, TEMPLATES, blocksOf, templateByKey } from "@actiontokens/page/templates";
+import { DEFAULT_THEME, type PageTheme, themeSchema } from "@actiontokens/page/theme";
+import type { Prisma } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { isOwnS3Url } from "@actiontokens/storage";
 
 import type { Context } from "../../context";
 import { invalid } from "./items";
 
 /**
- * The artist's public page, built from blocks (see @bandcoin/page). Each artist
+ * The artist's public page, built from blocks (see @actiontokens/page). Each artist
  * has one layout with two copies: the draft they edit (autosaved) and the
  * published page visitors see. Publishing copies the draft over, theme
  * included, so a half-finished edit never reaches visitors.

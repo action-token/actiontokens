@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { circleAround, polygonFeature } from "@bandcoin/geo/map-geometry";
+import { circleAround, polygonFeature } from "@actiontokens/geo/map-geometry";
 
 import {
   createHotspot,

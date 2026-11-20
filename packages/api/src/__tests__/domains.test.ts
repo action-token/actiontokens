@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { normalizeDomain, validateDomain } from "@bandcoin/utils/domain";
+import { normalizeDomain, validateDomain } from "@actiontokens/utils/domain";
 
 import { describeForArtist } from "../services/notifications/describe";
 import type { DomainHost, HostDomainStatus } from "../services/domains/host";

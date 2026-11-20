@@ -4,12 +4,12 @@ import { Aperture, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
-import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
+import { Button } from "@actiontokens/ui/components/button";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
+import { PageBody, PageHeader } from "@actiontokens/ui/patterns/page-header";
+import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
 
 import { timeLeft } from "~/features/stories/story-file";
 import { api, type RouterOutputs } from "~/trpc/react";

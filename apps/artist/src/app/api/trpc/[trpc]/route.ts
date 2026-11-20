@@ -1,6 +1,6 @@
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
-import { portalRouter } from "@bandcoin/api";
+import { portalRouter } from "@actiontokens/api";
 
 import { createPortalContext } from "~/server/api";
 

@@ -3,7 +3,7 @@
    Import once, right after Tailwind, in every app's globals.css:
 
      @import "tailwindcss";
-     @import "@bandcoin/ui/styles/theme.css";
+     @import "@actiontokens/ui/styles/theme.css";
      @source "../../../packages/ui/src";
 
    Dark first. next-themes sets data-theme="light" | "dark" on <html>; with no

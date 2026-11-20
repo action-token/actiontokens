@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
 
-import { normalizeVanityName, validateVanityName } from "@bandcoin/utils/vanity";
+import { normalizeVanityName, validateVanityName } from "@actiontokens/utils/vanity";
 
 import { ArtistView, artistMetadata } from "~/features/artist-page/artist-view";
 import { serverApi } from "~/server/api";

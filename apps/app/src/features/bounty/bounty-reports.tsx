@@ -18,12 +18,12 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Dialog, DialogContent, DialogTitle } from "@bandcoin/ui/components/dialog";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { Markdown } from "@bandcoin/ui/patterns/markdown";
-import { MarkdownEditor } from "@bandcoin/ui/patterns/markdown-editor";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
+import { Button } from "@actiontokens/ui/components/button";
+import { Dialog, DialogContent, DialogTitle } from "@actiontokens/ui/components/dialog";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { Markdown } from "@actiontokens/ui/patterns/markdown";
+import { MarkdownEditor } from "@actiontokens/ui/patterns/markdown-editor";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
 
 import { timeAgo } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";

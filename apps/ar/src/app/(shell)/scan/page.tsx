@@ -12,7 +12,7 @@ import { useAuth } from "~/lib/ar/store";
 import { useCamera } from "~/lib/ar/useCamera";
 import { pinIdFromScan, postIdFromScan, useQrScanner } from "~/lib/ar/useQrScanner";
 import { useCollectPinByQr } from "~/lib/ar/usePins";
-import { site } from "@bandcoin/ar-core/site";
+import { site } from "@actiontokens/ar-core/site";
 import { api } from "~/trpc/react";
 
 /**

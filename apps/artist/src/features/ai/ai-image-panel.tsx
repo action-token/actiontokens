@@ -4,10 +4,10 @@ import { Check, ImagePlus, Loader2, RefreshCw, Sparkles, X } from "lucide-react"
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import type { FillForm } from "@bandcoin/api";
-import { Button } from "@bandcoin/ui/components/button";
-import { Textarea } from "@bandcoin/ui/components/textarea";
-import { cn } from "@bandcoin/ui/lib/cn";
+import type { FillForm } from "@actiontokens/api";
+import { Button } from "@actiontokens/ui/components/button";
+import { Textarea } from "@actiontokens/ui/components/textarea";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { api } from "~/trpc/react";
 

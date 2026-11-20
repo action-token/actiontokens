@@ -1,5 +1,5 @@
-import { handleMcpPost, mcpNotAllowed } from "@bandcoin/api";
-import { db } from "@bandcoin/db/server";
+import { handleMcpPost, mcpNotAllowed } from "@actiontokens/api";
+import { db } from "@actiontokens/db/server";
 
 import { agentCallerFor } from "~/server/api";
 

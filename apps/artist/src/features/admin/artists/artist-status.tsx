@@ -1,6 +1,6 @@
 import { Ban, Clock, UserCheck, X } from "lucide-react";
 
-import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
+import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
 
 type Status = "PENDING" | "APPROVED" | "REJECTED" | "BANNED";
 

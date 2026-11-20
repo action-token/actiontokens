@@ -2,13 +2,13 @@
 
 import "mapbox-gl/dist/mapbox-gl.css";
 
-import { MapTerrainLayers } from "@bandcoin/map/terrain";
+import { MapTerrainLayers } from "@actiontokens/map/terrain";
 import { useTheme } from "next-themes";
 import type { IControl } from "mapbox-gl";
 import { forwardRef, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import MapGL, { useControl, useMap, type MapProps, type MapRef } from "react-map-gl/mapbox";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { MAPBOX_TOKEN } from "../mapbox";
 import { MapControlStack } from "./map-control-stack";

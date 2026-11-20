@@ -3,15 +3,15 @@
 import { useSession } from "next-auth/react";
 import { type ReactNode, useRef, useState } from "react";
 
-import { isAppError } from "@bandcoin/errors";
-import { Button } from "@bandcoin/ui/components/button";
+import { isAppError } from "@actiontokens/errors";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   CUSTODIAL_COUNTDOWN_SECONDS,
   ToastViewport,
   TransactionToast,
   type TransactionStep,
-} from "@bandcoin/ui/patterns/transaction-toast";
-import { getWalletProvider, signTransaction } from "@bandcoin/wallet";
+} from "@actiontokens/ui/patterns/transaction-toast";
+import { getWalletProvider, signTransaction } from "@actiontokens/wallet";
 
 type Prepared = { xdr: string; signer: "custodial" | "wallet" };
 

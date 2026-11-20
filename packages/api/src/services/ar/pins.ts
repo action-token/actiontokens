@@ -1,13 +1,13 @@
 import type { Horizon } from "@stellar/stellar-sdk";
 
-import { deriveRarity } from "@bandcoin/ar-core/ar/rarity";
-import type { ArPin } from "@bandcoin/ar-core/ar/types";
-import type { MapLayerChip } from "@bandcoin/ar-core/layers";
-import { resolvePinLook } from "@bandcoin/ar-core/pin-look";
-import { site } from "@bandcoin/ar-core/site";
-import type { Db, Prisma } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { generateRedeemCode } from "@bandcoin/utils/redeem-code";
+import { deriveRarity } from "@actiontokens/ar-core/ar/rarity";
+import type { ArPin } from "@actiontokens/ar-core/ar/types";
+import type { MapLayerChip } from "@actiontokens/ar-core/layers";
+import { resolvePinLook } from "@actiontokens/ar-core/pin-look";
+import { site } from "@actiontokens/ar-core/site";
+import type { Db, Prisma } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { generateRedeemCode } from "@actiontokens/utils/redeem-code";
 
 import type { Context } from "../../context";
 import { tokenTrusted } from "../catalog/access";

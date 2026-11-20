@@ -1,7 +1,7 @@
 import { GoogleAuth } from "google-auth-library";
 
-import type { RejectCode } from "@bandcoin/ar-core/murals/constants";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import type { RejectCode } from "@actiontokens/ar-core/murals/constants";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 /**
  * ── Cloud Vision ───────────────────────────────────────────────────────────

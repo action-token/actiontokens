@@ -4,7 +4,7 @@ import { ImagePlus, Loader2, Music, UploadCloud, Video } from "lucide-react";
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { useUpload } from "../catalog/use-upload";
 import { planUploads, type PostMediaType, songTitle } from "./media-files";

@@ -1,4 +1,4 @@
-import { unitTestConfig } from "@bandcoin/vitest-config";
+import { unitTestConfig } from "@actiontokens/vitest-config";
 
 export default unitTestConfig(import.meta.dirname, {
   include: ["scripts/**/*.test.ts"],

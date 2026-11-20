@@ -1,8 +1,8 @@
 import { Account, Keypair, Networks } from "@stellar/stellar-sdk";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import type { Db } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 const mocks = vi.hoisted(() => ({
   lookup: vi.fn(),
@@ -19,7 +19,7 @@ const mocks = vi.hoisted(() => ({
   runCardNftSteps: vi.fn(),
 }));
 
-vi.mock("@bandcoin/auth/email-lookup", () => ({ lookupAccountForEmail: mocks.lookup }));
+vi.mock("@actiontokens/auth/email-lookup", () => ({ lookupAccountForEmail: mocks.lookup }));
 vi.mock("../services/purchase/sale", () => ({ loadSale: mocks.loadSale }));
 vi.mock("../services/purchase/nft", () => ({
   buildNftTopUp: mocks.buildNftTopUp,

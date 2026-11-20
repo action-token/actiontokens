@@ -6,8 +6,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { useConnectWalletDialogStore } from "@bandcoin/wallet";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
 import { Money } from "~/components/money";
 import { api, type RouterOutputs } from "~/trpc/react";

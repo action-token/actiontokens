@@ -8,7 +8,7 @@ import {
 } from "@stellar/stellar-sdk";
 import { describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 import { createContext, type SessionUser } from "../context";
 import { appRouter } from "../root-app";

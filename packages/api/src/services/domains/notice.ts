@@ -1,4 +1,4 @@
-import type { CustomDomainStatus } from "@bandcoin/db";
+import type { CustomDomainStatus } from "@actiontokens/db";
 
 import { type HostDomainStatus, isLive } from "./host";
 

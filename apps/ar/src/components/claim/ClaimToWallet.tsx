@@ -4,8 +4,8 @@ import { CheckCircle2, Info, Loader2, Wallet } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
-import { cn } from "@bandcoin/ui/lib/cn";
-import { TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { TransactionToast } from "@actiontokens/ui/patterns/transaction-toast";
 
 import { ArButton } from "~/components/ui/ArButton";
 import { BottomSheet } from "~/components/ui/BottomSheet";

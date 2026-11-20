@@ -3,10 +3,10 @@
 import { CheckCircle2, Clock, Ticket, Users, type LucideIcon } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@actiontokens/ui/components/tabs";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { PageBody, PageHeader } from "@actiontokens/ui/patterns/page-header";
 
 import { api } from "~/trpc/react";
 

@@ -1,4 +1,4 @@
-import { JOB_TYPES } from "@bandcoin/api";
+import { JOB_TYPES } from "@actiontokens/api";
 import { describe, expect, it } from "vitest";
 
 import { handlersFor } from "./handlers";

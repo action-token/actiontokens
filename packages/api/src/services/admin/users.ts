@@ -1,5 +1,5 @@
-import type { Prisma, UserRole } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import type { Prisma, UserRole } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import type { Context, SessionUser } from "../../context";
 

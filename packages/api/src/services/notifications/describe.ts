@@ -1,5 +1,5 @@
-import type { NotificationType } from "@bandcoin/db";
-import { VANITY_GRACE_DAYS, VANITY_RESERVE_DAYS } from "@bandcoin/utils/vanity";
+import type { NotificationType } from "@actiontokens/db";
+import { VANITY_GRACE_DAYS, VANITY_RESERVE_DAYS } from "@actiontokens/utils/vanity";
 
 import { describeDomain, type DomainNotice } from "../domains/notice";
 

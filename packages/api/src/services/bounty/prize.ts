@@ -1,8 +1,8 @@
 import { Asset } from "@stellar/stellar-sdk";
 
-import { assetFor, tokenAddressOf } from "@bandcoin/chain";
-import type { ChainConfig } from "@bandcoin/chain/server";
-import type { Currency } from "@bandcoin/db";
+import { assetFor, tokenAddressOf } from "@actiontokens/chain";
+import type { ChainConfig } from "@actiontokens/chain/server";
+import type { Currency } from "@actiontokens/db";
 
 import type { ChainGateway } from "../chain-gateway";
 

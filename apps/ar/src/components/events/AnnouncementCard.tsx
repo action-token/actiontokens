@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { ArtistAvatar } from "~/components/artist/ArtistAvatar";
 import { Skeleton } from "~/components/ui/Skeleton";
-import type { ArAnnouncement } from "@bandcoin/ar-core/ar/types";
+import type { ArAnnouncement } from "@actiontokens/ar-core/ar/types";
 
 /**
  * ── AnnouncementCard ───────────────────────────────────────────────────────

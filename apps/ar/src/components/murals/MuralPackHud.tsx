@@ -9,7 +9,7 @@ import { sfx } from "~/lib/murals/sfx";
 
 import { PackArt } from "./PackArt";
 import { PackPanel } from "./PackPanel";
-import { site } from "@bandcoin/ar-core/site";
+import { site } from "@actiontokens/ar-core/site";
 
 /** Pages that must never pull 23 MB: artist-site embeds and dev tools. */
 const NO_DOWNLOAD = ["/embed", "/dev"];

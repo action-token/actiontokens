@@ -1,4 +1,4 @@
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import type { Placement } from "./key-layout";
 import { presignUpload, type DeclaredFile } from "./presign";

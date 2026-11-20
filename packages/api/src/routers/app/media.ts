@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { playbackFor } from "../../services/media/playback";
 import { stemsFor } from "../../services/media/stems";

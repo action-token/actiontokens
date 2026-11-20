@@ -6,17 +6,17 @@ import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import type { MapRef } from "react-map-gl/mapbox";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Label } from "@bandcoin/ui/components/label";
+import { Button } from "@actiontokens/ui/components/button";
+import { Label } from "@actiontokens/ui/components/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@bandcoin/ui/components/select";
-import { Switch } from "@bandcoin/ui/components/switch";
-import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
+} from "@actiontokens/ui/components/select";
+import { Switch } from "@actiontokens/ui/components/switch";
+import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
 
 import { formatWhen } from "~/lib/datetime";
 import { api, type RouterOutputs } from "~/trpc/react";

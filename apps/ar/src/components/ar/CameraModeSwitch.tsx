@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Frame, QrCode, ScanLine } from "lucide-react";
 import { useRouter } from "~/lib/navigation";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 const MODES = [
   { id: "ar", href: "/ar", label: "AR", icon: ScanLine },

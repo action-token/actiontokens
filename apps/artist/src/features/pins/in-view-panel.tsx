@@ -3,8 +3,8 @@
 import { ChevronDown, MapPin } from "lucide-react";
 import { useState } from "react";
 
-import { cn } from "@bandcoin/ui/lib/cn";
-import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
 
 import type { RouterOutputs } from "~/trpc/react";
 

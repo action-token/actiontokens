@@ -1,16 +1,16 @@
 import { checkLayer } from "./layers";
 import { lookColumnsFor, lookData, PIN_LOOK_SELECT } from "./pin-look";
-import { toAmount, toStroops } from "@bandcoin/chain";
+import { toAmount, toStroops } from "@actiontokens/chain";
 import {
   columnsToLook,
   resolvePinLook,
   type PinLookColumns,
   type PinLookInput,
-} from "@bandcoin/ar-core/pin-look";
-import type { PinType, Prisma } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { randomLocation } from "@bandcoin/geo";
-import { isOwnS3Url } from "@bandcoin/storage";
+} from "@actiontokens/ar-core/pin-look";
+import type { PinType, Prisma } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { randomLocation } from "@actiontokens/geo";
+import { isOwnS3Url } from "@actiontokens/storage";
 
 import type { Context } from "../../context";
 import { webLink } from "./events";

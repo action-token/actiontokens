@@ -133,7 +133,7 @@ model Order {
   method         PayMethod
   status         OrderStatus @default(QUOTED)
   quoteExpiresAt DateTime?
-  /// The quote the buyer saw: lines, rate, payouts (see @bandcoin/chain Quote)
+  /// The quote the buyer saw: lines, rate, payouts (see @actiontokens/chain Quote)
   breakdown      Json?
   /// USD per unit of `currency` when quoted (XLM and USDC are priced live from USD)
   rateUsd        Decimal?    @db.Decimal(20, 7)

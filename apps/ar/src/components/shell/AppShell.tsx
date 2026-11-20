@@ -2,7 +2,7 @@ import { ChevronLeft } from "lucide-react";
 import { useRouter } from "~/lib/navigation";
 import { type ReactNode } from "react";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 import { BottomTabBar } from "./BottomTabBar";
 import { NotificationsButton } from "./NotificationsButton";
 import { ProfileButton } from "./ProfileButton";

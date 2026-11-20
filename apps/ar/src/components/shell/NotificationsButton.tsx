@@ -2,7 +2,7 @@ import { Bell } from "lucide-react";
 import Link from "next/link";
 
 import { useAuth } from "~/lib/ar/store";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 import { api } from "~/trpc/react";
 
 /**

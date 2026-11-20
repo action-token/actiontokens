@@ -3,18 +3,18 @@
 import { Ban, Check, Clock, ExternalLink, Mic2, UserCheck, UserX, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@bandcoin/ui/components/select";
-import { DataTable, type Column, type RowAction } from "@bandcoin/ui/patterns/data-table";
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
-import { Person } from "@bandcoin/ui/patterns/person";
-import { FilterChips, SearchInput, Toolbar } from "@bandcoin/ui/patterns/toolbar";
+} from "@actiontokens/ui/components/select";
+import { DataTable, type Column, type RowAction } from "@actiontokens/ui/patterns/data-table";
+import { PageBody, PageHeader } from "@actiontokens/ui/patterns/page-header";
+import { Person } from "@actiontokens/ui/patterns/person";
+import { FilterChips, SearchInput, Toolbar } from "@actiontokens/ui/patterns/toolbar";
 
 import { timeAgo } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";

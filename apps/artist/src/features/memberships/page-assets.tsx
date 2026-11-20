@@ -5,13 +5,13 @@ import Link from "next/link";
 import { type FormEvent, useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { Textarea } from "@bandcoin/ui/components/textarea";
-import { ConfirmDialog } from "@bandcoin/ui/patterns/confirm-dialog";
-import { Field } from "@bandcoin/ui/patterns/form-page";
-import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { Textarea } from "@actiontokens/ui/components/textarea";
+import { ConfirmDialog } from "@actiontokens/ui/patterns/confirm-dialog";
+import { Field } from "@actiontokens/ui/patterns/form-page";
+import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 

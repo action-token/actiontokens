@@ -5,10 +5,10 @@ import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Layer, Marker, Source, type MapRef } from "react-map-gl/mapbox";
 import toast from "react-hot-toast";
 
-import { Input } from "@bandcoin/ui/components/input";
-import { Label } from "@bandcoin/ui/components/label";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { circleAround, toMapboxFeature, type LatLng } from "@bandcoin/geo/map-geometry";
+import { Input } from "@actiontokens/ui/components/input";
+import { Label } from "@actiontokens/ui/components/label";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { circleAround, toMapboxFeature, type LatLng } from "@actiontokens/geo/map-geometry";
 
 import { useDebounced } from "~/lib/use-debounced";
 

@@ -1,5 +1,5 @@
 import { Networks } from "@stellar/stellar-sdk";
-import { AppError, isEnvValidationSkipped } from "@bandcoin/errors";
+import { AppError, isEnvValidationSkipped } from "@actiontokens/errors";
 
 export type StellarNetworkName = "testnet" | "mainnet";
 

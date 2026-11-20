@@ -15,16 +15,16 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { Textarea } from "@bandcoin/ui/components/textarea";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { Textarea } from "@actiontokens/ui/components/textarea";
 import {
   Field,
   FormPage,
   FormSection,
   OptionList,
   SwitchRow,
-} from "@bandcoin/ui/patterns/form-page";
+} from "@actiontokens/ui/patterns/form-page";
 
 import { DeleteCard } from "~/components/delete-card";
 import { fromLocalInput, toLocalInput } from "~/lib/datetime";

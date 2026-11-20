@@ -1,4 +1,4 @@
-import { AppError, type ErrorCode, ErrorCodes } from "@bandcoin/errors";
+import { AppError, type ErrorCode, ErrorCodes } from "@actiontokens/errors";
 
 type ResultCodes = { transaction?: string; operations?: string[] };
 

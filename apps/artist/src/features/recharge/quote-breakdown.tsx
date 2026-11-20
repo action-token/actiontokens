@@ -2,8 +2,8 @@
 
 import { CircleAlert } from "lucide-react";
 
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { PriceBreakdown, ShortfallNotice } from "@bandcoin/ui/patterns/price-breakdown";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { PriceBreakdown, ShortfallNotice } from "@actiontokens/ui/patterns/price-breakdown";
 
 import { Money } from "~/components/money";
 import type { DisplayCurrency } from "~/lib/format";

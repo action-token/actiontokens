@@ -11,7 +11,7 @@ import {
 } from "../../services/ai/generate";
 import { openaiModel } from "../../services/ai/model";
 import { aiRemaining } from "../../services/ai/quota";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { artistProcedure, authedProcedure, createRouter } from "../../trpc";
 

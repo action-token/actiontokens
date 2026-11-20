@@ -5,13 +5,13 @@ import {
   networkFeeXlm,
   quoteIssuerSetup,
   type RechargeProblem,
-} from "@bandcoin/chain";
-import { QUOTE_TTL_SECONDS } from "@bandcoin/chain/quote";
-import { encryptSecret, fundsOf } from "@bandcoin/chain/server";
-import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
-import { copyImageToBucket, isOwnS3Url } from "@bandcoin/storage";
-import { normalizeAssetCode, validateAssetCode } from "@bandcoin/utils/asset-code";
-import { slugFromName, validateSlug } from "@bandcoin/utils/slug";
+} from "@actiontokens/chain";
+import { QUOTE_TTL_SECONDS } from "@actiontokens/chain/quote";
+import { encryptSecret, fundsOf } from "@actiontokens/chain/server";
+import { AppError, ErrorCodes, isAppError } from "@actiontokens/errors";
+import { copyImageToBucket, isOwnS3Url } from "@actiontokens/storage";
+import { normalizeAssetCode, validateAssetCode } from "@actiontokens/utils/asset-code";
+import { slugFromName, validateSlug } from "@actiontokens/utils/slug";
 
 import { type Context, isCustodial, type SessionUser } from "../../context";
 import { checkExistingToken, type TokenCheck } from "./fan-token";

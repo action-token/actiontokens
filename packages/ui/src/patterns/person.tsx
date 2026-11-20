@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { cn } from "../lib/cn";
-import { abbreviateAddress } from "@bandcoin/utils/address";
+import { abbreviateAddress } from "@actiontokens/utils/address";
 
 /** First letter for an avatar without a picture. */
 function initial(text: string | null | undefined) {

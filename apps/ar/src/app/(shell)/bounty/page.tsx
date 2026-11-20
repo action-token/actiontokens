@@ -5,7 +5,7 @@ import { Crown, FileText, Search, Users, Wallet, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { BountyCard, BountyCardSkeleton } from "~/components/bounty/BountyCard";
 import { PrizeIcon } from "~/components/bounty/PrizeIcon";

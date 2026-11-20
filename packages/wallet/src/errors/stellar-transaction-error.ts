@@ -1,4 +1,4 @@
-import { AppError, ErrorCodes, type ErrorCode } from "@bandcoin/errors";
+import { AppError, ErrorCodes, type ErrorCode } from "@actiontokens/errors";
 
 /** A failed Stellar submission, translated into something a person can act on. */
 export interface StellarErrorSummary {

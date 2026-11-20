@@ -3,9 +3,9 @@
 import { Check, CornerDownLeft, MessageCircleQuestion } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import type { AgentBlock } from "@bandcoin/api/agent-contract";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { Button } from "@actiontokens/ui/components/button";
+import type { AgentBlock } from "@actiontokens/api/agent-contract";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 type Choices = Extract<AgentBlock, { kind: "choices" }>;
 

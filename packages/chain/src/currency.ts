@@ -1,6 +1,6 @@
 import { Asset } from "@stellar/stellar-sdk";
 
-/** Mirrors the `Currency` enum in @bandcoin/db. USD means a card payment. */
+/** Mirrors the `Currency` enum in @actiontokens/db. USD means a card payment. */
 export const CURRENCIES = ["BANDCOIN", "XLM", "USDC", "USD"] as const;
 export type Currency = (typeof CURRENCIES)[number];
 export type OnChainCurrency = Exclude<Currency, "USD">;

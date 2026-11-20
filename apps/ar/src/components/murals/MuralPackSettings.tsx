@@ -10,7 +10,7 @@ import {
   useMuralPack,
   verifyMuralPack,
 } from "~/lib/murals/pack";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { PackArt } from "./PackArt";
 import { PackBar } from "./PackPanel";

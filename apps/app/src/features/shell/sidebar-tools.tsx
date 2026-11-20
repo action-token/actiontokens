@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { type ReactNode, useState } from "react";
 
-import { Popover, PopoverContent, PopoverTrigger } from "@bandcoin/ui/components/popover";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { sideIconButton } from "@bandcoin/ui/patterns/side-frame";
+import { Popover, PopoverContent, PopoverTrigger } from "@actiontokens/ui/components/popover";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { sideIconButton } from "@actiontokens/ui/patterns/side-frame";
 
 import { timeAgo } from "~/lib/format";
 import { api } from "~/trpc/react";

@@ -1,9 +1,9 @@
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import type { Context } from "../../context";
 
 /**
- * An artist's own pin shapes (plan 43; the built-in ones live in `@bandcoin/ar-core/pin-look`).
+ * An artist's own pin shapes (plan 43; the built-in ones live in `@actiontokens/ar-core/pin-look`).
  * A shape in use is archived rather than deleted, so its pins keep drawing it. The outline is
  * checked by the router (`shapePathSchema`) before it gets here.
  */

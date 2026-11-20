@@ -1,4 +1,4 @@
-import { PageBody } from "@bandcoin/ui/patterns/page-header";
+import { PageBody } from "@actiontokens/ui/patterns/page-header";
 
 import { Hero } from "~/features/home/hero";
 import { HomeView } from "~/features/home/home-view";

@@ -3,23 +3,23 @@
 import { format } from "date-fns";
 import { useState } from "react";
 
-import { Checkbox } from "@bandcoin/ui/components/checkbox";
-import { Input } from "@bandcoin/ui/components/input";
+import { Checkbox } from "@actiontokens/ui/components/checkbox";
+import { Input } from "@actiontokens/ui/components/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@bandcoin/ui/components/select";
-import { Switch } from "@bandcoin/ui/components/switch";
-import { Textarea } from "@bandcoin/ui/components/textarea";
+} from "@actiontokens/ui/components/select";
+import { Switch } from "@actiontokens/ui/components/switch";
+import { Textarea } from "@actiontokens/ui/components/textarea";
 import {
   UNLIMITED_COLLECTIONS,
   type PinDefaults,
   type PlaceItem,
-} from "@bandcoin/api/agent-contract";
-import { cn } from "@bandcoin/ui/lib/cn";
+} from "@actiontokens/api/agent-contract";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { MapRow, day } from "./card-kit";
 

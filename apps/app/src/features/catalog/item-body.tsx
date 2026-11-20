@@ -1,5 +1,5 @@
-import { cn } from "@bandcoin/ui/lib/cn";
-import { PageBody } from "@bandcoin/ui/patterns/page-header";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { PageBody } from "@actiontokens/ui/patterns/page-header";
 
 import { Money } from "~/components/money";
 import { ItemPurchase } from "~/features/buy/item-purchase";

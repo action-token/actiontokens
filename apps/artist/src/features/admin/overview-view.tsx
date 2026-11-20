@@ -20,11 +20,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
-import { StatCard } from "@bandcoin/ui/patterns/stat-card";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
+import { PageBody, PageHeader } from "@actiontokens/ui/patterns/page-header";
+import { StatCard } from "@actiontokens/ui/patterns/stat-card";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 

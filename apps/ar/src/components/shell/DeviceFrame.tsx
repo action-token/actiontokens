@@ -2,7 +2,7 @@ import { Camera, MapPin, Smartphone } from "lucide-react";
 import { type ReactNode } from "react";
 
 import { BrandMark } from "~/components/brand/BrandMark";
-import { site } from "@bandcoin/ar-core/site";
+import { site } from "@actiontokens/ar-core/site";
 
 /** Why this exists at all, for anyone reading the caption cold on a laptop. */
 const CAPTION_PERKS = [

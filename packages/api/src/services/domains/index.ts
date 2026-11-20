@@ -1,6 +1,6 @@
 export { domainHostFromEnv, manualHost } from "./adapter";
 export { type DnsRecord, type DomainHost, DomainHostError, type HostDomainStatus } from "./host";
-export { normalizeDomain, validateDomain } from "@bandcoin/utils/domain";
+export { normalizeDomain, validateDomain } from "@actiontokens/utils/domain";
 export { describeDomain, domainKey, parseDomainKey } from "./notice";
 export {
   addDomain,

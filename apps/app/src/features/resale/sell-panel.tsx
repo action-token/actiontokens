@@ -4,7 +4,7 @@ import { Tag } from "lucide-react";
 import Link from "next/link";
 import { useDeferredValue, useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -12,12 +12,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@bandcoin/ui/components/dialog";
-import { Input } from "@bandcoin/ui/components/input";
-import { Label } from "@bandcoin/ui/components/label";
-import { PriceBreakdown } from "@bandcoin/ui/patterns/price-breakdown";
-import { QuantityStepper } from "@bandcoin/ui/patterns/quantity-stepper";
-import { ToastViewport, TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
+} from "@actiontokens/ui/components/dialog";
+import { Input } from "@actiontokens/ui/components/input";
+import { Label } from "@actiontokens/ui/components/label";
+import { PriceBreakdown } from "@actiontokens/ui/patterns/price-breakdown";
+import { QuantityStepper } from "@actiontokens/ui/patterns/quantity-stepper";
+import { ToastViewport, TransactionToast } from "@actiontokens/ui/patterns/transaction-toast";
 
 import { Money } from "~/components/money";
 import { api } from "~/trpc/react";

@@ -1,5 +1,5 @@
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { uploadBufferToS3 } from "@bandcoin/storage";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { uploadBufferToS3 } from "@actiontokens/storage";
 
 import { boxSpanKm, tiles, type Box } from "./area";
 import type { PlaceItem } from "./contract";

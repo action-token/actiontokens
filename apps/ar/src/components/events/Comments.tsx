@@ -4,10 +4,10 @@ import { useState } from "react";
 
 import { Skeleton } from "~/components/ui/Skeleton";
 import { useAuth } from "~/lib/ar/store";
-import type { ArComment, ArCommentTarget } from "@bandcoin/ar-core/ar/types";
-import { cn } from "@bandcoin/ui/lib/cn";
+import type { ArComment, ArCommentTarget } from "@actiontokens/ar-core/ar/types";
+import { cn } from "@actiontokens/ui/lib/cn";
 import { api } from "~/trpc/react";
-import { site } from "@bandcoin/ar-core/site";
+import { site } from "@actiontokens/ar-core/site";
 
 const AVATAR_FALLBACK = site.assets.mark;
 

@@ -4,10 +4,10 @@ import { Coins, Info, Repeat, Save, Sparkles, Users } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
 
 import { api } from "~/trpc/react";
 

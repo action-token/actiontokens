@@ -4,13 +4,13 @@ import { Bell } from "lucide-react";
 import Link from "next/link";
 import { type ReactNode, useEffect, useRef } from "react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@bandcoin/ui/components/avatar";
-import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
+import { Avatar, AvatarFallback, AvatarImage } from "@actiontokens/ui/components/avatar";
+import { Button } from "@actiontokens/ui/components/button";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
+import { PageBody, PageHeader } from "@actiontokens/ui/patterns/page-header";
 
 import { timeAgo } from "~/lib/format";
 import { api } from "~/trpc/react";

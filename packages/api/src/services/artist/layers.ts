@@ -1,6 +1,6 @@
-import type { Db } from "@bandcoin/db";
-import { LAYER_ICONS, MAX_LAYERS_PER_ARTIST } from "@bandcoin/ar-core/layers";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import type { Db } from "@actiontokens/db";
+import { LAYER_ICONS, MAX_LAYERS_PER_ARTIST } from "@actiontokens/ar-core/layers";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import type { Context } from "../../context";
 

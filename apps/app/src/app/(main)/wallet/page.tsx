@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { PageBody } from "@bandcoin/ui/patterns/page-header";
+import { PageBody } from "@actiontokens/ui/patterns/page-header";
 
 import { WalletView } from "~/features/wallet/wallet-view";
 

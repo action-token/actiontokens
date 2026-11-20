@@ -1,5 +1,5 @@
-import { toAmount, toStroops } from "@bandcoin/chain";
-import { spendableXlm } from "@bandcoin/chain/server";
+import { toAmount, toStroops } from "@actiontokens/chain";
+import { spendableXlm } from "@actiontokens/chain/server";
 
 import type { Context, SessionUser } from "../../context";
 import { creditLines, freeOf } from "../artist/storage-withdraw";

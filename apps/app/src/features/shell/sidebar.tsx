@@ -10,9 +10,9 @@ import {
   SideFrame,
   type SideAccount,
   type SideGroup,
-} from "@bandcoin/ui/patterns/side-frame";
-import { abbreviateAddress } from "@bandcoin/utils/address";
-import { useConnectWalletDialogStore } from "@bandcoin/wallet";
+} from "@actiontokens/ui/patterns/side-frame";
+import { abbreviateAddress } from "@actiontokens/utils/address";
+import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
 import { Money } from "~/components/money";
 import { api } from "~/trpc/react";

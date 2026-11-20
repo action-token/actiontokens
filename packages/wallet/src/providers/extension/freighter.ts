@@ -1,6 +1,6 @@
 import { isConnected, requestAccess, signTransaction } from "@stellar/freighter-api";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { stellarNetwork } from "../../config/stellar-network";
 import { WalletType } from "../../wallet-type";

@@ -1,10 +1,10 @@
 import { Loader2, Sparkles } from "lucide-react";
 import { useEffect, useRef } from "react";
 
-import { Label } from "@bandcoin/ui/components/label";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
+import { Label } from "@actiontokens/ui/components/label";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
 
 /**
  * "Enhance with AI": slides open under the Whole shape buttons to ask for an

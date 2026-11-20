@@ -1,8 +1,8 @@
 import { Smartphone } from "lucide-react";
 
-import { SWEEP_SIDE_DEG } from "@bandcoin/ar-core/murals/constants";
+import { SWEEP_SIDE_DEG } from "@actiontokens/ar-core/murals/constants";
 import type { SweepStep } from "~/lib/murals/useMuralSweep";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 /**
  * ── SweepGauge ─────────────────────────────────────────────────────────────

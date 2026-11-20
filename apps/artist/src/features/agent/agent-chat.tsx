@@ -5,7 +5,7 @@ import { ArrowUp, History, Loader2, Plus, Sparkles, Trash2, X } from "lucide-rea
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,8 +13,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@bandcoin/ui/components/dropdown-menu";
-import { cn } from "@bandcoin/ui/lib/cn";
+} from "@actiontokens/ui/components/dropdown-menu";
+import { cn } from "@actiontokens/ui/lib/cn";
 import { api } from "~/trpc/react";
 
 import { useAgentMap } from "./agent-map";

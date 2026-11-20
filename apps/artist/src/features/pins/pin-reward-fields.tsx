@@ -3,17 +3,17 @@
 import { Coins, Gift, PackageOpen } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Input } from "@bandcoin/ui/components/input";
-import { RadioGroup, RadioGroupItem } from "@bandcoin/ui/components/radio-group";
+import { Input } from "@actiontokens/ui/components/input";
+import { RadioGroup, RadioGroupItem } from "@actiontokens/ui/components/radio-group";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@bandcoin/ui/components/select";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { Field } from "@bandcoin/ui/patterns/form-page";
+} from "@actiontokens/ui/components/select";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { Field } from "@actiontokens/ui/patterns/form-page";
 
 import type { RouterOutputs } from "~/trpc/react";
 

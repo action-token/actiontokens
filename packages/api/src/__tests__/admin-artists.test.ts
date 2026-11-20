@@ -5,10 +5,10 @@ import {
   type Transaction,
   TransactionBuilder,
 } from "@stellar/stellar-sdk";
-import { AppError } from "@bandcoin/errors";
+import { AppError } from "@actiontokens/errors";
 import { describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 import { createContext, type SessionUser } from "../context";
 import { portalRouter } from "../root-portal";

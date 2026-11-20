@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { frameAncestors } from "@bandcoin/ar-core/embed/config";
-import { db } from "@bandcoin/db/server";
+import { frameAncestors } from "@actiontokens/ar-core/embed/config";
+import { db } from "@actiontokens/db/server";
 
 /** The CSP `frame-ancestors` value for one saved embed (read by `src/proxy.ts`). */
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {

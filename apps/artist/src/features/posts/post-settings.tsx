@@ -4,11 +4,11 @@ import { Check, ChevronDown, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-import { Input } from "@bandcoin/ui/components/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@bandcoin/ui/components/popover";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { Field, FormSection } from "@bandcoin/ui/patterns/form-page";
+import { Input } from "@actiontokens/ui/components/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@actiontokens/ui/components/popover";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { Field, FormSection } from "@actiontokens/ui/patterns/form-page";
 
 import {
   type Access,

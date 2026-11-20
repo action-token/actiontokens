@@ -1,4 +1,4 @@
-import type { PostAudience } from "@bandcoin/db";
+import type { PostAudience } from "@actiontokens/db";
 
 import type { Context } from "../../context";
 import { notify } from "./send";

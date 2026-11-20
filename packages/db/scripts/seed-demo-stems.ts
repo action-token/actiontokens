@@ -4,8 +4,8 @@
  * stem mixer can be tried. The WAV files are written to apps/app/public/demo-stems
  * (not committed).
  *
- *   pnpm --filter @bandcoin/db exec tsx scripts/seed-demo-stems.ts "Gold Hour" "Fyron Alias"
- *   pnpm --filter @bandcoin/db exec tsx scripts/seed-demo-stems.ts "Gold Hour" "Fyron Alias" --remove
+ *   pnpm --filter @actiontokens/db exec tsx scripts/seed-demo-stems.ts "Gold Hour" "Fyron Alias"
+ *   pnpm --filter @actiontokens/db exec tsx scripts/seed-demo-stems.ts "Gold Hour" "Fyron Alias" --remove
  */
 import "dotenv/config";
 

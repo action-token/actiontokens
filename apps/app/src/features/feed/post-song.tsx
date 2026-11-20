@@ -3,7 +3,7 @@
 import { Music, Pause, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { usePlayer } from "../player/player-store";
 import { clock } from "./media-layout";

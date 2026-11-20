@@ -1,7 +1,7 @@
-import { nodesToPath } from "@bandcoin/ar-core/shape-geometry";
-import { Switch } from "@bandcoin/ui/components/switch";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { RangeField } from "@bandcoin/ui/patterns/range-field";
+import { nodesToPath } from "@actiontokens/ar-core/shape-geometry";
+import { Switch } from "@actiontokens/ui/components/switch";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { RangeField } from "@actiontokens/ui/patterns/range-field";
 
 import { BASES, baseNodes, type Base, type BaseOptions } from "./base-shapes";
 import { Panel } from "./controls";

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { readCollapsed, readFlag, saveCollapsed, saveFlag } from "@bandcoin/ui/lib/sidebar-collapsed";
+import { readCollapsed, readFlag, saveCollapsed, saveFlag } from "@actiontokens/ui/lib/sidebar-collapsed";
 
 const memory = () => {
   const values = new Map<string, string>();

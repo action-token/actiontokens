@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { Prisma } from "@bandcoin/db";
+import { Prisma } from "@actiontokens/db";
 
 import type { SessionUser } from "../context";
 import { deleteAccount } from "../services/account/delete";
 
-vi.mock("@bandcoin/wallet/server", () => ({ deleteFirebaseUserByEmail: vi.fn() }));
+vi.mock("@actiontokens/wallet/server", () => ({ deleteFirebaseUserByEmail: vi.fn() }));
 
 const fan: SessionUser = { id: "u1", role: "FAN", walletAddress: "GFAN", walletType: "freighter" };
 const custodial: SessionUser = { ...fan, walletType: "emailPass" };

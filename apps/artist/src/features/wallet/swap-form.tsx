@@ -3,9 +3,9 @@
 import { ArrowDownUp } from "lucide-react";
 import { useDeferredValue, useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { Money } from "~/components/money";
 import { api } from "~/trpc/react";

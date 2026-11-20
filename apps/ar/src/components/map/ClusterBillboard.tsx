@@ -1,6 +1,6 @@
 import { memo, useState } from "react";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 const W = 66;
 const H = 58;

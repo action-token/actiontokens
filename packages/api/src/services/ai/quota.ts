@@ -1,4 +1,4 @@
-import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
+import { AppError, ErrorCodes, isAppError } from "@actiontokens/errors";
 
 import type { Context } from "../../context";
 import { friendlyProviderError } from "./model";

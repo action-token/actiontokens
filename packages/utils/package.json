@@ -1,5 +1,5 @@
 {
-  "name": "@bandcoin/utils",
+  "name": "@actiontokens/utils",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -23,9 +23,9 @@
     "test": "vitest run --passWithNoTests"
   },
   "devDependencies": {
-    "@bandcoin/eslint-config": "workspace:*",
-    "@bandcoin/tsconfig": "workspace:*",
-    "@bandcoin/vitest-config": "workspace:*",
+    "@actiontokens/eslint-config": "workspace:*",
+    "@actiontokens/tsconfig": "workspace:*",
+    "@actiontokens/vitest-config": "workspace:*",
     "eslint": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

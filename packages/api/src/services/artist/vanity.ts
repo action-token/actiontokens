@@ -7,18 +7,18 @@ import {
   type OnChainCurrency,
   toCents,
   toStroops,
-} from "@bandcoin/chain";
-import { buildQuote, type Quote, type QuoteProblem } from "@bandcoin/chain/quote";
-import { fundsOf } from "@bandcoin/chain/server";
-import type { Prisma } from "@bandcoin/db";
-import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
+} from "@actiontokens/chain";
+import { buildQuote, type Quote, type QuoteProblem } from "@actiontokens/chain/quote";
+import { fundsOf } from "@actiontokens/chain/server";
+import type { Prisma } from "@actiontokens/db";
+import { AppError, ErrorCodes, isAppError } from "@actiontokens/errors";
 import {
   addMonths,
   normalizeVanityName,
   renewalEnd,
   validateVanityName,
   vanityTimeline,
-} from "@bandcoin/utils/vanity";
+} from "@actiontokens/utils/vanity";
 
 import { type Context, isCustodial, type SessionUser } from "../../context";
 import { transitionOrder } from "../order-state";

@@ -6,16 +6,16 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@bandcoin/ui/components/dropdown-menu";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { ConfirmDialog } from "@bandcoin/ui/patterns/confirm-dialog";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
+} from "@actiontokens/ui/components/dropdown-menu";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { ConfirmDialog } from "@actiontokens/ui/patterns/confirm-dialog";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
 
 import { api } from "~/trpc/react";
 

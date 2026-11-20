@@ -4,9 +4,9 @@ import { Archive } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
 
 import { api } from "~/trpc/react";
 

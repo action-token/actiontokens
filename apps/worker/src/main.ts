@@ -1,7 +1,7 @@
 import { hostname } from "node:os";
 
-import { createChainGateway } from "@bandcoin/api";
-import { db } from "@bandcoin/db/server";
+import { createChainGateway } from "@actiontokens/api";
+import { db } from "@actiontokens/db/server";
 
 import { handlersFor } from "./handlers";
 import { startHealthServer } from "./health";

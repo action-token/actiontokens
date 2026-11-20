@@ -1,4 +1,4 @@
-import { vanityTimeline, type VanityStatus } from "@bandcoin/utils/vanity";
+import { vanityTimeline, type VanityStatus } from "@actiontokens/utils/vanity";
 
 import type { Context } from "../../context";
 import { notifySelf } from "../notifications/send";

@@ -5,12 +5,12 @@ import { format, formatDistanceToNow } from "date-fns";
 import { CheckCircle2, ChevronDown, Ticket, Users } from "lucide-react";
 import { useState } from "react";
 
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
-import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
-import { SearchInput } from "@bandcoin/ui/patterns/toolbar";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
+import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
+import { SearchInput } from "@actiontokens/ui/patterns/toolbar";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 

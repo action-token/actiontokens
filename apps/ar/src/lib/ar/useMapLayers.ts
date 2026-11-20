@@ -1,4 +1,4 @@
-import { type MapLayerChip } from "@bandcoin/ar-core/layers";
+import { type MapLayerChip } from "@actiontokens/ar-core/layers";
 
 import { api } from "~/trpc/react";
 

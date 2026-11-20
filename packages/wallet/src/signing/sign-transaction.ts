@@ -1,6 +1,6 @@
 "use client";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { getWalletProvider } from "../providers/registry";
 import type { WalletType } from "../wallet-type";

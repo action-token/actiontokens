@@ -17,7 +17,7 @@ import Link from "next/link";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -25,14 +25,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@bandcoin/ui/components/dialog";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { Textarea } from "@bandcoin/ui/components/textarea";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
-import { Avatar } from "@bandcoin/ui/patterns/person";
-import { FilterChips } from "@bandcoin/ui/patterns/toolbar";
+} from "@actiontokens/ui/components/dialog";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { Textarea } from "@actiontokens/ui/components/textarea";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
+import { PageBody, PageHeader } from "@actiontokens/ui/patterns/page-header";
+import { Avatar } from "@actiontokens/ui/patterns/person";
+import { FilterChips } from "@actiontokens/ui/patterns/toolbar";
 
 import { timeAgo } from "~/lib/format";
 import { api, type RouterOutputs } from "~/trpc/react";

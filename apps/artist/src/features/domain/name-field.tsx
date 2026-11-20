@@ -3,9 +3,9 @@
 import { Check, X } from "lucide-react";
 import { useEffect } from "react";
 
-import { Input } from "@bandcoin/ui/components/input";
-import { Label } from "@bandcoin/ui/components/label";
-import { normalizeVanityName, validateVanityName } from "@bandcoin/utils/vanity";
+import { Input } from "@actiontokens/ui/components/input";
+import { Label } from "@actiontokens/ui/components/label";
+import { normalizeVanityName, validateVanityName } from "@actiontokens/utils/vanity";
 
 import { useDebounced } from "~/lib/use-debounced";
 import { api } from "~/trpc/react";

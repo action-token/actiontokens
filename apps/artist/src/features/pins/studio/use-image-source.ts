@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
-import { traceImage } from "@bandcoin/ar-core/shape-geometry";
+import { traceImage } from "@actiontokens/ar-core/shape-geometry";
 
 import { imagePixels } from "./image-utils";
 

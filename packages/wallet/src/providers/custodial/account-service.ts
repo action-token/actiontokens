@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { USER_ACCOUNT_URL } from "../../config/service-urls";
 import {

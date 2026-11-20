@@ -1,4 +1,4 @@
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { ArtistActions } from "../artist/artist-actions";
 import { ArtistStandingProvider } from "../artist/artist-standing";

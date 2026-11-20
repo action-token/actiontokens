@@ -4,10 +4,10 @@ import { ChevronDown, LayoutTemplate, MapPin, Settings2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-import type { PinTemplateFormType } from "@bandcoin/ar-core/pin-template";
-import { Button } from "@bandcoin/ui/components/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@bandcoin/ui/components/popover";
-import { cn } from "@bandcoin/ui/lib/cn";
+import type { PinTemplateFormType } from "@actiontokens/ar-core/pin-template";
+import { Button } from "@actiontokens/ui/components/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@actiontokens/ui/components/popover";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 

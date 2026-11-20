@@ -4,9 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Landmark, MapPin, PartyPopper } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { Spinner } from "@bandcoin/ui/patterns/spinner";
+import { Button } from "@actiontokens/ui/components/button";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { Spinner } from "@actiontokens/ui/patterns/spinner";
 
 import { placeName } from "~/features/pins/mapbox";
 

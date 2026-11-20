@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    Stage loader (patterns/stage-loader). Always a dark stage, whatever the theme.
    Import once in an app's globals.css, after the theme:
-     @import "@bandcoin/ui/styles/stage-loader.css";
+     @import "@actiontokens/ui/styles/stage-loader.css";
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .stage-loader {

@@ -6,10 +6,10 @@ import type {
   ArEventArtist,
   ArEventCard,
   ArEventDetail,
-} from "@bandcoin/ar-core/ar/types";
-import { site } from "@bandcoin/ar-core/site";
-import { type Db, Prisma } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+} from "@actiontokens/ar-core/ar/types";
+import { site } from "@actiontokens/ar-core/site";
+import { type Db, Prisma } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { livePinWhere } from "../../services/ar/pins";
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";

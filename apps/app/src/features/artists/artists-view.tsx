@@ -4,12 +4,12 @@ import { Users } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { Tabs, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
-import { SearchInput, Toolbar } from "@bandcoin/ui/patterns/toolbar";
+import { Button } from "@actiontokens/ui/components/button";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@actiontokens/ui/components/tabs";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
+import { SearchInput, Toolbar } from "@actiontokens/ui/patterns/toolbar";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 

@@ -1,4 +1,4 @@
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { stellarExpertAccountUrl, stellarNetwork } from "../../config/stellar-network";
 import { WalletType } from "../../wallet-type";

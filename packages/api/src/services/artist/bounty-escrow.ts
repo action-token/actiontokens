@@ -14,9 +14,9 @@ import {
   buildBountySelectWinner,
   toAmount,
   toStroops,
-} from "@bandcoin/chain";
-import { availableOf, fundsOf, otherAssetsOf } from "@bandcoin/chain/server";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+} from "@actiontokens/chain";
+import { availableOf, fundsOf, otherAssetsOf } from "@actiontokens/chain/server";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { type Context, isCustodial, type SessionUser } from "../../context";
 import { needsTokenSetup, prizeToken } from "../bounty/prize";

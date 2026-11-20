@@ -3,8 +3,8 @@
 import { Check, ChevronDown, Loader2, X } from "lucide-react";
 import { useState } from "react";
 
-import type { AgentStep } from "@bandcoin/api/agent-contract";
-import { cn } from "@bandcoin/ui/lib/cn";
+import type { AgentStep } from "@actiontokens/api/agent-contract";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 function StepLine({ step }: { step: AgentStep }) {
   return (

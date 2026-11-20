@@ -4,8 +4,8 @@ import { Loader2, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { LAYER_COLORS, LAYER_ICONS } from "@bandcoin/ar-core/layers";
-import { Button } from "@bandcoin/ui/components/button";
+import { LAYER_COLORS, LAYER_ICONS } from "@actiontokens/ar-core/layers";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -13,12 +13,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@bandcoin/ui/components/dialog";
-import { Input } from "@bandcoin/ui/components/input";
-import { Label } from "@bandcoin/ui/components/label";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { ConfirmDialog } from "@bandcoin/ui/patterns/confirm-dialog";
-import { LayerBadge, LayerIcon } from "@bandcoin/ui/patterns/layer-icon";
+} from "@actiontokens/ui/components/dialog";
+import { Input } from "@actiontokens/ui/components/input";
+import { Label } from "@actiontokens/ui/components/label";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { ConfirmDialog } from "@actiontokens/ui/patterns/confirm-dialog";
+import { LayerBadge, LayerIcon } from "@actiontokens/ui/patterns/layer-icon";
 
 import { api } from "~/trpc/react";
 

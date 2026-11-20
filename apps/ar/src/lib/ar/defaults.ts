@@ -1,4 +1,4 @@
-import type { ArSettings, Coords } from "@bandcoin/ar-core/ar/types";
+import type { ArSettings, Coords } from "@actiontokens/ar-core/ar/types";
 
 /** Where the map opens without a GPS fix: New York, where the first demo artist's pins are. */
 export const FALLBACK_CENTER: Coords = { lat: 40.7128, lng: -74.006 };

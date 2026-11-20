@@ -1,10 +1,10 @@
 import { Eraser, Minus, Plus } from "lucide-react";
 import { useMemo, type Dispatch, type RefObject, type SetStateAction } from "react";
 
-import type { Node, Pt } from "@bandcoin/ar-core/shape-geometry";
-import { Switch } from "@bandcoin/ui/components/switch";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { Button } from "@bandcoin/ui/components/button";
+import type { Node, Pt } from "@actiontokens/ar-core/shape-geometry";
+import { Switch } from "@actiontokens/ui/components/switch";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { Button } from "@actiontokens/ui/components/button";
 
 import { IconButton } from "./controls";
 import type { Tool } from "./tools";

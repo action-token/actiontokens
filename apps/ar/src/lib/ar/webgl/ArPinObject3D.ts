@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
-import { pinStatus } from "@bandcoin/ar-core/ar/rarity";
-import type { ArPin } from "@bandcoin/ar-core/ar/types";
+import { pinStatus } from "@actiontokens/ar-core/ar/rarity";
+import type { ArPin } from "@actiontokens/ar-core/ar/types";
 
 import { RARITY_HSL } from "./rarityColor";
 

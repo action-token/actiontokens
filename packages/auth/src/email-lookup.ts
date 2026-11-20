@@ -1,5 +1,5 @@
-import type { Db } from "@bandcoin/db";
-import { isCustodialWallet } from "@bandcoin/wallet/shared";
+import type { Db } from "@actiontokens/db";
+import { isCustodialWallet } from "@actiontokens/wallet/shared";
 
 /** The account already using this email, read from the database only. */
 export async function lookupAccountForEmail(db: Db, rawEmail: string) {

@@ -16,9 +16,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { ToastViewport, TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
-import { useConnectWalletDialogStore } from "@bandcoin/wallet";
+import { Button } from "@actiontokens/ui/components/button";
+import { ToastViewport, TransactionToast } from "@actiontokens/ui/patterns/transaction-toast";
+import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
 import { Money } from "~/components/money";
 import { api, type RouterOutputs } from "~/trpc/react";

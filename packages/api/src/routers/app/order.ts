@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { CURRENCIES } from "@bandcoin/chain";
+import { CURRENCIES } from "@actiontokens/chain";
 
 import {
   cancelPurchase,

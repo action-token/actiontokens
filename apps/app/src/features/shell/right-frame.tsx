@@ -3,7 +3,7 @@
 import { ChevronLeft, Menu } from "lucide-react";
 import { type ReactNode, useEffect, useId } from "react";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { ResizeHandle } from "./resize-handle";
 import { RailEq } from "./rail-eq";

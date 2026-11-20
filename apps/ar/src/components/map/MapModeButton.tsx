@@ -1,5 +1,5 @@
 import type { MapMode } from "~/lib/ar/theme";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 /**
  * Round glass button that flips the map between the flat 2D map and the tilted

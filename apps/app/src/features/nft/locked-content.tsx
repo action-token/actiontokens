@@ -4,8 +4,8 @@ import { ExternalLink, Gift, Link2, Lock, MapPin, Play } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
+import { Button } from "@actiontokens/ui/components/button";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 

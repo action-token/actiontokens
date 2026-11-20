@@ -3,8 +3,8 @@
 import { MapPin, Loader2, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
+import { Button } from "@actiontokens/ui/components/button";
+import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 

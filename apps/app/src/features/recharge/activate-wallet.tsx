@@ -5,14 +5,14 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 
-import { isAppError } from "@bandcoin/errors";
-import { Button } from "@bandcoin/ui/components/button";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { isAppError } from "@actiontokens/errors";
+import { Button } from "@actiontokens/ui/components/button";
+import { cn } from "@actiontokens/ui/lib/cn";
 import {
   type TransactionStep,
   ToastViewport,
   TransactionToast,
-} from "@bandcoin/ui/patterns/transaction-toast";
+} from "@actiontokens/ui/patterns/transaction-toast";
 
 import { Money } from "~/components/money";
 import { api } from "~/trpc/react";

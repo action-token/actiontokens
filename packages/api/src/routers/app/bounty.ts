@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { notifyArtist } from "../../services/notifications/send";
 
-import type { ChainConfig } from "@bandcoin/chain/server";
-import type { Db, Prisma } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import type { ChainConfig } from "@actiontokens/chain/server";
+import type { Db, Prisma } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { prepareClaim, submitClaim } from "../../services/bounty/claim";
 import { prizeView } from "../../services/bounty/prize";

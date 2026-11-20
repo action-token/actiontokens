@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import type { Prisma } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import type { Prisma } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { itemCardSelect, listedItemWhere, toItemCard } from "../../services/catalog/item-card";
 import { browseSongs, SONG_OWNERSHIP, SONG_SORTS } from "../../services/catalog/song-browse";

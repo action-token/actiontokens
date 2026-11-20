@@ -7,9 +7,9 @@ import {
   toCents,
   toStroops,
   type RechargeProblem,
-} from "@bandcoin/chain";
-import { QUOTE_TTL_SECONDS } from "@bandcoin/chain/quote";
-import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
+} from "@actiontokens/chain";
+import { QUOTE_TTL_SECONDS } from "@actiontokens/chain/quote";
+import { AppError, ErrorCodes, isAppError } from "@actiontokens/errors";
 
 import type { Context, SessionUser } from "../../context";
 import { transitionOrder } from "../order-state";

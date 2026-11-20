@@ -1,7 +1,7 @@
 /**
  * Dev only: a real resale on Stellar testnet through the real API.
  *
- *   pnpm --filter @bandcoin/api testnet:resale
+ *   pnpm --filter @actiontokens/api testnet:resale
  *
  * A throwaway artist with a classic item, a seller holding 5 copies, and a
  * buyer with BANDCOIN. The seller lists 3 copies (opening their resale storage
@@ -11,7 +11,7 @@
  */
 import { Asset, Keypair, Operation, TransactionBuilder } from "@stellar/stellar-sdk";
 
-import { db } from "@bandcoin/db/server";
+import { db } from "@actiontokens/db/server";
 
 import { createContext } from "../src/context";
 import { appRouter } from "../src/root-app";

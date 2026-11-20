@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
-import { DEFAULT_THEME } from "@bandcoin/page/theme";
+import type { Db } from "@actiontokens/db";
+import { DEFAULT_THEME } from "@actiontokens/page/theme";
 
 import {
   applyTemplate,
@@ -15,7 +15,7 @@ import {
   unpublishPage,
 } from "../services/artist/page";
 
-vi.mock("@bandcoin/storage", () => ({
+vi.mock("@actiontokens/storage", () => ({
   isOwnS3Url: (url: string) => url.startsWith("https://cdn.example/"),
   uploadBufferToS3: vi.fn(),
 }));

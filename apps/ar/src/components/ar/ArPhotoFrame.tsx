@@ -5,7 +5,7 @@ import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
 
 import { ArButton } from "~/components/ui/ArButton";
 import type { ModelViewerElement } from "~/types/model-viewer";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 /**
  * ── ArPhotoFrame ──────────────────────────────────────────────────────────

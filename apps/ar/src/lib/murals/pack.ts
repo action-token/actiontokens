@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { site } from "@bandcoin/ar-core/site";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { site } from "@actiontokens/ar-core/site";
 
 /**
  * ── Mural pack ─────────────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-import { Prisma } from "@bandcoin/db";
+import { Prisma } from "@actiontokens/db";
 import { z } from "zod";
 
 import type { ReportBar, ReportStat } from "../contract";

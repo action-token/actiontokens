@@ -1,4 +1,4 @@
-import { fetchPublicFile, uploadBufferToS3 } from "@bandcoin/storage";
+import { fetchPublicFile, uploadBufferToS3 } from "@actiontokens/storage";
 
 import type { Context } from "../../context";
 import { notifyFollowers } from "../notifications/send";

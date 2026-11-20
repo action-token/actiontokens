@@ -1,5 +1,5 @@
-import { toStroops } from "@bandcoin/chain";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { toStroops } from "@actiontokens/chain";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import type { SessionUser } from "../../context";
 import { costOf, holds, prepareClaim, sendClaim, sentBy, type ServiceCtx } from "./claim";

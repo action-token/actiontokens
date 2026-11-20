@@ -1,5 +1,5 @@
 {
-  "name": "@bandcoin/contracts",
+  "name": "@actiontokens/contracts",
   "version": "0.0.0",
   "private": true,
   "description": "Soroban sources (bounty_escrow, nft_oz) and generated TS bindings. Needs Rust and the stellar CLI.",

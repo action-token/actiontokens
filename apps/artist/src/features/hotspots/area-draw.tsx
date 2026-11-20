@@ -14,8 +14,8 @@ import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { Layer, Marker, Source, type MapRef } from "react-map-gl/mapbox";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { Button } from "@actiontokens/ui/components/button";
+import { cn } from "@actiontokens/ui/lib/cn";
 import {
   areaBounds,
   circleFeature,
@@ -26,7 +26,7 @@ import {
   rectangleFeature,
   type StoredFeature,
   toMapboxFeature,
-} from "@bandcoin/geo/map-geometry";
+} from "@actiontokens/geo/map-geometry";
 
 import { BaseMap, WORLD_VIEW } from "../pins/map-kit/base-map";
 import { PlaceSearch } from "../pins/map-kit/place-search";
@@ -365,7 +365,7 @@ export function DrawingLayers({
 /**
  * Draw where a hotspot's pins drop: a circle, a rectangle or any shape, on the
  * portal's map. The drawing is stored in the portal's usual format (see
- * @bandcoin/geo/map-geometry). `drops` shows recent spots for context.
+ * @actiontokens/geo/map-geometry). `drops` shows recent spots for context.
  */
 export function AreaDraw({
   value,

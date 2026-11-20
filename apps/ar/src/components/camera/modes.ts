@@ -1,5 +1,5 @@
 import { Frame, QrCode, ScanLine, type LucideIcon } from "lucide-react";
-import { site } from "@bandcoin/ar-core/site";
+import { site } from "@actiontokens/ar-core/site";
 
 /**
  * The camera's three ways in — same list as the mobile app's

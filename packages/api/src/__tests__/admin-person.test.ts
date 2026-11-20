@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 import type { ChainGateway } from "../services/chain-gateway";
 import { getPerson } from "../services/admin/person";

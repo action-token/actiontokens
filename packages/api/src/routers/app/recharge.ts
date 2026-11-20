@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { RECHARGE_PACKAGES_USD } from "@bandcoin/chain";
+import { RECHARGE_PACKAGES_USD } from "@actiontokens/chain";
 
 import { cancelPurchase } from "../../services/purchase";
 import { quoteRecharge, startRecharge, submitRecharge } from "../../services/recharge";

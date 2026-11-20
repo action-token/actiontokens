@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { circleAround } from "@bandcoin/geo/map-geometry";
+import { circleAround } from "@actiontokens/geo/map-geometry";
 
 import { createHotspot, runScheduledDrop, updateHotspot } from "../services/artist/hotspots";
 import { copyLook, lookColumnsFor, lookData } from "../services/artist/pin-look";

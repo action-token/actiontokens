@@ -1,4 +1,4 @@
-import type { Prisma } from "@bandcoin/db";
+import type { Prisma } from "@actiontokens/db";
 
 import type { Context } from "../../context";
 import type { ActionStatus, AgentBlock } from "./contract";

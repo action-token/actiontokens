@@ -3,11 +3,11 @@
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { Textarea } from "@bandcoin/ui/components/textarea";
-import { Field } from "@bandcoin/ui/patterns/form-page";
-import { slugFromName } from "@bandcoin/utils/slug";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { Textarea } from "@actiontokens/ui/components/textarea";
+import { Field } from "@actiontokens/ui/patterns/form-page";
+import { slugFromName } from "@actiontokens/utils/slug";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 

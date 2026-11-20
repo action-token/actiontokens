@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-import type { Rarity } from "@bandcoin/ar-core/ar/types";
+import type { Rarity } from "@actiontokens/ar-core/ar/types";
 
 /**
  * ── Confetti ───────────────────────────────────────────────────────────────

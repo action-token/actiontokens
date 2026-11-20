@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { circleAround } from "@bandcoin/geo/map-geometry";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { circleAround } from "@actiontokens/geo/map-geometry";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import type { Context } from "../../context";
 import {

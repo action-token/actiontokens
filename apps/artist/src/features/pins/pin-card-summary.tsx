@@ -1,7 +1,7 @@
 import { CalendarClock, Gift, Users } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 /**
  * The strip under the card's title: the pin as it will look on the map (its Look tab), its title so

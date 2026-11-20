@@ -8,7 +8,7 @@ import { AppShell, ScreenHeader } from "~/components/shell/AppShell";
 import { ArButton } from "~/components/ui/ArButton";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { browseFilter, MARKET_TYPES, marketplaceUrl, type MarketTypeId } from "~/lib/market";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 import { api } from "~/trpc/react";
 
 /**

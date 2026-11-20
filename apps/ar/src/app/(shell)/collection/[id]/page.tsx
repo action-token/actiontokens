@@ -36,7 +36,7 @@ import {
 } from "~/components/ui/Badges";
 import { BottomSheet } from "~/components/ui/BottomSheet";
 import { Skeleton, SkeletonText } from "~/components/ui/Skeleton";
-import { pinStatus, RARITY_META, timeRemaining } from "@bandcoin/ar-core/ar/rarity";
+import { pinStatus, RARITY_META, timeRemaining } from "@actiontokens/ar-core/ar/rarity";
 import {
   mapStyleFor,
   useMapBase,
@@ -47,8 +47,8 @@ import {
 import { useAuth } from "~/lib/ar/store";
 import { useDragScroll } from "~/lib/ar/useDragScroll";
 import { useArtistsQuery, usePinsQuery, useToggleFollow } from "~/lib/ar/usePins";
-import type { ArArtist, ArPin } from "@bandcoin/ar-core/ar/types";
-import { cn } from "@bandcoin/ui/lib/cn";
+import type { ArArtist, ArPin } from "@actiontokens/ar-core/ar/types";
+import { cn } from "@actiontokens/ui/lib/cn";
 import { ArtistAvatar } from "~/components/artist/ArtistAvatar";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_API;

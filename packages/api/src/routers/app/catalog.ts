@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { ItemType, type Prisma } from "@bandcoin/db";
+import { ItemType, type Prisma } from "@actiontokens/db";
 
 import { publicBountyWhere } from "./bounty";
 import { prizeView } from "../../services/bounty/prize";

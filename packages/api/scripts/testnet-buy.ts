@@ -1,7 +1,7 @@
 /**
  * Dev only: one real purchase on Stellar testnet through the real API.
  *
- *   pnpm --filter @bandcoin/api testnet:buy [item-slug] [currency]   (default lumen-avenue-night-drive XLM)
+ *   pnpm --filter @actiontokens/api testnet:buy [item-slug] [currency]   (default lumen-avenue-night-drive XLM)
  *
  * A fresh Friendbot buyer signs in as a wallet user, quotes, starts, signs
  * locally (as Freighter would) and submits. Then it checks the copy is on
@@ -10,7 +10,7 @@
  */
 import { Asset, Keypair, TransactionBuilder } from "@stellar/stellar-sdk";
 
-import { db } from "@bandcoin/db/server";
+import { db } from "@actiontokens/db/server";
 
 import { createContext } from "../src/context";
 import { appRouter } from "../src/root-app";

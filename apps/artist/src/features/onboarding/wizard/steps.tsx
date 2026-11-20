@@ -14,11 +14,11 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { Textarea } from "@bandcoin/ui/components/textarea";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { Field } from "@bandcoin/ui/patterns/form-page";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { Textarea } from "@actiontokens/ui/components/textarea";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { Field } from "@actiontokens/ui/patterns/form-page";
 
 import { api } from "~/trpc/react";
 

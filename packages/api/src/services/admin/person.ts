@@ -1,5 +1,5 @@
-import { fundsOf } from "@bandcoin/chain/server";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { fundsOf } from "@actiontokens/chain/server";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import type { Context } from "../../context";
 

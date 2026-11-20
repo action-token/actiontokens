@@ -1,5 +1,5 @@
 {
-  "name": "bandcoin",
+  "name": "actiontokens",
   "private": true,
   "description": "Bandcoin monorepo: fan app, artist portal, AR collector, worker and the shared packages behind them.",
   "packageManager": "pnpm@12.9.1",
@@ -9,13 +9,13 @@
   "scripts": {
     "build": "turbo run build",
     "clean": "git clean -xdf node_modules .turbo .next",
-    "db:generate": "pnpm --filter @bandcoin/db generate",
-    "db:studio": "pnpm --filter @bandcoin/db studio",
+    "db:generate": "pnpm --filter @actiontokens/db generate",
+    "db:studio": "pnpm --filter @actiontokens/db studio",
     "dev": "turbo run dev --parallel",
-    "dev:app": "turbo run dev --filter=@bandcoin/app",
-    "dev:artist": "turbo run dev --filter=@bandcoin/artist",
-    "dev:ar": "turbo run dev --filter=@bandcoin/ar",
-    "dev:worker": "turbo run dev --filter=@bandcoin/worker",
+    "dev:app": "turbo run dev --filter=@actiontokens/app",
+    "dev:artist": "turbo run dev --filter=@actiontokens/artist",
+    "dev:ar": "turbo run dev --filter=@actiontokens/ar",
+    "dev:worker": "turbo run dev --filter=@actiontokens/worker",
     "format": "prettier --write \"**/*.{ts,tsx,js,mjs,cjs,json,md,css,yml}\" --ignore-path .prettierignore",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,cjs,json,md,css,yml}\" --ignore-path .prettierignore",
     "lint": "turbo run lint",
@@ -23,11 +23,11 @@
     "typecheck": "turbo run typecheck"
   },
   "devDependencies": {
-    "@bandcoin/prettier-config": "workspace:*",
+    "@actiontokens/prettier-config": "workspace:*",
     "prettier": "catalog:",
     "prettier-plugin-tailwindcss": "catalog:",
     "turbo": "^2.5.0",
     "typescript": "catalog:"
   },
-  "prettier": "@bandcoin/prettier-config"
+  "prettier": "@actiontokens/prettier-config"
 }

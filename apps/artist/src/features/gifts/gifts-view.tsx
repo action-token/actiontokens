@@ -13,13 +13,13 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { Tabs, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { Field } from "@bandcoin/ui/patterns/form-page";
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
-import { ToastViewport, TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { Tabs, TabsList, TabsTrigger } from "@actiontokens/ui/components/tabs";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { Field } from "@actiontokens/ui/patterns/form-page";
+import { PageBody, PageHeader } from "@actiontokens/ui/patterns/page-header";
+import { ToastViewport, TransactionToast } from "@actiontokens/ui/patterns/transaction-toast";
 
 import { Money } from "~/components/money";
 import { useDebounced } from "~/lib/use-debounced";

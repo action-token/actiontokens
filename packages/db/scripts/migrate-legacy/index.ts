@@ -1,8 +1,8 @@
 /**
  * One-time copy of the old bandfan dev database into the new schema.
  *
- *   pnpm --filter @bandcoin/db legacy:dry-run   reads only; writes docs/migration-report.md
- *   pnpm --filter @bandcoin/db legacy:run       (after approval) copies the data
+ *   pnpm --filter @actiontokens/db legacy:dry-run   reads only; writes docs/migration-report.md
+ *   pnpm --filter @actiontokens/db legacy:run       (after approval) copies the data
  *
  * The legacy database is opened read-only and must be the dev database.
  */

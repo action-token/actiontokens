@@ -15,7 +15,7 @@ import {
 } from "../services/facebook/graph";
 import { importFacebookPost, receiveWebhook } from "../services/facebook/import";
 
-vi.mock("@bandcoin/storage", () => ({ fetchPublicFile: vi.fn(), uploadBufferToS3: vi.fn() }));
+vi.mock("@actiontokens/storage", () => ({ fetchPublicFile: vi.fn(), uploadBufferToS3: vi.fn() }));
 
 const KEY = "ab".repeat(32);
 beforeEach(() => {

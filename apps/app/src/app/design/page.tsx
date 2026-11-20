@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { CircleAlert, Heart, Lock, Play } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Badge } from "@bandcoin/ui/components/badge";
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { BrandMark } from "@bandcoin/ui/patterns/boot-screen";
-import { Skeleton } from "@bandcoin/ui/patterns/skeleton";
+import { Badge } from "@actiontokens/ui/components/badge";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { BrandMark } from "@actiontokens/ui/patterns/boot-screen";
+import { Skeleton } from "@actiontokens/ui/patterns/skeleton";
 
 import { BootDemo } from "~/features/design-preview/boot-demo";
 import { BuyPanelDemo } from "~/features/design-preview/buy-panel-demo";
@@ -54,7 +54,7 @@ export default function DesignPreviewPage() {
 
       <section className="grid items-end gap-8 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
         <div>
-          <p className="eyebrow">Design system · live in @bandcoin/ui</p>
+          <p className="eyebrow">Design system · live in @actiontokens/ui</p>
           <h1 className="mt-3 text-[clamp(30px,5vw,52px)] leading-[1.05] font-extrabold">
             Music you can own, on a stage that stays out of the way.
           </h1>

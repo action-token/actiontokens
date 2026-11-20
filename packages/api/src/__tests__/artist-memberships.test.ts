@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 import { createContext } from "../context";
 import { portalRouter } from "../root-portal";
@@ -9,7 +9,7 @@ import type { ChainGateway } from "../services/chain-gateway";
 import { checkExistingToken, createFanToken, getFanToken } from "../services/artist/fan-token";
 import { createTier, listTiers, removeTier, updateTier } from "../services/artist/tiers";
 
-vi.mock("@bandcoin/storage", () => ({
+vi.mock("@actiontokens/storage", () => ({
   isOwnS3Url: (url: string) => url.startsWith("https://cdn.example/"),
 }));
 

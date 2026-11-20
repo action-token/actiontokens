@@ -3,10 +3,10 @@
 import { Check, ChevronDown, Eye, EyeOff, Layers, Pencil, Plus } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@bandcoin/ui/components/popover";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { LayerBadge } from "@bandcoin/ui/patterns/layer-icon";
+import { Button } from "@actiontokens/ui/components/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@actiontokens/ui/components/popover";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { LayerBadge } from "@actiontokens/ui/patterns/layer-icon";
 
 import { LayerDialog } from "./layer-dialog";
 import { describeCounts, REGULAR } from "./layer-view";

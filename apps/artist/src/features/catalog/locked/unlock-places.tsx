@@ -4,9 +4,9 @@ import { MapPinOff, X } from "lucide-react";
 import { useMemo, useRef } from "react";
 import { Layer, Marker, Source, type MapRef } from "react-map-gl/mapbox";
 
-import { circleAround, toMapboxFeature } from "@bandcoin/geo/map-geometry";
-import { Input } from "@bandcoin/ui/components/input";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { circleAround, toMapboxFeature } from "@actiontokens/geo/map-geometry";
+import { Input } from "@actiontokens/ui/components/input";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { BaseMap, WORLD_VIEW } from "../../pins/map-kit/base-map";
 import { PlaceSearch } from "../../pins/map-kit/place-search";

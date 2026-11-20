@@ -31,7 +31,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import type { OnboardingStep } from "@bandcoin/api";
+import type { OnboardingStep } from "@actiontokens/api";
 
 export type NavItem = {
   href: string;

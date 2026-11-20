@@ -3,7 +3,7 @@
 import { AudioLines, Loader2, Pause, Play, RotateCcw, Upload } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
+import { Button } from "@actiontokens/ui/components/button";
 
 import { renderDemoStems } from "~/lib/stems/demo";
 import { StemEngine, type LoadedStem } from "~/lib/stems/engine";

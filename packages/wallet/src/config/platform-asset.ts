@@ -1,5 +1,5 @@
 import { Asset } from "@stellar/stellar-sdk";
-import { AppError, isEnvValidationSkipped } from "@bandcoin/errors";
+import { AppError, isEnvValidationSkipped } from "@actiontokens/errors";
 
 /**
  * The token this deployment's platform runs on, and the fees charged in it.

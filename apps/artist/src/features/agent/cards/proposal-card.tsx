@@ -3,16 +3,16 @@
 import { AlertTriangle, Check, CircleSlash, ClipboardCheck, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Progress } from "@bandcoin/ui/components/progress";
+import { Button } from "@actiontokens/ui/components/button";
+import { Progress } from "@actiontokens/ui/components/progress";
 import type {
   ActionEdits,
   AgentBlock,
   NamedRef,
   PinDefaults,
   ProposedAction,
-} from "@bandcoin/api/agent-contract";
-import { cn } from "@bandcoin/ui/lib/cn";
+} from "@actiontokens/api/agent-contract";
+import { cn } from "@actiontokens/ui/lib/cn";
 import { LayerNote } from "~/features/pins/layers/layer-field";
 import { useSelectedLayer } from "~/features/pins/layers/selected-layer";
 import { api } from "~/trpc/react";

@@ -3,7 +3,7 @@
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -11,8 +11,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@bandcoin/ui/components/dialog";
-import { Textarea } from "@bandcoin/ui/components/textarea";
+} from "@actiontokens/ui/components/dialog";
+import { Textarea } from "@actiontokens/ui/components/textarea";
 
 /** Asks why before an admin hides something from fans; the reason goes in the activity log. */
 export function HideDialog({

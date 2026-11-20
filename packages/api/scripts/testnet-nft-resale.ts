@@ -1,7 +1,7 @@
 /**
  * Dev only: a real smart-contract NFT resale on Stellar testnet through the real API.
  *
- *   pnpm --filter @bandcoin/api testnet:nft-resale
+ *   pnpm --filter @actiontokens/api testnet:nft-resale
  *
  * A throwaway artist with a smart-contract NFT (the nft_oz contract, unchanged),
  * a seller who buys 3 copies from the artist, and a second buyer. The seller
@@ -13,8 +13,8 @@
  */
 import { Asset, Keypair, Operation, TransactionBuilder } from "@stellar/stellar-sdk";
 
-import { tokenAddressOf } from "@bandcoin/chain";
-import { db } from "@bandcoin/db/server";
+import { tokenAddressOf } from "@actiontokens/chain";
+import { db } from "@actiontokens/db/server";
 
 import { createContext } from "../src/context";
 import { appRouter } from "../src/root-app";

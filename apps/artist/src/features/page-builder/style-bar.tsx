@@ -3,23 +3,23 @@
 import { ChevronDown, MousePointerClick, SlidersHorizontal } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { BLOCK_DEFS, type Block } from "@bandcoin/page/blocks";
-import { DENSITIES, FONT_PAIRS, RADII, type PageTheme } from "@bandcoin/page/theme";
-import { Button } from "@bandcoin/ui/components/button";
+import { BLOCK_DEFS, type Block } from "@actiontokens/page/blocks";
+import { DENSITIES, FONT_PAIRS, RADII, type PageTheme } from "@actiontokens/page/theme";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
-} from "@bandcoin/ui/components/dropdown-menu";
+} from "@actiontokens/ui/components/dropdown-menu";
 import {
   Popover,
   PopoverAnchor,
   PopoverContent,
   PopoverTrigger,
-} from "@bandcoin/ui/components/popover";
-import { cn } from "@bandcoin/ui/lib/cn";
+} from "@actiontokens/ui/components/popover";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { BLOCK_ICON } from "./block-picker";
 

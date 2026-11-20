@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { StemEngine, type LoadedStem } from "~/lib/stems/engine";
 import { defaultSetting, type Mix, startPosition } from "~/lib/stems/mix";

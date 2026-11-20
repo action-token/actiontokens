@@ -1,6 +1,6 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 
-import { AppError, ErrorCodes, requireEnv } from "@bandcoin/errors";
+import { AppError, ErrorCodes, requireEnv } from "@actiontokens/errors";
 
 /**
  * Secrets of the accounts the platform holds (artist issuers and storage) are

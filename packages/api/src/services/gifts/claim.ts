@@ -1,9 +1,9 @@
 import { Account, Asset, type Transaction, TransactionBuilder } from "@stellar/stellar-sdk";
 
-import { buildClaimGift, networkFeeXlm, toAmount, toDisplay, toStroops } from "@bandcoin/chain";
-import { TRUSTLINE_RESERVE_XLM } from "@bandcoin/chain/quote";
-import { type ClaimableToken, fundsOf } from "@bandcoin/chain/server";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { buildClaimGift, networkFeeXlm, toAmount, toDisplay, toStroops } from "@actiontokens/chain";
+import { TRUSTLINE_RESERVE_XLM } from "@actiontokens/chain/quote";
+import { type ClaimableToken, fundsOf } from "@actiontokens/chain/server";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { type Context, isCustodial, type SessionUser } from "../../context";
 import { declinedBy, forgetDeclined } from "./decline";

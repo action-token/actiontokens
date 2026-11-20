@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
+import { PageBody, PageHeader } from "@actiontokens/ui/patterns/page-header";
 
 import { SongsHero } from "~/features/songs/songs-hero";
 import { SongsView } from "~/features/songs/songs-view";

@@ -1,7 +1,7 @@
 import { Keypair } from "@stellar/stellar-sdk";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { chainConfig } from "../server/config";
 import { clearRateCache, liveBandcoinUsd, liveRates, TESTNET_BANDCOIN_USD } from "../server/rates";

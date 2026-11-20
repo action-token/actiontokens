@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { distanceMeters } from "@bandcoin/ar-core/ar/geo";
-import { NEARBY_RADIUS_M } from "@bandcoin/ar-core/murals/constants";
+import { distanceMeters } from "@actiontokens/ar-core/ar/geo";
+import { NEARBY_RADIUS_M } from "@actiontokens/ar-core/murals/constants";
 
 import { nameMural, startScan, submitScan } from "../../services/ar/mural-scan";
 import {

@@ -1,8 +1,8 @@
 import { Account, Keypair, Networks } from "@stellar/stellar-sdk";
 import { describe, expect, it, vi } from "vitest";
 
-import { buildBountyClaim } from "@bandcoin/chain";
-import type { Db } from "@bandcoin/db";
+import { buildBountyClaim } from "@actiontokens/chain";
+import type { Db } from "@actiontokens/db";
 
 import { createContext, type SessionUser } from "../context";
 import { appRouter } from "../root-app";

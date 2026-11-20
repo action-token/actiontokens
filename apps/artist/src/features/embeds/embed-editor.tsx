@@ -21,15 +21,15 @@ import {
   arOrigin,
   previewUrl,
   type EmbedDraft,
-} from "@bandcoin/ar-core/embed/snippets";
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { Label } from "@bandcoin/ui/components/label";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { Switch } from "@bandcoin/ui/components/switch";
-import { Textarea } from "@bandcoin/ui/components/textarea";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
+} from "@actiontokens/ar-core/embed/snippets";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { Label } from "@actiontokens/ui/components/label";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { Switch } from "@actiontokens/ui/components/switch";
+import { Textarea } from "@actiontokens/ui/components/textarea";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 

@@ -1,8 +1,8 @@
 import { Account } from "@stellar/stellar-sdk";
 
-import { buildIssuerRefund } from "@bandcoin/chain";
-import { type ArtistStatus, Prisma } from "@bandcoin/db";
-import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
+import { buildIssuerRefund } from "@actiontokens/chain";
+import { type ArtistStatus, Prisma } from "@actiontokens/db";
+import { AppError, ErrorCodes, isAppError } from "@actiontokens/errors";
 
 import type { Context } from "../../context";
 import { createFanToken } from "../artist/fan-token";

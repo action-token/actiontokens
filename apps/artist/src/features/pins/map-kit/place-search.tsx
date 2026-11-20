@@ -3,8 +3,8 @@
 import { Crosshair, Loader2, MapPin, Search, X } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
-import { parseCoordinates, type LatLng } from "@bandcoin/geo/map-geometry";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { parseCoordinates, type LatLng } from "@actiontokens/geo/map-geometry";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { MAPBOX_TOKEN, type Place } from "../mapbox";
 

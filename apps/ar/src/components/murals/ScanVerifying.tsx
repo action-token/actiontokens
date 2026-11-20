@@ -2,8 +2,8 @@ import { motion } from "framer-motion";
 import { Check, Loader2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import type { RejectCode } from "@bandcoin/ar-core/murals/constants";
-import { cn } from "@bandcoin/ui/lib/cn";
+import type { RejectCode } from "@actiontokens/ar-core/murals/constants";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 /**
  * ── ScanVerifying ──────────────────────────────────────────────────────────

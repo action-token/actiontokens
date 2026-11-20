@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import type { Coords, TravelMode } from "@bandcoin/ar-core/ar/types";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import type { Coords, TravelMode } from "@actiontokens/ar-core/ar/types";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 /**
  * ── Mapbox Directions ──────────────────────────────────────────────────────

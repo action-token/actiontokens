@@ -18,19 +18,19 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
-import type { PinTemplateData } from "@bandcoin/ar-core/pin-template";
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
+import type { PinTemplateData } from "@actiontokens/ar-core/pin-template";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@bandcoin/ui/components/select";
-import { Textarea } from "@bandcoin/ui/components/textarea";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { useFormCard } from "@bandcoin/ui/patterns/form-card";
+} from "@actiontokens/ui/components/select";
+import { Textarea } from "@actiontokens/ui/components/textarea";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { useFormCard } from "@actiontokens/ui/patterns/form-card";
 import {
   CardTab,
   Field,
@@ -40,7 +40,7 @@ import {
   OptionGroup,
   OptionList,
   SwitchRow,
-} from "@bandcoin/ui/patterns/form-page";
+} from "@actiontokens/ui/patterns/form-page";
 
 import { DeleteCard } from "~/components/delete-card";
 import { fromLocalInput, toLocalInput } from "~/lib/datetime";

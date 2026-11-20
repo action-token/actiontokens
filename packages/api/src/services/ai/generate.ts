@@ -1,8 +1,8 @@
 import { z } from "zod";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { uploadBufferToS3 } from "@bandcoin/storage";
-import { normalizeAssetCode, validateAssetCode } from "@bandcoin/utils/asset-code";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { uploadBufferToS3 } from "@actiontokens/storage";
+import { normalizeAssetCode, validateAssetCode } from "@actiontokens/utils/asset-code";
 
 import type { Context } from "../../context";
 import { tagName } from "../artist/pins";

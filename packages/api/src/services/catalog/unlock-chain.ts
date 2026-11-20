@@ -4,9 +4,9 @@ import {
   buildNftKeepUnlockedAlive,
   buildNftUnlockItemFor,
   NFT_MAX_UNLOCKED_PER_CALL,
-} from "@bandcoin/chain";
+} from "@actiontokens/chain";
 
-import type { Prisma } from "@bandcoin/db";
+import type { Prisma } from "@actiontokens/db";
 
 import type { Context } from "../../context";
 

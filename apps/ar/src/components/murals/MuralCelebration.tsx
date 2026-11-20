@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 
 import { Confetti } from "~/components/fx/Confetti";
 import { ArButton } from "~/components/ui/ArButton";
-import type { ScanResult } from "@bandcoin/ar-core/murals/constants";
-import { site } from "@bandcoin/ar-core/site";
+import type { ScanResult } from "@actiontokens/ar-core/murals/constants";
+import { site } from "@actiontokens/ar-core/site";
 
 type Success = Exclude<ScanResult, { kind: "rejected" }>;
 

@@ -1,4 +1,4 @@
-import type { Prisma } from "@bandcoin/db";
+import type { Prisma } from "@actiontokens/db";
 
 import type { ServiceCtx } from "../gifts/claim";
 import { itemCardSelect, listedItemWhere, toItemCard } from "./item-card";

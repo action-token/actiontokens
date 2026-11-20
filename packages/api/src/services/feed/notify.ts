@@ -1,4 +1,4 @@
-import type { NotificationType } from "@bandcoin/db";
+import type { NotificationType } from "@actiontokens/db";
 
 import type { Context } from "../../context";
 import { notify } from "../notifications/send";

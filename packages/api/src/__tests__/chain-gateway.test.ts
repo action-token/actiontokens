@@ -9,7 +9,7 @@ import {
 } from "@stellar/stellar-sdk";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 import { createChainGateway } from "../services/chain-gateway";
 

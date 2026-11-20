@@ -1,6 +1,6 @@
-import type { Db } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { signedMediaUrl } from "@bandcoin/storage";
+import type { Db } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { signedMediaUrl } from "@actiontokens/storage";
 
 /** How much of a track someone who doesn't own it can hear. */
 export const PREVIEW_SECONDS = 30;

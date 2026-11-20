@@ -1,5 +1,5 @@
 {
-  "name": "@bandcoin/worker",
+  "name": "@actiontokens/worker",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -13,16 +13,16 @@
     "backfill:music": "tsx --env-file-if-exists=.env.local src/backfill-music.ts"
   },
   "dependencies": {
-    "@bandcoin/api": "workspace:*",
-    "@bandcoin/db": "workspace:*",
-    "@bandcoin/errors": "workspace:*",
+    "@actiontokens/api": "workspace:*",
+    "@actiontokens/db": "workspace:*",
+    "@actiontokens/errors": "workspace:*",
     "tsx": "catalog:",
-    "@bandcoin/storage": "workspace:*"
+    "@actiontokens/storage": "workspace:*"
   },
   "devDependencies": {
-    "@bandcoin/eslint-config": "workspace:*",
-    "@bandcoin/tsconfig": "workspace:*",
-    "@bandcoin/vitest-config": "workspace:*",
+    "@actiontokens/eslint-config": "workspace:*",
+    "@actiontokens/tsconfig": "workspace:*",
+    "@actiontokens/vitest-config": "workspace:*",
     "@types/node": "catalog:",
     "eslint": "catalog:",
     "typescript": "catalog:",

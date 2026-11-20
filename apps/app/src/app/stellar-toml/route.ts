@@ -1,5 +1,5 @@
-import { db } from "@bandcoin/db/server";
-import { stellarToml } from "@bandcoin/api";
+import { db } from "@actiontokens/db/server";
+import { stellarToml } from "@actiontokens/api";
 
 /** SEP-1: wallets read this to show each token's name and image. */
 export async function GET() {

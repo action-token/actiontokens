@@ -445,7 +445,7 @@ importers:
 
   .:
     devDependencies:
-      '@bandcoin/prettier-config':
+      '@actiontokens/prettier-config':
         specifier: workspace:*
         version: link:tooling/prettier
       prettier:
@@ -463,31 +463,31 @@ importers:
 
   apps/app:
     dependencies:
-      '@bandcoin/api':
+      '@actiontokens/api':
         specifier: workspace:*
         version: link:../../packages/api
-      '@bandcoin/auth':
+      '@actiontokens/auth':
         specifier: workspace:*
         version: link:../../packages/auth
-      '@bandcoin/db':
+      '@actiontokens/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@bandcoin/errors':
+      '@actiontokens/errors':
         specifier: workspace:*
         version: link:../../packages/errors
-      '@bandcoin/page':
+      '@actiontokens/page':
         specifier: workspace:*
         version: link:../../packages/page
-      '@bandcoin/storage':
+      '@actiontokens/storage':
         specifier: workspace:*
         version: link:../../packages/storage
-      '@bandcoin/ui':
+      '@actiontokens/ui':
         specifier: workspace:*
         version: link:../../packages/ui
-      '@bandcoin/utils':
+      '@actiontokens/utils':
         specifier: workspace:*
         version: link:../../packages/utils
-      '@bandcoin/wallet':
+      '@actiontokens/wallet':
         specifier: workspace:*
         version: link:../../packages/wallet
       '@tanstack/react-query':
@@ -551,10 +551,10 @@ importers:
         specifier: 'catalog:'
         version: 5.0.16(@types/react@19.3.0)(react@19.3.0)
     devDependencies:
-      '@bandcoin/eslint-config':
+      '@actiontokens/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@bandcoin/tsconfig':
+      '@actiontokens/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
       '@tailwindcss/postcss':
@@ -587,31 +587,31 @@ importers:
 
   apps/ar:
     dependencies:
-      '@bandcoin/api':
+      '@actiontokens/api':
         specifier: workspace:*
         version: link:../../packages/api
-      '@bandcoin/ar-core':
+      '@actiontokens/ar-core':
         specifier: workspace:*
         version: link:../../packages/ar-core
-      '@bandcoin/auth':
+      '@actiontokens/auth':
         specifier: workspace:*
         version: link:../../packages/auth
-      '@bandcoin/db':
+      '@actiontokens/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@bandcoin/errors':
+      '@actiontokens/errors':
         specifier: workspace:*
         version: link:../../packages/errors
-      '@bandcoin/map':
+      '@actiontokens/map':
         specifier: workspace:*
         version: link:../../packages/map
-      '@bandcoin/ui':
+      '@actiontokens/ui':
         specifier: workspace:*
         version: link:../../packages/ui
-      '@bandcoin/utils':
+      '@actiontokens/utils':
         specifier: workspace:*
         version: link:../../packages/utils
-      '@bandcoin/wallet':
+      '@actiontokens/wallet':
         specifier: workspace:*
         version: link:../../packages/wallet
       '@huggingface/transformers':
@@ -687,10 +687,10 @@ importers:
         specifier: 'catalog:'
         version: 5.0.16(@types/react@19.3.0)(react@19.3.0)
     devDependencies:
-      '@bandcoin/eslint-config':
+      '@actiontokens/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@bandcoin/tsconfig':
+      '@actiontokens/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
       '@tailwindcss/postcss':
@@ -732,37 +732,37 @@ importers:
 
   apps/artist:
     dependencies:
-      '@bandcoin/api':
+      '@actiontokens/api':
         specifier: workspace:*
         version: link:../../packages/api
-      '@bandcoin/ar-core':
+      '@actiontokens/ar-core':
         specifier: workspace:*
         version: link:../../packages/ar-core
-      '@bandcoin/auth':
+      '@actiontokens/auth':
         specifier: workspace:*
         version: link:../../packages/auth
-      '@bandcoin/db':
+      '@actiontokens/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@bandcoin/errors':
+      '@actiontokens/errors':
         specifier: workspace:*
         version: link:../../packages/errors
-      '@bandcoin/geo':
+      '@actiontokens/geo':
         specifier: workspace:*
         version: link:../../packages/geo
-      '@bandcoin/map':
+      '@actiontokens/map':
         specifier: workspace:*
         version: link:../../packages/map
-      '@bandcoin/page':
+      '@actiontokens/page':
         specifier: workspace:*
         version: link:../../packages/page
-      '@bandcoin/ui':
+      '@actiontokens/ui':
         specifier: workspace:*
         version: link:../../packages/ui
-      '@bandcoin/utils':
+      '@actiontokens/utils':
         specifier: workspace:*
         version: link:../../packages/utils
-      '@bandcoin/wallet':
+      '@actiontokens/wallet':
         specifier: workspace:*
         version: link:../../packages/wallet
       '@tanstack/react-query':
@@ -826,10 +826,10 @@ importers:
         specifier: 'catalog:'
         version: 5.0.16(@types/react@19.3.0)(react@19.3.0)
     devDependencies:
-      '@bandcoin/eslint-config':
+      '@actiontokens/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@bandcoin/tsconfig':
+      '@actiontokens/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
       '@tailwindcss/postcss':
@@ -868,29 +868,29 @@ importers:
 
   apps/worker:
     dependencies:
-      '@bandcoin/api':
+      '@actiontokens/api':
         specifier: workspace:*
         version: link:../../packages/api
-      '@bandcoin/db':
+      '@actiontokens/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@bandcoin/errors':
+      '@actiontokens/errors':
         specifier: workspace:*
         version: link:../../packages/errors
-      '@bandcoin/storage':
+      '@actiontokens/storage':
         specifier: workspace:*
         version: link:../../packages/storage
       tsx:
         specifier: 'catalog:'
         version: 4.23.15
     devDependencies:
-      '@bandcoin/eslint-config':
+      '@actiontokens/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@bandcoin/tsconfig':
+      '@actiontokens/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
-      '@bandcoin/vitest-config':
+      '@actiontokens/vitest-config':
         specifier: workspace:*
         version: link:../../tooling/vitest
       '@types/node':
@@ -908,34 +908,34 @@ importers:
 
   packages/api:
     dependencies:
-      '@bandcoin/ar-core':
+      '@actiontokens/ar-core':
         specifier: workspace:*
         version: link:../ar-core
-      '@bandcoin/auth':
+      '@actiontokens/auth':
         specifier: workspace:*
         version: link:../auth
-      '@bandcoin/chain':
+      '@actiontokens/chain':
         specifier: workspace:*
         version: link:../chain
-      '@bandcoin/db':
+      '@actiontokens/db':
         specifier: workspace:*
         version: link:../db
-      '@bandcoin/errors':
+      '@actiontokens/errors':
         specifier: workspace:*
         version: link:../errors
-      '@bandcoin/geo':
+      '@actiontokens/geo':
         specifier: workspace:*
         version: link:../geo
-      '@bandcoin/page':
+      '@actiontokens/page':
         specifier: workspace:*
         version: link:../page
-      '@bandcoin/storage':
+      '@actiontokens/storage':
         specifier: workspace:*
         version: link:../storage
-      '@bandcoin/utils':
+      '@actiontokens/utils':
         specifier: workspace:*
         version: link:../utils
-      '@bandcoin/wallet':
+      '@actiontokens/wallet':
         specifier: workspace:*
         version: link:../wallet
       '@google/genai':
@@ -972,13 +972,13 @@ importers:
         specifier: 'catalog:'
         version: 4.6.7
     devDependencies:
-      '@bandcoin/eslint-config':
+      '@actiontokens/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@bandcoin/tsconfig':
+      '@actiontokens/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
-      '@bandcoin/vitest-config':
+      '@actiontokens/vitest-config':
         specifier: workspace:*
         version: link:../../tooling/vitest
       '@types/node':
@@ -1012,13 +1012,13 @@ importers:
         specifier: 'catalog:'
         version: 4.6.7
     devDependencies:
-      '@bandcoin/eslint-config':
+      '@actiontokens/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@bandcoin/tsconfig':
+      '@actiontokens/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
-      '@bandcoin/vitest-config':
+      '@actiontokens/vitest-config':
         specifier: workspace:*
         version: link:../../tooling/vitest
       '@types/node':
@@ -1036,21 +1036,21 @@ importers:
 
   packages/auth:
     dependencies:
+      '@actiontokens/db':
+        specifier: workspace:*
+        version: link:../db
+      '@actiontokens/errors':
+        specifier: workspace:*
+        version: link:../errors
+      '@actiontokens/utils':
+        specifier: workspace:*
+        version: link:../utils
+      '@actiontokens/wallet':
+        specifier: workspace:*
+        version: link:../wallet
       '@albedo-link/signature-verification':
         specifier: 'catalog:'
         version: 0.1.2
-      '@bandcoin/db':
-        specifier: workspace:*
-        version: link:../db
-      '@bandcoin/errors':
-        specifier: workspace:*
-        version: link:../errors
-      '@bandcoin/utils':
-        specifier: workspace:*
-        version: link:../utils
-      '@bandcoin/wallet':
-        specifier: workspace:*
-        version: link:../wallet
       axios:
         specifier: 'catalog:'
         version: 1.21.0(debug@4.4.3)
@@ -1058,13 +1058,13 @@ importers:
         specifier: 'catalog:'
         version: 13.1.0
     devDependencies:
-      '@bandcoin/eslint-config':
+      '@actiontokens/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@bandcoin/tsconfig':
+      '@actiontokens/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
-      '@bandcoin/vitest-config':
+      '@actiontokens/vitest-config':
         specifier: workspace:*
         version: link:../../tooling/vitest
       '@types/node':
@@ -1088,20 +1088,20 @@ importers:
 
   packages/chain:
     dependencies:
-      '@bandcoin/errors':
+      '@actiontokens/errors':
         specifier: workspace:*
         version: link:../errors
       '@stellar/stellar-sdk':
         specifier: 'catalog:'
         version: 17.4.0(debug@4.4.3)
     devDependencies:
-      '@bandcoin/eslint-config':
+      '@actiontokens/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@bandcoin/tsconfig':
+      '@actiontokens/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
-      '@bandcoin/vitest-config':
+      '@actiontokens/vitest-config':
         specifier: workspace:*
         version: link:../../tooling/vitest
       '@types/node':
@@ -1121,7 +1121,7 @@ importers:
 
   packages/db:
     dependencies:
-      '@bandcoin/errors':
+      '@actiontokens/errors':
         specifier: workspace:*
         version: link:../errors
       '@prisma/adapter-pg':
@@ -1134,13 +1134,13 @@ importers:
         specifier: 'catalog:'
         version: 18.0.9
     devDependencies:
-      '@bandcoin/eslint-config':
+      '@actiontokens/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@bandcoin/tsconfig':
+      '@actiontokens/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
-      '@bandcoin/vitest-config':
+      '@actiontokens/vitest-config':
         specifier: workspace:*
         version: link:../../tooling/vitest
       '@stellar/stellar-sdk':
@@ -1173,13 +1173,13 @@ importers:
 
   packages/errors:
     devDependencies:
-      '@bandcoin/eslint-config':
+      '@actiontokens/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@bandcoin/tsconfig':
+      '@actiontokens/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
-      '@bandcoin/vitest-config':
+      '@actiontokens/vitest-config':
         specifier: workspace:*
         version: link:../../tooling/vitest
       '@trpc/server':
@@ -1197,17 +1197,17 @@ importers:
 
   packages/geo:
     dependencies:
-      '@bandcoin/errors':
+      '@actiontokens/errors':
         specifier: workspace:*
         version: link:../errors
     devDependencies:
-      '@bandcoin/eslint-config':
+      '@actiontokens/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@bandcoin/tsconfig':
+      '@actiontokens/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
-      '@bandcoin/vitest-config':
+      '@actiontokens/vitest-config':
         specifier: workspace:*
         version: link:../../tooling/vitest
       '@types/geojson':
@@ -1235,13 +1235,13 @@ importers:
         specifier: 'catalog:'
         version: 8.1.3(mapbox-gl@3.33.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
     devDependencies:
-      '@bandcoin/eslint-config':
+      '@actiontokens/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@bandcoin/tsconfig':
+      '@actiontokens/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
-      '@bandcoin/vitest-config':
+      '@actiontokens/vitest-config':
         specifier: workspace:*
         version: link:../../tooling/vitest
       '@types/react':
@@ -1263,13 +1263,13 @@ importers:
         specifier: 'catalog:'
         version: 4.6.7
     devDependencies:
-      '@bandcoin/eslint-config':
+      '@actiontokens/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@bandcoin/tsconfig':
+      '@actiontokens/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
-      '@bandcoin/vitest-config':
+      '@actiontokens/vitest-config':
         specifier: workspace:*
         version: link:../../tooling/vitest
       '@types/node':
@@ -1287,10 +1287,10 @@ importers:
 
   packages/stellar:
     dependencies:
-      '@bandcoin/errors':
+      '@actiontokens/errors':
         specifier: workspace:*
         version: link:../errors
-      '@bandcoin/wallet':
+      '@actiontokens/wallet':
         specifier: workspace:*
         version: link:../wallet
       '@stellar/stellar-sdk':
@@ -1300,13 +1300,13 @@ importers:
         specifier: 'catalog:'
         version: 1.21.0(debug@4.4.3)
     devDependencies:
-      '@bandcoin/eslint-config':
+      '@actiontokens/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@bandcoin/tsconfig':
+      '@actiontokens/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
-      '@bandcoin/vitest-config':
+      '@actiontokens/vitest-config':
         specifier: workspace:*
         version: link:../../tooling/vitest
       '@types/node':
@@ -1324,26 +1324,26 @@ importers:
 
   packages/storage:
     dependencies:
+      '@actiontokens/errors':
+        specifier: workspace:*
+        version: link:../errors
       '@aws-sdk/client-s3':
         specifier: 'catalog:'
         version: 3.1157.0
       '@aws-sdk/s3-request-presigner':
         specifier: 'catalog:'
         version: 3.1157.0
-      '@bandcoin/errors':
-        specifier: workspace:*
-        version: link:../errors
       sharp:
         specifier: 'catalog:'
         version: 0.35.5(@types/node@26.6.5)
     devDependencies:
-      '@bandcoin/eslint-config':
+      '@actiontokens/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@bandcoin/tsconfig':
+      '@actiontokens/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
-      '@bandcoin/vitest-config':
+      '@actiontokens/vitest-config':
         specifier: workspace:*
         version: link:../../tooling/vitest
       '@types/node':
@@ -1361,7 +1361,7 @@ importers:
 
   packages/ui:
     dependencies:
-      '@bandcoin/utils':
+      '@actiontokens/utils':
         specifier: workspace:*
         version: link:../utils
       '@fontsource-variable/azeret-mono':
@@ -1410,13 +1410,13 @@ importers:
         specifier: 'catalog:'
         version: 1.1.2(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
     devDependencies:
-      '@bandcoin/eslint-config':
+      '@actiontokens/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@bandcoin/tsconfig':
+      '@actiontokens/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
-      '@bandcoin/vitest-config':
+      '@actiontokens/vitest-config':
         specifier: workspace:*
         version: link:../../tooling/vitest
       '@types/node':
@@ -1449,13 +1449,13 @@ importers:
 
   packages/utils:
     devDependencies:
-      '@bandcoin/eslint-config':
+      '@actiontokens/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@bandcoin/tsconfig':
+      '@actiontokens/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
-      '@bandcoin/vitest-config':
+      '@actiontokens/vitest-config':
         specifier: workspace:*
         version: link:../../tooling/vitest
       eslint:
@@ -1470,18 +1470,18 @@ importers:
 
   packages/wallet:
     dependencies:
+      '@actiontokens/errors':
+        specifier: workspace:*
+        version: link:../errors
+      '@actiontokens/ui':
+        specifier: workspace:*
+        version: link:../ui
+      '@actiontokens/utils':
+        specifier: workspace:*
+        version: link:../utils
       '@albedo-link/intent':
         specifier: 'catalog:'
         version: 0.13.0
-      '@bandcoin/errors':
-        specifier: workspace:*
-        version: link:../errors
-      '@bandcoin/ui':
-        specifier: workspace:*
-        version: link:../ui
-      '@bandcoin/utils':
-        specifier: workspace:*
-        version: link:../utils
       '@creit.tech/xbull-wallet-connect':
         specifier: 'catalog:'
         version: 0.4.0
@@ -1552,13 +1552,13 @@ importers:
         specifier: 'catalog:'
         version: 5.0.16(@types/react@19.3.0)(react@19.3.0)
     devDependencies:
-      '@bandcoin/eslint-config':
+      '@actiontokens/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@bandcoin/tsconfig':
+      '@actiontokens/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
-      '@bandcoin/vitest-config':
+      '@actiontokens/vitest-config':
         specifier: workspace:*
         version: link:../../tooling/vitest
       '@types/jsonwebtoken':

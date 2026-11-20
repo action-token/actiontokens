@@ -1,7 +1,7 @@
-import { canPlayFull, previewByteRange, PREVIEW_SECONDS, wavPreview } from "@bandcoin/api";
-import { sessionUserOf } from "@bandcoin/auth";
-import { db } from "@bandcoin/db/server";
-import { assertPublicHttpUrl, signedMediaUrl } from "@bandcoin/storage";
+import { canPlayFull, previewByteRange, PREVIEW_SECONDS, wavPreview } from "@actiontokens/api";
+import { sessionUserOf } from "@actiontokens/auth";
+import { db } from "@actiontokens/db/server";
+import { assertPublicHttpUrl, signedMediaUrl } from "@actiontokens/storage";
 
 import { getSession } from "~/server/auth";
 

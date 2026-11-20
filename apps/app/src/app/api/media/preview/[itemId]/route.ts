@@ -1,6 +1,6 @@
-import { previewByteRange } from "@bandcoin/api";
-import { db } from "@bandcoin/db/server";
-import { assertPublicHttpUrl } from "@bandcoin/storage";
+import { previewByteRange } from "@actiontokens/api";
+import { db } from "@actiontokens/db/server";
+import { assertPublicHttpUrl } from "@actiontokens/storage";
 
 /** Content length of each source file, so a preview needs one request, not two. */
 const sizes = new Map<string, number>();

@@ -6,9 +6,9 @@ import {
   networkFeeXlm,
   toAmount,
   toStroops,
-} from "@bandcoin/chain";
-import { spendableXlm, trusts } from "@bandcoin/chain/server";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+} from "@actiontokens/chain";
+import { spendableXlm, trusts } from "@actiontokens/chain/server";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { type Context, isCustodial, type SessionUser } from "../../context";
 import { minterOf, planDelivery } from "../purchase/sale";

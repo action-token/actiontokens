@@ -1,4 +1,4 @@
-import { LayerBadge } from "@bandcoin/ui/patterns/layer-icon";
+import { LayerBadge } from "@actiontokens/ui/patterns/layer-icon";
 
 /** A layer's name with its badge, for summaries and lists. */
 export function LayerTag({

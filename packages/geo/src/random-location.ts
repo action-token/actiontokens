@@ -1,6 +1,6 @@
 import type { Feature, Polygon } from "geojson";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 export interface Coordinates {
   latitude: number;

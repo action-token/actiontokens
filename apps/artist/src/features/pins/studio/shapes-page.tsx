@@ -12,19 +12,19 @@ import {
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { PinGlyph } from "@bandcoin/ui/patterns/pin-glyph";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { Button } from "@bandcoin/ui/components/button";
-import { ConfirmDialog } from "@bandcoin/ui/patterns/confirm-dialog";
+import { PinGlyph } from "@actiontokens/ui/patterns/pin-glyph";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { Button } from "@actiontokens/ui/components/button";
+import { ConfirmDialog } from "@actiontokens/ui/patterns/confirm-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@bandcoin/ui/components/dropdown-menu";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
+} from "@actiontokens/ui/components/dropdown-menu";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { PageBody, PageHeader } from "@actiontokens/ui/patterns/page-header";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@actiontokens/ui/components/tabs";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 

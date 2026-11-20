@@ -4,8 +4,8 @@ import { BadgeCheck, Crown, Disc3, FileText, Users } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-import { cn } from "@bandcoin/ui/lib/cn";
-import { Avatar } from "@bandcoin/ui/patterns/person";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { Avatar } from "@actiontokens/ui/patterns/person";
 
 import {
   HERO_IMAGE,

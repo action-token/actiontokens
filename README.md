@@ -94,10 +94,10 @@ Dependency versions live in the `catalog:` of [`pnpm-workspace.yaml`](pnpm-works
 
 - Apps never import each other. Shared code lives in a package, and packages never import apps.
 - Business logic lives in `packages/api/src/services`. Routers only check input and call a service. Every mutation lands in the activity log.
-- All Stellar and contract transactions are built in `@bandcoin/chain`, never in pages or routers. The user is always the transaction source, so the user pays the network fee.
+- All Stellar and contract transactions are built in `@actiontokens/chain`, never in pages or routers. The user is always the transaction source, so the user pays the network fee.
 - Money is shown with a full price breakdown before anything is signed, and custodial wallets get a 5 second countdown with Cancel.
 - Files are kebab-case, components PascalCase, functions verb-first (`buildIssuerSetup`, `claimPin`). No file over 1000 lines.
-- No `throw new Error`: use `AppError` from `@bandcoin/errors`.
+- No `throw new Error`: use `AppError` from `@actiontokens/errors`.
 - Run `pnpm typecheck && pnpm lint && pnpm test` before you push.
 
 ## Security

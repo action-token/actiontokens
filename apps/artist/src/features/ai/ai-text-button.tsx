@@ -14,8 +14,8 @@ import {
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import type { FillForm } from "@bandcoin/api";
-import { Button } from "@bandcoin/ui/components/button";
+import type { FillForm } from "@actiontokens/api";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,7 +23,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@bandcoin/ui/components/dropdown-menu";
+} from "@actiontokens/ui/components/dropdown-menu";
 
 import { api } from "~/trpc/react";
 

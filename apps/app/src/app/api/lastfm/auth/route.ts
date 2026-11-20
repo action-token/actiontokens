@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { lastFmAuthUrl, lastFmKeys } from "@bandcoin/api";
+import { lastFmAuthUrl, lastFmKeys } from "@actiontokens/api";
 
 import { backTo } from "~/lib/safe-redirect";
 import { getSession } from "~/server/auth";

@@ -2,8 +2,8 @@ import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "r
 import MapGL, { Marker, type MapRef, type ViewStateChangeEvent } from "react-map-gl/mapbox";
 import Supercluster, { type ClusterProperties } from "supercluster";
 
-import { AR_CAPTURE_RADIUS, distanceMeters } from "@bandcoin/ar-core/ar/geo";
-import type { ArPin, Coords, GeoFix } from "@bandcoin/ar-core/ar/types";
+import { AR_CAPTURE_RADIUS, distanceMeters } from "@actiontokens/ar-core/ar/geo";
+import type { ArPin, Coords, GeoFix } from "@actiontokens/ar-core/ar/types";
 import {
   mapStyleFor,
   type ResolvedTheme,
@@ -12,7 +12,7 @@ import {
   useResolvedTheme,
   useThemeRead,
 } from "~/lib/ar/theme";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 import { ClusterBillboard } from "./ClusterBillboard";
 import { MapViewProbe } from "./MapLayersSheet";
 import { MapTerrain } from "./MapTerrain";

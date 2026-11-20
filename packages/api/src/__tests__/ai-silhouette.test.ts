@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@bandcoin/storage", () => ({
+vi.mock("@actiontokens/storage", () => ({
   fetchPublicFile: vi.fn(),
   renderOutlinePng: vi.fn().mockResolvedValue(Buffer.from("outline")),
 }));

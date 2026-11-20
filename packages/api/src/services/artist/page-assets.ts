@@ -1,6 +1,6 @@
-import { toAmount, toStroops } from "@bandcoin/chain";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { validatePrice } from "@bandcoin/utils/asset-code";
+import { toAmount, toStroops } from "@actiontokens/chain";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { validatePrice } from "@actiontokens/utils/asset-code";
 
 import type { Context } from "../../context";
 import { invalid } from "./items";

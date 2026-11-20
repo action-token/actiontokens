@@ -3,9 +3,9 @@ import Link from "next/link";
 
 import { ArtistAvatar } from "~/components/artist/ArtistAvatar";
 import { Skeleton } from "~/components/ui/Skeleton";
-import { dateTile, eventWhen, liveState, spotsLabel } from "@bandcoin/ar-core/ar/events";
-import type { ArEventCard } from "@bandcoin/ar-core/ar/types";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { dateTile, eventWhen, liveState, spotsLabel } from "@actiontokens/ar-core/ar/events";
+import type { ArEventCard } from "@actiontokens/ar-core/ar/types";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 /**
  * ── EventCard ──────────────────────────────────────────────────────────────

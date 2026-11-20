@@ -1,7 +1,7 @@
 import { Account, Keypair, Networks } from "@stellar/stellar-sdk";
 import { describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 import type { SessionUser } from "../context";
 import { listSentGifts } from "../services/artist/gifts";

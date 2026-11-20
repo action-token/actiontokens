@@ -4,7 +4,7 @@ import { Camera, Loader2 } from "lucide-react";
 import { type ReactNode, useId, useState } from "react";
 import toast from "react-hot-toast";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { declare, putToStorage } from "~/lib/upload";
 import { api } from "~/trpc/react";

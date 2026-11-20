@@ -2,7 +2,7 @@
 
 import type { Dispatch, SetStateAction } from "react";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { clampPan, clampVolume, defaultSetting, type Mix, toggle } from "~/lib/stems/mix";
 

@@ -12,7 +12,7 @@ import Supercluster from "supercluster";
 
 import { MuralMarker, type MapMural } from "~/components/map/MuralMarker";
 import { PinMarker } from "~/components/map/PinMarker";
-import { distanceMeters } from "@bandcoin/ar-core/ar/geo";
+import { distanceMeters } from "@actiontokens/ar-core/ar/geo";
 import {
   mapStyleFor,
   useMapBase,
@@ -20,7 +20,7 @@ import {
   useResolvedTheme,
   useThemeRead,
 } from "~/lib/ar/theme";
-import type { ArPin, Coords } from "@bandcoin/ar-core/ar/types";
+import type { ArPin, Coords } from "@actiontokens/ar-core/ar/types";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_API;
 

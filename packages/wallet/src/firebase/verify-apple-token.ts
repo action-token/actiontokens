@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 /**
  * The app id Apple issued identity tokens for. White-label apps with their own

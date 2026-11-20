@@ -2,12 +2,12 @@
 
 import { Plus, Trash2 } from "lucide-react";
 
-import type { FieldDef } from "@bandcoin/page/blocks";
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { Label } from "@bandcoin/ui/components/label";
-import { Switch } from "@bandcoin/ui/components/switch";
-import { Textarea } from "@bandcoin/ui/components/textarea";
+import type { FieldDef } from "@actiontokens/page/blocks";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { Label } from "@actiontokens/ui/components/label";
+import { Switch } from "@actiontokens/ui/components/switch";
+import { Textarea } from "@actiontokens/ui/components/textarea";
 
 import { FileField } from "../catalog/file-field";
 import { Segmented } from "../embeds/embed-fields";

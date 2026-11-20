@@ -15,25 +15,25 @@ import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 import toast from "react-hot-toast";
 
-import { abbreviateAddress } from "@bandcoin/utils/address";
-import { Button } from "@bandcoin/ui/components/button";
+import { abbreviateAddress } from "@actiontokens/utils/address";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@bandcoin/ui/components/select";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { Switch } from "@bandcoin/ui/components/switch";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { DataTable, type Column } from "@bandcoin/ui/patterns/data-table";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
-import { Person } from "@bandcoin/ui/patterns/person";
-import { StatCard } from "@bandcoin/ui/patterns/stat-card";
-import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
-import { SearchInput } from "@bandcoin/ui/patterns/toolbar";
+} from "@actiontokens/ui/components/select";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { Switch } from "@actiontokens/ui/components/switch";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { DataTable, type Column } from "@actiontokens/ui/patterns/data-table";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
+import { PageBody, PageHeader } from "@actiontokens/ui/patterns/page-header";
+import { Person } from "@actiontokens/ui/patterns/person";
+import { StatCard } from "@actiontokens/ui/patterns/stat-card";
+import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
+import { SearchInput } from "@actiontokens/ui/patterns/toolbar";
 
 import { STATUS } from "~/features/pins/pins-view";
 import { api, type RouterOutputs } from "~/trpc/react";

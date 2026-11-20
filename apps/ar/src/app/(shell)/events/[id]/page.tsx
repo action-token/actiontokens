@@ -28,12 +28,12 @@ import {
   liveState,
   spotsLabel,
   venueMapImage,
-} from "@bandcoin/ar-core/ar/events";
+} from "@actiontokens/ar-core/ar/events";
 import { shareLink } from "~/lib/ar/share-link";
 import { useAuth } from "~/lib/ar/store";
 import { useResolvedTheme } from "~/lib/ar/theme";
-import type { ArEventDetail } from "@bandcoin/ar-core/ar/types";
-import { cn } from "@bandcoin/ui/lib/cn";
+import type { ArEventDetail } from "@actiontokens/ar-core/ar/types";
+import { cn } from "@actiontokens/ui/lib/cn";
 import { api } from "~/trpc/react";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_API;

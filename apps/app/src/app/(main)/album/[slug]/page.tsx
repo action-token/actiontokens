@@ -3,8 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 
-import { isAppError } from "@bandcoin/errors";
-import { PageBody } from "@bandcoin/ui/patterns/page-header";
+import { isAppError } from "@actiontokens/errors";
+import { PageBody } from "@actiontokens/ui/patterns/page-header";
 
 import { PlayAllButton, TrackList } from "~/features/music/track-list";
 import { Avatar } from "~/features/shell/context-panel";

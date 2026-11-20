@@ -1,8 +1,8 @@
 import { finishCancel, finishList } from "../resale/classic";
 import { type Transaction, TransactionBuilder } from "@stellar/stellar-sdk";
 
-import type { Order } from "@bandcoin/db";
-import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
+import type { Order } from "@actiontokens/db";
+import { AppError, ErrorCodes, isAppError } from "@actiontokens/errors";
 
 import type { Context } from "../../context";
 import { deliverVanity } from "../artist/vanity";

@@ -14,9 +14,9 @@ import { useEffect, useState } from "react";
 
 import { Confetti } from "~/components/fx/Confetti";
 import { ArButton } from "~/components/ui/ArButton";
-import type { RejectCode, ScanResult as Result } from "@bandcoin/ar-core/murals/constants";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { site } from "@bandcoin/ar-core/site";
+import type { RejectCode, ScanResult as Result } from "@actiontokens/ar-core/murals/constants";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { site } from "@actiontokens/ar-core/site";
 
 /**
  * ── ScanResult ─────────────────────────────────────────────────────────────

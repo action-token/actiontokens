@@ -12,10 +12,10 @@ import {
   toStroops,
   verifyTransaction,
   wrapInFeeBump,
-} from "@bandcoin/chain";
-import { buildQuote, type Quote, type QuoteProblem } from "@bandcoin/chain/quote";
-import { fundsOf } from "@bandcoin/chain/server";
-import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
+} from "@actiontokens/chain";
+import { buildQuote, type Quote, type QuoteProblem } from "@actiontokens/chain/quote";
+import { fundsOf } from "@actiontokens/chain/server";
+import { AppError, ErrorCodes, isAppError } from "@actiontokens/errors";
 
 import { type Context, isCustodial, type SessionUser } from "../../context";
 import { DEFAULT_PLATFORM_FEE_BPS } from "../admin/settings";

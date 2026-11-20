@@ -2,8 +2,8 @@ import { initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import { z, ZodError } from "zod";
 
-import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
-import { appErrorMiddleware } from "@bandcoin/errors/trpc";
+import { AppError, ErrorCodes, isAppError } from "@actiontokens/errors";
+import { appErrorMiddleware } from "@actiontokens/errors/trpc";
 
 import { logActivity } from "./activity/middleware";
 import type { Context } from "./context";

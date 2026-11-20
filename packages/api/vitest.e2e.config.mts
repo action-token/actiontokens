@@ -1,7 +1,7 @@
 import { config } from "dotenv";
 import { mergeConfig } from "vitest/config";
 
-import { e2eTestConfig } from "@bandcoin/vitest-config";
+import { e2eTestConfig } from "@actiontokens/vitest-config";
 
 // DATABASE_URL for the Bandcoin dev database; the test refuses any other host.
 config({ path: new URL("../db/.env", import.meta.url).pathname, quiet: true });

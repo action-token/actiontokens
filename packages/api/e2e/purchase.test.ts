@@ -8,8 +8,8 @@ import {
 } from "@stellar/stellar-sdk";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { db } from "@bandcoin/db/server";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { db } from "@actiontokens/db/server";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { createContext, type SessionUser } from "../src/context";
 import { appRouter } from "../src/root-app";

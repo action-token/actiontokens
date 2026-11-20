@@ -1,7 +1,7 @@
 import { Coins, User } from "lucide-react";
 import Link from "next/link";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { formatCapsuleBalance } from "~/lib/ar/balance";
 import { useAuth } from "~/lib/ar/store";

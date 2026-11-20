@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 import { createContext, type SessionUser } from "../context";
 import { portalRouter } from "../root-portal";
@@ -10,7 +10,7 @@ import { createCallerFactory } from "../trpc";
 import type { AiModel } from "../services/ai/model";
 import { AI_DAILY_LIMIT, aiRemaining, withAiQuota } from "../services/ai/quota";
 
-vi.mock("@bandcoin/storage", () => ({
+vi.mock("@actiontokens/storage", () => ({
   uploadBufferToS3: vi.fn().mockResolvedValue("https://cdn.example/ai.png"),
 }));
 vi.mock("../services/ai/model", () => ({

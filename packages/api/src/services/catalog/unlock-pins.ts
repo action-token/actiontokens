@@ -1,4 +1,4 @@
-import type { Db, Prisma } from "@bandcoin/db";
+import type { Db, Prisma } from "@actiontokens/db";
 
 /**
  * The places an NFT owner visits to unlock its locked content, as on the old

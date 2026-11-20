@@ -1,6 +1,6 @@
 import { Keypair, Networks } from "@stellar/stellar-sdk";
 
-import { AppError, ErrorCodes, isEnvValidationSkipped, requireEnv } from "@bandcoin/errors";
+import { AppError, ErrorCodes, isEnvValidationSkipped, requireEnv } from "@actiontokens/errors";
 
 import type { PaymentAssets } from "../currency";
 import type { NetworkParams } from "../transaction";

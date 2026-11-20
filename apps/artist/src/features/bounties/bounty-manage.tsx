@@ -6,15 +6,15 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
-import { ConfirmDialog } from "@bandcoin/ui/patterns/confirm-dialog";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
-import { Markdown } from "@bandcoin/ui/patterns/markdown";
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
-import { StatusPill } from "@bandcoin/ui/patterns/status-pill";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@actiontokens/ui/components/tabs";
+import { ConfirmDialog } from "@actiontokens/ui/patterns/confirm-dialog";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
+import { Markdown } from "@actiontokens/ui/patterns/markdown";
+import { PageBody, PageHeader } from "@actiontokens/ui/patterns/page-header";
+import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
 
 import { Money } from "~/components/money";
 import { timeAgo } from "~/lib/format";

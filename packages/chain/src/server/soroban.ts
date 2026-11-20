@@ -12,7 +12,7 @@ import {
   xdr,
 } from "@stellar/stellar-sdk";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { chainConfig } from "./config";
 

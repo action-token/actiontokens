@@ -19,10 +19,10 @@ import {
   distanceMeters,
   formatDistance,
   travelMinutes,
-} from "@bandcoin/ar-core/ar/geo";
-import { pinStatus, timeRemaining } from "@bandcoin/ar-core/ar/rarity";
-import type { ArPin, GeoFix, TravelMode } from "@bandcoin/ar-core/ar/types";
-import { cn } from "@bandcoin/ui/lib/cn";
+} from "@actiontokens/ar-core/ar/geo";
+import { pinStatus, timeRemaining } from "@actiontokens/ar-core/ar/rarity";
+import type { ArPin, GeoFix, TravelMode } from "@actiontokens/ar-core/ar/types";
+import { cn } from "@actiontokens/ui/lib/cn";
 import { ArButton, ArLinkButton } from "~/components/ui/ArButton";
 import { DETECTION_META, DetectionBadge, RarityPlate, StatusBadge } from "~/components/ui/Badges";
 import { BottomSheet } from "~/components/ui/BottomSheet";

@@ -1,7 +1,7 @@
 import { StrKey } from "@stellar/stellar-sdk";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { assetCodeFrom, normalizeAssetCode, validateAssetCode } from "@bandcoin/utils/asset-code";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { assetCodeFrom, normalizeAssetCode, validateAssetCode } from "@actiontokens/utils/asset-code";
 
 import type { Context } from "../../context";
 import { checkOwnUrls, freeSlug, invalid } from "./items";

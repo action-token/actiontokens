@@ -5,13 +5,13 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
-import { Badge } from "@bandcoin/ui/components/badge";
-import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { QuantityStepper } from "@bandcoin/ui/patterns/quantity-stepper";
-import { ToastViewport, TransactionToast } from "@bandcoin/ui/patterns/transaction-toast";
-import { useConnectWalletDialogStore } from "@bandcoin/wallet";
+import { Badge } from "@actiontokens/ui/components/badge";
+import { Button } from "@actiontokens/ui/components/button";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { QuantityStepper } from "@actiontokens/ui/patterns/quantity-stepper";
+import { ToastViewport, TransactionToast } from "@actiontokens/ui/patterns/transaction-toast";
+import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
 import { Money, MoneyTotals } from "~/components/money";
 import type { DisplayCurrency } from "~/lib/format";

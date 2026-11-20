@@ -1,7 +1,7 @@
-import type { MuralRejectReason, MuralStatus, Prisma } from "@bandcoin/db";
-import type { Db } from "@bandcoin/db";
-import { distanceMeters } from "@bandcoin/ar-core/ar/geo";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import type { MuralRejectReason, MuralStatus, Prisma } from "@actiontokens/db";
+import type { Db } from "@actiontokens/db";
+import { distanceMeters } from "@actiontokens/ar-core/ar/geo";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import type { Context } from "../../context";
 import { boxAround, creditCoins, getMuralSettings } from "../ar/murals";

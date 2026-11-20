@@ -1,7 +1,7 @@
-import type { Mural, Prisma } from "@bandcoin/db";
-import type { Db } from "@bandcoin/db";
+import type { Mural, Prisma } from "@actiontokens/db";
+import type { Db } from "@actiontokens/db";
 
-import { distanceMeters } from "@bandcoin/ar-core/ar/geo";
+import { distanceMeters } from "@actiontokens/ar-core/ar/geo";
 import {
   FRAME_COUNT,
   LOCK_SCORE,
@@ -20,8 +20,8 @@ import {
   type RejectCode,
   type ScanPlatform,
   type ScanResult,
-} from "@bandcoin/ar-core/murals/constants";
-import { getObjectBytes, publicS3Url, signMuralFrames } from "@bandcoin/storage";
+} from "@actiontokens/ar-core/murals/constants";
+import { getObjectBytes, publicS3Url, signMuralFrames } from "@actiontokens/storage";
 
 import { dot, embedImage, muralScore } from "./clip";
 import {
@@ -34,7 +34,7 @@ import {
   toMuralCard,
 } from "./murals";
 import { checkWithVision } from "./vision";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 /**
  * ── Mural scan pipeline ────────────────────────────────────────────────────

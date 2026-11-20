@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { PageBody } from "@bandcoin/ui/patterns/page-header";
+import { PageBody } from "@actiontokens/ui/patterns/page-header";
 
 import { PostPage } from "~/features/feed/post-page";
 

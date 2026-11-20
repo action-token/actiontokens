@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { StageLoader } from "@bandcoin/ui/patterns/stage-loader/stage-loader";
+import { StageLoader } from "@actiontokens/ui/patterns/stage-loader/stage-loader";
 
 import { useBootProgress } from "./use-boot-progress";
 

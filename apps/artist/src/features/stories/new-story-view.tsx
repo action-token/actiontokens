@@ -6,17 +6,17 @@ import { useRouter } from "next/navigation";
 import { type DragEvent, type FormEvent, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@bandcoin/ui/components/select";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { Field, FormPage, FormSection } from "@bandcoin/ui/patterns/form-page";
+} from "@actiontokens/ui/components/select";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { Field, FormPage, FormSection } from "@actiontokens/ui/patterns/form-page";
 
 import { usePortal } from "~/features/portal/use-portal";
 import { api } from "~/trpc/react";

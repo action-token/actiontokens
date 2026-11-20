@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 
-import { isAppError } from "@bandcoin/errors";
+import { isAppError } from "@actiontokens/errors";
 
 import { BountyView } from "~/features/bounty/bounty-view";
 import { serverApi } from "~/server/api";

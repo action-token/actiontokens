@@ -2,10 +2,10 @@ import { Coins, Frame, HelpCircle, Navigation, ScanLine, Sparkles } from "lucide
 
 import { ArButton, ArLinkButton } from "~/components/ui/ArButton";
 import { BottomSheet } from "~/components/ui/BottomSheet";
-import { distanceMeters, formatDistance } from "@bandcoin/ar-core/ar/geo";
-import type { GeoFix } from "@bandcoin/ar-core/ar/types";
+import { distanceMeters, formatDistance } from "@actiontokens/ar-core/ar/geo";
+import type { GeoFix } from "@actiontokens/ar-core/ar/types";
 import { api } from "~/trpc/react";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import type { MapMural } from "./MuralMarker";
 

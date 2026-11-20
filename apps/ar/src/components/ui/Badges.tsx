@@ -1,9 +1,9 @@
 import { Image as ImageIcon, Lock, QrCode, Satellite } from "lucide-react";
 import { type ReactNode } from "react";
 
-import { RARITY_META, STATUS_META } from "@bandcoin/ar-core/ar/rarity";
-import type { DetectionMethod, PinStatus, Rarity } from "@bandcoin/ar-core/ar/types";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { RARITY_META, STATUS_META } from "@actiontokens/ar-core/ar/rarity";
+import type { DetectionMethod, PinStatus, Rarity } from "@actiontokens/ar-core/ar/types";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 /**
  * Rarity plate — the small hard-edged tag in the corner of every card.

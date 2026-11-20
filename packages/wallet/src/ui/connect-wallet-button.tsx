@@ -5,8 +5,8 @@ import Image from "next/image";
 import { LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useConnectWalletDialogStore } from "../state/connect-dialog-store";
-import { abbreviateAddress } from "@bandcoin/utils/address";
-import { Button } from "@bandcoin/ui/components/button";
+import { abbreviateAddress } from "@actiontokens/utils/address";
+import { Button } from "@actiontokens/ui/components/button";
 
 export function ConnectWalletButton() {
   const session = useSession();

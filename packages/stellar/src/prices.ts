@@ -1,7 +1,7 @@
 import axios from "axios";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { PLATFORM_ASSET, stellarNetwork } from "@bandcoin/wallet/config";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { PLATFORM_ASSET, stellarNetwork } from "@actiontokens/wallet/config";
 
 /**
  * Exchange rates for quotes. Cached for a minute so a quote and the

@@ -3,12 +3,12 @@ import { Zap } from "lucide-react";
 import { useEffect } from "react";
 
 import { NearbyCardSkeleton } from "~/components/ui/Skeleton";
-import { AR_CAPTURE_RADIUS, formatDistance } from "@bandcoin/ar-core/ar/geo";
-import { pinStatus, RARITY_META } from "@bandcoin/ar-core/ar/rarity";
-import type { ArPin } from "@bandcoin/ar-core/ar/types";
+import { AR_CAPTURE_RADIUS, formatDistance } from "@actiontokens/ar-core/ar/geo";
+import { pinStatus, RARITY_META } from "@actiontokens/ar-core/ar/rarity";
+import type { ArPin } from "@actiontokens/ar-core/ar/types";
 import { useDragScroll } from "~/lib/ar/useDragScroll";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { PinGlyph } from "@bandcoin/ui/patterns/pin-glyph";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { PinGlyph } from "@actiontokens/ui/patterns/pin-glyph";
 
 export interface NearbyPin {
   pin: ArPin;

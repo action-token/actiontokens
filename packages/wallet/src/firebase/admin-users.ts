@@ -1,6 +1,6 @@
 import { getAuth } from "firebase-admin/auth";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { initFirebaseAdmin } from "./admin-app";
 import { verifyAppleToken } from "./verify-apple-token";

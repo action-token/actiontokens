@@ -5,13 +5,13 @@ import { useSession } from "next-auth/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { usePersistedFlag } from "@bandcoin/ui/lib/sidebar-collapsed";
-import { cn } from "@bandcoin/ui/lib/cn";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { ErrorState } from "@bandcoin/ui/patterns/error-state";
-import { FilterChips } from "@bandcoin/ui/patterns/toolbar";
+import { Button } from "@actiontokens/ui/components/button";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { usePersistedFlag } from "@actiontokens/ui/lib/sidebar-collapsed";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { ErrorState } from "@actiontokens/ui/patterns/error-state";
+import { FilterChips } from "@actiontokens/ui/patterns/toolbar";
 
 import { api, type RouterInputs } from "~/trpc/react";
 

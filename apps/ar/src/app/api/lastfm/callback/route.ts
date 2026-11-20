@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { lastFmSession } from "@bandcoin/api";
-import { db } from "@bandcoin/db/server";
+import { lastFmSession } from "@actiontokens/api";
+import { db } from "@actiontokens/db/server";
 
 import { backTo } from "~/lib/safe-redirect";
 import { getSession } from "~/server/auth";

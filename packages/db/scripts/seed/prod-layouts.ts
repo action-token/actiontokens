@@ -2,8 +2,8 @@
  * Rebuilds the artist page of every real artist on PRODUCTION from what they have now
  * (songs, albums, collectibles, tiers, tour dates, their own bio, links and videos).
  *
- *   PROD_DATABASE_URL=... pnpm --filter @bandcoin/db exec tsx scripts/seed/prod-layouts.ts          (dry run)
- *   PROD_DATABASE_URL=... pnpm --filter @bandcoin/db exec tsx scripts/seed/prod-layouts.ts --apply  (writes)
+ *   PROD_DATABASE_URL=... pnpm --filter @actiontokens/db exec tsx scripts/seed/prod-layouts.ts          (dry run)
+ *   PROD_DATABASE_URL=... pnpm --filter @actiontokens/db exec tsx scripts/seed/prod-layouts.ts --apply  (writes)
  *
  *   - Dry run unless --apply. It prints, per artist, what the new page is made of.
  *   - Replaces the artist's current page. Before that, the old page is saved as a second,

@@ -3,8 +3,8 @@
 import { Pause, Play, Shuffle } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { Button } from "@actiontokens/ui/components/button";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import type { ItemCardData } from "../catalog/item-card";
 import { currentTrack, usePlayer } from "../player/player-store";

@@ -12,7 +12,7 @@ WORKDIR /repo
 # Only the worker and the packages it uses, so other apps' changes don't rebuild it.
 FROM base AS prune
 COPY . .
-RUN pnpm dlx turbo@2.11.10 prune @bandcoin/worker --docker
+RUN pnpm dlx turbo@2.11.10 prune @actiontokens/worker --docker
 
 FROM base AS install
 # Prisma needs OpenSSL to find the right engine for this system.
@@ -22,9 +22,9 @@ RUN apt-get update \
 COPY --from=prune /repo/out/json/ ./
 # No install scripts yet: packages/db's postinstall runs `prisma generate`, and its schema is only
 # copied in the next step. The client is generated explicitly below.
-RUN pnpm install --frozen-lockfile --ignore-scripts --filter "@bandcoin/worker..."
+RUN pnpm install --frozen-lockfile --ignore-scripts --filter "@actiontokens/worker..."
 COPY --from=prune /repo/out/full/ ./
-RUN pnpm --filter @bandcoin/db generate
+RUN pnpm --filter @actiontokens/db generate
 
 FROM node:24-slim AS run
 RUN apt-get update \

@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import toast from "react-hot-toast";
 
-import { cn } from "@bandcoin/ui/lib/cn";
-import { Avatar } from "@bandcoin/ui/patterns/person";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { Avatar } from "@actiontokens/ui/patterns/person";
 
 import { api } from "~/trpc/react";
 

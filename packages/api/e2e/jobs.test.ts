@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, it } from "vitest";
 
-import { db } from "@bandcoin/db/server";
+import { db } from "@actiontokens/db/server";
 
 import { claimJob, completeJob } from "../src/services/jobs/queue";
 

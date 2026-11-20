@@ -16,27 +16,27 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { describeMinutes } from "@bandcoin/ar-core/pin-template";
-import { Button } from "@bandcoin/ui/components/button";
+import { describeMinutes } from "@actiontokens/ar-core/pin-template";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@bandcoin/ui/components/dialog";
+} from "@actiontokens/ui/components/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@bandcoin/ui/components/dropdown-menu";
-import { Input } from "@bandcoin/ui/components/input";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@bandcoin/ui/components/tabs";
-import { ConfirmDialog } from "@bandcoin/ui/patterns/confirm-dialog";
-import { EmptyState } from "@bandcoin/ui/patterns/empty-state";
-import { PageBody, PageHeader } from "@bandcoin/ui/patterns/page-header";
+} from "@actiontokens/ui/components/dropdown-menu";
+import { Input } from "@actiontokens/ui/components/input";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@actiontokens/ui/components/tabs";
+import { ConfirmDialog } from "@actiontokens/ui/patterns/confirm-dialog";
+import { EmptyState } from "@actiontokens/ui/patterns/empty-state";
+import { PageBody, PageHeader } from "@actiontokens/ui/patterns/page-header";
 
 import { api } from "~/trpc/react";
 

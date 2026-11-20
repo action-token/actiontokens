@@ -1,4 +1,4 @@
-import type { Tone } from "@bandcoin/ui/patterns/status-pill";
+import type { Tone } from "@actiontokens/ui/patterns/status-pill";
 
 /** How each hotspot state reads in the portal. */
 export const HOTSPOT_STATUS: Record<

@@ -1,11 +1,11 @@
 import { z } from "zod";
 
-import { AR_CAPTURE_RADIUS, distanceMeters } from "@bandcoin/ar-core/ar/geo";
-import { pinStatus, RARITY_ORDER } from "@bandcoin/ar-core/ar/rarity";
-import type { ArPin, Rarity } from "@bandcoin/ar-core/ar/types";
-import type { MapLayerChip } from "@bandcoin/ar-core/layers";
-import { PinType, type Prisma } from "@bandcoin/db";
-import { AppError, ErrorCodes } from "@bandcoin/errors";
+import { AR_CAPTURE_RADIUS, distanceMeters } from "@actiontokens/ar-core/ar/geo";
+import { pinStatus, RARITY_ORDER } from "@actiontokens/ar-core/ar/rarity";
+import type { ArPin, Rarity } from "@actiontokens/ar-core/ar/types";
+import type { MapLayerChip } from "@actiontokens/ar-core/layers";
+import { PinType, type Prisma } from "@actiontokens/db";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import {
   assertCollectable,

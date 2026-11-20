@@ -14,7 +14,7 @@ import {
 import { useId, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
-import { cn } from "@bandcoin/ui/lib/cn";
+import { cn } from "@actiontokens/ui/lib/cn";
 
 import { useUpload } from "./use-upload";
 

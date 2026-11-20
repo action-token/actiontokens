@@ -1,4 +1,4 @@
-import type { Db } from "@bandcoin/db";
+import type { Db } from "@actiontokens/db";
 
 import type { Context } from "../../context";
 import { tokenTrusted } from "../catalog/access";

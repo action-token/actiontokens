@@ -13,13 +13,13 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
-import { AR_CAPTURE_RADIUS } from "@bandcoin/ar-core/ar/geo";
-import { pinStatus, RARITY_META } from "@bandcoin/ar-core/ar/rarity";
-import type { ArArtist, ArPin, DetectionMethod } from "@bandcoin/ar-core/ar/types";
-import { nonBlank } from "@bandcoin/utils/blank";
-import { cn } from "@bandcoin/ui/lib/cn";
+import { AR_CAPTURE_RADIUS } from "@actiontokens/ar-core/ar/geo";
+import { pinStatus, RARITY_META } from "@actiontokens/ar-core/ar/rarity";
+import type { ArArtist, ArPin, DetectionMethod } from "@actiontokens/ar-core/ar/types";
+import { nonBlank } from "@actiontokens/utils/blank";
+import { cn } from "@actiontokens/ui/lib/cn";
 import { ArtistAvatar } from "~/components/artist/ArtistAvatar";
-import { site } from "@bandcoin/ar-core/site";
+import { site } from "@actiontokens/ar-core/site";
 
 const compact = (n: number) =>
   n >= 1_000 ? `${(n / 1_000).toFixed(n >= 10_000 ? 0 : 1)}k` : String(n);

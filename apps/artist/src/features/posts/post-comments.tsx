@@ -3,9 +3,9 @@
 import { MessageSquare, Loader2, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { Avatar } from "@bandcoin/ui/patterns/person";
+import { Button } from "@actiontokens/ui/components/button";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { Avatar } from "@actiontokens/ui/patterns/person";
 
 import { timeAgo } from "~/lib/format";
 import { api } from "~/trpc/react";

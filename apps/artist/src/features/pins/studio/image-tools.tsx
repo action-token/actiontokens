@@ -2,13 +2,13 @@ import { ImageUp, Loader2, Sparkles, Upload, X } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { Checkbox } from "@bandcoin/ui/components/checkbox";
-import { Label } from "@bandcoin/ui/components/label";
-import { Switch } from "@bandcoin/ui/components/switch";
-import { RangeField } from "@bandcoin/ui/patterns/range-field";
-import { Button } from "@bandcoin/ui/components/button";
-import { Input } from "@bandcoin/ui/components/input";
-import { Textarea } from "@bandcoin/ui/components/textarea";
+import { Checkbox } from "@actiontokens/ui/components/checkbox";
+import { Label } from "@actiontokens/ui/components/label";
+import { Switch } from "@actiontokens/ui/components/switch";
+import { RangeField } from "@actiontokens/ui/patterns/range-field";
+import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { Textarea } from "@actiontokens/ui/components/textarea";
 
 import { IconButton, Panel } from "./controls";
 import { fileToReferenceDataUrl, MAX_IMAGE_BYTES } from "./image-utils";

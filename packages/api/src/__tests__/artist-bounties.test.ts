@@ -7,8 +7,8 @@ import {
   buildBountyFund,
   buildBountySelectWinner,
   tokenAddressOf,
-} from "@bandcoin/chain";
-import type { Db } from "@bandcoin/db";
+} from "@actiontokens/chain";
+import type { Db } from "@actiontokens/db";
 
 import type { SessionUser } from "../context";
 import {
@@ -30,7 +30,7 @@ import {
 import type { ChainGateway } from "../services/chain-gateway";
 import { artworkOf, searchTracks } from "../services/lastfm-search";
 
-vi.mock("@bandcoin/storage", () => ({ isOwnS3Url: () => true }));
+vi.mock("@actiontokens/storage", () => ({ isOwnS3Url: () => true }));
 
 type Row = Record<string, unknown>;
 

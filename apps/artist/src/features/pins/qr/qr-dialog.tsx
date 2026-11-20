@@ -15,22 +15,22 @@ import {
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@bandcoin/ui/components/dialog";
+} from "@actiontokens/ui/components/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@bandcoin/ui/components/select";
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
+} from "@actiontokens/ui/components/select";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
 
 import { buildSheetHtml, downloadBase64, printHtml, qrFilename } from "./print";
 import { renderQr, type QrFormat } from "./qr-codes";

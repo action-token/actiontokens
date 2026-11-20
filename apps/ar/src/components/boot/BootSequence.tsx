@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { BrandMark } from "~/components/brand/BrandMark";
 import { BOOT_LINES } from "~/lib/ar/defaults";
-import { site } from "@bandcoin/ar-core/site";
+import { site } from "@actiontokens/ar-core/site";
 
 /**
  * ── BootSequence ───────────────────────────────────────────────────────────

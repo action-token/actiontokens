@@ -1,6 +1,6 @@
 import type { Horizon } from "@stellar/stellar-sdk";
 
-import type { Prisma } from "@bandcoin/db";
+import type { Prisma } from "@actiontokens/db";
 
 /**
  * Who can buy an item, as on the old Bandcoin's item forms:

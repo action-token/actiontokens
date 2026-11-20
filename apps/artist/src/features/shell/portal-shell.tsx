@@ -5,12 +5,12 @@ import { usePathname } from "next/navigation";
 import { Bell, Menu, ScanLine, Settings, Store } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
-import { cn } from "@bandcoin/ui/lib/cn";
-import { useSidebarCollapsed } from "@bandcoin/ui/lib/sidebar-collapsed";
-import { BrandMark } from "@bandcoin/ui/patterns/boot-screen";
-import { PhoneTabBar } from "@bandcoin/ui/patterns/phone-tab-bar";
-import { SideLaunchTiles, SideMenuSheet } from "@bandcoin/ui/patterns/side-frame";
-import { SiteBackdrop } from "@bandcoin/ui/patterns/site-backdrop";
+import { cn } from "@actiontokens/ui/lib/cn";
+import { useSidebarCollapsed } from "@actiontokens/ui/lib/sidebar-collapsed";
+import { BrandMark } from "@actiontokens/ui/patterns/boot-screen";
+import { PhoneTabBar } from "@actiontokens/ui/patterns/phone-tab-bar";
+import { SideLaunchTiles, SideMenuSheet } from "@actiontokens/ui/patterns/side-frame";
+import { SiteBackdrop } from "@actiontokens/ui/patterns/site-backdrop";
 
 import { AccountButton } from "~/features/account/account-button";
 import {

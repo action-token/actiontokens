@@ -1,8 +1,8 @@
 import { Asset, type Horizon, NetworkError, NotFoundError } from "@stellar/stellar-sdk";
 
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { BASE_RESERVE_XLM, MAX_SUBENTRIES, PLATFORM_ASSET } from "@bandcoin/wallet/config";
-import { horizonServer } from "@bandcoin/wallet/stellar";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { BASE_RESERVE_XLM, MAX_SUBENTRIES, PLATFORM_ASSET } from "@actiontokens/wallet/config";
+import { horizonServer } from "@actiontokens/wallet/stellar";
 
 export type Balances = Horizon.HorizonApi.AccountResponse["balances"];
 export type AssetRef = { code: string; issuer: string };

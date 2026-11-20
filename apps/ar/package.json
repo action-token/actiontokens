@@ -1,5 +1,5 @@
 {
-  "name": "@bandcoin/ar",
+  "name": "@actiontokens/ar",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -13,15 +13,15 @@
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
-    "@bandcoin/api": "workspace:*",
-    "@bandcoin/ar-core": "workspace:*",
-    "@bandcoin/map": "workspace:*",
-    "@bandcoin/auth": "workspace:*",
-    "@bandcoin/db": "workspace:*",
-    "@bandcoin/errors": "workspace:*",
-    "@bandcoin/ui": "workspace:*",
-    "@bandcoin/utils": "workspace:*",
-    "@bandcoin/wallet": "workspace:*",
+    "@actiontokens/api": "workspace:*",
+    "@actiontokens/ar-core": "workspace:*",
+    "@actiontokens/map": "workspace:*",
+    "@actiontokens/auth": "workspace:*",
+    "@actiontokens/db": "workspace:*",
+    "@actiontokens/errors": "workspace:*",
+    "@actiontokens/ui": "workspace:*",
+    "@actiontokens/utils": "workspace:*",
+    "@actiontokens/wallet": "workspace:*",
     "@huggingface/transformers": "catalog:",
     "@tanstack/react-query": "catalog:",
     "@trpc/client": "catalog:",
@@ -48,8 +48,8 @@
     "zustand": "catalog:"
   },
   "devDependencies": {
-    "@bandcoin/eslint-config": "workspace:*",
-    "@bandcoin/tsconfig": "workspace:*",
+    "@actiontokens/eslint-config": "workspace:*",
+    "@actiontokens/tsconfig": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",

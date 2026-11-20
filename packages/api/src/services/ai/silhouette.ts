@@ -1,5 +1,5 @@
-import { AppError, ErrorCodes } from "@bandcoin/errors";
-import { fetchPublicFile, renderOutlinePng } from "@bandcoin/storage";
+import { AppError, ErrorCodes } from "@actiontokens/errors";
+import { fetchPublicFile, renderOutlinePng } from "@actiontokens/storage";
 
 import type { AiModel } from "./model";
 

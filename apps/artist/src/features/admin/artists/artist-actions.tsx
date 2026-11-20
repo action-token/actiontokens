@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { Button } from "@bandcoin/ui/components/button";
+import { Button } from "@actiontokens/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -12,9 +12,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@bandcoin/ui/components/dialog";
-import { Textarea } from "@bandcoin/ui/components/textarea";
-import { ConfirmDialog } from "@bandcoin/ui/patterns/confirm-dialog";
+} from "@actiontokens/ui/components/dialog";
+import { Textarea } from "@actiontokens/ui/components/textarea";
+import { ConfirmDialog } from "@actiontokens/ui/patterns/confirm-dialog";
 
 import { api } from "~/trpc/react";
 

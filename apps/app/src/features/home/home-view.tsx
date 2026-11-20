@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState, useSyncExternalStore } from "react";
 
-import { Skeleton } from "@bandcoin/ui/components/skeleton";
-import { MediaCarousel } from "@bandcoin/ui/patterns/media-carousel";
+import { Skeleton } from "@actiontokens/ui/components/skeleton";
+import { MediaCarousel } from "@actiontokens/ui/patterns/media-carousel";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 

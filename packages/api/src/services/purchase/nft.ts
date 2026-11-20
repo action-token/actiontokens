@@ -22,17 +22,17 @@ import {
   toUsd,
   usdTo,
   wrapInFeeBump,
-} from "@bandcoin/chain";
+} from "@actiontokens/chain";
 import {
   QUOTE_TTL_SECONDS,
   type Quote,
   type QuoteLine,
   type QuoteProblem,
   TRUSTLINE_RESERVE_XLM,
-} from "@bandcoin/chain/quote";
-import { fundsOf } from "@bandcoin/chain/server";
-import type { Db } from "@bandcoin/db";
-import { AppError, ErrorCodes, isAppError } from "@bandcoin/errors";
+} from "@actiontokens/chain/quote";
+import { fundsOf } from "@actiontokens/chain/server";
+import type { Db } from "@actiontokens/db";
+import { AppError, ErrorCodes, isAppError } from "@actiontokens/errors";
 
 import { type Context, isCustodial, type SessionUser } from "../../context";
 import { notifyGuestPurchase } from "../email/guest-email";

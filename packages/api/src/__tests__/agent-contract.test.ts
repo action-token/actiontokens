@@ -6,7 +6,7 @@ import { UNLIMITED_COLLECTIONS } from "../services/agent/contract";
 
 /**
  * The artist portal's chat screen imports the agent's shared types (and one constant) from
- * "@bandcoin/api/agent-contract" in browser code. That file must stay free of imports, or the
+ * "@actiontokens/api/agent-contract" in browser code. That file must stay free of imports, or the
  * browser would pull server code through it.
  */
 describe("the agent contract entry point", () => {

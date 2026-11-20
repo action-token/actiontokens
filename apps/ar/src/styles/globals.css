@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "@bandcoin/ui/styles/theme.css";
+@import "@actiontokens/ui/styles/theme.css";
 @import "tailwind-scrollbar-hide/v4";
 
 /* Class names used inside shared packages (Tailwind only scans the app by default). */
