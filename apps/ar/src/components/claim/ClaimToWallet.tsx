@@ -125,7 +125,7 @@ function ClaimSheet({
           <b className="text-ar-text">
             {trimAmount(amount)} {name}
           </b>{" "}
-          to your Stellar wallet. You only pay Stellar&apos;s costs; Bandcoin charges nothing.
+          to your Stellar wallet. You only pay Stellar&apos;s costs; ActionTokens charges nothing.
         </p>
 
         <div className="mt-4 min-h-24">

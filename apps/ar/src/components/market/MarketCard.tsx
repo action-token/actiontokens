@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { cn } from "@actiontokens/ui/lib/cn";
 
-import { formatPrice, formatUsd, marketItemUrl, TYPE_LABEL } from "~/lib/market";
+import { formatPrice, formatUsd, marketItemUrl, TOKEN_CODE, TYPE_LABEL } from "~/lib/market";
 
 export type MarketItem = {
   slug: string;
@@ -61,7 +61,7 @@ export function MarketCard({ item, className }: { item: MarketItem; className?: 
               {price}
             </span>
             <span className="font-hud text-ar-dim text-[9.5px] font-semibold tracking-[0.12em] uppercase">
-              BANDCOIN
+              {TOKEN_CODE}
             </span>
             {usd && <span className="text-ar-faint ml-auto text-[10px] tabular-nums">{usd}</span>}
           </p>

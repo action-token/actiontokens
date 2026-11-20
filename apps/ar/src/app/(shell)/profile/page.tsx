@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { TOKEN_CODE } from "~/lib/market";
 import { useRouter } from "~/lib/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -133,7 +134,7 @@ export default function ProfileScreen() {
             <div className="flex flex-col items-end text-right">
               <span className="font-hud text-ar-faint mb-1 flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.18em] uppercase">
                 <Coins size={11} strokeWidth={2.4} className="text-ar-accent-hot" />
-                <span>BANDCOIN balance</span>
+                <span>{TOKEN_CODE} balance</span>
               </span>
               {me.isLoading ? (
                 <Skeleton className="h-[22px] w-20" rounded="rounded-[4px]" />
@@ -144,7 +145,7 @@ export default function ProfileScreen() {
               ) : (
                 <span
                   title={`${me.data.balances.XLM} XLM · ${me.data.balances.USDC} USDC`}
-                  className="font-hud text-glow-soft text-ar-accent-hot text-[22px] leading-none font-bold tabular-nums"
+                  className="font-hud text-glow-soft text-ar-accent-hot text-[14px] leading-none font-bold tabular-nums"
                 >
                   {Number(me.data.balances.BANDCOIN).toLocaleString(undefined, {
                     maximumFractionDigits: 2,

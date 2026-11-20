@@ -12,11 +12,12 @@ import { ArButton, ArLinkButton } from "~/components/ui/ArButton";
 import { BottomSheet } from "~/components/ui/BottomSheet";
 import { SegmentedTabs } from "~/components/ui/SegmentedTabs";
 import { useSquareCard } from "~/lib/ar/useSquareCard";
+import { TOKEN_CODE } from "~/lib/market";
 import { type SubscribeCurrency, useSubscribe } from "~/lib/ar/useSubscribe";
 import { api } from "~/trpc/react";
 
 const CURRENCIES: { id: SubscribeCurrency; label: string }[] = [
-  { id: "BANDCOIN", label: "BANDCOIN" },
+  { id: "BANDCOIN", label: TOKEN_CODE },
   { id: "XLM", label: "XLM" },
   { id: "USDC", label: "USDC" },
   { id: "USD", label: "Card" },
@@ -195,7 +196,7 @@ export function SubscribeSheet({
             icon={Wallet}
             className="mt-4"
           >
-            {currency === "BANDCOIN" ? "Add BANDCOIN" : "Add funds"}
+            {currency === "BANDCOIN" ? `Add ${TOKEN_CODE}` : "Add funds"}
           </ArLinkButton>
         ) : (
           <div className="mt-4 flex gap-2">

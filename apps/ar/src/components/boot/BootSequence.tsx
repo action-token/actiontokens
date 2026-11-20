@@ -1,5 +1,6 @@
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { Camera, Coins, MapPin, ScanLine, Sparkles, Star, type LucideIcon } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { BrandMark } from "~/components/brand/BrandMark";
 import { BOOT_LINES } from "~/lib/ar/defaults";
@@ -8,45 +9,65 @@ import { site } from "@actiontokens/ar-core/site";
 /**
  * ── BootSequence ───────────────────────────────────────────────────────────
  *
- * The first three seconds of the app, and for a lot of people the only three
- * seconds they'll judge it on — this is what loads after someone scans a QR
- * code on a table tent, before they have any idea what Bandcoin AR is.
+ * The first three seconds of the app, in the Street Sticker language
+ * (docs/AR-STICKER-REDESIGN.md): stickers get slapped onto a dotted black wall,
+ * one after another, then a chunky sticker bar charges up.
  *
- * It plays as an overlay above the live map rather than as its own route, so
- * the final beat is a real reveal: the iris opens onto the map that has been
- * mounting and fetching underneath the whole time. No white flash, no second
- * loading state.
+ * It plays as an overlay above the live map, so the last beat is a reveal of
+ * the map that has been mounting underneath.
  *
- * Five beats:
- *   ignite    a scanline sweeps a dead screen; the terrain grid comes up
- *   assemble  the brand mark drops in, then W-A-D-Z-Z-O fly in from depth
- *             and land with chromatic fringing
- *   stamp     the AR plate slams down and throws a shockwave
- *   boot      status lines type out over a five-segment charge bar
- *   open      the iris opens onto the map
+ * Beats:
+ *   ignite    the halftone wall fades up
+ *   assemble  the logo sticker, then ACTION and TOKENS stickers slap on
+ *   stamp     the AR sticker slams onto the corner with a tape strip
+ *   boot      status lines over the sticker progress bar
+ *   open      the wall drops away onto the map
  *
- * Tap anywhere to skip. `prefers-reduced-motion` skips straight to done —
- * a full-screen kinetic logo is exactly what that setting exists to prevent.
+ * Tap anywhere to skip. `prefers-reduced-motion` skips straight to done.
  */
 
-const WORDMARK = site.wordmark.letters;
+/** "ActionTokens" → ["ACTION", "TOKENS"]: one sticker per word. */
+const WORDS = (site.name.match(/[A-Z][a-z]*/g) ?? [site.name]).map((w) => w.toUpperCase());
 
-/** Beat boundaries in ms from mount. Tuned so the charge bar never waits. */
+/** Beat boundaries in ms from mount. */
 const T = {
-  assemble: 320,
+  assemble: 260,
   stamp: 1_180,
-  boot: 1_560,
+  boot: 1_480,
   open: 3_180,
-  done: 3_900,
+  done: 3_760,
 } as const;
 
+/** Little icon stickers stuck around the wall; they fly in and keep bobbing. */
+const ICONS: { I: LucideIcon; left: string; top: string; rotate: number; green: boolean; from: [number, number] }[] = [
+  { I: MapPin, left: "10%", top: "16%", rotate: -12, green: true, from: [-160, -120] },
+  { I: Star, left: "76%", top: "12%", rotate: 14, green: false, from: [160, -140] },
+  { I: Camera, left: "80%", top: "36%", rotate: -8, green: true, from: [200, 0] },
+  { I: Coins, left: "8%", top: "40%", rotate: 10, green: false, from: [-200, 20] },
+  { I: Sparkles, left: "8%", top: "74%", rotate: -6, green: false, from: [-180, 140] },
+  { I: ScanLine, left: "80%", top: "70%", rotate: 12, green: true, from: [180, 160] },
+];
+
+/** Where each letter starts before it lands: scattered across the wall. */
+const scatter = (i: number) => ({
+  x: [-120, 90, -60, 140, -150, 70, 110, -90][i % 8]!,
+  y: [-160, 130, 170, -140, 90, -190, 150, -120][i % 8]!,
+  rotate: [-50, 40, -28, 60, -36, 24, -44, 32][i % 8]!,
+});
+
 type Phase = "ignite" | "assemble" | "stamp" | "boot" | "open";
+
+/** A sticker slapped on: lands big and tilted, then settles with a bounce. */
+const slap = (on: boolean, rotate: number, delay = 0) => ({
+  initial: { opacity: 0, scale: 2.4, rotate: rotate * 4 },
+  animate: on ? { opacity: 1, scale: 1, rotate } : { opacity: 0, scale: 2.4, rotate: rotate * 4 },
+  transition: { type: "spring" as const, stiffness: 520, damping: 22, mass: 0.8, delay },
+});
 
 export function BootSequence({ onDone }: { onDone: () => void }) {
   const reduceMotion = useReducedMotion();
   const [phase, setPhase] = useState<Phase>("ignite");
   const [lineIndex, setLineIndex] = useState(0);
-  const [typed, setTyped] = useState("");
   const finished = useRef(false);
 
   const finish = useCallback(() => {
@@ -55,7 +76,6 @@ export function BootSequence({ onDone }: { onDone: () => void }) {
     onDone();
   }, [onDone]);
 
-  // ── Beat scheduler ─────────────────────────────────────────────────────
   useEffect(() => {
     if (reduceMotion) {
       finish();
@@ -71,9 +91,6 @@ export function BootSequence({ onDone }: { onDone: () => void }) {
     return () => timers.forEach(clearTimeout);
   }, [reduceMotion, finish]);
 
-  // ── Status line typewriter ─────────────────────────────────────────────
-  // Each line gets an equal share of the boot beat, split between typing it
-  // out and letting it sit there long enough to actually be read.
   const perLine = (T.open - T.boot) / BOOT_LINES.length;
 
   useEffect(() => {
@@ -84,36 +101,10 @@ export function BootSequence({ onDone }: { onDone: () => void }) {
     return () => clearInterval(id);
   }, [phase, perLine]);
 
-  useEffect(() => {
-    if (phase !== "boot") return;
-    const target = BOOT_LINES[lineIndex] ?? "";
-    setTyped("");
-    let i = 0;
-    const step = Math.max(12, (perLine * 0.55) / target.length);
-    const id = setInterval(() => {
-      i += 1;
-      setTyped(target.slice(0, i));
-      if (i >= target.length) clearInterval(id);
-    }, step);
-    return () => clearInterval(id);
-  }, [phase, lineIndex, perLine]);
-
   const started = phase !== "ignite";
+  const stamped = phase === "stamp" || phase === "boot" || phase === "open";
+  const booting = phase === "boot";
   const opening = phase === "open";
-
-  // Drifting background coins. Positions are memoised so a re-render from the
-  // typewriter doesn't teleport them.
-  const coins = useMemo(
-    () =>
-      Array.from({ length: 7 }, (_, i) => ({
-        id: i,
-        left: [12, 78, 30, 88, 55, 6, 68][i]!,
-        top: [22, 16, 74, 58, 88, 52, 34][i]!,
-        size: [30, 22, 38, 18, 26, 34, 20][i]!,
-        delay: i * 0.42,
-      })),
-    [],
-  );
 
   if (reduceMotion) return null;
 
@@ -124,283 +115,143 @@ export function BootSequence({ onDone }: { onDone: () => void }) {
       onClick={finish}
       className="bg-ar-void absolute inset-0 z-[100] cursor-pointer overflow-hidden select-none"
       initial={{ opacity: 1 }}
-      animate={
-        opening
-          ? {
-              // The iris: the whole plate scales up and past the viewer as it
-              // clears, so the map appears to have been behind it all along.
-              scale: 1.35,
-              opacity: 0,
-              filter: "blur(14px)",
-            }
-          : { scale: 1, opacity: 1, filter: "blur(0px)" }
-      }
-      transition={{ duration: 0.72, ease: [0.7, 0, 0.28, 1] }}
+      animate={opening ? { opacity: 0, y: 40, rotate: -2, scale: 1.04 } : { opacity: 1 }}
+      transition={{ duration: 0.5, ease: [0.7, 0, 0.28, 1] }}
     >
-      {/* ── Backdrop ──────────────────────────────────────────────────── */}
+      {/* The wall: a dotted halftone, a touch stronger than the screens'. */}
       <motion.div
-        className="ar-grid absolute inset-0 [mask-image:radial-gradient(62%_52%_at_50%_46%,black,transparent)]"
-        initial={{ opacity: 0, scale: 1.25 }}
-        animate={{ opacity: started ? 0.9 : 0, scale: started ? 1 : 1.25 }}
-        transition={{ duration: 1.1, ease: "easeOut" }}
-      />
-      <motion.div
-        className="absolute top-1/2 left-1/2 h-[560px] w-[560px] rounded-full bg-[radial-gradient(circle,hsl(var(--ar-accent)/0.26),transparent_64%)] blur-[60px]"
-        // Centring lives in motion's own `x`/`y`, not Tailwind's
-        // `-translate-*`: motion writes a complete inline `transform` for the
-        // values it animates, which silently drops the utility's translate.
-        style={{ x: "-50%", y: "-50%" }}
-        initial={{ opacity: 0, scale: 0.5 }}
-        animate={{ opacity: started ? 1 : 0, scale: started ? 1 : 0.5 }}
-        transition={{ duration: 1.3, ease: "easeOut" }}
+        aria-hidden
+        className="absolute inset-0 bg-[radial-gradient(hsl(var(--ar-accent)/0.12)_1px,transparent_1.4px)] [background-size:9px_9px]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: started ? 1 : 0 }}
+        transition={{ duration: 0.5 }}
       />
 
-      {coins.map((c) => (
+      {ICONS.map(({ I, left, top, rotate, green, from }, i) => (
         <motion.span
-          key={c.id}
+          key={i}
           aria-hidden
-          className="border-ar-accent/40 from-ar-accent/25 absolute rounded-full border bg-linear-to-br to-transparent"
-          style={{
-            left: `${c.left}%`,
-            top: `${c.top}%`,
-            width: c.size,
-            height: c.size,
-          }}
-          initial={{ opacity: 0, y: 26, rotate: -30 }}
-          animate={{
-            opacity: started ? [0, 0.75, 0.45] : 0,
-            y: started ? [26, -14, 6] : 26,
-            rotate: started ? [-30, 18, -8] : -30,
-          }}
+          className={
+            "absolute flex size-11 items-center justify-center rounded-[12px] border-[3px] border-black text-black " +
+            (green
+              ? "bg-ar-accent shadow-[3px_3px_0_0_hsl(var(--st-paper))]"
+              : "bg-[hsl(var(--st-paper))] shadow-[3px_3px_0_0_hsl(var(--ar-accent))]")
+          }
+          style={{ left, top }}
+          initial={{ opacity: 0, x: from[0], y: from[1], rotate: rotate * 4, scale: 0.4 }}
+          animate={
+            started
+              ? { opacity: 1, x: 0, y: [0, -7, 0], rotate, scale: 1 }
+              : { opacity: 0, x: from[0], y: from[1], rotate: rotate * 4, scale: 0.4 }
+          }
           transition={{
-            duration: 6,
-            delay: c.delay,
-            repeat: Infinity,
-            repeatType: "reverse",
-            ease: "easeInOut",
+            default: { type: "spring", stiffness: 260, damping: 18, delay: 0.1 + i * 0.07 },
+            y: { duration: 2.6 + i * 0.3, repeat: Infinity, ease: "easeInOut", delay: 0.8 },
           }}
-        />
+        >
+          <I className="size-5" strokeWidth={2.6} />
+        </motion.span>
       ))}
 
-      {/* Ignition scanline — one pass, then it's gone. */}
-      <AnimatePresence>
-        {phase === "ignite" && (
-          <motion.div
-            key="scan"
-            className="via-ar-accent-hot absolute inset-x-0 h-[3px] bg-linear-to-r from-transparent to-transparent shadow-[0_0_30px_6px_hsl(var(--ar-accent)/0.75)]"
-            initial={{ top: "-4%" }}
-            animate={{ top: "104%" }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.44, ease: "easeIn" }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* ── Centre stack ──────────────────────────────────────────────── */}
-      <div className="relative flex h-full flex-col items-center justify-center px-8">
-        <BootMark started={started} />
-        <Wordmark phase={phase} />
-
-        {/* Tagline */}
-        <motion.p
-          className="text-ar-dim mt-5 text-center text-[12.5px] leading-relaxed"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{
-            opacity: phase === "boot" || opening ? 1 : 0,
-            y: phase === "boot" || opening ? 0 : 8,
-          }}
-          transition={{ duration: 0.45 }}
-        >
-          Collect the real world.
-        </motion.p>
-
-        {/* ── Charge bar + status line ──────────────────────────────── */}
+      <div className="relative flex h-full flex-col items-center justify-center px-6">
+        {/* Logo sticker */}
         <motion.div
-          className="absolute inset-x-0 bottom-[13%] flex flex-col items-center gap-3 px-10"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: phase === "boot" ? 1 : opening ? 0 : 0 }}
-          transition={{ duration: 0.35 }}
+          className="flex size-[92px] items-center justify-center rounded-full border-[3px] border-black bg-[hsl(var(--st-paper))] shadow-[5px_5px_0_0_hsl(var(--ar-accent))]"
+          {...slap(started, -8)}
         >
-          <div className="flex w-full max-w-[240px] gap-[5px]">
-            {BOOT_LINES.map((_, i) => (
-              <div key={i} className="bg-ar-surface-3 h-[3px] flex-1 overflow-hidden rounded-full">
-                <motion.div
-                  className="bg-ar-accent-hot h-full rounded-full shadow-[0_0_10px_hsl(var(--ar-accent)/0.9)]"
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: i <= lineIndex ? 1 : 0 }}
-                  style={{ originX: 0 }}
-                  transition={{ duration: perLine / 1000, ease: "linear" }}
-                />
-              </div>
-            ))}
-          </div>
+          <BrandMark className="h-[58px] w-auto" />
+        </motion.div>
 
-          <p className="font-hud text-ar-accent flex items-center gap-1.5 text-[10.5px] font-medium tracking-[0.24em] uppercase">
-            <span className="text-ar-faint tabular-nums">
-              {String(lineIndex + 1).padStart(2, "0")}
-            </span>
-            <span>{typed}</span>
-            <span className="animate-blink bg-ar-accent-hot inline-block h-[10px] w-[6px]" />
+        {/* Wordmark: one sticker per word */}
+        <div className="relative mt-6 flex flex-col items-center">
+          {WORDS.map((w, i) => (
+            <motion.span
+              key={w}
+              className={
+                "font-display relative border-[3px] border-black px-3 pt-1.5 pb-1 text-[32px] leading-none text-black " +
+                (i % 2
+                  ? "-mt-1 bg-[hsl(var(--st-paper))] shadow-[5px_5px_0_0_hsl(var(--ar-accent))]"
+                  : "bg-ar-accent z-10 shadow-[5px_5px_0_0_hsl(var(--st-paper))]")
+              }
+              {...slap(started, i % 2 ? 2.5 : -3, 0.22 + i * 0.2)}
+            >
+              {w.split("").map((ch, j) => {
+                const from = scatter(i * 6 + j);
+                return (
+                  <motion.span
+                    key={j}
+                    className="inline-block"
+                    initial={{ opacity: 0, ...from, scale: 1.8 }}
+                    animate={
+                      started
+                        ? { opacity: 1, x: 0, y: 0, rotate: 0, scale: 1 }
+                        : { opacity: 0, ...from, scale: 1.8 }
+                    }
+                    transition={{
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 19,
+                      delay: 0.3 + i * 0.2 + j * 0.05,
+                    }}
+                  >
+                    {ch}
+                  </motion.span>
+                );
+              })}
+            </motion.span>
+          ))}
+
+          {/* AR sticker, slammed onto the corner and taped down */}
+          <motion.span
+            className="font-display absolute -top-7 -right-10 z-20 flex size-[54px] items-center justify-center rounded-[16px] border-[3px] border-black bg-ar-accent text-[19px] text-black shadow-[3px_3px_0_0_#000]"
+            {...slap(stamped, 10)}
+          >
+            <span className="st-tape -top-2.5 left-1/2 h-3.5 w-9 -translate-x-1/2 -rotate-6" />
+            {site.wordmark.plate}
+          </motion.span>
+        </div>
+
+        {/* Tagline tag */}
+        <motion.span
+          className="font-display mt-6 bg-black px-2.5 py-1 text-[11px] leading-none text-[hsl(var(--st-paper))] outline outline-2 outline-[hsl(var(--st-paper)/0.85)]"
+          initial={{ opacity: 0, y: 10, rotate: 0 }}
+          animate={booting || opening ? { opacity: 1, y: 0, rotate: -2 } : { opacity: 0, y: 10 }}
+          transition={{ type: "spring", stiffness: 420, damping: 24 }}
+        >
+          COLLECT THE REAL WORLD
+        </motion.span>
+
+        {/* Sticker progress bar */}
+        <motion.div
+          className="absolute inset-x-0 bottom-[12%] flex flex-col items-center gap-2.5 px-10"
+          initial={{ opacity: 0, y: 14 }}
+          animate={booting ? { opacity: 1, y: 0 } : { opacity: 0, y: opening ? 0 : 14 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="relative h-[22px] w-full max-w-[260px] -rotate-1 overflow-hidden rounded-full border-[3px] border-black bg-[hsl(var(--st-paper))] shadow-[4px_4px_0_0_hsl(var(--ar-accent))]">
+            <motion.div
+              className="bg-ar-accent absolute inset-y-0 left-0 border-r-[3px] border-black"
+              initial={{ width: "0%" }}
+              animate={{ width: booting ? `${((lineIndex + 1) / BOOT_LINES.length) * 100}%` : "0%" }}
+              transition={{ duration: perLine / 1000, ease: "linear" }}
+            />
+            {/* Stripes for the "charging" feel */}
+            <div className="absolute inset-0 bg-[repeating-linear-gradient(-45deg,transparent_0_6px,rgba(0,0,0,0.12)_6px_10px)]" />
+          </div>
+          <p className="font-display text-ar-accent text-[11px] leading-none tracking-[0.02em] uppercase">
+            {BOOT_LINES[lineIndex]}…
           </p>
         </motion.div>
 
-        {/* Skip affordance — only once it's clear there's something to skip. */}
         <motion.p
-          className="font-hud text-ar-faint absolute bottom-[5%] text-[9.5px] tracking-[0.3em] uppercase"
+          className="font-display text-ar-faint absolute bottom-[5%] text-[9px] tracking-[0.08em] uppercase"
           initial={{ opacity: 0 }}
-          animate={{ opacity: phase === "boot" ? 0.75 : 0 }}
+          animate={{ opacity: booting ? 0.8 : 0 }}
           transition={{ delay: 0.4, duration: 0.4 }}
         >
           Tap to skip
         </motion.p>
       </div>
-
-      {/* Shockwave from the AR stamp, thrown across the whole plate. */}
-      <AnimatePresence>
-        {(phase === "stamp" || phase === "boot") && (
-          <motion.span
-            key="shock"
-            aria-hidden
-            className="border-ar-accent-hot absolute top-1/2 left-1/2 h-40 w-40 rounded-full border-2"
-            style={{ x: "-50%", y: "-50%" }}
-            initial={{ scale: 0.2, opacity: 0.9 }}
-            animate={{ scale: 6, opacity: 0 }}
-            transition={{ duration: 1.05, ease: "easeOut" }}
-          />
-        )}
-      </AnimatePresence>
-
-      <div className="ar-scanlines pointer-events-none absolute inset-0 opacity-40" />
     </motion.div>
-  );
-}
-
-/**
- * The brand icon above the wordmark. Drops in first — slightly ahead of the
- * letters below it — the way a logo lockup reads top-down: mark, then name.
- * A one-shot spring lands it; a small infinite float keeps it from sitting
- * dead still through the several seconds of typewriter beat that follow,
- * the same idle-bob treatment map pins and holo cards use elsewhere.
- */
-function BootMark({ started }: { started: boolean }) {
-  return (
-    <BrandMark
-      glow
-      className="mb-2 h-[70px] w-auto"
-      initial={{ opacity: 0, scale: 2.2, rotate: -16, filter: "blur(10px)" }}
-      animate={
-        started
-          ? {
-              opacity: 1,
-              scale: 1,
-              rotate: 0,
-              filter: "blur(0px)",
-              y: [0, -6, 0],
-            }
-          : { opacity: 0, scale: 2.2, rotate: -16, filter: "blur(10px)" }
-      }
-      transition={{
-        default: { type: "spring", stiffness: 240, damping: 20, mass: 0.9 },
-        y: { duration: 3.2, repeat: Infinity, ease: "easeInOut", delay: 0.6 },
-      }}
-    />
-  );
-}
-
-/**
- * The wordmark. Each glyph arrives from its own random point in depth, blurred
- * and rotated, and springs onto the baseline. Two tinted copies sit behind the
- * white one and converge on it — cheap chromatic aberration that reads as a
- * lens pulling focus, and which costs one extra paint rather than a filter.
- */
-function Wordmark({ phase }: { phase: Phase }) {
-  const landed = phase !== "ignite" && phase !== "assemble";
-  const showAr = phase === "stamp" || phase === "boot" || phase === "open";
-
-  return (
-    <div className="relative flex items-center justify-center">
-      {/* Chromatic ghosts */}
-      {(
-        [
-          ["hsl(358 90% 62%)", -7],
-          ["hsl(186 95% 60%)", 7],
-        ] as const
-      ).map(([color, dx]) => (
-        <motion.span
-          key={color}
-          aria-hidden
-          className="font-hud pointer-events-none absolute text-[52px] leading-none font-bold tracking-[0.04em] mix-blend-screen"
-          style={{ color }}
-          initial={{ x: dx * 3, opacity: 0 }}
-          animate={{
-            x: landed ? 0 : dx,
-            opacity: phase === "ignite" ? 0 : landed ? 0 : 0.85,
-          }}
-          transition={{ type: "spring", stiffness: 180, damping: 18 }}
-        >
-          {site.wordmark.letters.join("")}
-        </motion.span>
-      ))}
-
-      <h1 className="font-hud text-ar-text relative flex text-[52px] leading-none font-bold tracking-[0.04em]">
-        {WORDMARK.map((letter, i) => (
-          <motion.span
-            key={`${letter}-${i}`}
-            className="inline-block"
-            initial={{
-              opacity: 0,
-              y: [-90, 70, -60, 84, -74, 62][i]!,
-              x: [-40, 34, -22, 30, -30, 26][i]!,
-              rotate: [-38, 30, -22, 34, -28, 20][i]!,
-              scale: 2.1,
-              filter: "blur(12px)",
-            }}
-            animate={
-              phase === "ignite"
-                ? {}
-                : {
-                    opacity: 1,
-                    y: 0,
-                    x: 0,
-                    rotate: 0,
-                    scale: 1,
-                    filter: "blur(0px)",
-                  }
-            }
-            transition={{
-              type: "spring",
-              stiffness: 260,
-              damping: 20,
-              mass: 0.85,
-              delay: i * 0.055,
-            }}
-          >
-            {letter}
-          </motion.span>
-        ))}
-
-        {/* The AR plate, stamped into the corner of the wordmark. */}
-        <motion.span
-          className="font-hud border-ar-accent text-ar-accent-hot absolute -top-[6px] -right-[54px] flex h-[30px] items-center rounded-[8px] border px-[9px] text-[16px] font-bold tracking-[0.12em]"
-          style={{
-            background: "hsl(var(--ar-accent) / 0.14)",
-            boxShadow:
-              "0 0 22px -2px hsl(var(--ar-accent)/0.8), inset 0 0 14px -4px hsl(var(--ar-accent)/0.9)",
-          }}
-          initial={{ opacity: 0, scale: 3.4, rotate: -14 }}
-          animate={
-            showAr ? { opacity: 1, scale: 1, rotate: -6 } : { opacity: 0, scale: 3.4, rotate: -14 }
-          }
-          transition={{
-            type: "spring",
-            stiffness: 420,
-            damping: 17,
-            mass: 0.8,
-          }}
-        >
-          {site.wordmark.plate}
-        </motion.span>
-      </h1>
-    </div>
   );
 }

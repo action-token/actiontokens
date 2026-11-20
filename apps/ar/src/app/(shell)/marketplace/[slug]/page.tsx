@@ -4,7 +4,7 @@ import { ShoppingBag } from "lucide-react";
 
 import { AppShell, ScreenHeader } from "~/components/shell/AppShell";
 import { Skeleton, SkeletonText } from "~/components/ui/Skeleton";
-import { formatPrice, formatUsd, marketItemUrl, TYPE_LABEL } from "~/lib/market";
+import { formatPrice, formatUsd, marketItemUrl, TOKEN_CODE, TYPE_LABEL } from "~/lib/market";
 import { useQueryParams } from "~/lib/navigation";
 import { api } from "~/trpc/react";
 
@@ -76,7 +76,7 @@ export default function MarketItemScreen() {
                       {formatPrice(open.priceBandcoin)}
                     </span>
                     <span className="font-hud text-ar-dim text-[10px] font-semibold tracking-[0.12em] uppercase">
-                      BANDCOIN
+                      {TOKEN_CODE}
                     </span>
                     {usd && <span className="text-ar-faint ml-auto text-[12px]">{usd}</span>}
                   </>

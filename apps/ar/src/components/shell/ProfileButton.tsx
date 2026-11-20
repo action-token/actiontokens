@@ -4,6 +4,7 @@ import Link from "next/link";
 import { cn } from "@actiontokens/ui/lib/cn";
 
 import { formatCapsuleBalance } from "~/lib/ar/balance";
+import { TOKEN_CODE } from "~/lib/market";
 import { useAuth } from "~/lib/ar/store";
 import { api } from "~/trpc/react";
 
@@ -36,7 +37,7 @@ export function ProfileButton({
   return (
     <Link
       href="/profile"
-      aria-label={shown ? `Profile, ${shown} BANDCOIN` : "Profile"}
+      aria-label={shown ? `Profile, ${shown} ${TOKEN_CODE}` : "Profile"}
       className={cn(
         "ar-glass text-ar-dim relative flex h-9 shrink-0 items-center justify-center rounded-full",
         withBalance ? "gap-1.5 pr-[3px] pl-2.5" : "w-9",
@@ -57,7 +58,7 @@ export function ProfileButton({
                 {shown}
               </span>
               <span className="font-hud text-ar-dim text-[8.5px] font-semibold tracking-[0.12em] uppercase">
-                BANDCOIN
+                {TOKEN_CODE}
               </span>
             </>
           )}

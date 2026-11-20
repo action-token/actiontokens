@@ -58,3 +58,9 @@ export function formatUsd(price: string | number | null | undefined): string | n
   const text = formatPrice(price);
   return text ? `≈ $${text}` : null;
 }
+
+/**
+ * The platform token's code as users see it ("ACTION"), from the configured Stellar asset.
+ * Code and data still call it `bandcoin` internally; screens never say BANDCOIN.
+ */
+export const TOKEN_CODE = (process.env.NEXT_PUBLIC_ASSET_CODE || "ACTION").toUpperCase();
