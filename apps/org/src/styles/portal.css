@@ -1813,6 +1813,18 @@ main .tour-big {
   left: 100%;
   background: radial-gradient(circle at 100% 100%, transparent 21px, var(--notch) 21.5px);
 }
+.lp-notes {
+  position: absolute;
+  z-index: 1;
+  top: calc(100% + 14px);
+  right: -60px;
+  width: 340px;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid var(--gx-line-strong);
+  background: var(--bc-surface);
+  box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.55);
+}
 .lp-top-theme {
   border-radius: 12px;
 }

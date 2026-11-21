@@ -1,7 +1,18 @@
 "use client";
 
-import { ArrowUpRight, LogIn, ScanLine, Store } from "lucide-react";
-import { useEffect, useRef } from "react";
+import {
+  ArrowUpRight,
+  Bell,
+  CalendarDays,
+  Crown,
+  LogIn,
+  MapPin,
+  ScanLine,
+  ShoppingBag,
+  Store,
+  Trophy,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@actiontokens/ui/lib/cn";
 import { BrandMark } from "@actiontokens/ui/patterns/boot-screen";
@@ -39,6 +50,7 @@ export function Landing() {
         </span>
         <span className="flex items-center gap-2">
           <ThemeControl className="lp-top-theme" />
+          <NotchBell />
           <button type="button" onClick={signIn} className="lp-cta !h-10 !px-4 !text-[1.05rem]">
             <LogIn className="size-4" strokeWidth={2.4} /> Sign in
           </button>
@@ -75,6 +87,63 @@ export function Landing() {
         </section>
       </div>
     </div>
+  );
+}
+
+/** Example notifications for the front page's notch (what an organization gets told about). */
+const NOTES = [
+  { icon: MapPin, text: "nadia.r collected Sunset Sessions poster", when: "2m" },
+  { icon: Trophy, text: "3 new reports on Best rooftop moment", when: "18m" },
+  { icon: ShoppingBag, text: "Sold: Signed vinyl · +2,400 ACTION", when: "1h" },
+  { icon: Crown, text: "m0ss moved up to Supporter", when: "3h" },
+  { icon: CalendarDays, text: "Thursday live reached 120 RSVPs", when: "1d" },
+];
+
+/** The notch's bell: five example notifications, opened under the notch. */
+function NotchBell() {
+  const [open, setOpen] = useState(false);
+  return (
+    <span className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        aria-label={`Notifications (${NOTES.length} new)`}
+        className="bg-surface-2 relative grid size-10 place-items-center rounded-xl border"
+      >
+        <Bell className="size-[18px]" />
+        <span className="bg-danger num absolute -top-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full px-1 text-[10px] font-bold text-white">
+          {NOTES.length}
+        </span>
+      </button>
+      {open && (
+        <>
+          <button
+            type="button"
+            aria-label="Close notifications"
+            className="fixed inset-0 z-0 cursor-default"
+            onClick={() => setOpen(false)}
+          />
+          <div className="lp-notes" role="dialog" aria-label="Notifications">
+            <p className="flex items-center justify-between px-4 pt-3 pb-2 text-sm font-semibold">
+              Notifications
+              <span className="text-fg-muted text-xs font-normal">Example</span>
+            </p>
+            <ul className="divide-y border-t">
+              {NOTES.map((note) => (
+                <li key={note.text} className="flex items-center gap-3 px-4 py-2.5">
+                  <span className="bg-primary-soft text-primary-text grid size-8 shrink-0 place-items-center rounded-full">
+                    <note.icon className="size-4" />
+                  </span>
+                  <span className="min-w-0 flex-1 text-[13px] leading-snug">{note.text}</span>
+                  <span className="text-fg-faint shrink-0 text-[11px]">{note.when}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
+      )}
+    </span>
   );
 }
 

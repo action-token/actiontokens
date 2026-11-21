@@ -505,6 +505,8 @@ const a = (i: number) => ({ "data-a": "", style: { ["--i" as string]: i } });
 const snapshot = (theme: "dark" | "light") =>
   `https://api.mapbox.com/styles/v1/mapbox/${theme}-v11/static/-73.9573,40.7163,14.6,0/1280x760@2x?attribution=false&logo=false&access_token=${MAPBOX_TOKEN ?? ""}`;
 
+const PLAY =
+  '<circle cx="50" cy="50" r="26" fill="#fff" opacity=".92"/><path d="M44 38l18 12-18 12z" fill="#111"/>';
 /** Small artworks for the example pins (drawn here, so nothing is fetched). */
 const MOTIF = {
   vinyl:
@@ -516,6 +518,7 @@ const MOTIF = {
   bag: '<path d="M26 40h48l-5 38H31z" fill="#fff" opacity=".92"/><path d="M38 42v-8a12 12 0 0 1 24 0v8" fill="none" stroke="#fff" stroke-width="5"/>',
   sun: '<circle cx="50" cy="56" r="20" fill="#fff" opacity=".95"/><path d="M14 70h72M20 78h60M28 86h44" stroke="#fff" stroke-width="4" opacity=".7"/>',
   star: '<path d="M50 18l9 21 23 2-17 15 5 23-20-12-20 12 5-23-17-15 23-2z" fill="#fff" opacity=".92"/>',
+  play: PLAY,
   mic: '<rect x="40" y="18" width="20" height="36" rx="10" fill="#fff" opacity=".92"/><path d="M30 46a20 20 0 0 0 40 0M50 66v14M38 80h24" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>',
 };
 const pinArt = (from: string, to: string, motif: keyof typeof MOTIF) =>
@@ -925,6 +928,14 @@ function MapPage() {
   );
 }
 
+/** An example picture for a card: the ART colours with a motif (drawn here, nothing fetched). */
+const pic = (tone: keyof typeof ART, motif: keyof typeof MOTIF) => {
+  const [from, to] = ART[tone].match(/#[0-9a-f]{6}/gi) ?? ["#888888", "#222222"];
+  // a wide canvas (16:9) with the motif in the middle, so wide cards show it whole
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-110 -40 320 180"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${from}"/><stop offset="1" stop-color="${to}"/></linearGradient></defs><rect x="-110" y="-40" width="320" height="180" fill="url(#g)"/><g opacity=".9">${MOTIF[motif]}</g></svg>`;
+  return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}") center / cover no-repeat`;
+};
+
 /** A section inside a form card: a small box with an icon badge and a bold title. */
 function CardSection({
   icon: Icon,
@@ -1074,7 +1085,7 @@ function BountiesPage() {
       prize: "750",
       winners: 3,
       left: "2 left",
-      art: [ART.sunset, ART.violet],
+      art: [pic("sunset", "sun"), pic("violet", "vinyl")],
       action: "View",
     },
     {
@@ -1083,7 +1094,7 @@ function BountiesPage() {
       prize: "1.2K",
       winners: 1,
       left: "1 left",
-      art: [ART.ocean],
+      art: [pic("ocean", "note")],
       action: "Join",
     },
     {
@@ -1092,7 +1103,7 @@ function BountiesPage() {
       prize: "400",
       winners: 1,
       left: "1 left",
-      art: [ART.gold, ART.peach],
+      art: [pic("gold", "star"), pic("peach", "sun")],
       action: "Join",
     },
     {
@@ -1101,7 +1112,7 @@ function BountiesPage() {
       prize: "300",
       winners: 2,
       left: "Paused",
-      art: [ART.night],
+      art: [pic("night", "mic")],
       action: "View",
     },
     {
@@ -1110,7 +1121,7 @@ function BountiesPage() {
       prize: "250",
       winners: 10,
       left: "7 left",
-      art: [ART.mint, ART.ocean],
+      art: [pic("mint", "key"), pic("ocean", "vinyl")],
       action: "Join",
     },
     {
@@ -1119,7 +1130,7 @@ function BountiesPage() {
       prize: "500",
       winners: 5,
       left: "Ended",
-      art: [ART.acid, ART.chrome],
+      art: [pic("acid", "star"), pic("chrome", "bag")],
       action: "View",
     },
   ];
@@ -1207,7 +1218,7 @@ function ItemsPage() {
       "41 sold of 300",
       "250",
       "$2.50",
-      ART.sunset,
+      pic("sunset", "sun"),
       "success",
       "For sale",
     ],
@@ -1217,41 +1228,77 @@ function ItemsPage() {
       "12 sold of 200",
       "500",
       "$5.00",
-      ART.ocean,
+      pic("ocean", "ticket"),
       "success",
       "For sale",
     ],
-    ["Night Drive (single)", "Song", "88 sold", "90", "$0.90", ART.acid, "success", "For sale"],
+    [
+      "Night Drive (single)",
+      "Song",
+      "88 sold",
+      "90",
+      "$0.90",
+      pic("acid", "note"),
+      "success",
+      "For sale",
+    ],
     [
       "Chrome skull key",
       "Collectible · NFT",
       "50 sold of 50",
       "300",
       "$3.00",
-      ART.chrome,
+      pic("chrome", "key"),
       "warning",
       "Sold out",
     ],
-    ["Record tote", "Merch", "0 sold of 150", "900", "$9.00", ART.violet, "neutral", "Draft"],
+    [
+      "Record tote",
+      "Merch",
+      "0 sold of 150",
+      "900",
+      "$9.00",
+      pic("violet", "bag"),
+      "neutral",
+      "Draft",
+    ],
     [
       "Backstage pass",
       "Ticket",
       "18 sold of 25",
       "1,500",
       "$15.00",
-      ART.gold,
+      pic("gold", "ticket"),
       "success",
       "For sale",
     ],
-    ["Lake lights (video)", "Video", "64 sold", "120", "$1.20", ART.night, "success", "For sale"],
-    ["Signed vinyl", "Merch", "9 sold of 30", "2,400", "$24.00", ART.peach, "success", "For sale"],
+    [
+      "Lake lights (video)",
+      "Video",
+      "64 sold",
+      "120",
+      "$1.20",
+      pic("night", "play"),
+      "success",
+      "For sale",
+    ],
+    [
+      "Signed vinyl",
+      "Merch",
+      "9 sold of 30",
+      "2,400",
+      "$24.00",
+      pic("peach", "vinyl"),
+      "success",
+      "For sale",
+    ],
     [
       "Tour sticker pack",
       "Merch",
       "203 sold of 500",
       "60",
       "$0.60",
-      ART.mint,
+      pic("mint", "star"),
       "success",
       "For sale",
     ],
@@ -1261,7 +1308,7 @@ function ItemsPage() {
       "100 sold of 100",
       "800",
       "$8.00",
-      ART.chrome,
+      pic("chrome", "star"),
       "warning",
       "Sold out",
     ],
@@ -1475,7 +1522,7 @@ function EventsPage() {
       "Rooftop Records, Williamsburg",
       "120 RSVPs of 200 · 2 pins, 1 bounty",
       "Upcoming",
-      ART.sunset,
+      pic("sunset", "mic"),
     ],
     [
       "Listening party",
@@ -1483,7 +1530,7 @@ function EventsPage() {
       "Online",
       "64 RSVPs · 1 pin linked",
       "Upcoming",
-      ART.violet,
+      pic("violet", "vinyl"),
     ],
     [
       "Signing session",
@@ -1491,7 +1538,7 @@ function EventsPage() {
       "Book Club Bar, Greenpoint",
       "38 RSVPs of 80",
       "Upcoming",
-      ART.ocean,
+      pic("ocean", "star"),
     ],
     [
       "Winter run: Philadelphia",
@@ -1499,7 +1546,7 @@ function EventsPage() {
       "Union Transfer, Philly",
       "210 RSVPs of 400 · 3 pins",
       "Upcoming",
-      ART.gold,
+      pic("gold", "ticket"),
     ],
     [
       "Winter run: Boston",
@@ -1507,7 +1554,7 @@ function EventsPage() {
       "Paradise Rock Club",
       "96 RSVPs of 300",
       "Upcoming",
-      ART.night,
+      pic("night", "mic"),
     ],
     [
       "Members' brunch",
@@ -1515,7 +1562,7 @@ function EventsPage() {
       "Devoción, Williamsburg",
       "VIP only · 22 of 30",
       "Upcoming",
-      ART.peach,
+      pic("peach", "sun"),
     ],
     [
       "Riverbank cleanup",
@@ -1523,7 +1570,7 @@ function EventsPage() {
       "Domino Park",
       "41 came · 1 bounty linked",
       "Past",
-      ART.acid,
+      pic("acid", "star"),
     ],
     [
       "Album night",
@@ -1531,7 +1578,7 @@ function EventsPage() {
       "Rooftop Records, Williamsburg",
       "188 came · 412 pins collected",
       "Past",
-      ART.mint,
+      pic("mint", "vinyl"),
     ],
   ] as const;
   return (
@@ -1725,7 +1772,7 @@ function PageBuilderPage() {
           {/* the preview of the public page */}
           <div className="bg-surface-2 flex min-h-0 flex-1 justify-center overflow-hidden p-4">
             <div className="tour-site" {...a(3)}>
-              <div className="tour-site-cover" style={{ background: ART.sunset }}>
+              <div className="tour-site-cover" style={{ background: pic("sunset", "sun") }}>
                 <span className="tour-site-nav">
                   <b>Rooftop Records</b>
                   <span>Music</span>
