@@ -32,6 +32,7 @@ import { StatCard } from "@actiontokens/ui/patterns/stat-card";
 import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
 import { WalletAssets, WalletHero, WalletPanel } from "@actiontokens/ui/patterns/wallet-blocks";
 
+import { MAPBOX_TOKEN } from "../pins/mapbox";
 import { CollectionsChart } from "../reports/report-kit";
 
 /**
@@ -237,39 +238,39 @@ export function FeatureTour() {
               data-on={index <= reached || undefined}
               aria-hidden={active !== index}
             >
-              <aside className="tour-aside">
-                <span className="tour-num" aria-hidden>
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <span className="tour-tag">
-                  <chapter.icon className="size-4" strokeWidth={2.4} /> {chapter.tag}
-                </span>
-                <h3 className="tour-title">{chapter.title}</h3>
-                <p className="text-fg-muted mt-4 text-[15px] leading-relaxed text-pretty">
-                  {chapter.body}
-                </p>
-                <ul className="tour-points">
-                  {chapter.points.map((point) => (
-                    <li key={point}>
-                      <span className="tour-tick">
-                        <Check className="size-3" strokeWidth={3} />
-                      </span>
-                      {point}
-                    </li>
-                  ))}
-                </ul>
-              </aside>
               <div className="tour-screen">
-                <div className="tour-bar">
-                  <span className="tour-dots" aria-hidden>
-                    <i />
-                    <i />
-                    <i />
+                <aside className="tour-aside">
+                  <span className="tour-num" aria-hidden>
+                    {String(index + 1).padStart(2, "0")}
                   </span>
-                  <span className="tour-url">org.action-tokens.com{chapter.path}</span>
-                </div>
-                <div className="tour-page">
-                  <chapter.Page />
+                  <span className="tour-tag">
+                    <chapter.icon className="size-4" strokeWidth={2.4} /> {chapter.tag}
+                  </span>
+                  <h3 className="tour-title">{chapter.title}</h3>
+                  <p className="text-fg-muted mt-4 text-[15px] leading-relaxed text-pretty">
+                    {chapter.body}
+                  </p>
+                  <ul className="tour-points">
+                    {chapter.points.map((point) => (
+                      <li key={point}>
+                        <span className="tour-tick">
+                          <Check className="size-3" strokeWidth={3} />
+                        </span>
+                        {point}
+                      </li>
+                    ))}
+                  </ul>
+                </aside>
+                <div className="tour-main">
+                  <div className="tour-crumb">
+                    <span>
+                      Action-Tokens <i>/</i> <b>{chapter.tag}</b>
+                    </span>
+                    <span className="gx-mono">{chapter.path}</span>
+                  </div>
+                  <div className="tour-page">
+                    <chapter.Page />
+                  </div>
                 </div>
               </div>
             </div>
@@ -288,6 +289,33 @@ export function FeatureTour() {
               <chapter.icon className="size-3.5" />
               <span>{chapter.tag}</span>
             </button>
+          ))}
+        </nav>
+        {/* wide screens: the chapters on a dial at the right, turning as you scroll */}
+        <nav
+          className="tour-wheel"
+          aria-label="Tour chapters"
+          style={{ ["--k" as string]: Math.max(0, active) }}
+          data-on={active >= 0 || undefined}
+        >
+          <span className="tour-wheel-ring" aria-hidden />
+          {CHAPTERS.map((chapter, index) => (
+            <span
+              key={chapter.id}
+              className="tour-wheel-item"
+              style={{ ["--i" as string]: index }}
+              data-d={Math.min(4, Math.abs(index - Math.max(0, active)))}
+            >
+              <button
+                type="button"
+                onClick={() => go(index + 1)}
+                data-on={active === index || undefined}
+                aria-current={active === index ? "step" : undefined}
+              >
+                {chapter.tag}
+                <chapter.icon className="size-4" />
+              </button>
+            </span>
           ))}
         </nav>
         <div className="tour-progress" aria-hidden>
@@ -310,6 +338,11 @@ const ART = {
 
 /** Stagger: elements with data-a rise in, in order, when their panel turns on. */
 const a = (i: number) => ({ "data-a": "", style: { ["--i" as string]: i } });
+
+/** A real map picture of Banani, Dhaka (Mapbox static images, the same API the map style
+ * thumbnails use), one per theme. */
+const snapshot = (theme: "dark" | "light") =>
+  `https://api.mapbox.com/styles/v1/mapbox/${theme}-v11/static/90.4066,23.7937,14.6,0/1280x760?attribution=false&logo=false&access_token=${MAPBOX_TOKEN ?? ""}`;
 
 function MapPage() {
   const pins = [
@@ -337,16 +370,26 @@ function MapPage() {
         />
       </div>
       <div className="tour-map" {...a(1)}>
-        <svg viewBox="0 0 400 260" preserveAspectRatio="none" aria-hidden>
-          <path
-            className="tour-map-river"
-            d="M-10 200 C 90 150, 160 230, 250 180 S 360 120, 410 140"
-          />
-          <path
-            className="tour-map-road"
-            d="M60 -10 L 140 270 M -10 90 L 410 120 M 300 -10 L 260 270"
-          />
-        </svg>
+        {MAPBOX_TOKEN ? (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={snapshot("dark")}
+              alt=""
+              loading="lazy"
+              className="tour-map-img"
+              data-for="dark"
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={snapshot("light")}
+              alt=""
+              loading="lazy"
+              className="tour-map-img"
+              data-for="light"
+            />
+          </>
+        ) : null}
         {pins.map((pin, index) => (
           <span
             key={index}
