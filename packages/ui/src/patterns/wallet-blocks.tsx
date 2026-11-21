@@ -70,7 +70,10 @@ export function WalletHero({
   actions: WalletAction[];
 }) {
   return (
-    <section className="side-scope blob bg-side text-side-ink relative overflow-hidden p-6 sm:p-8">
+    <section
+      data-slot="wallet-hero"
+      className="side-scope blob bg-side text-side-ink relative overflow-hidden p-6 sm:p-8"
+    >
       <Wallet
         aria-hidden
         className="text-side-ink/10 absolute -right-6 -bottom-8 size-48 rotate-12"
@@ -79,7 +82,9 @@ export function WalletHero({
       <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="marker -rotate-2 text-lg">*{label}*</p>
+            <p data-slot="wallet-hero-label" className="marker -rotate-2 text-lg">
+              *{label}*
+            </p>
             {address && <CopyAddress address={address} />}
           </div>
           {balance}
@@ -107,13 +112,21 @@ export function WalletHero({
               </>
             );
             return action.href ? (
-              <Link key={action.id} href={action.href} className={className}>
+              <Link
+                key={action.id}
+                href={action.href}
+                className={className}
+                data-slot="wallet-action"
+                data-primary={action.primary || undefined}
+              >
                 {content}
               </Link>
             ) : (
               <button
                 key={action.id}
                 type="button"
+                data-slot="wallet-action"
+                data-primary={action.primary || undefined}
                 onClick={action.onClick}
                 disabled={action.disabled}
                 className={className}

@@ -41,7 +41,14 @@ export function PageHeader({
             {back.label}
           </Link>
         )}
-        {eyebrow && <p className="st-eyebrow">{eyebrow}</p>}
+        {eyebrow && (
+          <p
+            data-slot="page-eyebrow"
+            className="text-primary-text mb-1 text-xs font-semibold tracking-[0.08em] uppercase"
+          >
+            {eyebrow}
+          </p>
+        )}
         <h1 className="display text-foreground text-[2.75rem] break-words sm:text-6xl lg:text-7xl">
           {title}
         </h1>

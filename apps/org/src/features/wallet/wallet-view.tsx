@@ -483,6 +483,42 @@ function StorageCard() {
 }
 
 /** The sidebar's summary of both accounts, on the sidebar block; the whole card opens Wallet. `rail`: a wallet blob. */
+/** The balance in the portal sidebar, as a holographic "vault" card (styles: .gx-vault). */
+export function WalletSummary() {
+  const signedIn = useSession().status === "authenticated";
+  const me = useMainWallet(signedIn);
+  if (!signedIn) return null;
+  const balances = me.data?.balances;
+  return (
+    <Link href="/wallet" className="gx-vault group" aria-label="Wallet">
+      <span className="gx-vault-in">
+        <span className="gx-mono text-fg-muted flex items-center justify-between">
+          Vault
+          <span className="text-primary-text transition-transform group-hover:translate-x-0.5">
+            →
+          </span>
+        </span>
+        <span className="mt-2 flex items-baseline gap-2">
+          <span className="gx-amount">
+            {balances ? <Money amount={balances.ACTION} currency="ACTION" short /> : "…"}
+          </span>
+          <span className="gx-mono text-[var(--gx-acid-text)]">{TOKEN_NAME}</span>
+        </span>
+        <span className="gx-mono text-fg-faint mt-2 flex gap-3">
+          {MAIN.slice(1).map((currency) => (
+            <span key={currency} className="flex items-center gap-1">
+              {currency}
+              <span className="text-fg">
+                {balances ? <Money amount={balances[currency]} currency={currency} short /> : "…"}
+              </span>
+            </span>
+          ))}
+        </span>
+      </span>
+    </Link>
+  );
+}
+
 export function WalletSidebarCard({ rail = false }: { rail?: boolean }) {
   const signedIn = useSession().status === "authenticated";
   const me = useMainWallet(signedIn);
