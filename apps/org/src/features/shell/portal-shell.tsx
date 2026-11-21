@@ -28,7 +28,7 @@ import { PortalBackdrop } from "./portal-backdrop";
 /**
  * The frame around every portal page: a sidebar of what this person may use
  * right now (see navFor), a top bar with the account, and a tab bar on phones.
- * Signed out, the menu stays and every page shows the sign-in card.
+ * Signed out, every address shows the front page, with no menu.
  */
 export function PortalShell({
   children,
@@ -42,8 +42,18 @@ export function PortalShell({
   const groups = navFor({ signedIn, step, isAdmin });
   const { collapsed, setCollapsed } = useSidebarCollapsed();
 
-  // Signed out: the menu stays (links still change the page), the page itself is the sign-in card.
   const signedOut = !loading && !signedIn;
+
+  // Signed out: no menu at all, just the front page with its own slim top bar.
+  if (signedOut)
+    return (
+      <div className="min-h-dvh">
+        <PortalBackdrop />
+        <main className="min-w-0">
+          <Landing />
+        </main>
+      </div>
+    );
 
   return (
     <div className="grid min-h-dvh grid-cols-1 sm:grid-cols-[auto_minmax(0,1fr)]">
@@ -60,7 +70,7 @@ export function PortalShell({
       <MobileTabs groups={groups} pathname={pathname} signedIn={signedIn} />
 
       <main className="min-w-0 pb-[var(--phone-bar-space)] sm:pb-12 sm:pl-(--side-w)">
-        {signedOut ? <Landing /> : children}
+        {children}
       </main>
     </div>
   );

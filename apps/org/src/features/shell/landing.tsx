@@ -10,6 +10,7 @@ import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 import { AR_URL, FAN_APP_URL } from "./links";
 import { anton, gothic } from "./landing-fonts";
 import { LandingHero } from "./landing-hero";
+import { ThemeControl } from "./theme-control";
 import { FeatureTour } from "./feature-tour";
 
 /**
@@ -26,6 +27,23 @@ export function Landing() {
 
   return (
     <div ref={root} className={cn(anton.variable, gothic.variable)}>
+      <header className="lp-top">
+        <span className="flex items-center gap-2.5">
+          <span className="gx-logo grid size-10 place-items-center rounded-xl bg-white">
+            <BrandMark className="h-7" />
+          </span>
+          <span className="hidden leading-none sm:block">
+            <span className="gx-brand block text-[1.35rem]">Action-Tokens</span>
+            <span className="gx-mono text-primary-text text-[10px]">organization portal</span>
+          </span>
+        </span>
+        <span className="flex items-center gap-2">
+          <ThemeControl className="lp-top-theme" />
+          <button type="button" onClick={signIn} className="lp-cta !h-10 !px-4 !text-[1.05rem]">
+            <LogIn className="size-4" strokeWidth={2.4} /> Sign in
+          </button>
+        </span>
+      </header>
       <LandingHero onSignIn={signIn} />
       <Marquee />
 
