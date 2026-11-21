@@ -191,6 +191,7 @@ export function FeatureTour() {
     let target = -1;
     // wheel gestures: a flick (and its trackpad momentum) is one gesture, and moves one page
     let lastWheel = 0;
+    let lastSize = 0;
     // what the current gesture is doing: scrolling a tall page, or turning the page
     let gesture: "" | "inner" | "page" = "";
 
@@ -278,7 +279,7 @@ export function FeatureTour() {
       // when scrolling stops between two pages, finish the move to the nearer one
       clearTimeout(settle);
       settle = window.setTimeout(() => {
-        if (!engaged() || moving() || performance.now() - lastWheel < 220) return;
+        if (!engaged() || moving() || performance.now() - lastWheel < 180) return;
         const off = Math.abs(x - panel) * innerHeight;
         if (off > 2) goTo(panel);
       }, 160);
@@ -290,14 +291,20 @@ export function FeatureTour() {
     // flick keeps arriving for a while; it belongs to the same gesture and is swallowed.
     const onWheel = (event: WheelEvent) => {
       const now = performance.now();
-      if (now - lastWheel > 220) gesture = "";
+      const size = Math.abs(event.deltaY);
+      // a new swipe: a pause, or the speed picking up again (momentum only ever slows down)
+      const fresh = now - lastWheel > 180 || (size > 10 && size > lastSize * 1.6);
+      if (fresh) gesture = "";
       lastWheel = now;
+      lastSize = size;
       if (!engaged()) {
         // a gesture that carries the page into the tour doesn't also turn a page
         gesture = "page";
         return;
       }
       if (moving() || gesture === "page") {
+        // a swipe made during a slide is spent on it, momentum and all
+        gesture = "page";
         event.preventDefault();
         return;
       }
