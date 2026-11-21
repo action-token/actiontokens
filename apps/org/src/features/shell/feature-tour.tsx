@@ -176,6 +176,7 @@ export function FeatureTour() {
   const [active, setActive] = useState(-1);
   // the furthest panel reached: panels behind it stay filled in
   const [reached, setReached] = useState(-1);
+  const jump = useRef<(panel: number) => void>(() => undefined);
 
   useEffect(() => {
     const el = section.current;
@@ -184,8 +185,13 @@ export function FeatureTour() {
     let last = -2;
     let lastAhead = -2;
     let panel = 0;
-    let lockedUntil = 0;
     let settle = 0;
+    // page moves: our own eased scroll, so nothing can interrupt or stretch it
+    let tween = 0;
+    let target = -1;
+    // wheel gestures: a flick (and its trackpad momentum) is one gesture, and moves one page
+    let lastWheel = 0;
+    let gestureUsed = false;
 
     const geometry = () => {
       const rect = el.getBoundingClientRect();
@@ -198,8 +204,30 @@ export function FeatureTour() {
     };
     const goTo = (index: number) => {
       const { span, top } = geometry();
-      scrollTo({ top: top + (span * index) / (PANELS - 1), behavior: "smooth" });
+      const from = scrollY;
+      const to = top + (span * index) / (PANELS - 1);
+      cancelAnimationFrame(tween);
+      target = index;
+      if (Math.abs(to - from) < 1) {
+        target = -1;
+        return;
+      }
+      const start = performance.now();
+      const duration = 700;
+      const step = (now: number) => {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        scrollTo({ top: from + (to - from) * eased, behavior: "instant" });
+        if (t < 1) tween = requestAnimationFrame(step);
+        else {
+          tween = 0;
+          target = -1;
+        }
+      };
+      tween = requestAnimationFrame(step);
     };
+    const moving = () => target !== -1;
+    jump.current = goTo;
 
     const update = () => {
       raf = 0;
@@ -238,23 +266,35 @@ export function FeatureTour() {
       // when scrolling stops between two pages, finish the move to the nearer one
       clearTimeout(settle);
       settle = window.setTimeout(() => {
-        if (!engaged() || Date.now() < lockedUntil) return;
+        if (!engaged() || moving() || performance.now() - lastWheel < 220) return;
         const off = Math.abs(x - panel) * innerHeight;
         if (off > 2) goTo(panel);
-      }, 140);
+      }, 160);
     };
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(update);
     };
-    // one wheel gesture = one page, while the section is pinned
+    // one wheel gesture = one page, while the section is pinned. The momentum that follows a
+    // flick keeps arriving for a while; it belongs to the same gesture and is swallowed.
     const onWheel = (event: WheelEvent) => {
-      if (!engaged() || Math.abs(event.deltaY) < 4) return;
+      const now = performance.now();
+      if (now - lastWheel > 220) gestureUsed = false;
+      lastWheel = now;
+      if (!engaged()) {
+        // a gesture that carries the page into the tour doesn't also turn a page
+        gestureUsed = true;
+        return;
+      }
+      if (moving() || gestureUsed) {
+        event.preventDefault();
+        return;
+      }
+      if (Math.abs(event.deltaY) < 2) return;
       const dir = event.deltaY > 0 ? 1 : -1;
       const next = panel + dir;
-      if (next < 0 || next > PANELS - 1) return; // let the page carry on past the ends
+      if (next < 0 || next > PANELS - 1) return; // a fresh gesture past the ends leaves the tour
       event.preventDefault();
-      if (Date.now() < lockedUntil) return;
-      lockedUntil = Date.now() + 850;
+      gestureUsed = true;
       goTo(next);
     };
     const onKey = (event: KeyboardEvent) => {
@@ -265,10 +305,9 @@ export function FeatureTour() {
           : event.key === "ArrowUp" || event.key === "PageUp" || event.key === "ArrowLeft"
             ? -1
             : 0;
-      const next = panel + dir;
+      const next = (moving() ? target : panel) + dir;
       if (!dir || next < 0 || next > PANELS - 1) return;
       event.preventDefault();
-      lockedUntil = Date.now() + 850;
       goTo(next);
     };
 
@@ -293,6 +332,7 @@ export function FeatureTour() {
     return () => {
       io.disconnect();
       clearTimeout(settle);
+      cancelAnimationFrame(tween);
       removeEventListener("scroll", onScroll);
       removeEventListener("resize", onScroll);
       removeEventListener("wheel", onWheel);
@@ -301,14 +341,8 @@ export function FeatureTour() {
     };
   }, []);
 
-  /** Jump to a page from the tabs. */
-  const go = (panel: number) => {
-    const el = section.current;
-    if (!el) return;
-    const span = el.offsetHeight - innerHeight;
-    const top = el.getBoundingClientRect().top + scrollY;
-    scrollTo({ top: top + (span * panel) / (PANELS - 1), behavior: "smooth" });
-  };
+  /** Jump to a page from the tabs (the same eased move as a scroll). */
+  const go = (panel: number) => jump.current(panel);
 
   const current = active >= 0 ? CHAPTERS[active] : undefined;
 
