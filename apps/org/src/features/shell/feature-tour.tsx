@@ -191,7 +191,8 @@ export function FeatureTour() {
     let target = -1;
     // wheel gestures: a flick (and its trackpad momentum) is one gesture, and moves one page
     let lastWheel = 0;
-    let gestureUsed = false;
+    // what the current gesture is doing: scrolling a tall page, or turning the page
+    let gesture: "" | "inner" | "page" = "";
 
     const geometry = () => {
       const rect = el.getBoundingClientRect();
@@ -207,6 +208,8 @@ export function FeatureTour() {
       const from = scrollY;
       const to = top + (span * index) / (PANELS - 1);
       cancelAnimationFrame(tween);
+      const box = scrollerOf(index);
+      if (box) box.scrollTop = index < panel ? box.scrollHeight : 0;
       target = index;
       if (Math.abs(to - from) < 1) {
         target = -1;
@@ -227,6 +230,15 @@ export function FeatureTour() {
       tween = requestAnimationFrame(step);
     };
     const moving = () => target !== -1;
+    const scrollerOf = (index: number) =>
+      track.current?.children[index]?.querySelector<HTMLElement>(".tour-page:not([data-full])") ??
+      null;
+    /** How far the current page can still scroll in this direction, in px. */
+    const room = (dir: number) => {
+      const box = scrollerOf(panel);
+      if (!box) return 0;
+      return dir > 0 ? box.scrollHeight - box.clientHeight - box.scrollTop : box.scrollTop;
+    };
     jump.current = goTo;
 
     const update = () => {
@@ -278,23 +290,35 @@ export function FeatureTour() {
     // flick keeps arriving for a while; it belongs to the same gesture and is swallowed.
     const onWheel = (event: WheelEvent) => {
       const now = performance.now();
-      if (now - lastWheel > 220) gestureUsed = false;
+      if (now - lastWheel > 220) gesture = "";
       lastWheel = now;
       if (!engaged()) {
         // a gesture that carries the page into the tour doesn't also turn a page
-        gestureUsed = true;
+        gesture = "page";
         return;
       }
-      if (moving() || gestureUsed) {
+      if (moving() || gesture === "page") {
         event.preventDefault();
         return;
       }
-      if (Math.abs(event.deltaY) < 2) return;
+      if (Math.abs(event.deltaY) < 1) return;
       const dir = event.deltaY > 0 ? 1 : -1;
+      // a tall page scrolls top to bottom first
+      if (room(dir) > 1) {
+        event.preventDefault();
+        scrollerOf(panel)!.scrollTop += event.deltaY;
+        gesture = "inner";
+        return;
+      }
+      // the momentum that scrolled it to the end doesn't also turn the page
+      if (gesture === "inner") {
+        event.preventDefault();
+        return;
+      }
       const next = panel + dir;
       if (next < 0 || next > PANELS - 1) return; // a fresh gesture past the ends leaves the tour
       event.preventDefault();
-      gestureUsed = true;
+      gesture = "page";
       goTo(next);
     };
     const onKey = (event: KeyboardEvent) => {
@@ -305,8 +329,15 @@ export function FeatureTour() {
           : event.key === "ArrowUp" || event.key === "PageUp" || event.key === "ArrowLeft"
             ? -1
             : 0;
+      if (!dir) return;
+      const arrow = event.key === "ArrowDown" || event.key === "ArrowUp";
+      if (arrow && !moving() && room(dir) > 1) {
+        event.preventDefault();
+        scrollerOf(panel)!.scrollBy({ top: dir * 120, behavior: "smooth" });
+        return;
+      }
       const next = (moving() ? target : panel) + dir;
-      if (!dir || next < 0 || next > PANELS - 1) return;
+      if (next < 0 || next > PANELS - 1) return;
       event.preventDefault();
       goTo(next);
     };
