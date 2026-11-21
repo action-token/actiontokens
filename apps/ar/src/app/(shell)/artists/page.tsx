@@ -208,7 +208,7 @@ function ArtistRow({
         <Link href={`/artists/${artist.id}`} className="shrink-0">
           <ArtistAvatar
             src={artist.avatarUrl}
-            className="h-[52px] w-[52px] rounded-[14px] ring-1 ring-white/15"
+            className="h-[52px] w-[52px] rounded-[14px] border-2 border-[hsl(var(--st-line)/0.85)] shadow-[2px_2px_0_0_hsl(var(--st-pop))]"
           />
         </Link>
 

@@ -25,7 +25,7 @@ export function MarketCard({ item, className }: { item: MarketItem; className?: 
 
   return (
     <div className={cn("ar-bevel rounded-ar flex flex-col overflow-hidden", className)}>
-      <Link href={href} className="group relative block aspect-square overflow-hidden">
+      <Link href={href} className="group relative block aspect-square overflow-hidden border-b-2 border-[hsl(var(--st-line)/0.85)]">
         {item.coverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -37,11 +37,11 @@ export function MarketCard({ item, className }: { item: MarketItem; className?: 
         ) : (
           <span className="bg-ar-surface-3 block h-full w-full" />
         )}
-        <span className="ar-glass font-hud text-ar-text absolute top-2 left-2 rounded-full px-2 py-0.5 text-[9px] font-bold tracking-[0.12em] uppercase">
+        <span className="st-paper st-tilt-l font-hud absolute top-2 left-2 rounded-md border-2 px-1.5 py-0.5 text-[10px] leading-none font-semibold tracking-[0.1em] uppercase shadow-[2px_2px_0_0_hsl(var(--st-ink))]">
           {TYPE_LABEL[item.type] ?? item.type}
         </span>
         {!item.price && (
-          <span className="font-hud bg-ar-danger/90 absolute top-2 right-2 rounded-full px-2 py-0.5 text-[9px] font-bold tracking-[0.12em] text-white uppercase">
+          <span className="st-tilt-r font-hud bg-ar-danger absolute top-2 right-2 rounded-md border-2 border-[hsl(var(--st-ink))] px-1.5 py-0.5 text-[10px] leading-none font-semibold tracking-[0.1em] text-white uppercase">
             Sold out
           </span>
         )}
@@ -57,7 +57,7 @@ export function MarketCard({ item, className }: { item: MarketItem; className?: 
 
         {price && (
           <p className="mt-auto flex items-baseline gap-1.5">
-            <span className="font-hud text-ar-green-hot text-[15px] leading-none font-bold tabular-nums">
+            <span className="font-hud st-green st-tilt-l rounded-md border-2 px-1.5 py-0.5 text-[15px] leading-none font-semibold tabular-nums shadow-[2px_2px_0_0_hsl(var(--st-ink))]">
               {price}
             </span>
             <span className="font-hud text-ar-dim text-[9.5px] font-semibold tracking-[0.12em] uppercase">
