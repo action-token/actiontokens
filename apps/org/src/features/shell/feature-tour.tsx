@@ -66,6 +66,7 @@ import { TallText } from "@actiontokens/ui/patterns/tall-text";
 import { WalletAssets, WalletHero, WalletPanel } from "@actiontokens/ui/patterns/wallet-blocks";
 
 import { MAPBOX_TOKEN } from "../pins/mapbox";
+import { PORTAL_MENU_CLOSE_EVENT } from "./links";
 import type { NavGroup } from "./nav";
 import { CollectionsChart, PeriodPicker, type Period, periodRange } from "../reports/report-kit";
 
@@ -227,6 +228,13 @@ export function FeatureTour() {
       return rect.top <= 1 && rect.bottom >= innerHeight - 1;
     };
     const goTo = (index: number) => {
+      // phones: the pages are stacked, so just scroll to that one (under the notch)
+      if (phone.matches) {
+        const node = track.current?.children[index] as HTMLElement | undefined;
+        if (node)
+          scrollTo({ top: node.getBoundingClientRect().top + scrollY - 56, behavior: "smooth" });
+        return;
+      }
       const { span, top } = geometry();
       const from = scrollY;
       const to = top + (span * index) / (PANELS - 1);
@@ -365,6 +373,7 @@ export function FeatureTour() {
       event.preventDefault();
       event.stopPropagation();
       goTo(Number(link.getAttribute("href")!.slice("/#tour-".length)));
+      dispatchEvent(new Event(PORTAL_MENU_CLOSE_EVENT));
     };
     document.addEventListener("click", onLink, true);
     const onResize = () => {

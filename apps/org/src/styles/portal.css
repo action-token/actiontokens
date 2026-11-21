@@ -1891,9 +1891,10 @@ main .tour-big {
   border-radius: 12px;
 }
 @media (max-width: 639px) {
-  /* phones have their own top bar */
+  /* phones: the notch is the top bar (logo, Sign in, Menu) */
   .lp-top {
-    display: none;
+    gap: 10px;
+    padding: 6px 6px 6px 8px;
   }
 }
 

@@ -19,7 +19,7 @@ import {
 } from "~/features/notifications/notifications-link";
 import { type PortalStatus, usePortal } from "~/features/portal/use-portal";
 
-import { AR_URL, FAN_APP_URL } from "./links";
+import { AR_URL, FAN_APP_URL, PORTAL_MENU_CLOSE_EVENT, PORTAL_MENU_EVENT } from "./links";
 import { isActive, type NavGroup, type NavItem, navFor, phoneLabel, phoneTabs } from "./nav";
 import { Sidebar } from "./sidebar";
 import { Landing } from "./landing";
@@ -66,7 +66,7 @@ export function PortalShell({
         onToggle={() => setCollapsed(!collapsed)}
       />
 
-      <MobileTabs groups={navGroups} pathname={navPath} signedIn={signedIn} />
+      <MobileTabs groups={navGroups} pathname={navPath} signedIn={signedIn} header={!signedOut} />
 
       <main className="min-w-0 pb-[var(--phone-bar-space)] sm:pb-12 sm:pl-(--side-w)">
         {signedOut ? <Landing /> : children}
@@ -84,12 +84,25 @@ function MobileTabs({
   groups,
   pathname,
   signedIn,
+  header = true,
 }: {
   groups: NavGroup[];
   pathname: string;
   signedIn: boolean;
+  /** Signed out, the front page's notch stands in for the header (and opens the menu). */
+  header?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const on = () => setOpen(true);
+    const off = () => setOpen(false);
+    addEventListener(PORTAL_MENU_EVENT, on);
+    addEventListener(PORTAL_MENU_CLOSE_EVENT, off);
+    return () => {
+      removeEventListener(PORTAL_MENU_EVENT, on);
+      removeEventListener(PORTAL_MENU_CLOSE_EVENT, off);
+    };
+  }, []);
   const unread = useUnreadNotifications();
   const { left, right } = phoneTabs(groups);
   const tabOf = (entry: NavItem) => ({
@@ -100,37 +113,39 @@ function MobileTabs({
   });
   return (
     <>
-      <header className="bg-bg/95 sticky top-0 z-30 flex h-14 items-center gap-2 border-b pr-3 pl-4 sm:hidden">
-        <Link
-          href="/"
-          aria-label="Organization portal home"
-          className="flex min-w-0 flex-1 items-center gap-2"
-        >
-          <BrandMark className="h-7" />
-          <span className="marker text-primary-text truncate text-sm">organization portal</span>
-        </Link>
-        {signedIn && (
+      {header && (
+        <header className="bg-bg/95 sticky top-0 z-30 flex h-14 items-center gap-2 border-b pr-3 pl-4 sm:hidden">
           <Link
-            href="/notifications"
-            aria-label={unread > 0 ? `Notifications (${unread} new)` : "Notifications"}
-            className="bg-surface relative flex size-9 shrink-0 items-center justify-center rounded-full border"
+            href="/"
+            aria-label="Organization portal home"
+            className="flex min-w-0 flex-1 items-center gap-2"
           >
-            <Bell className="size-[18px]" />
-            {unread > 0 && (
-              <span className="bg-danger ring-bg absolute top-0.5 right-0.5 size-2.5 rounded-full ring-2" />
-            )}
+            <BrandMark className="h-7" />
+            <span className="marker text-primary-text truncate text-sm">organization portal</span>
           </Link>
-        )}
-        <AccountButton compact />
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          aria-label="Menu"
-          className="bg-primary text-primary-ink flex size-9 shrink-0 items-center justify-center rounded-full active:scale-95"
-        >
-          <Menu className="size-5" />
-        </button>
-      </header>
+          {signedIn && (
+            <Link
+              href="/notifications"
+              aria-label={unread > 0 ? `Notifications (${unread} new)` : "Notifications"}
+              className="bg-surface relative flex size-9 shrink-0 items-center justify-center rounded-full border"
+            >
+              <Bell className="size-[18px]" />
+              {unread > 0 && (
+                <span className="bg-danger ring-bg absolute top-0.5 right-0.5 size-2.5 rounded-full ring-2" />
+              )}
+            </Link>
+          )}
+          <AccountButton compact />
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            aria-label="Menu"
+            className="bg-primary text-primary-ink flex size-9 shrink-0 items-center justify-center rounded-full active:scale-95"
+          >
+            <Menu className="size-5" />
+          </button>
+        </header>
+      )}
       {left.length + right.length > 0 && (
         <PhoneTabBar left={left.map(tabOf)} right={right.map(tabOf)} arHref={AR_URL} />
       )}

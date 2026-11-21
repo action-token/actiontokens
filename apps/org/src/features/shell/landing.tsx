@@ -5,6 +5,7 @@ import {
   CalendarDays,
   Crown,
   LogIn,
+  Menu,
   MapPin,
   ScanLine,
   ShoppingBag,
@@ -17,7 +18,7 @@ import { cn } from "@actiontokens/ui/lib/cn";
 import { BrandMark } from "@actiontokens/ui/patterns/boot-screen";
 import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
-import { AR_URL, FAN_APP_URL } from "./links";
+import { AR_URL, FAN_APP_URL, PORTAL_MENU_EVENT } from "./links";
 import { anton, gothic } from "./landing-fonts";
 import { LandingHero } from "./landing-hero";
 import { ThemeControl } from "./theme-control";
@@ -54,9 +55,18 @@ export function Landing() {
           </span>
         </span>
         <span className="flex items-center gap-2">
-          <ThemeControl className="lp-top-theme" />
+          <ThemeControl className="lp-top-theme max-sm:hidden" />
           <button type="button" onClick={signIn} className="lp-cta !h-10 !px-4 !text-[1.05rem]">
             <LogIn className="size-4" strokeWidth={2.4} /> Sign in
+          </button>
+          {/* phones: the menu (the side sheet), since the notch stands in for the phone header */}
+          <button
+            type="button"
+            onClick={() => dispatchEvent(new Event(PORTAL_MENU_EVENT))}
+            aria-label="Menu"
+            className="bg-primary text-primary-ink grid size-10 place-items-center rounded-xl sm:hidden"
+          >
+            <Menu className="size-5" />
           </button>
         </span>
         <NotchFeed onOpen={setNotchOpen} />
