@@ -472,6 +472,7 @@ export function FeatureTour() {
               <div
                 className="tour-page"
                 data-full={chapter.id === "map" || chapter.id === "page" || undefined}
+                data-pad={chapter.id === "page" || undefined}
               >
                 <chapter.Page />
               </div>
