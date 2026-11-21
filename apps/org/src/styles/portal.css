@@ -1963,24 +1963,18 @@ main .tour-big {
   scrollbar-width: none;
 }
 
-/* the front page settles section by section: the tour's start and the closing section on
-   desktop (the tour then turns one page per scroll), every tour page on phones. Proximity, so
-   the hero can still play its frames as you scroll. */
-html.lp-snap {
-  scroll-snap-type: y proximity;
-}
-html.lp-snap .tour {
-  scroll-snap-align: start;
-}
-html.lp-snap .lp-final {
-  scroll-snap-align: center;
-}
-@media (max-width: 767px) {
-  html.lp-snap .tour {
-    scroll-snap-align: none;
+/* desktop: the front page settles at the tour's start (which then turns one page per scroll)
+   and on the closing section. Proximity, so the hero can still play its frames as you scroll.
+   Phones scroll freely: snapping to pages taller than the screen traps touch scrolling there
+   (a swipe back up gets pulled back to the page edge). */
+@media (min-width: 768px) {
+  html.lp-snap {
+    scroll-snap-type: y proximity;
   }
-  html.lp-snap .tour-panel {
+  html.lp-snap .tour {
     scroll-snap-align: start;
-    scroll-margin-top: 56px;
+  }
+  html.lp-snap .lp-final {
+    scroll-snap-align: center;
   }
 }
