@@ -1412,8 +1412,7 @@ a.lp-chip:hover {
   overflow: hidden auto;
   overscroll-behavior: contain;
   scrollbar-width: none;
-  /* the top clears the front page's notch */
-  padding: 68px clamp(20px, 3vw, 40px) 92px;
+  padding: clamp(20px, 3vw, 40px) clamp(20px, 3vw, 40px) 92px;
 }
 .tour-page::-webkit-scrollbar {
   display: none;
@@ -1421,10 +1420,6 @@ a.lp-chip:hover {
 .tour-page[data-full] {
   overflow: hidden;
   padding: 0;
-}
-/* the map runs under the notch; the page editor starts below it */
-.tour-page[data-full][data-pad] {
-  padding-top: 60px;
 }
 .tour-page [data-a] {
   opacity: 0;
@@ -1822,47 +1817,4 @@ main .tour-big {
     transition: none !important;
     animation: none !important;
   }
-}
-
-/* the front page's own top bar (signed out: no sidebar): a notch hanging from the top edge */
-.lp-top {
-  --notch: var(--bc-surface);
-  position: fixed;
-  z-index: 50;
-  top: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  width: max-content;
-  max-width: calc(100% - 64px);
-  margin-inline: auto;
-  padding: 8px 8px 8px 10px;
-  border-radius: 0 0 24px 24px;
-  border: 1px solid var(--gx-line-strong);
-  border-top: 0;
-  background: var(--notch);
-  box-shadow: 0 18px 40px -22px rgb(0 0 0 / 0.6);
-}
-/* the curved shoulders where the notch meets the top edge */
-.lp-top::before,
-.lp-top::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  width: 22px;
-  height: 22px;
-  pointer-events: none;
-}
-.lp-top::before {
-  right: 100%;
-  background: radial-gradient(circle at 0 100%, transparent 21px, var(--notch) 21.5px);
-}
-.lp-top::after {
-  left: 100%;
-  background: radial-gradient(circle at 100% 100%, transparent 21px, var(--notch) 21.5px);
-}
-.lp-top-theme {
-  border-radius: 12px;
 }

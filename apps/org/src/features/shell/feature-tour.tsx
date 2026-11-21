@@ -63,6 +63,7 @@ import { TallText } from "@actiontokens/ui/patterns/tall-text";
 import { WalletAssets, WalletHero, WalletPanel } from "@actiontokens/ui/patterns/wallet-blocks";
 
 import { MAPBOX_TOKEN } from "../pins/mapbox";
+import type { NavGroup } from "./nav";
 import { CollectionsChart, PeriodPicker, type Period, periodRange } from "../reports/report-kit";
 
 /**
@@ -170,6 +171,21 @@ const CHAPTERS: Chapter[] = [
 
 /** Panels on the track: the intro, then one per chapter. */
 const PANELS = CHAPTERS.length + 1;
+
+/** The tour's pages as sidebar entries (signed out, the sidebar lists only these). */
+export const TOUR_NAV: NavGroup[] = [
+  {
+    title: "What you can do",
+    items: CHAPTERS.map((chapter, index) => ({
+      href: `/#tour-${index + 1}`,
+      label: chapter.tag,
+      icon: chapter.icon,
+      exact: true,
+    })),
+  },
+];
+/** Fired on window with the chapter on screen (-1: none), for the sidebar's highlight. */
+export const TOUR_EVENT = "tour:active";
 
 export function FeatureTour() {
   const section = useRef<HTMLElement>(null);
@@ -305,6 +321,15 @@ export function FeatureTour() {
     };
     fit();
     void document.fonts?.ready.then(fit);
+    // sidebar entries (/#tour-N) slide the tour to that page instead of navigating
+    const onLink = (event: MouseEvent) => {
+      const link = (event.target as Element | null)?.closest?.('a[href^="/#tour-"]');
+      if (!link) return;
+      event.preventDefault();
+      event.stopPropagation();
+      goTo(Number(link.getAttribute("href")!.slice("/#tour-".length)));
+    };
+    document.addEventListener("click", onLink, true);
     const onResize = () => {
       fit();
       onScroll();
@@ -393,6 +418,7 @@ export function FeatureTour() {
       io.disconnect();
       clearTimeout(settle);
       cancelAnimationFrame(tween);
+      document.removeEventListener("click", onLink, true);
       removeEventListener("scroll", onScroll);
       removeEventListener("resize", onResize);
       removeEventListener("wheel", onWheel);
@@ -400,6 +426,12 @@ export function FeatureTour() {
       if (raf) cancelAnimationFrame(raf);
     };
   }, []);
+
+  // tell the sidebar which page is on screen
+  useEffect(() => {
+    dispatchEvent(new CustomEvent(TOUR_EVENT, { detail: active }));
+  }, [active]);
+  useEffect(() => () => void dispatchEvent(new CustomEvent(TOUR_EVENT, { detail: -1 })), []);
 
   /** Jump to a page from the tabs (the same eased move as a scroll). */
   const go = (panel: number) => jump.current(panel);
@@ -440,7 +472,6 @@ export function FeatureTour() {
               <div
                 className="tour-page"
                 data-full={chapter.id === "map" || chapter.id === "page" || undefined}
-                data-pad={chapter.id === "page" || undefined}
               >
                 <chapter.Page />
               </div>

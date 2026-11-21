@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, Menu, ScanLine, Settings, Store } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 
 import { cn } from "@actiontokens/ui/lib/cn";
 import { useSidebarCollapsed } from "@actiontokens/ui/lib/sidebar-collapsed";
@@ -23,12 +23,13 @@ import { AR_URL, FAN_APP_URL } from "./links";
 import { isActive, type NavGroup, type NavItem, navFor, phoneLabel, phoneTabs } from "./nav";
 import { Sidebar } from "./sidebar";
 import { Landing } from "./landing";
+import { TOUR_EVENT, TOUR_NAV } from "./feature-tour";
 import { PortalBackdrop } from "./portal-backdrop";
 
 /**
  * The frame around every portal page: a sidebar of what this person may use
  * right now (see navFor), a top bar with the account, and a tab bar on phones.
- * Signed out, every address shows the front page, with no menu.
+ * Signed out, every address shows the front page, and the sidebar lists its tour.
  */
 export function PortalShell({
   children,
@@ -43,34 +44,32 @@ export function PortalShell({
   const { collapsed, setCollapsed } = useSidebarCollapsed();
 
   const signedOut = !loading && !signedIn;
-
-  // Signed out: no menu at all, just the front page with its own slim top bar.
-  if (signedOut)
-    return (
-      <div className="min-h-dvh">
-        <PortalBackdrop />
-        <main className="min-w-0">
-          <Landing />
-        </main>
-      </div>
-    );
+  // Signed out: the sidebar lists the front page's tour, and follows it as it scrolls.
+  const [tourAt, setTourAt] = useState(-1);
+  useEffect(() => {
+    const on = (event: Event) => setTourAt((event as CustomEvent<number>).detail);
+    addEventListener(TOUR_EVENT, on);
+    return () => removeEventListener(TOUR_EVENT, on);
+  }, []);
+  const navGroups = signedOut ? TOUR_NAV : groups;
+  const navPath = signedOut ? (tourAt >= 0 ? `/#tour-${tourAt + 1}` : "/") : pathname;
 
   return (
     <div className="grid min-h-dvh grid-cols-1 sm:grid-cols-[auto_minmax(0,1fr)]">
       <PortalBackdrop />
       <Sidebar
-        groups={groups}
-        pathname={pathname}
+        groups={navGroups}
+        pathname={navPath}
         portalName={isAdmin && step !== "READY" ? "admin portal" : "organization portal"}
         fallbackName={artist?.name}
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
       />
 
-      <MobileTabs groups={groups} pathname={pathname} signedIn={signedIn} />
+      <MobileTabs groups={navGroups} pathname={navPath} signedIn={signedIn} />
 
       <main className="min-w-0 pb-[var(--phone-bar-space)] sm:pb-12 sm:pl-(--side-w)">
-        {children}
+        {signedOut ? <Landing /> : children}
       </main>
     </div>
   );
