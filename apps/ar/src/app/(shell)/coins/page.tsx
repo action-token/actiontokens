@@ -62,7 +62,7 @@ export default function CoinsScreen() {
           </div>
         ) : (
           <div className="space-y-4 px-5">
-            <div className="rounded-ar-lg border-gold/40 bg-gold/10 border px-5 py-6 text-center">
+            <div className="ar-bevel rounded-ar-lg px-5 py-6 text-center">
               <p className="font-hud text-gold flex items-center justify-center gap-2 text-[38px] leading-none font-bold tabular-nums">
                 <Coins size={30} strokeWidth={2.3} />
                 {balance.isLoading ? "—" : (balance.data?.balance ?? 0).toLocaleString()}
@@ -72,7 +72,7 @@ export default function CoinsScreen() {
               </p>
             </div>
 
-            <div className="rounded-ar border-ar-line flex items-start gap-3 border px-4 py-3">
+            <div className="ar-bevel rounded-ar flex items-start gap-3 px-4 py-3">
               <Gift size={18} strokeWidth={2.2} className="text-ar-dim mt-0.5 shrink-0" />
               <p className="text-ar-dim text-[12px] leading-relaxed">
                 <b className="text-ar-text">Redeem coming soon.</b> Keep collecting — every coin you
@@ -81,7 +81,7 @@ export default function CoinsScreen() {
             </div>
 
             <div>
-              <p className="font-hud text-ar-dim mb-2 text-[11px] font-bold tracking-[0.14em] uppercase">
+              <p className="font-hud text-ar-dim mb-2 text-[12px] font-semibold tracking-[0.14em] uppercase">
                 History
               </p>
               {history.isLoading ? (
@@ -91,7 +91,7 @@ export default function CoinsScreen() {
                   ))}
                 </div>
               ) : rows.length === 0 ? (
-                <div className="rounded-ar border-ar-line border border-dashed px-6 py-8 text-center">
+                <div className="rounded-ar border-2 border-dashed border-[hsl(var(--st-line)/0.5)] px-6 py-8 text-center">
                   <p className="text-ar-dim text-[12.5px]">
                     No coins yet. Scan a mural to earn your first.
                   </p>
@@ -100,7 +100,7 @@ export default function CoinsScreen() {
                   </ArLinkButton>
                 </div>
               ) : (
-                <ul className="divide-ar-line rounded-ar border-ar-line divide-y border">
+                <ul className="ar-bevel divide-ar-line rounded-ar divide-y overflow-hidden">
                   {rows.map((r) => {
                     const meta = REASON[r.reason] ?? REASON.ADMIN_ADJUST!;
                     const Icon = meta.icon;

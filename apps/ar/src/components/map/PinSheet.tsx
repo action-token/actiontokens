@@ -173,7 +173,7 @@ function PinSheetBody({
       </div>
 
       {/* ── How you claim it ─────────────────────────────────────────── */}
-      <div className="rounded-ar border-ar-line mt-3 flex items-start gap-2.5 border bg-white/[0.03] p-3">
+      <div className="ar-bevel rounded-ar mt-3 flex items-start gap-2.5 p-3">
         <DetectionBadge method={pin.detection} className="mt-[1px] shrink-0" />
         <p className="text-ar-faint text-[11.5px] leading-relaxed">{detection.hint}</p>
       </div>
@@ -291,7 +291,7 @@ function Fact({
   return (
     <div
       className={cn(
-        "rounded-ar border-ar-line border bg-white/[0.03] px-2.5 py-2.5",
+        "ar-bevel rounded-ar px-2.5 py-2.5",
         accent && "border-ar-accent/45 bg-ar-accent/[0.08]",
       )}
     >

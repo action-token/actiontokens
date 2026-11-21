@@ -206,7 +206,7 @@ export default function ArtistDetail() {
         </div>
 
         {/* ── Stats + follow ───────────────────────────────────────── */}
-        <div className="rounded-ar border-ar-line mx-5 mt-4 flex items-center justify-around border bg-white/[0.03] py-3">
+        <div className="ar-bevel rounded-ar mx-5 mt-4 flex items-center justify-around py-3">
           <StatBlock label="Followers" value={compact(artist.followers)} />
           <span className="bg-ar-line h-8 w-px" />
           <StatBlock label="Live now" value={liveQuery.total} accent />

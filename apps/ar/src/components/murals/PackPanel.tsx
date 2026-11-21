@@ -279,7 +279,7 @@ export function PackPanel({ compact = false }: { compact?: boolean }) {
         </p>
       ) : (
         !failed && (
-          <div className="rounded-ar border-ar-line mt-4 flex min-h-[44px] items-start gap-2 border bg-white/[0.03] px-3.5 py-2.5">
+          <div className="ar-bevel rounded-ar mt-4 flex min-h-[44px] items-start gap-2 px-3.5 py-2.5">
             <Lightbulb size={15} className="text-rarity-legendary mt-0.5 shrink-0" />
             <AnimatePresence mode="wait">
               <motion.p

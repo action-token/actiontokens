@@ -42,6 +42,7 @@ export const accountRouter = createRouter({
           username: true,
           displayName: true,
           avatarUrl: true,
+          coverUrl: true,
           email: true,
           role: true,
           walletAddress: true,

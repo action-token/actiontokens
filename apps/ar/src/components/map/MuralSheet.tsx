@@ -160,7 +160,7 @@ export function MuralSheet({
 
 function Stat({ label, value, icon }: { label: string; value: string; icon?: boolean }) {
   return (
-    <div className="rounded-ar border-ar-line border bg-white/[0.03] px-2 py-2">
+    <div className="ar-bevel rounded-ar px-2 py-2">
       <p
         className={cn(
           "font-hud flex items-center justify-center gap-1 text-[15px] font-bold",

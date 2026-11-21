@@ -20,11 +20,12 @@ import { useEffect, useRef, useState } from "react";
 
 import { HoloCard } from "~/components/cards/HoloCard";
 import { DeleteAccountPanel } from "~/components/profile/DeleteAccountPanel";
+import { WalletAddress } from "~/components/profile/WalletAddress";
 import { ThemeSetting } from "~/components/profile/ThemeSetting";
 import { lastMapView, MapStyleOptions } from "~/components/map/MapLayersSheet";
 import { MuralPackSettings } from "~/components/murals/MuralPackSettings";
 import { Skeleton } from "~/components/ui/Skeleton";
-import { AppShell, BackButton, ScreenHeader } from "~/components/shell/AppShell";
+import { AppShell, BackButton } from "~/components/shell/AppShell";
 import { ArButton, ArLinkButton } from "~/components/ui/ArButton";
 import { StatBlock } from "~/components/ui/Badges";
 import { CHIME_NOTE_MS, useFeedback, type FeedbackReport } from "~/lib/ar/feedback";
@@ -37,7 +38,6 @@ import { useDragScroll } from "~/lib/ar/useDragScroll";
 import { useArtists, useCollectedPinsQuery } from "~/lib/ar/usePins";
 import { site } from "@actiontokens/ar-core/site";
 import { cn } from "@actiontokens/ui/lib/cn";
-
 
 /**
  * Hides the "Test feedback" row without removing it — flip back to `true`
@@ -127,80 +127,84 @@ export default function ProfileScreen() {
   return (
     <AppShell tabs={false}>
       <div className="ar-scroll h-full">
-        <ScreenHeader
-          back
-          eyebrow="Your account"
-          title="Profile"
-          trailing={
-            <div className="flex flex-col items-end text-right">
-              <span className="font-hud text-ar-faint mb-1 flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.18em] uppercase">
-                <Coins size={11} strokeWidth={2.4} className="text-ar-accent-hot" />
-                <span>{TOKEN_CODE} balance</span>
+        {/* ── Hero: cover, avatar, name, and the two balances ───────── */}
+        <div className="relative">
+          <div className="relative h-[176px] overflow-hidden border-b-[3px] border-[hsl(var(--st-line)/0.9)]">
+            {me.data?.coverUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={me.data.coverUrl} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <div className="from-ar-accent/70 via-ar-accent/25 to-ar-surface-2 h-full w-full bg-linear-to-br" />
+            )}
+            <div className="st-halftone absolute inset-0 opacity-60" />
+            <div className="from-ar-void/60 absolute inset-0 bg-linear-to-b to-transparent" />
+            <div
+              className="absolute inset-x-0 top-0 flex items-center justify-between px-4"
+              style={{ paddingTop: "calc(var(--ar-top-inset) + 14px)" }}
+            >
+              <BackButton />
+              <span className="st-green font-display -rotate-2 px-2 pt-[4px] pb-[2px] text-[13px] leading-none tracking-[0.08em] uppercase shadow-[2px_2px_0_0_hsl(var(--st-ink))]">
+                Your account
               </span>
-              {me.isLoading ? (
-                <Skeleton className="h-[22px] w-20" rounded="rounded-[4px]" />
-              ) : me.isError || !me.data ? (
-                <span className="font-hud text-ar-faint text-[12px] font-bold">
-                  Couldn&rsquo;t load
-                </span>
-              ) : (
-                <span
-                  title={`${me.data.balances.XLM} XLM · ${me.data.balances.USDC} USDC`}
-                  className="font-hud text-glow-soft text-ar-accent-hot text-[24px] leading-none font-bold tabular-nums"
-                >
-                  {Number(me.data.balances.BANDCOIN).toLocaleString(undefined, {
-                    maximumFractionDigits: 2,
-                  })}
-                </span>
-              )}
             </div>
-          }
-        />
+          </div>
 
-        {/* ── Identity ─────────────────────────────────────────────── */}
-        <div className="rounded-ar-lg relative mx-5 overflow-hidden">
-          <div className="ar-grid from-ar-accent/20 via-ar-surface to-ar-surface absolute inset-0 bg-linear-to-br" />
-          <div className="relative flex items-center gap-3.5 p-4">
+          <div className="relative -mt-12 flex items-start gap-3.5 px-5">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={me.data?.avatarUrl ?? user.avatarUrl}
               alt=""
-              className="ring-ar-accent/40 h-[62px] w-[62px] rounded-[18px] object-cover ring-2"
+              className="st-tilt-l h-[92px] w-[92px] shrink-0 rounded-[24px] border-[3px] border-[hsl(var(--st-ink))] object-cover shadow-[4px_4px_0_0_hsl(var(--st-pop))]"
             />
-            <div className="min-w-0 flex-1">
-              <p className="text-ar-text truncate text-[17px] leading-tight font-semibold">
+            <div className="mt-14 min-w-0 flex-1">
+              <h1 className="font-display text-ar-text truncate text-[30px] leading-[0.95] uppercase">
                 {me.data?.displayName ?? me.data?.username ?? user.name}
-              </p>
-              <p className="font-hud text-ar-faint mt-0.5 text-[11px] tracking-[0.14em] uppercase">
+              </h1>
+              <p className="font-hud text-ar-dim mt-1 text-[11px] tracking-[0.14em] uppercase">
                 @{me.data?.username ?? user.handle}
-              </p>
-              <p className="font-hud border-ar-line bg-ar-void/50 text-ar-dim mt-1.5 flex w-fit items-center gap-1.5 rounded-full border px-2 py-[2px] text-[9.5px] font-semibold tracking-[0.1em]">
-                <Wallet size={9} strokeWidth={2.8} />
-                {user.pubkey}
               </p>
             </div>
           </div>
+
+          <WalletAddress address={me.data?.walletAddress ?? user.pubkey} className="mx-5 mt-3" />
+
+          <div className="mx-5 mt-4 grid grid-cols-2 gap-3">
+            <div
+              title={me.data ? `${me.data.balances.XLM} XLM · ${me.data.balances.USDC} USDC` : ""}
+              className="st-green rounded-ar px-3.5 py-3"
+            >
+              <p className="font-hud flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.16em] uppercase">
+                <Wallet size={11} strokeWidth={2.6} />
+                {TOKEN_CODE} balance
+              </p>
+              {me.isLoading ? (
+                <Skeleton className="mt-1.5 h-[30px] w-24" rounded="rounded-[4px]" />
+              ) : me.isError || !me.data ? (
+                <p className="font-hud mt-1.5 text-[13px] font-bold">Couldn&rsquo;t load</p>
+              ) : (
+                <p className="font-display mt-1 text-[34px] leading-none tabular-nums">
+                  {Number(me.data.balances.BANDCOIN).toLocaleString(undefined, {
+                    maximumFractionDigits: 2,
+                  })}
+                </p>
+              )}
+            </div>
+            {/* Mural Coins are off chain, so they get their own tile and never read as the same number. */}
+            <Link href="/coins" className="st-paper rounded-ar relative block px-3.5 py-3">
+              <p className="font-hud flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.16em] uppercase">
+                <Coins size={11} strokeWidth={2.6} />
+                {site.coinName}
+              </p>
+              <p className="font-display mt-1 text-[34px] leading-none tabular-nums">
+                {(coins.data?.balance ?? 0).toLocaleString()}
+              </p>
+              <ChevronRight size={16} strokeWidth={2.6} className="absolute right-2.5 bottom-3" />
+            </Link>
+          </div>
         </div>
 
-        {/* ── Mural Coins (off-chain, from murals) ────────────────────
-            Its own gold row, apart from the on-chain balance above, so the
-            two never read as the same number. */}
-        <Link
-          href="/coins"
-          className="rounded-ar border-gold/35 bg-gold/10 hover:bg-gold/15 mx-5 mt-3 flex items-center gap-3 border px-4 py-2.5 transition-colors"
-        >
-          <Coins size={16} strokeWidth={2.4} className="text-gold" />
-          <span className="font-hud text-ar-dim flex-1 text-[11px] font-semibold tracking-[0.14em] uppercase">
-            {site.coinName}
-          </span>
-          <span className="font-hud text-gold text-[16px] font-bold tabular-nums">
-            {(coins.data?.balance ?? 0).toLocaleString()}
-          </span>
-          <ChevronRight size={15} strokeWidth={2.4} className="text-ar-faint" />
-        </Link>
-
         {/* ── Totals ───────────────────────────────────────────────── */}
-        <div className="rounded-ar border-ar-line mx-5 mt-3 flex items-center justify-around border bg-white/[0.03] py-3">
+        <div className="ar-bevel rounded-ar mx-5 mt-3 flex items-center justify-around py-3">
           <StatBlock label="Collectibles" value={total} accent />
           <span className="bg-ar-line h-8 w-px" />
           <StatBlock label="Following" value={following} />
@@ -326,7 +330,6 @@ export default function ProfileScreen() {
             })}
 
             <ThemeSetting />
-
 
             <MuralLayerSetting />
 

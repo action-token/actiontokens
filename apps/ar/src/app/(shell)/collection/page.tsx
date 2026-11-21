@@ -140,7 +140,7 @@ export default function CollectionScreen() {
                 <StatRowSkeleton count={3} />
               </div>
             ) : (
-              <div className="rounded-ar border-ar-line mx-5 flex items-center justify-around border bg-white/[0.03] py-3">
+              <div className="ar-bevel rounded-ar mx-5 flex items-center justify-around py-3">
                 <StatBlock label="Collectibles" value={stats.total} accent />
                 <span className="bg-ar-line h-8 w-px" />
                 <StatBlock label="Orgs" value={stats.artists} />

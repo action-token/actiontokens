@@ -45,7 +45,7 @@ export function MuralPackSettings() {
               : "Not downloaded";
 
   return (
-    <div className="rounded-ar border-ar-line border bg-white/[0.03] p-3.5">
+    <div className="ar-bevel rounded-ar p-3.5">
       <div className="flex items-center gap-3">
         <PackArt
           size={52}
@@ -134,7 +134,9 @@ export function MuralPackSettings() {
           onClick={() => {
             setBusy("delete");
             void deleteMuralPack()
-              .then(() => setNote("Deleted. It downloads again next time you open ActionTokens AR."))
+              .then(() =>
+                setNote("Deleted. It downloads again next time you open ActionTokens AR."),
+              )
               .finally(() => setBusy(null));
           }}
         >

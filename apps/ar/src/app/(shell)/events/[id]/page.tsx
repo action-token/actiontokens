@@ -106,7 +106,7 @@ export default function EventDetailScreen() {
           </div>
 
           {/* ── Facts ────────────────────────────────────────────── */}
-          <div className="divide-ar-line rounded-ar-lg border-ar-line mx-5 mt-4 divide-y overflow-hidden border bg-white/[0.02]">
+          <div className="ar-bevel divide-ar-line rounded-ar-lg mx-5 mt-4 divide-y overflow-hidden">
             <WhenRow event={event} />
             <WhereRow event={event} />
             {event.link && (

@@ -182,7 +182,7 @@ export default function BountyDetailScreen() {
           </div>
 
           {/* ── Reward ───────────────────────────────────────────── */}
-          <div className="rounded-ar-lg border-ar-accent/30 from-ar-accent/15 via-ar-surface to-ar-surface mx-5 mt-4 overflow-hidden border bg-linear-to-br">
+          <div className="rounded-ar-lg from-ar-accent/15 via-ar-surface to-ar-surface mx-5 mt-4 overflow-hidden border-2 border-[hsl(var(--st-line)/0.85)] bg-linear-to-br shadow-[var(--st-off)_var(--st-off)_0_0_hsl(var(--st-pop)/0.9)]">
             <div className="flex items-end justify-between gap-3 px-4 pt-3.5 pb-3">
               <div className="min-w-0">
                 <p className="font-hud text-ar-faint text-[9.5px] font-semibold tracking-[0.22em] uppercase">
@@ -453,7 +453,7 @@ function Brief({ bounty }: { bounty: BountyDetail }) {
       </section>
 
       {bounty.rewardNote && (
-        <section className="rounded-ar border-ar-line border bg-white/[0.03] px-3.5 py-3">
+        <section className="ar-bevel rounded-ar px-3.5 py-3">
           <SectionLabel>Reward delivery</SectionLabel>
           <p className="text-ar-dim text-[12.5px] leading-relaxed whitespace-pre-wrap">
             {bounty.rewardNote}

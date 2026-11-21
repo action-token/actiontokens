@@ -76,7 +76,7 @@ export default function NotificationsScreen() {
             <Empty text="Follow organizations and join bounties: their news shows up here." />
           ) : (
             <>
-              <ul className="rounded-ar border-ar-line divide-ar-line divide-y overflow-hidden border">
+              <ul className="ar-bevel rounded-ar divide-ar-line divide-y overflow-hidden">
                 {items.map((entry) => (
                   <li key={entry.id}>
                     <Row href={entry.href}>
@@ -157,7 +157,7 @@ function Row({ href, children }: { href: string | null; children: ReactNode }) {
 
 function Empty({ text, children }: { text: string; children?: ReactNode }) {
   return (
-    <div className="rounded-ar border-ar-line mt-6 border border-dashed px-6 py-8 text-center">
+    <div className="rounded-ar mt-6 border-2 border-dashed border-[hsl(var(--st-line)/0.5)] px-6 py-8 text-center">
       <Bell size={28} strokeWidth={1.7} className="text-ar-accent-hot mx-auto" />
       <p className="text-ar-dim mx-auto mt-3 max-w-[16rem] text-[12.5px] leading-relaxed">{text}</p>
       {children}

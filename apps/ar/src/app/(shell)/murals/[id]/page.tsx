@@ -134,7 +134,7 @@ export default function MuralDetailScreen() {
                 earned.
               </div>
             ) : (
-              <div className="rounded-ar border-ar-line border bg-white/[0.03] px-4 py-3.5">
+              <div className="ar-bevel rounded-ar px-4 py-3.5">
                 <ol className="flex items-center">
                   {STEPS.map((s, i) => {
                     const done = i <= step;
@@ -237,10 +237,7 @@ export default function MuralDetailScreen() {
                 </p>
                 <ul className="space-y-2">
                   {mine.history.map((h) => (
-                    <li
-                      key={h.id}
-                      className="rounded-ar border-ar-line flex items-center gap-3 border p-2"
-                    >
+                    <li key={h.id} className="ar-bevel rounded-ar flex items-center gap-3 p-2">
                       <span className="flex gap-1">
                         {h.keyframes.map((k) => (
                           // eslint-disable-next-line @next/next/no-img-element
@@ -295,7 +292,7 @@ export default function MuralDetailScreen() {
 
 function Stat({ label, value, gold }: { label: string; value: string; gold?: boolean }) {
   return (
-    <div className="rounded-ar border-ar-line border bg-white/[0.03] px-2 py-2.5">
+    <div className="ar-bevel rounded-ar px-2 py-2.5">
       <p
         className={cn(
           "font-hud flex items-center justify-center gap-1 text-[16px] font-bold",

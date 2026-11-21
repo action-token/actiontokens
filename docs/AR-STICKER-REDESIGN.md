@@ -91,7 +91,7 @@ The status below is updated as each step lands.
       as the mural-download sticker bar above the dock. The header is restyled.
 - [x] 3 Shared UI: SegmentedTabs, Chip, RarityPlate, StatusBadge, DetectionBadge, StatBlock,
       ArButton sizes and BottomSheet
-- [ ] 4 Screens, in progress:
-  - [x] marketplace (type and price stickers on `MarketCard`, ink divider under the art) and
-        organizations (outlined avatar with a green shadow)
-  - [ ] the rest: bounty, events, murals, coins, notifications, scan/ar
+- [x] 4 Screens: all restyled. Marketplace and organizations (type and price stickers, outlined
+      avatars); Coins and Notifications (sticker cards); stat panels on bounty, murals, events, pin and
+      mural sheets (`ar-bevel`); Profile has a hero header (cover, tilted avatar, wallet address with
+      Copy, ACTION balance and Mural Coins tiles). Checked in Dark, Light and High contrast.
