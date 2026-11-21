@@ -2,7 +2,6 @@
 
 import {
   ArrowUpRight,
-  Bell,
   CalendarDays,
   Crown,
   LogIn,
@@ -35,10 +34,11 @@ export function Landing() {
   const open = useConnectWalletDialogStore((state) => state.setIsOpen);
   const signIn = () => open(true);
   const root = useReveal<HTMLDivElement>();
+  const [notchOpen, setNotchOpen] = useState(false);
 
   return (
     <div ref={root} className={cn(anton.variable, gothic.variable)}>
-      <header className="lp-top">
+      <header className="lp-top" data-open={notchOpen || undefined}>
         <span className="flex items-center gap-2.5">
           <span className="gx-logo grid size-10 place-items-center rounded-xl bg-white">
             <BrandMark className="h-7" />
@@ -50,11 +50,11 @@ export function Landing() {
         </span>
         <span className="flex items-center gap-2">
           <ThemeControl className="lp-top-theme" />
-          <NotchBell />
           <button type="button" onClick={signIn} className="lp-cta !h-10 !px-4 !text-[1.05rem]">
             <LogIn className="size-4" strokeWidth={2.4} /> Sign in
           </button>
         </span>
+        <NotchFeed onOpen={setNotchOpen} />
       </header>
       <LandingHero onSignIn={signIn} />
       <Marquee />
@@ -99,51 +99,45 @@ const NOTES = [
   { icon: CalendarDays, text: "Thursday live reached 120 RSVPs", when: "1d" },
 ];
 
-/** The notch's bell: five example notifications, opened under the notch. */
-function NotchBell() {
+/** iPhone-style: the notch grows down to show a notification, then folds back; a new one
+ * every 3 seconds (transform and opacity only; paused while the tab is hidden). */
+function NotchFeed({ onOpen }: { onOpen: (open: boolean) => void }) {
+  const [index, setIndex] = useState(0);
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    let hide = 0;
+    const show = () => {
+      if (document.hidden) return;
+      setOpen(true);
+      hide = window.setTimeout(() => setOpen(false), 2300);
+    };
+    const first = window.setTimeout(show, 900);
+    const id = window.setInterval(() => {
+      if (document.hidden) return;
+      setIndex((value) => (value + 1) % NOTES.length);
+      show();
+    }, 3000);
+    return () => {
+      window.clearTimeout(first);
+      window.clearTimeout(hide);
+      window.clearInterval(id);
+    };
+  }, []);
+  useEffect(() => onOpen(open), [open, onOpen]);
+  const note = NOTES[index]!;
   return (
-    <span className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        aria-expanded={open}
-        aria-label={`Notifications (${NOTES.length} new)`}
-        className="bg-surface-2 relative grid size-10 place-items-center rounded-xl border"
-      >
-        <Bell className="size-[18px]" />
-        <span className="bg-danger num absolute -top-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full px-1 text-[10px] font-bold text-white">
-          {NOTES.length}
+    <div className="lp-feed" data-open={open || undefined} aria-live="polite">
+      <div key={index} className="lp-feed-item">
+        <span className="bg-primary text-primary-ink grid size-9 shrink-0 place-items-center rounded-xl">
+          <note.icon className="size-[18px]" />
         </span>
-      </button>
-      {open && (
-        <>
-          <button
-            type="button"
-            aria-label="Close notifications"
-            className="fixed inset-0 z-0 cursor-default"
-            onClick={() => setOpen(false)}
-          />
-          <div className="lp-notes" role="dialog" aria-label="Notifications">
-            <p className="flex items-center justify-between px-4 pt-3 pb-2 text-sm font-semibold">
-              Notifications
-              <span className="text-fg-muted text-xs font-normal">Example</span>
-            </p>
-            <ul className="divide-y border-t">
-              {NOTES.map((note) => (
-                <li key={note.text} className="flex items-center gap-3 px-4 py-2.5">
-                  <span className="bg-primary-soft text-primary-text grid size-8 shrink-0 place-items-center rounded-full">
-                    <note.icon className="size-4" />
-                  </span>
-                  <span className="min-w-0 flex-1 text-[13px] leading-snug">{note.text}</span>
-                  <span className="text-fg-faint shrink-0 text-[11px]">{note.when}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </>
-      )}
-    </span>
+        <span className="min-w-0 flex-1 leading-tight">
+          <b className="block text-[12px]">Action-Tokens</b>
+          <span className="text-fg-muted block truncate text-[12px]">{note.text}</span>
+        </span>
+        <span className="text-fg-faint shrink-0 self-start text-[11px]">{note.when}</span>
+      </div>
+    </div>
   );
 }
 
