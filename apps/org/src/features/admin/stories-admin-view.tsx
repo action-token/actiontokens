@@ -45,7 +45,7 @@ export function StoriesAdminView() {
       <PageHeader
         eyebrow="Admin"
         title="Story review"
-        description="Stories are live as soon as an artist shares them and end on their own after 24 hours. Take one down if it breaks the rules."
+        description="Stories are live as soon as an organization shares them and end on their own after 24 hours. Take one down if it breaks the rules."
       />
       {stories.isPending ? (
         <div className="grid gap-3">
@@ -59,7 +59,7 @@ export function StoriesAdminView() {
         <EmptyState
           icon={Aperture}
           title="No live stories"
-          description="Stories artists share show up here for their 24 hours."
+          description="Stories organizations share show up here for their 24 hours."
         />
       ) : (
         <ul className="grid gap-3">
@@ -103,7 +103,7 @@ export function StoriesAdminView() {
       <HideDialog
         open={taking !== null}
         title={`Take down ${taking?.organization.name ?? "this"}'s story?`}
-        description="Fans can't watch it any more. The artist can share a new one."
+        description="Fans can't watch it any more. The organization can share a new one."
         busy={takeDown.isPending}
         onClose={() => setTaking(null)}
         onConfirm={(reason) => taking && takeDown.mutate({ storyId: taking.id, reason })}

@@ -342,7 +342,7 @@ function Editor({ initial, onReload }: { initial: EditorData; onReload: () => Pr
                 setConfirm({
                   title: "Take your page offline?",
                   description:
-                    "Fans see the standard artist page again. Your draft is kept, and you can publish again any time.",
+                    "Fans see the standard organization page again. Your draft is kept, and you can publish again any time.",
                   label: "Take offline",
                   run: async () => {
                     await unpublish.mutateAsync();

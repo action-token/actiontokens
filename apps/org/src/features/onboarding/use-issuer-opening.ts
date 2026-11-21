@@ -19,9 +19,9 @@ export function useIssuerOpening({ approved = false }: { approved?: boolean } = 
     submit: (input) => submit.mutateAsync(input),
     cancel: (input) => cancel.mutateAsync(input),
     preparing: "Preparing your payment…",
-    sending: "Opening your artist account. This takes a few seconds.",
+    sending: "Opening your organization account. This takes a few seconds.",
     success: {
-      title: "Your artist account is open",
+      title: "Your organization account is open",
       body: approved
         ? "Your fan token and items are issued from it."
         : "An admin will review your page next.",

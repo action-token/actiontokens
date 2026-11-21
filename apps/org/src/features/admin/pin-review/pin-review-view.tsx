@@ -237,7 +237,7 @@ export function PinReviewView() {
       <PageHeader
         eyebrow="Admin"
         title="Pin review"
-        description="New pins from artists wait here. Fans only see them once you approve."
+        description="New pins from organizations wait here. Fans only see them once you approve."
         actions={
           <Button variant="outline" asChild>
             <Link href="/admin/pins/map">
@@ -272,14 +272,18 @@ export function PinReviewView() {
         <SearchInput
           value={search}
           onSearch={setSearch}
-          placeholder="Search pin or artist"
+          placeholder="Search pin or organization"
           className="sm:ml-auto sm:w-64"
         />
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <label className="bg-surface border-border flex h-9 cursor-pointer items-center gap-2 rounded-md border px-3 text-sm">
-          <Switch checked={byArtist} onCheckedChange={setByArtist} aria-label="Group by artist" />
-          Group by artist
+          <Switch
+            checked={byArtist}
+            onCheckedChange={setByArtist}
+            aria-label="Group by organization"
+          />
+          Group by organization
         </label>
         {byArtist && artists.length > 1 && (
           <Button
@@ -389,7 +393,7 @@ export function PinReviewView() {
             }
             description={
               !search && view === "pending"
-                ? "New pins from artists show up here for review."
+                ? "New pins from organizations show up here for review."
                 : undefined
             }
           />
@@ -448,12 +452,12 @@ export function PinReviewView() {
                   <RowMenu
                     items={[
                       {
-                        label: "View artist",
+                        label: "View organization",
                         icon: ExternalLink,
                         href: `/admin/artists/${artist.id}`,
                       },
                       {
-                        label: "Show only this artist",
+                        label: "Show only this organization",
                         icon: Eye,
                         onSelect: () => setSearch(artist.name),
                       },

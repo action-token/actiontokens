@@ -308,13 +308,13 @@ function Settings({ draft, set }: { draft: EmbedDraft; set: SetDraft }) {
             onChange={(value) => set("pinSource", value)}
             options={[
               { id: "ARTIST", label: "Only my pins" },
-              { id: "ALL", label: "All artists" },
+              { id: "ALL", label: "All organizations" },
             ]}
           />
           <p className="text-fg-muted text-xs">
             {draft.pinSource === "ARTIST"
               ? "Only your own pins appear: on the map, in the list and in search."
-              : "Every artist's pins in the area appear, like the Bandcoin AR app."}
+              : "Every organization's pins in the area appear, like the Bandcoin AR app."}
           </p>
         </div>
         <Label className="block pt-1">Pin types</Label>

@@ -92,7 +92,7 @@ type TabId = "fees" | "prices" | "map" | "alerts" | "nft";
 const TABS: { id: TabId; label: string; icon: LucideIcon }[] = [
   { id: "fees", label: "Fees", icon: Percent },
   { id: "prices", label: "Prices", icon: Link2 },
-  { id: "map", label: "Map & artists", icon: MapPin },
+  { id: "map", label: "Map & organizations", icon: MapPin },
   { id: "alerts", label: "Alerts", icon: BellRing },
   { id: "nft", label: "Contract NFT", icon: Gem },
 ];
@@ -265,7 +265,7 @@ function SavedForm({ saved, treasury }: { saved: Saved; treasury: string }) {
           <SettingCard
             icon={Link2}
             title="Short link prices"
-            description="What an artist pays for a action-tokens.com/name link. Until both prices of a kind are set, artists can't pay for it."
+            description="What an organization pays for a action-tokens.com/name link. Until both prices of a kind are set, organizations can't pay for it."
           >
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="bg-surface-2 grid gap-4 rounded-2xl p-4">
@@ -308,8 +308,8 @@ function SavedForm({ saved, treasury }: { saved: Saved; treasury: string }) {
           </SettingCard>
           <SettingCard
             icon={UserPlus}
-            title="New artists"
-            description="When you approve an artist, Bandcoin opens their storage account (about 3 XLM from the platform) and issues this many of their fan token into it."
+            title="New organizations"
+            description="When you approve an organization, Bandcoin opens their storage account (about 3 XLM from the platform) and issues this many of their fan token into it."
           >
             <Field
               label="Starting fan tokens"
@@ -355,7 +355,7 @@ function SavedForm({ saved, treasury }: { saved: Saved; treasury: string }) {
             changed.length ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
           )}
         >
-          <div className="bg-[#16170f] pointer-events-auto flex items-center gap-3 rounded-full py-2 pr-2 pl-5 text-[#f3f4ea] shadow-[0_20px_40px_-12px_rgb(0_0_0/0.5)]">
+          <div className="pointer-events-auto flex items-center gap-3 rounded-full bg-[#16170f] py-2 pr-2 pl-5 text-[#f3f4ea] shadow-[0_20px_40px_-12px_rgb(0_0_0/0.5)]">
             <span className="text-sm font-semibold">
               {changed.length} unsaved {changed.length === 1 ? "change" : "changes"}
               {Object.keys(errors).length > 0 && (

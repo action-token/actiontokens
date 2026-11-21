@@ -45,7 +45,7 @@ export function DomainsAdminView() {
       <PageHeader
         eyebrow="Admin"
         title="Domains"
-        description="Artists' own domains showing their artist page. They're checked every day; one that stops working is told to the artist and shows in Alerts."
+        description="Organizations' own domains showing their organization page. They're checked every day; one that stops working is told to the artist and shows in Alerts."
       />
       {domains.isPending ? (
         <div className="grid gap-3">
@@ -59,7 +59,7 @@ export function DomainsAdminView() {
         <EmptyState
           icon={Globe}
           title="No custom domains"
-          description="Domains artists connect in Settings › Custom domain show up here."
+          description="Domains organizations connect in Settings › Custom domain show up here."
         />
       ) : (
         <ul className="grid gap-3">
@@ -109,7 +109,7 @@ export function DomainsAdminView() {
       <HideDialog
         open={removing !== null}
         title={`Remove ${removing?.domain ?? "this domain"}?`}
-        description="It stops showing the artist's page right away and is taken off the host. The artist's bell tells them your reason."
+        description="It stops showing the organization's page right away and is taken off the host. The organization's bell tells them your reason."
         busy={remove.isPending}
         confirmLabel="Remove"
         onClose={() => setRemoving(null)}

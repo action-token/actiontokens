@@ -6,8 +6,10 @@ const labels = (input: PortalNavInput) =>
   navFor(input).flatMap((group) => group.items.map((entry) => entry.label));
 
 describe("portal navigation", () => {
-  it("shows only the way in to someone who is not an artist yet", () => {
-    expect(labels({ signedIn: true, step: null, isAdmin: false })).toEqual(["Become an artist"]);
+  it("shows only the way in to someone who is not an organization yet", () => {
+    expect(labels({ signedIn: true, step: null, isAdmin: false })).toEqual([
+      "Become an org",
+    ]);
   });
 
   it("shows no links to someone who is signed out", () => {
@@ -56,7 +58,7 @@ describe("portal navigation", () => {
   it("adds the admin group for admins, even before they are artists", () => {
     expect(
       navFor({ signedIn: true, step: null, isAdmin: true }).map((group) => group.title),
-    ).toEqual(["Artist", "Admin"]);
+    ).toEqual(["Organization", "Admin"]);
     expect(labels({ signedIn: true, step: "READY", isAdmin: true })).toEqual([
       "Map & pins",
       "Pin management",
@@ -74,7 +76,7 @@ describe("portal navigation", () => {
       "Royalties",
       "Wallet",
       "Overview",
-      "Artists",
+      "Organizations",
       "Users",
       "Admins",
       "Pin review",
@@ -134,7 +136,7 @@ describe("portal navigation", () => {
   it("keeps Artists lit on a nested admin page but not Activity", () => {
     const admin = navFor({ signedIn: true, step: "READY", isAdmin: true }).at(-1);
     const find = (label: string) => admin!.items.find((entry) => entry.label === label);
-    const [artists, activity] = [find("Artists"), find("Activity")];
+    const [artists, activity] = [find("Organizations"), find("Activity")];
     expect(isActive(artists!, "/admin/artists/abc")).toBe(true);
     expect(isActive(artists!, "/admin/activity")).toBe(false);
     expect(isActive(activity!, "/admin/activity")).toBe(true);

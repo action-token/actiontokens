@@ -1,0 +1,185 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Action Tokens "Street Sticker" look for the artist portal (same language as the AR app:
+   docs/AR-STICKER-REDESIGN.md). Loaded after the shared theme, so it only overrides:
+   1. the palette: logo green (hue 137), a real Light theme (the shared theme is dark only)
+   2. the shared components, through their data-slot hooks: outlined cards, hard offset shadows,
+      pressed buttons, sticker tabs and badges.
+   Routes, data and behaviour are not touched.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Dark (default) ─────────────────────────────────────────────────────── */
+:root,
+:root[data-theme="dark"],
+:root[data-theme="light"] {
+  --st-ink: #050605;
+  --st-paper: #f2f8f3;
+  --st-line: rgb(233 245 233 / 0.85);
+  --st-line-soft: rgb(233 245 233 / 0.45);
+  --st-pop: rgb(10 255 84 / 0.9);
+  --st-dot: rgb(10 255 84 / 0.07);
+
+  --bc-primary: #0aff54;
+  --bc-primary-strong: #00c93b;
+  --bc-primary-ink: #031003;
+  --bc-primary-text: #29ff69;
+  --bc-primary-soft: rgb(10 255 84 / 0.12);
+  --bc-success: #29ff69;
+  --bc-fg-muted: #9aae9d;
+  --bc-fg-faint: #7f917f;
+  --bc-mark-a: hsl(137 100% 52%);
+  --bc-mark-b: hsl(137 60% 38%);
+  --bc-mark-c: hsl(130 80% 70%);
+}
+
+/* ── Light ──────────────────────────────────────────────────────────────── */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --st-ink: #08130b;
+  --st-paper: #ffffff;
+  --st-line: #08130b;
+  --st-line-soft: rgb(8 19 11 / 0.5);
+  --st-pop: #08130b;
+  --st-dot: rgb(0 112 31 / 0.08);
+
+  --bc-bg: #eef3ef;
+  --bc-surface: #ffffff;
+  --bc-surface-2: #f3f7f4;
+  --bc-surface-3: #e4ece6;
+  --bc-border: #bccac0;
+  --bc-border-strong: #8ea396;
+  --bc-fg: #08130b;
+  --bc-fg-muted: #3a4a3f;
+  --bc-fg-faint: #526257;
+  --bc-primary: #00ff4c;
+  --bc-primary-strong: #00c93b;
+  --bc-primary-ink: #031003;
+  --bc-primary-text: #00701f;
+  --bc-primary-soft: rgb(0 112 31 / 0.1);
+  --bc-success: #00701f;
+  --bc-warning: #8a5a00;
+  --bc-danger: #c4163a;
+  --bc-danger-soft: rgb(196 22 58 / 0.1);
+  --bc-info: #0b62c4;
+  --bc-overlay: rgb(8 19 11 / 0.55);
+  --bc-shadow: none;
+  --at-glow: none;
+}
+
+/* The floating sidebar stays an ink card in Light, with neon accents (like the AR dock). */
+:root[data-theme="light"] .side-island,
+:root[data-theme="light"] .side-card {
+  --side: #0f140f;
+  --island-shadow: 4px 4px 0 0 #08130b;
+  --side-ink: #e9f5e9;
+  --side-mint: #0aff54;
+  --side-badge: #031003;
+  --side-chip: #131813;
+}
+
+/* ── Surface ────────────────────────────────────────────────────────────── */
+body {
+  background-image: radial-gradient(var(--st-dot) 1px, transparent 1.3px);
+  background-size: 9px 9px;
+}
+h1,
+h2,
+h3 {
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+/* ── Components (through the shared data-slot hooks) ────────────────────── */
+[data-slot="card"] {
+  border: 2px solid var(--st-line);
+  border-radius: 14px;
+  box-shadow: 4px 4px 0 0 var(--st-pop);
+}
+
+[data-slot="button"] {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+[data-slot="button"][data-variant="default"] {
+  border: 2px solid var(--st-ink);
+  color: var(--st-ink);
+  box-shadow: 2px 2px 0 0 var(--st-ink);
+}
+[data-slot="button"][data-variant="default"]:active {
+  transform: translate(1px, 1px);
+  box-shadow: none;
+}
+[data-slot="button"][data-variant="outline"],
+[data-slot="button"][data-variant="secondary"] {
+  border: 2px solid var(--st-line-soft);
+}
+[data-slot="button"][data-variant="outline"]:hover,
+[data-slot="button"][data-variant="secondary"]:hover {
+  border-color: var(--st-line);
+}
+
+[data-slot="input"],
+[data-slot="textarea"],
+[data-slot="select-trigger"] {
+  border: 2px solid var(--st-line-soft);
+  border-radius: 12px;
+}
+[data-slot="input"]:focus-visible,
+[data-slot="textarea"]:focus-visible,
+[data-slot="select-trigger"]:focus-visible {
+  border-color: var(--st-line);
+}
+
+[data-slot="badge"] {
+  border: 2px solid var(--st-line-soft);
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+[data-slot="tabs-list"] {
+  border: 2px solid var(--st-line-soft);
+  border-radius: 12px;
+}
+[data-slot="tabs-trigger"] {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+[data-slot="tabs-trigger"][data-state="active"] {
+  background: var(--bc-primary);
+  color: var(--st-ink);
+  border-color: var(--st-ink);
+  box-shadow: 2px 2px 0 0 var(--st-ink);
+}
+
+[data-slot="dialog-content"],
+[data-slot="alert-dialog-content"],
+[data-slot="sheet-content"],
+[data-slot="drawer-content"],
+[data-slot="popover-content"],
+[data-slot="dropdown-menu-content"],
+[data-slot="select-content"] {
+  border: 2px solid var(--st-line);
+  box-shadow: 4px 4px 0 0 var(--st-pop);
+}
+
+/* A tilted green sticker: the eyebrow above a page title (shared PageHeader). */
+.st-eyebrow {
+  display: inline-block;
+  transform: rotate(-2deg);
+  background: var(--bc-primary);
+  color: var(--st-ink);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 5px 8px 3px;
+  box-shadow: 2px 2px 0 0 var(--st-ink);
+  margin-bottom: 0.5rem;
+}

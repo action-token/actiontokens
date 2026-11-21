@@ -40,21 +40,27 @@ import { OrganizationStatus } from "./artist-status";
 type Artist = RouterOutputs["admin"]["artists"]["get"];
 type RecentPin = Artist["recentPins"][number];
 
-const BACK = { href: "/admin/artists", label: "Artists" };
+const BACK = { href: "/admin/artists", label: "Organizations" };
 const CARD = "bg-surface border-fg/10 rounded-[1.4rem] border-2";
 
 /** Admin › one artist, following Wadzzo's creator page. */
 export function ArtistDetailView({ organizationId }: { organizationId: string }) {
-  const artist = api.admin.artists.get.useQuery({ organizationId }, { refetchOnWindowFocus: false });
+  const artist = api.admin.artists.get.useQuery(
+    { organizationId },
+    { refetchOnWindowFocus: false },
+  );
   if (artist.isPending) return <DetailSkeleton />;
   if (artist.isError)
     return (
       <PageBody wide>
-        <PageHeader back={BACK} eyebrow="Admin" title="Artist" />
+        <PageHeader back={BACK} eyebrow="Admin" title="Organization" />
         {artist.error.data?.code === "NOT_FOUND" ? (
-          <EmptyState icon={Users} title="Artist not found" />
+          <EmptyState icon={Users} title="Organization not found" />
         ) : (
-          <ErrorState message="Couldn't load this artist." onRetry={() => void artist.refetch()} />
+          <ErrorState
+            message="Couldn't load this organization."
+            onRetry={() => void artist.refetch()}
+          />
         )}
       </PageBody>
     );
@@ -250,7 +256,7 @@ function Details({ artist }: { artist: Artist }) {
               </div>
             ) : (
               <p className="text-fg-muted mt-2 text-sm">
-                No fan token yet. The artist sets one up in Memberships.
+                No fan token yet. The organization sets one up in Memberships.
               </p>
             )}
           </section>

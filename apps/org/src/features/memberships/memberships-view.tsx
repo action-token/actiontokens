@@ -138,7 +138,7 @@ function TokenStrip({ token }: { token: FanToken }) {
         <div className="min-w-0">
           <p className="display truncate text-2xl">{token.code}</p>
           <p className="text-fg-muted truncate text-xs">
-            {token.external ? "Issued by you" : "Issued by your artist account"} ·{" "}
+            {token.external ? "Issued by you" : "Issued by your organization account"} ·{" "}
             {abbreviateAddress(token.issuer, 4)}
           </p>
         </div>

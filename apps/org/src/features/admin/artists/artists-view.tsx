@@ -63,7 +63,7 @@ export function ArtistsView() {
   const columns: Column<Row>[] = [
     {
       id: "artist",
-      header: "Artist",
+      header: "Organization",
       skeleton: "person",
       cell: (row) => (
         <Person name={row.name} image={row.avatarUrl} sub={`action-tokens.com/${row.slug}`} />
@@ -154,8 +154,8 @@ export function ArtistsView() {
     <PageBody wide>
       <PageHeader
         eyebrow="Admin"
-        title="Artists"
-        description="Approve new artists and manage existing ones. Rejecting sends the artist's XLM back."
+        title="Organizations"
+        description="Approve new organizations and manage existing ones. Rejecting sends the organization's XLM back."
       />
 
       <Toolbar className="mt-6">
@@ -193,22 +193,22 @@ export function ArtistsView() {
 
       <DataTable
         className="mt-4"
-        label="Artists"
+        label="Organizations"
         columns={columns}
         rows={rows}
         rowKey={(row) => row.id}
         loading={list.isPending}
-        error={list.isError ? "Couldn't load artists." : null}
+        error={list.isError ? "Couldn't load organizations." : null}
         onRetry={() => void list.refetch()}
         rowHref={(row) => `/admin/artists/${row.id}`}
         actions={actions}
         empty={{
           icon: Mic2,
           title: search
-            ? "No artists match"
+            ? "No organizations match"
             : filter === "PENDING"
               ? "Nothing waiting for review"
-              : "No artists here",
+              : "No organizations here",
           description: search
             ? "Try another name, wallet or token."
             : filter === "PENDING"

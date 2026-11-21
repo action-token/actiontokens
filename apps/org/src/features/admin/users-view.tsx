@@ -23,7 +23,7 @@ type Filter = "all" | "FAN" | "ARTIST" | "ADMIN" | "suspended";
 const FILTERS: { value: Filter; label: string; icon?: LucideIcon }[] = [
   { value: "all", label: "Everyone" },
   { value: "FAN", label: "Fans", icon: Users },
-  { value: "ARTIST", label: "Artists", icon: Mic2 },
+  { value: "ARTIST", label: "Organizations", icon: Mic2 },
   { value: "ADMIN", label: "Admins", icon: Shield },
   { value: "suspended", label: "Suspended", icon: Ban },
 ];

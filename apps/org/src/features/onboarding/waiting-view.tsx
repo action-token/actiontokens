@@ -39,10 +39,10 @@ export function WaitingView() {
   return (
     <div className="w-full">
       <div className="mb-6">
-        <p className="marker text-primary-text text-sm">artist portal</p>
+        <p className="marker text-primary-text text-sm">organization portal</p>
         <h1 className="display text-4xl sm:text-5xl">You&apos;re in review</h1>
         <p className="text-fg-muted mt-1 text-sm">
-          Your artist account is open and your page is with an admin. Nothing else to do.
+          Your organization account is open and your page is with an admin. Nothing else to do.
         </p>
       </div>
 
@@ -84,7 +84,7 @@ export function WaitingView() {
           </div>
 
           <ol className="grid gap-3">
-            <Step done title="Artist account opened">
+            <Step done title="Organization account opened">
               {issuer ? (
                 <a
                   href={stellarExpertAccountUrl(issuer.publicKey)}

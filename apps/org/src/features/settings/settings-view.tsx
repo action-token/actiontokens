@@ -145,7 +145,7 @@ function Settings({ profile }: { profile: Profile }) {
           <TabsContent value="custom-domain">
             <SettingsSection
               title="Custom domain"
-              description="Your own domain, like yourname.com, showing your artist page. Free. Links on the page open on Action Tokens."
+              description="Your own domain, like yourname.com, showing your organization page. Free. Links on the page open on Action Tokens."
             >
               <CustomDomainPanel />
             </SettingsSection>

@@ -126,13 +126,13 @@ export function ItemsAdminView() {
       <PageHeader
         eyebrow="Admin"
         title="Items"
-        description="Everything artists sell. Hiding an item stops fans seeing or buying it; nothing is deleted."
+        description="Everything organizations sell. Hiding an item stops fans seeing or buying it; nothing is deleted."
       />
       <Toolbar>
         <SearchInput
           value={search}
           onSearch={setSearch}
-          placeholder="Title, artist or token code"
+          placeholder="Title, organization or token code"
           className="sm:w-72"
         />
         <Tabs value={filter} onValueChange={(value) => setFilter(value as Filter)}>
@@ -171,7 +171,9 @@ export function ItemsAdminView() {
           ...(row.status === "listed"
             ? [{ label: "Open as a fan", href: `${FAN_APP_URL}/item/${row.slug}` }]
             : []),
-          ...(row.artist ? [{ label: "Artist", href: `/admin/users/${row.artist.userId}` }] : []),
+          ...(row.artist
+            ? [{ label: "Organization", href: `/admin/users/${row.artist.userId}` }]
+            : []),
           row.hidden
             ? {
                 label: "Show again",

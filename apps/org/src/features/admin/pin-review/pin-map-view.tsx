@@ -119,12 +119,12 @@ export function PinMapView() {
         <Select value={organizationId} onValueChange={setArtistId}>
           <SelectTrigger
             className="bg-surface pointer-events-auto h-10 w-full shadow-sm sm:w-56"
-            aria-label="Artist"
+            aria-label="Organization"
           >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={EVERYONE}>Every artist</SelectItem>
+            <SelectItem value={EVERYONE}>Every organization</SelectItem>
             {artists.data
               ?.filter((artist) => artist.pins > 0)
               .map((artist) => (
@@ -150,7 +150,7 @@ export function PinMapView() {
       {pins.data && (
         <p className="bg-surface/95 pointer-events-none absolute bottom-24 left-1/2 z-10 -translate-x-1/2 rounded-full border px-4 py-1.5 text-xs font-medium shadow sm:bottom-8">
           {pins.data.pins.length.toLocaleString()} {pins.data.pins.length === 1 ? "pin" : "pins"}
-          {pins.data.capped && " (the newest; pick an artist to see theirs)"}
+          {pins.data.capped && " (the newest; pick an organization to see theirs)"}
         </p>
       )}
       <PinLegend className="absolute bottom-8 left-14 z-10 hidden sm:block" />

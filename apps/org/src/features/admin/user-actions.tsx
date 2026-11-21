@@ -166,8 +166,8 @@ export function useUserActions(me: string | undefined) {
         }
         description={
           pending?.kind === "admin" && pending.admin
-            ? "Admins can approve artists, suspend people, change fees and make other admins."
-            : "They lose the admin pages. An approved artist keeps their artist tools."
+            ? "Admins can approve organizations, suspend people, change fees and make other admins."
+            : "They lose the admin pages. An approved organization keeps its organization tools."
         }
         confirmLabel={pending?.kind === "admin" && pending.admin ? "Make admin" : "Remove admin"}
         destructive={!(pending?.kind === "admin" && pending.admin)}

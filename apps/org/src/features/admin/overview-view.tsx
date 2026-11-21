@@ -40,7 +40,7 @@ type Tile<Key extends string> = {
 const ATTENTION: Tile<keyof Overview["attention"]>[] = [
   {
     key: "artistsWaiting",
-    label: "Artists waiting",
+    label: "Organizations waiting",
     hint: "Applied, not approved yet",
     href: "/admin/artists",
     icon: Mic2,
@@ -98,7 +98,7 @@ const ATTENTION: Tile<keyof Overview["attention"]>[] = [
 
 const TOTALS: Tile<keyof Overview["totals"]>[] = [
   { key: "users", label: "Users", hint: "Everyone signed up", href: "/admin/users", icon: Users },
-  { key: "artists", label: "Artists", hint: "Approved", href: "/admin/artists", icon: Mic2 },
+  { key: "artists", label: "Organizations", hint: "Approved", href: "/admin/artists", icon: Mic2 },
   { key: "items", label: "Items", hint: "Not deleted", href: "/admin/items", icon: Package },
   {
     key: "salesThisWeek",

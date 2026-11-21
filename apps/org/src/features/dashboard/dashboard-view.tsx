@@ -23,7 +23,7 @@ export function DashboardView() {
   if (portal.error) {
     return (
       <PageBody>
-        <ErrorState message="Couldn't load your artist status. Check your connection and try again." />
+        <ErrorState message="Couldn't load your organization status. Check your connection and try again." />
       </PageBody>
     );
   }
@@ -71,7 +71,7 @@ export function DashboardView() {
         <PageBody>
           <EmptyState
             icon={Ban}
-            title="This artist page is suspended"
+            title="This organization page is suspended"
             description="Contact support if you think this is a mistake."
           />
         </PageBody>

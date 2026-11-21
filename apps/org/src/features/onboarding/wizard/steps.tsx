@@ -170,7 +170,7 @@ export function ProfileStep({ draft, set }: { draft: Draft; set: Set }) {
 
       <div className="grid gap-5">
         <Field
-          label="Artist or band name"
+          label="Organization name"
           htmlFor="ob-name"
           required
           hint={`${draft.name.length} / ${NAME_MAX}`}
@@ -462,7 +462,8 @@ export function AddressStep({ draft, set, check }: { draft: Draft; set: Set; che
         )}
       </div>
       <p className="text-fg-faint text-xs">
-        Want a short action-tokens.com/name link too? You can add one in Settings once you&apos;re in.
+        Want a short action-tokens.com/name link too? You can add one in Settings once you&apos;re
+        in.
       </p>
     </div>
   );
@@ -492,15 +493,15 @@ export function ReviewSummary({ draft, onEdit }: { draft: Draft; onEdit: (step: 
   return (
     <div className="grid gap-6">
       <StepHeading title="Check and send">
-        Make sure it all looks right. Paying opens your artist account and sends your page to an
-        admin.
+        Make sure it all looks right. Paying opens your organization account and sends your page to
+        an admin.
       </StepHeading>
 
       <PageCard draft={draft} onEdit={onEdit} />
 
       <ol className="grid gap-2 text-sm sm:grid-cols-3">
         {[
-          "You pay 1.5 XLM to open your artist account",
+          "You pay 1.5 XLM to open your organization account",
           "An admin reviews your page",
           "Your fan token is made and your tools unlock",
         ].map((text, index) => (

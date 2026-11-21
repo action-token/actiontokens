@@ -44,7 +44,7 @@ export function useArtistActions() {
       done(
         result.fanToken.status === "CREATED"
           ? `Approved, with their fan token ${result.fanToken.code}`
-          : "Approved: their artist tools are open",
+          : "Approved: their organization tools are open",
       );
       if (result.fanToken.status === "FAILED")
         toast.error(
@@ -84,9 +84,9 @@ export function useArtistActions() {
         title={`Approve ${name}?`}
         description={
           <>
-            Their artist tools open and they appear on Bandcoin. Bandcoin also opens their storage
-            account and pays for it: about 3 XLM from the platform account, which trusts BANDCOIN,
-            USDC and their fan token
+            Their organization tools open and they appear on Bandcoin. Bandcoin also opens their
+            storage account and pays for it: about 3 XLM from the platform account, which trusts
+            BANDCOIN, USDC and their fan token
             {supply > 0
               ? `, and ${supply.toLocaleString("en-US")} of their fan token are issued into it.`
               : "."}
@@ -102,8 +102,8 @@ export function useArtistActions() {
         title={pending?.action === "unban" ? `Unban ${name}?` : `Ban ${name}?`}
         description={
           pending?.action === "unban"
-            ? "They get their artist tools back."
-            : "Their artist tools stop working and they won't be shown on Bandcoin. Nothing is refunded. You can unban them later."
+            ? "They get their organization tools back."
+            : "Their organization tools stop working and they won't be shown on Bandcoin. Nothing is refunded. You can unban them later."
         }
         confirmLabel={pending?.action === "unban" ? "Unban" : "Ban"}
         destructive={pending?.action !== "unban"}
@@ -163,7 +163,7 @@ function RejectDialog({
           value={reason}
           maxLength={300}
           rows={3}
-          placeholder="Why? For example: use your real artist name"
+          placeholder="Why? For example: use your real organization name"
           onChange={(event) => setReason(event.target.value)}
         />
         <DialogFooter>

@@ -33,7 +33,7 @@ const TYPE_LABEL: Record<string, string> = Object.fromEntries(
 const TIMING: Record<ReviewPin["timing"], { tone: Tone; label: string }> = {
   running: { tone: "success", label: "Running" },
   upcoming: { tone: "info", label: "Upcoming" },
-  paused: { tone: "neutral", label: "Paused by artist" },
+  paused: { tone: "neutral", label: "Paused by organization" },
   ended: { tone: "neutral", label: "Ended" },
 };
 

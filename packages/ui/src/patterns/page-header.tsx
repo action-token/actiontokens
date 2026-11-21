@@ -41,11 +41,7 @@ export function PageHeader({
             {back.label}
           </Link>
         )}
-        {eyebrow && (
-          <p className="text-primary-text text-[11px] font-semibold tracking-[0.18em] uppercase">
-            {eyebrow}
-          </p>
-        )}
+        {eyebrow && <p className="st-eyebrow">{eyebrow}</p>}
         <h1 className="display text-foreground text-[2.75rem] break-words sm:text-6xl lg:text-7xl">
           {title}
         </h1>

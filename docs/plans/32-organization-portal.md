@@ -1,16 +1,18 @@
-# 32. Artist portal (apps/org)
+# 32. Organization portal (apps/org)
 
-The artist portal is `apps/org` (port 3001). Its screens already say "artist portal" and "Artist"; this plan
-makes it fully **Action Tokens**: the brand, the ACTION token, the sticker design and the same look as the AR
+The organization portal is `apps/org` (port 3001). It is the app organizations use to run their page, drops, pins,
+bounties and money. This plan makes it fully **Action Tokens**: the brand, the ACTION token, the sticker design and the same look as the AR
 app. Data, routes, package names and the `organization` model are unchanged. Only what people read and see.
 
-User wording: "Artist(s)" in the portal. The AR app keeps "Organization(s)" (see AR-STICKER-REDESIGN.md).
+User wording: "Organization(s)" ("Orgs" where space is short) everywhere, like the AR app (see AR-STICKER-REDESIGN.md).
+The word "artist" stays only where it is literally true: a song's artist, a mural's street artist, Last.fm.
+Routes such as `/admin/artists` and the `/artist/<slug>` page address stay as they are.
 
 ## Phases
 
 | #   | Phase                         | What                                                                                                                                                 | Status |
 | --- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 1   | Brand and token               | ACTION-TOKENS wordmark, Action Tokens logo (sidebar, boot, loader, currency icon), ACTION instead of BANDCOIN, page title, sign-in and settings text | done   |
+| 1   | Brand, token and wording      | ACTION-TOKENS wordmark, Action Tokens logo (sidebar, boot, loader, currency icon), ACTION instead of BANDCOIN, page title, sign-in and settings text | done   |
 | 2   | Design system                 | Sticker primitives (outlined cards, hard shadows, tilted tags), Teko + Barlow, logo-green themes, Dark / Light / High contrast, shared with `ui`     | to do  |
 | 3   | Shell                         | Sidebar, mobile header, page headers (title + tilted eyebrow), account menu, theme switch                                                            | to do  |
 | 4   | Sign-in and onboarding wizard | Sign-in card, 4 steps (profile, fan token, page address, review and pay) restyled                                                                    | to do  |

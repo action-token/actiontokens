@@ -108,7 +108,7 @@ export function AdminsView() {
       <PageHeader
         eyebrow="Admin"
         title="Admins"
-        description="Admins approve artists and pins, manage users and see everything. Keep this list short."
+        description="Admins approve organizations and pins, manage users and see everything. Keep this list short."
         actions={
           <Button onClick={() => setAdding(true)}>
             <UserPlus /> Add admin

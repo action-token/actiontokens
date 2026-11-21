@@ -161,8 +161,8 @@ function Wizard({ userId, initial, startAt }: { userId: string; initial: Draft; 
     <div className="w-full">
       <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="marker text-primary-text text-sm">artist portal</p>
-          <h1 className="display text-4xl sm:text-5xl">Set up your artist page</h1>
+          <p className="marker text-primary-text text-sm">organization portal</p>
+          <h1 className="display text-4xl sm:text-5xl">Set up your organization page</h1>
         </div>
         <div className="hidden items-center gap-2 lg:flex">
           <span className="text-fg-muted text-xs font-medium">

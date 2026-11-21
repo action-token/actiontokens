@@ -45,7 +45,10 @@ export function MapsView() {
   if (artists.isError)
     return (
       <div className="p-6">
-        <ErrorState message="Couldn't load the artists." onRetry={() => void artists.refetch()} />
+        <ErrorState
+          message="Couldn't load the organizations."
+          onRetry={() => void artists.refetch()}
+        />
       </div>
     );
   if (artists.isPending) return <Skeleton className="m-6 h-24 max-w-md rounded-xl" />;
@@ -54,8 +57,8 @@ export function MapsView() {
       <div className="p-6">
         <EmptyState
           icon={MapPin}
-          title="No approved artists yet"
-          description="Once an artist is approved, you can work on their map here."
+          title="No approved organizations yet"
+          description="Once an organization is approved, you can work on their map here."
         />
       </div>
     );
@@ -70,7 +73,7 @@ export function MapsView() {
       >
         <SelectTrigger
           className="bg-surface h-10 w-56 shadow-sm sm:w-64"
-          aria-label="Artist you're acting as"
+          aria-label="Organization you're acting as"
         >
           <SelectValue />
         </SelectTrigger>

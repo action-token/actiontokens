@@ -32,7 +32,7 @@ const STATUS: Record<Domain["status"], { warn: boolean; say: (d: Domain) => stri
   PENDING: { warn: false, say: () => "Waiting for the DNS records below." },
   LIVE: {
     warn: false,
-    say: (d) => `Live since ${day(d.verifiedAt ?? new Date())}. It shows your artist page.`,
+    say: (d) => `Live since ${day(d.verifiedAt ?? new Date())}. It shows your organization page.`,
   },
   BROKEN: {
     warn: true,
@@ -218,7 +218,7 @@ function DomainCard({
         open={confirm}
         onOpenChange={(open) => !open && !remove.isPending && setConfirm(false)}
         title={`Remove ${domain.domain}?`}
-        description="It stops showing your artist page right away. You can connect it again later."
+        description="It stops showing your organization page right away. You can connect it again later."
         confirmLabel="Remove"
         busy={remove.isPending}
         onConfirm={() => remove.mutate()}

@@ -15,7 +15,10 @@ export async function GET(request: Request) {
       })
     : null;
   if (!artist || artist.status !== "APPROVED")
-    return NextResponse.json({ error: "Sign in as an approved artist first." }, { status: 401 });
+    return NextResponse.json(
+      { error: "Sign in as an approved organization first." },
+      { status: 401 },
+    );
 
   const asked = new URL(request.url).searchParams.get("redirect") ?? "/settings";
   // Only a path on this site: never an address someone else chose.

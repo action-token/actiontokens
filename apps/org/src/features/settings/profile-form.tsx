@@ -77,7 +77,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
       >
         <div className={CARD}>
           <Field
-            label="Artist name"
+            label="Organization name"
             htmlFor="profile-name"
             required
             hint={

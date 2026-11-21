@@ -51,7 +51,7 @@ export function PortalShell({
       <Sidebar
         groups={groups}
         pathname={pathname}
-        portalName={isAdmin && step !== "READY" ? "admin portal" : "artist portal"}
+        portalName={isAdmin && step !== "READY" ? "admin portal" : "organization portal"}
         fallbackName={artist?.name}
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
@@ -94,11 +94,11 @@ function MobileTabs({
       <header className="bg-bg/95 sticky top-0 z-30 flex h-14 items-center gap-2 border-b pr-3 pl-4 sm:hidden">
         <Link
           href="/"
-          aria-label="Artist portal home"
+          aria-label="Organization portal home"
           className="flex min-w-0 flex-1 items-center gap-2"
         >
           <BrandMark className="h-7" />
-          <span className="marker text-primary-text truncate text-sm">artist portal</span>
+          <span className="marker text-primary-text truncate text-sm">organization portal</span>
         </Link>
         {signedIn && (
           <Link
@@ -128,8 +128,8 @@ function MobileTabs({
       <SideMenuSheet
         open={open}
         onOpenChange={setOpen}
-        home={{ href: "/", label: "Portal home", tagline: "artist portal" }}
-        description="Every page in the artist portal"
+        home={{ href: "/", label: "Portal home", tagline: "organization portal" }}
+        description="Every page in the organization portal"
         infoBase={FAN_APP_URL}
         quick={
           <>

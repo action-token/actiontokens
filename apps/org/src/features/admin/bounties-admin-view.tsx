@@ -118,7 +118,7 @@ export function BountiesAdminView() {
         <SearchInput
           value={search}
           onSearch={setSearch}
-          placeholder="Bounty title or artist"
+          placeholder="Bounty title or organization"
           className="sm:w-72"
         />
         <Tabs value={filter} onValueChange={(value) => setFilter(value as Filter)}>
@@ -147,7 +147,7 @@ export function BountiesAdminView() {
           ...(row.fundTxHash
             ? [{ label: "Escrow payment on Stellar", href: stellarExpertTxUrl(row.fundTxHash) }]
             : []),
-          { label: "Artist", href: `/admin/users/${row.artist.userId}` },
+          { label: "Organization", href: `/admin/users/${row.artist.userId}` },
           row.hidden
             ? {
                 label: "Show again",
@@ -180,7 +180,7 @@ export function BountiesAdminView() {
       <HideDialog
         open={hiding !== null}
         title={`Hide ${hiding?.title ?? "this bounty"}?`}
-        description="Fans stop seeing it. The prize stays in the escrow and the artist can still pay winners."
+        description="Fans stop seeing it. The prize stays in the escrow and the organization can still pay winners."
         busy={setHidden.isPending}
         onClose={() => setHiding(null)}
         onConfirm={(reason) =>

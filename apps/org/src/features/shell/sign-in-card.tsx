@@ -19,7 +19,7 @@ export function SignInCard() {
         <span className="bg-fg text-bg mx-auto mb-5 flex size-14 -rotate-3 items-center justify-center rounded-2xl">
           <BrandMark className="size-7" />
         </span>
-        <p className="marker text-primary-text text-sm">artist portal</p>
+        <p className="marker text-primary-text text-sm">organization portal</p>
         <h1 className="display mt-1 text-5xl">Sign in to Action Tokens</h1>
         <p className="text-fg-muted mt-2 text-sm text-pretty">
           Sell songs and collectibles, set up memberships, drop pins and bounties, and keep every

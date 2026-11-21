@@ -66,7 +66,10 @@ export function CollectionReportView({ admin = false }: { admin?: boolean }) {
   const [onlyCollected, setOnlyCollected] = useState(false);
   const [organizationId, setArtistId] = useState(EVERYONE);
   const scope = { from: period.from, to: period.to };
-  const adminScope = { ...scope, organizationId: organizationId === EVERYONE ? undefined : organizationId };
+  const adminScope = {
+    ...scope,
+    organizationId: organizationId === EVERYONE ? undefined : organizationId,
+  };
 
   const options = { refetchOnWindowFocus: false, placeholderData: <T,>(previous: T) => previous };
   const own = api.reports.summary.useQuery(scope, { ...options, enabled: !admin });
@@ -228,7 +231,7 @@ export function CollectionReportView({ admin = false }: { admin?: boolean }) {
         title={admin ? "Collection reports" : "Pin reports"}
         description={
           admin
-            ? "How every artist's pins are collected: by whom, where and when."
+            ? "How every organization's pins are collected: by whom, where and when."
             : "How your pins are collected: by whom, where and when."
         }
         actions={
@@ -246,11 +249,11 @@ export function CollectionReportView({ admin = false }: { admin?: boolean }) {
         <PeriodPicker value={period} onChange={setPeriod} />
         {admin && (
           <Select value={organizationId} onValueChange={setArtistId}>
-            <SelectTrigger className="w-full lg:w-60" aria-label="Artist">
+            <SelectTrigger className="w-full lg:w-60" aria-label="Organization">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={EVERYONE}>Every artist</SelectItem>
+              <SelectItem value={EVERYONE}>Every organization</SelectItem>
               {artists.data
                 ?.filter((artist) => artist.pins > 0)
                 .map((artist) => (

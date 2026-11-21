@@ -71,7 +71,7 @@ const ADMIN: NavGroup = {
   title: "Admin",
   items: [
     { href: "/admin", icon: LayoutDashboard, label: "Overview", exact: true },
-    { href: "/admin/artists", icon: Mic2, label: "Artists" },
+    { href: "/admin/artists", icon: Mic2, label: "Organizations" },
     { href: "/admin/users", icon: Users, label: "Users" },
     { href: "/admin/admins", icon: ShieldCheck, label: "Admins" },
     { href: "/admin/pins", icon: MapPinned, label: "Pin review" },
@@ -163,10 +163,10 @@ export function navFor({ signedIn, step, isAdmin }: PortalNavInput): NavGroup[] 
   if (!signedIn) return [...READY_TOOLS];
   const items: NavItem[] =
     step === null
-      ? [{ href: "/", icon: BadgeCheck, label: "Become an artist", exact: true }]
+      ? [{ href: "/", icon: BadgeCheck, label: "Become an org", exact: true }]
       : ARTIST_TOOLS[step];
   const groups: NavGroup[] = step === "READY" ? [...READY_TOOLS] : [];
-  if (items.length > 0) groups.push({ title: "Artist", items });
+  if (items.length > 0) groups.push({ title: "Organization", items });
   if (isAdmin) groups.push(ADMIN);
   return groups;
 }

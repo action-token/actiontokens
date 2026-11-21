@@ -8,7 +8,10 @@ import { sharedThemeSeedScript } from "@actiontokens/ui/lib/shared-theme";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: { default: "Action-Tokens Artist Portal", template: "%s · Action-Tokens Artist Portal" },
+  title: {
+    default: "Action-Tokens Organization Portal",
+    template: "%s · Action-Tokens Organization Portal",
+  },
   description: "Run your music, collectibles, pins and bounties on Action Tokens.",
   robots: { index: false },
 };
