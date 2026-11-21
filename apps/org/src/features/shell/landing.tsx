@@ -45,19 +45,29 @@ export function Landing() {
   return (
     <div ref={root} className={cn(anton.variable, gothic.variable)}>
       <header className="lp-top" data-open={notchOpen || undefined}>
-        <span className="flex items-center gap-2.5">
-          <span className="gx-logo grid size-10 place-items-center rounded-xl bg-white">
+        <span className="flex min-w-0 items-center gap-2 sm:gap-2.5">
+          <span className="gx-logo grid size-9 shrink-0 place-items-center rounded-xl bg-white sm:size-10">
             <BrandMark className="h-7" />
           </span>
-          <span className="hidden leading-none sm:block">
-            <span className="gx-brand block text-[1.35rem]">Action-Tokens</span>
-            <span className="gx-mono text-primary-text text-[10px]">organization portal</span>
+          <span className="min-w-0 leading-none">
+            <span className="gx-brand block truncate text-[1rem]! sm:text-[1.35rem]!">
+              Action-Tokens
+            </span>
+            <span className="gx-mono text-primary-text block truncate text-[8px]! tracking-[0.06em]! whitespace-nowrap sm:text-[10px]! sm:tracking-[0.2em]!">
+              organization portal
+            </span>
           </span>
         </span>
-        <span className="flex items-center gap-2">
+        <span className="flex shrink-0 items-center gap-2">
           <ThemeControl className="lp-top-theme max-sm:hidden" />
-          <button type="button" onClick={signIn} className="lp-cta !h-10 !px-4 !text-[1.05rem]">
-            <LogIn className="size-4" strokeWidth={2.4} /> Sign in
+          <button
+            type="button"
+            onClick={signIn}
+            aria-label="Sign in"
+            className="lp-cta !h-10 !px-3 !text-[1.05rem] sm:!px-4"
+          >
+            <LogIn className="size-4" strokeWidth={2.4} />{" "}
+            <span className="max-[380px]:hidden">Sign in</span>
           </button>
           {/* phones: the menu (the side sheet), since the notch stands in for the phone header */}
           <button
