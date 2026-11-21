@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowUpRight, LogIn, ScanLine, Store } from "lucide-react";
-import { type ReactNode, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 import { cn } from "@actiontokens/ui/lib/cn";
 import { BrandMark } from "@actiontokens/ui/patterns/boot-screen";
@@ -11,7 +11,6 @@ import { AR_URL, FAN_APP_URL } from "./links";
 import { anton, gothic } from "./landing-fonts";
 import { LandingHero } from "./landing-hero";
 import { FeatureTour } from "./feature-tour";
-import { DropRail, WantedBoard } from "./landing-sections";
 
 /**
  * Signed out: the portal's front page, after docs/mockups/home.html. A scroll-played hero (the
@@ -30,48 +29,9 @@ export function Landing() {
       <LandingHero onSignIn={signIn} />
       <Marquee />
 
+      <FeatureTour />
+
       <div className="mx-auto grid w-full max-w-6xl gap-24 px-4 pt-16 pb-20 sm:px-8">
-        <Section
-          tag="Inside the portal"
-          title="What you can do"
-          note="Everything an organization runs from one place. Scroll through it."
-        >
-          <FeatureTour />
-        </Section>
-
-        <Section
-          tag="Fresh off the block"
-          title="Live drops"
-          note="Sell songs, art, tickets, merch and memberships as tokens fans keep. Limited runs, timed drops, resales that pay you again."
-        >
-          <DropRail />
-        </Section>
-
-        <Section
-          tag="The board"
-          title="Bounties"
-          note="Every prize sits in escrow on-chain before the hunt starts. Fans do the thing, prove it, and you pick the winners."
-        >
-          <WantedBoard />
-        </Section>
-
-        <Section tag="Three moves" title="How it works" note="From sign-in to your first drop.">
-          <ol className="grid gap-4 md:grid-cols-3">
-            {STEPS.map((step, index) => (
-              <li
-                key={step.title}
-                className="lp-step"
-                data-reveal
-                style={{ transitionDelay: `${index * 100}ms` }}
-              >
-                <span className="lp-step-no">{String(index + 1).padStart(2, "0")}</span>
-                <p className="lp-h3 mt-4">{step.title}</p>
-                <p className="text-fg-muted mt-2 text-sm text-pretty">{step.body}</p>
-              </li>
-            ))}
-          </ol>
-        </Section>
-
         <section className="lp-final" data-reveal>
           <span className="lp-final-mark" aria-hidden>
             <BrandMark className="h-10" />
@@ -126,29 +86,6 @@ function Marquee() {
   );
 }
 
-function Section({
-  tag,
-  title,
-  note,
-  children,
-}: {
-  tag: string;
-  title: string;
-  note: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="grid gap-7" aria-label={title}>
-      <div data-reveal>
-        <p className="lp-tag">{tag}</p>
-        <h2 className="lp-sec-title lp-chrome">{title}</h2>
-        <p className="text-fg-muted mt-3 max-w-md">{note}</p>
-      </div>
-      {children}
-    </section>
-  );
-}
-
 /** Marks each `[data-reveal]` inside the returned ref with `data-in` once it reaches the screen. */
 function useReveal<T extends HTMLElement>() {
   const ref = useRef<T>(null);
@@ -170,18 +107,3 @@ function useReveal<T extends HTMLElement>() {
   }, []);
   return ref;
 }
-
-const STEPS = [
-  {
-    title: "Sign in",
-    body: "Use email, Google, Apple or your Stellar wallet. A wallet is set up for you if you need one.",
-  },
-  {
-    title: "Set up your organization",
-    body: "Pick a name and a look, and open your token. An admin checks it and you're in.",
-  },
-  {
-    title: "Drop, sell, get paid",
-    body: "Put pins on the map, open a bounty, list your first item. Fans collect, you earn.",
-  },
-];

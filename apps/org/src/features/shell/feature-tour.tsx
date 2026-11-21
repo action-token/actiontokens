@@ -1,40 +1,49 @@
 "use client";
 
 import {
+  ArrowDownUp,
+  ArrowRight,
   BarChart3,
   CalendarDays,
   Check,
   Crown,
-  Gift,
-  Globe,
-  ImagePlus,
+  GripVertical,
   LayoutTemplate,
-  Lock,
   MapPin,
   MapPinned,
-  Megaphone,
   Music2,
   Package,
-  Play,
+  Pencil,
+  Plus,
   QrCode,
+  Send,
+  Star,
   Trophy,
+  Users,
   Wallet,
   type LucideIcon,
 } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
+import { Button } from "@actiontokens/ui/components/button";
 import { cn } from "@actiontokens/ui/lib/cn";
+import { PageHeader } from "@actiontokens/ui/patterns/page-header";
+import { StatCard } from "@actiontokens/ui/patterns/stat-card";
+import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
+import { WalletAssets, WalletHero, WalletPanel } from "@actiontokens/ui/patterns/wallet-blocks";
+
+import { CollectionsChart } from "../reports/report-kit";
 
 /**
- * The landing page's feature tour: what an organization can do in the portal, one feature at a
- * time. On wide screens a portal "window" stays pinned on the right while the feature texts
- * scroll on the left; the feature in the middle of the screen switches its scene on, and the
- * scene plays once (pins drop, bars grow, the prize locks). On phones each scene sits under its
- * text. Light on the GPU: motion is one-shot CSS (transform and opacity) started by a
- * `data-on` attribute; nothing loops, and nothing runs while the page sits still.
+ * "What you can do": a pinned, full-height section that scrolls sideways while you scroll down
+ * (the horizontal-scroll pattern). An intro panel, then one screen-wide panel per feature: the
+ * details on the side, and the real portal page for it, built from the same shared components the
+ * portal uses, with example data. Light on the GPU: scroll moves one track with translate3d (once
+ * per frame, only while the section is on screen); a panel's page plays its one-shot rise when it
+ * reaches the middle. Nothing runs at rest.
  */
 
-type Feature = {
+type Chapter = {
   id: string;
   path: string;
   icon: LucideIcon;
@@ -42,485 +51,772 @@ type Feature = {
   title: string;
   body: string;
   points: string[];
-  Scene: () => ReactNode;
+  Page: () => ReactNode;
 };
 
-const FEATURES: Feature[] = [
+const CHAPTERS: Chapter[] = [
   {
     id: "map",
     path: "/pins",
     icon: MapPinned,
     tag: "Map & pins",
-    title: "Drop it on the real map",
-    body: "Put collectibles at real places: a corner, a venue, a whole city. Fans walk there and catch them in the AR app.",
-    points: ["Schedule when a drop opens", "Limit how many exist", "Auto-collect near the pin"],
-    Scene: MapScene,
+    title: "Drop it on the real map.",
+    body: "Put collectibles at real places. Fans walk there and catch them in the AR app.",
+    points: ["Schedule when a drop opens", "Limit how many exist", "A QR code for every pin"],
+    Page: MapPage,
   },
   {
     id: "reports",
     path: "/reports",
     icon: BarChart3,
     tag: "Pin reports",
-    title: "See who came",
-    body: "Every collection is counted. See which pins work, when fans show up, and export it all.",
-    points: ["Collections per day", "Top pins and places", "Manage every pin in one list"],
-    Scene: ReportsScene,
+    title: "See who showed up.",
+    body: "Every collection is counted, per day and per pin. Export it whenever you like.",
+    points: ["Collections over time", "Top pins and places", "CSV export"],
+    Page: ReportsPage,
   },
   {
     id: "bounties",
     path: "/bounties",
     icon: Trophy,
     tag: "Bounties",
-    title: "Set a challenge, lock the prize",
-    body: "Open a bounty and the prize goes into escrow on Stellar before anyone starts. Fans submit, you pick the winners, they get paid.",
-    points: ["Prize held in escrow", "Up to many winners", "Paid out on-chain"],
-    Scene: BountyScene,
+    title: "The prize, locked in.",
+    body: "The prize goes into escrow on Stellar before anyone starts. Fans submit, you pick the winners.",
+    points: ["General or music bounties", "Prize held in escrow", "Several winners"],
+    Page: BountiesPage,
   },
   {
-    id: "sell",
+    id: "items",
     path: "/items",
     icon: Package,
     tag: "Music & items",
-    title: "Sell what you make",
-    body: "Songs, albums, art, tickets and merch become tokens fans own. Set the price, the number of copies, and what holding one unlocks.",
-    points: ["Songs and albums", "Art, tickets, merch", "Fill a listing with AI"],
-    Scene: SellScene,
+    title: "Sell what you make.",
+    body: "Songs, art, tickets and merch become collectibles fans own, paid in ACTION or by card.",
+    points: ["Limited or open editions", "Songs and albums", "Unlocks for holders"],
+    Page: ItemsPage,
   },
   {
-    id: "members",
+    id: "memberships",
     path: "/memberships",
     icon: Crown,
-    tag: "Memberships & gifts",
-    title: "Members who pay every month",
-    body: "Create tiers with their own perks. Members unlock posts, drops and rooms, and you can send gifts to your best fans.",
-    points: ["Tiers with perks", "Members-only posts", "Gifts to fans"],
-    Scene: MembersScene,
+    tag: "Memberships",
+    title: "Your token. Their tier.",
+    body: "Fans unlock tiers by holding your fan token. Nothing to bill: what they hold decides their tier.",
+    points: ["Tiers with perks", "Members-only posts", "Gifts to your fans"],
+    Page: MembershipsPage,
   },
   {
     id: "events",
     path: "/events",
     icon: CalendarDays,
-    tag: "Events & posts",
-    title: "Tell them where to be",
-    body: "Post events, announcements and stories. Followers see them in their feed and get notified.",
-    points: ["Events with tickets", "Announcements", "Posts and stories"],
-    Scene: EventsScene,
+    tag: "Events",
+    title: "Tell them where to be.",
+    body: "Events and announcements go live straight away for fans in the app and on the map.",
+    points: ["RSVPs and capacity", "Link pins and bounties", "Posts and stories"],
+    Page: EventsPage,
   },
   {
     id: "page",
     path: "/page",
     icon: LayoutTemplate,
-    tag: "My page & website map",
-    title: "Your page, your site",
-    body: "Build your organization's page block by block, on your own domain if you like, and embed your live map on any website.",
+    tag: "My page",
+    title: "Your page, block by block.",
+    body: "Build your organization's page, put it on your own domain, and embed your live map anywhere.",
     points: ["Drag-and-drop blocks", "Custom domain", "Embeddable map"],
-    Scene: PageScene,
+    Page: PageBuilderPage,
   },
   {
     id: "wallet",
     path: "/wallet",
     icon: Wallet,
-    tag: "Wallet & royalties",
-    title: "Get paid in ACTION",
-    body: "Sales, memberships and resale royalties land in your wallet on Stellar. Swap, send or keep them.",
+    tag: "Wallet",
+    title: "Paid in ACTION.",
+    body: "Sales, royalties and gifts land in your wallet on Stellar. Swap, send or keep them.",
     points: ["Royalties on resales", "Swap ACTION, XLM, USDC", "Redeem codes at your door"],
-    Scene: WalletScene,
+    Page: WalletPage,
   },
 ];
 
-const MORE: [LucideIcon, string][] = [
-  [Megaphone, "Announcements"],
-  [ImagePlus, "Stories"],
-  [Gift, "Gifts"],
-  [QrCode, "Redeem"],
-  [Globe, "Custom domains"],
-  [MapPin, "Pin management"],
-];
+/** Panels on the track: the intro, then one per chapter. */
+const PANELS = CHAPTERS.length + 1;
 
 export function FeatureTour() {
-  const [active, setActive] = useState(0);
-  const [seen, setSeen] = useState<Set<number>>(() => new Set());
-  const steps = useRef<(HTMLDivElement | null)[]>([]);
+  const section = useRef<HTMLElement>(null);
+  const stick = useRef<HTMLDivElement>(null);
+  const track = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(-1);
+  // the furthest panel reached: panels behind it stay filled in
+  const [reached, setReached] = useState(-1);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          const index = Number((entry.target as HTMLElement).dataset.step);
-          setActive(index);
-          setSeen((prev) => (prev.has(index) ? prev : new Set(prev).add(index)));
-        }
-      },
-      // the step crossing the middle of the screen
-      { rootMargin: "-45% 0px -45% 0px" },
-    );
-    steps.current.forEach((step) => step && observer.observe(step));
-    return () => observer.disconnect();
+    const el = section.current;
+    if (!el) return;
+    let raf = 0;
+    let last = -2;
+    const update = () => {
+      raf = 0;
+      const rect = el.getBoundingClientRect();
+      const span = Math.max(1, rect.height - innerHeight);
+      const p = Math.min(1, Math.max(0, -rect.top / span));
+      const width = stick.current?.clientWidth ?? innerWidth;
+      const x = p * (PANELS - 1);
+      if (track.current)
+        track.current.style.transform = `translate3d(${(-x * width).toFixed(1)}px,0,0)`;
+      stick.current?.style.setProperty("--p", p.toFixed(4));
+      // the panel nearest the middle; -1 is the intro
+      const index = Math.round(x) - 1;
+      if (index !== last) {
+        last = index;
+        setActive(index);
+        setReached((prev) => Math.max(prev, index));
+      }
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    let listening = false;
+    const io = new IntersectionObserver(([entry]) => {
+      const on = entry?.isIntersecting ?? false;
+      if (on && !listening) {
+        addEventListener("scroll", onScroll, { passive: true });
+        addEventListener("resize", onScroll);
+        onScroll();
+      } else if (!on && listening) {
+        removeEventListener("scroll", onScroll);
+        removeEventListener("resize", onScroll);
+      }
+      listening = on;
+    });
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      removeEventListener("scroll", onScroll);
+      removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
   }, []);
 
-  const current = FEATURES[active]!;
+  /** Jump to a panel from the index under the track. */
+  const go = (panel: number) => {
+    const el = section.current;
+    if (!el) return;
+    const span = el.offsetHeight - innerHeight;
+    const top = el.getBoundingClientRect().top + scrollY;
+    scrollTo({ top: top + (span * panel) / (PANELS - 1), behavior: "smooth" });
+  };
 
   return (
-    <div>
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-14">
-        {/* the feature texts */}
-        <div>
-          {FEATURES.map((feature, index) => (
+    <section
+      ref={section}
+      className="tour bleed"
+      style={{ height: `${PANELS * 100}vh` }}
+      aria-label="What you can do in the portal"
+    >
+      <div ref={stick} className="tour-stick">
+        <div ref={track} className="tour-track">
+          {/* intro */}
+          <div className="tour-panel tour-intro">
+            <p className="lp-tag">Inside the portal</p>
+            <h2 className="tour-big lp-chrome">
+              What you
+              <br />
+              can do<em>.</em>
+            </h2>
+            <p className="text-fg-muted mt-6 max-w-md text-lg text-pretty">
+              Everything an organization runs, from one place. Keep scrolling.
+            </p>
+            <span className="tour-cue" aria-hidden>
+              Scroll <ArrowRight className="size-4" />
+            </span>
+          </div>
+
+          {CHAPTERS.map((chapter, index) => (
             <div
-              key={feature.id}
-              ref={(el) => {
-                steps.current[index] = el;
-              }}
-              data-step={index}
-              data-active={active === index || undefined}
-              className="ft-step"
+              key={chapter.id}
+              className="tour-panel"
+              data-on={index <= reached || undefined}
+              aria-hidden={active !== index}
             >
-              <span className="ft-step-tag">
-                <feature.icon className="size-4" strokeWidth={2.4} />
-                {feature.tag}
-              </span>
-              <h3 className="ft-step-title">{feature.title}</h3>
-              <p className="text-fg-muted mt-3 max-w-md text-[15px] text-pretty">{feature.body}</p>
-              <ul className="mt-5 grid gap-2">
-                {feature.points.map((point) => (
-                  <li key={point} className="flex items-center gap-2.5 text-sm font-medium">
-                    <span className="ft-tick">
-                      <Check className="size-3" strokeWidth={3} />
-                    </span>
-                    {point}
-                  </li>
-                ))}
-              </ul>
-              {/* phones: the scene under its text */}
-              <div className="mt-8 lg:hidden">
-                <Window path={feature.path}>
-                  <div className="ft-scene" data-on={seen.has(index) || undefined}>
-                    <feature.Scene />
-                  </div>
-                </Window>
+              <aside className="tour-aside">
+                <span className="tour-num" aria-hidden>
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className="tour-tag">
+                  <chapter.icon className="size-4" strokeWidth={2.4} /> {chapter.tag}
+                </span>
+                <h3 className="tour-title">{chapter.title}</h3>
+                <p className="text-fg-muted mt-4 text-[15px] leading-relaxed text-pretty">
+                  {chapter.body}
+                </p>
+                <ul className="tour-points">
+                  {chapter.points.map((point) => (
+                    <li key={point}>
+                      <span className="tour-tick">
+                        <Check className="size-3" strokeWidth={3} />
+                      </span>
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+              </aside>
+              <div className="tour-screen">
+                <div className="tour-bar">
+                  <span className="tour-dots" aria-hidden>
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                  <span className="tour-url">org.action-tokens.com{chapter.path}</span>
+                </div>
+                <div className="tour-page">
+                  <chapter.Page />
+                </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* wide screens: one pinned window, the active scene inside */}
-        <div className="hidden lg:block">
-          <div className="sticky top-[14vh]">
-            <Window path={current.path}>
-              {FEATURES.map((feature, index) => (
-                <div
-                  key={feature.id}
-                  className="ft-scene ft-scene--stacked"
-                  data-on={active === index || undefined}
-                  aria-hidden={active !== index}
-                >
-                  <feature.Scene />
-                </div>
-              ))}
-            </Window>
-            <div className="mt-5 flex justify-center gap-1.5" aria-hidden>
-              {FEATURES.map((feature, index) => (
-                <span key={feature.id} className="ft-dot" data-on={active === index || undefined} />
-              ))}
-            </div>
-          </div>
+        <nav className="tour-nav" aria-label="Tour chapters">
+          {CHAPTERS.map((chapter, index) => (
+            <button
+              key={chapter.id}
+              type="button"
+              onClick={() => go(index + 1)}
+              data-on={active === index || undefined}
+              aria-current={active === index ? "step" : undefined}
+            >
+              <chapter.icon className="size-3.5" />
+              <span>{chapter.tag}</span>
+            </button>
+          ))}
+        </nav>
+        <div className="tour-progress" aria-hidden>
+          <i />
         </div>
       </div>
-
-      <div className="mt-16 flex flex-wrap items-center justify-center gap-2" data-reveal>
-        <span className="text-fg-muted mr-1 text-sm">And more:</span>
-        {MORE.map(([Icon, label]) => (
-          <span key={label} className="lp-chip">
-            <Icon className="size-4" /> {label}
-          </span>
-        ))}
-      </div>
-    </div>
+    </section>
   );
 }
 
-/** A portal window: three dots, the address, a slim sidebar, and the scene. */
-function Window({ path, children }: { path: string; children: ReactNode }) {
-  return (
-    <div className="ft-window">
-      <div className="ft-bar">
-        <span className="ft-dots" aria-hidden>
-          <i />
-          <i />
-          <i />
-        </span>
-        <span className="ft-url">org.action-tokens.com{path}</span>
-      </div>
-      <div className="ft-body">
-        <div className="ft-side" aria-hidden>
-          {[MapPinned, BarChart3, Trophy, Package, Crown, CalendarDays, LayoutTemplate, Wallet].map(
-            (Icon, index) => (
-              <span key={index} className={cn(FEATURES[index]?.path === path && "ft-side-on")}>
-                <Icon className="size-3.5" />
-              </span>
-            ),
-          )}
-        </div>
-        <div className="ft-stage">{children}</div>
-      </div>
-    </div>
-  );
-}
+/* ── The pages, as the portal draws them (example data) ─────────────────── */
 
-/* ── Scenes ─────────────────────────────────────────────────────────────── */
+const ART = {
+  sunset: "linear-gradient(160deg,#ff8a3d,#ff3d7f 45%,#6b3dff)",
+  ocean: "linear-gradient(160deg,#3ef0ff,#3d7bff 50%,#20124d)",
+  acid: "linear-gradient(160deg,#d4ff2a,#0aff54 50%,#04320f)",
+  chrome: "linear-gradient(160deg,#f2f2f2,#7a7a7a 45%,#111)",
+  violet: "linear-gradient(160deg,#b06bff,#ff3dd8 55%,#3d0b40)",
+};
 
-function MapScene() {
+/** Stagger: elements with data-a rise in, in order, when their panel turns on. */
+const a = (i: number) => ({ "data-a": "", style: { ["--i" as string]: i } });
+
+function MapPage() {
   const pins = [
-    { x: 22, y: 34, d: 0 },
-    { x: 48, y: 56, d: 1 },
-    { x: 70, y: 28, d: 2 },
-    { x: 36, y: 72, d: 3 },
+    { x: 24, y: 38, live: true },
+    { x: 46, y: 62, live: true },
+    { x: 66, y: 30, live: true },
+    { x: 82, y: 58, live: false },
+    { x: 36, y: 20, live: false },
   ];
   return (
-    <div className="sc-map">
-      <svg className="sc-map-river" viewBox="0 0 400 260" preserveAspectRatio="none" aria-hidden>
-        <path d="M-10 200 C 90 150, 160 230, 250 180 S 360 120, 410 140" />
-      </svg>
-      {pins.map((pin) => (
-        <span
-          key={pin.d}
-          className="sc-pin"
-          style={{ left: `${pin.x}%`, top: `${pin.y}%`, ["--d" as string]: pin.d }}
-        >
-          <MapPin className="size-4" strokeWidth={2.6} />
-        </span>
-      ))}
-      <div className="sc-pop sc-map-card">
-        <span className="sc-thumb" />
-        <span className="min-w-0 flex-1">
-          <b className="block truncate text-sm">Poster drop</b>
-          <span className="text-fg-muted text-xs">0 / 300 collected</span>
-        </span>
-        <span className="sc-live">Live</span>
+    <div className="grid h-full grid-rows-[auto_minmax(0,1fr)] gap-5">
+      <div {...a(0)}>
+        <PageHeader
+          eyebrow="Drops"
+          title="Map & pins"
+          description="Drop collectibles on the real map. Fans catch them in the AR app."
+          actions={
+            <>
+              <Button variant="outline">Pin management</Button>
+              <Button>
+                <Plus /> New pin
+              </Button>
+            </>
+          }
+        />
       </div>
-    </div>
-  );
-}
-
-function ReportsScene() {
-  const bars = [38, 52, 44, 70, 62, 88, 76];
-  return (
-    <div className="sc-pad">
-      <div className="grid grid-cols-3 gap-2">
-        {[
-          ["1,284", "Collected"],
-          ["312", "Fans"],
-          ["24", "Pins"],
-        ].map(([value, label], index) => (
-          <div key={label} className="sc-tile sc-rise" style={{ ["--d" as string]: index }}>
-            <b>{value}</b>
-            <small>{label}</small>
-          </div>
-        ))}
-      </div>
-      <div className="sc-chart">
-        {bars.map((height, index) => (
+      <div className="tour-map" {...a(1)}>
+        <svg viewBox="0 0 400 260" preserveAspectRatio="none" aria-hidden>
+          <path
+            className="tour-map-river"
+            d="M-10 200 C 90 150, 160 230, 250 180 S 360 120, 410 140"
+          />
+          <path
+            className="tour-map-road"
+            d="M60 -10 L 140 270 M -10 90 L 410 120 M 300 -10 L 260 270"
+          />
+        </svg>
+        {pins.map((pin, index) => (
           <span
             key={index}
-            className="sc-bar"
-            style={{ height: `${height}%`, ["--d" as string]: index }}
-          />
-        ))}
-      </div>
-      <div className="mt-3 grid gap-1.5">
-        {["Rooftop stairs", "Lake-side listening"].map((name, index) => (
-          <div key={name} className="sc-row sc-slide" style={{ ["--d" as string]: index + 3 }}>
-            <MapPin className="text-primary-text size-3.5" />
-            <span className="flex-1 truncate">{name}</span>
-            <b>{index === 0 ? 412 : 268}</b>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function BountyScene() {
-  return (
-    <div className="sc-pad">
-      <div className="sc-card">
-        <div className="flex items-center gap-2">
-          <Trophy className="text-primary-text size-4" />
-          <b className="text-sm">Best rooftop moment</b>
-        </div>
-        <div className="sc-prize">
-          <span className="sc-lock">
-            <Lock className="size-4" strokeWidth={2.6} />
+            className="tour-pin"
+            data-live={pin.live || undefined}
+            style={{ left: `${pin.x}%`, top: `${pin.y}%`, ["--i" as string]: index + 2 }}
+          >
+            <MapPin className="size-4" strokeWidth={2.6} />
           </span>
-          <span>
-            <b className="block font-mono text-lg">750 ACTION</b>
-            <span className="sc-escrow">In escrow on Stellar</span>
-          </span>
-        </div>
-      </div>
-      <p className="sc-label">Submissions</p>
-      <div className="grid gap-1.5">
-        {["m0ss · clip.mp4", "velvet.ops · edit.mov", "drift.king · take2.mp4"].map(
-          (row, index) => (
-            <div key={row} className="sc-row sc-slide" style={{ ["--d" as string]: index + 1 }}>
-              <span className="sc-avatar" />
-              <span className="flex-1 truncate">{row}</span>
-              {index === 2 && <span className="sc-winner">Winner</span>}
-            </div>
-          ),
-        )}
-      </div>
-    </div>
-  );
-}
-
-function SellScene() {
-  const wave = [30, 55, 40, 75, 50, 90, 60, 80, 45, 70, 35, 60, 50, 85, 40, 65];
-  return (
-    <div className="sc-pad grid grid-cols-[1fr_0.8fr] gap-3">
-      <div className="grid content-start gap-1.5">
-        {["Night drive", "Rooftop anthem", "Slow burn"].map((song, index) => (
-          <div key={song} className="sc-row sc-slide" style={{ ["--d" as string]: index }}>
-            <span className="sc-play">
-              <Play className="size-3" fill="currentColor" />
+        ))}
+        <div className="bg-surface tour-map-card rounded-xl border p-3" {...a(7)}>
+          <span className="size-12 shrink-0 rounded-lg" style={{ background: ART.sunset }} />
+          <span className="grid min-w-0 flex-1 gap-0.5">
+            <b className="truncate">Sunset Sessions poster</b>
+            <span className="text-fg-muted truncate text-sm">
+              Rooftop stairs · 41 of 300 collected
             </span>
-            <span className="flex-1 truncate">{song}</span>
-            <b>{[90, 120, 60][index]}</b>
-          </div>
-        ))}
-        <div className="sc-wave" aria-hidden>
-          {wave.map((height, index) => (
-            <span key={index} style={{ height: `${height}%`, ["--d" as string]: index }} />
-          ))}
+          </span>
+          <StatusPill tone="success" dot>
+            Live
+          </StatusPill>
+          <QrCode className="text-fg-faint size-4" />
         </div>
-      </div>
-      <div className="sc-item sc-pop">
-        <span className="sc-item-art" />
-        <b className="mt-2 block truncate text-xs">Sunset poster</b>
-        <span className="text-fg-muted text-[11px]">250 ACTION · 41/300</span>
-        <span className="sc-stamp">Minted</span>
       </div>
     </div>
   );
 }
 
-function MembersScene() {
-  const tiers = [
-    { name: "Fan", price: 50, perk: "Members-only posts" },
-    { name: "Supporter", price: 150, perk: "Early drops" },
-    { name: "VIP", price: 500, perk: "Backstage room" },
+const DAILY = Array.from({ length: 30 }, (_, index) => {
+  const day = new Date(Date.UTC(2026, 9, 23 + index));
+  const n = Math.round(18 + 14 * Math.sin(index / 3.2) + index * 1.6 + ((index * 7) % 5) * 3);
+  return { day: day.toISOString().slice(0, 10), n };
+});
+
+function ReportsPage() {
+  return (
+    <div className="grid content-start gap-5">
+      <div {...a(0)}>
+        <PageHeader
+          eyebrow="Drops"
+          title="Pin reports"
+          description="Collections across all your pins."
+          actions={<Button variant="outline">Download CSV</Button>}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        {[
+          ["Collections", "1,284", "+18% on last month"],
+          ["Fans", "312", "who collected"],
+          ["Live pins", "24", "of 31"],
+          ["Top pin", "412", "Rooftop stairs"],
+        ].map(([label, value, hint], index) => (
+          <div key={label} {...a(index + 1)}>
+            <StatCard label={label!} value={value} hint={hint} />
+          </div>
+        ))}
+      </div>
+      <div {...a(5)}>
+        <CollectionsChart daily={DAILY} from={new Date(2026, 9, 23)} to={new Date(2026, 10, 21)} />
+      </div>
+    </div>
+  );
+}
+
+function BountiesPage() {
+  const rows = [
+    {
+      title: "Best rooftop moment",
+      summary: "Film your best moment at Thursday's show. Under 60 seconds.",
+      prize: "750 ACTION",
+      line: "12 joined · 9 reports · 1/3 winners",
+      tone: "success" as const,
+      status: "Running",
+    },
+    {
+      title: "Remix the single",
+      summary: "Stems are in the brief. Any genre.",
+      prize: "1,200 ACTION",
+      line: "27 joined · 14 reports · 0/1 winners",
+      tone: "success" as const,
+      status: "Running",
+      music: true,
+    },
+    {
+      title: "Clean the riverbank",
+      summary: "Photo proof, teams welcome.",
+      prize: "500 ACTION",
+      line: "41 joined · 41 reports · 5/5 winners",
+      tone: "neutral" as const,
+      status: "Completed",
+    },
   ];
   return (
-    <div className="sc-tiers">
-      {tiers.map((tier, index) => (
-        <div key={tier.name} className="sc-tier" style={{ ["--i" as string]: index - 1 }}>
-          <Crown className="text-primary-text size-4" />
-          <b className="mt-2 block text-sm">{tier.name}</b>
-          <span className="block font-mono text-lg font-bold">{tier.price}</span>
-          <span className="text-fg-faint text-[10px] uppercase">ACTION / month</span>
-          <span className="text-fg-muted mt-2 block text-[11px]">{tier.perk}</span>
-        </div>
-      ))}
-      <span className="sc-gift">
-        <Gift className="size-4" /> Gift sent to 12 fans
-      </span>
+    <div className="grid content-start gap-5">
+      <div {...a(0)}>
+        <PageHeader
+          eyebrow="Fans"
+          title="Bounties"
+          description="Challenges with a prize held in escrow. Fans join and submit; you pick the winners."
+          actions={
+            <Button>
+              <Plus /> New bounty
+            </Button>
+          }
+        />
+      </div>
+      <ul className="grid gap-3">
+        {rows.map((row, index) => (
+          <li
+            key={row.title}
+            className="bg-surface grid gap-2 rounded-xl border p-4 sm:p-5"
+            {...a(index + 1)}
+          >
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <h3 className="display min-w-0 text-2xl">{row.title}</h3>
+              <StatusPill tone={row.tone}>{row.status}</StatusPill>
+            </div>
+            <p className="text-fg-muted line-clamp-1 text-sm">{row.summary}</p>
+            <p className="text-fg-muted flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+              <span className="flex items-center gap-1.5">
+                <Trophy className="size-4" /> {row.prize}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Users className="size-4" /> {row.line}
+              </span>
+              {row.music && (
+                <span className="flex items-center gap-1.5">
+                  <Music2 className="size-4" /> Music
+                </span>
+              )}
+            </p>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
 
-function EventsScene() {
+function ItemsPage() {
+  const rows = [
+    [
+      "Sunset Sessions poster",
+      "Art · ROOFPOST · 41 sold of 300",
+      "250 ACTION · $2.50",
+      ART.sunset,
+      "success",
+      "For sale",
+    ],
+    [
+      "Rooftop Live entry",
+      "Ticket · ROOFLIVE · 12 sold of 200",
+      "500 ACTION · $5.00",
+      ART.ocean,
+      "success",
+      "For sale",
+    ],
+    [
+      "Night Drive (single)",
+      "Song · NIGHTDRV · 88 sold",
+      "90 ACTION · $0.90",
+      ART.acid,
+      "success",
+      "For sale",
+    ],
+    [
+      "Chrome skull key",
+      "Collectible · NFT · 50 sold of 50",
+      "300 ACTION · $3.00",
+      ART.chrome,
+      "warning",
+      "Sold out",
+    ],
+    [
+      "Record tote",
+      "Merch · ROOFTOTE · 0 sold of 150",
+      "900 ACTION · $9.00",
+      ART.violet,
+      "neutral",
+      "Draft",
+    ],
+  ] as const;
   return (
-    <div className="sc-pad grid grid-cols-[0.9fr_1fr] gap-3">
-      <div className="sc-cal">
-        <b className="text-xs">November</b>
-        <div className="sc-cal-grid">
-          {Array.from({ length: 28 }, (_, index) => (
-            <span key={index} className={cn(index === 19 && "sc-cal-on")}>
-              {index + 1}
-            </span>
-          ))}
-        </div>
+    <div className="grid content-start gap-5">
+      <div {...a(0)}>
+        <PageHeader
+          eyebrow="Catalog"
+          title="Items"
+          description="Collectibles fans can buy: art, video, tickets, merch and more."
+          actions={
+            <Button>
+              <Plus /> New item
+            </Button>
+          }
+        />
       </div>
-      <div className="grid content-start gap-2">
-        <div className="sc-card sc-slide" style={{ ["--d" as string]: 1 }}>
-          <span className="sc-label !m-0">Thu 20 · 8 pm</span>
-          <b className="mt-1 block text-sm">Thursday live</b>
-          <span className="text-fg-muted text-xs">Rooftop · 120 going</span>
-        </div>
-        <div className="sc-card sc-slide" style={{ ["--d" as string]: 2 }}>
-          <span className="flex items-center gap-1.5 text-xs font-semibold">
-            <Megaphone className="text-primary-text size-3.5" /> New merch drop Friday
-          </span>
-        </div>
-        <div className="flex gap-2">
-          {[0, 1, 2, 3].map((index) => (
-            <span key={index} className="sc-story" style={{ ["--d" as string]: index + 3 }} />
-          ))}
-        </div>
-      </div>
+      <ul className="grid gap-3">
+        {rows.map(([title, meta, price, art, tone, status], index) => (
+          <li
+            key={title}
+            className="bg-surface flex items-center gap-4 rounded-xl border p-3 sm:p-4"
+            {...a(index + 1)}
+          >
+            <span className="size-16 shrink-0 rounded-lg" style={{ background: art }} />
+            <div className="grid min-w-0 flex-1 gap-0.5">
+              <b className="truncate">{title}</b>
+              <span className="text-fg-muted truncate text-sm">{meta}</span>
+              <span className="text-fg-muted text-sm">{price}</span>
+            </div>
+            <StatusPill tone={tone}>{status}</StatusPill>
+            <Pencil className="text-fg-faint hidden size-4 sm:block" />
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
 
-function PageScene() {
+function MembershipsPage() {
+  const tiers = [
+    {
+      name: "Fan",
+      hold: 50,
+      text: "For everyone who follows along.",
+      perks: ["Members-only posts", "Fan badge"],
+    },
+    {
+      name: "Supporter",
+      hold: 250,
+      text: "Early access to every drop.",
+      perks: ["Early drops", "Monthly gift", "Members-only posts"],
+      popular: true,
+    },
+    {
+      name: "VIP",
+      hold: 1000,
+      text: "Closest to the band.",
+      perks: ["Backstage room", "Signed merch", "All Supporter perks"],
+    },
+  ];
+  return (
+    <div className="grid content-start gap-5">
+      <div {...a(0)}>
+        <PageHeader
+          eyebrow="Fans"
+          title="Memberships"
+          description="Fans unlock tiers by holding your fan token. The amount they hold decides their tier."
+          actions={
+            <Button>
+              <Plus /> New tier
+            </Button>
+          }
+        />
+      </div>
+      <section
+        className="bg-surface border-fg/10 flex flex-wrap items-center gap-x-8 gap-y-4 rounded-[1.4rem] border-2 p-5"
+        {...a(1)}
+      >
+        <span className="tour-token">RR</span>
+        <div className="min-w-0">
+          <p className="display truncate text-2xl">ROOF</p>
+          <p className="text-fg-muted text-sm">Rooftop Records fan token</p>
+        </div>
+        <div>
+          <p className="text-fg-muted text-xs">Holders</p>
+          <p className="num text-xl font-semibold">1,204</p>
+        </div>
+        <div>
+          <p className="text-fg-muted text-xs">Price</p>
+          <p className="num text-xl font-semibold">1.84 ACTION</p>
+        </div>
+      </section>
+      <ul className="grid gap-3 md:grid-cols-3">
+        {tiers.map((tier, index) => (
+          <li
+            key={tier.name}
+            className={cn(
+              "bg-surface border-fg/10 flex flex-col rounded-[1.4rem] border-2 p-5",
+              tier.popular && "border-primary-text/50",
+            )}
+            {...a(index + 2)}
+          >
+            <p className="text-primary-text flex flex-wrap items-center gap-1.5 text-xs font-semibold tracking-wide uppercase">
+              Tier {index + 1}
+              {tier.popular && (
+                <span className="bg-primary-soft inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] tracking-normal normal-case">
+                  <Star className="size-3" /> Popular
+                </span>
+              )}
+            </p>
+            <h3 className="display mt-1 truncate text-2xl">{tier.name}</h3>
+            <p className="mt-2">
+              <span className="num text-2xl font-semibold">{tier.hold}</span>{" "}
+              <span className="text-fg-muted text-sm">ROOF to hold</span>
+            </p>
+            <p className="text-fg-muted mt-2 text-sm">{tier.text}</p>
+            <ul className="mt-4 grid gap-1.5 border-t pt-4 text-sm">
+              {tier.perks.map((perk) => (
+                <li key={perk} className="flex gap-2">
+                  <Check className="text-primary-text mt-0.5 size-4 shrink-0" /> {perk}
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function EventsPage() {
+  const events = [
+    [
+      "Thursday live",
+      "Thu, Nov 26 · 8:00 PM",
+      "Rooftop Records, Banani",
+      "120 RSVPs of 200 · 2 pins, 1 bounty linked",
+      "Upcoming",
+      ART.sunset,
+    ],
+    [
+      "Listening party",
+      "Sat, Nov 28 · 6:00 PM",
+      "Online",
+      "64 RSVPs · 1 pin linked",
+      "Upcoming",
+      ART.violet,
+    ],
+    [
+      "Riverbank cleanup",
+      "Sun, Nov 15 · 9:00 AM",
+      "Hatirjheel lake",
+      "41 RSVPs · 1 bounty linked",
+      "Past",
+      ART.acid,
+    ],
+  ] as const;
+  return (
+    <div className="grid content-start gap-5">
+      <div {...a(0)}>
+        <PageHeader
+          eyebrow="Drops"
+          title="Events & announcements"
+          description="Both go live straight away for fans in the app and on the map."
+          actions={
+            <Button>
+              <Plus /> New event
+            </Button>
+          }
+        />
+      </div>
+      <div data-slot="tabs-list" className="tour-tabs" {...a(1)}>
+        <span data-slot="tabs-trigger" data-state="active">
+          Events
+        </span>
+        <span data-slot="tabs-trigger">Announcements</span>
+      </div>
+      <ul className="grid gap-3">
+        {events.map(([title, when, where, rsvp, status, art], index) => (
+          <li
+            key={title}
+            className="bg-surface grid gap-3 rounded-xl border p-4 sm:grid-cols-[auto_minmax(0,1fr)] sm:p-5"
+            {...a(index + 2)}
+          >
+            <span className="h-24 w-full rounded-lg sm:w-36" style={{ background: art }} />
+            <div className="grid min-w-0 content-start gap-2">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <h3 className="display min-w-0 text-2xl">{title}</h3>
+                <StatusPill tone={status === "Past" ? "neutral" : "success"}>{status}</StatusPill>
+              </div>
+              <p className="text-fg-muted text-sm">{when}</p>
+              <p className="text-fg-muted flex items-center gap-1.5 text-sm">
+                <MapPin className="size-4 shrink-0" /> {where}
+              </p>
+              <p className="text-fg-faint text-xs">{rsvp}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function PageBuilderPage() {
   const blocks = ["Cover & profile", "Popular songs", "Tour dates", "Membership tiers", "Links"];
   return (
-    <div className="sc-pad grid grid-cols-[0.8fr_1fr] gap-3">
-      <div className="grid content-start gap-1.5">
-        {blocks.map((block, index) => (
-          <div key={block} className="sc-row sc-slide" style={{ ["--d" as string]: index }}>
-            <span className="sc-grip" />
-            <span className="flex-1 truncate">{block}</span>
-          </div>
-        ))}
+    <div className="grid h-full grid-rows-[auto_minmax(0,1fr)] gap-5">
+      <div {...a(0)}>
+        <PageHeader
+          eyebrow="Content"
+          title="My page"
+          description="Your public page. Add blocks, drag them into order, publish."
+          actions={<Button>Publish</Button>}
+        />
       </div>
-      <div className="sc-preview">
-        <span className="sc-preview-cover" />
-        {[0, 1, 2].map((index) => (
-          <span
-            key={index}
-            className="sc-preview-line sc-rise"
-            style={{ ["--d" as string]: index + 2 }}
-          />
-        ))}
-        <span className="sc-publish">Publish page</span>
+      <div className="grid min-h-0 gap-4 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1fr)]">
+        <ul className="grid content-start gap-2">
+          {blocks.map((block, index) => (
+            <li
+              key={block}
+              className="bg-surface flex items-center gap-3 rounded-xl border p-3 text-sm font-medium"
+              {...a(index + 1)}
+            >
+              <GripVertical className="text-fg-faint size-4" />
+              <span className="flex-1 truncate">{block}</span>
+              <Pencil className="text-fg-faint size-4" />
+            </li>
+          ))}
+          <li {...a(6)}>
+            <Button variant="outline" className="w-full">
+              <Plus /> Add block
+            </Button>
+          </li>
+        </ul>
+        <div className="tour-preview" {...a(3)}>
+          <span className="tour-preview-cover" style={{ background: ART.sunset }} />
+          <div className="flex items-end gap-3 px-4">
+            <span className="tour-token -mt-8">RR</span>
+            <b className="pb-1">Rooftop Records</b>
+          </div>
+          <div className="grid gap-2 p-4">
+            {["Night drive", "Rooftop anthem", "Slow burn"].map((song) => (
+              <span
+                key={song}
+                className="bg-surface flex items-center gap-2 rounded-lg border p-2 text-xs"
+              >
+                <Music2 className="text-primary-text size-3.5" /> {song}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-function WalletScene() {
+function WalletPage() {
   return (
-    <div className="sc-pad grid grid-cols-[1fr_auto] items-start gap-4">
-      <div>
-        <div className="gx-vault">
-          <span className="gx-vault-in">
-            <span className="gx-mono text-fg-muted">Vault</span>
-            <span className="gx-amount mt-1 block">10,000</span>
-            <span className="gx-mono text-[var(--gx-acid-text)]">ACTION</span>
-          </span>
-        </div>
-        <div className="mt-3 grid gap-1.5">
-          {[
-            ["Resale royalty", "+25"],
-            ["Membership · VIP", "+500"],
-            ["Item sale", "+250"],
-          ].map(([label, amount], index) => (
-            <div key={label} className="sc-row sc-slide" style={{ ["--d" as string]: index + 1 }}>
-              <span className="flex-1 truncate">{label}</span>
-              <b className="text-primary-text">{amount}</b>
-            </div>
-          ))}
-        </div>
+    <div className="grid content-start gap-5">
+      <div {...a(0)}>
+        <PageHeader eyebrow="Account" title="Wallet" description="Your balance on Stellar." />
       </div>
-      <div className="sc-ring" aria-hidden>
-        <svg viewBox="0 0 80 80">
-          <circle cx="40" cy="40" r="32" className="sc-ring-bg" />
-          <circle cx="40" cy="40" r="32" className="sc-ring-fg" />
-        </svg>
-        <span>70%</span>
-        <small>to you</small>
+      <div {...a(1)}>
+        <WalletHero
+          label="ACTION balance"
+          address="GDROOFTOPRECORDSEXAMPLEWALLETADDRESSFORTHETOURPAGE0000"
+          balance="10,000"
+          actions={[
+            { id: "send", label: "Send", icon: Send, primary: true },
+            { id: "swap", label: "Swap", icon: ArrowDownUp },
+            { id: "redeem", label: "Redeem", icon: QrCode },
+          ]}
+        />
+      </div>
+      <div {...a(2)}>
+        <WalletPanel title="Tokens">
+          <WalletAssets
+            empty={null}
+            rows={[
+              {
+                key: "roof",
+                code: "ROOF",
+                title: "Rooftop Records fan token",
+                amount: "2,500",
+                onSend: null,
+              },
+              { key: "xlm", code: "XLM", title: "Stellar Lumens", amount: "9,996", onSend: null },
+              { key: "usdc", code: "USDC", title: "USD Coin", amount: "120", onSend: null },
+            ]}
+          />
+        </WalletPanel>
       </div>
     </div>
   );
