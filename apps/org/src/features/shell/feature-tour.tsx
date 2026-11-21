@@ -26,8 +26,11 @@ import {
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { Button } from "@actiontokens/ui/components/button";
+import { Input } from "@actiontokens/ui/components/input";
+import { Switch } from "@actiontokens/ui/components/switch";
 import { cn } from "@actiontokens/ui/lib/cn";
 import { PageHeader } from "@actiontokens/ui/patterns/page-header";
+import { PinGlyph } from "@actiontokens/ui/patterns/pin-glyph";
 import { StatCard } from "@actiontokens/ui/patterns/stat-card";
 import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
 import { WalletAssets, WalletHero, WalletPanel } from "@actiontokens/ui/patterns/wallet-blocks";
@@ -344,76 +347,163 @@ const a = (i: number) => ({ "data-a": "", style: { ["--i" as string]: i } });
 const snapshot = (theme: "dark" | "light") =>
   `https://api.mapbox.com/styles/v1/mapbox/${theme}-v11/static/90.4066,23.7937,14.6,0/1280x760?attribution=false&logo=false&access_token=${MAPBOX_TOKEN ?? ""}`;
 
+const PINS = [
+  {
+    x: 16,
+    y: 22,
+    title: "Sunset Sessions poster",
+    place: "Rooftop stairs",
+    n: "41 / 300",
+    color: "#ff5c8a",
+    live: true,
+  },
+  {
+    x: 33,
+    y: 44,
+    title: "Rooftop Live entry",
+    place: "Banani Rd 11",
+    n: "12 / 200",
+    color: "#3d9bff",
+    live: true,
+  },
+  {
+    x: 44,
+    y: 16,
+    title: "Night Drive drop",
+    place: "Gulshan 2 circle",
+    n: "88 / 500",
+    color: "#4dff2a",
+    live: true,
+  },
+  {
+    x: 24,
+    y: 58,
+    title: "Chrome skull key",
+    place: "Kemal Ataturk Ave",
+    n: "Starts Fri",
+    color: "#bdbdbd",
+    live: false,
+  },
+];
+
 function MapPage() {
-  const pins = [
-    { x: 24, y: 38, live: true },
-    { x: 46, y: 62, live: true },
-    { x: 66, y: 30, live: true },
-    { x: 82, y: 58, live: false },
-    { x: 36, y: 20, live: false },
-  ];
   return (
-    <div className="grid h-full grid-rows-[auto_minmax(0,1fr)] gap-5">
-      <div {...a(0)}>
-        <PageHeader
-          eyebrow="Drops"
-          title="Map & pins"
-          description="Drop collectibles on the real map. Fans catch them in the AR app."
-          actions={
-            <>
-              <Button variant="outline">Pin management</Button>
-              <Button>
-                <Plus /> New pin
-              </Button>
-            </>
-          }
-        />
-      </div>
-      <div className="tour-map" {...a(1)}>
-        {MAPBOX_TOKEN ? (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={snapshot("dark")}
-              alt=""
-              loading="lazy"
-              className="tour-map-img"
-              data-for="dark"
-            />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={snapshot("light")}
-              alt=""
-              loading="lazy"
-              className="tour-map-img"
-              data-for="light"
-            />
-          </>
-        ) : null}
-        {pins.map((pin, index) => (
-          <span
-            key={index}
-            className="tour-pin"
-            data-live={pin.live || undefined}
-            style={{ left: `${pin.x}%`, top: `${pin.y}%`, ["--i" as string]: index + 2 }}
-          >
-            <MapPin className="size-4" strokeWidth={2.6} />
+    <div className="tour-map" {...a(0)}>
+      {MAPBOX_TOKEN ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={snapshot("dark")}
+            alt=""
+            loading="lazy"
+            className="tour-map-img"
+            data-for="dark"
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={snapshot("light")}
+            alt=""
+            loading="lazy"
+            className="tour-map-img"
+            data-for="light"
+          />
+        </>
+      ) : null}
+
+      {PINS.map((pin, index) => (
+        <span
+          key={pin.title}
+          className="tour-pin"
+          data-live={pin.live || undefined}
+          style={{ left: `${pin.x}%`, top: `${pin.y}%`, ["--i" as string]: index + 1 }}
+        >
+          <PinGlyph
+            size={index === 0 ? 46 : 38}
+            color={pin.color}
+            ringColor={pin.live ? "#4dff2a" : "#9a9a9a"}
+            ringWidth={4}
+            badge={index === 2}
+          />
+          {index === 0 && <span className="tour-pin-label">{pin.title}</span>}
+        </span>
+      ))}
+      {/* the pin being placed */}
+      <span
+        className="tour-pin tour-pin--new"
+        style={{ left: "50%", top: "42%", ["--i" as string]: 6 }}
+      >
+        <MapPin className="size-5" strokeWidth={2.6} />
+      </span>
+
+      {/* In view: the real panel's look, floating top-left */}
+      <section className="tour-float tour-float--left" {...a(2)}>
+        <p className="flex items-center gap-2 px-4 py-3">
+          <MapPin className="text-primary-text size-4" />
+          <span className="text-sm font-semibold">In view</span>
+          <span className="bg-surface-2 num rounded-full px-2 py-0.5 text-xs font-semibold">
+            {PINS.length}
           </span>
-        ))}
-        <div className="bg-surface tour-map-card rounded-xl border p-3" {...a(7)}>
-          <span className="size-12 shrink-0 rounded-lg" style={{ background: ART.sunset }} />
-          <span className="grid min-w-0 flex-1 gap-0.5">
-            <b className="truncate">Sunset Sessions poster</b>
-            <span className="text-fg-muted truncate text-sm">
-              Rooftop stairs · 41 of 300 collected
-            </span>
-          </span>
-          <StatusPill tone="success" dot>
-            Live
-          </StatusPill>
-          <QrCode className="text-fg-faint size-4" />
+        </p>
+        <ul className="divide-y border-t">
+          {PINS.slice(0, 3).map((pin) => (
+            <li key={pin.title} className="flex items-center gap-3 px-4 py-2.5">
+              <PinGlyph
+                size={30}
+                color={pin.color}
+                ringColor={pin.live ? "#4dff2a" : "#9a9a9a"}
+                ringWidth={5}
+              />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-medium">{pin.title}</span>
+                <span className="text-fg-muted block truncate text-xs">
+                  {pin.place} · {pin.n}
+                </span>
+              </span>
+              <StatusPill tone={pin.live ? "success" : "neutral"} dot={pin.live}>
+                {pin.live ? "Live" : "Later"}
+              </StatusPill>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* New pin: the form card floating on the right */}
+      <section className="tour-float tour-float--right" {...a(4)}>
+        <div className="flex items-center justify-between border-b px-4 py-3">
+          <b className="display text-xl">New pin</b>
+          <span className="text-fg-faint text-xs">Banani, Dhaka</span>
         </div>
-      </div>
+        <div className="grid gap-3 p-4">
+          <label className="grid gap-1.5">
+            <span className="text-xs font-semibold">Title</span>
+            <Input readOnly tabIndex={-1} value="Thursday live: first 100" />
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="grid gap-1.5">
+              <span className="text-xs font-semibold">Starts</span>
+              <Input readOnly tabIndex={-1} value="Thu 8:00 PM" />
+            </label>
+            <label className="grid gap-1.5">
+              <span className="text-xs font-semibold">Ends</span>
+              <Input readOnly tabIndex={-1} value="Thu 11:00 PM" />
+            </label>
+          </div>
+          <label className="grid gap-1.5">
+            <span className="text-xs font-semibold">How many can collect</span>
+            <Input readOnly tabIndex={-1} value="100" />
+          </label>
+          <div className="flex items-center justify-between rounded-xl border px-3 py-2.5">
+            <span className="text-sm">
+              <b className="block text-xs font-semibold">Auto-collect</b>
+              <span className="text-fg-muted text-xs">Within 50 m of the pin</span>
+            </span>
+            <Switch checked tabIndex={-1} aria-label="Auto-collect" />
+          </div>
+          <Button tabIndex={-1} className="w-full">
+            <MapPin /> Drop pin
+          </Button>
+        </div>
+      </section>
     </div>
   );
 }

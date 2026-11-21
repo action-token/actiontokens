@@ -1607,74 +1607,96 @@ main .tour-title {
 }
 .tour-map {
   position: relative;
-  min-height: 300px;
+  height: 100%;
+  min-height: 360px;
   overflow: hidden;
   border-radius: 1.4rem;
   border: 2px solid var(--gx-line);
   background:
     linear-gradient(var(--gx-grid) 1px, transparent 1px) 0 0 / 36px 36px,
     linear-gradient(90deg, var(--gx-grid) 1px, transparent 1px) 0 0 / 36px 36px,
-    radial-gradient(60% 50% at 50% 45%, var(--gx-glow-soft), transparent 70%),
     var(--bc-surface);
-}
-.tour-map > svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-.tour-map-river {
-  fill: none;
-  stroke: var(--gx-line-strong);
-  stroke-width: 16;
-  stroke-linecap: round;
-}
-.tour-map-road {
-  fill: none;
-  stroke: var(--gx-line);
-  stroke-width: 5;
 }
 .tour-pin {
   position: absolute;
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  translate: -50% -100%;
-  border-radius: 50% 50% 50% 0;
-  rotate: -45deg;
-  background: var(--bc-surface);
-  border: 2px solid var(--gx-line-strong);
-  color: var(--bc-fg-muted);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  translate: -50% -50%;
   opacity: 0;
-  transform: translate(30px, -30px);
+  transform: translateY(-36px) scale(0.6);
   transition:
     opacity 0.3s ease,
-    transform 0.5s cubic-bezier(0.3, 1.5, 0.5, 1);
-  transition-delay: calc(var(--i) * 110ms + 200ms);
+    transform 0.55s cubic-bezier(0.3, 1.5, 0.5, 1);
+  transition-delay: calc(var(--i) * 120ms + 250ms);
 }
 .tour-pin[data-live] {
-  background: var(--gx-neon);
-  border-color: var(--gx-neon);
-  color: var(--gx-on-neon);
-  box-shadow: 0 8px 18px -6px var(--gx-glow);
-}
-.tour-pin svg {
-  rotate: 45deg;
+  filter: drop-shadow(0 0 10px rgb(77 255 42 / 0.45));
 }
 .tour-panel[data-on] .tour-pin {
   opacity: 1;
   transform: none;
 }
-.tour-map-card {
+.tour-pin-label {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  background: var(--bc-surface);
+  border: 1px solid var(--gx-line-strong);
+  box-shadow: var(--gx-shadow);
+  translate: 0 0;
+}
+.tour-pin--new {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50% 50% 50% 0;
+  rotate: -45deg;
+  background: var(--gx-neon);
+  color: var(--gx-on-neon);
+  outline: 2px dashed var(--gx-neon);
+  outline-offset: 6px;
+  translate: -50% -100%;
+}
+.tour-pin--new svg {
+  rotate: 45deg;
+}
+/* panels floating over the map, like the real map page's */
+.tour-float {
   position: absolute;
-  left: 16px;
-  right: 16px;
+  z-index: 2;
+  top: 16px;
+  overflow: hidden;
+  border-radius: 1.4rem;
+  border: 2px solid var(--gx-line);
+  background: var(--bc-surface);
+  box-shadow:
+    var(--gx-shadow),
+    0 20px 40px -20px rgb(0 0 0 / 0.5);
+}
+.tour-float--left {
+  top: auto;
   bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  max-width: 520px;
+  left: 16px;
+  width: 290px;
+}
+.tour-float--right {
+  right: 16px;
+  width: 280px;
+}
+.tour-page [data-a].tour-float--left {
+  transform: translateX(-30px);
+}
+.tour-page [data-a].tour-float--right {
+  transform: translateX(30px);
+}
+.tour-panel[data-on] .tour-page [data-a].tour-float--left,
+.tour-panel[data-on] .tour-page [data-a].tour-float--right {
+  transform: none;
 }
 
 .tour-token {
@@ -1772,7 +1794,7 @@ main .tour-title {
   --s: 17deg;
   position: absolute;
   top: 50%;
-  right: calc(-1 * var(--r) + 120px);
+  right: calc(250px - 2 * var(--r));
   width: calc(var(--r) * 2);
   height: calc(var(--r) * 2);
   margin-top: calc(var(--r) * -1 - 4vh);
@@ -1840,7 +1862,7 @@ main .tour-title {
   color: var(--bc-fg-muted);
   pointer-events: auto;
   transform-origin: 0 0;
-  transform: rotate(calc((var(--i) - var(--k)) * var(--s))) translate(calc(-100% - 16px), -50%);
+  transform: rotate(calc((var(--i) - var(--k)) * var(--s))) translate(18px, -50%);
   transition:
     transform 0.6s cubic-bezier(0.2, 0.9, 0.3, 1),
     opacity 0.4s ease,
