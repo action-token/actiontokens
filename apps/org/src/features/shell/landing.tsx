@@ -35,6 +35,11 @@ export function Landing() {
   const signIn = () => open(true);
   const root = useReveal<HTMLDivElement>();
   const [notchOpen, setNotchOpen] = useState(false);
+  // the front page scrolls section by section (see .lp-snap in portal.css)
+  useEffect(() => {
+    document.documentElement.classList.add("lp-snap");
+    return () => document.documentElement.classList.remove("lp-snap");
+  }, []);
 
   return (
     <div ref={root} className={cn(anton.variable, gothic.variable)}>

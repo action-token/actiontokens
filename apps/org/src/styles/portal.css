@@ -1957,3 +1957,25 @@ main .tour-big {
   overflow-x: auto;
   scrollbar-width: none;
 }
+
+/* the front page settles section by section: the tour's start and the closing section on
+   desktop (the tour then turns one page per scroll), every tour page on phones. Proximity, so
+   the hero can still play its frames as you scroll. */
+html.lp-snap {
+  scroll-snap-type: y proximity;
+}
+html.lp-snap .tour {
+  scroll-snap-align: start;
+}
+html.lp-snap .lp-final {
+  scroll-snap-align: center;
+}
+@media (max-width: 767px) {
+  html.lp-snap .tour {
+    scroll-snap-align: none;
+  }
+  html.lp-snap .tour-panel {
+    scroll-snap-align: start;
+    scroll-margin-top: 56px;
+  }
+}

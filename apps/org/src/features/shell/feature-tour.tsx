@@ -240,6 +240,9 @@ export function FeatureTour() {
       }
       const start = performance.now();
       const duration = 700;
+      // page snapping (html.lp-snap) would pull this move toward a snap point: off while it runs
+      const root = document.documentElement;
+      root.style.scrollSnapType = "none";
       const step = (now: number) => {
         const t = Math.min(1, (now - start) / duration);
         const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -248,6 +251,7 @@ export function FeatureTour() {
         else {
           tween = 0;
           target = -1;
+          root.style.scrollSnapType = "";
         }
       };
       tween = requestAnimationFrame(step);
@@ -454,6 +458,7 @@ export function FeatureTour() {
       io.disconnect();
       clearTimeout(settle);
       cancelAnimationFrame(tween);
+      document.documentElement.style.scrollSnapType = "";
       document.removeEventListener("click", onLink, true);
       phone.removeEventListener("change", onResize);
       removeEventListener("scroll", onScroll);
