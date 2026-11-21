@@ -100,7 +100,7 @@ export function AccountButton({
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <a href={FAN_APP_URL}>
-            <ExternalLink /> Open Bandcoin
+            <ExternalLink /> Open Action Tokens
           </a>
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => void signOut({ redirect: false })}>

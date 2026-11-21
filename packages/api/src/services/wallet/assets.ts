@@ -60,7 +60,7 @@ export async function walletAssets(
       {
         ...bandcoin,
         kind: "bandcoin" as WalletTokenKind,
-        title: "Bandcoin",
+        title: "Action Tokens",
         itemId: null,
         amount: free(bandcoin),
       },

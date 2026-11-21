@@ -117,7 +117,7 @@ export function AdminSettingsView() {
       <PageHeader
         eyebrow="Admin"
         title="Settings"
-        description="Fees and prices for the whole of Bandcoin. Every change is in the activity log."
+        description="Fees and prices for the whole of Action Tokens. Every change is in the activity log."
       />
       {settings.isPending ? (
         <Skeleton className="h-96 w-full rounded-[1.75rem]" />
@@ -226,7 +226,7 @@ function SavedForm({ saved, treasury }: { saved: Saved; treasury: string }) {
           <SettingCard
             icon={Percent}
             title="Platform fee"
-            description="What Bandcoin takes from each song, item and membership sale. Contract NFTs use the contract's own fee, on the Contract NFT tab."
+            description="What Action Tokens takes from each song, item and membership sale. Contract NFTs use the contract's own fee, on the Contract NFT tab."
           >
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-[10rem_minmax(0,1fr)]">
               <Field label="Fee" htmlFor="fee" error={errors.platformFeeBps}>
@@ -309,7 +309,7 @@ function SavedForm({ saved, treasury }: { saved: Saved; treasury: string }) {
           <SettingCard
             icon={UserPlus}
             title="New organizations"
-            description="When you approve an organization, Bandcoin opens their storage account (about 3 XLM from the platform) and issues this many of their fan token into it."
+            description="When you approve an organization, Action Tokens opens their storage account (about 3 XLM from the platform) and issues this many of their fan token into it."
           >
             <Field
               label="Starting fan tokens"

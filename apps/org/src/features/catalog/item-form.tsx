@@ -24,7 +24,11 @@ import {
   OptionList,
   SwitchRow,
 } from "@actiontokens/ui/patterns/form-page";
-import { assetCodeFrom, normalizeAssetCode, validateAssetCode } from "@actiontokens/utils/asset-code";
+import {
+  assetCodeFrom,
+  normalizeAssetCode,
+  validateAssetCode,
+} from "@actiontokens/utils/asset-code";
 
 import { DeleteCard } from "~/components/delete-card";
 import { api, type RouterOutputs } from "~/trpc/react";
@@ -580,9 +584,9 @@ export function ItemForm({ existing }: { existing?: Existing }) {
               </div>
               <Note>
                 {nft
-                  ? "Numbered copies on a Soroban contract, with locked content and a royalty on every resale. Bandcoin puts it on Stellar at its first sale; you pay nothing."
+                  ? "Numbered copies on a Soroban contract, with locked content and a royalty on every resale. Action Tokens puts it on Stellar at its first sale; you pay nothing."
                   : offChain
-                    ? "Nothing on Stellar: fans pay you and Bandcoin keeps track of who owns it. Good for merch and tickets. It can't be resold."
+                    ? "Nothing on Stellar: fans pay you and Action Tokens keeps track of who owns it. Good for merch and tickets. It can't be resold."
                     : "A simple Stellar token under your own account. Free to create, and you can publish it right away."}
               </Note>
             </Field>

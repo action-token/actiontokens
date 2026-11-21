@@ -32,3 +32,11 @@ Routes such as `/admin/artists` and the `/artist/<slug>` page address stay as th
 - The brand is written **Action Tokens** in text and **ACTION-TOKENS** as the wordmark.
 - Shared pieces live in `packages/ui` and also change the fan app, so check both after touching them.
 - Each phase is one commit: `pnpm --filter @actiontokens/org typecheck lint test` green first.
+
+
+## Progress notes
+
+Checked signed in as a seeded organization (Rooftop Records), Dark and Light: pins map, pin management, events, bounties,
+items, wallet, settings. Panels, list rows and stat tiles use the sticker face through `sticker.css`; visible "Bandcoin"
+text now says "Action Tokens". Not yet looked at: admin screens (needs an admin account), music, posts, memberships,
+royalties, page builder, High contrast.

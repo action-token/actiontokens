@@ -14,7 +14,7 @@ export function OpenIssuer({ approved = false }: { approved?: boolean }) {
   const flow = useIssuerOpening({ approved });
   const panel = (
     <PayToOpen
-      intro="This opens the Stellar account every song and collectible you release is issued from. You pay for it yourself: Bandcoin never covers the cost. The price below is everything you pay."
+      intro="This opens the Stellar account every song and collectible you release is issued from. You pay for it yourself: Action Tokens never covers the cost. The price below is everything you pay."
       quote={quote.data}
       loading={quote.isPending}
       flow={flow}

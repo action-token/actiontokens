@@ -11,7 +11,11 @@ import { api } from "~/trpc/react";
 const METRICS = [
   { key: "views", label: "Map views", hint: "Times the map loaded on a website" },
   { key: "pinTaps", label: "Pin taps", hint: "Visitors opened a pin's card" },
-  { key: "openClicks", label: "Opened in Bandcoin", hint: "Visitors went on to Bandcoin" },
+  {
+    key: "openClicks",
+    label: "Opened in Action Tokens",
+    hint: "Visitors went on to Action Tokens",
+  },
   { key: "eventsClicks", label: "Events button", hint: "Clicks on the events button" },
   { key: "bountiesClicks", label: "Bounties button", hint: "Clicks on the bounties button" },
 ] as const;
@@ -66,7 +70,7 @@ export function EmbedStats({ id }: { id: string }) {
       {views > 0 && (
         <p className="text-fg-muted text-sm">
           {Math.round((taps / views) * 100)}% of views led to a pin tap, and{" "}
-          {taps ? Math.round((opens / taps) * 100) : 0}% of pin taps went on to Bandcoin.
+          {taps ? Math.round((opens / taps) * 100) : 0}% of pin taps went on to Action Tokens.
         </p>
       )}
 

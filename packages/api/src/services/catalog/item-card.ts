@@ -35,7 +35,7 @@ export function toItemCard(row: ItemCardRow) {
     title: row.title,
     type: row.type,
     coverUrl: row.coverUrl,
-    artistName: row.organization?.name ?? row.track?.artistName ?? "Bandcoin",
+    artistName: row.organization?.name ?? row.track?.artistName ?? "Action Tokens",
     artistSlug: row.organization?.slug ?? null,
     playable: row.media?.mediaType === "AUDIO",
     durationSec: row.media?.durationSec ?? null,

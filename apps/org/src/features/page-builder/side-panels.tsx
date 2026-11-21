@@ -272,7 +272,8 @@ export function SettingsPanel({
 
       {def.source === "data" && (
         <p className="bg-surface-2 text-fg-muted rounded-lg p-3 text-xs">
-          This block shows what you already have on Bandcoin, so there is nothing else to fill in.
+          This block shows what you already have on Action Tokens, so there is nothing else to fill
+          in.
         </p>
       )}
 

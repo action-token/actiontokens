@@ -70,7 +70,7 @@ export function ItemsAdminView() {
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{row.title}</p>
             <p className="text-fg-muted truncate text-xs">
-              {row.artist?.name ?? "Bandcoin"} · {timeAgo(row.createdAt)}
+              {row.artist?.name ?? "Action Tokens"} · {timeAgo(row.createdAt)}
             </p>
           </div>
         </div>

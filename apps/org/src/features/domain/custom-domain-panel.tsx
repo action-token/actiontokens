@@ -27,7 +27,7 @@ const day = (date: Date | string) =>
 const STATUS: Record<Domain["status"], { warn: boolean; say: (d: Domain) => string }> = {
   NEEDS_SETUP: {
     warn: true,
-    say: () => "Needs verifying. It came from the old Bandcoin and has to be connected again.",
+    say: () => "Needs verifying. It came from the old Action Tokens and has to be connected again.",
   },
   PENDING: { warn: false, say: () => "Waiting for the DNS records below." },
   LIVE: {
@@ -238,7 +238,7 @@ function Records({ records }: { records: DnsRecord[] }) {
           <span className="font-semibold">
             {record.type}
             <span className="text-fg-faint block text-[11px] font-medium">
-              {record.purpose === "ownership" ? "Proves it's yours" : "Points to Bandcoin"}
+              {record.purpose === "ownership" ? "Proves it's yours" : "Points to Action Tokens"}
             </span>
           </span>
           <CopyValue label="Name" text={record.name} />

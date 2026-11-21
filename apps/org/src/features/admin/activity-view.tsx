@@ -16,7 +16,7 @@ export function ActivityView() {
       <PageHeader
         eyebrow="Admin"
         title="Activity"
-        description="Every change on Bandcoin, from every app."
+        description="Every change on Action Tokens, from every app."
         actions={
           <Button
             variant={failedOnly ? "default" : "secondary"}

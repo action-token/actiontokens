@@ -61,9 +61,9 @@ async function recipientOf(
   }
   const username = text.replace(/^@/, "").toLowerCase();
   if (!text.startsWith("@") || !/^[a-z0-9_.-]{1,40}$/.test(username))
-    return { problem: unavailable("Enter a Stellar address (G…) or a Bandcoin @username.") };
+    return { problem: unavailable("Enter a Stellar address (G…) or a Action Tokens @username.") };
   const found = await ctx.db.user.findUnique({ where: { username }, select });
-  if (!found) return { problem: unavailable(`There's no Bandcoin user called @${username}.`) };
+  if (!found) return { problem: unavailable(`There's no Action Tokens user called @${username}.`) };
   if (!found.walletAddress)
     return { problem: unavailable(`@${username} doesn't have a wallet yet.`) };
   if (found.walletAddress === user.walletAddress)

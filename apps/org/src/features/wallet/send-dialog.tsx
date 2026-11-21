@@ -101,7 +101,7 @@ export function SendDialog({
         <DialogHeader>
           <DialogTitle className="display text-3xl">Send</DialogTitle>
           <DialogDescription>
-            Send XLM or any token in your wallet to a Stellar address or a Bandcoin @username.
+            Send XLM or any token in your wallet to a Stellar address or a Action Tokens @username.
           </DialogDescription>
         </DialogHeader>
 

@@ -214,7 +214,7 @@ function SendGift() {
               htmlFor="gift-to"
               hint={
                 newEmail
-                  ? `Nobody uses ${newEmail} yet. We'll make a Bandcoin account for it when you send.`
+                  ? `Nobody uses ${newEmail} yet. We'll make a Action Tokens account for it when you send.`
                   : recipientName
                     ? `Sending to ${recipientName}`
                     : "Pick a follower below, or type their username, email or wallet."
@@ -279,13 +279,14 @@ function SendGift() {
             </div>
             {isTokens && tokenQuote.data?.gift.claimable && (
               <p className="text-fg-muted text-xs">
-                They haven&apos;t added your token yet, so they&apos;ll claim it in the Bandcoin
-                app.
+                They haven&apos;t added your token yet, so they&apos;ll claim it in the Action
+                Tokens app.
               </p>
             )}
             {newEmail && (
               <p className="text-fg-muted text-xs">
-                We&apos;ll make a Bandcoin account for {newEmail} and email them how to sign in.
+                We&apos;ll make a Action Tokens account for {newEmail} and email them how to sign
+                in.
               </p>
             )}
             <QuoteBreakdown

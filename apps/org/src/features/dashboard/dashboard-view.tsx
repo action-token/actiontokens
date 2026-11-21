@@ -33,7 +33,7 @@ export function DashboardView() {
       <PageBody>
         <EmptyState
           icon={Mic2}
-          title="Run your music on Bandcoin"
+          title="Run your music on Action Tokens"
           description="Sell songs and collectibles, set up memberships, drop pins and bounties, and keep every payout. Sign in with your wallet to begin."
           action={<Button onClick={() => openDialog(true)}>Sign in</Button>}
         />

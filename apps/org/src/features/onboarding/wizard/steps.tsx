@@ -235,7 +235,7 @@ export function TokenStep({ draft, set, check }: { draft: Draft; set: Set; check
           title="Make a new token"
           onSelect={() => set({ tokenMode: "NEW" })}
         >
-          Pick a code and an image. It&apos;s issued from your own Bandcoin account.
+          Pick a code and an image. It&apos;s issued from your own Action Tokens account.
         </Choice>
         <Choice
           on={!isNew}

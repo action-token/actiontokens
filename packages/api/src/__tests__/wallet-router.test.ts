@@ -146,7 +146,7 @@ describe("wallet assets", () => {
       assets.tokens.map((token) => [token.code, token.kind, token.title, token.amount]),
     ).toEqual([
       ["XLM", "xlm", "Stellar Lumens", "10.0000000"],
-      ["BANDCOIN", "bandcoin", "Bandcoin", "250.0000000"],
+      ["BANDCOIN", "bandcoin", "Action Tokens", "250.0000000"],
       ["USDC", "usdc", "USD Coin", "0.0000000"],
       ["NOVA", "other", "Nova fan token", "3.0000000"],
     ]);

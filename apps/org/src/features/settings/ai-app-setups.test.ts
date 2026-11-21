@@ -24,7 +24,7 @@ describe("how each AI app is told about the server", () => {
     expect(new Set(setups.map((s) => s.id)).size).toBe(setups.length);
   });
 
-  it("names the server for Bandcoin", () => {
+  it("names the server for Action Tokens", () => {
     expect(SERVER_NAME).toBe("bandcoin");
   });
 

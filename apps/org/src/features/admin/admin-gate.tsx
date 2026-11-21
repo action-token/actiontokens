@@ -28,7 +28,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
         <EmptyState
           icon={ShieldAlert}
           title="Admins only"
-          description="This area is for Bandcoin admins. Your account doesn't have admin access."
+          description="This area is for Action Tokens admins. Your account doesn't have admin access."
           action={
             <Button asChild variant="outline">
               <Link href="/">Back to your portal</Link>

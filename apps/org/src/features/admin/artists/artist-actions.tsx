@@ -84,9 +84,9 @@ export function useArtistActions() {
         title={`Approve ${name}?`}
         description={
           <>
-            Their organization tools open and they appear on Bandcoin. Bandcoin also opens their
-            storage account and pays for it: about 3 XLM from the platform account, which trusts
-            BANDCOIN, USDC and their fan token
+            Their organization tools open and they appear on Action Tokens. Action Tokens also opens
+            their storage account and pays for it: about 3 XLM from the platform account, which
+            trusts BANDCOIN, USDC and their fan token
             {supply > 0
               ? `, and ${supply.toLocaleString("en-US")} of their fan token are issued into it.`
               : "."}
@@ -103,7 +103,7 @@ export function useArtistActions() {
         description={
           pending?.action === "unban"
             ? "They get their organization tools back."
-            : "Their organization tools stop working and they won't be shown on Bandcoin. Nothing is refunded. You can unban them later."
+            : "Their organization tools stop working and they won't be shown on Action Tokens. Nothing is refunded. You can unban them later."
         }
         confirmLabel={pending?.action === "unban" ? "Unban" : "Ban"}
         destructive={pending?.action !== "unban"}

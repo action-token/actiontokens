@@ -314,7 +314,7 @@ function Settings({ draft, set }: { draft: EmbedDraft; set: SetDraft }) {
           <p className="text-fg-muted text-xs">
             {draft.pinSource === "ARTIST"
               ? "Only your own pins appear: on the map, in the list and in search."
-              : "Every organization's pins in the area appear, like the Bandcoin AR app."}
+              : "Every organization's pins in the area appear, like the Action Tokens AR app."}
           </p>
         </div>
         <Label className="block pt-1">Pin types</Label>
@@ -373,7 +373,7 @@ function Settings({ draft, set }: { draft: EmbedDraft; set: SetDraft }) {
         />
         <Toggle
           title="Murals"
-          hint="Street art Bandcoin fans found and admins verified, shown once visitors zoom in"
+          hint="Street art Action Tokens fans found and admins verified, shown once visitors zoom in"
           checked={draft.showMurals}
           onChange={(value) => set("showMurals", value)}
         />
@@ -597,7 +597,7 @@ function LinkField({
             placeholder="https://"
           />
           <p className="text-fg-muted text-[11px]">
-            Opens in a new tab. Use your own page, or keep Bandcoin&apos;s.
+            Opens in a new tab. Use your own page, or keep Action Tokens&apos;.
           </p>
         </div>
       )}

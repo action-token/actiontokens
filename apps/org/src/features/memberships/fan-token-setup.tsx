@@ -7,7 +7,11 @@ import toast from "react-hot-toast";
 import { Button } from "@actiontokens/ui/components/button";
 import { Input } from "@actiontokens/ui/components/input";
 import { cn } from "@actiontokens/ui/lib/cn";
-import { assetCodeFrom, normalizeAssetCode, validateAssetCode } from "@actiontokens/utils/asset-code";
+import {
+  assetCodeFrom,
+  normalizeAssetCode,
+  validateAssetCode,
+} from "@actiontokens/utils/asset-code";
 
 import { useDebounced } from "~/lib/use-debounced";
 import { api, type RouterOutputs } from "~/trpc/react";
@@ -208,7 +212,7 @@ export function FanTokenSetup() {
           preview
           hint={
             mode === "EXISTING"
-              ? "Upload an image for your token. It exists on Stellar already, so this picture is only for Bandcoin."
+              ? "Upload an image for your token. It exists on Stellar already, so this picture is only for Action Tokens."
               : "Shown wherever fans see the token."
           }
         />

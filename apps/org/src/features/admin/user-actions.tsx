@@ -149,7 +149,7 @@ export function useUserActions(me: string | undefined) {
         open={pending?.kind === "unsuspend"}
         onOpenChange={close}
         title={`Lift the suspension on ${pending ? nameOf(pending.person) : ""}?`}
-        description="They can sign in and use Bandcoin again straight away."
+        description="They can sign in and use Action Tokens again straight away."
         confirmLabel="Lift suspension"
         destructive={false}
         busy={unsuspend.isPending}

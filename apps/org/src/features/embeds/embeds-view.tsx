@@ -111,7 +111,7 @@ export function EmbedsView() {
         <EmptyState
           icon={Code2}
           title="No website maps yet"
-          description="Create one, set where it opens and how it looks, then paste the snippet into your site. Visitors see your pins nearby and open them in Bandcoin."
+          description="Create one, set where it opens and how it looks, then paste the snippet into your site. Visitors see your pins nearby and open them in Action Tokens."
           action={add}
         />
       ) : (

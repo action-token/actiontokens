@@ -183,3 +183,29 @@ h3 {
   box-shadow: 2px 2px 0 0 var(--st-ink);
   margin-bottom: 0.5rem;
 }
+
+/* Panels built from plain divs (page sections, table frames, list cards, stat tiles) share the
+   rounded-[1.4rem] border-2 recipe; give them the same outlined sticker face as Card. */
+[class*="rounded-[1.4rem]"][class*="border-2"]:not([class*="border-dashed"]):not(.absolute) {
+  border-color: var(--st-line);
+  border-radius: 14px;
+  box-shadow: 4px 4px 0 0 var(--st-pop);
+}
+/* Buttons made with link/button classes inside page headers keep Teko caps too */
+[data-slot="button"] > span,
+[data-slot="button"] {
+  font-size: 0.95rem;
+}
+[data-slot="button"][data-size="xs"],
+[data-slot="button"][data-size="sm"] {
+  font-size: 0.85rem;
+}
+
+/* List rows and cards (bounties, events, items): a padded bg-surface box with rounded-xl and a border */
+[class*="bg-surface"][class*="rounded-xl"][class*="border"][class*="p-4"]:not(
+    [class*="border-dashed"]
+  ) {
+  border: 2px solid var(--st-line);
+  border-radius: 14px;
+  box-shadow: 4px 4px 0 0 var(--st-pop);
+}
