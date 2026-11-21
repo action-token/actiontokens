@@ -2,14 +2,18 @@
 
 import {
   ArrowDown,
+  ArrowDownLeft,
   ArrowDownUp,
   ArrowLeft,
   ArrowUp,
+  ArrowUpRight,
   BadgeCheck,
   ArrowRight,
   BarChart3,
   CalendarDays,
   Check,
+  Clock,
+  Coins,
   ChevronDown,
   Crown,
   Download,
@@ -17,6 +21,7 @@ import {
   Eye,
   EyeOff,
   FileText,
+  Gift,
   GripVertical,
   Image as ImageIcon,
   Images,
@@ -25,6 +30,7 @@ import {
   Link2,
   MapPin,
   MapPinned,
+  Megaphone,
   Monitor,
   MoreHorizontal,
   Music2,
@@ -36,6 +42,7 @@ import {
   ScanLine,
   Search,
   Send,
+  ShoppingBag,
   Smartphone,
   Star,
   Ticket,
@@ -58,6 +65,7 @@ import { Person } from "@actiontokens/ui/patterns/person";
 import { PinGlyph } from "@actiontokens/ui/patterns/pin-glyph";
 import { StatCard } from "@actiontokens/ui/patterns/stat-card";
 import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
+import { TallText } from "@actiontokens/ui/patterns/tall-text";
 import { WalletAssets, WalletHero, WalletPanel } from "@actiontokens/ui/patterns/wallet-blocks";
 
 import { MAPBOX_TOKEN } from "../pins/mapbox";
@@ -472,6 +480,10 @@ const ART = {
   acid: "linear-gradient(160deg,#d4ff2a,#0aff54 50%,#04320f)",
   chrome: "linear-gradient(160deg,#f2f2f2,#7a7a7a 45%,#111)",
   violet: "linear-gradient(160deg,#b06bff,#ff3dd8 55%,#3d0b40)",
+  gold: "linear-gradient(160deg,#ffe27a,#ff9f1c 50%,#5a2a00)",
+  night: "linear-gradient(160deg,#5b6cff,#1b1f5e 55%,#05060f)",
+  peach: "linear-gradient(160deg,#ffd1b8,#ff7a6b 50%,#7a1f3d)",
+  mint: "linear-gradient(160deg,#b8ffe9,#2ee6a6 50%,#0b3d33)",
 };
 
 /** Stagger: elements with data-a rise in, in order, when their panel turns on. */
@@ -846,6 +858,51 @@ function ReportsPage() {
   );
 }
 
+/** A row of stat cards, as at the top of the real pages. */
+function Stats({
+  items,
+  from,
+}: {
+  items: readonly (readonly [string, LucideIcon, string, string, boolean?])[];
+  from: number;
+}) {
+  return (
+    <dl className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+      {items.map(([label, icon, value, hint, good], index) => (
+        <div key={label} {...a(from + index)}>
+          <StatCard
+            label={label}
+            icon={icon}
+            value={value}
+            hint={<span className={good ? "text-success" : undefined}>{hint}</span>}
+          />
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/** Filter tabs, as the real lists draw them (the first is picked). */
+function Tabs({ items, i }: { items: string[]; i: number }) {
+  return (
+    <div data-slot="tabs-list" className="tour-tabs w-fit" {...a(i)}>
+      {items.map((item, index) => (
+        <span key={item} data-slot="tabs-trigger" data-state={index === 0 ? "active" : undefined}>
+          {item}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function Heading({ icon: Icon, children }: { icon: LucideIcon; children: ReactNode }) {
+  return (
+    <h2 className="text-fg-muted flex items-center gap-1.5 text-[11px] font-semibold tracking-wider uppercase">
+      <Icon className="size-3.5" /> {children}
+    </h2>
+  );
+}
+
 function BountiesPage() {
   const cards = [
     {
@@ -864,6 +921,33 @@ function BountiesPage() {
       winners: 1,
       left: "1 left",
       art: [ART.ocean],
+      action: "Join",
+    },
+    {
+      title: "Design the tour poster",
+      text: "A poster for the winter run: Dhaka, Chattogram, Sylhet. Print-ready, A2. The winner's poster becomes a collectible.",
+      prize: "400",
+      winners: 1,
+      left: "1 left",
+      art: [ART.gold, ART.peach],
+      action: "Join",
+    },
+    {
+      title: "Cover the B-side",
+      text: "Play 'Lake lights' your way: acoustic, a cappella, full band. Post it, tag us, send the link here.",
+      prize: "300",
+      winners: 2,
+      left: "Paused",
+      art: [ART.night],
+      action: "View",
+    },
+    {
+      title: "Find the five posters",
+      text: "Five posters are hidden around Banani. Collect all five pins on the map before Sunday midnight.",
+      prize: "250",
+      winners: 10,
+      left: "7 left",
+      art: [ART.mint, ART.ocean],
       action: "Join",
     },
     {
@@ -890,6 +974,16 @@ function BountiesPage() {
           }
         />
       </div>
+      <Stats
+        from={1}
+        items={[
+          ["In escrow", Coins, "2,900 ACTION", "across 4 running bounties"],
+          ["Fans joined", Users, "214", "+38 this week", true],
+          ["To review", Eye, "14", "reports waiting for you"],
+          ["Paid out", Trophy, "3,100 ACTION", "to 17 winners", true],
+        ]}
+      />
+      <Tabs i={5} items={["All 6", "Running 4", "Paused 1", "Ended 1"]} />
       {/* the bounty card as fans see it in the marketplace */}
       <div className="grid grid-cols-3 gap-4">
         {cards.map((card, index) => (
@@ -899,7 +993,7 @@ function BountiesPage() {
               "bg-surface relative isolate flex min-h-64 flex-col overflow-hidden rounded-[1.4rem] border-2 p-5",
               index === 0 && "shadow-[6px_7px_0_0_var(--color-primary)]",
             )}
-            {...a(index + 1)}
+            {...a(index + 6)}
           >
             <div aria-hidden className="absolute inset-0 -z-10 flex">
               {card.art.map((fill) => (
@@ -985,9 +1079,41 @@ function ItemsPage() {
       "Sold out",
     ],
     ["Record tote", "Merch", "0 sold of 150", "900", "$9.00", ART.violet, "neutral", "Draft"],
+    [
+      "Backstage pass",
+      "Ticket",
+      "18 sold of 25",
+      "1,500",
+      "$15.00",
+      ART.gold,
+      "success",
+      "For sale",
+    ],
+    ["Lake lights (video)", "Video", "64 sold", "120", "$1.20", ART.night, "success", "For sale"],
+    ["Signed vinyl", "Merch", "9 sold of 30", "2,400", "$24.00", ART.peach, "success", "For sale"],
+    [
+      "Tour sticker pack",
+      "Merch",
+      "203 sold of 500",
+      "60",
+      "$0.60",
+      ART.mint,
+      "success",
+      "For sale",
+    ],
+    [
+      "Founders badge",
+      "Collectible",
+      "100 sold of 100",
+      "800",
+      "$8.00",
+      ART.chrome,
+      "warning",
+      "Sold out",
+    ],
   ] as const;
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-5">
       <div {...a(0)}>
         <PageHeader
           eyebrow="Catalog"
@@ -1000,14 +1126,24 @@ function ItemsPage() {
           }
         />
       </div>
+      <Stats
+        from={1}
+        items={[
+          ["Sales", ShoppingBag, "585", "+22% on the last 30 days", true],
+          ["Earned", Coins, "41,860 ACTION", "≈ $418.60", true],
+          ["Listed", Package, "8 of 10", "2 sold out, 1 draft"],
+          ["Best seller", TrendingUp, "Sticker pack", "203 sold"],
+        ]}
+      />
+      <Tabs i={5} items={["All 10", "Art", "Tickets", "Merch", "Collectibles", "Video"]} />
       <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
         {rows.map(([title, type, sold, action, usd, art, tone, status], index) => (
           <li
             key={title}
             className="bg-surface overflow-hidden rounded-[1.4rem] border-2"
-            {...a(index + 1)}
+            {...a(index + 6)}
           >
-            <span className="relative block aspect-square" style={{ background: art }}>
+            <span className="relative block aspect-[4/3]" style={{ background: art }}>
               <StatusPill tone={tone} className="bg-surface absolute top-2.5 left-2.5 shadow-sm">
                 {status}
               </StatusPill>
@@ -1034,23 +1170,34 @@ function MembershipsPage() {
     {
       name: "Fan",
       hold: 50,
+      members: 812,
       text: "For everyone who follows along.",
-      perks: ["Members-only posts", "Fan badge"],
+      perks: ["Members-only posts", "Fan badge on the map"],
     },
     {
       name: "Supporter",
       hold: 250,
+      members: 318,
       text: "Early access to every drop.",
-      perks: ["Early drops", "Monthly gift", "Members-only posts"],
+      perks: ["Early drops, 24h ahead", "Monthly gift pin", "Members-only posts"],
       popular: true,
     },
     {
       name: "VIP",
       hold: 1000,
+      members: 74,
       text: "Closest to the band.",
-      perks: ["Backstage room", "Signed merch", "All Supporter perks"],
+      perks: ["Backstage room at shows", "Signed merch each season", "All Supporter perks"],
     },
   ];
+  const members = [
+    ["nadia.r", "VIP", "1,480", "2h ago"],
+    ["m0ss", "Supporter", "640", "5h ago"],
+    ["velvet.ops", "Supporter", "310", "Yesterday"],
+    ["drift.king", "Fan", "120", "Yesterday"],
+    ["sabbir", "VIP", "2,050", "2 days ago"],
+    ["tasnim.k", "Fan", "75", "3 days ago"],
+  ] as const;
   return (
     <div className="grid content-start gap-5">
       <div {...a(0)}>
@@ -1066,7 +1213,7 @@ function MembershipsPage() {
         />
       </div>
       <section
-        className="bg-surface border-fg/10 flex flex-wrap items-center gap-x-8 gap-y-4 rounded-[1.4rem] border-2 p-5"
+        className="bg-surface border-fg/10 flex flex-wrap items-center gap-x-10 gap-y-4 rounded-[1.4rem] border-2 p-5"
         {...a(1)}
       >
         <span className="tour-token">RR</span>
@@ -1074,14 +1221,22 @@ function MembershipsPage() {
           <p className="display truncate text-2xl">ROOF</p>
           <p className="text-fg-muted text-sm">Rooftop Records fan token</p>
         </div>
-        <div>
-          <p className="text-fg-muted text-xs">Holders</p>
-          <p className="num text-xl font-semibold">1,204</p>
-        </div>
-        <div>
-          <p className="text-fg-muted text-xs">Price</p>
-          <p className="num text-xl font-semibold">1.84 ACTION</p>
-        </div>
+        {[
+          ["Holders", "1,204"],
+          ["Price", "1.84 ACTION"],
+          ["24h", "+4.2%"],
+          ["Supply held", "61%"],
+        ].map(([label, value]) => (
+          <div key={label}>
+            <p className="text-fg-muted text-xs">{label}</p>
+            <p className={cn("num text-xl font-semibold", value?.startsWith("+") && "text-success")}>
+              {value}
+            </p>
+          </div>
+        ))}
+        <Button variant="outline" className="ml-auto" tabIndex={-1}>
+          <ArrowUpRight /> View on Stellar
+        </Button>
       </section>
       <ul className="grid gap-3 md:grid-cols-3">
         {tiers.map((tier, index) => (
@@ -1100,6 +1255,10 @@ function MembershipsPage() {
                   <Star className="size-3" /> Popular
                 </span>
               )}
+              <span className="text-fg-muted ml-auto text-[11px] tracking-normal normal-case">
+                <Users className="mr-1 inline size-3" />
+                {tier.members} members
+              </span>
             </p>
             <h3 className="display mt-1 truncate text-2xl">{tier.name}</h3>
             <p className="mt-2">
@@ -1117,6 +1276,47 @@ function MembershipsPage() {
           </li>
         ))}
       </ul>
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <section className="bg-surface rounded-[1.4rem] border-2 p-4" {...a(5)}>
+          <Heading icon={Users}>Newest members</Heading>
+          <ul className="mt-2 divide-y">
+            {members.map(([name, tier, hold, when]) => (
+              <li key={name} className="flex items-center gap-3 py-2">
+                <Person name={name} size="sm" />
+                <StatusPill
+                  tone={tier === "VIP" ? "warning" : tier === "Supporter" ? "success" : "neutral"}
+                >
+                  {tier}
+                </StatusPill>
+                <span className="num ml-auto text-sm font-semibold">{hold} ROOF</span>
+                <span className="text-fg-faint w-20 text-right text-xs">{when}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+        <section className="bg-surface rounded-[1.4rem] border-2 p-4" {...a(6)}>
+          <Heading icon={Crown}>Members by tier</Heading>
+          <ul className="mt-4 grid gap-4">
+            {tiers.map((tier) => (
+              <li key={tier.name} className="grid gap-1.5">
+                <span className="flex justify-between text-sm">
+                  <b>{tier.name}</b>
+                  <span className="num text-fg-muted">{tier.members}</span>
+                </span>
+                <span className="bg-surface-2 block h-2 overflow-hidden rounded-full">
+                  <span
+                    className="bg-primary block h-full rounded-full"
+                    style={{ width: `${(tier.members / 812) * 100}%` }}
+                  />
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-fg-muted mt-5 border-t pt-3 text-xs">
+            1,204 holders · 1,204 in a tier. Members move up the moment they hold more.
+          </p>
+        </section>
+      </div>
     </div>
   );
 }
@@ -1127,7 +1327,7 @@ function EventsPage() {
       "Thursday live",
       "Thu, Nov 26 · 8:00 PM",
       "Rooftop Records, Banani",
-      "120 RSVPs of 200 · 2 pins, 1 bounty linked",
+      "120 RSVPs of 200 · 2 pins, 1 bounty",
       "Upcoming",
       ART.sunset,
     ],
@@ -1148,16 +1348,48 @@ function EventsPage() {
       ART.ocean,
     ],
     [
+      "Winter run: Chattogram",
+      "Fri, Dec 11 · 7:30 PM",
+      "Theatre Institute, CTG",
+      "210 RSVPs of 400 · 3 pins",
+      "Upcoming",
+      ART.gold,
+    ],
+    [
+      "Winter run: Sylhet",
+      "Sat, Dec 19 · 7:30 PM",
+      "Zindabazar hall",
+      "96 RSVPs of 300",
+      "Upcoming",
+      ART.night,
+    ],
+    [
+      "Members' brunch",
+      "Sun, Dec 20 · 11:00 AM",
+      "North End, Gulshan",
+      "VIP only · 22 of 30",
+      "Upcoming",
+      ART.peach,
+    ],
+    [
       "Riverbank cleanup",
       "Sun, Nov 15 · 9:00 AM",
       "Hatirjheel lake",
-      "41 RSVPs · 1 bounty linked",
+      "41 came · 1 bounty linked",
       "Past",
       ART.acid,
     ],
+    [
+      "Album night",
+      "Fri, Nov 6 · 9:00 PM",
+      "Rooftop Records, Banani",
+      "188 came · 412 pins collected",
+      "Past",
+      ART.mint,
+    ],
   ] as const;
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-5">
       <div {...a(0)}>
         <PageHeader
           eyebrow="Drops"
@@ -1170,20 +1402,24 @@ function EventsPage() {
           }
         />
       </div>
-      <div data-slot="tabs-list" className="tour-tabs" {...a(1)}>
-        <span data-slot="tabs-trigger" data-state="active">
-          Events
-        </span>
-        <span data-slot="tabs-trigger">Announcements</span>
-      </div>
+      <Stats
+        from={1}
+        items={[
+          ["Upcoming", CalendarDays, "6", "next: Thursday live, in 4 days"],
+          ["RSVPs", Users, "550", "+71 this week", true],
+          ["Pins at events", MapPin, "9", "412 collected at Album night"],
+          ["Announcements", Megaphone, "12", "3 pinned on your page"],
+        ]}
+      />
+      <Tabs i={5} items={["Events 8", "Announcements 12"]} />
       <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {events.map(([title, when, where, rsvp, status, art], index) => (
           <li
             key={title}
             className="bg-surface overflow-hidden rounded-[1.4rem] border-2"
-            {...a(index + 2)}
+            {...a(index + 6)}
           >
-            <span className="relative block h-36" style={{ background: art }}>
+            <span className="relative block h-28" style={{ background: art }}>
               <StatusPill
                 tone={status === "Past" ? "neutral" : "success"}
                 className="bg-surface absolute top-2.5 right-2.5 shadow-sm"
@@ -1191,13 +1427,13 @@ function EventsPage() {
                 {status}
               </StatusPill>
             </span>
-            <div className="grid gap-2 p-4">
+            <div className="grid gap-1.5 p-4">
               <h3 className="display truncate text-2xl">{title}</h3>
               <p className="text-fg-muted text-sm">{when}</p>
               <p className="text-fg-muted flex items-center gap-1.5 text-sm">
                 <MapPin className="size-4 shrink-0" /> <span className="truncate">{where}</span>
               </p>
-              <p className="text-fg-faint text-xs">{rsvp}</p>
+              <p className="text-fg-faint truncate text-xs">{rsvp}</p>
             </div>
           </li>
         ))}
@@ -1361,7 +1597,7 @@ function PageBuilderPage() {
                   <span>Shop</span>
                 </span>
               </div>
-              <div className="flex items-end gap-4 px-6">
+              <div className="relative z-10 flex items-end gap-4 px-6">
                 <span className="tour-token -mt-9 size-20! text-3xl!">RR</span>
                 <div className="min-w-0 flex-1 pb-1">
                   <p className="flex items-center gap-1.5 text-lg font-bold">
@@ -1456,6 +1692,14 @@ function PageBuilderPage() {
 }
 
 function WalletPage() {
+  const activity = [
+    [ShoppingBag, "Sold: Signed vinyl", "to nadia.r · 12 min ago", "+2,400", true],
+    [Music2, "Song sales: Night Drive", "6 buyers · 1h ago", "+540", true],
+    [Trophy, "Bounty prize to escrow", "Remix the single · 3h ago", "-1,200", false],
+    [Ticket, "Sold: Backstage pass", "to m0ss · 5h ago", "+1,500", true],
+    [Gift, "Gift from a fan", "velvet.ops · Yesterday", "+100", true],
+    [ArrowDownUp, "Swapped XLM for ACTION", "Yesterday", "+3,000", true],
+  ] as const;
   return (
     <div className="grid content-start gap-5">
       <div {...a(0)}>
@@ -1463,9 +1707,19 @@ function WalletPage() {
       </div>
       <div {...a(1)}>
         <WalletHero
-          label="ACTION balance"
+          label="your ACTION balance"
           address="GDROOFTOPRECORDSEXAMPLEWALLETADDRESSFORTHETOURPAGE0000"
-          balance="10,000"
+          balance={
+            <TallText className="pb-[0.12em] text-7xl tabular-nums sm:text-8xl">
+              48.6K <span className="text-[0.45em]">ACTION</span>
+            </TallText>
+          }
+          below={
+            <p className="text-side-ink/75 flex flex-wrap gap-x-4 text-sm font-semibold">
+              <span>9,996 XLM</span>
+              <span>120 USDC</span>
+            </p>
+          }
           actions={[
             { id: "send", label: "Send", icon: Send, primary: true },
             { id: "swap", label: "Swap", icon: ArrowDownUp },
@@ -1473,23 +1727,65 @@ function WalletPage() {
           ]}
         />
       </div>
-      <div {...a(2)}>
-        <WalletPanel title="Tokens">
-          <WalletAssets
-            empty={null}
-            rows={[
-              {
-                key: "roof",
-                code: "ROOF",
-                title: "Rooftop Records fan token",
-                amount: "2,500",
-                onSend: null,
-              },
-              { key: "xlm", code: "XLM", title: "Stellar Lumens", amount: "9,996", onSend: null },
-              { key: "usdc", code: "USDC", title: "USD Coin", amount: "120", onSend: null },
-            ]}
-          />
-        </WalletPanel>
+      <Stats
+        from={2}
+        items={[
+          ["Earned this month", ArrowDownLeft, "12,480 ACTION", "+31% on last month", true],
+          ["From sales", ShoppingBag, "9,620 ACTION", "585 sales"],
+          ["Royalties", Music2, "2,860 ACTION", "from 1,204 streams"],
+          ["Held in escrow", Coins, "2,900 ACTION", "4 running bounties"],
+        ]}
+      />
+      <div className="grid gap-3 lg:grid-cols-2">
+        <div {...a(6)}>
+          <WalletPanel title="Tokens">
+            <WalletAssets
+              empty={null}
+              rows={[
+                {
+                  key: "roof",
+                  code: "ROOF",
+                  title: "Rooftop Records fan token",
+                  amount: "2,500",
+                  onSend: null,
+                },
+                { key: "xlm", code: "XLM", title: "Stellar Lumens", amount: "9,996", onSend: null },
+                { key: "usdc", code: "USDC", title: "USD Coin", amount: "120", onSend: null },
+                {
+                  key: "skull",
+                  code: "SKULL",
+                  title: "Chrome skull key (NFT)",
+                  amount: "1",
+                  onSend: null,
+                },
+              ]}
+            />
+          </WalletPanel>
+        </div>
+        <section className="bg-surface rounded-[1.4rem] border-2 p-4" {...a(7)}>
+          <Heading icon={Clock}>Recent activity</Heading>
+          <ul className="mt-2 divide-y">
+            {activity.map(([Icon, title, sub, amount, plus]) => (
+              <li key={title} className="flex items-center gap-3 py-2.5">
+                <span className="bg-surface-2 grid size-9 shrink-0 place-items-center rounded-full">
+                  <Icon className="text-fg-muted size-4" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <b className="block truncate text-sm">{title}</b>
+                  <span className="text-fg-faint text-xs">{sub}</span>
+                </span>
+                <span
+                  className={cn(
+                    "num text-sm font-semibold",
+                    plus ? "text-success" : "text-fg-muted",
+                  )}
+                >
+                  {amount} ACTION
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
       </div>
     </div>
   );
