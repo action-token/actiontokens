@@ -492,19 +492,19 @@ export function WalletSummary() {
   return (
     <Link href="/wallet" className="gx-vault group" aria-label="Wallet">
       <span className="gx-vault-in">
-        <span className="gx-mono text-fg-muted flex items-center justify-between">
+        <span className="gx-mono text-fg-muted flex items-center justify-between gap-2">
           Vault
-          <span className="text-primary-text transition-transform group-hover:translate-x-0.5">
-            →
+          <span className="flex items-center gap-1.5">
+            <span className="text-[var(--gx-acid-text)]">{TOKEN_NAME}</span>
+            <span className="text-primary-text transition-transform group-hover:translate-x-0.5">
+              →
+            </span>
           </span>
         </span>
-        <span className="mt-2 flex items-baseline gap-2">
-          <span className="gx-amount">
-            {balances ? <Money amount={balances.ACTION} currency="ACTION" short /> : "…"}
-          </span>
-          <span className="gx-mono text-[var(--gx-acid-text)]">{TOKEN_NAME}</span>
+        <span className="gx-amount mt-2 block truncate">
+          {balances ? <Money amount={balances.ACTION} currency="ACTION" short /> : "…"}
         </span>
-        <span className="gx-mono text-fg-faint mt-2 flex gap-3">
+        <span className="gx-mono text-fg-faint mt-2 flex flex-wrap gap-x-3 gap-y-1">
           {MAIN.slice(1).map((currency) => (
             <span key={currency} className="flex items-center gap-1">
               {currency}

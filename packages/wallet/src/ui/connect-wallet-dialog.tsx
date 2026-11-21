@@ -210,7 +210,6 @@ export function ConnectWalletDialog() {
     const walletLabel = getWalletLabel(user.walletType ?? "");
     return (
       <div className="bg-surface-2 relative shrink-0 overflow-hidden rounded-[14px] border-[2.5px] border-[var(--sticker-line,#f2f7f2)] p-3.5 shadow-[4px_4px_0_0_var(--color-primary)]">
-        
         <div className="border-border relative mb-3 flex items-center gap-2 border-b pr-8 pb-2.5">
           <Image src={brandMark} alt="" width={22} height={22} />
           <span className="font-display text-foreground text-[15px] leading-none tracking-[0.05em]">
@@ -229,7 +228,9 @@ export function ConnectWalletDialog() {
             <p className="font-display bg-primary inline-block -rotate-1 px-1.5 text-[11px] tracking-[0.06em] text-black">
               PLAYER ONE · {walletLabel.toUpperCase()}
             </p>
-            <p className="font-display text-foreground mt-1 truncate text-[20px] leading-tight uppercase">{name}</p>
+            <p className="font-display text-foreground mt-1 truncate text-[20px] leading-tight uppercase">
+              {name}
+            </p>
             <p className="text-muted-foreground font-mono text-xs">
               {abbreviateAddress(user.walletAddress, 6)}
             </p>
@@ -348,7 +349,10 @@ export function ConnectWalletDialog() {
         </button>
         <button
           onClick={() => void appleProvider.login()}
-          className={clsx(base, "border-[2.5px] border-[var(--sticker-line,#f2f7f2)] bg-black text-white shadow-[4px_4px_0_0_var(--color-primary)]")}
+          className={clsx(
+            base,
+            "border-[2.5px] border-[var(--sticker-line,#f2f7f2)] bg-black text-white shadow-[4px_4px_0_0_var(--color-primary)]",
+          )}
         >
           <AppleLogo />
           Continue with Apple
@@ -467,13 +471,15 @@ export function ConnectWalletDialog() {
             "bg-surface gap-0 overflow-hidden border-[3px] border-[var(--sticker-line,#f2f7f2)] p-0 shadow-[6px_6px_0_0_var(--color-primary)]",
             isFramedHost
               ? "mx-auto flex max-h-[88vh] w-full max-w-[420px] flex-col rounded-[22px]"
-              : "flex max-h-[92dvh] max-w-[860px] rounded-[22px] lg:grid lg:grid-cols-[330px_1fr]",
+              : // On wide screens the dialog has a set height and one row that fits it, so the
+                // sign-in column scrolls inside it and the brand panel never runs past the edge.
+                "flex max-h-[92dvh] max-w-[860px] rounded-[22px] lg:grid lg:h-[min(92dvh,760px)] lg:grid-cols-[330px_1fr] lg:grid-rows-[minmax(0,1fr)]",
           )}
         >
           {/* ── Brand panel (wide screens) ── */}
           <aside
             className={clsx(
-              "border-border relative flex-col justify-between overflow-hidden border-r bg-black p-7",
+              "border-border relative min-h-0 flex-col justify-between gap-6 overflow-hidden border-r bg-black p-7",
               isFramedHost ? "hidden" : "hidden lg:flex",
             )}
           >
@@ -486,24 +492,24 @@ export function ConnectWalletDialog() {
             <div className="relative">
               <Image src={brandMark} alt="ActionTokens" width={64} height={64} priority />
               <p className="font-neon at-neon-text mt-4 text-2xl">Welcome</p>
-              <p className="font-shade text-foreground mt-3 text-[44px] leading-[0.95]">
+              <p className="font-shade mt-3 text-[44px] leading-[0.95] text-white">
                 ACTION
                 <br />
                 TOKENS
               </p>
-              <p className="font-pixel text-muted-foreground mt-4 text-[11px] leading-relaxed tracking-widest">
+              <p className="font-pixel mt-4 text-[11px] leading-relaxed tracking-widest text-white/60">
                 DISCOVER · ACT · PROVE
                 <br />
                 EARN · FLEX
               </p>
             </div>
             <div className="relative">
-              <div className="border-border-strong rounded-[14px] border bg-[#0a0d0a]/90 p-4">
+              <div className="rounded-[14px] border border-white/15 bg-[#0a0d0a]/90 p-4">
                 <div className="flex items-center gap-2">
-                  <QrCodeIcon className="text-primary-text size-5" />
-                  <p className="font-brand text-sm">Scan with Lobstr</p>
+                  <QrCodeIcon className="size-5 text-[#3dff76]" />
+                  <p className="font-brand text-sm text-white">Scan with Lobstr</p>
                 </div>
-                <p className="text-muted-foreground mt-1 text-xs">
+                <p className="mt-1 text-xs text-white/60">
                   Connect your phone wallet with a QR code.
                 </p>
                 <div className="mt-3">
@@ -557,7 +563,10 @@ export function ConnectWalletDialog() {
                 onClick={() => setActiveTab(onWallets ? "action" : "stellar")}
                 className="group bg-surface-2 relative mt-auto flex -rotate-1 items-center gap-3 rounded-[12px] border-[2.5px] border-[var(--sticker-line,#f2f7f2)] px-4 py-3 text-left shadow-[4px_4px_0_0_var(--color-primary)] transition-[transform,box-shadow] duration-100 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
               >
-                <span aria-hidden className="absolute -top-2 left-1/2 h-4 w-12 -translate-x-1/2 rotate-3 bg-[#f2f7f2]/70" />
+                <span
+                  aria-hidden
+                  className="absolute -top-2 left-1/2 h-4 w-12 -translate-x-1/2 rotate-3 bg-[#f2f7f2]/70"
+                />
                 <span className="bg-primary flex size-9 items-center justify-center rounded-full border-2 border-black text-black">
                   {onWallets ? <ArrowLeft className="size-4" /> : <Wallet className="size-4" />}
                 </span>
