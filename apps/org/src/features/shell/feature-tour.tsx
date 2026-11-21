@@ -418,6 +418,7 @@ export function FeatureTour() {
               <div
                 className="tour-page"
                 data-full={chapter.id === "map" || chapter.id === "page" || undefined}
+                data-pad={chapter.id === "page" || undefined}
               >
                 <chapter.Page />
               </div>
@@ -846,31 +847,33 @@ function ReportsPage() {
 }
 
 function BountiesPage() {
-  const rows = [
+  const cards = [
     {
       title: "Best rooftop moment",
-      summary: "Film your best moment at Thursday's show. Under 60 seconds.",
-      prize: "750 ACTION",
-      line: "12 joined · 9 reports · 1/3 winners",
-      tone: "success" as const,
-      status: "Running",
+      text: "Film your best moment at Thursday's show. Under 60 seconds, vertical, with the crowd in it. Three winners share the prize.",
+      prize: "750",
+      winners: 3,
+      left: "2 left",
+      art: [ART.sunset, ART.violet],
+      action: "View",
     },
     {
       title: "Remix the single",
-      summary: "Stems are in the brief. Any genre.",
-      prize: "1,200 ACTION",
-      line: "27 joined · 14 reports · 0/1 winners",
-      tone: "success" as const,
-      status: "Running",
-      music: true,
+      text: "Stems are in the brief. Any genre, any length. The best remix goes out on our page and in the next drop.",
+      prize: "1.2K",
+      winners: 1,
+      left: "1 left",
+      art: [ART.ocean],
+      action: "Join",
     },
     {
       title: "Clean the riverbank",
-      summary: "Photo proof, teams welcome.",
-      prize: "500 ACTION",
-      line: "41 joined · 41 reports · 5/5 winners",
-      tone: "neutral" as const,
-      status: "Completed",
+      text: "Photo proof, before and after. Teams welcome: one report per team, everyone on it shares the win.",
+      prize: "500",
+      winners: 5,
+      left: "Ended",
+      art: [ART.acid, ART.chrome],
+      action: "View",
     },
   ];
   return (
@@ -887,34 +890,63 @@ function BountiesPage() {
           }
         />
       </div>
-      <ul className="grid gap-3">
-        {rows.map((row, index) => (
-          <li
-            key={row.title}
-            className="bg-surface grid gap-2 rounded-xl border p-4 sm:p-5"
+      {/* the bounty card as fans see it in the marketplace */}
+      <div className="grid grid-cols-3 gap-4">
+        {cards.map((card, index) => (
+          <article
+            key={card.title}
+            className={cn(
+              "bg-surface relative isolate flex min-h-64 flex-col overflow-hidden rounded-[1.4rem] border-2 p-5",
+              index === 0 && "shadow-[6px_7px_0_0_var(--color-primary)]",
+            )}
             {...a(index + 1)}
           >
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <h3 className="display min-w-0 text-2xl">{row.title}</h3>
-              <StatusPill tone={row.tone}>{row.status}</StatusPill>
+            <div aria-hidden className="absolute inset-0 -z-10 flex">
+              {card.art.map((fill) => (
+                <span
+                  key={fill}
+                  className="h-full min-w-0 flex-1 opacity-60"
+                  style={{ background: fill }}
+                />
+              ))}
+              <div className="from-surface/85 via-surface/75 to-surface/95 absolute inset-0 bg-gradient-to-b" />
             </div>
-            <p className="text-fg-muted line-clamp-1 text-sm">{row.summary}</p>
-            <p className="text-fg-muted flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-              <span className="flex items-center gap-1.5">
-                <Trophy className="size-4" /> {row.prize}
+            <div className="flex items-start justify-between gap-3">
+              <span className="bg-primary text-primary-foreground -ml-1 inline-flex -rotate-2 flex-wrap items-baseline gap-x-1.5 rounded-xl px-2.5 py-1">
+                <b className="display text-2xl leading-none">{card.prize}</b>
+                <span className="inline-flex items-center gap-0.5 text-[11px] font-bold opacity-80">
+                  ACTION <ExternalLink className="size-2.5" />
+                </span>
+                <span className="marker text-sm">
+                  / {card.winners > 1 ? `${card.winners} winners` : "winner"}
+                </span>
               </span>
-              <span className="flex items-center gap-1.5">
-                <Users className="size-4" /> {row.line}
+              <span className="bg-surface-2 text-fg-muted shrink-0 rounded-full border px-3 py-1 text-[11px] font-semibold whitespace-nowrap">
+                {card.left}
               </span>
-              {row.music && (
-                <span className="flex items-center gap-1.5">
-                  <Music2 className="size-4" /> Music
+            </div>
+            <h3 className="display mt-4 line-clamp-2 text-2xl leading-tight">{card.title}</h3>
+            <p className="text-fg-muted mt-2 mb-4 line-clamp-4 text-[13.5px] leading-relaxed">
+              {card.text}
+            </p>
+            <div className="mt-auto flex items-center justify-between gap-3 border-t pt-3">
+              <span className="text-fg-muted flex min-w-0 items-center gap-2 text-xs">
+                <span className="tour-token size-6! rounded-full! text-[9px]!">RR</span>
+                <span className="truncate">By Rooftop Records</span>
+              </span>
+              {card.action === "Join" ? (
+                <span className="bg-fg text-bg flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold">
+                  <Users className="size-3.5" /> Join
+                </span>
+              ) : (
+                <span className="flex shrink-0 items-center gap-1.5 text-[13px] font-semibold">
+                  <Eye className="size-3.5" /> View
                 </span>
               )}
-            </p>
-          </li>
+            </div>
+          </article>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
