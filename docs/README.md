@@ -4,11 +4,12 @@ Everything about the platform in one place. New here? Read the first three, in o
 
 ## Start here
 
-| Guide                                     | What you get                                                 |
-| ----------------------------------------- | ------------------------------------------------------------ |
-| [Getting started](getting-started.md)     | Install, start the database, set the env files, run the apps |
-| [Architecture](architecture.md)           | The apps, the packages, how a request and a transaction flow |
-| [Testnet demo data](testnet-demo-data.md) | Real on-chain demo organizations, fans, pins and bounties    |
+| Guide                                     | What you get                                                               |
+| ----------------------------------------- | -------------------------------------------------------------------------- |
+| [Getting started](getting-started.md)     | Install, start the database, set the env files, run the apps               |
+| [Architecture](architecture.md)           | The apps, the packages, how a request and a transaction flow               |
+| [Testnet demo data](testnet-demo-data.md) | Real on-chain demo organizations, fans, pins and bounties                  |
+| [Deployment (Vercel)](deployment.md)      | Projects, env vars and deploy steps for the AR app, fan app and org portal |
 
 ## Design
 

@@ -101,13 +101,14 @@ Run `pnpm typecheck && pnpm lint && pnpm test` before you push.
 
 ## Documentation
 
-| Read this                                                  | When you want to                                |
-| ---------------------------------------------------------- | ----------------------------------------------- |
-| [docs/getting-started.md](docs/getting-started.md)         | Set up a machine and run the apps               |
-| [docs/architecture.md](docs/architecture.md)               | Understand how the apps, packages and chain fit |
-| [docs/testnet-demo-data.md](docs/testnet-demo-data.md)     | Load real on-chain demo organizations and fans  |
-| [docs/AR-STICKER-REDESIGN.md](docs/AR-STICKER-REDESIGN.md) | See the AR design language, themes and colours  |
-| [docs/README.md](docs/README.md)                           | Browse everything, including plans and reports  |
+| Read this                                                  | When you want to                                       |
+| ---------------------------------------------------------- | ------------------------------------------------------ |
+| [docs/getting-started.md](docs/getting-started.md)         | Set up a machine and run the apps                      |
+| [docs/architecture.md](docs/architecture.md)               | Understand how the apps, packages and chain fit        |
+| [docs/testnet-demo-data.md](docs/testnet-demo-data.md)     | Load real on-chain demo organizations and fans         |
+| [docs/deployment.md](docs/deployment.md)                   | Deploy the apps to Vercel and manage their environment |
+| [docs/AR-STICKER-REDESIGN.md](docs/AR-STICKER-REDESIGN.md) | See the AR design language, themes and colours         |
+| [docs/README.md](docs/README.md)                           | Browse everything, including plans and reports         |
 
 ## Contributing and security
 

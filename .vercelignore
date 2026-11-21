@@ -1,0 +1,12 @@
+# Files the Vercel CLI should not upload. (A Git-connected deploy only sees committed files anyway.)
+.local/
+.git/
+**/.env
+**/.env.*
+!**/.env.example
+**/.next/
+**/node_modules/
+**/.turbo/
+packages/contracts/**/target/
+docs/mockups/
+docs/plans/
