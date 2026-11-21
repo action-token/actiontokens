@@ -500,10 +500,10 @@ const ART = {
 /** Stagger: elements with data-a rise in, in order, when their panel turns on. */
 const a = (i: number) => ({ "data-a": "", style: { ["--i" as string]: i } });
 
-/** A real map picture of Banani, Dhaka (Mapbox static images, the same API the map style
+/** A real map picture of Williamsburg, Brooklyn (Mapbox static images, the same API the map style
  * thumbnails use), one per theme. */
 const snapshot = (theme: "dark" | "light") =>
-  `https://api.mapbox.com/styles/v1/mapbox/${theme}-v11/static/90.4066,23.7937,14.6,0/1280x760@2x?attribution=false&logo=false&access_token=${MAPBOX_TOKEN ?? ""}`;
+  `https://api.mapbox.com/styles/v1/mapbox/${theme}-v11/static/-73.9573,40.7163,14.6,0/1280x760@2x?attribution=false&logo=false&access_token=${MAPBOX_TOKEN ?? ""}`;
 
 /** Small artworks for the example pins (drawn here, so nothing is fetched). */
 const MOTIF = {
@@ -539,7 +539,7 @@ const PINS = [
     x: 63,
     y: 52,
     title: "Rooftop Live entry",
-    place: "Banani Rd 11",
+    place: "Bedford Ave",
     n: "12 / 200",
     look: "active",
     color: "#3d9bff",
@@ -549,7 +549,7 @@ const PINS = [
     x: 72,
     y: 26,
     title: "Night Drive drop",
-    place: "Gulshan 2 circle",
+    place: "McCarren Park",
     n: "88 / 500",
     look: "active",
     color: "#7cff5a",
@@ -560,7 +560,7 @@ const PINS = [
     x: 46,
     y: 64,
     title: "Chrome skull key",
-    place: "Kemal Ataturk Ave",
+    place: "Metropolitan Ave",
     n: "Starts Fri",
     look: "scheduled",
     color: "#c9c9c9",
@@ -570,7 +570,7 @@ const PINS = [
     x: 74,
     y: 62,
     title: "Record tote",
-    place: "Gulshan lake",
+    place: "Domino Park",
     n: "150 / 150",
     look: "collected",
     color: "#b06bff",
@@ -580,7 +580,7 @@ const PINS = [
     x: 57,
     y: 74,
     title: "Lake-side listening",
-    place: "Banani lake",
+    place: "East River pier",
     n: "64 / 120",
     look: "active",
     color: "#2ee6a6",
@@ -590,7 +590,7 @@ const PINS = [
     x: 40,
     y: 22,
     title: "Open mic night",
-    place: "Gulshan Ave",
+    place: "Grand St",
     n: "9 / 50",
     look: "active",
     color: "#ff9f1c",
@@ -600,7 +600,7 @@ const PINS = [
     x: 38,
     y: 40,
     title: "Founders star",
-    place: "Airport Rd",
+    place: "N 7th St",
     n: "Starts Sat",
     look: "scheduled",
     color: "#5b6cff",
@@ -617,12 +617,12 @@ const RING = {
 /** Hotspot areas, drawn as the hotspot layer draws them (in % of the map). */
 const HOTSPOTS = [
   {
-    name: "Banani rooftop block",
+    name: "Bedford rooftop block",
     pins: 3,
     points: "47,23 59,21 63,33 66,58 54,60 48,44",
     tag: [44, 19],
   },
-  { name: "Gulshan 2 circle", pins: 2, points: "64,20 77,19 81,34 76,44 66,38", tag: [64, 16] },
+  { name: "McCarren Park", pins: 2, points: "64,20 77,19 81,34 76,44 66,38", tag: [64, 16] },
 ] as const;
 /** A fan trail: the route most collectors walk, stop by stop. */
 const TRAIL = [
@@ -975,7 +975,7 @@ function ReportsPage() {
   const top = [
     ["Rooftop stairs", 412],
     ["Lake-side listening", 268],
-    ["Gulshan 2 circle", 190],
+    ["McCarren Park", 190],
   ] as const;
   return (
     <div className="grid gap-4">
@@ -1088,7 +1088,7 @@ function BountiesPage() {
     },
     {
       title: "Design the tour poster",
-      text: "A poster for the winter run: Dhaka, Chattogram, Sylhet. Print-ready, A2. The winner's poster becomes a collectible.",
+      text: "A poster for the winter run: Brooklyn, Philly, Boston. Print-ready, 18×24 in. The winner's poster becomes a collectible.",
       prize: "400",
       winners: 1,
       left: "1 left",
@@ -1106,7 +1106,7 @@ function BountiesPage() {
     },
     {
       title: "Find the five posters",
-      text: "Five posters are hidden around Banani. Collect all five pins on the map before Sunday midnight.",
+      text: "Five posters are hidden around Williamsburg. Collect all five pins on the map before Sunday midnight.",
       prize: "250",
       winners: 10,
       left: "7 left",
@@ -1472,7 +1472,7 @@ function EventsPage() {
     [
       "Thursday live",
       "Thu, Nov 26 · 8:00 PM",
-      "Rooftop Records, Banani",
+      "Rooftop Records, Williamsburg",
       "120 RSVPs of 200 · 2 pins, 1 bounty",
       "Upcoming",
       ART.sunset,
@@ -1488,23 +1488,23 @@ function EventsPage() {
     [
       "Signing session",
       "Wed, Dec 2 · 5:00 PM",
-      "Bookworm, Gulshan",
+      "Book Club Bar, Greenpoint",
       "38 RSVPs of 80",
       "Upcoming",
       ART.ocean,
     ],
     [
-      "Winter run: Chattogram",
+      "Winter run: Philadelphia",
       "Fri, Dec 11 · 7:30 PM",
-      "Theatre Institute, CTG",
+      "Union Transfer, Philly",
       "210 RSVPs of 400 · 3 pins",
       "Upcoming",
       ART.gold,
     ],
     [
-      "Winter run: Sylhet",
+      "Winter run: Boston",
       "Sat, Dec 19 · 7:30 PM",
-      "Zindabazar hall",
+      "Paradise Rock Club",
       "96 RSVPs of 300",
       "Upcoming",
       ART.night,
@@ -1512,7 +1512,7 @@ function EventsPage() {
     [
       "Members' brunch",
       "Sun, Dec 20 · 11:00 AM",
-      "North End, Gulshan",
+      "Devoción, Williamsburg",
       "VIP only · 22 of 30",
       "Upcoming",
       ART.peach,
@@ -1520,7 +1520,7 @@ function EventsPage() {
     [
       "Riverbank cleanup",
       "Sun, Nov 15 · 9:00 AM",
-      "Hatirjheel lake",
+      "Domino Park",
       "41 came · 1 bounty linked",
       "Past",
       ART.acid,
@@ -1528,7 +1528,7 @@ function EventsPage() {
     [
       "Album night",
       "Fri, Nov 6 · 9:00 PM",
-      "Rooftop Records, Banani",
+      "Rooftop Records, Williamsburg",
       "188 came · 412 pins collected",
       "Past",
       ART.mint,
@@ -1740,7 +1740,7 @@ function PageBuilderPage() {
                   <p className="flex items-center gap-1.5 text-lg font-bold">
                     Rooftop Records <BadgeCheck className="text-primary-text size-4" />
                   </p>
-                  <p className="text-fg-muted text-xs">Music · Dhaka · 1,204 holders</p>
+                  <p className="text-fg-muted text-xs">Music · Brooklyn, NY · 1,204 holders</p>
                 </div>
                 <span className="tour-site-btn tour-site-btn--ghost">Follow</span>
                 <span className="tour-site-btn">Buy ROOF</span>
@@ -1782,9 +1782,9 @@ function PageBuilderPage() {
                   <span className="tour-site-tag">Tour dates</span>
                   <ul className="mt-2 grid gap-2">
                     {[
-                      ["NOV", "26", "Thursday live", "Rooftop, Banani"],
+                      ["NOV", "26", "Thursday live", "Rooftop, Williamsburg"],
                       ["NOV", "28", "Listening party", "Online"],
-                      ["DEC", "02", "Signing session", "Bookworm, Gulshan"],
+                      ["DEC", "02", "Signing session", "Book Club Bar, Greenpoint"],
                     ].map(([month, day, title, where]) => (
                       <li key={title} className="flex items-center gap-3">
                         <span className="tour-site-date">
