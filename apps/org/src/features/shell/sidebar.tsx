@@ -197,7 +197,7 @@ export function Sidebar({
                 <button
                   type="button"
                   onClick={() => openAccount(true)}
-                  className="bg-primary text-primary-ink flex h-10 w-full items-center justify-center gap-2 rounded-full text-sm font-semibold"
+                  className="lp-cta !h-11 w-full justify-center !text-[1.15rem]"
                 >
                   <LogIn className="size-4" /> Sign in
                 </button>

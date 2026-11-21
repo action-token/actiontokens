@@ -22,7 +22,7 @@ import { type PortalStatus, usePortal } from "~/features/portal/use-portal";
 import { AR_URL, FAN_APP_URL } from "./links";
 import { isActive, type NavGroup, type NavItem, navFor, phoneLabel, phoneTabs } from "./nav";
 import { Sidebar } from "./sidebar";
-import { SignInCard } from "./sign-in-card";
+import { Landing } from "./landing";
 import { PortalBackdrop } from "./portal-backdrop";
 
 /**
@@ -60,7 +60,7 @@ export function PortalShell({
       <MobileTabs groups={groups} pathname={pathname} signedIn={signedIn} />
 
       <main className="min-w-0 pb-[var(--phone-bar-space)] sm:pb-12 sm:pl-(--side-w)">
-        {signedOut ? <SignInCard /> : children}
+        {signedOut ? <Landing /> : children}
       </main>
     </div>
   );
