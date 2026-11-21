@@ -69,7 +69,7 @@ export function PinCard({
   const acting = useActingArtist();
   const portalName = usePortal().artist?.name;
   // The QR sheets carry the artist's name: the one being acted for, if an admin is.
-  const artistName = acting?.name ?? portalName ?? "Bandcoin artist";
+  const artistName = acting?.name ?? portalName ?? "Action Tokens artist";
   const [qrOpen, setQrOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [now] = useState(() => Date.now());

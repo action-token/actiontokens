@@ -44,7 +44,7 @@ import {
 } from "@actiontokens/ui/patterns/wallet-blocks";
 
 import { Money } from "~/components/money";
-import { formatAmount, timeAgo } from "~/lib/format";
+import { formatAmount, TOKEN_NAME, timeAgo } from "~/lib/format";
 import { CURRENCY, statusLabel, statusTone } from "~/lib/wallet";
 import { api, type RouterOutputs } from "~/trpc/react";
 
@@ -207,7 +207,7 @@ export function WalletView() {
             <DialogHeader>
               <DialogTitle className="display text-3xl">Swap</DialogTitle>
               <DialogDescription>
-                BANDCOIN for XLM, or XLM for BANDCOIN, at today&apos;s price.
+                {TOKEN_NAME} for XLM, or XLM for {TOKEN_NAME}, at today&apos;s price.
               </DialogDescription>
             </DialogHeader>
             <SwapForm flow={flow} onStarted={() => setOpen(null)} />
@@ -225,14 +225,14 @@ export function WalletView() {
 function Hero({ me, actions }: { me: Me; actions: WalletAction[] }) {
   return (
     <WalletHero
-      label={me.activated ? "your BANDCOIN balance" : "your wallet"}
+      label={me.activated ? `your ${TOKEN_NAME} balance` : "your wallet"}
       address={me.walletAddress}
       actions={actions}
       balance={
         me.activated ? (
           <TallText className="pb-[0.12em] text-7xl tabular-nums sm:text-8xl">
             {formatAmount(me.balances.BANDCOIN, "BANDCOIN", { short: true })}{" "}
-            <span className="text-[0.45em]">BANDCOIN</span>
+            <span className="text-[0.45em]">{TOKEN_NAME}</span>
           </TallText>
         ) : (
           <p className="text-side-ink/80 max-w-md font-semibold">
@@ -328,7 +328,7 @@ function ReceiveDialog({ address, onClose }: { address: string; onClose: () => v
         <DialogHeader>
           <DialogTitle>Receive</DialogTitle>
           <DialogDescription>
-            Send BANDCOIN, XLM or USDC on the Stellar network to this address.
+            Send {TOKEN_NAME}, XLM or USDC on the Stellar network to this address.
           </DialogDescription>
         </DialogHeader>
         <div className="grid justify-items-center gap-4">
@@ -501,7 +501,7 @@ export function WalletSidebarCard({ rail = false }: { rail?: boolean }) {
         balances
           ? {
               amount: <Money amount={balances.BANDCOIN} currency="BANDCOIN" short />,
-              code: "BANDCOIN",
+              code: TOKEN_NAME,
             }
           : null
       }

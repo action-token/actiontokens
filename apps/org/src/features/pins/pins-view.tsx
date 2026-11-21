@@ -354,7 +354,7 @@ function PinRow({
   onChanged: () => void;
 }) {
   const portal = usePortal();
-  const artistName = portal.artist?.name ?? "Bandcoin artist";
+  const artistName = portal.artist?.name ?? "Action Tokens artist";
   const [open, setOpen] = useState(false);
   const status = STATUS[pin.status];
   const hidden = pin.status === "HIDDEN";

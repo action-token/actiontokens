@@ -20,7 +20,7 @@ export function SignInCard() {
           <BrandMark className="size-7" />
         </span>
         <p className="marker text-primary-text text-sm">artist portal</p>
-        <h1 className="display mt-1 text-5xl">Sign in to Bandcoin</h1>
+        <h1 className="display mt-1 text-5xl">Sign in to Action Tokens</h1>
         <p className="text-fg-muted mt-2 text-sm text-pretty">
           Sell songs and collectibles, set up memberships, drop pins and bounties, and keep every
           payout.

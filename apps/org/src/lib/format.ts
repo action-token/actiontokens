@@ -58,3 +58,6 @@ export function timeAgo(date: Date | string, now = Date.now()) {
     unit[0],
   );
 }
+
+/** The platform token as people read it ("ACTION"). Data and code still call it BANDCOIN internally. */
+export const TOKEN_NAME = (process.env.NEXT_PUBLIC_ASSET_CODE || "ACTION").toUpperCase();

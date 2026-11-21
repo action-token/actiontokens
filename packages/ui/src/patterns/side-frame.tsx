@@ -184,7 +184,7 @@ export function SideFrame({
               </div>
               {/* Scrolls on short windows. The scrollbar is hidden, so both ends fade out:
                   an icon running past the edge reads as "more below", not as cut off. */}
-              <div className="border-side-ink/25 relative flex min-h-0 flex-1 flex-col items-center gap-3 overflow-y-auto overscroll-contain border-y-2 border-dashed px-2 py-4 [mask-image:linear-gradient(to_bottom,transparent,#000_16px,#000_calc(100%-28px),transparent)] [scrollbar-width:none] [&>*]:shrink-0">
+              <div className="border-side-ink/25 relative flex min-h-0 flex-1 flex-col items-center gap-3 overflow-y-auto overscroll-contain border-y-2 border-dashed [mask-image:linear-gradient(to_bottom,transparent,#000_16px,#000_calc(100%-28px),transparent)] px-2 py-4 [scrollbar-width:none] [&>*]:shrink-0">
                 <nav className="flex flex-col items-center gap-3" aria-label="Sections">
                   {groups.map((group, index) => (
                     <Fragment key={group.title}>
@@ -433,11 +433,11 @@ function SideMark({
     >
       <span
         className={cn(
-          "blob bg-side-badge flex shrink-0 items-center justify-center transition-all duration-300 group-hover:-rotate-6",
+          "blob flex shrink-0 items-center justify-center bg-white transition-all duration-300 group-hover:-rotate-6",
           shrunk ? "size-8 -rotate-6" : "size-10",
         )}
       >
-        <BrandMark className={cn("transition-all duration-300", shrunk ? "h-5" : "h-6")} />
+        <BrandMark className={cn("transition-all duration-300", shrunk ? "h-6" : "h-8")} />
       </span>
       {!compact && (
         <span className="min-w-0 leading-none">
@@ -448,7 +448,7 @@ function SideMark({
               shrunk ? "text-[1.35rem]" : "text-[1.65rem]",
             )}
           >
-            Bandcoin
+            Action-Tokens
           </span>
           {/* folds up under the wordmark once the links scroll */}
           <span

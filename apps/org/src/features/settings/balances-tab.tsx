@@ -24,7 +24,7 @@ export function BalancesTab({ storageOpen }: { storageOpen: boolean }) {
         <StorageContents />
       ) : (
         <p className="text-fg-muted bg-surface rounded-xl border p-4 text-sm">
-          Storage isn&apos;t open yet. Open it under Accounts. Bandcoin pays for it.
+          Storage isn&apos;t open yet. Open it under Accounts. Action Tokens pays for it.
         </p>
       )}
     </div>

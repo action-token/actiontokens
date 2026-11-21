@@ -153,8 +153,8 @@ function OpenStorage() {
     <div className="grid gap-3 text-sm">
       <p className="text-fg-muted">
         Storage is a Stellar account of your own, apart from your wallet. It holds your fan tokens
-        and copies, and gifts, pin rewards and bounty prizes can come from it. Bandcoin pays to open
-        it and adds your starting fan tokens. It costs you nothing.
+        and copies, and gifts, pin rewards and bounty prizes can come from it. Action Tokens pays to
+        open it and adds your starting fan tokens. It costs you nothing.
       </p>
       <Button
         className="justify-self-start"

@@ -10,7 +10,7 @@ import { createWave, drawWave, type Wave } from "./wave";
 
 type Phase = "play" | "strum" | "open" | "gone";
 
-const LETTERS = "BANDCOIN".split("");
+const LETTERS = "ACTION-TOKENS".split("");
 const OPEN_DELAY = 650;
 const CURTAIN_MS = 1050;
 
@@ -29,8 +29,8 @@ export interface StageLoaderProps {
 }
 
 /**
- * The Bandcoin stage loader: a half guitar on the right edge, six strings that get plucked as the
- * app gets ready, the pick filling with colour, BANDCOIN filling letter by letter, a counter and a
+ * The Action Tokens stage loader: a half guitar on the right edge, six strings that get plucked as the
+ * app gets ready, the pick filling with colour, ACTION-TOKENS filling letter by letter, a counter and a
  * track waveform. At 100% the strings are strummed and two stage curtains open onto the page.
  *
  * The page renders underneath and nothing waits on this. It plays on every full page load
@@ -113,14 +113,17 @@ export function StageLoader({
       shown += (target - shown) * 0.08;
       if (target >= 1 && shown > 0.995) shown = 1;
       root.style.setProperty("--p", shown.toFixed(3));
-      if (pctRef.current) pctRef.current.textContent = String(Math.floor(shown * 100)).padStart(2, "0");
+      if (pctRef.current)
+        pctRef.current.textContent = String(Math.floor(shown * 100)).padStart(2, "0");
 
       // one string per sixth of progress
       const step = Math.min(STRING_COUNT - 1, Math.floor(shown * STRING_COUNT));
       for (let i = lastStep + 1; i <= step; i++) pluck(strings[i]!, layout, now, 0.8);
       lastStep = Math.max(lastStep, step);
 
-      letters.forEach((el, i) => el.classList.toggle("on", shown >= (i + 1) / (LETTERS.length + 1)));
+      letters.forEach((el, i) =>
+        el.classList.toggle("on", shown >= (i + 1) / (LETTERS.length + 1)),
+      );
 
       // track waveform: played up to the progress, playhead on top
       if (wave && waveCtx) drawWave(waveCtx, wave, shown, now);
@@ -130,7 +133,9 @@ export function StageLoader({
       if (!finished && shown >= 1 && elapsed > (reduced ? 0 : minMs)) {
         finished = true;
         setPhase("strum");
-        strings.forEach((s, i) => timers.push(window.setTimeout(() => pluck(s, layout, performance.now(), 1.25), i * 40)));
+        strings.forEach((s, i) =>
+          timers.push(window.setTimeout(() => pluck(s, layout, performance.now(), 1.25), i * 40)),
+        );
         timers.push(window.setTimeout(() => setPhase("open"), reduced ? 0 : OPEN_DELAY));
         timers.push(
           window.setTimeout(
@@ -152,7 +157,7 @@ export function StageLoader({
     };
     // Wait for the display font so the wordmark doesn't jump; never longer than a moment.
     void Promise.race([
-      document.fonts.load('600 100px "Teko Variable"', "BANDCOIN"),
+      document.fonts.load('600 100px "Teko Variable"', "ACTION-TOKENS"),
       new Promise((r) => setTimeout(r, 400)),
     ])
       .catch(() => undefined)
@@ -174,7 +179,7 @@ export function StageLoader({
     <div
       ref={rootRef}
       role="status"
-      aria-label="Loading Bandcoin"
+      aria-label="Loading Action Tokens"
       className={cn(
         "stage-loader",
         contained && "stage-loader--contained",

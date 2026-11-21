@@ -81,7 +81,7 @@ export function AiAppsTab() {
               id="mcp-token-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Bandcoin MCP token"
+              placeholder="Action Tokens MCP token"
               maxLength={60}
             />
           </Field>

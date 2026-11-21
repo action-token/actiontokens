@@ -2,27 +2,24 @@
 
 import { useEffect, useState } from "react";
 
+import { ACTION_LOGO } from "../lib/action-logo";
 import { cn } from "../lib/cn";
 
 const SEEN_KEY = "bc-boot-seen";
 const BOOT_MS = 600;
 
 /**
- * The Bandcoin mark: the chartreuse guitar pick with the white block "B"
- * (same shape as the favicon and logo).
+ * The Action Tokens mark: the green pin with the A (the same logo as the AR app).
  */
 export function BrandMark({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 32 36" aria-hidden className={cn("h-8 w-auto", className)}>
-      <path
-        d="M16 1C25.5 1 31 4.6 31 11.2 31 20.3 22.6 30 17.6 34.2a2.5 2.5 0 0 1-3.2 0C9.4 30 1 20.3 1 11.2 1 4.6 6.5 1 16 1Z"
-        fill="#4dff2a"
-      />
-      <path
-        d="M10.5 12.5h8.6a3.3 3.3 0 0 1 2.4 5.6 3.4 3.4 0 0 1-2.2 6H10.5Zm3.2 3v2.2h4.4v-2.2Zm0 4.9v1.9h4.9v-1.9Z"
-        fill="#fff"
-      />
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={ACTION_LOGO}
+      alt=""
+      aria-hidden
+      className={cn("h-8 w-auto object-contain", className)}
+    />
   );
 }
 
@@ -84,7 +81,7 @@ export function BootScreen({
           key={replayKey}
           className="font-display animate-reveal text-[22px] leading-none font-extrabold tracking-tight [clip-path:inset(0_100%_0_0)]"
         >
-          Bandcoin
+          Action-Tokens
         </div>
       </div>
     </div>

@@ -15,7 +15,7 @@ const PROBLEMS: Record<string, string> = {
   state_mismatch: "That sign-in didn't match this browser. Try connecting again.",
   denied: "Facebook didn't give us access. Connect again and allow it.",
   failed: "Couldn't finish signing in with Facebook. Try again in a moment.",
-  not_set_up: "Facebook isn't switched on for Bandcoin yet.",
+  not_set_up: "Facebook isn't switched on for Action Tokens yet.",
 };
 
 type Page = { id: string; name: string };
@@ -53,7 +53,7 @@ export function FacebookTab() {
       )}
       {!configured ? (
         <p className="text-fg-muted text-sm">
-          Facebook isn&apos;t switched on for Bandcoin yet. It will show here once it is.
+          Facebook isn&apos;t switched on for Action Tokens yet. It will show here once it is.
         </p>
       ) : connected ? (
         <div className="bg-surface grid gap-3 rounded-[1.2rem] border-2 p-4">
@@ -85,8 +85,8 @@ export function FacebookTab() {
       ) : (
         <div className="grid gap-3">
           <p className="text-fg-muted text-sm">
-            Connect a Facebook page and each new post on it is copied into your Bandcoin posts, with
-            its photos. Nothing is posted to Facebook.
+            Connect a Facebook page and each new post on it is copied into your Action Tokens posts,
+            with its photos. Nothing is posted to Facebook.
           </p>
           <div>
             <Button asChild>

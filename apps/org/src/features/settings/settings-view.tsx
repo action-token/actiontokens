@@ -145,7 +145,7 @@ function Settings({ profile }: { profile: Profile }) {
           <TabsContent value="custom-domain">
             <SettingsSection
               title="Custom domain"
-              description="Your own domain, like yourname.com, showing your artist page. Free. Links on the page open on Bandcoin."
+              description="Your own domain, like yourname.com, showing your artist page. Free. Links on the page open on Action Tokens."
             >
               <CustomDomainPanel />
             </SettingsSection>
@@ -153,7 +153,7 @@ function Settings({ profile }: { profile: Profile }) {
           <TabsContent value="accounts">
             <SettingsSection
               title="Stellar accounts"
-              description="The accounts behind your tokens. You open your issuer when you apply; Bandcoin opens storage for you. Bandcoin keeps their keys safe, so you never need them."
+              description="The accounts behind your tokens. You open your issuer when you apply; Action Tokens opens storage for you. Action Tokens keeps their keys safe, so you never need them."
             >
               <AccountsTab profile={profile} />
             </SettingsSection>
@@ -169,7 +169,7 @@ function Settings({ profile }: { profile: Profile }) {
           <TabsContent value="facebook">
             <SettingsSection
               title="Facebook"
-              description="Copy new posts from a Facebook page into your Bandcoin posts. Nothing is posted to Facebook."
+              description="Copy new posts from a Facebook page into your Action Tokens posts. Nothing is posted to Facebook."
             >
               <FacebookTab />
             </SettingsSection>
