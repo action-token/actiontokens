@@ -2,7 +2,6 @@
 
 import {
   ArrowDown,
-  ArrowDownLeft,
   ArrowDownUp,
   ArrowLeft,
   ArrowUp,
@@ -13,7 +12,6 @@ import {
   CalendarDays,
   Check,
   Clock,
-  Coins,
   ChevronDown,
   Crown,
   Download,
@@ -30,16 +28,13 @@ import {
   Link2,
   MapPin,
   MapPinned,
-  Megaphone,
   Monitor,
   MoreHorizontal,
   Music2,
   Package,
-  Pencil,
   Play,
   Plus,
   QrCode,
-  ScanLine,
   Search,
   Send,
   ShoppingBag,
@@ -63,7 +58,6 @@ import { cn } from "@actiontokens/ui/lib/cn";
 import { PageHeader } from "@actiontokens/ui/patterns/page-header";
 import { Person } from "@actiontokens/ui/patterns/person";
 import { PinGlyph } from "@actiontokens/ui/patterns/pin-glyph";
-import { StatCard } from "@actiontokens/ui/patterns/stat-card";
 import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
 import { TallText } from "@actiontokens/ui/patterns/tall-text";
 import { WalletAssets, WalletHero, WalletPanel } from "@actiontokens/ui/patterns/wallet-blocks";
@@ -788,25 +782,6 @@ function ReportsPage() {
       <div {...a(1)}>
         <PeriodPicker value={period} onChange={setPeriod} />
       </div>
-      <dl className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-        {(
-          [
-            ["Collections", ScanLine, "1,284", "+18% on the last 30 days"],
-            ["Collectors", Users, "312", "+9% on the last 30 days"],
-            ["Pins collected", MapPin, "24 / 31", "pins with a collection in 30 days"],
-            ["Redeemed", Ticket, "186", "14% of collections"],
-          ] as const
-        ).map(([label, icon, value, hint], index) => (
-          <div key={label} {...a(index + 2)}>
-            <StatCard
-              label={label}
-              icon={icon}
-              value={value}
-              hint={<span className={index < 2 ? "text-success" : undefined}>{hint}</span>}
-            />
-          </div>
-        ))}
-      </dl>
       <div className="grid gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div {...a(6)}>
           <CollectionsChart
@@ -855,30 +830,6 @@ function ReportsPage() {
         </ul>
       </section>
     </div>
-  );
-}
-
-/** A row of stat cards, as at the top of the real pages. */
-function Stats({
-  items,
-  from,
-}: {
-  items: readonly (readonly [string, LucideIcon, string, string, boolean?])[];
-  from: number;
-}) {
-  return (
-    <dl className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-      {items.map(([label, icon, value, hint, good], index) => (
-        <div key={label} {...a(from + index)}>
-          <StatCard
-            label={label}
-            icon={icon}
-            value={value}
-            hint={<span className={good ? "text-success" : undefined}>{hint}</span>}
-          />
-        </div>
-      ))}
-    </dl>
   );
 }
 
@@ -974,15 +925,6 @@ function BountiesPage() {
           }
         />
       </div>
-      <Stats
-        from={1}
-        items={[
-          ["In escrow", Coins, "2,900 ACTION", "across 4 running bounties"],
-          ["Fans joined", Users, "214", "+38 this week", true],
-          ["To review", Eye, "14", "reports waiting for you"],
-          ["Paid out", Trophy, "3,100 ACTION", "to 17 winners", true],
-        ]}
-      />
       <Tabs i={5} items={["All 6", "Running 4", "Paused 1", "Ended 1"]} />
       {/* the bounty card as fans see it in the marketplace */}
       <div className="grid grid-cols-3 gap-4">
@@ -1126,15 +1068,6 @@ function ItemsPage() {
           }
         />
       </div>
-      <Stats
-        from={1}
-        items={[
-          ["Sales", ShoppingBag, "585", "+22% on the last 30 days", true],
-          ["Earned", Coins, "41,860 ACTION", "≈ $418.60", true],
-          ["Listed", Package, "8 of 10", "2 sold out, 1 draft"],
-          ["Best seller", TrendingUp, "Sticker pack", "203 sold"],
-        ]}
-      />
       <Tabs i={5} items={["All 10", "Art", "Tickets", "Merch", "Collectibles", "Video"]} />
       <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
         {rows.map(([title, type, sold, action, usd, art, tone, status], index) => (
@@ -1229,7 +1162,9 @@ function MembershipsPage() {
         ].map(([label, value]) => (
           <div key={label}>
             <p className="text-fg-muted text-xs">{label}</p>
-            <p className={cn("num text-xl font-semibold", value?.startsWith("+") && "text-success")}>
+            <p
+              className={cn("num text-xl font-semibold", value?.startsWith("+") && "text-success")}
+            >
               {value}
             </p>
           </div>
@@ -1402,15 +1337,6 @@ function EventsPage() {
           }
         />
       </div>
-      <Stats
-        from={1}
-        items={[
-          ["Upcoming", CalendarDays, "6", "next: Thursday live, in 4 days"],
-          ["RSVPs", Users, "550", "+71 this week", true],
-          ["Pins at events", MapPin, "9", "412 collected at Album night"],
-          ["Announcements", Megaphone, "12", "3 pinned on your page"],
-        ]}
-      />
       <Tabs i={5} items={["Events 8", "Announcements 12"]} />
       <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {events.map(([title, when, where, rsvp, status, art], index) => (
@@ -1727,15 +1653,6 @@ function WalletPage() {
           ]}
         />
       </div>
-      <Stats
-        from={2}
-        items={[
-          ["Earned this month", ArrowDownLeft, "12,480 ACTION", "+31% on last month", true],
-          ["From sales", ShoppingBag, "9,620 ACTION", "585 sales"],
-          ["Royalties", Music2, "2,860 ACTION", "from 1,204 streams"],
-          ["Held in escrow", Coins, "2,900 ACTION", "4 running bounties"],
-        ]}
-      />
       <div className="grid gap-3 lg:grid-cols-2">
         <div {...a(6)}>
           <WalletPanel title="Tokens">
