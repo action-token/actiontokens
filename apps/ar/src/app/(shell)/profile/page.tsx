@@ -2,6 +2,7 @@
 
 import {
   ChevronRight,
+  Pencil,
   Coins,
   Footprints,
   Frame,
@@ -20,6 +21,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { HoloCard } from "~/components/cards/HoloCard";
 import { DeleteAccountPanel } from "~/components/profile/DeleteAccountPanel";
+import { EditProfileSheet } from "~/components/profile/EditProfileSheet";
 import { WalletAddress } from "~/components/profile/WalletAddress";
 import { ThemeSetting } from "~/components/profile/ThemeSetting";
 import { lastMapView, MapStyleOptions } from "~/components/map/MapLayersSheet";
@@ -122,6 +124,8 @@ export default function ProfileScreen() {
   const artists = useArtists();
   const following = artists.filter((b) => b.followed).length;
 
+  const [editing, setEditing] = useState(false);
+
   if (!user) return <SignedOut onSignIn={() => requireAuth("profile")} />;
 
   return (
@@ -129,7 +133,7 @@ export default function ProfileScreen() {
       <div className="ar-scroll h-full">
         {/* ── Hero: cover, avatar, name, and the two balances ───────── */}
         <div className="relative">
-          <div className="relative h-[176px] overflow-hidden border-b-[3px] border-[hsl(var(--st-line)/0.9)]">
+          <div className="relative h-[216px] overflow-hidden border-b-[3px] border-[hsl(var(--st-line)/0.9)]">
             {me.data?.coverUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={me.data.coverUrl} alt="" className="h-full w-full object-cover" />
@@ -164,7 +168,19 @@ export default function ProfileScreen() {
                 @{me.data?.username ?? user.handle}
               </p>
             </div>
+            <button
+              type="button"
+              onClick={() => setEditing(true)}
+              className="st-green font-hud mt-14 flex h-9 shrink-0 items-center gap-1.5 rounded-[10px] px-3 text-[11px] font-semibold tracking-[0.1em] uppercase shadow-[2px_2px_0_0_hsl(var(--st-ink))] active:translate-x-px active:translate-y-px active:shadow-none"
+            >
+              <Pencil size={13} strokeWidth={2.6} />
+              Edit
+            </button>
           </div>
+
+          {me.data?.bio && (
+            <p className="text-ar-dim mx-5 mt-3 text-[13px] leading-relaxed">{me.data.bio}</p>
+          )}
 
           <WalletAddress address={me.data?.walletAddress ?? user.pubkey} className="mx-5 mt-3" />
 
@@ -364,6 +380,7 @@ export default function ProfileScreen() {
           </div>
         </div>
       </div>
+      <EditProfileSheet open={editing} onClose={() => setEditing(false)} />
     </AppShell>
   );
 }

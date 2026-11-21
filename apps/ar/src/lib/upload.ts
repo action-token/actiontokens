@@ -1,0 +1,25 @@
+/** The base64 SHA-256 of a file: the presigned upload only accepts exactly this file. */
+async function sha256Base64(file: Blob) {
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", await file.arrayBuffer()));
+  return btoa(String.fromCharCode(...digest));
+}
+
+/** The details the server signs an upload for. */
+export async function declare(file: File) {
+  return {
+    fileName: file.name,
+    fileType: file.type,
+    fileSize: file.size,
+    checksum: await sha256Base64(file),
+  };
+}
+
+/** PUT a file to its presigned URL, straight to storage. */
+export async function putToStorage(file: File, signed: { uploadUrl: string }, checksum: string) {
+  const response = await fetch(signed.uploadUrl, {
+    method: "PUT",
+    headers: { "Content-Type": file.type, "x-amz-checksum-sha256": checksum },
+    body: file,
+  });
+  if (!response.ok) throw new Error("The upload didn't go through. Try again.");
+}
