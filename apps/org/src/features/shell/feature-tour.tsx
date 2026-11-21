@@ -6,8 +6,12 @@ import {
   BarChart3,
   CalendarDays,
   Check,
+  ChevronDown,
   Crown,
+  Download,
+  FileText,
   GripVertical,
+  Layers,
   LayoutTemplate,
   MapPin,
   MapPinned,
@@ -16,27 +20,34 @@ import {
   Pencil,
   Plus,
   QrCode,
+  ScanLine,
+  Search,
   Send,
   Star,
+  Ticket,
+  TrendingUp,
   Trophy,
   Users,
   Wallet,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { Button } from "@actiontokens/ui/components/button";
 import { Input } from "@actiontokens/ui/components/input";
+import { Textarea } from "@actiontokens/ui/components/textarea";
 import { Switch } from "@actiontokens/ui/components/switch";
 import { cn } from "@actiontokens/ui/lib/cn";
 import { PageHeader } from "@actiontokens/ui/patterns/page-header";
+import { Person } from "@actiontokens/ui/patterns/person";
 import { PinGlyph } from "@actiontokens/ui/patterns/pin-glyph";
 import { StatCard } from "@actiontokens/ui/patterns/stat-card";
 import { StatusPill } from "@actiontokens/ui/patterns/status-pill";
 import { WalletAssets, WalletHero, WalletPanel } from "@actiontokens/ui/patterns/wallet-blocks";
 
 import { MAPBOX_TOKEN } from "../pins/mapbox";
-import { CollectionsChart } from "../reports/report-kit";
+import { CollectionsChart, PeriodPicker, type Period, periodRange } from "../reports/report-kit";
 
 /**
  * "What you can do": a pinned, full-height section that scrolls sideways while you scroll down
@@ -157,50 +168,107 @@ export function FeatureTour() {
     if (!el) return;
     let raf = 0;
     let last = -2;
-    const update = () => {
-      raf = 0;
+    let panel = 0;
+    let lockedUntil = 0;
+    let settle = 0;
+
+    const geometry = () => {
       const rect = el.getBoundingClientRect();
       const span = Math.max(1, rect.height - innerHeight);
+      return { rect, span, top: rect.top + scrollY };
+    };
+    const engaged = () => {
+      const { rect } = geometry();
+      return rect.top <= 1 && rect.bottom >= innerHeight - 1;
+    };
+    const goTo = (index: number) => {
+      const { span, top } = geometry();
+      scrollTo({ top: top + (span * index) / (PANELS - 1), behavior: "smooth" });
+    };
+
+    const update = () => {
+      raf = 0;
+      const { rect, span } = geometry();
       const p = Math.min(1, Math.max(0, -rect.top / span));
       const width = stick.current?.clientWidth ?? innerWidth;
       const x = p * (PANELS - 1);
       if (track.current)
         track.current.style.transform = `translate3d(${(-x * width).toFixed(1)}px,0,0)`;
       stick.current?.style.setProperty("--p", p.toFixed(4));
-      // the panel nearest the middle; -1 is the intro
-      const index = Math.round(x) - 1;
+      panel = Math.round(x);
+      const index = panel - 1;
       if (index !== last) {
         last = index;
         setActive(index);
         setReached((prev) => Math.max(prev, index));
       }
+      // when scrolling stops between two pages, finish the move to the nearer one
+      clearTimeout(settle);
+      settle = window.setTimeout(() => {
+        if (!engaged() || Date.now() < lockedUntil) return;
+        const off = Math.abs(x - panel) * innerHeight;
+        if (off > 2) goTo(panel);
+      }, 140);
     };
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(update);
     };
+    // one wheel gesture = one page, while the section is pinned
+    const onWheel = (event: WheelEvent) => {
+      if (!engaged() || Math.abs(event.deltaY) < 4) return;
+      const dir = event.deltaY > 0 ? 1 : -1;
+      const next = panel + dir;
+      if (next < 0 || next > PANELS - 1) return; // let the page carry on past the ends
+      event.preventDefault();
+      if (Date.now() < lockedUntil) return;
+      lockedUntil = Date.now() + 850;
+      goTo(next);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (!engaged()) return;
+      const dir =
+        event.key === "ArrowDown" || event.key === "PageDown" || event.key === "ArrowRight"
+          ? 1
+          : event.key === "ArrowUp" || event.key === "PageUp" || event.key === "ArrowLeft"
+            ? -1
+            : 0;
+      const next = panel + dir;
+      if (!dir || next < 0 || next > PANELS - 1) return;
+      event.preventDefault();
+      lockedUntil = Date.now() + 850;
+      goTo(next);
+    };
+
     let listening = false;
     const io = new IntersectionObserver(([entry]) => {
       const on = entry?.isIntersecting ?? false;
       if (on && !listening) {
         addEventListener("scroll", onScroll, { passive: true });
         addEventListener("resize", onScroll);
+        addEventListener("wheel", onWheel, { passive: false });
+        addEventListener("keydown", onKey);
         onScroll();
       } else if (!on && listening) {
         removeEventListener("scroll", onScroll);
         removeEventListener("resize", onScroll);
+        removeEventListener("wheel", onWheel);
+        removeEventListener("keydown", onKey);
       }
       listening = on;
     });
     io.observe(el);
     return () => {
       io.disconnect();
+      clearTimeout(settle);
       removeEventListener("scroll", onScroll);
       removeEventListener("resize", onScroll);
+      removeEventListener("wheel", onWheel);
+      removeEventListener("keydown", onKey);
       if (raf) cancelAnimationFrame(raf);
     };
   }, []);
 
-  /** Jump to a panel from the index under the track. */
+  /** Jump to a page from the tabs. */
   const go = (panel: number) => {
     const el = section.current;
     if (!el) return;
@@ -208,6 +276,8 @@ export function FeatureTour() {
     const top = el.getBoundingClientRect().top + scrollY;
     scrollTo({ top: top + (span * panel) / (PANELS - 1), behavior: "smooth" });
   };
+
+  const current = active >= 0 ? CHAPTERS[active] : undefined;
 
   return (
     <section
@@ -217,8 +287,27 @@ export function FeatureTour() {
       aria-label="What you can do in the portal"
     >
       <div ref={stick} className="tour-stick">
+        {/* the pages as tabs, across the top */}
+        <nav className="tour-tabs-bar" aria-label="Tour pages">
+          {CHAPTERS.map((chapter, index) => (
+            <button
+              key={chapter.id}
+              type="button"
+              onClick={() => go(index + 1)}
+              data-on={active === index || undefined}
+              aria-current={active === index ? "page" : undefined}
+            >
+              <chapter.icon className="size-4" />
+              <span>{chapter.tag}</span>
+            </button>
+          ))}
+          <span className="tour-tabs-count gx-mono" aria-hidden>
+            {String(Math.max(0, active + 1)).padStart(2, "0")} /{" "}
+            {String(CHAPTERS.length).padStart(2, "0")}
+          </span>
+        </nav>
+
         <div ref={track} className="tour-track">
-          {/* intro */}
           <div className="tour-panel tour-intro">
             <p className="lp-tag">Inside the portal</p>
             <h2 className="tour-big lp-chrome">
@@ -227,7 +316,7 @@ export function FeatureTour() {
               can do<em>.</em>
             </h2>
             <p className="text-fg-muted mt-6 max-w-md text-lg text-pretty">
-              Everything an organization runs, from one place. Keep scrolling.
+              Every page of the portal, as you&apos;ll see it. One scroll, one page.
             </p>
             <span className="tour-cue" aria-hidden>
               Scroll <ArrowRight className="size-4" />
@@ -241,86 +330,25 @@ export function FeatureTour() {
               data-on={index <= reached || undefined}
               aria-hidden={active !== index}
             >
-              <div className="tour-screen">
-                <aside className="tour-aside">
-                  <span className="tour-num" aria-hidden>
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <span className="tour-tag">
-                    <chapter.icon className="size-4" strokeWidth={2.4} /> {chapter.tag}
-                  </span>
-                  <h3 className="tour-title">{chapter.title}</h3>
-                  <p className="text-fg-muted mt-4 text-[15px] leading-relaxed text-pretty">
-                    {chapter.body}
-                  </p>
-                  <ul className="tour-points">
-                    {chapter.points.map((point) => (
-                      <li key={point}>
-                        <span className="tour-tick">
-                          <Check className="size-3" strokeWidth={3} />
-                        </span>
-                        {point}
-                      </li>
-                    ))}
-                  </ul>
-                </aside>
-                <div className="tour-main">
-                  <div className="tour-crumb">
-                    <span>
-                      Action-Tokens <i>/</i> <b>{chapter.tag}</b>
-                    </span>
-                    <span className="gx-mono">{chapter.path}</span>
-                  </div>
-                  <div className="tour-page">
-                    <chapter.Page />
-                  </div>
-                </div>
+              <div className="tour-page" data-full={chapter.id === "map" || undefined}>
+                <chapter.Page />
               </div>
             </div>
           ))}
         </div>
 
-        <nav className="tour-nav" aria-label="Tour chapters">
-          {CHAPTERS.map((chapter, index) => (
-            <button
-              key={chapter.id}
-              type="button"
-              onClick={() => go(index + 1)}
-              data-on={active === index || undefined}
-              aria-current={active === index ? "step" : undefined}
-            >
-              <chapter.icon className="size-3.5" />
-              <span>{chapter.tag}</span>
-            </button>
-          ))}
-        </nav>
-        {/* wide screens: the chapters on a dial at the right, turning as you scroll */}
-        <nav
-          className="tour-wheel"
-          aria-label="Tour chapters"
-          style={{ ["--k" as string]: Math.max(0, active) }}
-          data-on={active >= 0 || undefined}
-        >
-          <span className="tour-wheel-ring" aria-hidden />
-          {CHAPTERS.map((chapter, index) => (
-            <span
-              key={chapter.id}
-              className="tour-wheel-item"
-              style={{ ["--i" as string]: index }}
-              data-d={Math.min(4, Math.abs(index - Math.max(0, active)))}
-            >
-              <button
-                type="button"
-                onClick={() => go(index + 1)}
-                data-on={active === index || undefined}
-                aria-current={active === index ? "step" : undefined}
-              >
-                {chapter.tag}
-                <chapter.icon className="size-4" />
-              </button>
-            </span>
-          ))}
-        </nav>
+        {/* what the page is for, small, bottom right */}
+        <aside className="tour-caption" data-on={current ? true : undefined} aria-live="polite">
+          {current && (
+            <div key={current.id} className="tour-caption-in">
+              <span className="tour-tag">
+                <current.icon className="size-3.5" strokeWidth={2.4} /> {current.tag}
+              </span>
+              <p className="tour-caption-title">{current.title}</p>
+              <p className="text-fg-muted mt-1.5 text-[13px] leading-relaxed">{current.body}</p>
+            </div>
+          )}
+        </aside>
         <div className="tour-progress" aria-hidden>
           <i />
         </div>
@@ -328,7 +356,6 @@ export function FeatureTour() {
     </section>
   );
 }
-
 /* ── The pages, as the portal draws them (example data) ─────────────────── */
 
 const ART = {
@@ -349,46 +376,65 @@ const snapshot = (theme: "dark" | "light") =>
 
 const PINS = [
   {
-    x: 16,
-    y: 22,
+    x: 52,
+    y: 30,
     title: "Sunset Sessions poster",
     place: "Rooftop stairs",
     n: "41 / 300",
+    look: "active",
     color: "#ff5c8a",
-    live: true,
+    count: 3,
   },
   {
-    x: 33,
-    y: 44,
+    x: 63,
+    y: 52,
     title: "Rooftop Live entry",
     place: "Banani Rd 11",
     n: "12 / 200",
+    look: "active",
     color: "#3d9bff",
-    live: true,
   },
   {
-    x: 44,
-    y: 16,
+    x: 72,
+    y: 26,
     title: "Night Drive drop",
     place: "Gulshan 2 circle",
     n: "88 / 500",
-    color: "#4dff2a",
-    live: true,
+    look: "active",
+    color: "#7cff5a",
+    auto: true,
   },
   {
-    x: 24,
-    y: 58,
+    x: 46,
+    y: 64,
     title: "Chrome skull key",
     place: "Kemal Ataturk Ave",
     n: "Starts Fri",
-    color: "#bdbdbd",
-    live: false,
+    look: "scheduled",
+    color: "#c9c9c9",
   },
-];
+  {
+    x: 80,
+    y: 68,
+    title: "Record tote",
+    place: "Gulshan lake",
+    n: "150 / 150",
+    look: "collected",
+    color: "#b06bff",
+  },
+] as const;
 
+const RING = {
+  active: "var(--color-primary)",
+  scheduled: "var(--color-info)",
+  collected: "var(--color-warning)",
+} as const;
+
+/** The map page as the portal draws it: the map edge to edge, the toolbar on top, the New pin
+ * card on the left, In view on the right. */
 function MapPage() {
   return (
-    <div className="tour-map" {...a(0)}>
+    <div className="tour-map">
       {MAPBOX_TOKEN ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -414,96 +460,173 @@ function MapPage() {
         <span
           key={pin.title}
           className="tour-pin"
-          data-live={pin.live || undefined}
           style={{ left: `${pin.x}%`, top: `${pin.y}%`, ["--i" as string]: index + 1 }}
         >
           <PinGlyph
-            size={index === 0 ? 46 : 38}
+            size={44}
             color={pin.color}
-            ringColor={pin.live ? "#4dff2a" : "#9a9a9a"}
-            ringWidth={4}
-            badge={index === 2}
+            ringColor={RING[pin.look]}
+            ringWidth={2.5}
+            badge={"auto" in pin}
           />
-          {index === 0 && <span className="tour-pin-label">{pin.title}</span>}
+          {"count" in pin && (
+            <span className="bg-primary text-primary-ink num absolute -right-1.5 -bottom-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-bold shadow">
+              {pin.count}
+            </span>
+          )}
         </span>
       ))}
-      {/* the pin being placed */}
-      <span
-        className="tour-pin tour-pin--new"
-        style={{ left: "50%", top: "42%", ["--i" as string]: 6 }}
-      >
-        <MapPin className="size-5" strokeWidth={2.6} />
+      {/* where the new pin goes */}
+      <span className="tour-drop" style={{ left: "58%", top: "44%" }} aria-hidden>
+        <span className="bg-primary border-surface block size-5 rounded-full border-[3px] shadow-lg ring-2 ring-black/20" />
       </span>
 
-      {/* In view: the real panel's look, floating top-left */}
-      <section className="tour-float tour-float--left" {...a(2)}>
-        <p className="flex items-center gap-2 px-4 py-3">
+      {/* toolbar */}
+      <div
+        className="absolute inset-x-4 top-4 z-10 flex flex-wrap items-start gap-2 lg:left-[26rem]"
+        {...a(1)}
+      >
+        <div className="bg-surface flex h-10 w-80 items-center gap-2 rounded-lg border px-3 shadow-sm">
+          <Search className="text-fg-faint size-4" />
+          <span className="text-fg-faint text-sm">Search a place</span>
+        </div>
+        <div className="bg-surface flex h-10 items-center gap-2 rounded-lg border px-3 shadow-sm">
+          <Switch checked={false} tabIndex={-1} aria-label="Show ended" />
+          <span className="text-xs font-medium">Show ended</span>
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+          <Button variant="outline" className="shadow-sm" tabIndex={-1}>
+            <Layers /> Main map
+          </Button>
+        </div>
+      </div>
+
+      {/* New pin card (left, full height), as the form card draws it */}
+      <div className="absolute top-4 bottom-4 left-4 z-20 flex" {...a(2)}>
+        <div className="bg-surface border-fg/10 relative flex max-h-full w-[380px] flex-col overflow-hidden rounded-[1.2rem] border-2 shadow-lg">
+          <div className="border-fg/10 border-b-2 p-3">
+            <div className="flex items-center gap-2">
+              <p className="min-w-0 flex-1 truncate text-sm font-semibold">New pin</p>
+              <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs" tabIndex={-1}>
+                Full page
+              </Button>
+              <span className="text-fg-muted grid size-8 place-items-center" aria-hidden>
+                <X className="size-4" />
+              </span>
+            </div>
+            <p className="text-fg-muted mt-1 text-xs">Click the map where the pin goes.</p>
+          </div>
+          <div data-slot="tabs-list" className="mx-3 mt-3 flex">
+            {["Details", "Look", "Collect", "Schedule"].map((tab, index) => (
+              <span
+                key={tab}
+                data-slot="tabs-trigger"
+                data-state={index === 0 ? "active" : undefined}
+                className="flex-1 py-1.5 text-center text-xs font-semibold"
+              >
+                {tab}
+              </span>
+            ))}
+          </div>
+          <div className="min-h-0 flex-1 space-y-4 overflow-hidden p-3">
+            <CardSection icon={FileText} title="About the pin">
+              <Field label="Title">
+                <Input readOnly tabIndex={-1} value="Thursday live: first 100" />
+              </Field>
+              <Field label="Description">
+                <Textarea
+                  readOnly
+                  tabIndex={-1}
+                  rows={3}
+                  value="Catch it on the stairs before the show. First 100 fans get a free drink."
+                />
+              </Field>
+            </CardSection>
+            <CardSection icon={Users} title="Who can collect">
+              <Field label="Open to">
+                <div
+                  data-slot="select-trigger"
+                  className="flex h-9 items-center justify-between rounded-md border px-3 text-sm"
+                >
+                  Everyone <ChevronDown className="text-fg-faint size-4" />
+                </div>
+              </Field>
+            </CardSection>
+          </div>
+          <div className="border-fg/10 flex items-center justify-end gap-1.5 border-t-2 p-3">
+            <Button variant="ghost" size="sm" className="mr-auto h-8 px-3 text-xs" tabIndex={-1}>
+              Cancel
+            </Button>
+            <Button size="sm" className="h-8 px-3 text-xs" tabIndex={-1}>
+              Next
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* In view (right, under the toolbar) */}
+      <section
+        className="bg-surface/95 border-fg/10 absolute top-16 right-4 z-10 w-72 overflow-hidden rounded-[1.4rem] border-2 shadow-lg"
+        {...a(3)}
+      >
+        <div className="flex w-full items-center gap-2 px-4 py-3">
           <MapPin className="text-primary-text size-4" />
           <span className="text-sm font-semibold">In view</span>
           <span className="bg-surface-2 num rounded-full px-2 py-0.5 text-xs font-semibold">
             {PINS.length}
           </span>
-        </p>
+          <ChevronDown className="text-fg-muted ml-auto size-4" />
+        </div>
         <ul className="divide-y border-t">
-          {PINS.slice(0, 3).map((pin) => (
+          {PINS.map((pin) => (
             <li key={pin.title} className="flex items-center gap-3 px-4 py-2.5">
-              <PinGlyph
-                size={30}
-                color={pin.color}
-                ringColor={pin.live ? "#4dff2a" : "#9a9a9a"}
-                ringWidth={5}
-              />
+              <span className="size-9 shrink-0 rounded-lg" style={{ background: pin.color }} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-medium">{pin.title}</span>
                 <span className="text-fg-muted block truncate text-xs">
                   {pin.place} · {pin.n}
                 </span>
               </span>
-              <StatusPill tone={pin.live ? "success" : "neutral"} dot={pin.live}>
-                {pin.live ? "Live" : "Later"}
-              </StatusPill>
             </li>
           ))}
         </ul>
       </section>
 
-      {/* New pin: the form card floating on the right */}
-      <section className="tour-float tour-float--right" {...a(4)}>
-        <div className="flex items-center justify-between border-b px-4 py-3">
-          <b className="display text-xl">New pin</b>
-          <span className="text-fg-faint text-xs">Banani, Dhaka</span>
-        </div>
-        <div className="grid gap-3 p-4">
-          <label className="grid gap-1.5">
-            <span className="text-xs font-semibold">Title</span>
-            <Input readOnly tabIndex={-1} value="Thursday live: first 100" />
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            <label className="grid gap-1.5">
-              <span className="text-xs font-semibold">Starts</span>
-              <Input readOnly tabIndex={-1} value="Thu 8:00 PM" />
-            </label>
-            <label className="grid gap-1.5">
-              <span className="text-xs font-semibold">Ends</span>
-              <Input readOnly tabIndex={-1} value="Thu 11:00 PM" />
-            </label>
-          </div>
-          <label className="grid gap-1.5">
-            <span className="text-xs font-semibold">How many can collect</span>
-            <Input readOnly tabIndex={-1} value="100" />
-          </label>
-          <div className="flex items-center justify-between rounded-xl border px-3 py-2.5">
-            <span className="text-sm">
-              <b className="block text-xs font-semibold">Auto-collect</b>
-              <span className="text-fg-muted text-xs">Within 50 m of the pin</span>
-            </span>
-            <Switch checked tabIndex={-1} aria-label="Auto-collect" />
-          </div>
-          <Button tabIndex={-1} className="w-full">
-            <MapPin /> Drop pin
-          </Button>
-        </div>
-      </section>
+      <div className="bg-primary text-primary-foreground absolute bottom-6 left-1/2 z-10 -translate-x-1/2 rounded-full px-4 py-1.5 text-xs font-semibold shadow-lg lg:ml-48">
+        Click the map where the pin goes
+      </div>
+    </div>
+  );
+}
+
+/** A section inside a form card: a small box with an icon badge and a bold title. */
+function CardSection({
+  icon: Icon,
+  title,
+  children,
+}: {
+  icon: LucideIcon;
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="bg-surface-2/50 border-fg/10 rounded-2xl border p-3">
+      <div className="mb-3 flex items-start gap-2.5">
+        <span className="bg-primary/15 text-primary flex size-7 shrink-0 items-center justify-center rounded-lg">
+          <Icon className="size-4" strokeWidth={2.4} aria-hidden />
+        </span>
+        <h2 className="text-sm leading-7 font-semibold">{title}</h2>
+      </div>
+      <div className="space-y-3">{children}</div>
+    </section>
+  );
+}
+
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="grid gap-1.5">
+      <span className="text-xs font-semibold">{label}</span>
+      {children}
     </div>
   );
 }
@@ -515,31 +638,102 @@ const DAILY = Array.from({ length: 30 }, (_, index) => {
 });
 
 function ReportsPage() {
+  const [period, setPeriod] = useState<Period>(() => periodRange("30d", new Date(2026, 10, 21)));
+  const collectors = [
+    ["m0ss", 64],
+    ["velvet.ops", 51],
+    ["drift.king", 47],
+    ["nadia.r", 39],
+    ["sabbir", 31],
+  ] as const;
+  const top = [
+    ["Rooftop stairs", 412],
+    ["Lake-side listening", 268],
+    ["Gulshan 2 circle", 190],
+  ] as const;
   return (
-    <div className="grid content-start gap-5">
+    <div className="grid gap-4">
       <div {...a(0)}>
         <PageHeader
           eyebrow="Drops"
           title="Pin reports"
-          description="Collections across all your pins."
-          actions={<Button variant="outline">Download CSV</Button>}
+          description="How your pins are collected: by whom, where and when."
+          actions={
+            <Button variant="outline" tabIndex={-1}>
+              <Download /> Export CSV
+            </Button>
+          }
         />
       </div>
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-        {[
-          ["Collections", "1,284", "+18% on last month"],
-          ["Fans", "312", "who collected"],
-          ["Live pins", "24", "of 31"],
-          ["Top pin", "412", "Rooftop stairs"],
-        ].map(([label, value, hint], index) => (
-          <div key={label} {...a(index + 1)}>
-            <StatCard label={label!} value={value} hint={hint} />
+      <div {...a(1)}>
+        <PeriodPicker value={period} onChange={setPeriod} />
+      </div>
+      <dl className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+        {(
+          [
+            ["Collections", ScanLine, "1,284", "+18% on the last 30 days"],
+            ["Collectors", Users, "312", "+9% on the last 30 days"],
+            ["Pins collected", MapPin, "24 / 31", "pins with a collection in 30 days"],
+            ["Redeemed", Ticket, "186", "14% of collections"],
+          ] as const
+        ).map(([label, icon, value, hint], index) => (
+          <div key={label} {...a(index + 2)}>
+            <StatCard
+              label={label}
+              icon={icon}
+              value={value}
+              hint={<span className={index < 2 ? "text-success" : undefined}>{hint}</span>}
+            />
           </div>
         ))}
+      </dl>
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div {...a(6)}>
+          <CollectionsChart
+            daily={DAILY}
+            from={new Date(2026, 9, 23)}
+            to={new Date(2026, 10, 21)}
+          />
+        </div>
+        <section className="bg-surface rounded-[1.4rem] border-2 p-4" {...a(7)}>
+          <h2 className="text-fg-muted flex items-center gap-1.5 text-[11px] font-semibold tracking-wider uppercase">
+            <Users className="size-3.5" /> Top collectors
+          </h2>
+          <ul className="mt-2 divide-y">
+            {collectors.map(([name, n], i) => (
+              <li key={name} className="flex items-center gap-3 py-2">
+                <span className="text-fg-muted num w-4 text-xs">{i + 1}</span>
+                <Person name={name} size="sm" />
+                <span className="num ml-auto text-sm font-semibold">{n}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
       </div>
-      <div {...a(5)}>
-        <CollectionsChart daily={DAILY} from={new Date(2026, 9, 23)} to={new Date(2026, 10, 21)} />
-      </div>
+      <section className="bg-surface rounded-[1.4rem] border-2 p-4" {...a(8)}>
+        <h2 className="text-fg-muted flex items-center gap-1.5 text-[11px] font-semibold tracking-wider uppercase">
+          <TrendingUp className="size-3.5" /> Most collected pins
+        </h2>
+        <ul className="mt-2 divide-y">
+          {top.map(([title, n]) => (
+            <li key={title} className="flex items-center gap-3 py-2">
+              <span className="bg-surface-2 flex size-8 shrink-0 items-center justify-center rounded-md">
+                <MapPin className="text-fg-muted size-3.5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">{title}</p>
+                <div className="bg-surface-2 mt-1 h-1.5 overflow-hidden rounded-full">
+                  <div
+                    className="bg-primary h-full rounded-full"
+                    style={{ width: `${(n / 412) * 100}%` }}
+                  />
+                </div>
+              </div>
+              <span className="num w-12 text-right text-sm font-semibold">{n}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   );
 }
@@ -622,74 +816,73 @@ function ItemsPage() {
   const rows = [
     [
       "Sunset Sessions poster",
-      "Art · ROOFPOST · 41 sold of 300",
-      "250 ACTION · $2.50",
+      "Art",
+      "41 sold of 300",
+      "250",
+      "$2.50",
       ART.sunset,
       "success",
       "For sale",
     ],
     [
       "Rooftop Live entry",
-      "Ticket · ROOFLIVE · 12 sold of 200",
-      "500 ACTION · $5.00",
+      "Ticket",
+      "12 sold of 200",
+      "500",
+      "$5.00",
       ART.ocean,
       "success",
       "For sale",
     ],
-    [
-      "Night Drive (single)",
-      "Song · NIGHTDRV · 88 sold",
-      "90 ACTION · $0.90",
-      ART.acid,
-      "success",
-      "For sale",
-    ],
+    ["Night Drive (single)", "Song", "88 sold", "90", "$0.90", ART.acid, "success", "For sale"],
     [
       "Chrome skull key",
-      "Collectible · NFT · 50 sold of 50",
-      "300 ACTION · $3.00",
+      "Collectible · NFT",
+      "50 sold of 50",
+      "300",
+      "$3.00",
       ART.chrome,
       "warning",
       "Sold out",
     ],
-    [
-      "Record tote",
-      "Merch · ROOFTOTE · 0 sold of 150",
-      "900 ACTION · $9.00",
-      ART.violet,
-      "neutral",
-      "Draft",
-    ],
+    ["Record tote", "Merch", "0 sold of 150", "900", "$9.00", ART.violet, "neutral", "Draft"],
   ] as const;
   return (
-    <div className="grid content-start gap-5">
+    <div className="grid gap-6">
       <div {...a(0)}>
         <PageHeader
           eyebrow="Catalog"
           title="Items"
-          description="Collectibles fans can buy: art, video, tickets, merch and more."
+          description="Collectibles fans can buy: art, video, tickets, merch and more. Songs have their own tools."
           actions={
-            <Button>
+            <Button tabIndex={-1}>
               <Plus /> New item
             </Button>
           }
         />
       </div>
-      <ul className="grid gap-3">
-        {rows.map(([title, meta, price, art, tone, status], index) => (
+      <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
+        {rows.map(([title, type, sold, action, usd, art, tone, status], index) => (
           <li
             key={title}
-            className="bg-surface flex items-center gap-4 rounded-xl border p-3 sm:p-4"
+            className="bg-surface overflow-hidden rounded-[1.4rem] border-2"
             {...a(index + 1)}
           >
-            <span className="size-16 shrink-0 rounded-lg" style={{ background: art }} />
-            <div className="grid min-w-0 flex-1 gap-0.5">
+            <span className="relative block aspect-square" style={{ background: art }}>
+              <StatusPill tone={tone} className="bg-surface absolute top-2.5 left-2.5 shadow-sm">
+                {status}
+              </StatusPill>
+            </span>
+            <div className="grid gap-1 p-3.5">
               <b className="truncate">{title}</b>
-              <span className="text-fg-muted truncate text-sm">{meta}</span>
-              <span className="text-fg-muted text-sm">{price}</span>
+              <span className="text-fg-muted truncate text-xs">
+                {type} · {sold}
+              </span>
+              <span className="mt-1 flex items-center justify-between text-sm">
+                <span className="num font-semibold">{action} ACTION</span>
+                <span className="text-fg-muted num text-xs">{usd}</span>
+              </span>
             </div>
-            <StatusPill tone={tone}>{status}</StatusPill>
-            <Pencil className="text-fg-faint hidden size-4 sm:block" />
           </li>
         ))}
       </ul>
@@ -808,6 +1001,14 @@ function EventsPage() {
       ART.violet,
     ],
     [
+      "Signing session",
+      "Wed, Dec 2 · 5:00 PM",
+      "Bookworm, Gulshan",
+      "38 RSVPs of 80",
+      "Upcoming",
+      ART.ocean,
+    ],
+    [
       "Riverbank cleanup",
       "Sun, Nov 15 · 9:00 AM",
       "Hatirjheel lake",
@@ -817,14 +1018,14 @@ function EventsPage() {
     ],
   ] as const;
   return (
-    <div className="grid content-start gap-5">
+    <div className="grid gap-6">
       <div {...a(0)}>
         <PageHeader
           eyebrow="Drops"
           title="Events & announcements"
           description="Both go live straight away for fans in the app and on the map."
           actions={
-            <Button>
+            <Button tabIndex={-1}>
               <Plus /> New event
             </Button>
           }
@@ -836,22 +1037,26 @@ function EventsPage() {
         </span>
         <span data-slot="tabs-trigger">Announcements</span>
       </div>
-      <ul className="grid gap-3">
+      <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {events.map(([title, when, where, rsvp, status, art], index) => (
           <li
             key={title}
-            className="bg-surface grid gap-3 rounded-xl border p-4 sm:grid-cols-[auto_minmax(0,1fr)] sm:p-5"
+            className="bg-surface overflow-hidden rounded-[1.4rem] border-2"
             {...a(index + 2)}
           >
-            <span className="h-24 w-full rounded-lg sm:w-36" style={{ background: art }} />
-            <div className="grid min-w-0 content-start gap-2">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <h3 className="display min-w-0 text-2xl">{title}</h3>
-                <StatusPill tone={status === "Past" ? "neutral" : "success"}>{status}</StatusPill>
-              </div>
+            <span className="relative block h-36" style={{ background: art }}>
+              <StatusPill
+                tone={status === "Past" ? "neutral" : "success"}
+                className="bg-surface absolute top-2.5 right-2.5 shadow-sm"
+              >
+                {status}
+              </StatusPill>
+            </span>
+            <div className="grid gap-2 p-4">
+              <h3 className="display truncate text-2xl">{title}</h3>
               <p className="text-fg-muted text-sm">{when}</p>
               <p className="text-fg-muted flex items-center gap-1.5 text-sm">
-                <MapPin className="size-4 shrink-0" /> {where}
+                <MapPin className="size-4 shrink-0" /> <span className="truncate">{where}</span>
               </p>
               <p className="text-fg-faint text-xs">{rsvp}</p>
             </div>
