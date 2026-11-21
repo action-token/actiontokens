@@ -1,7 +1,11 @@
 "use client";
 
 import {
+  ArrowDown,
   ArrowDownUp,
+  ArrowLeft,
+  ArrowUp,
+  BadgeCheck,
   ArrowRight,
   BarChart3,
   CalendarDays,
@@ -9,20 +13,30 @@ import {
   ChevronDown,
   Crown,
   Download,
+  ExternalLink,
+  Eye,
+  EyeOff,
   FileText,
   GripVertical,
+  Image as ImageIcon,
+  Images,
   Layers,
   LayoutTemplate,
+  Link2,
   MapPin,
   MapPinned,
+  Monitor,
+  MoreHorizontal,
   Music2,
   Package,
   Pencil,
+  Play,
   Plus,
   QrCode,
   ScanLine,
   Search,
   Send,
+  Smartphone,
   Star,
   Ticket,
   TrendingUp,
@@ -168,6 +182,7 @@ export function FeatureTour() {
     if (!el) return;
     let raf = 0;
     let last = -2;
+    let lastAhead = -2;
     let panel = 0;
     let lockedUntil = 0;
     let settle = 0;
@@ -190,17 +205,35 @@ export function FeatureTour() {
       raf = 0;
       const { rect, span } = geometry();
       const p = Math.min(1, Math.max(0, -rect.top / span));
-      const width = stick.current?.clientWidth ?? innerWidth;
       const x = p * (PANELS - 1);
-      if (track.current)
-        track.current.style.transform = `translate3d(${(-x * width).toFixed(1)}px,0,0)`;
+      // stacked pages: the next one slides in over the current one, which sinks back and dims
+      track.current?.querySelectorAll<HTMLElement>(":scope > .tour-panel").forEach((node, i) => {
+        const d = i - x;
+        let transform = "translate3d(100%,0,0)";
+        let dim = 0;
+        const shown = d > -1 && d < 1;
+        if (d >= 0 && d < 1) transform = `translate3d(${(d * 100).toFixed(2)}%,0,0)`;
+        else if (d < 0 && d > -1) {
+          transform = `translate3d(${(d * 6).toFixed(2)}%,0,0) scale(${(1 + d * 0.08).toFixed(4)})`;
+          dim = -d;
+        }
+        node.style.transform = transform;
+        node.style.visibility = shown ? "visible" : "hidden";
+        node.style.setProperty("--dim", dim.toFixed(3));
+        node.style.zIndex = String(i);
+      });
       stick.current?.style.setProperty("--p", p.toFixed(4));
       panel = Math.round(x);
       const index = panel - 1;
       if (index !== last) {
         last = index;
         setActive(index);
-        setReached((prev) => Math.max(prev, index));
+      }
+      // a page starts playing as soon as it begins to slide in
+      const ahead = Math.min(PANELS - 1, Math.ceil(x - 0.02)) - 1;
+      if (ahead > lastAhead) {
+        lastAhead = ahead;
+        setReached(ahead);
       }
       // when scrolling stops between two pages, finish the move to the nearer one
       clearTimeout(settle);
@@ -287,26 +320,6 @@ export function FeatureTour() {
       aria-label="What you can do in the portal"
     >
       <div ref={stick} className="tour-stick">
-        {/* the pages as tabs, across the top */}
-        <nav className="tour-tabs-bar" aria-label="Tour pages">
-          {CHAPTERS.map((chapter, index) => (
-            <button
-              key={chapter.id}
-              type="button"
-              onClick={() => go(index + 1)}
-              data-on={active === index || undefined}
-              aria-current={active === index ? "page" : undefined}
-            >
-              <chapter.icon className="size-4" />
-              <span>{chapter.tag}</span>
-            </button>
-          ))}
-          <span className="tour-tabs-count gx-mono" aria-hidden>
-            {String(Math.max(0, active + 1)).padStart(2, "0")} /{" "}
-            {String(CHAPTERS.length).padStart(2, "0")}
-          </span>
-        </nav>
-
         <div ref={track} className="tour-track">
           <div className="tour-panel tour-intro">
             <p className="lp-tag">Inside the portal</p>
@@ -330,25 +343,47 @@ export function FeatureTour() {
               data-on={index <= reached || undefined}
               aria-hidden={active !== index}
             >
-              <div className="tour-page" data-full={chapter.id === "map" || undefined}>
+              <div
+                className="tour-page"
+                data-full={chapter.id === "map" || chapter.id === "page" || undefined}
+              >
                 <chapter.Page />
               </div>
             </div>
           ))}
         </div>
 
-        {/* what the page is for, small, bottom right */}
-        <aside className="tour-caption" data-on={current ? true : undefined} aria-live="polite">
-          {current && (
-            <div key={current.id} className="tour-caption-in">
-              <span className="tour-tag">
-                <current.icon className="size-3.5" strokeWidth={2.4} /> {current.tag}
-              </span>
-              <p className="tour-caption-title">{current.title}</p>
-              <p className="text-fg-muted mt-1.5 text-[13px] leading-relaxed">{current.body}</p>
-            </div>
-          )}
-        </aside>
+        {/* the dock: what this page is for, and every page as a tab */}
+        <div className="tour-dock" data-on={current ? true : undefined}>
+          <div className="tour-dock-copy" aria-live="polite">
+            {current && (
+              <div key={current.id} className="tour-caption-in">
+                <p className="tour-dock-title">{current.title}</p>
+                <p className="text-fg-muted truncate text-xs">{current.body}</p>
+              </div>
+            )}
+          </div>
+          <nav className="tour-dock-tabs" aria-label="Tour pages">
+            {CHAPTERS.map((chapter, index) => (
+              <button
+                key={chapter.id}
+                type="button"
+                onClick={() => go(index + 1)}
+                data-on={active === index || undefined}
+                aria-current={active === index ? "page" : undefined}
+                aria-label={chapter.tag}
+                title={chapter.tag}
+              >
+                <chapter.icon className="size-4" />
+                <span>{chapter.tag}</span>
+              </button>
+            ))}
+          </nav>
+          <span className="tour-dock-count gx-mono" aria-hidden>
+            {String(Math.max(0, active + 1)).padStart(2, "0")}/
+            {String(CHAPTERS.length).padStart(2, "0")}
+          </span>
+        </div>
         <div className="tour-progress" aria-hidden>
           <i />
         </div>
@@ -1067,52 +1102,248 @@ function EventsPage() {
   );
 }
 
+const BLOCKS: { label: string; icon: LucideIcon; locked?: boolean; hidden?: boolean }[] = [
+  { label: "Cover & profile", icon: ImageIcon, locked: true },
+  { label: "About", icon: FileText },
+  { label: "Popular songs", icon: Music2 },
+  { label: "Tour dates", icon: CalendarDays },
+  { label: "Membership tiers", icon: Crown },
+  { label: "Latest drops", icon: Package },
+  { label: "Gallery", icon: Images, hidden: true },
+  { label: "Links", icon: Link2 },
+];
+
+/** My page as the page editor draws it: the top bar, the block list, the style bar and the
+ * live preview of the public page, with one block selected. */
 function PageBuilderPage() {
-  const blocks = ["Cover & profile", "Popular songs", "Tour dates", "Membership tiers", "Links"];
+  const selected = 2;
   return (
-    <div className="grid h-full grid-rows-[auto_minmax(0,1fr)] gap-5">
-      <div {...a(0)}>
-        <PageHeader
-          eyebrow="Content"
-          title="My page"
-          description="Your public page. Add blocks, drag them into order, publish."
-          actions={<Button>Publish</Button>}
-        />
+    <div className="flex h-full flex-col">
+      {/* top bar */}
+      <div className="bg-background flex flex-wrap items-center gap-3 border-b px-6 py-3" {...a(0)}>
+        <span className="text-fg-muted grid size-9 place-items-center" aria-hidden>
+          <ArrowLeft className="size-4" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="display truncate text-2xl">My page</p>
+          <p className="text-fg-muted text-xs">All changes saved · 2 unpublished changes</p>
+        </div>
+        <div className="bg-surface-2 flex gap-1 rounded-lg border p-1">
+          <span className="bg-surface flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium shadow-sm">
+            <Monitor className="size-3.5" /> Desktop
+          </span>
+          <span className="text-fg-muted flex items-center gap-1 rounded-md px-2.5 py-1 text-xs">
+            <Smartphone className="size-3.5" /> Phone
+          </span>
+        </div>
+        <Button variant="outline" size="icon" tabIndex={-1} aria-label="More">
+          <MoreHorizontal />
+        </Button>
+        <Button variant="outline" tabIndex={-1}>
+          <Link2 /> Short link
+        </Button>
+        <Button variant="outline" tabIndex={-1}>
+          View page <ExternalLink />
+        </Button>
+        <Button tabIndex={-1}>Publish changes</Button>
       </div>
-      <div className="grid min-h-0 gap-4 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1fr)]">
-        <ul className="grid content-start gap-2">
-          {blocks.map((block, index) => (
-            <li
-              key={block}
-              className="bg-surface flex items-center gap-3 rounded-xl border p-3 text-sm font-medium"
-              {...a(index + 1)}
-            >
-              <GripVertical className="text-fg-faint size-4" />
-              <span className="flex-1 truncate">{block}</span>
-              <Pencil className="text-fg-faint size-4" />
-            </li>
-          ))}
-          <li {...a(6)}>
-            <Button variant="outline" className="w-full">
-              <Plus /> Add block
-            </Button>
-          </li>
-        </ul>
-        <div className="tour-preview" {...a(3)}>
-          <span className="tour-preview-cover" style={{ background: ART.sunset }} />
-          <div className="flex items-end gap-3 px-4">
-            <span className="tour-token -mt-8">RR</span>
-            <b className="pb-1">Rooftop Records</b>
-          </div>
-          <div className="grid gap-2 p-4">
-            {["Night drive", "Rooftop anthem", "Slow burn"].map((song) => (
-              <span
-                key={song}
-                className="bg-surface flex items-center gap-2 rounded-lg border p-2 text-xs"
+
+      <div className="grid min-h-0 flex-1 grid-cols-[300px_minmax(0,1fr)]">
+        {/* block list */}
+        <aside className="min-h-0 overflow-hidden border-r p-4" {...a(1)}>
+          <h2 className="text-fg-muted mb-2 text-xs font-semibold tracking-wider uppercase">
+            Your page
+          </h2>
+          <ol className="grid gap-1">
+            {BLOCKS.map((block, index) => (
+              <li
+                key={block.label}
+                className={cn(
+                  "relative flex items-center gap-0.5 rounded-lg border pr-1",
+                  index === selected ? "border-primary bg-primary/10" : "border-transparent",
+                )}
               >
-                <Music2 className="text-primary-text size-3.5" /> {song}
+                <span
+                  className={cn(
+                    "text-fg-faint grid w-5 shrink-0 place-items-center pl-1",
+                    block.locked && "invisible",
+                  )}
+                >
+                  <GripVertical className="size-4" />
+                </span>
+                <span
+                  className={cn(
+                    "flex min-w-0 flex-1 items-center gap-2 py-2 pr-1 text-sm",
+                    block.hidden && "opacity-50",
+                  )}
+                >
+                  <block.icon className="size-4 shrink-0" />
+                  <span className="truncate">{block.label}</span>
+                </span>
+                {!block.locked && (
+                  <>
+                    {index === selected && (
+                      <>
+                        <span className="text-fg-muted grid size-7 place-items-center">
+                          <ArrowUp className="size-3.5" />
+                        </span>
+                        <span className="text-fg-muted grid size-7 place-items-center">
+                          <ArrowDown className="size-3.5" />
+                        </span>
+                      </>
+                    )}
+                    <span className="text-fg-muted grid size-7 place-items-center">
+                      {block.hidden ? (
+                        <EyeOff className="size-3.5" />
+                      ) : (
+                        <Eye className="size-3.5" />
+                      )}
+                    </span>
+                  </>
+                )}
+              </li>
+            ))}
+          </ol>
+          <p className="text-fg-faint mt-2 px-1 text-[11px]">
+            Drag to reorder. Click a block for its settings, or + in the preview to add one after
+            it.
+          </p>
+          <Button variant="outline" className="mt-4 w-full" tabIndex={-1}>
+            <Plus /> Add a block
+          </Button>
+        </aside>
+
+        <div className="flex min-h-0 min-w-0 flex-col">
+          {/* style bar */}
+          <div
+            className="bg-background/90 flex flex-wrap items-center gap-2 border-b px-3 py-2"
+            {...a(2)}
+          >
+            <span className="text-fg-faint mr-1 text-[11px] font-semibold tracking-wider uppercase">
+              Page style
+            </span>
+            <span className="tour-chip">
+              <span
+                className="size-4 rounded-full border border-black/10"
+                style={{ background: "#ff5c8a" }}
+              />
+              <ChevronDown className="text-fg-muted size-3.5" />
+            </span>
+            {[
+              ["Font", "Display"],
+              ["Corners", "Round"],
+              ["Spacing", "Comfortable"],
+            ].map(([label, value]) => (
+              <span key={label} className="tour-chip">
+                <span className="text-fg-muted">{label}</span>
+                <b className="font-semibold">{value}</b>
+                <ChevronDown className="text-fg-muted size-3.5" />
               </span>
             ))}
+            <Button className="ml-auto h-9 rounded-full" tabIndex={-1}>
+              <Music2 /> Popular songs
+            </Button>
+          </div>
+
+          {/* the preview of the public page */}
+          <div className="bg-surface-2 flex min-h-0 flex-1 justify-center overflow-hidden p-4">
+            <div className="tour-site" {...a(3)}>
+              <div className="tour-site-cover" style={{ background: ART.sunset }}>
+                <span className="tour-site-nav">
+                  <b>Rooftop Records</b>
+                  <span>Music</span>
+                  <span>Tour</span>
+                  <span>Members</span>
+                  <span>Shop</span>
+                </span>
+              </div>
+              <div className="flex items-end gap-4 px-6">
+                <span className="tour-token -mt-9 size-20! text-3xl!">RR</span>
+                <div className="min-w-0 flex-1 pb-1">
+                  <p className="flex items-center gap-1.5 text-lg font-bold">
+                    Rooftop Records <BadgeCheck className="text-primary-text size-4" />
+                  </p>
+                  <p className="text-fg-muted text-xs">Music · Dhaka · 1,204 holders</p>
+                </div>
+                <span className="tour-site-btn tour-site-btn--ghost">Follow</span>
+                <span className="tour-site-btn">Buy ROOF</span>
+              </div>
+
+              <div className="grid grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] gap-4 p-6 pt-5">
+                {/* the selected block */}
+                <section className="tour-site-block" data-selected {...a(4)}>
+                  <span className="tour-site-tag">Popular songs</span>
+                  <ol className="mt-2 grid gap-1.5">
+                    {[
+                      ["Night drive", "3:12", "90"],
+                      ["Rooftop anthem", "2:58", "120"],
+                      ["Slow burn", "4:05", "60"],
+                      ["Lake lights", "3:31", "90"],
+                    ].map(([song, time, price], index) => (
+                      <li
+                        key={song}
+                        className="flex items-center gap-3 rounded-lg px-2 py-1.5 text-sm"
+                      >
+                        <span className="text-fg-faint num w-3 text-xs">{index + 1}</span>
+                        <span
+                          className="grid size-7 place-items-center rounded-full"
+                          style={{ background: "#ff5c8a", color: "#fff" }}
+                        >
+                          <Play className="size-3" fill="currentColor" />
+                        </span>
+                        <span className="min-w-0 flex-1 truncate font-medium">{song}</span>
+                        <span className="text-fg-faint num text-xs">{time}</span>
+                        <span className="num text-xs font-semibold">{price} ACTION</span>
+                      </li>
+                    ))}
+                  </ol>
+                  <span className="tour-site-add" aria-hidden>
+                    <Plus className="size-3.5" />
+                  </span>
+                </section>
+                <section className="tour-site-block" {...a(5)}>
+                  <span className="tour-site-tag">Tour dates</span>
+                  <ul className="mt-2 grid gap-2">
+                    {[
+                      ["NOV", "26", "Thursday live", "Rooftop, Banani"],
+                      ["NOV", "28", "Listening party", "Online"],
+                      ["DEC", "02", "Signing session", "Bookworm, Gulshan"],
+                    ].map(([month, day, title, where]) => (
+                      <li key={title} className="flex items-center gap-3">
+                        <span className="tour-site-date">
+                          <small>{month}</small>
+                          {day}
+                        </span>
+                        <span className="min-w-0">
+                          <b className="block truncate text-sm">{title}</b>
+                          <span className="text-fg-muted text-xs">{where}</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+                <section className="tour-site-block col-span-2" {...a(6)}>
+                  <span className="tour-site-tag">Membership tiers</span>
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    {[
+                      ["Fan", "50"],
+                      ["Supporter", "250"],
+                      ["VIP", "1000"],
+                    ].map(([name, hold], index) => (
+                      <div
+                        key={name}
+                        className="rounded-xl border p-3"
+                        style={index === 1 ? { borderColor: "#ff5c8a" } : undefined}
+                      >
+                        <b className="block text-sm">{name}</b>
+                        <span className="num text-lg font-bold">{hold}</span>{" "}
+                        <span className="text-fg-muted text-xs">ROOF</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              </div>
+            </div>
           </div>
         </div>
       </div>
