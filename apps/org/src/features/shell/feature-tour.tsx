@@ -19,9 +19,12 @@ import {
   Eye,
   EyeOff,
   FileText,
+  Flame,
+  Footprints,
   Gift,
   GripVertical,
   Image as ImageIcon,
+  Hexagon,
   Images,
   Layers,
   LayoutTemplate,
@@ -500,7 +503,25 @@ const a = (i: number) => ({ "data-a": "", style: { ["--i" as string]: i } });
 /** A real map picture of Banani, Dhaka (Mapbox static images, the same API the map style
  * thumbnails use), one per theme. */
 const snapshot = (theme: "dark" | "light") =>
-  `https://api.mapbox.com/styles/v1/mapbox/${theme}-v11/static/90.4066,23.7937,14.6,0/1280x760?attribution=false&logo=false&access_token=${MAPBOX_TOKEN ?? ""}`;
+  `https://api.mapbox.com/styles/v1/mapbox/${theme}-v11/static/90.4066,23.7937,14.6,0/1280x760@2x?attribution=false&logo=false&access_token=${MAPBOX_TOKEN ?? ""}`;
+
+/** Small artworks for the example pins (drawn here, so nothing is fetched). */
+const MOTIF = {
+  vinyl:
+    '<circle cx="50" cy="50" r="30" fill="#111" opacity=".85"/><circle cx="50" cy="50" r="22" fill="none" stroke="#fff" stroke-opacity=".18"/><circle cx="50" cy="50" r="15" fill="none" stroke="#fff" stroke-opacity=".18"/><circle cx="50" cy="50" r="8" fill="#fff"/><circle cx="50" cy="50" r="2.5" fill="#111"/>',
+  ticket:
+    '<path d="M18 34h64v10a6 6 0 0 0 0 12v10H18V56a6 6 0 0 0 0-12z" fill="#fff" opacity=".92"/><path d="M60 36v28" stroke="#111" stroke-dasharray="3 3" opacity=".5"/><text x="38" y="55" font-family="Arial Black,Arial" font-weight="900" font-size="11" text-anchor="middle" fill="#111">LIVE</text>',
+  note: '<path d="M42 24v36a10 10 0 1 0 6 9V38l22-6v20a10 10 0 1 0 6 9V18z" fill="#fff" opacity=".92"/>',
+  key: '<circle cx="36" cy="40" r="14" fill="none" stroke="#fff" stroke-width="7"/><path d="M46 50l26 26m-10-10l7-7m-1 15l7-7" stroke="#fff" stroke-width="7" stroke-linecap="round"/>',
+  bag: '<path d="M26 40h48l-5 38H31z" fill="#fff" opacity=".92"/><path d="M38 42v-8a12 12 0 0 1 24 0v8" fill="none" stroke="#fff" stroke-width="5"/>',
+  sun: '<circle cx="50" cy="56" r="20" fill="#fff" opacity=".95"/><path d="M14 70h72M20 78h60M28 86h44" stroke="#fff" stroke-width="4" opacity=".7"/>',
+  star: '<path d="M50 18l9 21 23 2-17 15 5 23-20-12-20 12 5-23-17-15 23-2z" fill="#fff" opacity=".92"/>',
+  mic: '<rect x="40" y="18" width="20" height="36" rx="10" fill="#fff" opacity=".92"/><path d="M30 46a20 20 0 0 0 40 0M50 66v14M38 80h24" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>',
+};
+const pinArt = (from: string, to: string, motif: keyof typeof MOTIF) =>
+  `data:image/svg+xml;utf8,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${from}"/><stop offset="1" stop-color="${to}"/></linearGradient></defs><rect width="100" height="100" fill="url(#g)"/>${MOTIF[motif]}</svg>`,
+  )}`;
 
 const PINS = [
   {
@@ -511,6 +532,7 @@ const PINS = [
     n: "41 / 300",
     look: "active",
     color: "#ff5c8a",
+    art: pinArt("#ff8a3d", "#6b3dff", "sun"),
     count: 3,
   },
   {
@@ -521,6 +543,7 @@ const PINS = [
     n: "12 / 200",
     look: "active",
     color: "#3d9bff",
+    art: pinArt("#3ef0ff", "#20124d", "ticket"),
   },
   {
     x: 72,
@@ -530,6 +553,7 @@ const PINS = [
     n: "88 / 500",
     look: "active",
     color: "#7cff5a",
+    art: pinArt("#d4ff2a", "#04320f", "note"),
     auto: true,
   },
   {
@@ -540,15 +564,47 @@ const PINS = [
     n: "Starts Fri",
     look: "scheduled",
     color: "#c9c9c9",
+    art: pinArt("#f2f2f2", "#111111", "key"),
   },
   {
-    x: 80,
-    y: 68,
+    x: 74,
+    y: 62,
     title: "Record tote",
     place: "Gulshan lake",
     n: "150 / 150",
     look: "collected",
     color: "#b06bff",
+    art: pinArt("#b06bff", "#3d0b40", "bag"),
+  },
+  {
+    x: 57,
+    y: 74,
+    title: "Lake-side listening",
+    place: "Banani lake",
+    n: "64 / 120",
+    look: "active",
+    color: "#2ee6a6",
+    art: pinArt("#b8ffe9", "#0b3d33", "vinyl"),
+  },
+  {
+    x: 40,
+    y: 22,
+    title: "Open mic night",
+    place: "Gulshan Ave",
+    n: "9 / 50",
+    look: "active",
+    color: "#ff9f1c",
+    art: pinArt("#ffe27a", "#5a2a00", "mic"),
+  },
+  {
+    x: 38,
+    y: 40,
+    title: "Founders star",
+    place: "Airport Rd",
+    n: "Starts Sat",
+    look: "scheduled",
+    color: "#5b6cff",
+    art: pinArt("#5b6cff", "#05060f", "star"),
   },
 ] as const;
 
@@ -558,8 +614,28 @@ const RING = {
   collected: "var(--color-warning)",
 } as const;
 
-/** The map page as the portal draws it: the map edge to edge, the toolbar on top, the New pin
- * card on the left, In view on the right. */
+/** Hotspot areas, drawn as the hotspot layer draws them (in % of the map). */
+const HOTSPOTS = [
+  {
+    name: "Banani rooftop block",
+    pins: 3,
+    points: "47,23 59,21 63,33 66,58 54,60 48,44",
+    tag: [44, 19],
+  },
+  { name: "Gulshan 2 circle", pins: 2, points: "64,20 77,19 81,34 76,44 66,38", tag: [64, 16] },
+] as const;
+/** A fan trail: the route most collectors walk, stop by stop. */
+const TRAIL = [
+  [46, 64],
+  [57, 74],
+  [63, 52],
+  [52, 30],
+  [72, 26],
+] as const;
+const AREA = "#4dff2a";
+
+/** The map page as the portal draws it: the map edge to edge, hotspot areas, a fan trail and
+ * image pins, the toolbar on top, the New pin card on the left, In view and Layers on the right. */
 function MapPage() {
   return (
     <div className="tour-map">
@@ -569,7 +645,7 @@ function MapPage() {
           <img
             src={snapshot("dark")}
             alt=""
-            loading="lazy"
+            decoding="async"
             className="tour-map-img"
             data-for="dark"
           />
@@ -577,12 +653,85 @@ function MapPage() {
           <img
             src={snapshot("light")}
             alt=""
-            loading="lazy"
+            decoding="async"
             className="tour-map-img"
             data-for="light"
           />
         </>
       ) : null}
+
+      {/* heat: where collections cluster */}
+      {[
+        [52, 30, 230],
+        [63, 52, 190],
+        [72, 26, 170],
+      ].map(([x, y, size]) => (
+        <span
+          key={`${x}-${y}`}
+          className="tour-heat"
+          style={{ left: `${x}%`, top: `${y}%`, width: size, height: size }}
+          aria-hidden
+        />
+      ))}
+
+      {/* hotspot areas and the trail */}
+      <svg className="tour-overlay" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
+        {HOTSPOTS.map((spot) => (
+          <polygon
+            key={spot.name}
+            points={spot.points}
+            fill={AREA}
+            fillOpacity={0.16}
+            stroke={AREA}
+            strokeWidth={2.5}
+            strokeOpacity={0.95}
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
+        ))}
+        <polyline
+          points={TRAIL.map(([x, y]) => `${x},${y}`).join(" ")}
+          fill="none"
+          stroke="#000"
+          strokeOpacity={0.35}
+          strokeWidth={7}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+        />
+        <polyline
+          points={TRAIL.map(([x, y]) => `${x},${y}`).join(" ")}
+          fill="none"
+          stroke="#ffb020"
+          strokeWidth={3.5}
+          strokeDasharray="2 9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+        />
+      </svg>
+      {HOTSPOTS.map((spot) => (
+        <span
+          key={spot.name}
+          className="tour-tag"
+          style={{ left: `${spot.tag[0]}%`, top: `${spot.tag[1]}%` }}
+        >
+          <Hexagon className="size-3" /> {spot.name} · {spot.pins} pins
+        </span>
+      ))}
+      {TRAIL.map(([x, y], index) => (
+        <span
+          key={`${x}-${y}`}
+          className="tour-stop num"
+          style={{ left: `${x}%`, top: `${y}%` }}
+          aria-hidden
+        >
+          {index + 1}
+        </span>
+      ))}
+      <span className="tour-tag tour-tag--trail" style={{ left: "40%", top: "80%" }}>
+        <Footprints className="size-3" /> Night walk trail · 5 stops · 2.1 km
+      </span>
 
       {PINS.map((pin, index) => (
         <span
@@ -591,10 +740,11 @@ function MapPage() {
           style={{ left: `${pin.x}%`, top: `${pin.y}%`, ["--i" as string]: index + 1 }}
         >
           <PinGlyph
-            size={44}
+            size={48}
             color={pin.color}
+            imageUrl={pin.art}
             ringColor={RING[pin.look]}
-            ringWidth={2.5}
+            ringWidth={3}
             badge={"auto" in pin}
           />
           {"count" in pin && (
@@ -611,7 +761,7 @@ function MapPage() {
 
       {/* toolbar */}
       <div
-        className="absolute inset-x-4 top-4 z-10 flex flex-wrap items-start gap-2 lg:left-[26rem]"
+        className="absolute inset-x-4 top-[60px] z-10 flex flex-wrap items-start gap-2 lg:left-[26rem]"
         {...a(1)}
       >
         <div className="bg-surface flex h-10 w-80 items-center gap-2 rounded-lg border px-3 shadow-sm">
@@ -624,7 +774,10 @@ function MapPage() {
         </div>
         <div className="ml-auto flex items-center gap-2">
           <Button variant="outline" className="shadow-sm" tabIndex={-1}>
-            <Layers /> Main map
+            <Layers /> Main map <ChevronDown />
+          </Button>
+          <Button variant="outline" className="shadow-sm" tabIndex={-1}>
+            <Hexagon /> Draw hotspot
           </Button>
         </div>
       </div>
@@ -658,6 +811,18 @@ function MapPage() {
           </div>
           <div className="min-h-0 flex-1 space-y-4 overflow-hidden p-3">
             <CardSection icon={FileText} title="About the pin">
+              <div className="flex items-center gap-3">
+                <PinGlyph
+                  size={56}
+                  imageUrl={pinArt("#ff8a3d", "#ff3d7f", "ticket")}
+                  ringColor="var(--color-primary)"
+                  ringWidth={3}
+                />
+                <div className="min-w-0 text-xs">
+                  <b className="block text-sm">Pin image</b>
+                  <span className="text-fg-muted">thursday-live.png · Change</span>
+                </div>
+              </div>
               <Field label="Title">
                 <Input readOnly tabIndex={-1} value="Thursday live: first 100" />
               </Field>
@@ -665,7 +830,7 @@ function MapPage() {
                 <Textarea
                   readOnly
                   tabIndex={-1}
-                  rows={3}
+                  rows={2}
                   value="Catch it on the stairs before the show. First 100 fans get a free drink."
                 />
               </Field>
@@ -694,10 +859,10 @@ function MapPage() {
 
       {/* In view (right, under the toolbar) */}
       <section
-        className="bg-surface/95 border-fg/10 absolute top-16 right-4 z-10 w-72 overflow-hidden rounded-[1.4rem] border-2 shadow-lg"
+        className="bg-surface/95 border-fg/10 absolute top-[112px] right-4 z-10 w-72 overflow-hidden rounded-[1.4rem] border-2 shadow-lg"
         {...a(3)}
       >
-        <div className="flex w-full items-center gap-2 px-4 py-3">
+        <div className="flex w-full items-center gap-2 px-4 py-2.5">
           <MapPin className="text-primary-text size-4" />
           <span className="text-sm font-semibold">In view</span>
           <span className="bg-surface-2 num rounded-full px-2 py-0.5 text-xs font-semibold">
@@ -706,9 +871,10 @@ function MapPage() {
           <ChevronDown className="text-fg-muted ml-auto size-4" />
         </div>
         <ul className="divide-y border-t">
-          {PINS.map((pin) => (
-            <li key={pin.title} className="flex items-center gap-3 px-4 py-2.5">
-              <span className="size-9 shrink-0 rounded-lg" style={{ background: pin.color }} />
+          {PINS.slice(0, 5).map((pin) => (
+            <li key={pin.title} className="flex items-center gap-3 px-4 py-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={pin.art} alt="" className="size-9 shrink-0 rounded-lg" />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-medium">{pin.title}</span>
                 <span className="text-fg-muted block truncate text-xs">
@@ -720,7 +886,39 @@ function MapPage() {
         </ul>
       </section>
 
-      <div className="bg-primary text-primary-foreground absolute bottom-6 left-1/2 z-10 -translate-x-1/2 rounded-full px-4 py-1.5 text-xs font-semibold shadow-lg lg:ml-48">
+      {/* Layers (right, bottom) */}
+      <section
+        className="bg-surface/95 border-fg/10 absolute right-4 bottom-4 z-10 w-72 overflow-hidden rounded-[1.4rem] border-2 shadow-lg"
+        {...a(4)}
+      >
+        <p className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold">
+          <Layers className="text-primary-text size-4" /> On the map
+        </p>
+        <ul className="divide-y border-t text-sm">
+          {(
+            [
+              ["Pins", MapPin, `${PINS.length}`, "var(--color-primary)"],
+              ["Hotspots", Hexagon, `${HOTSPOTS.length}`, AREA],
+              ["Trails", Footprints, "1", "#ffb020"],
+              ["Heat", Flame, "30 days", "#ff5c8a"],
+            ] as const
+          ).map(([label, Icon, count, tint]) => (
+            <li key={label} className="flex items-center gap-3 px-4 py-2">
+              <span
+                className="grid size-7 place-items-center rounded-md"
+                style={{ background: `color-mix(in oklab, ${tint} 22%, transparent)`, color: tint }}
+              >
+                <Icon className="size-3.5" />
+              </span>
+              <span className="flex-1 font-medium">{label}</span>
+              <span className="text-fg-muted num text-xs">{count}</span>
+              <Eye className="text-primary-text size-4" />
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <div className="bg-primary text-primary-foreground absolute bottom-6 left-1/2 z-10 -translate-x-1/2 rounded-full px-4 py-1.5 text-xs font-semibold shadow-lg lg:ml-16">
         Click the map where the pin goes
       </div>
     </div>
