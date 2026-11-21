@@ -203,6 +203,8 @@ export function FeatureTour() {
     if (!el) return;
     let raf = 0;
     let last = -2;
+    const phone = matchMedia("(max-width: 767px)");
+    let flat = false;
     let lastAhead = -2;
     let panel = 0;
     let settle = 0;
@@ -263,6 +265,30 @@ export function FeatureTour() {
 
     const update = () => {
       raf = 0;
+      // phones: the pages simply stack, one under another (see the CSS); only the highlight moves
+      if (phone.matches) {
+        const nodes = track.current?.querySelectorAll<HTMLElement>(":scope > .tour-panel");
+        if (!flat) {
+          flat = true;
+          nodes?.forEach((node) => {
+            node.style.transform = "";
+            node.style.visibility = "";
+            node.style.zIndex = "";
+            node.style.removeProperty("--dim");
+          });
+          setReached(PANELS);
+        }
+        let on = 0;
+        nodes?.forEach((node, i) => {
+          if (node.getBoundingClientRect().top < innerHeight * 0.5) on = i;
+        });
+        if (on - 1 !== last) {
+          last = on - 1;
+          setActive(on - 1);
+        }
+        return;
+      }
+      flat = false;
       const { rect, span } = geometry();
       const p = Math.min(1, Math.max(0, -rect.top / span));
       const x = p * (PANELS - 1);
@@ -309,6 +335,12 @@ export function FeatureTour() {
     // every page fits one screen: a page a little taller than the screen is shrunk to fit
     // (never below 80%), same layout. Measured on load and resize only.
     const fit = () => {
+      if (phone.matches) {
+        track.current
+          ?.querySelectorAll<HTMLElement>(".tour-page > *")
+          .forEach((page) => (page.style.zoom = ""));
+        return;
+      }
       track.current?.querySelectorAll<HTMLElement>(".tour-page:not([data-full])").forEach((box) => {
         const page = box.firstElementChild as HTMLElement | null;
         if (!page) return;
@@ -338,6 +370,7 @@ export function FeatureTour() {
     // one wheel gesture = one page, while the section is pinned. The momentum that follows a
     // flick keeps arriving for a while; it belongs to the same gesture and is swallowed.
     const onWheel = (event: WheelEvent) => {
+      if (phone.matches) return;
       const now = performance.now();
       const size = Math.abs(event.deltaY);
       // a new swipe: a pause, or the speed picking up again (momentum only ever slows down)
@@ -377,6 +410,7 @@ export function FeatureTour() {
       goTo(next);
     };
     const onKey = (event: KeyboardEvent) => {
+      if (phone.matches) return;
       if (!engaged()) return;
       const dir =
         event.key === "ArrowDown" || event.key === "PageDown" || event.key === "ArrowRight"
@@ -415,11 +449,13 @@ export function FeatureTour() {
       listening = on;
     });
     io.observe(el);
+    phone.addEventListener("change", onResize);
     return () => {
       io.disconnect();
       clearTimeout(settle);
       cancelAnimationFrame(tween);
       document.removeEventListener("click", onLink, true);
+      phone.removeEventListener("change", onResize);
       removeEventListener("scroll", onScroll);
       removeEventListener("resize", onResize);
       removeEventListener("wheel", onWheel);
@@ -764,18 +800,18 @@ function MapPage() {
 
       {/* toolbar */}
       <div
-        className="absolute inset-x-4 top-[60px] z-10 flex flex-wrap items-start gap-2 lg:left-[26rem]"
+        className="absolute inset-x-4 top-4 z-10 flex flex-wrap items-start gap-2 sm:top-[60px] lg:left-[26rem]"
         {...a(1)}
       >
-        <div className="bg-surface flex h-10 w-80 items-center gap-2 rounded-lg border px-3 shadow-sm">
+        <div className="bg-surface flex h-10 w-full items-center gap-2 rounded-lg border px-3 shadow-sm sm:w-80">
           <Search className="text-fg-faint size-4" />
           <span className="text-fg-faint text-sm">Search a place</span>
         </div>
-        <div className="bg-surface flex h-10 items-center gap-2 rounded-lg border px-3 shadow-sm">
+        <div className="bg-surface hidden h-10 items-center gap-2 rounded-lg border px-3 shadow-sm sm:flex">
           <Switch checked={false} tabIndex={-1} aria-label="Show ended" />
           <span className="text-xs font-medium">Show ended</span>
         </div>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto hidden items-center gap-2 sm:flex">
           <Button variant="outline" className="shadow-sm" tabIndex={-1}>
             <Layers /> Main map <ChevronDown />
           </Button>
@@ -786,7 +822,7 @@ function MapPage() {
       </div>
 
       {/* New pin card (left, full height), as the form card draws it */}
-      <div className="absolute top-4 bottom-4 left-4 z-20 flex" {...a(2)}>
+      <div className="absolute top-4 bottom-4 left-4 z-20 hidden lg:flex" {...a(2)}>
         <div className="bg-surface border-fg/10 relative flex max-h-full w-[380px] flex-col overflow-hidden rounded-[1.2rem] border-2 shadow-lg">
           <div className="border-fg/10 border-b-2 p-3">
             <div className="flex items-center gap-2">
@@ -862,7 +898,7 @@ function MapPage() {
 
       {/* In view (right, under the toolbar) */}
       <section
-        className="bg-surface/95 border-fg/10 absolute top-[112px] right-4 z-10 w-72 overflow-hidden rounded-[1.4rem] border-2 shadow-lg"
+        className="bg-surface/95 border-fg/10 absolute top-[112px] right-4 z-10 hidden w-72 overflow-hidden rounded-[1.4rem] border-2 shadow-lg md:block"
         {...a(3)}
       >
         <div className="flex w-full items-center gap-2 px-4 py-2.5">
@@ -891,7 +927,7 @@ function MapPage() {
 
       {/* Layers (right, bottom) */}
       <section
-        className="bg-surface/95 border-fg/10 absolute right-4 bottom-4 z-10 w-72 overflow-hidden rounded-[1.4rem] border-2 shadow-lg"
+        className="bg-surface/95 border-fg/10 absolute right-4 bottom-4 z-10 hidden w-72 overflow-hidden rounded-[1.4rem] border-2 shadow-lg md:block"
         {...a(4)}
       >
         <p className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold">
@@ -1150,7 +1186,7 @@ function BountiesPage() {
       </div>
       <Tabs i={5} items={["All 6", "Running 4", "Paused 1", "Ended 1"]} />
       {/* the bounty card as fans see it in the marketplace */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((card, index) => (
           <article
             key={card.title}
@@ -1652,7 +1688,7 @@ function PageBuilderPage() {
           <p className="display truncate text-2xl">My page</p>
           <p className="text-fg-muted text-xs">All changes saved · 2 unpublished changes</p>
         </div>
-        <div className="bg-surface-2 flex gap-1 rounded-lg border p-1">
+        <div className="bg-surface-2 hidden gap-1 rounded-lg border p-1 sm:flex">
           <span className="bg-surface flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium shadow-sm">
             <Monitor className="size-3.5" /> Desktop
           </span>
@@ -1660,10 +1696,16 @@ function PageBuilderPage() {
             <Smartphone className="size-3.5" /> Phone
           </span>
         </div>
-        <Button variant="outline" size="icon" tabIndex={-1} aria-label="More">
+        <Button
+          variant="outline"
+          size="icon"
+          className="hidden sm:inline-flex"
+          tabIndex={-1}
+          aria-label="More"
+        >
           <MoreHorizontal />
         </Button>
-        <Button variant="outline" tabIndex={-1}>
+        <Button variant="outline" className="hidden sm:inline-flex" tabIndex={-1}>
           <Link2 /> Short link
         </Button>
         <Button variant="outline" tabIndex={-1}>
@@ -1672,9 +1714,9 @@ function PageBuilderPage() {
         <Button tabIndex={-1}>Publish changes</Button>
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-[300px_minmax(0,1fr)]">
+      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)]">
         {/* block list */}
-        <aside className="min-h-0 overflow-hidden border-r p-4" {...a(1)}>
+        <aside className="hidden min-h-0 overflow-hidden border-r p-4 lg:block" {...a(1)}>
           <h2 className="text-fg-muted mb-2 text-xs font-semibold tracking-wider uppercase">
             Your page
           </h2>
@@ -1781,19 +1823,21 @@ function PageBuilderPage() {
                   <span>Shop</span>
                 </span>
               </div>
-              <div className="relative z-10 flex items-end gap-4 px-6">
+              <div className="relative z-10 flex flex-wrap items-end gap-x-4 gap-y-2 px-4 sm:px-6">
                 <span className="tour-token -mt-9 size-20! text-3xl!">RR</span>
-                <div className="min-w-0 flex-1 pb-1">
+                <div className="min-w-[10rem] flex-1 pb-1">
                   <p className="flex items-center gap-1.5 text-lg font-bold">
                     Rooftop Records <BadgeCheck className="text-primary-text size-4" />
                   </p>
                   <p className="text-fg-muted text-xs">Music · Brooklyn, NY · 1,204 holders</p>
                 </div>
-                <span className="tour-site-btn tour-site-btn--ghost">Follow</span>
-                <span className="tour-site-btn">Buy ROOF</span>
+                <span className="flex gap-2">
+                  <span className="tour-site-btn tour-site-btn--ghost">Follow</span>
+                  <span className="tour-site-btn">Buy ROOF</span>
+                </span>
               </div>
 
-              <div className="grid grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] gap-4 p-6 pt-5">
+              <div className="grid grid-cols-1 gap-4 p-4 pt-5 sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] sm:p-6">
                 {/* the selected block */}
                 <section className="tour-site-block" data-selected {...a(4)}>
                   <span className="tour-site-tag">Popular songs</span>
@@ -1846,7 +1890,7 @@ function PageBuilderPage() {
                     ))}
                   </ul>
                 </section>
-                <section className="tour-site-block col-span-2" {...a(6)}>
+                <section className="tour-site-block sm:col-span-2" {...a(6)}>
                   <span className="tour-site-tag">Membership tiers</span>
                   <div className="mt-2 grid grid-cols-3 gap-2">
                     {[

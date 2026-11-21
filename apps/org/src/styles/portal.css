@@ -1257,6 +1257,27 @@ main .lp-h2 {
     display: none;
   }
 }
+@media (max-width: 639px) {
+  /* phones: the header says what this is; buttons stack above the tab bar, the headline above them */
+  .lph-kicker,
+  .lph-hint {
+    display: none;
+  }
+  .lph-ctas {
+    left: 16px;
+    right: 16px;
+    bottom: calc(var(--phone-bar-space, 84px) + 36px);
+    flex-direction: column;
+  }
+  .lph-ctas .lph-btn {
+    justify-content: center;
+  }
+  .lph-headline {
+    left: 16px;
+    bottom: calc(var(--phone-bar-space, 84px) + 172px);
+    font-size: 18vw;
+  }
+}
 
 /* the tilted neon ribbon */
 .lp-marquee-box {
@@ -1874,4 +1895,65 @@ main .tour-big {
   .lp-top {
     display: none;
   }
+}
+
+/* phones: no sideways tour; the pages stack one under another at their natural height */
+@media (max-width: 767px) {
+  .tour {
+    height: auto !important;
+  }
+  .tour-stick {
+    position: static;
+    display: block;
+    height: auto;
+    overflow: visible;
+  }
+  .tour-track {
+    height: auto;
+  }
+  .tour-panel {
+    position: relative;
+    inset: auto;
+    overflow: visible;
+    box-shadow: none;
+    border-top: 1px solid var(--gx-line);
+  }
+  .tour-panel::before,
+  .tour-panel::after,
+  .tour-progress {
+    display: none;
+  }
+  .tour-intro {
+    min-height: 0;
+    padding-block: 64px 40px;
+  }
+  .tour-page {
+    height: auto;
+    overflow: visible;
+    padding: 28px 16px 32px;
+  }
+  .tour-page[data-full] {
+    padding: 0;
+  }
+  .tour-cue,
+  .tour-tag {
+    display: none;
+  }
+  .tour-page[data-full][data-pad] {
+    padding-top: 0;
+  }
+  /* the map keeps a screenful */
+  .tour-page[data-full]:not([data-pad]) {
+    height: 78svh;
+  }
+}
+
+/* a page's column never grows past the screen; filter tabs scroll sideways when they don't fit */
+.tour-page > .grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+.tour-tabs {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
