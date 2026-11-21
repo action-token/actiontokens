@@ -26,7 +26,7 @@ import { failOrder, ownOrder, userSignature } from "../purchase";
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 type ArtistRef = { storageAccountId: string | null; fanTokenItemId?: string | null };
 /** XLM has no issuer */
-export type HoldingKind = "xlm" | "bandcoin" | "usdc" | "fanToken" | "other";
+export type HoldingKind = "xlm" | "actionToken" | "usdc" | "fanToken" | "other";
 type WithdrawInput = { code: string; issuer: string | null; amount: string };
 export type WithdrawBreakdown = { code: string; issuer: string | null; amount: string };
 
@@ -57,7 +57,7 @@ export async function openedStorage(
 
 /**
  * Everything in storage that can be taken out: spare XLM first, then payment
- * assets, then copies. `kind` says which is BANDCOIN, USDC or your fan token.
+ * assets, then copies. `kind` says which is ACTION, USDC or your fan token.
  */
 export async function storageContents(ctx: ServiceCtx, artist: ArtistRef) {
   const storage = await openedStorage(ctx, artist);
@@ -70,22 +70,22 @@ export async function storageContents(ctx: ServiceCtx, artist: ArtistRef) {
         select: { code: true, issuer: true, item: { select: { id: true, title: true } } },
       })
     : [];
-  const { bandcoin, usdc } = ctx.chain.config.assets;
+  const { actionToken, usdc } = ctx.chain.config.assets;
   const titleOf = (line: CreditLine) =>
     tokens.find((token) => token.code === line.asset_code && token.issuer === line.asset_issuer)
       ?.item ?? null;
   const is = (asset: { code: string; issuer: string }, line: CreditLine) =>
     asset.code === line.asset_code && asset.issuer === line.asset_issuer;
   const kindOf = (line: CreditLine): HoldingKind =>
-    is(bandcoin, line)
-      ? "bandcoin"
+    is(actionToken, line)
+      ? "actionToken"
       : is(usdc, line)
         ? "usdc"
         : artist.fanTokenItemId && titleOf(line)?.id === artist.fanTokenItemId
           ? "fanToken"
           : "other";
   const isPayment = (line: CreditLine) =>
-    [bandcoin, usdc].some(
+    [actionToken, usdc].some(
       (asset) => asset.code === line.asset_code && asset.issuer === line.asset_issuer,
     );
 

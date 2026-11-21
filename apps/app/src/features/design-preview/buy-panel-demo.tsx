@@ -18,13 +18,13 @@ import {
  * Preview only: sample prices and balances, math in the browser. The real buy
  * panel shows a server quote (see docs/plans/04-transactions.md).
  */
-type Currency = "BANDCOIN" | "XLM" | "USDC";
+type Currency = "ACTION" | "XLM" | "USDC";
 const PRICES: Record<Currency, { unit: number; dp: number }> = {
-  BANDCOIN: { unit: 25000, dp: 0 },
+  ACTION: { unit: 25000, dp: 0 },
   XLM: { unit: 4.2, dp: 2 },
   USDC: { unit: 1.1, dp: 2 },
 };
-const START_BALANCES: Record<Currency, number> = { BANDCOIN: 60000, XLM: 9.8, USDC: 1.5 };
+const START_BALANCES: Record<Currency, number> = { ACTION: 60000, XLM: 9.8, USDC: 1.5 };
 const FEE_BPS = 250;
 const TRUSTLINE_XLM = 0.5;
 const NETWORK_XLM = 0.00001;
@@ -36,7 +36,7 @@ const fmt = (n: number, dp: number) =>
 type Wallet = "custodial" | "freighter";
 
 export function BuyPanelDemo() {
-  const [currency, setCurrency] = useState<Currency>("BANDCOIN");
+  const [currency, setCurrency] = useState<Currency>("ACTION");
   const [qty, setQty] = useState(1);
   const [wallet, setWallet] = useState<Wallet>("custodial");
   const [balances, setBalances] = useState(START_BALANCES);

@@ -9,6 +9,6 @@ export type MuralLayer = "all" | "verified" | "off";
 
 export const useMuralLayer = create<{ layer: MuralLayer; setLayer: (layer: MuralLayer) => void }>()(
   persist((set) => ({ layer: "all", setLayer: (layer) => set({ layer }) }), {
-    name: "bandcoin-ar-mural-layer",
+    name: "actiontokens-ar-mural-layer",
   }),
 );

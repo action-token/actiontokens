@@ -2,7 +2,7 @@
 
 On 2026-11-20 the owner picked concept **B · Street Sticker** from the layout review page
 (`apps/ar/src/app/(bare)/review`, live at `http://localhost:3002/review`). The goal is an
-ActionTokens look that is clearly different from Bandcoin, not just a recolour.
+ActionTokens look that is clearly different from Action Tokens, not just a recolour.
 
 The reference is `apps/ar/src/app/(bare)/review/concept-sticker.tsx`. Match it.
 

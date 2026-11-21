@@ -53,8 +53,8 @@ function AccountMenu({ me }: { me: Me }) {
             <AvatarFallback className="text-xs">{name.slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
           <Money
-            amount={me.balances.BANDCOIN}
-            currency="BANDCOIN"
+            amount={me.balances.ACTION}
+            currency="ACTION"
             short
             className="hidden sm:inline-flex"
           />
@@ -76,7 +76,7 @@ export function AccountMenuItems({ me, name }: { me: Me; name: string }) {
         {me.walletAddress && <CopyAddress address={me.walletAddress} />}
       </DropdownMenuLabel>
       <dl className="grid grid-cols-3 gap-2 px-2 pb-2">
-        {(["BANDCOIN", "XLM", "USDC"] as const).map((currency) => (
+        {(["ACTION", "XLM", "USDC"] as const).map((currency) => (
           <div key={currency} className="bg-surface-2 grid gap-0.5 rounded-sm px-2 py-1.5">
             <dt className="text-fg-faint text-[11px] font-medium">{currency}</dt>
             <dd className="truncate text-sm font-semibold">

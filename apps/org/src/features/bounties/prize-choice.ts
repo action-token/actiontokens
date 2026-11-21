@@ -2,16 +2,16 @@ import type { RouterOutputs } from "~/trpc/react";
 
 type Sources = RouterOutputs["bounties"]["fundingSources"];
 type Holdings = NonNullable<Sources["wallet"]>;
-type PlatformCurrency = "BANDCOIN" | "XLM" | "USDC";
+type PlatformCurrency = "ACTION" | "XLM" | "USDC";
 
 /**
  * What the prize is paid in, as the form keeps it: a platform currency
- * ("BANDCOIN", "XLM", "USDC") or any other token the artist holds, as
- * "CODE:ISSUER" (their fan token, for example), like the old Bandcoin allowed.
+ * ("ACTION", "XLM", "USDC") or any other token the artist holds, as
+ * "CODE:ISSUER" (their fan token, for example), like the old Action Tokens allowed.
  */
 export type PrizeKey = string;
 
-export const PLATFORM_CURRENCIES: PlatformCurrency[] = ["BANDCOIN", "XLM", "USDC"];
+export const PLATFORM_CURRENCIES: PlatformCurrency[] = ["ACTION", "XLM", "USDC"];
 
 const isPlatform = (key: PrizeKey): key is PlatformCurrency =>
   (PLATFORM_CURRENCIES as string[]).includes(key);

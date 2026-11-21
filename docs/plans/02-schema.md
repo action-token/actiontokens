@@ -51,14 +51,14 @@ Goals: one name per idea, real relations (no "id stored as a string"), `Decimal`
 
 ### Market
 
-| New                                                   | Old                                                                                                             |
-| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `Listing`                                             | MarketAsset, NftListing, SellPageAsset: `sellerId`, `itemId`, `editionId?`, `quantity`, `kind: PRIMARY          | RESALE` |
-| `ListingPrice`                                        | NftPrice, NftListingPrice, the price/priceUSD columns: `currency` (BANDCOIN, XLM, USDC, USD) + `amount Decimal` |
-| `Order`                                               | Order + NftPurchase: state machine (see 04)                                                                     |
-| `Ownership`                                           | User_Asset, User_Song, Ownership, NftToken.owner                                                                |
-| `RedeemCode`, `RedeemClaim`                           | Redeem, RedeemConsumer, NftContentRedeem                                                                        |
-| `RoyaltyReport`, `RoyaltyPayout`, `RoyaltyPayoutLine` | same, with Decimal amounts                                                                                      |
+| New                                                   | Old                                                                                                           |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `Listing`                                             | MarketAsset, NftListing, SellPageAsset: `sellerId`, `itemId`, `editionId?`, `quantity`, `kind: PRIMARY        | RESALE` |
+| `ListingPrice`                                        | NftPrice, NftListingPrice, the price/priceUSD columns: `currency` (ACTION, XLM, USDC, USD) + `amount Decimal` |
+| `Order`                                               | Order + NftPurchase: state machine (see 04)                                                                   |
+| `Ownership`                                           | User_Asset, User_Song, Ownership, NftToken.owner                                                              |
+| `RedeemCode`, `RedeemClaim`                           | Redeem, RedeemConsumer, NftContentRedeem                                                                      |
+| `RoyaltyReport`, `RoyaltyPayout`, `RoyaltyPayoutLine` | same, with Decimal amounts                                                                                    |
 
 ### Music
 
@@ -126,13 +126,13 @@ Sign-ins, sign-outs and failed sign-ins are logged too (from the NextAuth events
 ## Changes made while building it (2026-10-28)
 
 - **Fan token is an Item** (`type: FAN_TOKEN`) instead of a separate `ArtistToken` table, so buying, listing and owning it use the same code as every other item. `Artist.fanTokenItemId` points at it.
-- **Two prices per listing** (`priceBandcoin`, `priceUsd`), replacing `ListingPrice`. XLM and USDC are computed live from USD.
+- **Two prices per listing** (`priceActionToken`, `priceUsd`), replacing `ListingPrice`. XLM and USDC are computed live from USD.
 - **Session tables dropped:** sessions are JWTs, and the old Account/Session/VerificationToken tables are empty.
 - **ItemLike and CollectionLike** stay two small tables with real foreign keys, instead of one polymorphic table.
 - **Agent chat** (`AgentConversation`, `AgentMessage`, `AgentAction`) added. These tables exist in the old database but were missing from bandfan's schema file.
 - **AR extras from Wadzzo AR** (`ar-extras.prisma`): murals fans scan for coins (`Mural`, `MuralScan`, `MuralScanSession`, `MuralEmbedding`, `MuralSettings`, `CoinBalance`, `CoinLedgerEntry`), events with RSVPs and comments, announcements, and the embeddable map with daily stats. Pins and bounties can link to an event.
 - **Token directory dropped** (`AdminAsset`, `Tag`): it was empty.
-- **New dev DB gets a fresh demo seed** (`pnpm --filter @bandcoin/db seed:reset`), not a copy of the old test data. The copy script stays for the production move.
+- **New dev DB gets a fresh demo seed** (`pnpm --filter @actiontokens/db seed:reset`), not a copy of the old test data. The copy script stays for the production move.
 - **Schema is a folder:** `packages/db/prisma/schema/*.prisma`, one file per domain.
 
 - **One issuer per artist** (2026-10-28, phase 3): `Artist.issuerAccountId` points at a `ChainAccount` of kind ISSUER. `ChainAccount.activatedAt` is set once the account is on-chain. `ClassicToken.issuerAccountId` is kept only for per-asset issuers copied from bandfan.

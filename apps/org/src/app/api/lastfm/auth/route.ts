@@ -5,7 +5,7 @@ import { lastFmAuthUrl, lastFmKeys } from "@actiontokens/api";
 import { backTo } from "~/lib/safe-redirect";
 import { getSession } from "~/server/auth";
 
-/** Step 1 of connecting Last.fm: send the artist to Last.fm to approve Bandcoin. */
+/** Step 1 of connecting Last.fm: send the artist to Last.fm to approve Action Tokens. */
 export async function GET(request: NextRequest) {
   const redirect = backTo(request.nextUrl.searchParams.get("redirect"), "/bounties/new");
   if (!(await getSession())) return NextResponse.redirect(new URL(redirect, request.url));

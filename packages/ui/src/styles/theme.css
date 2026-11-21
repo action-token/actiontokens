@@ -188,7 +188,7 @@
   --animate-reveal: bc-reveal 520ms 120ms var(--ease-out-soft) forwards;
   /* A sideways equalizer bar (the fan app's right rail); each bar sets its own duration */
   --animate-eq-x: bc-eq-x 800ms var(--ease-out-soft) infinite alternate;
-  /* The site backdrop's BANDCOIN mark (SiteBackdrop) shifting colour: two solid copies over a
+  /* The site backdrop's ACTION mark (SiteBackdrop) shifting colour: two solid copies over a
      third fade in and out, opacity only, so the browser blends them without repainting. One
      round (yellow, teal, violet, back to yellow) takes 36 s. */
   --animate-mark-b: bc-mark-b 36s ease-in-out infinite;
@@ -389,7 +389,7 @@
   }
 }
 
-/* Connect-wallet dialog type: Bandcoin headings, hand-written notes (Wadzzo's look). */
+/* Connect-wallet dialog type: Action Tokens headings, hand-written notes (Wadzzo's look). */
 @utility display {
   font-family: var(--font-display);
   font-weight: 800;
@@ -495,11 +495,7 @@
   background-size: 28px 28px;
 }
 .at-scanlines {
-  background-image: repeating-linear-gradient(
-    0deg,
-    rgb(0 0 0 / 0.22) 0 1px,
-    transparent 1px 3px
-  );
+  background-image: repeating-linear-gradient(0deg, rgb(0 0 0 / 0.22) 0 1px, transparent 1px 3px);
 }
 @keyframes at-pulse {
   0%,

@@ -16,9 +16,9 @@ export type SettingsInput = {
   platformFeeBps: number;
   /** null: the platform treasury */
   platformFeeRecipient: string | null;
-  vanityMonthlyBandcoin: string | null;
+  vanityMonthlyActionToken: string | null;
   vanityMonthlyUsd: string | null;
-  vanityNameChangeBandcoin: string | null;
+  vanityNameChangeActionToken: string | null;
   vanityNameChangeUsd: string | null;
   nearbyPinRadiusMeters: number;
   /** Fan tokens issued into a new artist's storage at approval */
@@ -29,9 +29,9 @@ export type SettingsInput = {
 const LABELS: Record<keyof SettingsInput, string> = {
   platformFeeBps: "Platform fee",
   platformFeeRecipient: "Fee goes to",
-  vanityMonthlyBandcoin: "Short link, monthly (BANDCOIN)",
+  vanityMonthlyActionToken: "Short link, monthly (ACTION)",
   vanityMonthlyUsd: "Short link, monthly (USD)",
-  vanityNameChangeBandcoin: "Short link name change (BANDCOIN)",
+  vanityNameChangeActionToken: "Short link name change (ACTION)",
   vanityNameChangeUsd: "Short link name change (USD)",
   nearbyPinRadiusMeters: "Nearby pin radius",
   fanTokenStartSupply: "Starting fan tokens",
@@ -45,9 +45,9 @@ async function savedSettings(ctx: Pick<Context, "db">): Promise<SettingsInput> {
   return {
     platformFeeBps: row?.platformFeeBps ?? DEFAULT_PLATFORM_FEE_BPS,
     platformFeeRecipient: row?.platformFeeRecipient ?? null,
-    vanityMonthlyBandcoin: money(row?.vanityMonthlyBandcoin),
+    vanityMonthlyActionToken: money(row?.vanityMonthlyActionToken),
     vanityMonthlyUsd: money(row?.vanityMonthlyUsd),
-    vanityNameChangeBandcoin: money(row?.vanityNameChangeBandcoin),
+    vanityNameChangeActionToken: money(row?.vanityNameChangeActionToken),
     vanityNameChangeUsd: money(row?.vanityNameChangeUsd),
     nearbyPinRadiusMeters: row?.nearbyPinRadiusMeters ?? 500,
     fanTokenStartSupply: row?.fanTokenStartSupply.toString() ?? "1000000",

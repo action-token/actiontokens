@@ -40,7 +40,7 @@ const song = {
   previewStartSec: 60,
   code: "goldhour",
   supply: null,
-  priceBandcoin: "5",
+  priceActionToken: "5",
   priceUsd: "0.1",
   visibility: "PUBLIC" as const,
 };
@@ -123,7 +123,7 @@ describe("createSong", () => {
       },
       track: { create: { artistName: "Luna Vale", albumId: "al1", trackNumber: 2 } },
       listings: {
-        create: { kind: "PRIMARY", status: "ACTIVE", priceBandcoin: "5", priceUsd: "0.1" },
+        create: { kind: "PRIMARY", status: "ACTIVE", priceActionToken: "5", priceUsd: "0.1" },
       },
     });
   });
@@ -377,7 +377,7 @@ describe("getSong", () => {
       track: { artistName: "Luna Vale", trackNumber: 2, albumId: "al1" },
       listings: [
         {
-          priceBandcoin: { toString: () => "5" },
+          priceActionToken: { toString: () => "5" },
           priceUsd: { toString: () => "0.1" },
           status: "ACTIVE",
           quantitySold: 0,
@@ -389,7 +389,7 @@ describe("getSong", () => {
       title: "Gold Hour",
       code: "GOLDHOUR",
       locked: false,
-      priceBandcoin: "5",
+      priceActionToken: "5",
       audioUrl: "https://cdn.example/song.mp3",
       durationSec: 200,
       previewStartSec: 60,
@@ -424,7 +424,7 @@ describe("listSongs", () => {
         media: { durationSec: 200, status: "LEGACY" },
         listings: [
           {
-            priceBandcoin: { toString: () => "5" },
+            priceActionToken: { toString: () => "5" },
             priceUsd: { toString: () => "0.1" },
             status: "ACTIVE",
             quantitySold: 3,
@@ -447,7 +447,7 @@ describe("listSongs", () => {
         sold: 3,
         stems: 2,
         durationSec: 200,
-        priceBandcoin: "5",
+        priceActionToken: "5",
       }),
     ]);
     expect(db.item.findMany).toHaveBeenCalledWith(

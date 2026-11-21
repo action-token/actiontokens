@@ -1,4 +1,4 @@
-/** The Bandcoin accounts service: creates and signs for custodial (email/social) accounts. */
+/** The Action Tokens accounts service: creates and signs for custodial (email/social) accounts. */
 const ACCOUNTS_SERVICE_URL = "https://accounts.action-tokens.com/";
 
 export const USER_ACCOUNT_URL = `${ACCOUNTS_SERVICE_URL}api/account`;

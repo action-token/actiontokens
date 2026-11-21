@@ -1,9 +1,9 @@
-# The Bandcoin worker: payment checks, music processing (needs ffmpeg) and agent
+# The Action Tokens worker: payment checks, music processing (needs ffmpeg) and agent
 # jobs, batch pins and hotspot drops. Port 8080 serves /health.
 # Build from the repo root:
-#   docker build -f apps/worker/Dockerfile -t bandcoin-worker .
+#   docker build -f apps/worker/Dockerfile -t actiontokens-worker .
 # Run with the variables in apps/worker/.env.example:
-#   docker run --env-file apps/worker/.env.local -p 8080:8080 bandcoin-worker
+#   docker run --env-file apps/worker/.env.local -p 8080:8080 actiontokens-worker
 
 FROM node:24-slim AS base
 RUN corepack enable

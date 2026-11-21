@@ -8,7 +8,7 @@ import { ArtistsView } from "~/features/artists/artists-view";
 export const metadata: Metadata = {
   title: "Artists",
   description:
-    "Discover the artists on Bandcoin: follow them, hear their music, collect their drops.",
+    "Discover the artists on Action Tokens: follow them, hear their music, collect their drops.",
 };
 
 export default function ArtistsPage() {

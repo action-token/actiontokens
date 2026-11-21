@@ -37,7 +37,7 @@ export function HomeView({ home }: { home: Home }) {
       {home.artists.length > 0 && (
         <MediaCarousel
           title="Popular artists"
-          note="most followed on Bandcoin"
+          note="most followed on Action Tokens"
           action={seeAll("/artists")}
           itemWidth="minmax(150px,176px)"
         >

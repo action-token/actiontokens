@@ -98,7 +98,7 @@ function setup(
       name: "testnet",
       network,
       assets: {
-        bandcoin: { code: "BANDCOIN", issuer },
+        actionToken: { code: "ACTION", issuer },
         usdc: { code: "USDC", issuer: Keypair.random().publicKey() },
       },
     },
@@ -117,7 +117,7 @@ const novaTo = (to: string, amount = "10") => ({ to, code: "NOVA", issuer: novaI
 const xlmTo = (to: string, amount = "2") => ({ to, code: "XLM", issuer: null, amount });
 
 describe("send quote", () => {
-  it("finds a Bandcoin user by @username and pays them straight when they hold the token", async () => {
+  it("finds an Action Tokens user by @username and pays them straight when they hold the token", async () => {
     const quote = await quoteSend(setup().ctx, me, novaTo("@mira"));
     expect(quote).toMatchObject({
       ok: true,
@@ -127,7 +127,7 @@ describe("send quote", () => {
     });
   });
 
-  it("names the Bandcoin user behind a pasted address", async () => {
+  it("names the Action Tokens user behind a pasted address", async () => {
     const quote = await quoteSend(setup().ctx, me, novaTo(friend));
     expect(quote.recipient).toMatchObject({ address: friend, username: "mira" });
   });
@@ -161,10 +161,10 @@ describe("send quote", () => {
     const { ctx } = setup();
     const problem = async (input: Parameters<typeof quoteSend>[2]) =>
       (await quoteSend(ctx, me, input)).problems[0]?.message;
-    expect(await problem(novaTo("@nobody"))).toBe("There's no Bandcoin user called @nobody.");
+    expect(await problem(novaTo("@nobody"))).toBe("There's no Action Tokens user called @nobody.");
     expect(await problem(novaTo("@nowallet"))).toBe("@nowallet doesn't have a wallet yet.");
     expect(await problem(novaTo("GNOTANADDRESS"))).toBe(
-      "Enter a Stellar address (G…) or a Bandcoin @username.",
+      "Enter a Stellar address (G…) or an Action Tokens @username.",
     );
     expect(await problem(novaTo(fan))).toBe("That's your own wallet.");
     expect(await problem(novaTo("@mira", "60"))).toBe("Your wallet has only 50 NOVA to send.");
@@ -215,7 +215,7 @@ describe("send", () => {
   it("won't start a send the quote refuses, and creates no order", async () => {
     const { ctx, orders } = setup();
     await expect(startSend(ctx, me, novaTo("@nobody"))).rejects.toMatchObject({
-      message: "There's no Bandcoin user called @nobody.",
+      message: "There's no Action Tokens user called @nobody.",
     });
     expect(orders.size).toBe(0);
   });

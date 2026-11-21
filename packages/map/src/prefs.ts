@@ -45,7 +45,7 @@ export function storedChoice<T extends string>(key: string, fallback: T, valid: 
 /**
  * One app's map choices: the 2D/3D mode, the map type and terrain, stored under
  * `<prefix>-map-mode`, `-map-base` and `-map-terrain`. Each app has its own prefix (AR
- * `bandcoin-ar`, the portal `bandcoin-artist`), so an app keeps what its people already chose, and
+ * `actiontokens-ar`, the portal `actiontokens-artist`), so an app keeps what its people already chose, and
  * the sites stay separate (they are different origins anyway).
  */
 export function createMapPrefs(prefix: string) {

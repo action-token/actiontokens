@@ -70,7 +70,7 @@ export const FILL_SCHEMAS = {
       .string()
       .describe("On-chain asset code: 4-12 letters A-Z only, uppercase, derived from the name"),
     supply: z.number().int().min(1).nullable().describe("How many copies, or null for unlimited"),
-    priceBandcoin: z.number().min(0).nullable().describe("Only if the artist gave a price"),
+    priceActionToken: z.number().min(0).nullable().describe("Only if the artist gave a price"),
     priceUsd: z.number().min(0).nullable().describe("Only if the artist gave a price"),
     imagePrompt,
   }),
@@ -145,5 +145,5 @@ export const FORM_BRIEF: Record<FillForm, string> = {
   album: "an album that groups the artist's songs",
   song: "a song the artist releases",
   profile:
-    "an artist's page on Bandcoin: their bio, cover banner and fan token (the token fans hold to join memberships)",
+    "an artist's page on Action Tokens: their bio, cover banner and fan token (the token fans hold to join memberships)",
 };

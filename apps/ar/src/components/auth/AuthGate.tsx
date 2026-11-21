@@ -14,7 +14,7 @@ import { BottomSheet } from "~/components/ui/BottomSheet";
  * redeem, edit.
  *
  * That ordering is deliberate. Somebody who just scanned a QR code on a table
- * tent has no idea what Bandcoin AR is yet; asking them to connect a wallet before
+ * tent has no idea what Action Tokens AR is yet; asking them to connect a wallet before
  * they've seen a single pin is how you lose them. They see the drop first,
  * decide they want it, and only then meet this.
  *
@@ -61,7 +61,7 @@ export function AuthGate() {
         <div className="px-6 pt-4 pb-2">
           {/* Emblem */}
           <motion.div
-            className="mx-auto mb-5 flex size-[66px] -rotate-6 items-center justify-center rounded-full border-[3px] border-[hsl(var(--st-ink))] bg-ar-accent shadow-[4px_4px_0_0_hsl(var(--st-line))]"
+            className="bg-ar-accent mx-auto mb-5 flex size-[66px] -rotate-6 items-center justify-center rounded-full border-[3px] border-[hsl(var(--st-ink))] shadow-[4px_4px_0_0_hsl(var(--st-line))]"
             animate={{ y: [0, -3, 0] }}
             transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
           >

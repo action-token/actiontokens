@@ -46,18 +46,18 @@ const RULES: { key: RuleKey; label: string; min: number; max: number }[] = [
 const ACCOUNT = /^G[A-Z2-7]{55}$/;
 const AMOUNT = /^\d+(\.\d{1,7})?$/;
 const MONEY_FIELDS = [
-  "vanityMonthlyBandcoin",
+  "vanityMonthlyActionToken",
   "vanityMonthlyUsd",
-  "vanityNameChangeBandcoin",
+  "vanityNameChangeActionToken",
   "vanityNameChangeUsd",
 ] as const;
 
 const toForm = (saved: Saved): Form => ({
   platformFeeBps: String(saved.platformFeeBps / 100),
   platformFeeRecipient: saved.platformFeeRecipient ?? "",
-  vanityMonthlyBandcoin: saved.vanityMonthlyBandcoin ?? "",
+  vanityMonthlyActionToken: saved.vanityMonthlyActionToken ?? "",
   vanityMonthlyUsd: saved.vanityMonthlyUsd ?? "",
-  vanityNameChangeBandcoin: saved.vanityNameChangeBandcoin ?? "",
+  vanityNameChangeActionToken: saved.vanityNameChangeActionToken ?? "",
   vanityNameChangeUsd: saved.vanityNameChangeUsd ?? "",
   nearbyPinRadiusMeters: String(saved.nearbyPinRadiusMeters),
   fanTokenStartSupply: String(Number(saved.fanTokenStartSupply)),
@@ -100,9 +100,9 @@ const TABS: { id: TabId; label: string; icon: LucideIcon }[] = [
 const TAB_OF: Partial<Record<keyof Form, TabId>> = {
   platformFeeBps: "fees",
   platformFeeRecipient: "fees",
-  vanityMonthlyBandcoin: "prices",
+  vanityMonthlyActionToken: "prices",
   vanityMonthlyUsd: "prices",
-  vanityNameChangeBandcoin: "prices",
+  vanityNameChangeActionToken: "prices",
   vanityNameChangeUsd: "prices",
   nearbyPinRadiusMeters: "map",
   fanTokenStartSupply: "map",
@@ -191,9 +191,9 @@ function SavedForm({ saved, treasury }: { saved: Saved; treasury: string }) {
           update.mutate({
             platformFeeBps: Math.round(Number(form.platformFeeBps) * 100),
             platformFeeRecipient: form.platformFeeRecipient.trim() || null,
-            vanityMonthlyBandcoin: money("vanityMonthlyBandcoin"),
+            vanityMonthlyActionToken: money("vanityMonthlyActionToken"),
             vanityMonthlyUsd: money("vanityMonthlyUsd"),
-            vanityNameChangeBandcoin: money("vanityNameChangeBandcoin"),
+            vanityNameChangeActionToken: money("vanityNameChangeActionToken"),
             vanityNameChangeUsd: money("vanityNameChangeUsd"),
             nearbyPinRadiusMeters: Number(form.nearbyPinRadiusMeters),
             fanTokenStartSupply: form.fanTokenStartSupply.trim(),
@@ -270,8 +270,8 @@ function SavedForm({ saved, treasury }: { saved: Saved; treasury: string }) {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="bg-surface-2 grid gap-4 rounded-2xl p-4">
                 <p className="display text-lg">Monthly</p>
-                <Field label="In BANDCOIN" htmlFor="vm-b" error={errors.vanityMonthlyBandcoin}>
-                  {input("vm-b", "vanityMonthlyBandcoin", "BANDCOIN")}
+                <Field label="In ACTION" htmlFor="vm-b" error={errors.vanityMonthlyActionToken}>
+                  {input("vm-b", "vanityMonthlyActionToken", "ACTION")}
                 </Field>
                 <Field label="In dollars" htmlFor="vm-u" error={errors.vanityMonthlyUsd}>
                   {input("vm-u", "vanityMonthlyUsd", "USD")}
@@ -279,8 +279,8 @@ function SavedForm({ saved, treasury }: { saved: Saved; treasury: string }) {
               </div>
               <div className="bg-surface-2 grid gap-4 rounded-2xl p-4">
                 <p className="display text-lg">Name change</p>
-                <Field label="In BANDCOIN" htmlFor="vn-b" error={errors.vanityNameChangeBandcoin}>
-                  {input("vn-b", "vanityNameChangeBandcoin", "BANDCOIN")}
+                <Field label="In ACTION" htmlFor="vn-b" error={errors.vanityNameChangeActionToken}>
+                  {input("vn-b", "vanityNameChangeActionToken", "ACTION")}
                 </Field>
                 <Field label="In dollars" htmlFor="vn-u" error={errors.vanityNameChangeUsd}>
                   {input("vn-u", "vanityNameChangeUsd", "USD")}

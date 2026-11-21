@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { readCollapsed, readFlag, saveCollapsed, saveFlag } from "@actiontokens/ui/lib/sidebar-collapsed";
+import {
+  readCollapsed,
+  readFlag,
+  saveCollapsed,
+  saveFlag,
+} from "@actiontokens/ui/lib/sidebar-collapsed";
 
 const memory = () => {
   const values = new Map<string, string>();
@@ -38,7 +43,7 @@ describe("sidebar fold state", () => {
 });
 
 describe("right panel open state", () => {
-  const KEY = "bandcoin.right-panel-open";
+  const KEY = "action-tokens.right-panel-open";
 
   it("is closed when nothing is saved, and remembers opening", () => {
     const storage = memory();

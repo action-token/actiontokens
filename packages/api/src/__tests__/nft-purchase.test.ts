@@ -22,7 +22,7 @@ const fan = Keypair.random().publicKey();
 const treasury = Keypair.random().publicKey();
 const creator = Keypair.random().publicKey();
 const sellerWallet = Keypair.random().publicKey();
-const bandcoin = { code: "BANDCOIN", issuer: Keypair.random().publicKey() };
+const actionToken = { code: "ACTION", issuer: Keypair.random().publicKey() };
 const usdc = { code: "USDC", issuer: Keypair.random().publicKey() };
 
 const wallet: SessionUser = { id: "fan", role: "FAN", walletAddress: fan, walletType: "freighter" };
@@ -32,7 +32,7 @@ type Row = Record<string, unknown>;
 
 function horizon(
   id: string,
-  { xlm = "5", bandcoin: held }: { xlm?: string; bandcoin?: string } = {},
+  { xlm = "5", actionToken: held }: { xlm?: string; actionToken?: string } = {},
 ) {
   return Object.assign(new Account(id, "100"), {
     subentry_count: held === undefined ? 0 : 1,
@@ -43,8 +43,8 @@ function horizon(
         : [
             {
               asset_type: "credit_alphanum12",
-              asset_code: bandcoin.code,
-              asset_issuer: bandcoin.issuer,
+              asset_code: actionToken.code,
+              asset_issuer: actionToken.issuer,
               balance: held,
               selling_liabilities: "0",
             },
@@ -85,7 +85,7 @@ function setup(
     sellerId: "artist-user",
     quantity: null,
     quantitySold: 3,
-    priceBandcoin: { toString: () => "25" },
+    priceActionToken: { toString: () => "25" },
     priceUsd: { toString: () => "2" },
     item: {
       id: "i1",
@@ -113,7 +113,7 @@ function setup(
     sellerId: "seller1",
     quantity: 1,
     quantitySold: 0,
-    priceBandcoin: { toString: () => "40" },
+    priceActionToken: { toString: () => "40" },
     priceUsd: { toString: () => "3" },
     edition: { id: "e41", tokenId: "41", ownerId: opts.resale?.ownerId ?? "seller1" },
     seller: { walletAddress: sellerWallet },
@@ -159,7 +159,9 @@ function setup(
     },
     ownership: { upsert: vi.fn().mockResolvedValue({}), updateMany: vi.fn().mockResolvedValue({}) },
     item: {
-      findUnique: vi.fn().mockResolvedValue({ title: "VIP pass", coverUrl: null, organizationId: "a1" }),
+      findUnique: vi
+        .fn()
+        .mockResolvedValue({ title: "VIP pass", coverUrl: null, organizationId: "a1" }),
     },
     lockedContent: {
       findMany: vi.fn().mockResolvedValue([
@@ -183,7 +185,7 @@ function setup(
     config: {
       name: "testnet",
       network,
-      assets: { bandcoin, usdc },
+      assets: { actionToken, usdc },
       treasury,
       nftContract: contract,
     },
@@ -191,7 +193,7 @@ function setup(
       Promise.resolve(
         id === fan
           ? opts.buyer === undefined
-            ? horizon(fan, { bandcoin: opts.held ?? "100" })
+            ? horizon(fan, { actionToken: opts.held ?? "100" })
             : opts.buyer
           : id === creator && opts.creatorMissing
             ? null
@@ -199,7 +201,7 @@ function setup(
       ),
     ),
     rates: vi.fn().mockResolvedValue({ xlmUsd: "0.1", usdcUsd: "1" }),
-    bandcoinUsd: vi.fn().mockResolvedValue("0.01"),
+    actionTokenUsd: vi.fn().mockResolvedValue("0.01"),
     prepareContractCall: vi.fn((xdr: string) => {
       if (!opts.prepareFee) return Promise.resolve(xdr);
       const tx = TransactionBuilder.fromXDR(xdr, network.passphrase) as Transaction;
@@ -219,7 +221,7 @@ function setup(
               prices: [
                 {
                   paymentToken: tokenAddressOf(
-                    new Asset(bandcoin.code, bandcoin.issuer),
+                    new Asset(actionToken.code, actionToken.issuer),
                     network.passphrase,
                   ),
                   price: opts.resale?.onChainPrice ?? 400_000_000n,
@@ -261,24 +263,24 @@ function setup(
   };
 }
 
-const buy: { listingId: string; quantity: number; currency: "BANDCOIN" | "USD" } = {
+const buy: { listingId: string; quantity: number; currency: "ACTION" | "USD" } = {
   listingId: "l1",
   quantity: 2,
-  currency: "BANDCOIN",
+  currency: "ACTION",
 };
 const opsOf = (xdr: string) =>
   (TransactionBuilder.fromXDR(xdr, network.passphrase) as Transaction).operations;
 
 describe("contract NFT quote", () => {
-  it("prices it in BANDCOIN with the network fee in BANDCOIN, and no platform fee for the fan", async () => {
+  it("prices it in ACTION with the network fee in ACTION, and no platform fee for the fan", async () => {
     const { ctx } = setup();
     const quote = await quoteNftPurchase(ctx, wallet, buy);
-    // 2 copies: 0.10 + 2 × 0.40 = 0.9 XLM ≈ $0.09 = 9 BANDCOIN, as on the old Bandcoin
+    // 2 copies: 0.10 + 2 × 0.40 = 0.9 XLM ≈ $0.09 = 9 ACTION, as on the old Action Tokens
     expect(quote.lines.map((line) => [line.key, line.amount, line.currency])).toEqual([
-      ["price", "50.0000000", "BANDCOIN"],
-      ["networkFee", "9.0000000", "BANDCOIN"],
+      ["price", "50.0000000", "ACTION"],
+      ["networkFee", "9.0000000", "ACTION"],
     ]);
-    expect(quote.totals).toEqual([{ currency: "BANDCOIN", amount: "59.0000000" }]);
+    expect(quote.totals).toEqual([{ currency: "ACTION", amount: "59.0000000" }]);
     expect(quote.payout).toMatchObject({ seller: "48.7500000", platform: "1.2500000" });
     expect(quote.ok).toBe(true);
   });
@@ -286,15 +288,15 @@ describe("contract NFT quote", () => {
   it("says what's in the way", async () => {
     const codes = async (user: SessionUser | null, input = buy, over = {}) =>
       (await quoteNftPurchase(setup(over).ctx, user, input)).problems.map((p) => p.message);
-    expect(await codes(wallet, buy, { held: "10" })).toEqual(["You're 49 BANDCOIN short."]);
+    expect(await codes(wallet, buy, { held: "10" })).toEqual(["You're 49 ACTION short."]);
     expect(await codes(wallet, { ...buy, currency: "XLM" as never })).toContain(
-      "Contract NFTs are paid in BANDCOIN or by card.",
+      "Contract NFTs are paid in ACTION or by card.",
     );
     expect(await codes(wallet, { ...buy, quantity: 21 })).toContain(
       "Up to 20 copies in one purchase.",
     );
     expect(await codes(wallet, { ...buy, currency: "USD" })).toContain(
-      "Card works for email, Google and Apple accounts. Pay with BANDCOIN from your wallet.",
+      "Card works for email, Google and Apple accounts. Pay with ACTION from your wallet.",
     );
     expect(await codes(null)).toEqual(["Sign in to pay."]);
   });
@@ -331,7 +333,7 @@ describe("contract NFT quote", () => {
   });
 });
 
-describe("buying with BANDCOIN from a wallet", () => {
+describe("buying with ACTION from a wallet", () => {
   it("registers the edition at its first sale, as the platform", async () => {
     const { ctx, chain, db } = setup({ registered: false });
     await startNftPurchase(ctx, wallet, buy);
@@ -361,7 +363,7 @@ describe("buying with BANDCOIN from a wallet", () => {
     });
   });
 
-  it("doesn't refuse the buy over the simulated network fee, as on the old Bandcoin", async () => {
+  it("doesn't refuse the buy over the simulated network fee, as on the old Action Tokens", async () => {
     const { ctx, orders } = setup({ prepareFee: "2600000" });
     await expect(startNftPurchase(ctx, wallet, buy)).resolves.toMatchObject({ signer: "wallet" });
     expect(orders.get("order1")).toMatchObject({ status: "AWAITING_SIGNATURE" });
@@ -393,8 +395,8 @@ describe("buying with BANDCOIN from a wallet", () => {
 });
 
 describe("buying by card", () => {
-  it("sends the BANDCOIN first, then buys, after charging the card", async () => {
-    const { ctx, chain, orders } = setup({ buyer: horizon(fan, { bandcoin: "0" }) });
+  it("sends the ACTION first, then buys, after charging the card", async () => {
+    const { ctx, chain, orders } = setup({ buyer: horizon(fan, { actionToken: "0" }) });
     const { orderId, xdr, signer } = await startNftPurchase(ctx, custodial, {
       ...buy,
       currency: "USD",
@@ -423,9 +425,9 @@ describe("buying by card", () => {
     expect(orders.get(orderId)).toMatchObject({ status: "DELIVERED", cardPaymentId: "sq1" });
   });
 
-  it("refunds the card when the BANDCOIN can't go in", async () => {
+  it("refunds the card when the ACTION can't go in", async () => {
     const { ctx, chain, orders } = setup({
-      buyer: horizon(fan, { bandcoin: "0" }),
+      buyer: horizon(fan, { actionToken: "0" }),
       submit: () => Promise.reject(new Error("tx_failed")),
     });
     const { orderId, xdr } = await startNftPurchase(ctx, custodial, { ...buy, currency: "USD" });
@@ -436,9 +438,9 @@ describe("buying by card", () => {
     expect(orders.get(orderId)).toMatchObject({ status: "REFUNDED" });
   });
 
-  it("keeps the BANDCOIN with the fan when the buy fails, without a refund or a retry", async () => {
+  it("keeps the ACTION with the fan when the buy fails, without a refund or a retry", async () => {
     const { ctx, chain, orders } = setup({
-      buyer: horizon(fan, { bandcoin: "0" }),
+      buyer: horizon(fan, { actionToken: "0" }),
       submit: (_xdr, call) =>
         call === 1 ? Promise.resolve({ hash: "topup" }) : Promise.reject(new Error("tx_failed")),
     });
@@ -447,7 +449,7 @@ describe("buying by card", () => {
       submitNftPurchase(ctx, custodial, { orderId, xdr, card: { sourceId: "cnon:1" } }),
     ).rejects.toMatchObject({
       message:
-        "Your card payment became 50 BANDCOIN in your wallet, but the NFT couldn't be bought. Nothing else was charged; you can buy it with that BANDCOIN.",
+        "Your card payment became 50 ACTION in your wallet, but the NFT couldn't be bought. Nothing else was charged; you can buy it with that ACTION.",
     });
     expect(chain.submit).toHaveBeenCalledTimes(2);
     expect(chain.card.refund).not.toHaveBeenCalled();
@@ -485,7 +487,7 @@ describe("settling a stuck NFT order", () => {
     ).resolves.toBe("DELIVERED");
   });
 
-  it("fails a card order whose BANDCOIN went in but never bought, without refunding", async () => {
+  it("fails a card order whose ACTION went in but never bought, without refunding", async () => {
     const { ctx, chain, orders } = setup({ receipt: false });
     orders.set("order1", { id: "order1", status: "SUBMITTED" });
     chain.findTransaction.mockResolvedValue({ successful: true, envelopeXdr: "" });
@@ -502,7 +504,7 @@ describe("settling a stuck NFT order", () => {
 });
 
 describe("buying a resold smart-contract NFT", () => {
-  const one = { listingId: "l1", quantity: 1, currency: "BANDCOIN" as const };
+  const one = { listingId: "l1", quantity: 1, currency: "ACTION" as const };
   const methodOf = (xdr: string) => {
     const op = (TransactionBuilder.fromXDR(xdr, network.passphrase) as Transaction)
       .operations[0] as unknown as { func: { value: { functionName: Uint8Array } } };
@@ -609,10 +611,10 @@ describe("buying a resold smart-contract NFT", () => {
     expect(orders.get(orderId)).toMatchObject({ status: "SUBMITTED" });
   });
 
-  it("by card: the BANDCOIN goes in first, then the buy of that copy", async () => {
+  it("by card: the ACTION goes in first, then the buy of that copy", async () => {
     const { ctx, chain } = setup({
       resale: { owner: fan },
-      buyer: horizon(fan, { bandcoin: "0" }),
+      buyer: horizon(fan, { actionToken: "0" }),
     });
     const { orderId, xdr } = await startNftPurchase(ctx, custodial, { ...one, currency: "USD" });
     expect(opsOf(xdr).map((op) => op.type)).toEqual(["payment"]);

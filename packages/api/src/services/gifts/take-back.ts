@@ -58,7 +58,7 @@ export async function listSentWaiting(ctx: ServiceCtx, user: Pick<SessionUser, "
       balanceId: gift.id,
       code: gift.code,
       amount: gift.amount,
-      /** Who it's waiting for, named when they're on Bandcoin */
+      /** Who it's waiting for, named when they're on Action Tokens */
       to: { address, username: person?.username ?? null, name: person?.displayName ?? null },
       cost: costOf(ctx, !holds(account, gift.code, gift.issuer)),
       /** The person it's waiting for said no to it */

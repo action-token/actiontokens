@@ -161,9 +161,9 @@ function LinkCard({ overview }: { overview: Overview }) {
 }
 
 function Price({ amount }: { amount: Overview["prices"]["monthly"] }) {
-  return amount.bandcoin ? (
+  return amount.actionToken ? (
     <b>
-      <Money amount={amount.bandcoin} currency="BANDCOIN" />
+      <Money amount={amount.actionToken} currency="ACTION" />
     </b>
   ) : (
     <b>a small fee</b>

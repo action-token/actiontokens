@@ -3,9 +3,9 @@
  * strings. Formatting only: no money math happens in the browser.
  */
 
-export type DisplayCurrency = "BANDCOIN" | "XLM" | "USDC" | "USD";
+export type DisplayCurrency = "ACTION" | "XLM" | "USDC" | "USD";
 
-const DECIMALS: Record<DisplayCurrency, number> = { BANDCOIN: 2, XLM: 7, USDC: 2, USD: 2 };
+const DECIMALS: Record<DisplayCurrency, number> = { ACTION: 2, XLM: 7, USDC: 2, USD: 2 };
 
 /**
  * "20.5000000" → "20.5", "0.0000400" → "0.00004", 1234.5 → "1,234.5".
@@ -30,7 +30,7 @@ export function formatAmount(
   });
 }
 
-/** "20.5 BANDCOIN", "$5.13" */
+/** "20.5 ACTION", "$5.13" */
 export function formatMoney(amount: string | number, currency: DisplayCurrency) {
   const text = formatAmount(amount, currency);
   return currency === "USD" ? text : `${text} ${currency}`;
@@ -59,5 +59,5 @@ export function timeAgo(date: Date | string, now = Date.now()) {
   );
 }
 
-/** The platform token as people read it ("ACTION"). Data and code still call it BANDCOIN internally. */
+/** The platform token as people read it ("ACTION"). Data and code still call it ACTION internally. */
 export const TOKEN_NAME = (process.env.NEXT_PUBLIC_ASSET_CODE || "ACTION").toUpperCase();

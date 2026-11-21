@@ -19,7 +19,7 @@ Sixth of the map and AR upgrades that follow wadzzo. Queue after: 48 theme, 49 A
   drop Layers button. The choice is stored per device and every map follows it (main map, directions,
   collected card's mini-map, embed).
 
-## Bandcoin today
+## Action Tokens today
 
 Only 2D (Mapbox Light/Dark flat) and 3D (the "3D" Standard style) exist, stored as a per-device mode;
 no map types or terrain. The directions map has a round 2D/3D button.
@@ -36,7 +36,7 @@ no map types or terrain. The directions map has a round 2D/3D button.
 - **`lib/ar/theme.ts`:** `MAP_BASES`, labels, the Mapbox style URLs (2D and 3D), `mapStyleFor(mode,
 theme, base)`, `isStandardStyle`, a small stored choice helper (per device, shared live between
   every map, safe when storage is blocked), `useMapBase`/`setMapBase`, `useMapTerrain`/
-  `setMapTerrain`, and `useMapStyle()`. Keys `bandcoin-ar-map-base`, `bandcoin-ar-map-terrain`.
+  `setMapTerrain`, and `useMapStyle()`. Keys `actiontokens-ar-map-base`, `actiontokens-ar-map-terrain`.
 - **`components/map/MapLayersSheet.tsx`:** `MapStyleOptions` (type previews with the check, View 2D/3D,
   Terrain switch), `MapLayersButton` (button + sheet for maps without controls), `MapViewProbe` and
   `lastMapView()` (the place the previews show). Previews are loaded only when the options are on

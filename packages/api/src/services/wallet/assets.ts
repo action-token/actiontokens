@@ -4,23 +4,23 @@ import { spendableXlm } from "@actiontokens/chain/server";
 import type { Context, SessionUser } from "../../context";
 import { creditLines, freeOf } from "../artist/storage-withdraw";
 
-export type WalletTokenKind = "xlm" | "bandcoin" | "usdc" | "other";
+export type WalletTokenKind = "xlm" | "actionToken" | "usdc" | "other";
 
 /**
  * Everything in the main wallet, for the Wallet page: XLM (spendable, and
- * what Stellar keeps reserved), BANDCOIN and USDC, then every other token,
- * named after its item when Bandcoin knows it. Amounts are what can move now.
+ * what Stellar keeps reserved), ACTION and USDC, then every other token,
+ * named after its item when Action Tokens knows it. Amounts are what can move now.
  */
 export async function walletAssets(
   ctx: Pick<Context, "db" | "chain">,
   user: Pick<SessionUser, "walletAddress">,
 ) {
   const account = await ctx.chain.loadAccount(user.walletAddress);
-  const { bandcoin, usdc } = ctx.chain.config.assets;
+  const { actionToken, usdc } = ctx.chain.config.assets;
   const lines = creditLines(account);
   const others = lines.filter(
     (line) =>
-      !(line.asset_code === bandcoin.code && line.asset_issuer === bandcoin.issuer) &&
+      !(line.asset_code === actionToken.code && line.asset_issuer === actionToken.issuer) &&
       !(line.asset_code === usdc.code && line.asset_issuer === usdc.issuer),
   );
   const known = others.length
@@ -58,11 +58,11 @@ export async function walletAssets(
         amount: spendable,
       },
       {
-        ...bandcoin,
-        kind: "bandcoin" as WalletTokenKind,
+        ...actionToken,
+        kind: "actionToken" as WalletTokenKind,
         title: "Action Tokens",
         itemId: null,
-        amount: free(bandcoin),
+        amount: free(actionToken),
       },
       {
         ...usdc,

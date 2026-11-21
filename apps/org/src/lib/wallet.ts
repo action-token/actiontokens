@@ -31,5 +31,5 @@ export function statusTone(status: HistoryStatus) {
   }
 }
 
-/** A wallet token's currency for `Money`: XLM, BANDCOIN and USDC show their icon, other tokens a plain number. */
-export const CURRENCY = { xlm: "XLM", bandcoin: "BANDCOIN", usdc: "USDC", other: null } as const;
+/** A wallet token's currency for `Money`: XLM, ACTION and USDC show their icon, other tokens a plain number. */
+export const CURRENCY = { xlm: "XLM", actionToken: "ACTION", usdc: "USDC", other: null } as const;

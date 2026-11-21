@@ -1,4 +1,4 @@
-const KEY = "bandcoin.listening-id";
+const KEY = "action-tokens.listening-id";
 
 let memory: string | null = null;
 

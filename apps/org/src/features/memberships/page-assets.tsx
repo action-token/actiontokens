@@ -19,14 +19,20 @@ import { type OfferDraft, offerProblems } from "./offer-checks";
 
 type Offer = RouterOutputs["catalog"]["pageAssets"]["offers"][number];
 
-const EMPTY: OfferDraft = { amount: "", priceBandcoin: "", priceUsd: "", priceXlm: "", note: "" };
+const EMPTY: OfferDraft = {
+  amount: "",
+  priceActionToken: "",
+  priceUsd: "",
+  priceXlm: "",
+  note: "",
+};
 const tokens = (amount: string) =>
   Number(amount).toLocaleString("en-US", { maximumFractionDigits: 7 });
 const messageOf = (error: unknown) =>
   error instanceof Error ? error.message : "Something went wrong.";
 
 /**
- * Sell Page Assets, as on the old Bandcoin: a bundle of your fan token from
+ * Sell Page Assets, as on the old Action Tokens: a bundle of your fan token from
  * storage, sold whole to the first fan who buys it. Fans see open offers on
  * your page.
  */
@@ -97,14 +103,14 @@ function NewOffer({ code, free }: { code: string; free: string | null }) {
     if (!ready) return;
     create.mutate({
       amount: draft.amount.trim(),
-      priceBandcoin: draft.priceBandcoin.trim(),
+      priceActionToken: draft.priceActionToken.trim(),
       priceUsd: draft.priceUsd.trim(),
       priceXlm: draft.priceXlm.trim(),
       note: draft.note.trim() || undefined,
     });
   }
 
-  const price = (key: "priceBandcoin" | "priceUsd" | "priceXlm", label: string) => (
+  const price = (key: "priceActionToken" | "priceUsd" | "priceXlm", label: string) => (
     <Field label={label} htmlFor={`offer-${key}`} required error={problems[key]}>
       <Input
         id={`offer-${key}`}
@@ -135,7 +141,7 @@ function NewOffer({ code, free }: { code: string; free: string | null }) {
         />
       </Field>
       <div className="grid gap-4 sm:grid-cols-3">
-        {price("priceBandcoin", "Price in BANDCOIN")}
+        {price("priceActionToken", "Price in ACTION")}
         {price("priceUsd", "Price in USD")}
         {price("priceXlm", "Price in XLM")}
       </div>
@@ -173,7 +179,7 @@ function OfferRow({ offer, code }: { offer: Offer; code: string }) {
           <span className="num">{tokens(offer.amount)}</span> {code}
         </p>
         <p className="text-fg-muted num text-xs">
-          {tokens(offer.priceBandcoin)} BANDCOIN · ${tokens(offer.priceUsd)}
+          {tokens(offer.priceActionToken)} ACTION · ${tokens(offer.priceUsd)}
           {offer.priceXlm && ` · ${tokens(offer.priceXlm)} XLM`}
         </p>
         {offer.note && <p className="text-fg-muted mt-1 text-xs">{offer.note}</p>}

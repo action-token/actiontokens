@@ -214,7 +214,7 @@ function SendGift() {
               htmlFor="gift-to"
               hint={
                 newEmail
-                  ? `Nobody uses ${newEmail} yet. We'll make a Action Tokens account for it when you send.`
+                  ? `Nobody uses ${newEmail} yet. We'll make an Action Tokens account for it when you send.`
                   : recipientName
                     ? `Sending to ${recipientName}`
                     : "Pick a follower below, or type their username, email or wallet."
@@ -285,7 +285,7 @@ function SendGift() {
             )}
             {newEmail && (
               <p className="text-fg-muted text-xs">
-                We&apos;ll make a Action Tokens account for {newEmail} and email them how to sign
+                We&apos;ll make an Action Tokens account for {newEmail} and email them how to sign
                 in.
               </p>
             )}

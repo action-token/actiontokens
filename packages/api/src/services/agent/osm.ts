@@ -20,7 +20,7 @@ export async function geocodeOsm(
     const query = new URLSearchParams({ q: text, format: "jsonv2", limit: "1" });
     const response = await fetch(`https://nominatim.openstreetmap.org/search?${query.toString()}`, {
       headers: {
-        "User-Agent": "Bandcoin map assistant (support@action-tokens.com)",
+        "User-Agent": "Action Tokens map assistant (support@action-tokens.com)",
         "Accept-Language": "en",
       },
       signal: AbortSignal.timeout(10_000),

@@ -27,7 +27,7 @@ import { useResaleOrder } from "./use-resale-order";
 const PRICE = /^\d{1,12}(\.\d{1,7})?$/;
 
 /**
- * "Sell your copies" on an item you hold: how many, a BANDCOIN price and a USD
+ * "Sell your copies" on an item you hold: how many, a ACTION price and a USD
  * price (the card price; XLM and USDC follow it), and what you'd get for each
  * copy after the artist's royalty. The server quotes the cost of listing first.
  */
@@ -44,17 +44,17 @@ export function SellPanel({
 }) {
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState(1);
-  const [bandcoin, setBandcoin] = useState("");
+  const [actionToken, setActionToken] = useState("");
   const [usd, setUsd] = useState("");
   const order = useResaleOrder();
 
   const input = {
     itemId,
     amount,
-    priceBandcoin: useDeferredValue(bandcoin.trim()),
+    priceActionToken: useDeferredValue(actionToken.trim()),
     priceUsd: useDeferredValue(usd.trim()),
   };
-  const priced = PRICE.test(input.priceBandcoin) && PRICE.test(input.priceUsd);
+  const priced = PRICE.test(input.priceActionToken) && PRICE.test(input.priceUsd);
   const quote = api.resale.quoteList.useQuery(input, {
     enabled: open && priced,
     placeholderData: (previous) => previous,
@@ -113,13 +113,13 @@ export function SellPanel({
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="grid gap-1.5">
-                <Label htmlFor="sell-bandcoin">Price each, BANDCOIN</Label>
+                <Label htmlFor="sell-actionToken">Price each, ACTION</Label>
                 <Input
-                  id="sell-bandcoin"
+                  id="sell-actionToken"
                   inputMode="decimal"
                   placeholder="25000"
-                  value={bandcoin}
-                  onChange={(event) => setBandcoin(event.target.value)}
+                  value={actionToken}
+                  onChange={(event) => setActionToken(event.target.value)}
                 />
               </div>
               <div className="grid gap-1.5">
@@ -139,7 +139,7 @@ export function SellPanel({
                 <p className="bg-surface-2 rounded-lg border p-3 text-[13px]">
                   You get, for each copy:{" "}
                   <b>
-                    <Money amount={quote.data.net.bandcoin.net} currency="BANDCOIN" />
+                    <Money amount={quote.data.net.actionToken.net} currency="ACTION" />
                   </b>
                   {quote.data.net.usd && (
                     <>
@@ -156,7 +156,7 @@ export function SellPanel({
                       (after the {quote.data.net.platformPercent}% platform fee
                       {Number(quote.data.net.royaltyPercent) > 0 &&
                         ` and the ${quote.data.net.royaltyPercent}% royalty`}
-                      ). You are paid in BANDCOIN, even when a buyer pays by card.
+                      ). You are paid in ACTION, even when a buyer pays by card.
                     </span>
                   ) : (
                     Number(quote.data.net.royaltyPercent) > 0 && (

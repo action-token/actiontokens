@@ -3,15 +3,15 @@ import { applyBps, toAmount, toDisplay, toStroops, toUsd } from "../money";
 /**
  * Recharge and swap: separate things a fan can do, never automatic.
  *
- *   top-up    pay by card, receive BANDCOIN from the platform (quoteTopUp)
- *   swap      any amount of BANDCOIN for XLM, or XLM for BANDCOIN (quoteSwap)
+ *   top-up    pay by card, receive ACTION from the platform (quoteTopUp)
+ *   swap      any amount of ACTION for XLM, or XLM for ACTION (quoteSwap)
  *   fan token the four ways to open a fan-token line (fan-token.ts)
  *
  * Pure, like the purchase quote: the server feeds it live rates and balances,
  * the screen only shows what comes back.
  */
 
-/** Card packages in USD. The server alone decides how much BANDCOIN each buys. */
+/** Card packages in USD. The server alone decides how much ACTION each buys. */
 export const RECHARGE_PACKAGES_USD = [
   "1.99",
   "4.99",
@@ -27,7 +27,7 @@ export const XLM_SWAP_MARGIN_BPS = 200;
 export type RechargeLine = {
   key: string;
   label: string;
-  currency: "USD" | "BANDCOIN" | "XLM";
+  currency: "USD" | "ACTION" | "XLM";
   amount: string;
 };
 
@@ -38,33 +38,33 @@ export type RechargeProblem =
   | {
       code: "INSUFFICIENT_FUNDS";
       message: string;
-      shortfall: { currency: "BANDCOIN" | "XLM"; need: string; have: string; short: string };
+      shortfall: { currency: "ACTION" | "XLM"; need: string; have: string; short: string };
     };
 
 type Rates = {
-  /** USD per BANDCOIN and per XLM, as stroops */
-  bandcoinUsd: bigint;
+  /** USD per ACTION and per XLM, as stroops */
+  actionTokenUsd: bigint;
   xlmUsd: bigint;
 };
 
 const rateProblem = (rates: Rates): RechargeProblem[] =>
-  rates.bandcoinUsd > 0n && rates.xlmUsd > 0n
+  rates.actionTokenUsd > 0n && rates.xlmUsd > 0n
     ? []
     : [
         {
           code: "RATE_UNAVAILABLE",
-          message: "Couldn't load the BANDCOIN price. Try again in a moment.",
+          message: "Couldn't load the ACTION price. Try again in a moment.",
         },
       ];
 
-/** XLM a new BANDCOIN trustline locks in the buyer's wallet (refundable). */
+/** XLM a new ACTION trustline locks in the buyer's wallet (refundable). */
 const TRUSTLINE_RESERVE = toStroops("0.5");
 
 export function quoteTopUp(
   input: Rates & {
     packageUsd: string;
     networkFeeXlm: string;
-    /** The wallet has no BANDCOIN line yet, so one is opened and locks the reserve */
+    /** The wallet has no ACTION line yet, so one is opened and locks the reserve */
     openTrustline?: boolean;
     /** Spendable XLM, only checked when a trustline is opened */
     xlmFunds?: string | null;
@@ -87,7 +87,7 @@ export function quoteTopUp(
   // The platform pays the network fee on chain, so it comes out of what the card bought.
   const feeUsd = toUsd(toStroops(input.networkFeeXlm), input.xlmUsd);
   // Rounded down: the buyer is never given more than they paid for.
-  const receive = ((charge - feeUsd) * 10_000_000n) / input.bandcoinUsd;
+  const receive = ((charge - feeUsd) * 10_000_000n) / input.actionTokenUsd;
   if (
     input.openTrustline &&
     input.xlmFunds != null &&
@@ -96,7 +96,7 @@ export function quoteTopUp(
     const have = toStroops(input.xlmFunds);
     problems.push({
       code: "INSUFFICIENT_FUNDS",
-      message: `You need ${toDisplay(TRUSTLINE_RESERVE - have)} more XLM to add BANDCOIN to your wallet.`,
+      message: `You need ${toDisplay(TRUSTLINE_RESERVE - have)} more XLM to add ACTION to your wallet.`,
       shortfall: {
         currency: "XLM",
         need: toDisplay(TRUSTLINE_RESERVE),
@@ -128,13 +128,13 @@ export function quoteTopUp(
             },
           ]
         : []),
-      { key: "receive", label: "You receive", currency: "BANDCOIN", amount: toDisplay(receive) },
+      { key: "receive", label: "You receive", currency: "ACTION", amount: toDisplay(receive) },
     ] satisfies RechargeLine[],
   };
 }
 
-export type SwapDirection = "TO_XLM" | "TO_BANDCOIN";
-type SwapCurrency = "BANDCOIN" | "XLM";
+export type SwapDirection = "TO_XLM" | "TO_ACTION";
+type SwapCurrency = "ACTION" | "XLM";
 type Holdings = Record<SwapCurrency, string>;
 
 const SWAP_AMOUNT = /^\d{1,12}(\.\d{1,7})?$/;
@@ -143,8 +143,8 @@ const STROOPS = 10_000_000n;
 /**
  * A swap of any amount, either way, with the platform treasury: the fan pays
  * `amount` and receives the other currency at today's price, less the 2%
- * cushion. What the fan receives is rounded down. Swapping to BANDCOIN opens
- * the BANDCOIN line first when the wallet has none (its reserve is counted).
+ * cushion. What the fan receives is rounded down. Swapping to ACTION opens
+ * the ACTION line first when the wallet has none (its reserve is counted).
  * `funds` and `treasury` are spendable balances; null means unknown.
  */
 export function quoteSwap(
@@ -157,8 +157,8 @@ export function quoteSwap(
     openTrustline?: boolean;
   },
 ) {
-  const payCurrency: SwapCurrency = input.direction === "TO_XLM" ? "BANDCOIN" : "XLM";
-  const receiveCurrency: SwapCurrency = input.direction === "TO_XLM" ? "XLM" : "BANDCOIN";
+  const payCurrency: SwapCurrency = input.direction === "TO_XLM" ? "ACTION" : "XLM";
+  const receiveCurrency: SwapCurrency = input.direction === "TO_XLM" ? "XLM" : "ACTION";
   const refuse = (problems: RechargeProblem[]) => ({
     ok: false as const,
     problems,
@@ -176,8 +176,8 @@ export function quoteSwap(
 
   const [payRate, receiveRate] =
     input.direction === "TO_XLM"
-      ? [input.bandcoinUsd, input.xlmUsd]
-      : [input.xlmUsd, input.bandcoinUsd];
+      ? [input.actionTokenUsd, input.xlmUsd]
+      : [input.xlmUsd, input.actionTokenUsd];
   // Both steps round down: the platform never hands out more than the price.
   const market = (((pay * payRate) / STROOPS) * STROOPS) / receiveRate;
   const margin = applyBps(market, XLM_SWAP_MARGIN_BPS);
@@ -186,14 +186,14 @@ export function quoteSwap(
     return refuse([{ code: "UNAVAILABLE", message: "That's too little to swap." }]);
 
   const fee = toStroops(input.networkFeeXlm);
-  const reserve = input.direction === "TO_BANDCOIN" && input.openTrustline ? TRUSTLINE_RESERVE : 0n;
+  const reserve = input.direction === "TO_ACTION" && input.openTrustline ? TRUSTLINE_RESERVE : 0n;
   const problems: RechargeProblem[] = [];
   if (input.funds === null) problems.push({ code: "SIGN_IN", message: "Sign in to pay." });
   else {
     const needs: [SwapCurrency, bigint][] =
       input.direction === "TO_XLM"
         ? [
-            ["BANDCOIN", pay],
+            ["ACTION", pay],
             ["XLM", fee],
           ]
         : [["XLM", pay + fee + reserve]];
@@ -240,7 +240,7 @@ export function quoteSwap(
         ? [
             {
               key: "reserve",
-              label: "Wallet reserve for BANDCOIN (refundable)",
+              label: "Wallet reserve for ACTION (refundable)",
               currency: "XLM" as const,
               amount: toDisplay(reserve),
             },

@@ -10,7 +10,7 @@ import {
 
 /**
  * ActionTokens type (docs/PLAN.md §11.3, §12.3; chosen by the owner from docs/mockups/fonts.html):
- *   display  Teko: condensed, Bandcoin's simple headline face (the owner's pick, 2026-11-20;
+ *   display  Teko: condensed, Action Tokens' simple headline face (the owner's pick, 2026-11-20;
  *            shown at weight 600 by default, see globals.css)
  *   body     Barlow
  *   mono     JetBrains Mono: prices, counts, countdowns

@@ -9,7 +9,7 @@ tiles (generations in the last 30 days, credits used in all time, average cost p
 split of images against videos, and a 7 / 30 / 90 day switch that was drawn but did nothing. The API
 also worked out credits bought; the page never showed it.
 
-## Bandcoin today
+## Action Tokens today
 
 The Studio Coins page (`apps/studio/src/features/coins`) shows the balance, top-up and a History
 list. No totals. The coin ledger records every top-up, bonus, spend and refund with its date, and
@@ -30,7 +30,7 @@ Settled from how the ledger works; say if any should differ.
 - **Coins spent:** coins charged for runs in the period, minus coins refunded in the period (a
   failed run is refunded). Only settled entries; a run still going isn't counted yet.
 - **Coins bought:** coins from top-ups in the period. Beside it, "+N bonus" for bonus coins received.
-  Coins carried over from the old Bandcoin credits are neither.
+  Coins carried over from the old Action Tokens credits are neither.
 - **Creations:** runs started in the period that finished successfully. A live jam is one creation.
 - **By tool:** Images, Video, Music (live jams are Music), Writing, Social, SEO: creations and coins
   spent (after refunds) for each, most coins first. Tools not used in the period aren't listed.

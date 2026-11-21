@@ -157,7 +157,8 @@ export function vercelHost(options: VercelOptions): DomainHost {
         { projectIdOrName: options.projectId },
       );
       const configured = !config.misconfigured;
-      if (!problem && !configured) problem = "The DNS records aren't pointing at Bandcoin yet.";
+      if (!problem && !configured)
+        problem = "The DNS records aren't pointing at Action Tokens yet.";
       return {
         found: true,
         verified: current.verified,

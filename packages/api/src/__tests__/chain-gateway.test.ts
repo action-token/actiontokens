@@ -20,7 +20,7 @@ const stranger = Keypair.random();
 beforeAll(() => {
   Object.assign(process.env, {
     NEXT_PUBLIC_STELLAR_NETWORK: "testnet",
-    NEXT_PUBLIC_ASSET_CODE: "BANDCOIN",
+    NEXT_PUBLIC_ASSET_CODE: "ACTION",
     NEXT_PUBLIC_ASSET_ISSUER: Keypair.random().publicKey(),
     PLATFORM_TREASURY: treasury.publicKey(),
     MOTHER_SECRET: mother.secret(),

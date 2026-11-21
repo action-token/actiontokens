@@ -23,7 +23,7 @@ Everything about the platform in one place. New here? Read the first three, in o
 | Document                  | What it covers                                                                                              |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | [Master plan](PLAN.md)    | Goals, owner decisions and the decision log                                                                 |
-| [Fork plan](FORK-PLAN.md) | How ActionTokens was built from the Bandcoin monorepo                                                       |
+| [Fork plan](FORK-PLAN.md) | How ActionTokens was built from the Action Tokens monorepo                                                  |
 | [`plans/`](plans)         | One file per feature or phase (schema, API, transactions, AR, …). Index: [plans/README.md](plans/README.md) |
 
 ## Migration from Actionverse

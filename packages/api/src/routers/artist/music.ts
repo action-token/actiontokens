@@ -40,7 +40,7 @@ export const musicRouter = createRouter({
         previewStartSec: z.number().int(),
         code: z.string().trim().max(12),
         supply: z.number().int().nullable(),
-        priceBandcoin: price,
+        priceActionToken: price,
         priceUsd: price,
         visibility: z.enum(["DRAFT", "PUBLIC"]),
         access: itemAccess.optional(),

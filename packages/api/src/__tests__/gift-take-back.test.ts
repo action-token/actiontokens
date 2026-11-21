@@ -79,7 +79,7 @@ describe("taking back a token you sent (wallet)", () => {
       config: {
         network,
         assets: {
-          bandcoin: { code: "BANDCOIN", issuer: Keypair.random().publicKey() },
+          actionToken: { code: "ACTION", issuer: Keypair.random().publicKey() },
           usdc: { code: "USDC", issuer: Keypair.random().publicKey() },
         },
       },

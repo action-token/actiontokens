@@ -324,9 +324,9 @@ export const adminRouter = createRouter({
         z.object({
           platformFeeBps: z.number().int().min(0).max(NFT_MAX_PLATFORM_FEE_BPS),
           platformFeeRecipient: stellarAccount.nullable(),
-          vanityMonthlyBandcoin: amount,
+          vanityMonthlyActionToken: amount,
           vanityMonthlyUsd: amount,
-          vanityNameChangeBandcoin: amount,
+          vanityNameChangeActionToken: amount,
           vanityNameChangeUsd: amount,
           nearbyPinRadiusMeters: z.number().min(10).max(50_000),
           fanTokenStartSupply: z.string().regex(/^\d{1,12}$/, "A whole number"),

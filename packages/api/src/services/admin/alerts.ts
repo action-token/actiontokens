@@ -32,12 +32,7 @@ export const DEFAULT_ALERT_RULES: AlertRules = {
 };
 
 export type AlertKind =
-  | "failedPayments"
-  | "signInFailures"
-  | "fastClaims"
-  | "largeOrder"
-  | "stuck"
-  | "brokenDomain";
+  "failedPayments" | "signInFailures" | "fastClaims" | "largeOrder" | "stuck" | "brokenDomain";
 
 export type Alert = {
   key: string;
@@ -139,7 +134,7 @@ async function largeOrders(ctx: Pick<Context, "db">, rules: AlertRules, now: Dat
     },
   });
   return orders.flatMap((order): Alert[] => {
-    // A BANDCOIN or XLM order without its quoted rate can't be valued, so it's left out.
+    // A ACTION or XLM order without its quoted rate can't be valued, so it's left out.
     const rate =
       order.currency === "USD" || order.currency === "USDC" ? 1 : Number(order.rateUsd ?? NaN);
     const usd = Number(order.total) * rate;

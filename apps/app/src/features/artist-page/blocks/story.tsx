@@ -64,7 +64,7 @@ export function AboutBlock({
           <figcaption className="grid max-w-2xl gap-2 p-6 pt-28 sm:p-8 sm:pt-28">
             <b className="text-sm">
               {artist.itemCount.toLocaleString()} {artist.itemCount === 1 ? "drop" : "drops"} on
-              Bandcoin
+              Action Tokens
             </b>
             <p className="line-clamp-8 text-[15px] leading-relaxed whitespace-pre-line text-white/90">
               {body}

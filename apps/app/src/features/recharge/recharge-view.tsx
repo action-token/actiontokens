@@ -25,7 +25,7 @@ type Tab = "top-up" | "swap";
 
 /**
  * Recharge: two separate things, neither ever triggering the other. Add
- * BANDCOIN with a card, or swap BANDCOIN and XLM (the wallet's Swap). Each
+ * ACTION with a card, or swap ACTION and XLM (the wallet's Swap). Each
  * shows the full price breakdown from the server before anything is signed
  * or charged.
  */
@@ -45,7 +45,7 @@ export function RechargeView() {
       <Tabs value={tab} onValueChange={(value) => setTab(value as Tab)}>
         <TabsList variant="line" className="w-full justify-start overflow-x-auto border-b">
           <TabsTrigger value="top-up" disabled={flow.busy || swapFlow.busy} className="flex-none">
-            Add BANDCOIN
+            Add ACTION
           </TabsTrigger>
           <TabsTrigger value="swap" disabled={flow.busy || swapFlow.busy} className="flex-none">
             Swap
@@ -57,7 +57,7 @@ export function RechargeView() {
         <TabsContent value="swap" className="pt-5">
           <div className="grid gap-6 md:grid-cols-2 md:gap-x-10">
             <div className="grid content-start gap-2">
-              <h2 className="text-lg font-semibold">Swap BANDCOIN and XLM</h2>
+              <h2 className="text-lg font-semibold">Swap ACTION and XLM</h2>
               <p className="text-fg-muted text-sm">
                 XLM pays the small network fee for each action and keeps your wallet open. Swap any
                 amount either way at today&apos;s price. Nothing is swapped unless you tap the
@@ -103,11 +103,11 @@ function TopUp({ flow }: { flow: Flow }) {
       summary: (
         <>
           <Money amount={packageUsd} currency="USD" /> for{" "}
-          <Money amount={quote.data.receive} currency="BANDCOIN" />
+          <Money amount={quote.data.receive} currency="ACTION" />
         </>
       ),
       success: {
-        title: "Done. BANDCOIN is in your wallet.",
+        title: "Done. ACTION is in your wallet.",
         body: "It can take a few seconds to show in your balance.",
       },
     });
@@ -140,7 +140,7 @@ function TopUp({ flow }: { flow: Flow }) {
           ))}
         </div>
         <p className="text-fg-faint text-xs">
-          The BANDCOIN you get is set by the live price when you pay, and shown below first.
+          The ACTION you get is set by the live price when you pay, and shown below first.
         </p>
       </div>
 

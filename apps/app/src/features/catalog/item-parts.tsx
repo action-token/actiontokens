@@ -66,7 +66,7 @@ export function ItemDetails({ item, single = false }: { item: Item; single?: boo
     [
       "Network",
       item.chainType === "OFF_CHAIN"
-        ? "Not on Stellar (Bandcoin keeps track of owners)"
+        ? "Not on Stellar (Action Tokens keeps track of owners)"
         : item.network === "mainnet"
           ? "Stellar"
           : "Stellar testnet",

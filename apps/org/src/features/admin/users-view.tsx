@@ -136,8 +136,8 @@ export function UsersView() {
         title="Users"
         description={
           counts.data
-            ? `${counts.data.all.toLocaleString()} people have a Action Tokens account. Open one to see what they did, or suspend them.`
-            : "Everyone with a Action Tokens account. Open one to see what they did, or suspend them."
+            ? `${counts.data.all.toLocaleString()} people have an Action Tokens account. Open one to see what they did, or suspend them.`
+            : "Everyone with an Action Tokens account. Open one to see what they did, or suspend them."
         }
       />
 

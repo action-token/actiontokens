@@ -4,7 +4,11 @@ import { announceItem } from "../notifications/item";
 import type { ItemType, MediaType, Visibility } from "@actiontokens/db";
 import { AppError, ErrorCodes } from "@actiontokens/errors";
 import { isOwnS3Url } from "@actiontokens/storage";
-import { normalizeAssetCode, validateAssetCode, validatePrice } from "@actiontokens/utils/asset-code";
+import {
+  normalizeAssetCode,
+  validateAssetCode,
+  validatePrice,
+} from "@actiontokens/utils/asset-code";
 import { slugFromName } from "@actiontokens/utils/slug";
 
 import type { Context } from "../../context";
@@ -38,8 +42,8 @@ export function checkSupply(supply: number | null) {
   }
 }
 
-export function checkPrices(prices: { priceBandcoin?: string; priceUsd?: string }) {
-  for (const price of [prices.priceBandcoin, prices.priceUsd]) {
+export function checkPrices(prices: { priceActionToken?: string; priceUsd?: string }) {
+  for (const price of [prices.priceActionToken, prices.priceUsd]) {
     const problem = price === undefined ? null : validatePrice(price);
     if (problem) throw invalid(problem);
   }
@@ -76,7 +80,7 @@ export type CreateItemInput = {
   code: string;
   /** Total copies; null = unlimited */
   supply: number | null;
-  priceBandcoin: string;
+  priceActionToken: string;
   priceUsd: string;
   visibility: Extract<Visibility, "DRAFT" | "PUBLIC">;
   royaltyPercent?: string;
@@ -174,7 +178,7 @@ export async function createItem(
           sellerId: user.id,
           kind: "PRIMARY",
           status: input.visibility === "PUBLIC" ? "ACTIVE" : "PAUSED",
-          priceBandcoin: input.priceBandcoin,
+          priceActionToken: input.priceActionToken,
           priceUsd: input.priceUsd,
         },
       },
@@ -215,7 +219,13 @@ export async function listMyItems(ctx: Pick<ServiceCtx, "db">, artist: Pick<Arti
       listings: {
         where: { kind: "PRIMARY" },
         take: 1,
-        select: { id: true, priceBandcoin: true, priceUsd: true, status: true, quantitySold: true },
+        select: {
+          id: true,
+          priceActionToken: true,
+          priceUsd: true,
+          status: true,
+          quantitySold: true,
+        },
       },
     },
   });
@@ -233,7 +243,7 @@ export async function listMyItems(ctx: Pick<ServiceCtx, "db">, artist: Pick<Arti
       registered: row.contractNft?.status ?? null,
       supply: row.supply,
       sold: listing?.quantitySold ?? 0,
-      priceBandcoin: listing?.priceBandcoin.toString() ?? null,
+      priceActionToken: listing?.priceActionToken.toString() ?? null,
       priceUsd: listing?.priceUsd.toString() ?? null,
       listingStatus: listing?.status ?? null,
       visibility: row.visibility,
@@ -294,7 +304,7 @@ export async function getItem(
       listings: {
         where: { kind: "PRIMARY" },
         take: 1,
-        select: { priceBandcoin: true, priceUsd: true, status: true, quantitySold: true },
+        select: { priceActionToken: true, priceUsd: true, status: true, quantitySold: true },
       },
     },
   });
@@ -322,7 +332,7 @@ export async function getItem(
     /** Set when an admin took it off fans' screens */
     hidden: item.hiddenAt ? { at: item.hiddenAt, reason: item.hiddenReason } : null,
     royaltyPercent: item.royaltyPercent?.toString() ?? null,
-    priceBandcoin: listing?.priceBandcoin.toString() ?? "",
+    priceActionToken: listing?.priceActionToken.toString() ?? "",
     priceUsd: listing?.priceUsd.toString() ?? "",
     fileUrl: item.media?.sourceUrl ?? null,
     fileType: item.media?.mediaType ?? null,
@@ -340,7 +350,7 @@ function checkNftEdit(status: "PENDING" | "MINTED" | undefined, input: UpdateIte
     input.description,
     input.coverUrl,
     input.supply,
-    input.priceBandcoin,
+    input.priceActionToken,
     input.priceUsd,
   ];
   // Once registered these live on the contract, and changing them takes an on-chain update that isn't built yet.
@@ -356,7 +366,7 @@ export type UpdateItemInput = {
   title?: string;
   description?: string;
   coverUrl?: string;
-  priceBandcoin?: string;
+  priceActionToken?: string;
   priceUsd?: string;
   /** Only before the first sale */
   supply?: number | null;
@@ -420,7 +430,7 @@ export async function updateItem(
   };
   // A sold-out listing stays sold out; everything else follows the item's visibility.
   const listingData = {
-    ...(input.priceBandcoin !== undefined ? { priceBandcoin: input.priceBandcoin } : {}),
+    ...(input.priceActionToken !== undefined ? { priceActionToken: input.priceActionToken } : {}),
     ...(input.priceUsd !== undefined ? { priceUsd: input.priceUsd } : {}),
     ...(input.visibility !== undefined && listing?.status !== "SOLD_OUT"
       ? { status: input.visibility === "PUBLIC" ? ("ACTIVE" as const) : ("PAUSED" as const) }

@@ -6,10 +6,10 @@
 
 The admin AI page (`pages/admin/ai`, `components/common/ai-system.stats.tsx`,
 `credit.adminGetSystemStats`) showed five cards: total users, credits in circulation (every
-balance added up), revenue in BANDCOIN, revenue in USDC, and total transactions. A route listing
+balance added up), revenue in ACTION, revenue in USDC, and total transactions. A route listing
 each user's credit balance (`credit.adminGetUserBalances`) existed but no page used it.
 
-## Bandcoin today
+## Action Tokens today
 
 Admin › Studio earnings shows money in, coins spent on runs, the platform's share and bonus coins
 for a period. Nothing shows the coins people hold right now, or how many hold any. A person's admin
@@ -31,7 +31,7 @@ page shows pins collected, codes redeemed, items owned and following, but nothin
 - **Coins held:** every person's Studio balance added up, now. The hint under it gives the dollar
   value at a cent a coin.
 - **People with coins:** people whose balance is above zero.
-- **Carried over:** coins carried over from the old Bandcoin credits, all time (settled entries).
+- **Carried over:** coins carried over from the old Action Tokens credits, all time (settled entries).
 - **Person › Coins spent / Coins bought:** the same meaning as on the Studio Coins page (plan 40),
   over all time: spent is charges minus refunds; bought is top-ups, with "+N bonus" beside it.
 

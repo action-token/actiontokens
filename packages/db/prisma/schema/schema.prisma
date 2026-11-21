@@ -1,4 +1,4 @@
-// Bandcoin database. One file per domain in this folder; this one holds the
+// Action Tokens database. One file per domain in this folder; this one holds the
 // generator, the datasource and enums shared by several domains.
 //
 // Conventions
@@ -21,7 +21,7 @@ datasource db {
 
 /// Ways to pay. USD means card (Square).
 enum Currency {
-  BANDCOIN
+  ACTION
   XLM
   USDC
   USD

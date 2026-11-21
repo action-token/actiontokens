@@ -81,10 +81,10 @@ describe("embed snippets", () => {
   });
 
   it("points every snippet at the map's id and the AR app", () => {
-    expect(scriptSnippet("m1", 400)).toContain('data-bandcoin-embed="m1" style="height:400px"');
+    expect(scriptSnippet("m1", 400)).toContain('data-actiontokens-embed="m1" style="height:400px"');
     expect(scriptSnippet("m1")).toContain("/embed.js");
     expect(iframeSnippet("m1")).toContain(`src="${embedPageUrl("m1")}"`);
     expect(iframeSnippet("m1")).toContain('allow="geolocation"');
-    expect(heroSnippet("m1")).toContain('data-bandcoin-embed="m1"');
+    expect(heroSnippet("m1")).toContain('data-actiontokens-embed="m1"');
   });
 });

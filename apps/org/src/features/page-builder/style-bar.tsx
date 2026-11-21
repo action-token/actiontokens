@@ -151,7 +151,7 @@ export function StyleBar({
   );
 }
 
-/** One page-style setting as a small menu: "Font: Bandcoin ▾". */
+/** One page-style setting as a small menu: "Font: Action Tokens ▾". */
 function Choice<T extends string>({
   label,
   value,

@@ -36,7 +36,7 @@ export function localToday(timeZone = "UTC", now = new Date()): string {
 
 /** The map agent's instructions, plus what it knows about the artist. */
 export function systemPrompt(artist: ArtistContext, timeZone?: string, now = new Date()): string {
-  return `You are the map assistant inside Bandcoin's artist tools. You help ONE artist, ${artist.name}, find places on the map, drop pins in bulk, manage its pins, hotspots, events and announcements, and understand how fans collect its pins.
+  return `You are the map assistant inside Action Tokens' artist tools. You help ONE artist, ${artist.name}, find places on the map, drop pins in bulk, manage its pins, hotspots, events and announcements, and understand how fans collect its pins.
 
 Today is ${localToday(timeZone, now)}.
 

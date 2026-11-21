@@ -65,7 +65,7 @@ const WHY = [
   {
     icon: Rocket,
     title: "Simple to start",
-    text: "Sign in with email, Google or Apple, or bring your own wallet. Pay with BANDCOIN or a card.",
+    text: "Sign in with email, Google or Apple, or bring your own wallet. Pay with ACTION or a card.",
   },
 ];
 
@@ -80,7 +80,7 @@ const FANS = [
   "Own the music and collectibles you buy, and resell them if you like.",
   "Follow your favourite artists for free, and subscribe for more.",
   "Collect drops around you with AR, and take part in bounties.",
-  "Pay with BANDCOIN from your wallet, or by card.",
+  "Pay with ACTION from your wallet, or by card.",
 ];
 
 function Checklist({ items }: { items: string[] }) {
@@ -98,12 +98,12 @@ function Checklist({ items }: { items: string[] }) {
   );
 }
 
-/** What Bandcoin is now, for artists and for fans. */
+/** What Action Tokens is now, for artists and for fans. */
 export function AboutView() {
   return (
     <>
       <InfoHero
-        eyebrow="About Bandcoin"
+        eyebrow="About Action Tokens"
         title="Music and fans, on Stellar"
         note="artists get paid, fans get to keep it"
       >
@@ -116,8 +116,8 @@ export function AboutView() {
       </InfoHero>
       <PageBody className="mx-auto grid max-w-5xl gap-10">
         <p className="max-w-3xl text-lg leading-relaxed text-pretty">
-          Bandcoin is where artists sell music and more straight to the fans who love it, and where
-          fans collect, follow and support them. Everything you buy is recorded on the Stellar
+          Action Tokens is where artists sell music and more straight to the fans who love it, and
+          where fans collect, follow and support them. Everything you buy is recorded on the Stellar
           network, so it is yours, not ours.
         </p>
 
@@ -157,9 +157,9 @@ export function AboutView() {
           </ul>
         </section>
 
-        <section className="grid gap-5" aria-label="Why Bandcoin">
+        <section className="grid gap-5" aria-label="Why Action Tokens">
           <div>
-            <h2 className="display text-4xl">Why Bandcoin?</h2>
+            <h2 className="display text-4xl">Why Action Tokens?</h2>
             <p className="marker text-fg-muted mt-1 text-lg">in three lines</p>
           </div>
           <ol className="grid gap-4 md:grid-cols-3">

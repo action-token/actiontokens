@@ -30,12 +30,12 @@ const usdcIssuer = Keypair.random().publicKey();
 
 function horizonAccount({
   xlm = "10",
-  bandcoin,
+  actionToken,
   novaLine = false,
   usdc,
-}: { xlm?: string; bandcoin?: string; novaLine?: boolean; usdc?: string } = {}) {
+}: { xlm?: string; actionToken?: string; novaLine?: boolean; usdc?: string } = {}) {
   return Object.assign(new Account(fan, "100"), {
-    subentry_count: bandcoin === undefined ? 0 : 1,
+    subentry_count: actionToken === undefined ? 0 : 1,
     balances: [
       { asset_type: "native", balance: xlm, selling_liabilities: "0" },
       ...(novaLine
@@ -58,14 +58,14 @@ function horizonAccount({
               balance: usdc,
             },
           ]),
-      ...(bandcoin === undefined
+      ...(actionToken === undefined
         ? []
         : [
             {
               asset_type: "credit_alphanum12",
-              asset_code: "BANDCOIN",
+              asset_code: "ACTION",
               asset_issuer: issuer,
-              balance: bandcoin,
+              balance: actionToken,
             },
           ]),
     ],
@@ -126,7 +126,7 @@ function setup(
       name: "testnet",
       network,
       assets: {
-        bandcoin: { code: "BANDCOIN", issuer },
+        actionToken: { code: "ACTION", issuer },
         usdc: { code: "USDC", issuer: usdcIssuer },
       },
       treasury: Keypair.random().publicKey(),
@@ -135,10 +135,10 @@ function setup(
     loadAccount: vi
       .fn()
       .mockResolvedValue(
-        opts.account === undefined ? horizonAccount({ bandcoin: "0" }) : opts.account,
+        opts.account === undefined ? horizonAccount({ actionToken: "0" }) : opts.account,
       ),
     rates: vi.fn().mockResolvedValue({ xlmUsd: "0.1", usdcUsd: "1" }),
-    bandcoinUsd: vi.fn().mockResolvedValue("0.002"),
+    actionTokenUsd: vi.fn().mockResolvedValue("0.002"),
     signWithServerKeys: vi.fn((xdr: string) => Promise.resolve(xdr)),
     signForCustodialUser: vi.fn((xdr: string) => Promise.resolve(xdr)),
     submit: vi.fn(opts.submit ?? ((_xdr: string) => Promise.resolve({ hash: "txhash" }))),
@@ -153,12 +153,12 @@ function setup(
 }
 
 const topUp = { kind: "TOP_UP", packageUsd: "9.99" } as const;
-const trust = { kind: "TOKEN_TRUST" as const, organizationId: "a1", currency: "BANDCOIN" as const };
-const trustIn = (currency: "BANDCOIN" | "USDC" | "XLM" | "USD") => ({ ...trust, currency });
+const trust = { kind: "TOKEN_TRUST" as const, organizationId: "a1", currency: "ACTION" as const };
+const trustIn = (currency: "ACTION" | "USDC" | "XLM" | "USD") => ({ ...trust, currency });
 const parse = (xdr: string) => TransactionBuilder.fromXDR(xdr, Networks.TESTNET);
 
 describe("quoteRecharge", () => {
-  it("prices a top-up and says the BANDCOIN line is new when the wallet has none", async () => {
+  it("prices a top-up and says the ACTION line is new when the wallet has none", async () => {
     const { ctx } = setup({ account: horizonAccount() });
     const quote = await quoteRecharge(ctx, me, topUp);
     expect(quote).toMatchObject({ ok: true, chargeCents: 999 });
@@ -183,8 +183,8 @@ describe("quoteRecharge", () => {
 });
 
 describe("top-up", () => {
-  it("creates a card order and a transaction where the platform sends the BANDCOIN", async () => {
-    const { ctx, orders } = setup({ account: horizonAccount({ bandcoin: "0" }) });
+  it("creates a card order and a transaction where the platform sends the ACTION", async () => {
+    const { ctx, orders } = setup({ account: horizonAccount({ actionToken: "0" }) });
     const started = await startRecharge(ctx, me, topUp);
     expect(started).toMatchObject({ orderId: ORDER, signer: "wallet" });
     expect(orders.get(ORDER)).toMatchObject({
@@ -265,7 +265,7 @@ describe("top-up", () => {
 
 describe("holding an artist's fan token", () => {
   it("prices the 0.5 XLM the line locks, at today's rate plus the cushion and the fee", async () => {
-    const { ctx } = setup({ account: horizonAccount({ bandcoin: "500" }) });
+    const { ctx } = setup({ account: horizonAccount({ actionToken: "500" }) });
     const quote = await quoteRecharge(ctx, me, trust);
     // 0.5 XLM × $0.10 ÷ $0.002 = 25, + 2% = 25.5, + 2.5% fee = 26.1375
     expect(quote).toMatchObject({
@@ -279,34 +279,34 @@ describe("holding an artist's fan token", () => {
     });
   });
 
-  it("says no when the artist has no token, the fan already holds it, or BANDCOIN is short", async () => {
+  it("says no when the artist has no token, the fan already holds it, or ACTION is short", async () => {
     const none = await quoteRecharge(
-      setup({ account: horizonAccount({ bandcoin: "500" }), token: null }).ctx,
+      setup({ account: horizonAccount({ actionToken: "500" }), token: null }).ctx,
       me,
       trust,
     );
     expect(none.problems[0]).toMatchObject({ message: "This artist has no fan token to hold." });
     const held = await quoteRecharge(
-      setup({ account: horizonAccount({ bandcoin: "500", novaLine: true }) }).ctx,
+      setup({ account: horizonAccount({ actionToken: "500", novaLine: true }) }).ctx,
       me,
       trust,
     );
     expect(held.problems[0]).toMatchObject({ message: "You already hold NOVA." });
     const short = await quoteRecharge(
-      setup({ account: horizonAccount({ bandcoin: "5" }) }).ctx,
+      setup({ account: horizonAccount({ actionToken: "5" }) }).ctx,
       me,
       trust,
     );
     expect(short.problems[0]).toMatchObject({ code: "INSUFFICIENT_FUNDS" });
   });
 
-  it("pays BANDCOIN, receives exactly the reserve, and opens the line, all in one transaction", async () => {
-    const { ctx, chain, orders, db } = setup({ account: horizonAccount({ bandcoin: "500" }) });
+  it("pays ACTION, receives exactly the reserve, and opens the line, all in one transaction", async () => {
+    const { ctx, chain, orders, db } = setup({ account: horizonAccount({ actionToken: "500" }) });
     const started = await startRecharge(ctx, me, trust);
     expect(orders.get(ORDER)).toMatchObject({
       kind: "TOKEN_TRUST",
       method: "WALLET",
-      currency: "BANDCOIN",
+      currency: "ACTION",
       total: "26.1375000",
       platformFee: "0.6375000",
     });
@@ -340,7 +340,9 @@ describe("holding an artist's fan token", () => {
   });
 
   it("won't start for a line the fan already holds, and creates no order", async () => {
-    const { ctx, orders } = setup({ account: horizonAccount({ bandcoin: "500", novaLine: true }) });
+    const { ctx, orders } = setup({
+      account: horizonAccount({ actionToken: "500", novaLine: true }),
+    });
     await expect(startRecharge(ctx, me, trust)).rejects.toMatchObject({
       message: "You already hold NOVA.",
     });
@@ -350,7 +352,7 @@ describe("holding an artist's fan token", () => {
 
 describe("subscribing in USDC, XLM or by card (plan 33)", () => {
   it("USDC pays the platform for the XLM and the fee to the treasury", async () => {
-    const env = setup({ account: horizonAccount({ bandcoin: "0", usdc: "5" }) });
+    const env = setup({ account: horizonAccount({ actionToken: "0", usdc: "5" }) });
     const started = await startRecharge(env.ctx, me, trustIn("USDC"));
     // $0.05 of XLM + 2% = 0.051 USDC, + 2.5% = 0.0522750
     expect(started.quote).toMatchObject({ total: "0.0522750", fee: "0.0012750" });
@@ -366,7 +368,7 @@ describe("subscribing in USDC, XLM or by card (plan 33)", () => {
   });
 
   it("XLM pays only the fee; the platform sends nothing and doesn't sign", async () => {
-    const { ctx, chain, orders } = setup({ account: horizonAccount({ bandcoin: "0" }) });
+    const { ctx, chain, orders } = setup({ account: horizonAccount({ actionToken: "0" }) });
     const started = await startRecharge(ctx, me, trustIn("XLM"));
     expect(started.quote).toMatchObject({ total: "0.0125000", sendXlm: "0" });
     const tx = parse(started.xdr) as Transaction;
@@ -381,7 +383,7 @@ describe("subscribing in USDC, XLM or by card (plan 33)", () => {
   });
 
   it("an XLM shortfall says how much is missing", async () => {
-    const { ctx } = setup({ account: horizonAccount({ xlm: "0.4", bandcoin: "0" }) });
+    const { ctx } = setup({ account: horizonAccount({ xlm: "0.4", actionToken: "0" }) });
     const quote = await quoteRecharge(ctx, me, trustIn("XLM"));
     expect(quote.problems[0]).toMatchObject({
       code: "INSUFFICIENT_FUNDS",
@@ -389,13 +391,13 @@ describe("subscribing in USDC, XLM or by card (plan 33)", () => {
     });
   });
 
-  it("card charges $1.00 and sends the rest as BANDCOIN to a wallet that holds it", async () => {
-    const { ctx, chain, orders } = setup({ account: horizonAccount({ bandcoin: "0" }) });
+  it("card charges $1.00 and sends the rest as ACTION to a wallet that holds it", async () => {
+    const { ctx, chain, orders } = setup({ account: horizonAccount({ actionToken: "0" }) });
     const started = await startRecharge(ctx, me, trustIn("USD"));
     expect(started.quote).toMatchObject({
       total: "1.0000000",
       sendXlm: "0.5000000",
-      card: { openBandcoinLine: false },
+      card: { openActionTokenLine: false },
     });
     expect(orders.get(ORDER)).toMatchObject({ method: "CARD", currency: "USD" });
     const tx = parse(started.xdr) as Transaction;
@@ -410,12 +412,12 @@ describe("subscribing in USDC, XLM or by card (plan 33)", () => {
     expect(orders.get(ORDER)).toMatchObject({ status: "DELIVERED" });
   });
 
-  it("card opens the BANDCOIN line too when the wallet has none", async () => {
+  it("card opens the ACTION line too when the wallet has none", async () => {
     const { ctx } = setup({ account: horizonAccount() });
     const started = await startRecharge(ctx, me, trustIn("USD"));
     expect(started.quote).toMatchObject({
       sendXlm: "1.0000000",
-      card: { openBandcoinLine: true },
+      card: { openActionTokenLine: true },
     });
     const tx = parse(started.xdr) as Transaction;
     expect(tx.operations.map((op) => op.type)).toEqual([
@@ -427,7 +429,7 @@ describe("subscribing in USDC, XLM or by card (plan 33)", () => {
   });
 
   it("card: a wallet that declines charges nothing; a network refusal refunds", async () => {
-    const declined = setup({ account: horizonAccount({ bandcoin: "0" }) });
+    const declined = setup({ account: horizonAccount({ actionToken: "0" }) });
     const first = await startRecharge(declined.ctx, me, trustIn("USD"));
     await expect(
       submitRecharge(declined.ctx, me, { orderId: ORDER, xdr: first.xdr }),
@@ -435,7 +437,7 @@ describe("subscribing in USDC, XLM or by card (plan 33)", () => {
     expect(declined.chain.card.charge).not.toHaveBeenCalled();
 
     const refused = setup({
-      account: horizonAccount({ bandcoin: "0" }),
+      account: horizonAccount({ actionToken: "0" }),
       submit: () => Promise.reject(new Error("tx_failed")),
     });
     const second = await startRecharge(refused.ctx, me, trustIn("USD"));

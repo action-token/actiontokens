@@ -58,14 +58,13 @@ them, what the audit closed, and what is deliberately left for later.
   been checked in the browser.
 - **Editing a previous Studio result:** still later, as plan 28 says.
 - **Wallet:** a real signed Send and Swap (needs Albedo approval from the
-  owner); the treasury must hold XLM and BANDCOIN.
+  owner); the treasury must hold XLM and ACTION.
 
 ## Owner's list (not mine to do)
 
 - Add the Google and OpenAI keys to the Studio and worker env files, then
   rotate the keys that were pasted into chat.
-- `apps/studio/.env.local`: `NEXTAUTH_URL` points at port 3001; it should be
-  3102.
+- `apps/studio/.env.local`: `NEXTAUTH_URL` points at port 3001; it should be 3102.
 - `apps/ar/.env.production` has wrong URLs.
 - The production worker wasn't processing jobs; check it.
 - Dev database: `activity_logs_pkey` duplicate-key errors on every upload log

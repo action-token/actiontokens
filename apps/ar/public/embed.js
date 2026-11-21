@@ -1,19 +1,19 @@
 // @ts-nocheck — plain browser script served as-is to third-party sites.
 /*!
- * Bandcoin map embed loader.
+ * Action Tokens map embed loader.
  *
- *   <div data-bandcoin-embed="EMBED_ID" style="height:520px"></div>
+ *   <div data-actiontokens-embed="EMBED_ID" style="height:520px"></div>
  *   <script async src="https://ar.action-tokens.com/embed.js"></script>
  *
- * Turns every [data-bandcoin-embed] element into the embed's iframe, sized to
+ * Turns every [data-actiontokens-embed] element into the embed's iframe, sized to
  * fill the element. Several maps per page are fine, and elements added later
  * (page builders, SPAs) are picked up too. Give the element a height with CSS;
  * without one it falls back to a 16:9 box.
  */
 (function () {
   "use strict";
-  if (window.BandcoinEmbed) {
-    window.BandcoinEmbed.scan();
+  if (window.ActionTokenEmbed) {
+    window.ActionTokenEmbed.scan();
     return;
   }
 
@@ -26,10 +26,10 @@
   var origin = new URL(script && script.src ? script.src : window.location.href).origin;
 
   function mount(el) {
-    if (el.getAttribute("data-bandcoin-mounted")) return;
-    var id = (el.getAttribute("data-bandcoin-embed") || "").trim();
+    if (el.getAttribute("data-actiontokens-mounted")) return;
+    var id = (el.getAttribute("data-actiontokens-embed") || "").trim();
     if (!id) return;
-    el.setAttribute("data-bandcoin-mounted", "1");
+    el.setAttribute("data-actiontokens-mounted", "1");
 
     // No height from the page's CSS → a sensible box instead of a 0px map.
     if (el.clientHeight < 40) {
@@ -40,7 +40,7 @@
 
     var iframe = document.createElement("iframe");
     iframe.src = origin + "/embed/" + encodeURIComponent(id);
-    iframe.title = el.getAttribute("data-title") || "Bandcoin map";
+    iframe.title = el.getAttribute("data-title") || "Action Tokens map";
     iframe.loading = "lazy";
     // "Near me" needs this; the browser still asks the visitor first.
     iframe.allow = "geolocation";
@@ -52,11 +52,11 @@
   }
 
   function scan() {
-    var nodes = document.querySelectorAll("[data-bandcoin-embed]");
+    var nodes = document.querySelectorAll("[data-actiontokens-embed]");
     for (var i = 0; i < nodes.length; i++) mount(nodes[i]);
   }
 
-  window.BandcoinEmbed = { scan: scan };
+  window.ActionTokenEmbed = { scan: scan };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", scan);
   else scan();

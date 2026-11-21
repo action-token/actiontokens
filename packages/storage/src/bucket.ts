@@ -1,7 +1,7 @@
 import { S3Client } from "@aws-sdk/client-s3";
 import { requireEnv } from "@actiontokens/errors";
 
-/** The bucket every Bandcoin app and the task server write to. Read lazily so importing never needs env. */
+/** The bucket every Action Tokens app and the task server write to. Read lazily so importing never needs env. */
 interface BucketConfig {
   name: string;
   region: string;

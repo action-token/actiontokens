@@ -1,4 +1,8 @@
-import { DEFAULT_PIN_LOOK, type MarkerFill, type PinLookInput } from "@actiontokens/ar-core/pin-look";
+import {
+  DEFAULT_PIN_LOOK,
+  type MarkerFill,
+  type PinLookInput,
+} from "@actiontokens/ar-core/pin-look";
 
 /** A look with every field present, as the form and the editor work with it. */
 export type PinLookValue = {
@@ -23,7 +27,7 @@ export function toLookValue(look: PinLookInput | null | undefined): PinLookValue
 }
 
 // The artist's last choice becomes the starting look of the next new pin (this browser only).
-const LAST_KEY = "bandcoin.pin-look.last";
+const LAST_KEY = "action-tokens.pin-look.last";
 
 export function loadLastLook(): PinLookValue {
   try {

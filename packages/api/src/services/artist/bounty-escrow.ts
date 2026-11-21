@@ -26,7 +26,7 @@ import { invalid } from "./items";
 
 /**
  * The money side of a bounty, on the deployed `bounty_escrow` contract exactly
- * as the old Bandcoin called it:
+ * as the old Action Tokens called it:
  *
  *   fund    create_bounty(bountyId, creator, token, amount, maxWinners)
  *   winner  select_winner(caller, bountyId, winner, amount)

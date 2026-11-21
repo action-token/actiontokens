@@ -1,7 +1,7 @@
 /**
  * ── Shared theme ───────────────────────────────────────────────────────────
  *
- * One theme choice for every Bandcoin site in a browser (AR, the fan app, the artist portal and
+ * One theme choice for every Action Tokens site in a browser (AR, the fan app, the artist portal and
  * Studio), the way the login is shared: a cookie on the parent domain (`.action-tokens.com`), which
  * every subdomain reads. Each app still keeps its own copy in localStorage, where its theme code
  * reads it; this cookie is what keeps those copies in step.
@@ -18,7 +18,7 @@
 
 export type SharedTheme = "light" | "dark" | "system";
 
-export const SHARED_THEME_COOKIE = "bandcoin-theme";
+export const SHARED_THEME_COOKIE = "actiontokens-theme";
 
 const ONE_YEAR = 60 * 60 * 24 * 365;
 

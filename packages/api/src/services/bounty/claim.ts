@@ -16,7 +16,7 @@ type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 /**
  * A winner pulls their prize out of the bounty escrow: the deployed
  * `bounty_escrow` contract's `claim_reward(bounty_id, winner)`, with the
- * winner as transaction source and signer, exactly as on the old Bandcoin.
+ * winner as transaction source and signer, exactly as on the old Action Tokens.
  *
  *   prepare → the simulated call, for the wallet to sign (custodial accounts
  *             get the countdown and the server signs on submit)

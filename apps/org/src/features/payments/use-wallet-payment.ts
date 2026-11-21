@@ -22,7 +22,7 @@ const reasonOf = (error: unknown) =>
 
 /**
  * One wallet payment, from the button to it being done. Moves a single toast
- * through its steps, like every payment in Bandcoin:
+ * through its steps, like every payment in Action Tokens:
  *
  *   email / Google / Apple accounts: countdown with Cancel → server signs → done
  *   wallet extensions:               "Confirm in Freighter" → wallet signs → done

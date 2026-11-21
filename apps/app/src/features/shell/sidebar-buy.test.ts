@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { showSidebarBuy } from "./sidebar-buy";
 
-const priced = { price: { bandcoin: "9500", usd: "0.99" } };
+const priced = { price: { actionToken: "9500", usd: "0.99" } };
 
 describe("showSidebarBuy", () => {
   it("offers Buy while only the preview plays", () => {

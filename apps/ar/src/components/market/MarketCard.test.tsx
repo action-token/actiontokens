@@ -9,7 +9,7 @@ const item: MarketItem = {
   type: "TRACK",
   coverUrl: "https://img/x.png",
   artistName: "Lila",
-  price: { bandcoin: "1250", usd: "5" },
+  price: { actionToken: "1250", usd: "5" },
 };
 
 describe("MarketCard", () => {

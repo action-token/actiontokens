@@ -32,7 +32,7 @@ export type CircleArtist = {
 };
 
 /**
- * An artist as a circle (Spotify's artist card, Bandcoin's stickers): round photo with a
+ * An artist as a circle (Spotify's artist card, Action Tokens' stickers): round photo with a
  * live-story ring and fan-token sticker, a Play button for their top songs, name and counts.
  * The whole card opens the artist's page; `actions` (Follow, Subscribe) sit above that link.
  */

@@ -91,7 +91,7 @@ function Songs() {
       <EmptyState
         icon={Music2}
         title="No songs yet"
-        description="Release your first song. Fans can preview 30 seconds and buy it with BANDCOIN or a card."
+        description="Release your first song. Fans can preview 30 seconds and buy it with ACTION or a card."
         action={
           <Button asChild>
             <Link href="/music/new">
@@ -144,9 +144,9 @@ function SongRow({ song }: { song: Song }) {
           <span className="text-fg-muted truncate text-sm">
             {details.filter(Boolean).join(" · ")}
           </span>
-          {song.priceBandcoin && song.priceUsd && (
+          {song.priceActionToken && song.priceUsd && (
             <span className="text-fg-muted flex flex-wrap items-center gap-x-3 text-sm">
-              <Money amount={song.priceBandcoin} currency="BANDCOIN" />{" "}
+              <Money amount={song.priceActionToken} currency="ACTION" />{" "}
               <Money amount={song.priceUsd} currency="USD" />
             </span>
           )}

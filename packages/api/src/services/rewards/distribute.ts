@@ -96,7 +96,7 @@ export async function distributeRound(ctx: ServiceCtx, kind: RoundKind, id: stri
   if (round.isDistributed) return { paid: 0, alreadyDone: true };
   const payerKey = ctx.chain.config.mother;
   if (!payerKey) throw fail("The platform's payout account isn't set up (MOTHER_SECRET).");
-  const { code, issuer } = ctx.chain.config.assets.bandcoin;
+  const { code, issuer } = ctx.chain.config.assets.actionToken;
   const asset = new Asset(code, issuer);
 
   round = await settlePending(ctx, kind, round);

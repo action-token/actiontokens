@@ -22,20 +22,23 @@ const ORDER = "cmvorder0000000000000001";
 const me: SessionUser = { id: "me", role: "FAN", walletAddress: fan, walletType: "freighter" };
 const custodial: SessionUser = { ...me, walletType: "emailPass", email: "fan@example.com" };
 
-/** A Horizon account; `bandcoin` undefined means no BANDCOIN line. */
-function horizonAccount(id: string, { xlm = "10", bandcoin }: { xlm?: string; bandcoin?: string }) {
+/** A Horizon account; `actionToken` undefined means no ACTION line. */
+function horizonAccount(
+  id: string,
+  { xlm = "10", actionToken }: { xlm?: string; actionToken?: string },
+) {
   return Object.assign(new Account(id, "100"), {
-    subentry_count: bandcoin === undefined ? 0 : 1,
+    subentry_count: actionToken === undefined ? 0 : 1,
     balances: [
       { asset_type: "native", balance: xlm, selling_liabilities: "0" },
-      ...(bandcoin === undefined
+      ...(actionToken === undefined
         ? []
         : [
             {
               asset_type: "credit_alphanum12",
-              asset_code: "BANDCOIN",
+              asset_code: "ACTION",
               asset_issuer: issuer,
-              balance: bandcoin,
+              balance: actionToken,
               selling_liabilities: "0",
             },
           ]),
@@ -84,24 +87,24 @@ function setup(
     $transaction: (run: (tx: unknown) => unknown) => run(db),
   };
   const fanAccount =
-    opts.fanAccount === undefined ? horizonAccount(fan, { bandcoin: "1000" }) : opts.fanAccount;
+    opts.fanAccount === undefined ? horizonAccount(fan, { actionToken: "1000" }) : opts.fanAccount;
   const treasury =
     opts.treasury === undefined
-      ? horizonAccount(mother, { xlm: "1000", bandcoin: "100000" })
+      ? horizonAccount(mother, { xlm: "1000", actionToken: "100000" })
       : opts.treasury;
   const chain = {
     config: {
       name: "testnet",
       network,
       assets: {
-        bandcoin: { code: "BANDCOIN", issuer },
+        actionToken: { code: "ACTION", issuer },
         usdc: { code: "USDC", issuer: Keypair.random().publicKey() },
       },
       mother: opts.motherKey === undefined ? mother : opts.motherKey,
     },
     loadAccount: vi.fn((id: string) => Promise.resolve(id === mother ? treasury : fanAccount)),
     rates: vi.fn().mockResolvedValue({ xlmUsd: "0.1", usdcUsd: "1" }),
-    bandcoinUsd: vi.fn().mockResolvedValue("0.002"),
+    actionTokenUsd: vi.fn().mockResolvedValue("0.002"),
     signWithServerKeys: vi.fn((xdr: string) => Promise.resolve(xdr)),
     signForCustodialUser: vi.fn((xdr: string) => Promise.resolve(xdr)),
     submit: vi.fn(opts.submit ?? ((_xdr: string) => Promise.resolve({ hash: "txhash" }))),
@@ -113,25 +116,25 @@ function setup(
 
 const parse = (xdr: string) => TransactionBuilder.fromXDR(xdr, Networks.TESTNET) as Transaction;
 const toXlm = { direction: "TO_XLM" as const, amount: "100" };
-const toBandcoin = { direction: "TO_BANDCOIN" as const, amount: "2" };
+const toActionToken = { direction: "TO_ACTION" as const, amount: "2" };
 
 describe("swap quote", () => {
   it("prices any amount either way from the wallet's and the treasury's balances", async () => {
     const { ctx } = setup();
     await expect(quoteSwap(ctx, me, toXlm)).resolves.toMatchObject({
       ok: true,
-      pay: { currency: "BANDCOIN", amount: "100.0000000" },
+      pay: { currency: "ACTION", amount: "100.0000000" },
       receive: { currency: "XLM", amount: "1.9600000" },
     });
-    await expect(quoteSwap(ctx, me, toBandcoin)).resolves.toMatchObject({
+    await expect(quoteSwap(ctx, me, toActionToken)).resolves.toMatchObject({
       ok: true,
-      receive: { currency: "BANDCOIN", amount: "98.0000000" },
+      receive: { currency: "ACTION", amount: "98.0000000" },
     });
   });
 
-  it("opens the BANDCOIN line when swapping XLM into a wallet without one", async () => {
+  it("opens the ACTION line when swapping XLM into a wallet without one", async () => {
     const { ctx } = setup({ fanAccount: horizonAccount(fan, {}) });
-    const quote = await quoteSwap(ctx, me, toBandcoin);
+    const quote = await quoteSwap(ctx, me, toActionToken);
     expect(quote.lines.map((line) => line.key)).toContain("reserve");
   });
 
@@ -154,21 +157,21 @@ describe("swap quote", () => {
 
   it("shows the price as unavailable when it can't be loaded", async () => {
     const { ctx, chain } = setup();
-    chain.bandcoinUsd.mockRejectedValue(new Error("down"));
+    chain.actionTokenUsd.mockRejectedValue(new Error("down"));
     const quote = await quoteSwap(ctx, me, toXlm);
     expect(quote.problems[0]?.code).toBe("RATE_UNAVAILABLE");
   });
 });
 
 describe("swap", () => {
-  it("BANDCOIN to XLM: an XLM_SWAP order and one transaction both ways, co-signed by the treasury", async () => {
+  it("ACTION to XLM: an XLM_SWAP order and one transaction both ways, co-signed by the treasury", async () => {
     const { ctx, chain, orders } = setup();
     const started = await startSwap(ctx, me, toXlm);
     expect(started.signer).toBe("wallet");
     expect(orders.get(ORDER)).toMatchObject({
       kind: "XLM_SWAP",
       method: "WALLET",
-      currency: "BANDCOIN",
+      currency: "ACTION",
       total: "100.0000000",
       status: "AWAITING_SIGNATURE",
     });
@@ -187,11 +190,11 @@ describe("swap", () => {
     expect(chain.signWithServerKeys).toHaveBeenCalledWith(started.xdr, [mother]);
   });
 
-  it("XLM to BANDCOIN: a BANDCOIN_SWAP order paid in XLM", async () => {
+  it("XLM to ACTION: a ACTION_SWAP order paid in XLM", async () => {
     const { ctx, orders } = setup({ fanAccount: horizonAccount(fan, {}) });
-    const started = await startSwap(ctx, me, toBandcoin);
+    const started = await startSwap(ctx, me, toActionToken);
     expect(orders.get(ORDER)).toMatchObject({
-      kind: "BANDCOIN_SWAP",
+      kind: "ACTION_SWAP",
       currency: "XLM",
       total: "2.0000000",
     });
@@ -205,7 +208,7 @@ describe("swap", () => {
   it("won't start when the fan is short, and creates no order", async () => {
     const { ctx, orders } = setup();
     await expect(startSwap(ctx, me, { direction: "TO_XLM", amount: "5000" })).rejects.toMatchObject(
-      { message: "You need 4000 more BANDCOIN." },
+      { message: "You need 4000 more ACTION." },
     );
     expect(orders.size).toBe(0);
   });

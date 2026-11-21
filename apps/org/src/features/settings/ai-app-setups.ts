@@ -1,5 +1,5 @@
 /** The name AI apps know the server by. */
-export const SERVER_NAME = "bandcoin";
+export const SERVER_NAME = "actiontokens";
 
 export type AppSetup = { id: string; label: string; where: string; code: string };
 
@@ -19,8 +19,8 @@ export function appSetups(url: string, token: string): AppSetup[] {
         mcpServers: {
           [SERVER_NAME]: {
             command: "npx",
-            args: ["-y", "mcp-remote", url, "--header", "Authorization:${BANDCOIN_MCP_AUTH}"],
-            env: { BANDCOIN_MCP_AUTH: auth },
+            args: ["-y", "mcp-remote", url, "--header", "Authorization:${ACTION_MCP_AUTH}"],
+            env: { ACTION_MCP_AUTH: auth },
           },
         },
       }),

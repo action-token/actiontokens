@@ -49,10 +49,10 @@ export async function walletContents(
     : null;
   const isFan = (code: string, issuer: string) =>
     fanToken?.code === code && fanToken.issuer === issuer;
-  const { bandcoin, usdc } = ctx.chain.config.assets;
+  const { actionToken, usdc } = ctx.chain.config.assets;
   const kindOf = (code: string, issuer: string): HoldingKind =>
-    bandcoin.code === code && bandcoin.issuer === issuer
-      ? "bandcoin"
+    actionToken.code === code && actionToken.issuer === issuer
+      ? "actionToken"
       : usdc.code === code && usdc.issuer === issuer
         ? "usdc"
         : isFan(code, issuer)

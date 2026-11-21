@@ -8,9 +8,9 @@ import type { ChainGateway } from "../chain-gateway";
 
 /**
  * What a bounty's prize is paid in. Either one of the platform's currencies
- * (BANDCOIN, XLM, USDC: `prizeCurrency`) or any other classic asset the
+ * (ACTION, XLM, USDC: `prizeCurrency`) or any other classic asset the
  * artist holds, such as their fan token (`prizeAssetCode` + `prizeAssetIssuer`),
- * as on the old Bandcoin. The database keeps exactly one of the two.
+ * as on the old Action Tokens. The database keeps exactly one of the two.
  */
 export type PrizeFields = {
   prizeCurrency: Currency | null;
@@ -18,14 +18,14 @@ export type PrizeFields = {
   prizeAssetIssuer: string | null;
 };
 
-export const PRIZE_CURRENCIES = ["BANDCOIN", "XLM", "USDC"] as const;
+export const PRIZE_CURRENCIES = ["ACTION", "XLM", "USDC"] as const;
 export type PrizeCurrency = (typeof PRIZE_CURRENCIES)[number];
 
 /** The Stellar asset the escrow holds for this bounty. */
 export function prizeAsset(bounty: PrizeFields, assets: ChainConfig["assets"]): Asset {
   if (bounty.prizeAssetCode && bounty.prizeAssetIssuer)
     return new Asset(bounty.prizeAssetCode, bounty.prizeAssetIssuer);
-  return assetFor((bounty.prizeCurrency ?? "BANDCOIN") as PrizeCurrency, assets);
+  return assetFor((bounty.prizeCurrency ?? "ACTION") as PrizeCurrency, assets);
 }
 
 /** The prize for screens: a platform currency (shown with its icon) or another asset's code. */
@@ -37,7 +37,7 @@ export function prizeView(
   const asset = prizeAsset(bounty, config.assets);
   const currency = bounty.prizeAssetCode
     ? null
-    : ((bounty.prizeCurrency ?? "BANDCOIN") as PrizeCurrency);
+    : ((bounty.prizeCurrency ?? "ACTION") as PrizeCurrency);
   return {
     amount: bounty.prizeAmount.toString(),
     /** Null when the prize is another asset: show `code` instead */
@@ -51,7 +51,7 @@ export function prizeView(
 
 /**
  * Turns the form's choice into what's stored. An "other asset" that is really
- * BANDCOIN or USDC is stored as that currency.
+ * ACTION or USDC is stored as that currency.
  */
 export function prizeFieldsFor(
   choice: { currency?: PrizeCurrency; asset?: { code: string; issuer: string } },
@@ -62,7 +62,7 @@ export function prizeFieldsFor(
   if (!choice.asset || choice.currency) return null;
   const { code, issuer } = choice.asset;
   for (const [currency, known] of [
-    ["BANDCOIN", assets.bandcoin],
+    ["ACTION", assets.actionToken],
     ["USDC", assets.usdc],
   ] as const)
     if (known.code === code && known.issuer === issuer)
@@ -78,7 +78,7 @@ export function prizeToken(config: Pick<ChainConfig, "assets" | "network">, boun
 
 /**
  * Whether the prize's asset still needs its Stellar Asset Contract deployed
- * before it can be escrowed. XLM, BANDCOIN and USDC are always ready.
+ * before it can be escrowed. XLM, ACTION and USDC are always ready.
  */
 export async function needsTokenSetup(
   chain: Pick<ChainGateway, "config" | "contractIsLive">,

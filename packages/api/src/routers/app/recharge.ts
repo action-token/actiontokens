@@ -11,8 +11,8 @@ const rechargeInput = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("TOKEN_TRUST"),
     organizationId: z.string().min(1),
-    /** Subscribing: BANDCOIN, USDC, XLM or card (plan 33) */
-    currency: z.enum(["BANDCOIN", "USDC", "XLM", "USD"]),
+    /** Subscribing: ACTION, USDC, XLM or card (plan 33) */
+    currency: z.enum(["ACTION", "USDC", "XLM", "USD"]),
   }),
 ]);
 

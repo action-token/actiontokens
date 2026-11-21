@@ -15,7 +15,7 @@ const payInput = z.object({
   purpose: z.enum(["RENEWAL", "NAME_CHANGE"]),
   name: z.string().max(60).optional(),
   /** USD: by card (plan 33) */
-  currency: z.enum(["BANDCOIN", "XLM", "USDC", "USD"]),
+  currency: z.enum(["ACTION", "XLM", "USDC", "USD"]),
 });
 
 /** The artist's short link, action-tokens.com/name (see services/artist/vanity). */

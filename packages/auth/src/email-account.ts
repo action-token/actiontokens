@@ -17,7 +17,7 @@ export type EmailAccount = {
 };
 
 /**
- * The Bandcoin account for an email, made when there is none: a Firebase user,
+ * The Action Tokens account for an email, made when there is none: a Firebase user,
  * its custodial Stellar key (from the accounts service, as at sign-in) and the
  * user row. An email already on an account (a wallet one too) returns that.
  *

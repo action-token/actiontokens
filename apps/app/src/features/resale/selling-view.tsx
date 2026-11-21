@@ -220,7 +220,7 @@ function ListingRow({
           {listing.item.title}
         </Link>
         <p className="text-fg-muted flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
-          <Money amount={listing.priceBandcoin} currency="BANDCOIN" />
+          <Money amount={listing.priceActionToken} currency="ACTION" />
           <Money amount={listing.priceUsd} currency="USD" />
           <span>
             {listing.tokenId !== null
@@ -256,10 +256,10 @@ function PriceDialog({
   listing: Listing;
   onClose: () => void;
   /** A smart-contract NFT's price is changed on the network: a transaction to sign */
-  onRelist: (prices: { priceBandcoin: string; priceUsd: string }) => void;
+  onRelist: (prices: { priceActionToken: string; priceUsd: string }) => void;
 }) {
   const utils = api.useUtils();
-  const [bandcoin, setBandcoin] = useState(listing.priceBandcoin);
+  const [actionToken, setActionToken] = useState(listing.priceActionToken);
   const [usd, setUsd] = useState(listing.priceUsd);
   const save = api.resale.setPrice.useMutation({
     onSuccess: async () => {
@@ -269,7 +269,7 @@ function PriceDialog({
     },
     onError: (error) => toast.error(isAppError(error) ? error.message : error.message),
   });
-  const valid = PRICE.test(bandcoin.trim()) && PRICE.test(usd.trim());
+  const valid = PRICE.test(actionToken.trim()) && PRICE.test(usd.trim());
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
@@ -283,12 +283,12 @@ function PriceDialog({
         </DialogHeader>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="grid gap-1.5">
-            <Label htmlFor="price-bandcoin">Price each, BANDCOIN</Label>
+            <Label htmlFor="price-actionToken">Price each, ACTION</Label>
             <Input
-              id="price-bandcoin"
+              id="price-actionToken"
               inputMode="decimal"
-              value={bandcoin}
-              onChange={(event) => setBandcoin(event.target.value)}
+              value={actionToken}
+              onChange={(event) => setActionToken(event.target.value)}
             />
           </div>
           <div className="grid gap-1.5">
@@ -309,10 +309,10 @@ function PriceDialog({
             disabled={!valid || save.isPending}
             onClick={() =>
               listing.tokenId !== null
-                ? onRelist({ priceBandcoin: bandcoin.trim(), priceUsd: usd.trim() })
+                ? onRelist({ priceActionToken: actionToken.trim(), priceUsd: usd.trim() })
                 : save.mutate({
                     listingId: listing.id,
-                    priceBandcoin: bandcoin.trim(),
+                    priceActionToken: actionToken.trim(),
                     priceUsd: usd.trim(),
                   })
             }

@@ -16,11 +16,11 @@ Eighth of the map and AR upgrades that follow wadzzo. Queue after: 50 phone bott
 - **Item page:** the item, who made it and a Go to Marketplace button, plus related items.
 - `lib/market.ts` builds the links to the marketplace app and formats prices (compact above 100,000).
 
-## Bandcoin today
+## Action Tokens today
 
 - The fan app has `/marketplace` (type chips: All, Music, Artwork, Video, Tickets, Fan tokens, Merch,
   Royalties, Locked content; search; sort) over the public `catalog.browse`, and `/item/[slug]` over
-  the public `item.bySlug`. Prices are BANDCOIN and USD, from the cheapest open listing.
+  the public `item.bySlug`. Prices are ACTION and USD, from the cheapest open listing.
 - AR has no marketplace. Its tab bar is Map, Collection, [AR], Bounty, Artists; its API (`arRouter`)
   has no catalog or item routers. `NEXT_PUBLIC_APP_URL` (the fan app) already exists for links out.
 
@@ -47,7 +47,7 @@ bar again.
 
 - `lib/market.ts`: `marketItemUrl(slug)` and `marketplaceUrl` from `NEXT_PUBLIC_APP_URL`, the type
   chips (same list and order as the fan app), `formatPrice`, `formatUsd`.
-- `components/market/MarketCard.tsx`: the card (art, type badge, artist, BANDCOIN price with the dollar
+- `components/market/MarketCard.tsx`: the card (art, type badge, artist, ACTION price with the dollar
   figure, "Sold out" when nothing is open, Go to Marketplace button that opens the fan app in the same
   window as other links out of AR).
 - `app/(shell)/marketplace/page.tsx`: header, search (deferred, 80 characters), type chips as a

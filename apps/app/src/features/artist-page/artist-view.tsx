@@ -40,7 +40,7 @@ export async function artistMetadata(slug: string): Promise<Metadata> {
   const artist = await loadArtist(slug);
   return {
     title: artist.name,
-    description: artist.bio ?? `${artist.name}'s music, drops and bounties on Bandcoin.`,
+    description: artist.bio ?? `${artist.name}'s music, drops and bounties on Action Tokens.`,
     openGraph: { images: [artist.coverUrl ?? artist.avatarUrl ?? ""].filter(Boolean) },
   };
 }

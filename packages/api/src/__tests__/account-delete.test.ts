@@ -97,7 +97,7 @@ describe("deleting your account", () => {
     );
   });
 
-  it("protects a Bandcoin-held wallet that still holds funds, but not a self-custody one", async () => {
+  it("protects an Action Tokens-held wallet that still holds funds, but not a self-custody one", async () => {
     const tokens = setup({
       account: account(line("native", "1.5"), line("credit_alphanum4", "3")),
     });

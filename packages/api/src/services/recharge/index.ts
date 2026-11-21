@@ -33,10 +33,10 @@ import { deliverOrder, failOrder, holdsLine, ownOrder, userSignature } from "../
  *   cancel → `cancelPurchase`, which works on any order
  *
  * Separate things, never one triggering the other:
- *   TOP_UP    card → BANDCOIN from the mother account
- *   TOKEN_TRUST  subscribing: the fan-token line, paid in BANDCOIN, USDC, XLM or by
+ *   TOP_UP    card → ACTION from the mother account
+ *   TOKEN_TRUST  subscribing: the fan-token line, paid in ACTION, USDC, XLM or by
  *             card (plan 33, chain's quoteFanTokenTrust), opened in one transaction
- * Swapping BANDCOIN and XLM is the wallet's Swap (services/wallet/swap).
+ * Swapping ACTION and XLM is the wallet's Swap (services/wallet/swap).
  */
 
 export type RechargeInput =
@@ -46,18 +46,18 @@ type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 
 async function priceRecharge(ctx: ServiceCtx, user: SessionUser | null, input: RechargeInput) {
   const { chain } = ctx;
-  const [bandcoinUsd, rates, account, settings] = await Promise.all([
-    chain.bandcoinUsd().catch(rateFailure),
+  const [actionTokenUsd, rates, account, settings] = await Promise.all([
+    chain.actionTokenUsd().catch(rateFailure),
     chain.rates().catch(rateFailure),
     user ? chain.loadAccount(user.walletAddress) : null,
     ctx.db.appSetting.findUnique({ where: { id: 1 }, select: { platformFeeBps: true } }),
   ]);
   const funds = user ? fundsOf(account, chain.config.assets) : null;
-  const asset = assetFor("BANDCOIN", chain.config.assets);
+  const asset = assetFor("ACTION", chain.config.assets);
   const rate =
-    bandcoinUsd && rates
-      ? { bandcoinUsd: toStroops(bandcoinUsd), xlmUsd: toStroops(rates.xlmUsd) }
-      : { bandcoinUsd: 0n, xlmUsd: 0n };
+    actionTokenUsd && rates
+      ? { actionTokenUsd: toStroops(actionTokenUsd), xlmUsd: toStroops(rates.xlmUsd) }
+      : { actionTokenUsd: 0n, xlmUsd: 0n };
   const { baseFee } = chain.config.network;
 
   const openTrustline = !(account && holdsLine(account, asset));
@@ -78,7 +78,11 @@ async function priceRecharge(ctx: ServiceCtx, user: SessionUser | null, input: R
       : {
           kind: "TOKEN_TRUST" as const,
           token: token
-            ? { code: token.code, artistName: token.artistName, organizationId: input.organizationId }
+            ? {
+                code: token.code,
+                artistName: token.artistName,
+                organizationId: input.organizationId,
+              }
             : null,
           ...quoteFanTokenTrust({
             currency: input.currency,
@@ -86,8 +90,8 @@ async function priceRecharge(ctx: ServiceCtx, user: SessionUser | null, input: R
             usdcUsd: rates ? toStroops(rates.usdcUsd) : 0n,
             feeBps: settings?.platformFeeBps ?? 0,
             networkFeeXlm: networkFeeXlm(trustOperations(input.currency, openTrustline), baseFee),
-            funds: funds ? { BANDCOIN: funds.BANDCOIN, USDC: funds.USDC, XLM: funds.XLM } : null,
-            hasBandcoinLine: !openTrustline,
+            funds: funds ? { ACTION: funds.ACTION, USDC: funds.USDC, XLM: funds.XLM } : null,
+            hasActionTokenLine: !openTrustline,
           }),
         };
 
@@ -116,22 +120,22 @@ async function priceRecharge(ctx: ServiceCtx, user: SessionUser | null, input: R
     },
     account,
     openTrustline,
-    bandcoinUsd,
+    actionTokenUsd,
     token,
   };
 }
 
 /**
- * Operations in a Subscribe transaction, for its network fee: BANDCOIN/USDC pay,
- * fee, XLM, line; XLM fee, line; card XLM, line, BANDCOIN (+ its line) and the fee bump.
+ * Operations in a Subscribe transaction, for its network fee: ACTION/USDC pay,
+ * fee, XLM, line; XLM fee, line; card XLM, line, ACTION (+ its line) and the fee bump.
  */
-function trustOperations(currency: TrustCurrency, noBandcoinLine: boolean) {
+function trustOperations(currency: TrustCurrency, noActionTokenLine: boolean) {
   if (currency === "XLM") return 2;
-  if (currency === "USD") return 4 + Number(noBandcoinLine);
+  if (currency === "USD") return 4 + Number(noActionTokenLine);
   return 4;
 }
 
-/** The artist's fan token, if they have one on Stellar that Bandcoin issued or tracks. */
+/** The artist's fan token, if they have one on Stellar that Action Tokens issued or tracks. */
 async function fanTokenOf(ctx: Pick<ServiceCtx, "db">, organizationId: string) {
   const artist = await ctx.db.organization.findFirst({
     where: { id: organizationId, status: "APPROVED" },
@@ -187,7 +191,7 @@ export async function startRecharge(ctx: ServiceCtx, user: SessionUser, input: R
       method: card ? "CARD" : "WALLET",
       quoteExpiresAt: new Date(quote.expiresAt),
       breakdown: quote,
-      rateUsd: priced.bandcoinUsd,
+      rateUsd: priced.actionTokenUsd,
     },
   });
   ctx.activity.set({
@@ -199,7 +203,7 @@ export async function startRecharge(ctx: ServiceCtx, user: SessionUser, input: R
 
   const { network, assets, treasury } = ctx.chain.config;
   const buyer = new Account(account.accountId(), account.sequenceNumber());
-  const asset = assetFor("BANDCOIN", assets);
+  const asset = assetFor("ACTION", assets);
   const built =
     quote.kind === "TOP_UP"
       ? buildTopUp({
@@ -219,10 +223,10 @@ export async function startRecharge(ctx: ServiceCtx, user: SessionUser, input: R
             token: new Asset(priced.token!.code, priced.token!.issuer),
             from: mother,
             sendXlm: quote.sendXlm,
-            bandcoin: {
+            actionToken: {
               asset,
-              amount: quote.card?.extraBandcoin ?? "0",
-              openLine: quote.card?.openBandcoinLine ?? false,
+              amount: quote.card?.extraActionToken ?? "0",
+              openLine: quote.card?.openActionTokenLine ?? false,
             },
           })
         : buildTrustWithPayment({

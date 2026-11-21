@@ -75,7 +75,7 @@ function Slide({ artist, rank }: { artist: Artist; rank: number }) {
       <div className="grid justify-items-center gap-2">
         <p className="marker text-fg-muted flex -rotate-2 items-center gap-1.5 text-lg">
           {rank === 1 && <Crown className="text-primary-text size-4" strokeWidth={2.6} />}*#{rank}{" "}
-          most followed on Bandcoin*
+          most followed on Action Tokens*
         </p>
         <h2 className="display flex max-w-full min-w-0 items-center justify-center gap-3 text-5xl sm:text-6xl">
           <Link href={href} className="min-w-0 truncate hover:underline">
@@ -84,7 +84,7 @@ function Slide({ artist, rank }: { artist: Artist; rank: number }) {
           <BadgeCheck className="text-primary size-8 shrink-0 sm:size-10" strokeWidth={2.6} />
         </h2>
         <p className="text-fg-muted line-clamp-2 max-w-xl text-[15px]">
-          {artist.bio?.trim() ? artist.bio : "Shares music, art and drops on Bandcoin."}
+          {artist.bio?.trim() ? artist.bio : "Shares music, art and drops on Action Tokens."}
         </p>
       </div>
 

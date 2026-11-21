@@ -65,7 +65,7 @@ export function SongsView() {
   const minPrice = price(params.get("min"));
   const maxPrice = price(params.get("max"));
   const stems = params.get("stems") === "1";
-  const [grid, setGrid] = usePersistedFlag("bandcoin.songs-grid", false);
+  const [grid, setGrid] = usePersistedFlag("action-tokens.songs-grid", false);
 
   const setParams = useCallback(
     (changes: Record<string, string | undefined>) => {
@@ -305,7 +305,7 @@ function ViewButton({
   );
 }
 
-/** Min and max price in BANDCOIN; applies a moment after typing stops, or on Enter. */
+/** Min and max price in ACTION; applies a moment after typing stops, or on Enter. */
 function PriceRange({
   min,
   max,
@@ -338,7 +338,7 @@ function PriceRange({
     <div
       className="bg-card focus-within:border-primary-text inline-flex h-9 items-center rounded-full border pl-3 text-sm"
       role="group"
-      aria-label="Price in BANDCOIN"
+      aria-label="Price in ACTION"
     >
       <span className="text-muted-foreground font-medium">Price</span>
       <input

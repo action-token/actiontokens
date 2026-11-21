@@ -4,7 +4,7 @@
  */
 export const site = {
   name: "Action Tokens",
-  /** Off-chain points earned by scanning murals; not the BANDCOIN token */
+  /** Off-chain points earned by scanning murals; not the ACTION token */
   coinName: "Mural Coins",
   coinOwner: "Action Tokens",
   wordmark: {

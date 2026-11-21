@@ -2,7 +2,7 @@
 """Watches the worker server and emails when something is wrong.
 
 Runs ON THE SERVER from cron, every 5 minutes:
-  */5 * * * * /home/ubuntu/bandcoin/server_monitor.py >> /home/ubuntu/bandcoin/monitor.log 2>&1
+  */5 * * * * /home/ubuntu/actionToken/server_monitor.py >> /home/ubuntu/actionToken/monitor.log 2>&1
 
 Mails once when a problem appears (a container down for two checks in a row, a disk, memory or
 swap running out), again after 6 hours if it is still there, and once when it clears. New failed
@@ -29,13 +29,13 @@ import urllib.request
 from email.message import EmailMessage
 
 HOME = os.path.expanduser("~")
-STATE_PATH = os.environ.get("MONITOR_STATE", f"{HOME}/bandcoin/monitor-state.json")
-ENV_PATH = os.environ.get("MONITOR_ENV", f"{HOME}/bandcoin/worker.env")
-ALERT_TO = os.environ.get("ALERT_TO", "support@bandcoin.io")
+STATE_PATH = os.environ.get("MONITOR_STATE", f"{HOME}/actionToken/monitor-state.json")
+ENV_PATH = os.environ.get("MONITOR_ENV", f"{HOME}/actionToken/worker.env")
+ALERT_TO = os.environ.get("ALERT_TO", "support@action-tokens.com")
 
 # (container, port on this machine, required: a missing container counts as down)
 # Only this project's container: other projects on the same machine watch their own.
-SERVICES = [("bandcoin-worker", 8080, True)]
+SERVICES = [("actiontokens-worker", 8080, True)]
 
 DOWN_CHECKS = 2  # bad checks in a row before it is a problem (a deploy takes one)
 REPEAT_AFTER_S = 6 * 3600
@@ -110,12 +110,12 @@ def evaluate(observed, state, now):
         parts.append("Recovered:\n" + "\n".join(f"  - {name}" for name in recovered))
     parts.append(
         f"Server: {socket.gethostname()}\n"
-        "Logs: docker logs bandcoin-worker. Failed jobs: Admin > Jobs."
+        "Logs: docker logs actiontokens-worker. Failed jobs: Admin > Jobs."
     )
     subject = (
-        "[Bandcoin server] " + ", ".join(labels)
+        "[Action Tokens server] " + ", ".join(labels)
         if lines
-        else "[Bandcoin server] Recovered: " + ", ".join(recovered)
+        else "[Action Tokens server] Recovered: " + ", ".join(recovered)
     )
     return {"subject": subject[:120], "body": "\n\n".join(parts)}, new_state
 
@@ -228,7 +228,7 @@ def save_state(state):
 def main(argv):
     stamp = time.strftime("%Y-%m-%dT%H:%M:%S%z")
     if "--test-mail" in argv:
-        send({"subject": "[Bandcoin server] Test alert", "body": "The server monitor can send mail. Nothing is wrong."})
+        send({"subject": "[Action Tokens server] Test alert", "body": "The server monitor can send mail. Nothing is wrong."})
         print(f"{stamp} test mail sent to {ALERT_TO}")
         return 0
     observed = observe()

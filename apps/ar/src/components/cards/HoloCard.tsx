@@ -27,7 +27,7 @@ const compact = (n: number) =>
 /**
  * ── CardBack ─────────────────────────────────────────────────────────
  *
- * The trading-card back, in Bandcoin colours: the logo in a medallion with
+ * The trading-card back, in Action Tokens colours: the logo in a medallion with
  * orbiting rings, corner pips and foil. Shown while a card loads and on the
  * flip side.
  */
@@ -128,7 +128,7 @@ export function CardBack({
  * Supports:
  * - 3D parallax tilt (pointer & touch driven)
  * - Authentic Pokémon TCG frame, art box, moves/ability text box, and footer
- * - Loading state shows the card back with the Bandcoin mark
+ * - Loading state shows the card back with the Action Tokens mark
  * - Interactive 3D card flip between Front and Back
  */
 export function HoloCard({
@@ -328,7 +328,7 @@ export function HoloCard({
           }
         >
           {/* ════ 1. BACK FACE ════
-              The creator card where one was asked for, the Bandcoin seal
+              The creator card where one was asked for, the Action Tokens seal
               otherwise. The seal doubles as the loading state (see
               `.tcg-card.is-loading` in arcade.css, which parks the rotator
               at 180deg), which is why it stays the default: a half-drawn
@@ -336,7 +336,7 @@ export function HoloCard({
 
               Skipped entirely in `oneFace` mode — a browse rail wants a
               stack of card fronts, and rendering a back at all is what put
-              the Bandcoin seal on screen for the first beat of every card
+              the Action Tokens seal on screen for the first beat of every card
               while its art loaded. */}
           {!oneFace && (
             <div className="tcg-card__face tcg-card__back">
@@ -509,7 +509,7 @@ function TcgFooter({
  *                 category or region on the right.
  *   Creator name  @handle, on its own line — nothing competing with it.
  *   Description   The creator's bio, cropped rather than pushed off-card.
- *   Footer        Live drop count · follower count · the Bandcoin credit
+ *   Footer        Live drop count · follower count · the Action Tokens credit
  *                 line — real numbers, not a repeat of the art chips.
  */
 function PokemonTcgCreatorFront({
@@ -660,7 +660,7 @@ function PokemonTcgCreatorFront({
  *                 off-card.
  *   Footer        Claim status (collected / available / locked / expired) ·
  *                 serial number · a redemption code or lock reason when
- *                 there is one, the Bandcoin credit line otherwise.
+ *                 there is one, the Action Tokens credit line otherwise.
  */
 function PokemonTcgFront({
   pin,

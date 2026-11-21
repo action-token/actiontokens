@@ -3,7 +3,7 @@ import { BLOCK_STYLES, type BlockWidth, type StyledBlockType } from "./blocks";
 /**
  * What the live preview asks the page editor to do when the artist uses the toolbar on a
  * block, or the + between blocks. The preview runs on the fan app and the editor on the
- * artist portal, so these travel as `{ type: "bandcoin-page:action", action }` messages,
+ * artist portal, so these travel as `{ type: "actiontokens-page:action", action }` messages,
  * and the editor reads them with `parsePageAction` (anything else is ignored).
  */
 export type PageAction =
@@ -15,7 +15,7 @@ export type PageAction =
   /** Open the block picker to add a block right after this one */
   | { kind: "insert"; after: string };
 
-export const PAGE_ACTION_MESSAGE = "bandcoin-page:action";
+export const PAGE_ACTION_MESSAGE = "actiontokens-page:action";
 
 const uidOk = (value: unknown): value is string =>
   typeof value === "string" && value.length > 0 && value.length <= 64;

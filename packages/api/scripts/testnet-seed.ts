@@ -43,7 +43,8 @@ if (dbParts(process.env.DATABASE_URL!).database !== "actiontokens_dev")
   throw new Error("Refusing: this seeds the actiontokens_dev database only.");
 const config = chainConfig();
 if (config.name !== "testnet") throw new Error("Refusing: testnet only.");
-if (!process.env.MOTHER_SECRET) throw new Error("MOTHER_SECRET (the testnet ACTION treasury) is not set.");
+if (!process.env.MOTHER_SECRET)
+  throw new Error("MOTHER_SECRET (the testnet ACTION treasury) is not set.");
 const mother = Keypair.fromSecret(process.env.MOTHER_SECRET);
 
 const existing = await db.organization.findMany({
@@ -51,9 +52,11 @@ const existing = await db.organization.findMany({
   select: { slug: true },
 });
 if (existing.length > 0)
-  throw new Error(`Already seeded (${existing.map((e) => e.slug).join(", ")}). Nothing was changed.`);
+  throw new Error(
+    `Already seeded (${existing.map((e) => e.slug).join(", ")}). Nothing was changed.`,
+  );
 
-const ACTION = new Asset(config.assets.bandcoin.code, config.assets.bandcoin.issuer);
+const ACTION = new Asset(config.assets.actionToken.code, config.assets.actionToken.issuer);
 const USDC = new Asset(config.assets.usdc.code, config.assets.usdc.issuer);
 const DAY = 86_400_000;
 const daysFromNow = (d: number) => new Date(Date.now() + d * DAY);
@@ -77,12 +80,21 @@ async function accountOf(publicKey: string) {
 }
 
 /** Builds, signs and submits one transaction from `source` with `ops` (≤ 100). */
-async function send(source: Keypair, ops: ReturnType<typeof Operation.payment>[], extraSigners: Keypair[] = []) {
+async function send(
+  source: Keypair,
+  ops: ReturnType<typeof Operation.payment>[],
+  extraSigners: Keypair[] = [],
+) {
   if (ops.length === 0) return null;
   const builder = startTransaction(await accountOf(source.publicKey()), config.network);
   for (const op of ops) builder.addOperation(op);
   const { xdr } = finish(builder);
-  const { hash } = await submit(addSignatures(xdr, [source, ...extraSigners].map((k) => k.secret())));
+  const { hash } = await submit(
+    addSignatures(
+      xdr,
+      [source, ...extraSigners].map((k) => k.secret()),
+    ),
+  );
   return hash;
 }
 
@@ -113,7 +125,10 @@ for (const fan of FANS) {
   fans.push({ ...fan, keys, user });
   wallets.push({ name: fan.displayName, role: "Fan", keys, note: `@${fan.username}` });
 }
-await send(mother, fans.map((f) => pay(f.keys.publicKey(), ACTION, 5000)));
+await send(
+  mother,
+  fans.map((f) => pay(f.keys.publicKey(), ACTION, 5000)),
+);
 console.log(`  ${fans.length} fans, 5,000 ACTION each`);
 
 // ── Organizations ────────────────────────────────────────────────────────────
@@ -194,7 +209,11 @@ for (const seed of ORGS) {
       createdById: user.id,
       classicToken: { create: { code: seed.token, issuer: issuer.publicKey() } },
       listings: {
-        create: { sellerId: user.id, priceBandcoin: seed.tokenPrice, priceUsd: usd(seed.tokenPrice) },
+        create: {
+          sellerId: user.id,
+          priceActionToken: seed.tokenPrice,
+          priceUsd: usd(seed.tokenPrice),
+        },
       },
     },
   });
@@ -239,7 +258,7 @@ for (const seed of ORGS) {
         createdById: user.id,
         classicToken: { create: { code: spec.code, issuer: issuer.publicKey() } },
         listings: {
-          create: { sellerId: user.id, priceBandcoin: spec.price, priceUsd: usd(spec.price) },
+          create: { sellerId: user.id, priceActionToken: spec.price, priceUsd: usd(spec.price) },
         },
       },
     });
@@ -316,7 +335,12 @@ for (const seed of ORGS) {
     tokenItemId: tokenItem.id,
     items,
   });
-  wallets.push({ name: seed.name, role: `Organization (${seed.kind})`, keys: wallet, note: `org: ${seed.slug}` });
+  wallets.push({
+    name: seed.name,
+    role: `Organization (${seed.kind})`,
+    keys: wallet,
+    note: `org: ${seed.slug}`,
+  });
 }
 
 // ── Fans hold real tokens ────────────────────────────────────────────────────
@@ -350,8 +374,12 @@ for (const org of built) {
 
 // Follows and RSVPs: fans follow the orgs they hold, and RSVP to the first one's event.
 for (const { fan, orgs } of holdings) {
-  for (const org of orgs) await db.follow.create({ data: { userId: fan.user.id, organizationId: org.orgId } });
-  const event = await db.event.findFirst({ where: { organizationId: orgs[0]!.orgId }, select: { id: true } });
+  for (const org of orgs)
+    await db.follow.create({ data: { userId: fan.user.id, organizationId: org.orgId } });
+  const event = await db.event.findFirst({
+    where: { organizationId: orgs[0]!.orgId },
+    select: { id: true },
+  });
   if (event) await db.eventRsvp.create({ data: { eventId: event.id, userId: fan.user.id } });
 }
 
@@ -369,7 +397,12 @@ if (!chain.config.escrowContract) {
         chain,
         app: "org",
         session: {
-          user: { id: org.userId, role: "ARTIST", walletAddress: org.wallet.publicKey(), walletType: "frieghter" },
+          user: {
+            id: org.userId,
+            role: "ARTIST",
+            walletAddress: org.wallet.publicKey(),
+            walletType: "frieghter",
+          },
         },
       }),
     );
@@ -387,7 +420,7 @@ if (!chain.config.escrowContract) {
         instructions: b.instructions,
         requiresActionCam: false,
         prizeAmount: String(b.prize),
-        prizeCurrency: "BANDCOIN",
+        prizeCurrency: "ACTION",
         maxWinners: b.winners,
         fundedFromStorage: false,
       });
@@ -445,7 +478,10 @@ writeFileSync(
     "",
     "| Who | Role | Public key | Secret (password) |",
     "|---|---|---|---|",
-    ...wallets.map((w) => `| ${w.name} (${w.note}) | ${w.role} | \`${w.keys.publicKey()}\` | \`${w.keys.secret()}\` |`),
+    ...wallets.map(
+      (w) =>
+        `| ${w.name} (${w.note}) | ${w.role} | \`${w.keys.publicKey()}\` | \`${w.keys.secret()}\` |`,
+    ),
     "",
     "## Bounties funded",
     ...bounties.map((b) => `- ${b}`),

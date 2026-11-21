@@ -19,7 +19,7 @@ import { deliverOrder, failOrder, holdsLine, ownOrder, userSignature } from "../
 
 /**
  * Swap with the platform treasury (the mother account), any amount, either way:
- * BANDCOIN → XLM (an `XLM_SWAP` order) or XLM → BANDCOIN (`BANDCOIN_SWAP`), at
+ * ACTION → XLM (an `XLM_SWAP` order) or XLM → ACTION (`ACTION_SWAP`), at
  * today's price less the 2% cushion. One transaction moves both sides; the fan
  * pays the network fee and the treasury co-signs. Same steps as Recharge:
  * quote → start (order + transaction) → the fan signs → submit.
@@ -27,26 +27,26 @@ import { deliverOrder, failOrder, holdsLine, ownOrder, userSignature } from "../
 export type SwapInput = { direction: SwapDirection; amount: string };
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 
-const KINDS = { TO_XLM: "XLM_SWAP", TO_BANDCOIN: "BANDCOIN_SWAP" } as const;
+const KINDS = { TO_XLM: "XLM_SWAP", TO_ACTION: "ACTION_SWAP" } as const;
 const unavailable = (message: string): RechargeProblem => ({ code: "UNAVAILABLE", message });
 
 async function price(ctx: ServiceCtx, user: SessionUser | null, input: SwapInput) {
   const { chain } = ctx;
   const mother = chain.config.mother;
-  const [bandcoinUsd, rates, account, treasury] = await Promise.all([
-    chain.bandcoinUsd().catch(() => null),
+  const [actionTokenUsd, rates, account, treasury] = await Promise.all([
+    chain.actionTokenUsd().catch(() => null),
     chain.rates().catch(() => null),
     user ? chain.loadAccount(user.walletAddress) : null,
     mother ? chain.loadAccount(mother) : null,
   ]);
-  const bandcoin = assetFor("BANDCOIN", chain.config.assets);
+  const actionToken = assetFor("ACTION", chain.config.assets);
   const openTrustline =
-    input.direction === "TO_BANDCOIN" && !(account && holdsLine(account, bandcoin));
+    input.direction === "TO_ACTION" && !(account && holdsLine(account, actionToken));
   const funds = user ? fundsOf(account, chain.config.assets) : null;
   const quote = priceSwap({
     direction: input.direction,
     amount: input.amount,
-    bandcoinUsd: bandcoinUsd ? toStroops(bandcoinUsd) : 0n,
+    actionTokenUsd: actionTokenUsd ? toStroops(actionTokenUsd) : 0n,
     xlmUsd: rates ? toStroops(rates.xlmUsd) : 0n,
     funds,
     treasury: treasury ? fundsOf(treasury, chain.config.assets) : null,
@@ -68,7 +68,7 @@ async function price(ctx: ServiceCtx, user: SessionUser | null, input: SwapInput
     },
     account,
     openTrustline,
-    bandcoinUsd,
+    actionTokenUsd,
   };
 }
 
@@ -78,7 +78,7 @@ export async function quoteSwap(ctx: ServiceCtx, user: SessionUser | null, input
 
 /** Creates the order and the unsigned transaction. Nothing is signed or sent yet. */
 export async function startSwap(ctx: ServiceCtx, user: SessionUser, input: SwapInput) {
-  const { quote, account, openTrustline, bandcoinUsd } = await price(ctx, user, input);
+  const { quote, account, openTrustline, actionTokenUsd } = await price(ctx, user, input);
   const mother = ctx.chain.config.mother;
   if (!quote.ok || !account || !mother)
     throw new AppError(ErrorCodes.PRECONDITION_NOT_MET, {
@@ -97,7 +97,7 @@ export async function startSwap(ctx: ServiceCtx, user: SessionUser, input: SwapI
       method: "WALLET",
       quoteExpiresAt: new Date(quote.expiresAt),
       breakdown: quote,
-      rateUsd: bandcoinUsd,
+      rateUsd: actionTokenUsd,
     },
   });
   ctx.activity.set({
@@ -107,9 +107,9 @@ export async function startSwap(ctx: ServiceCtx, user: SessionUser, input: SwapI
     currency: quote.pay.currency,
   });
 
-  const bandcoin = assetFor("BANDCOIN", ctx.chain.config.assets);
-  const assetOf = (currency: "BANDCOIN" | "XLM") =>
-    currency === "XLM" ? Asset.native() : bandcoin;
+  const actionToken = assetFor("ACTION", ctx.chain.config.assets);
+  const assetOf = (currency: "ACTION" | "XLM") =>
+    currency === "XLM" ? Asset.native() : actionToken;
   const built = buildSwap({
     buyer: new Account(account.accountId(), account.sequenceNumber()),
     network: ctx.chain.config.network,
@@ -133,7 +133,7 @@ export async function startSwap(ctx: ServiceCtx, user: SessionUser, input: SwapI
 /** The viewer's swap order, or "not found". */
 export async function ownSwapOrder(ctx: ServiceCtx, user: SessionUser, orderId: string) {
   const order = await ownOrder(ctx, user, orderId);
-  if (order.kind !== "XLM_SWAP" && order.kind !== "BANDCOIN_SWAP")
+  if (order.kind !== "XLM_SWAP" && order.kind !== "ACTION_SWAP")
     throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Order not found" });
   return order;
 }

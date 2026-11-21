@@ -15,9 +15,9 @@ import type { Context } from "../../context";
 /**
  * An artist's storage account: where their fan tokens and copies wait. Sales,
  * pin claims and gifts take from it before minting more, and it can fund
- * bounties. As on the old Bandcoin, the platform opens it when an admin
+ * bounties. As on the old Action Tokens, the platform opens it when an admin
  * approves the artist, and pays for it: the mother account creates it, it
- * trusts BANDCOIN, USDC and the fan token, and the artist's issuer pays the
+ * trusts ACTION, USDC and the fan token, and the artist's issuer pays the
  * starting supply of fan tokens (Admin › Settings) into it, all in one
  * transaction. Artists approved before this open it from Settings, on the
  * platform too. The key is made here and kept encrypted.
@@ -37,14 +37,14 @@ export type StorageArtist = {
 
 /** What storage trusts from the start: the payment assets and the artist's fan token. */
 async function assetsToTrust(ctx: ServiceCtx, artist: StorageArtist) {
-  const { bandcoin, usdc } = ctx.chain.config.assets;
+  const { actionToken, usdc } = ctx.chain.config.assets;
   const fanToken = artist.fanTokenItemId
     ? await ctx.db.classicToken.findUnique({
         where: { itemId: artist.fanTokenItemId },
         select: { code: true, issuer: true },
       })
     : null;
-  const trust: AssetRef[] = fanToken ? [bandcoin, usdc, fanToken] : [bandcoin, usdc];
+  const trust: AssetRef[] = fanToken ? [actionToken, usdc, fanToken] : [actionToken, usdc];
   return { trust, fanToken };
 }
 
@@ -150,6 +150,9 @@ export async function openStorage(ctx: ServiceCtx, artist: StorageArtist) {
 async function link(ctx: ServiceCtx, artist: StorageArtist, storageId: string) {
   await ctx.db.$transaction(async (tx) => {
     await tx.chainAccount.update({ where: { id: storageId }, data: { activatedAt: new Date() } });
-    await tx.organization.update({ where: { id: artist.id }, data: { storageAccountId: storageId } });
+    await tx.organization.update({
+      where: { id: artist.id },
+      data: { storageAccountId: storageId },
+    });
   });
 }

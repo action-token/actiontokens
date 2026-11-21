@@ -28,7 +28,7 @@ const wallet = Keypair.random();
 const issuer = Keypair.random().publicKey();
 const storage = Keypair.random().publicKey();
 const treasury = Keypair.random().publicKey();
-const bandcoinIssuer = Keypair.random().publicKey();
+const actionTokenIssuer = Keypair.random().publicKey();
 const network = { passphrase: Networks.TESTNET, baseFee: "100" };
 const artist = { id: "a1" };
 const me: SessionUser = {
@@ -64,9 +64,9 @@ function setup(
     complete?: boolean;
     supply?: number | null;
     percent?: string;
-    bandcoin?: string;
+    actionToken?: string;
     xlm?: string;
-    /** Holders (by address) that have a BANDCOIN trustline */
+    /** Holders (by address) that have a ACTION trustline */
     trusting?: string[];
     submit?: (xdr: string) => Promise<{ hash: string }>;
     landed?: string[];
@@ -168,9 +168,9 @@ function setup(
       { asset_type: "native", balance: opts.xlm ?? "10", selling_liabilities: "0" },
       {
         asset_type: "credit_alphanum12",
-        asset_code: "BANDCOIN",
-        asset_issuer: bandcoinIssuer,
-        balance: opts.bandcoin ?? "500",
+        asset_code: "ACTION",
+        asset_issuer: actionTokenIssuer,
+        balance: opts.actionToken ?? "500",
         selling_liabilities: "0",
       },
     ],
@@ -180,7 +180,7 @@ function setup(
       name: "testnet",
       network,
       assets: {
-        bandcoin: { code: "BANDCOIN", issuer: bandcoinIssuer },
+        actionToken: { code: "ACTION", issuer: actionTokenIssuer },
         usdc: { code: "USDC", issuer: Keypair.random().publicKey() },
       },
       treasury,
@@ -194,8 +194,8 @@ function setup(
         balances: [
           {
             asset_type: "credit_alphanum12",
-            asset_code: "BANDCOIN",
-            asset_issuer: bandcoinIssuer,
+            asset_code: "ACTION",
+            asset_issuer: actionTokenIssuer,
             balance: "1",
           },
         ],
@@ -221,7 +221,7 @@ function setup(
   };
 }
 
-const ask = { itemId: "i1", revenue: "1000", currency: "BANDCOIN" as const };
+const ask = { itemId: "i1", revenue: "1000", currency: "ACTION" as const };
 
 describe("quoteRoyalty", () => {
   it("pays by share of the whole supply and keeps the unsold share", async () => {
@@ -238,7 +238,7 @@ describe("quoteRoyalty", () => {
     expect(quote.holders.preview.map((h) => h.amount)).toEqual(["60.0000000", "20.0000000"]);
     expect(quote.lines.map((line) => line.key)).toEqual(["price", "networkFee"]);
     expect(quote.totals).toEqual([
-      { currency: "BANDCOIN", amount: "80.0000000" },
+      { currency: "ACTION", amount: "80.0000000" },
       { currency: "XLM", amount: "0.0000200" },
     ]);
   });
@@ -298,12 +298,12 @@ describe("quoteRoyalty", () => {
       expect.stringContaining("too many holders"),
     ]);
     expect(await problems({ trusting: [] })).toContain(
-      "None of the holders can receive BANDCOIN yet. Pay in XLM instead.",
+      "None of the holders can receive ACTION yet. Pay in XLM instead.",
     );
   });
 
   it("says how short the balance is", async () => {
-    const quote = await quoteRoyalty(setup({ bandcoin: "10" }).ctx, me, artist, ask);
+    const quote = await quoteRoyalty(setup({ actionToken: "10" }).ctx, me, artist, ask);
     expect(quote.ok).toBe(false);
     expect(quote.problems[0]).toMatchObject({ code: "INSUFFICIENT_FUNDS" });
   });
@@ -358,7 +358,7 @@ describe("startRoyalty", () => {
       }),
     ).rejects.toThrow(/Upload the file again/);
     await expect(
-      startRoyalty(setup({ bandcoin: "1" }).ctx, me, artist, { ...ask, report }),
+      startRoyalty(setup({ actionToken: "1" }).ctx, me, artist, { ...ask, report }),
     ).rejects.toThrow(/short/);
   });
 });

@@ -88,7 +88,7 @@ describe("storage account", () => {
       network,
       storage,
       trust: [
-        { code: "Bandcoin", issuer },
+        { code: "ACTION", issuer },
         { code: "USDC", issuer },
       ],
     });

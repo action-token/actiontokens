@@ -30,7 +30,7 @@ export async function handleMcpPost(
       {
         error: "unauthorized",
         error_description:
-          "Send a Bandcoin MCP token as `Authorization: Bearer bc_mcp_…` (Settings › AI apps).",
+          "Send an Action Tokens MCP token as `Authorization: Bearer bc_mcp_…` (Settings › AI apps).",
       },
       { "www-authenticate": 'Bearer realm="mcp"' },
     );

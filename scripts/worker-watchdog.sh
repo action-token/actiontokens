@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Runs ON THE SERVER every minute (cron): Docker's restart policy covers a crash, this covers
 # a worker that is running but stuck (its health check says unhealthy) or was left stopped.
-#   * * * * * /home/ec2-user/bandcoin/worker-watchdog.sh >> /home/ec2-user/bandcoin/watchdog.log 2>&1
+#   * * * * * /home/ec2-user/actionToken/worker-watchdog.sh >> /home/ec2-user/actionToken/watchdog.log 2>&1
 set -euo pipefail
-NAME="${NAME:-bandcoin-worker}"
+NAME="${NAME:-actiontokens-worker}"
 
 docker inspect "$NAME" > /dev/null 2>&1 || exit 0   # not deployed yet
 state="$(docker inspect --format '{{.State.Status}}' "$NAME")"

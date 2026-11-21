@@ -247,7 +247,7 @@ export function factsFrom(data: {
     hasCover: Boolean(artist.coverUrl),
     tracks: data.items.filter((item) => item.type === "TRACK").length,
     collectibles: data.items.filter(
-      (item) => item.type !== "TRACK" && item.type !== "FAN_TOKEN" && item.priceBandcoin != null,
+      (item) => item.type !== "TRACK" && item.type !== "FAN_TOKEN" && item.priceActionToken != null,
     ).length,
     albums: data.albums.length,
     tiers: data.tiers.filter((tier) => tier.isActive !== false).length,

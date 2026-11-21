@@ -73,7 +73,7 @@ function setup(
       name: "testnet",
       network,
       assets: {
-        bandcoin: { code: "BANDCOIN", issuer: Keypair.random().publicKey() },
+        actionToken: { code: "ACTION", issuer: Keypair.random().publicKey() },
         usdc: { code: "USDC", issuer: Keypair.random().publicKey() },
       },
       treasury: Keypair.random().publicKey(),
@@ -85,7 +85,7 @@ function setup(
       ),
     ),
     rates: vi.fn().mockResolvedValue({ xlmUsd: "0.1", usdcUsd: "1" }),
-    bandcoinUsd: vi.fn().mockResolvedValue("0.002"),
+    actionTokenUsd: vi.fn().mockResolvedValue("0.002"),
     signWithServerKeys: vi.fn((xdr: string) => Promise.resolve(xdr)),
     submit: vi.fn(opts.submit ?? ((_xdr: string) => Promise.resolve({ hash: "txhash" }))),
     card: {

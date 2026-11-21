@@ -1,7 +1,7 @@
 type Line = {
   key: string;
   label: string;
-  currency: "USD" | "BANDCOIN" | "XLM" | "USDC";
+  currency: "USD" | "ACTION" | "XLM" | "USDC";
   amount: string;
 };
 type QuoteLines = { kind: "TOP_UP" | "TOKEN_TRUST"; lines: Line[] };

@@ -29,7 +29,7 @@ const input: Parameters<typeof createNft>[3] & { lockedContents: LockedContentIn
   coverUrl: "https://cdn.example/cover.jpg",
   media: { url: "https://cdn.example/art.png", mediaType: "IMAGE" as const },
   supply: 50,
-  priceBandcoin: "25",
+  priceActionToken: "25",
   priceUsd: "0.5",
   resaleRoyaltyPercent: "5",
   visibility: "DRAFT",
@@ -86,7 +86,7 @@ describe("createNft", () => {
       supply: 50,
       contractNft: { create: { contractAddress: contract, royaltyBps: 500, status: "PENDING" } },
       listings: {
-        create: { kind: "PRIMARY", status: "PAUSED", priceBandcoin: "25", priceUsd: "0.5" },
+        create: { kind: "PRIMARY", status: "PAUSED", priceActionToken: "25", priceUsd: "0.5" },
       },
     });
     expect(created[0]!.classicToken).toBeUndefined();
@@ -125,7 +125,7 @@ describe("createNft", () => {
       createNft(setup().ctx, artist, me, { ...input, media: undefined }),
     ).rejects.toMatchObject({ message: "Add the file people will get." });
     await expect(
-      createNft(setup().ctx, artist, me, { ...input, priceBandcoin: "0" }),
+      createNft(setup().ctx, artist, me, { ...input, priceActionToken: "0" }),
     ).rejects.toMatchObject({ message: "Enter a price above zero" });
   });
 });

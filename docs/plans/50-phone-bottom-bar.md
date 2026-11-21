@@ -20,7 +20,7 @@ Last of the map and AR upgrades that follow wadzzo (queue: 42–49 built).
 - **AR app:** content runs under the bar; each scroll list ends with a spacer the bar's height
   (`--ar-tabbar-space`); the map's nearby rail sits above the bar.
 
-## Bandcoin today
+## Action Tokens today
 
 - Fan app, artist portal and Studio each have a plain bar: surface colour, top border, equal tabs
   (fan app 5, Studio 5, portal 4 and "More" which opens a bottom sheet). The portal has no phone
@@ -30,13 +30,13 @@ Last of the map and AR upgrades that follow wadzzo (queue: 42–49 built).
 
 ## Decisions (your answers, 2026-11-13)
 
-| Question        | Answer                                                                                                                  |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Bar style       | Wadzzo's bar on the fan app, artist portal and Studio                                                                   |
-| Fan app tabs    | Home, Collection \| **AR** \| Marketplace, Playlists                                                                    |
-| Artist portal   | Follow wadzzo's small-device layout: a header with Menu, and Map, Store \| **AR** \| Bounties, Pins                     |
-| Studio tabs     | Create, Library \| **AR** \| Artist (opens artist.bandcoin.io), Coins                                                   |
-| AR              | Bar unchanged. Content runs under the bar; lists end with a spacer; the nearby rail sits above the bar (`--ar-tabbar-space`) |
+| Question      | Answer                                                                                                                       |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Bar style     | Wadzzo's bar on the fan app, artist portal and Studio                                                                        |
+| Fan app tabs  | Home, Collection \| **AR** \| Marketplace, Playlists                                                                         |
+| Artist portal | Follow wadzzo's small-device layout: a header with Menu, and Map, Store \| **AR** \| Bounties, Pins                          |
+| Studio tabs   | Create, Library \| **AR** \| Artist (opens artist.action-tokens.io), Coins                                                   |
+| AR            | Bar unchanged. Content runs under the bar; lists end with a spacer; the nearby rail sits above the bar (`--ar-tabbar-space`) |
 
 "Store" in the portal is the Items page (what an artist sells) and "Pins" is Pin management.
 
@@ -112,10 +112,10 @@ Last of the map and AR upgrades that follow wadzzo (queue: 42–49 built).
   Map, Store | AR | Bounties, Pins; Menu opens the old "More" content as a right drawer (it keeps the
   portal's own surface styling, not the sidebar colours). `AccountButton` gained a `compact` mode.
   `phoneTabs` swaps tabs not open yet for the next allowed entry; the `tab` flag is gone from the nav.
-- Studio: Create, Library | AR | Artist (opens artist.bandcoin.io), Coins; header unchanged.
+- Studio: Create, Library | AR | Artist (opens artist.action-tokens.io), Coins; header unchanged.
 - AR: bar unchanged; `AppShell` content runs under it (`ar-tabbed`, `--ar-tabbar-space`, list spacer)
   and the map's nearby rail sits above the bar by that variable.
 - Tests: `phone-tab-bar.test.tsx`, fan app and portal `nav.test.ts`, Studio `nav.test.ts`,
   `AppShell.test.tsx`.
 - Not tried in a browser or on a phone. The AR key opens `NEXT_PUBLIC_AR_URL` (default
-  https://www.bandcoin.io) in the same tab. Signed-out portal: the header and bar still show.
+  https://www.action-tokens.io) in the same tab. Signed-out portal: the header and bar still show.

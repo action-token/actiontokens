@@ -11,7 +11,7 @@ import type { Prisma } from "@actiontokens/db";
 import type { Context } from "../../context";
 
 /**
- * Records unlocks on the NFT contract, as on the old Bandcoin: when an owner
+ * Records unlocks on the NFT contract, as on the old Action Tokens: when an owner
  * has visited every place of a locked piece, the platform's treasury (the
  * contract's unlock authority) calls `unlock_item_for(token, piece)`, signing
  * and paying; the fan signs nothing. The app shows the content as soon as the

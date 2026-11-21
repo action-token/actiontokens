@@ -25,7 +25,7 @@ const SEND_AT_LEAST_XLM = "2";
 
 /**
  * A new wallet isn't on the Stellar network until it holds XLM, so nothing can
- * be paid or recharged yet. Two ways in: pay a small card price and Bandcoin
+ * be paid or recharged yet. Two ways in: pay a small card price and Action Tokens
  * creates the wallet with that XLM, or send XLM from somewhere else. The page
  * checks every few seconds and moves on once the wallet is live.
  */

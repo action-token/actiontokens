@@ -28,7 +28,7 @@ type Media = { url: string; type: string };
 const TRUNCATE = 250;
 
 /**
- * "My reports", as on the old Bandcoin: listening progress on music bounties
+ * "My reports", as on the old Action Tokens: listening progress on music bounties
  * (connect Last.fm, sync, per-song plays), then everything you've sent.
  */
 export function MinePanel({

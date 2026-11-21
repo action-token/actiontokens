@@ -9,9 +9,9 @@ model AppSetting {
   fanTokenStartSupply      Decimal  @default(1000000) @db.Decimal(20, 7)
   platformFeeBps           Int      @default(250)
   platformFeeRecipient     String?
-  vanityMonthlyBandcoin    Decimal? @db.Decimal(20, 7)
+  vanityMonthlyActionToken    Decimal? @db.Decimal(20, 7)
   vanityMonthlyUsd         Decimal? @db.Decimal(20, 7)
-  vanityNameChangeBandcoin Decimal? @db.Decimal(20, 7)
+  vanityNameChangeActionToken Decimal? @db.Decimal(20, 7)
   vanityNameChangeUsd      Decimal? @db.Decimal(20, 7)
   /// Admin › Alerts thresholds; missing keys use the defaults in services/admin/alerts.ts
   alertRules               Json?

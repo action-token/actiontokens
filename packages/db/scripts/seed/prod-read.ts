@@ -42,12 +42,12 @@ export async function readProduction(client: pg.Client, slug: string) {
     items: await q(
       `select i.id, i.type, i."chainType", i.title, i.slug, i.description, i."coverUrl", i."playCount", i.supply, i.visibility,
               ct.code, m."durationSec", t."albumId", t."trackNumber",
-              l."priceBandcoin", l."priceUsd"
+              l."priceActionToken", l."priceUsd"
          from items i
          left join classic_tokens ct on ct."itemId" = i.id
          left join item_media m on m."itemId" = i.id and m."mediaType" = 'AUDIO'
          left join tracks t on t."itemId" = i.id
-         left join lateral (select "priceBandcoin", "priceUsd" from listings where "itemId" = i.id and status = 'ACTIVE' order by "createdAt" limit 1) l on true
+         left join lateral (select "priceActionToken", "priceUsd" from listings where "itemId" = i.id and status = 'ACTIVE' order by "createdAt" limit 1) l on true
         where i."organizationId" = $1 and i."deletedAt" is null and i."hiddenAt" is null and (i.visibility <> 'DRAFT' or i.type = 'FAN_TOKEN')`,
       [id],
     ),

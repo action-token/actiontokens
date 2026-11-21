@@ -115,7 +115,7 @@ const blank: State = {
   totalPlays: 10,
   tracks: [],
   prizeAmount: "",
-  currency: "BANDCOIN",
+  currency: "ACTION",
   source: "wallet",
   maxWinners: "1",
   rewardNote: "",
@@ -432,7 +432,7 @@ export function BountyForm({
             form="bounty"
             context={aiContext}
             examples={[
-              "Best cover of my new single, winner gets 500 BANDCOIN",
+              "Best cover of my new single, winner gets 500 ACTION",
               "Fan art contest for the album, 3 winners",
               "Listen to my EP three times this week",
             ]}

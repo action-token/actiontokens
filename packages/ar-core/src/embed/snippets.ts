@@ -71,7 +71,7 @@ export function previewUrl(draft: EmbedDraft, organizationId: string | null) {
 export const embedPageUrl = (id: string) => `${arOrigin()}/embed/${id}`;
 
 export const scriptSnippet = (id: string, height = 520) =>
-  `<div data-bandcoin-embed="${id}" style="height:${height}px"></div>\n<script async src="${arOrigin()}/embed.js"></script>`;
+  `<div data-actiontokens-embed="${id}" style="height:${height}px"></div>\n<script async src="${arOrigin()}/embed.js"></script>`;
 
 export const iframeSnippet = (id: string, height = 520) =>
   `<iframe src="${embedPageUrl(id)}" title="${site.name} map" width="100%" height="${height}" style="border:0;display:block" loading="lazy" allow="geolocation"></iframe>`;
@@ -80,7 +80,7 @@ export const iframeSnippet = (id: string, height = 520) =>
 export const heroSnippet = (
   id: string,
 ) => `<section style="position:relative;height:560px;overflow:hidden">
-  <div data-bandcoin-embed="${id}" style="position:absolute;inset:0"></div>
+  <div data-actiontokens-embed="${id}" style="position:absolute;inset:0"></div>
   <div style="position:relative;z-index:1;pointer-events:none;padding:48px">
     <h1 style="pointer-events:auto">Find us on tour</h1>
   </div>

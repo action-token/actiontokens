@@ -35,7 +35,7 @@ export type Preview = RouterOutputs["item"]["bySlug"]["lockedContent"][number];
 type Kind = Preview["type"];
 type Place = { lat: number; lng: number; label: string | null };
 
-/** The old Bandcoin's look for locked content: an icon and colour per kind. */
+/** The old Action Tokens' look for locked content: an icon and colour per kind. */
 export const KIND: Record<Kind, { icon: typeof Music; name: string; tone: string }> = {
   SONG: {
     icon: Music,
@@ -200,7 +200,7 @@ export function RewardTiles({
 
 const STEPS = (radius: number) => [
   ["Go there", `Within ${radius} meters of the place, in person, with your phone.`],
-  ["Open the AR app", "Open the Bandcoin AR app once you're there."],
+  ["Open the AR app", "Open the Action Tokens AR app once you're there."],
   ["Collect the pin", "The reward unlocks on its own from there."],
 ];
 

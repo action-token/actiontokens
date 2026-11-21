@@ -10,8 +10,8 @@ database and contract agreed on the owner, the other copy was repriced and then 
 
 **Found by the run, settled 2026-11-05 (not caused by resale): the primary smart-contract NFT purchase refused every buy.**
 Its network-fee check compared the simulated fee (about 0.26 XLM for 3 copies on testnet; one earlier run showed a 13 XLM
-payment, cause not found) with a budget of 0.05 + 0.01 per copy. Decision: follow the old Bandcoin. The buyer is charged 0.10 XLM
-plus 0.40 XLM per copy (the copy's storage reserve) in BANDCOIN, and the buy is **not refused over the real fee**: the platform
+payment, cause not found) with a budget of 0.05 + 0.01 per copy. Decision: follow the old Action Tokens. The buyer is charged 0.10 XLM
+plus 0.40 XLM per copy (the copy's storage reserve) in ACTION, and the buy is **not refused over the real fee**: the platform
 pays what the network asks, as before. The old 15 XLM ceiling was not carried over (a buy tops out at 8.1 XLM). Gift and resale
 buys keep their own fee checks. The testnet run after the change was not re-read in full.
 
@@ -22,11 +22,11 @@ Not done yet: signing a list or a buy from the browser (needs a wallet), and car
 ## Why
 
 The old manage pages (`/nft/manage/[id]`, `/smart-contract/manage/[id]`) let a holder list one or
-several copies for sale, set a BANDCOIN and a USD price, change it, cancel it, and see what happened
+several copies for sale, set a ACTION and a USD price, change it, cancel it, and see what happened
 on chain. The new apps can **buy** a resale copy (item page: pick a seller, quote with the royalty
 out of the seller's share, 2.5% platform fee on top) but a holder can't **list** one.
 
-Rules already decided (resale decisions, 2026-10-29): both copy kinds; any BANDCOIN and any USD price,
+Rules already decided (resale decisions, 2026-10-29): both copy kinds; any ACTION and any USD price,
 no floor or cap, several copies at once; XLM and USDC follow the USD price at the live rate; fees
 unchanged (buyer pays 2.5% on top, the artist's royalty comes out of the seller's share); the seller
 sees their net before listing; only copies you actually hold can be listed; selling and buying look
@@ -39,7 +39,7 @@ listing that is not `PRIMARY`, and nothing calls `buildNftBuyListed`. Only class
 resale listing. So NFT edition resale is two pieces, not one: **list / cancel / reprice** (seller) and **buy a listed
 copy** (`buy` / `buy_batch` with the treasury co-signing, royalty and fee as the contract pays them, the copy and its
 unlocks moving to the buyer in the database, card path as for a primary NFT sale). The builders for all of these exist
-in `@bandcoin/chain`; the services, router, screens and a testnet run do not.
+in `@actiontokens/chain`; the services, router, screens and a testnet run do not.
 
 ## What already exists
 
@@ -60,7 +60,7 @@ in `@bandcoin/chain`; the services, router, screens and a testnet run do not.
 4. **My listings** and **sold history** (who bought, for how much, the tx), on the item page for
    holders and in the wallet.
 5. **Keep the database true**: the worker re-checks a listing's edition is still owned by the seller
-   (a transfer or sale outside Bandcoin ends the listing).
+   (a transfer or sale outside Action Tokens ends the listing).
 6. Tests per step, a real testnet run (`testnet:resale`), a browser check.
 
 ## Phase B: classic token copies (needs a place to keep them for sale)
@@ -68,7 +68,7 @@ in `@bandcoin/chain`; the services, router, screens and a testnet run do not.
 A classic copy is a plain token in the seller's wallet; a sale has to pay the seller and move one copy
 from them, and the buyer's transaction can't take a copy out of the seller's wallet without the
 seller signing. The old app solved this with a **fan storage account**: the seller moves copies
-into a storage account Bandcoin holds the key for (about 1 XLM to open, once), and sales are paid out
+into a storage account Action Tokens holds the key for (about 1 XLM to open, once), and sales are paid out
 of it, exactly like an artist's storage. So:
 
 1. Open a fan storage account (the seller pays the XLM once, same flow as an artist's storage).
@@ -120,8 +120,8 @@ Read from `contracts/nft_oz/src/lib.rs` in the old repo. **The contract is not c
 
 1. **Fees differ from classic copies.** Classic resale: the buyer pays 2.5% on top. NFT resale with this contract:
    the seller gets the price less the platform fee and the royalty, and the buyer pays only the price (and the network fee).
-2. **One on-chain price per payment token.** The seller's BANDCOIN price goes on chain. The USD (card) price stays in
-   the database and is only the card charge; the treasury sends the BANDCOIN first, as in a primary card sale.
+2. **One on-chain price per payment token.** The seller's ACTION price goes on chain. The USD (card) price stays in
+   the database and is only the card charge; the treasury sends the ACTION first, as in a primary card sale.
 3. **Stale listings are normal**, since a listed copy isn't locked. The worker must end a listing when the seller no
    longer owns the copy, and the buy must handle `ListingStale` with a plain message.
 4. **Moving a copy** (database): ownership, the copy's locked-content unlocks and any unlock pins move to the buyer,
@@ -135,7 +135,7 @@ Words used here: **classic copies** are plain tokens; **smart-contract NFTs** ar
 1. **Contract**: unchanged.
 2. **Fees for smart-contract NFTs**: follow the contract. The seller gets the price less the platform fee and the royalty
    (shown before listing); the buyer pays the listed price and the network fee. (Classic copies keep "buyer pays 2.5% on top".)
-3. **Card**: yes, BANDCOIN and card, as in the old app (`buyBatchWithCard`: the card is charged the seller's USD price,
-   which is mandatory on a listing; card checkout is for email and social sign-in accounts, which Bandcoin holds the key for).
+3. **Card**: yes, ACTION and card, as in the old app (`buyBatchWithCard`: the card is charged the seller's USD price,
+   which is mandatory on a listing; card checkout is for email and social sign-in accounts, which Action Tokens holds the key for).
 4. **Order**: both sides (list / reprice / take off sale, and buy a listed copy), then one testnet run.
 5. **Repricing** is one `list` call again (the contract overwrites an existing listing), not cancel then list.

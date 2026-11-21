@@ -32,11 +32,11 @@ template never goes stale, optionally with the location or drawn area). "Start f
 the forms, "Save as template", and Pins › Templates to use, edit, copy or delete (200 per artist).
 The data is versioned and read leniently.
 
-## Bandcoin today
+## Action Tokens today
 
 No look. Portal markers are round (tap) or square (auto-collect); AR draws a hex medallion with a
 rarity-coloured ring, and nearby cards in a plain frame. Hotspots keep a pin template as JSON.
-Bandcoin already has AI image generation, a daily image limit (10) and a public-URL fetch guard.
+Action Tokens already has AI image generation, a daily image limit (10) and a public-URL fetch guard.
 
 ## Decisions (your answers, 2026-11-13)
 
@@ -169,7 +169,7 @@ hasLocation, createdAt, updatedAt`, indexed on artist, type and date.
 - API: `services/artist/shapes.ts` (own shapes, 100 limit, in-use rule), `shapes.*` router
   (list, usage, create, update, archive, delete, ai, enhance), `services/ai/silhouette.ts`
   (references from a file or a public link, prompts, generate and enhance), `AiModel.edit` and a
-  `quality` option, `renderOutlinePng` in `@bandcoin/storage`. AI goes through the daily image
+  `quality` option, `renderOutlinePng` in `@actiontokens/storage`. AI goes through the daily image
   limit, only on success; a reference needs the "I have the rights" tick; links go through the
   public-URL guard. Tests: `artist-shapes.test.ts` (6), `artist-shapes-ai.test.ts` (5),
   `ai-silhouette.test.ts` (12), storage `outline-png.test.ts` (2).
@@ -185,7 +185,7 @@ hasLocation, createdAt, updatedAt`, indexed on artist, type and date.
 
 - Data: `PinTemplate`, migration `20261113220000_pin_templates`.
 - Shared: `packages/ar-core/src/pin-template.ts` (the data for each kind, lenient reading, versioned,
-  durations). Fields follow bandcoin's own forms (reward, visibility and tier, spots, tags, look),
+  durations). Fields follow actiontokens's own forms (reward, visibility and tier, spots, tags, look),
   not wadzzo's.
 - API: `services/artist/templates.ts` and the `templates.*` router (list, get, create, update,
   duplicate, delete; 200 limit; ownership); a shape's usage now counts templates. Tests:

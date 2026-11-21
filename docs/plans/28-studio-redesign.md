@@ -1,4 +1,4 @@
-# 28 — Studio redesign: the Bandcoin look, an AI-studio workflow
+# 28 — Studio redesign: the Action Tokens look, an AI-studio workflow
 
 Studio worked but looked like a plain list of cards, and only Music and the
 Mixer had screens (Images, Video and Writing said "Coming soon" though the

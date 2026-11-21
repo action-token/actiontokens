@@ -40,7 +40,7 @@ import { loadSale, planDelivery, type Sale } from "./sale";
  * No conversion anywhere: the buyer pays in the currency they chose or not at all.
  * Card orders: the card pays everything in USD, including the XLM costs; the
  * treasury sends that XLM, pays the network fee (fee bump) and pays the seller
- * in BANDCOIN at the artist's BANDCOIN price, all in the same transaction.
+ * in ACTION at the artist's ACTION price, all in the same transaction.
  */
 
 type PurchaseInput = { listingId: string; quantity: number; currency: Currency };
@@ -95,7 +95,7 @@ export async function priceSale(
   }
   const card = input.currency === "USD";
   const payoutAsset = assetFor(
-    input.currency === "USD" ? "BANDCOIN" : input.currency,
+    input.currency === "USD" ? "ACTION" : input.currency,
     chain.config.assets,
   );
   if (!(sellerAccount && holdsLine(sellerAccount, payoutAsset))) {
@@ -142,12 +142,12 @@ export async function priceSale(
     fromStock: Boolean(delivery?.fromStock),
     mint: Boolean(delivery?.mint),
   });
-  const needsRate = input.currency !== "BANDCOIN";
+  const needsRate = input.currency !== "ACTION";
   const quote = buildQuote({
     currency: input.currency,
     quantity: input.quantity,
     unitPrice: {
-      bandcoin: sale.listing.priceBandcoin.toString(),
+      actionToken: sale.listing.priceActionToken.toString(),
       usd: sale.listing.priceUsd.toString(),
       ...(sale.listing.priceXlm ? { xlm: sale.listing.priceXlm.toString() } : {}),
     },
@@ -432,8 +432,8 @@ export async function deliverOrder(ctx: ServiceCtx, orderId: string) {
   if (delivered.kind === "ITEM_PURCHASE") await tellArtistAboutSale(ctx, delivered);
   // Trusting an artist's fan token makes the fan their subscriber (and follower).
   if (delivered.kind === "TOKEN_TRUST" && delivered.buyerId) {
-    const organizationId = (delivered.breakdown as { token?: { organizationId?: string } } | null)?.token
-      ?.organizationId;
+    const organizationId = (delivered.breakdown as { token?: { organizationId?: string } } | null)
+      ?.token?.organizationId;
     if (organizationId) await setSubscribed(ctx.db, delivered.buyerId, organizationId);
   }
   return { orderId, status: "DELIVERED" as const };
@@ -524,7 +524,7 @@ export function assertSameTransaction(xdr: string, txHash: string, passphrase: s
 /**
  * Who pays whom. Wallet orders: the buyer pays seller, fee and royalty in the
  * chosen currency. Card orders: the treasury pays the seller and royalty in
- * BANDCOIN and tops up the reserve; the platform fee stays with the card charge.
+ * ACTION and tops up the reserve; the platform fee stays with the card charge.
  */
 function payoutsFor(
   quote: Quote,
@@ -547,7 +547,7 @@ function payoutsFor(
   }
   return {
     payment: {
-      asset: assetFor("BANDCOIN", assets),
+      asset: assetFor("ACTION", assets),
       from: platform.treasury,
       seller: { to: sale.seller, amount: settlement.seller },
       ...royaltyTo(settlement.royalty),

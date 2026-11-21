@@ -125,8 +125,8 @@ export function GuestCheckout({
           onChange={(event) => setTyped(event.target.value)}
         />
         <p className="text-fg-faint text-xs">
-          No sign-in needed. Your copy goes to the Bandcoin account for this email, and we make one
-          if it&apos;s new.
+          No sign-in needed. Your copy goes to the Action Tokens account for this email, and we make
+          one if it&apos;s new.
         </p>
       </div>
 
@@ -204,7 +204,7 @@ function GuestSuccess({
           : `Payment received. ${itemTitle} is on its way and will show up shortly.`}
       </p>
       <p className="text-fg-muted text-sm">
-        It&apos;s in the Bandcoin account for{" "}
+        It&apos;s in the Action Tokens account for{" "}
         <b className="text-fg [overflow-wrap:anywhere]">{email}</b>. To open it, sign in with Google
         or Apple using that email, or use &quot;Forgot password?&quot; to set a password.
       </p>

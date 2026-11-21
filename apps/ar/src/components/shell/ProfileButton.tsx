@@ -18,7 +18,7 @@ import { api } from "~/trpc/react";
  * Signed in it's your avatar; signed out it's a plain person glyph, and
  * /profile itself carries the sign-in pitch.
  *
- * `balance` (the map) widens it into one capsule: your BANDCOIN balance, then
+ * `balance` (the map) widens it into one capsule: your ACTION balance, then
  * the avatar, all of it opening the profile.
  */
 export function ProfileButton({
@@ -32,7 +32,7 @@ export function ProfileButton({
   const withBalance = balance && Boolean(user);
   // The same query as the Profile page, so the number is the same one.
   const me = api.account.me.useQuery(undefined, { enabled: withBalance, staleTime: 30_000 });
-  const shown = withBalance ? formatCapsuleBalance(me.data?.balances.BANDCOIN) : null;
+  const shown = withBalance ? formatCapsuleBalance(me.data?.balances.ACTION) : null;
 
   return (
     <Link

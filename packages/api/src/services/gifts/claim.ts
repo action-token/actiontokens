@@ -11,7 +11,7 @@ import { declinedBy, forgetDeclined } from "./decline";
 /**
  * A fan accepts a gift waiting as a claimable balance (they didn't hold the
  * token yet): an artist's gift from storage, or a token someone sent them: the fan's own transaction opens the
- * trustline (0.5 XLM of their reserve) and claims it, as on the old Bandcoin.
+ * trustline (0.5 XLM of their reserve) and claims it, as on the old Action Tokens.
  * The fan pays that reserve and the network fee, shown before they confirm.
  *
  *   list    → what's waiting, with who sent it and what claiming costs
@@ -67,7 +67,7 @@ export function costOf(ctx: ServiceCtx, openTrustline: boolean) {
 export const sentBy = (gift: Pick<ClaimableToken, "sponsor">, address: string) =>
   gift.sponsor === address;
 
-/** Gifts waiting for the fan: tokens Bandcoin knows (an artist's fan token or item), newest first. */
+/** Gifts waiting for the fan: tokens Action Tokens knows (an artist's fan token or item), newest first. */
 export async function listGifts(ctx: ServiceCtx, user: Pick<SessionUser, "id" | "walletAddress">) {
   if (!user.walletAddress) return [];
   const [claimable, account] = await Promise.all([
@@ -82,7 +82,9 @@ export async function listGifts(ctx: ServiceCtx, user: Pick<SessionUser, "id" | 
       select: {
         code: true,
         issuer: true,
-        item: { select: { id: true, title: true, organization: { select: { name: true, slug: true } } } },
+        item: {
+          select: { id: true, title: true, organization: { select: { name: true, slug: true } } },
+        },
       },
     }),
     ctx.db.user.findMany({
@@ -105,7 +107,7 @@ export async function listGifts(ctx: ServiceCtx, user: Pick<SessionUser, "id" | 
       title: token?.item?.title ?? gift.code,
       /** The artist whose item this is; null for any other token */
       artist: token?.item?.organization ?? null,
-      /** Who sent it (the account that made the balance), named when they're on Bandcoin */
+      /** Who sent it (the account that made the balance), named when they're on Action Tokens */
       from: {
         address: gift.sponsor,
         username: sender?.username ?? null,

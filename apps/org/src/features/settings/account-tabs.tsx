@@ -54,7 +54,7 @@ export function FanTokenTab({ profile, onAccounts }: { profile: Profile; onAccou
 }
 
 /**
- * The Stellar accounts Bandcoin keeps for the artist, each with the way to
+ * The Stellar accounts Action Tokens keeps for the artist, each with the way to
  * open it when it's missing: the issuer (needed: every token comes from it)
  * and storage (where fan tokens and copies wait, as in bandfan). The artist
  * pays for the issuer when applying; the platform opens storage at approval,

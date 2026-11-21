@@ -14,7 +14,7 @@ const issuer = `G${"A".repeat(55)}`;
 const other = `G${"B".repeat(55)}`;
 const fanToken = { code: "LUNA", issuer };
 const wallet = {
-  BANDCOIN: "50",
+  ACTION: "50",
   XLM: "10",
   USDC: "0",
   others: [
@@ -23,7 +23,7 @@ const wallet = {
   ],
 };
 const storage = {
-  BANDCOIN: "0",
+  ACTION: "0",
   XLM: "1",
   USDC: "0",
   others: [{ code: "LUNA", issuer, amount: "1000000" }],
@@ -44,15 +44,12 @@ describe("prize choice", () => {
   });
 
   it("groups wallet and storage, the fan token first in each", () => {
-    const groups = prizeGroups(
-      { wallet, storage, fanToken },
-      { source: "wallet", key: "BANDCOIN" },
-    );
+    const groups = prizeGroups({ wallet, storage, fanToken }, { source: "wallet", key: "ACTION" });
     expect(groups.map((group) => group.source)).toEqual(["wallet", "storage"]);
     expect(groups[0]?.options.map((option) => [option.code, option.have, option.fanToken])).toEqual(
       [
         ["LUNA", "900", true],
-        ["BANDCOIN", "50", false],
+        ["ACTION", "50", false],
         ["XLM", "10", false],
         ["USDC", "0", false],
         ["MISC", "5", false],

@@ -4,7 +4,7 @@ import { PrivacyView } from "~/features/info/privacy-view";
 
 export const metadata: Metadata = {
   title: "Privacy policy",
-  description: "How Bandcoin collects, uses and protects your information.",
+  description: "How Action Tokens collects, uses and protects your information.",
 };
 
 export default function PrivacyPage() {

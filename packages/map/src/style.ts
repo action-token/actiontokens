@@ -1,5 +1,5 @@
 /**
- * What every Bandcoin map shares (AR and the artist portal): the map types, the 2D/3D looks and
+ * What every Action Tokens map shares (AR and the artist portal): the map types, the 2D/3D looks and
  * how a style URL is chosen. Pure: no React, no Mapbox.
  */
 export type ResolvedTheme = "light" | "dark";

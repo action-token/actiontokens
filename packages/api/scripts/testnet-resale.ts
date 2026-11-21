@@ -4,8 +4,8 @@
  *   pnpm --filter @actiontokens/api testnet:resale
  *
  * A throwaway artist with a classic item, a seller holding 5 copies, and a
- * buyer with BANDCOIN. The seller lists 3 copies (opening their resale storage
- * and BANDCOIN line in the same transaction), the buyer buys 1 from the resale
+ * buyer with ACTION. The seller lists 3 copies (opening their resale storage
+ * and ACTION line in the same transaction), the buyer buys 1 from the resale
  * listing, the seller changes the price and takes the unsold 2 back. Every step
  * is checked on the network, then everything made is removed.
  */
@@ -35,7 +35,10 @@ await Promise.all(
   [issuerKeys, sellerKeys, buyerKeys, artistKeys].map((k) => friendbot(k.publicKey())),
 );
 
-const bandcoin = new Asset(chain.config.assets.bandcoin.code, chain.config.assets.bandcoin.issuer);
+const actionToken = new Asset(
+  chain.config.assets.actionToken.code,
+  chain.config.assets.actionToken.issuer,
+);
 const stamp = Date.now().toString(36).toUpperCase().slice(-6);
 const token = new Asset(`R${stamp}`, issuerKeys.publicKey());
 
@@ -60,18 +63,18 @@ const balanceOf = async (key: string, asset: Asset) => {
   return Number(line?.balance ?? 0);
 };
 
-// Setup on the network: the seller holds 5 copies; the buyer has BANDCOIN; the artist can be paid royalties.
+// Setup on the network: the seller holds 5 copies; the buyer has ACTION; the artist can be paid royalties.
 await run(sellerKeys, [Operation.changeTrust({ asset: token })]);
 await run(issuerKeys, [
   Operation.payment({ destination: sellerKeys.publicKey(), asset: token, amount: "5" }),
 ]);
-await run(buyerKeys, [Operation.changeTrust({ asset: bandcoin })]);
-await run(artistKeys, [Operation.changeTrust({ asset: bandcoin })]);
+await run(buyerKeys, [Operation.changeTrust({ asset: actionToken })]);
+await run(artistKeys, [Operation.changeTrust({ asset: actionToken })]);
 {
   const sender = await chain.loadAccount(mother);
   const send = new TransactionBuilder(sender!, { fee: "1000", networkPassphrase: passphrase })
     .addOperation(
-      Operation.payment({ destination: buyerKeys.publicKey(), asset: bandcoin, amount: "100" }),
+      Operation.payment({ destination: buyerKeys.publicKey(), asset: actionToken, amount: "100" }),
     )
     .setTimeout(60)
     .build();
@@ -136,7 +139,7 @@ const sign = (xdr: string, key: Keypair) => {
 };
 
 try {
-  const listing = { itemId: item.id, amount: 3, priceBandcoin: "10", priceUsd: "1" };
+  const listing = { itemId: item.id, amount: 3, priceActionToken: "10", priceUsd: "1" };
   const quote = await seller.resale.quoteList(listing);
   console.log(
     "list quote",
@@ -144,8 +147,8 @@ try {
     "pay",
     quote.total,
     "XLM; you get",
-    quote.net.bandcoin.net,
-    "BANDCOIN per copy after",
+    quote.net.actionToken.net,
+    "ACTION per copy after",
     quote.net.royaltyPercent + "% royalty",
   );
   const started = await seller.resale.startList(listing);
@@ -164,18 +167,18 @@ try {
     await balanceOf(storage.publicKey, token),
     "| seller wallet holds",
     await balanceOf(sellerKeys.publicKey(), token),
-    "| seller BANDCOIN line opened:",
+    "| seller ACTION line opened:",
     (await chain.loadAccount(sellerKeys.publicKey()))?.balances.some(
-      (b) => "asset_code" in b && b.asset_code === "BANDCOIN",
+      (b) => "asset_code" in b && b.asset_code === "ACTION",
     ),
   );
 
   // A buyer buys one from the resale listing.
   const [sellerBand0, artistBand0] = await Promise.all([
-    balanceOf(sellerKeys.publicKey(), bandcoin),
-    balanceOf(artistKeys.publicKey(), bandcoin),
+    balanceOf(sellerKeys.publicKey(), actionToken),
+    balanceOf(artistKeys.publicKey(), actionToken),
   ]);
-  const buy = { listingId: listed.listingId, quantity: 1, currency: "BANDCOIN" as const };
+  const buy = { listingId: listed.listingId, quantity: 1, currency: "ACTION" as const };
   const bq = await buyer.order.quote(buy);
   console.log(
     "buyer quote",
@@ -192,10 +195,10 @@ try {
     "copy",
   );
   console.log(
-    "seller BANDCOIN +",
-    ((await balanceOf(sellerKeys.publicKey(), bandcoin)) - sellerBand0).toFixed(7),
+    "seller ACTION +",
+    ((await balanceOf(sellerKeys.publicKey(), actionToken)) - sellerBand0).toFixed(7),
     "| artist royalty +",
-    ((await balanceOf(artistKeys.publicKey(), bandcoin)) - artistBand0).toFixed(7),
+    ((await balanceOf(artistKeys.publicKey(), actionToken)) - artistBand0).toFixed(7),
     "| storage now holds",
     await balanceOf(storage.publicKey, token),
   );
@@ -203,12 +206,12 @@ try {
   // Change the price, then take the unsold copies back.
   await seller.resale.setPrice({
     listingId: listed.listingId,
-    priceBandcoin: "12",
+    priceActionToken: "12",
     priceUsd: "1.2",
   });
   console.log(
     "new price",
-    (await seller.resale.mine())[0]?.priceBandcoin,
+    (await seller.resale.mine())[0]?.priceActionToken,
     "| left",
     (await seller.resale.mine())[0]?.left,
   );

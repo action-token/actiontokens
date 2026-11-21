@@ -45,7 +45,7 @@ function Part({ id, children }: { id: string; children: ReactNode }) {
   );
 }
 
-/** Bandcoin's privacy policy, from what the fan app, artist portal and AR app do. */
+/** Action Tokens' privacy policy, from what the fan app, artist portal and AR app do. */
 export function PrivacyView() {
   return (
     <>
@@ -60,7 +60,7 @@ export function PrivacyView() {
             role="note"
             className="bg-primary-soft border-fg rounded-xl border-2 border-dashed p-4 text-sm font-semibold"
           >
-            Draft for review. This text describes what Bandcoin does today and has not yet been
+            Draft for review. This text describes what Action Tokens does today and has not yet been
             approved as our policy.
           </p>
         )}
@@ -80,9 +80,9 @@ export function PrivacyView() {
         </section>
 
         <p className="max-w-3xl text-lg leading-relaxed text-pretty">
-          This policy explains what information Bandcoin collects when you use the marketplace, the
-          artist portal and the AR app, how it is used, and the choices you have. By using Bandcoin
-          you agree to the practices described here.
+          This policy explains what information Action Tokens collects when you use the marketplace,
+          the artist portal and the AR app, how it is used, and the choices you have. By using
+          Action Tokens you agree to the practices described here.
         </p>
 
         <div className="grid items-start gap-8 lg:grid-cols-[13rem_minmax(0,1fr)]">
@@ -109,10 +109,10 @@ export function PrivacyView() {
             <Part id="introduction">
               <InfoCard title="Introduction">
                 <p>
-                  Bandcoin is a platform where artists sell music and collectibles to fans, and
+                  Action Tokens is a platform where artists sell music and collectibles to fans, and
                   where fans follow artists, collect drops with AR and resell what they own.
-                  Purchases are recorded on the Stellar network. This policy covers the Bandcoin
-                  websites and apps.
+                  Purchases are recorded on the Stellar network. This policy covers the Action
+                  Tokens websites and apps.
                 </p>
               </InfoCard>
             </Part>
@@ -132,7 +132,7 @@ export function PrivacyView() {
                     you are an artist.
                   </li>
                 </ul>
-                <p className="text-fg font-semibold">2. What you do on Bandcoin</p>
+                <p className="text-fg font-semibold">2. What you do on Action Tokens</p>
                 <ul className="list-disc space-y-1 pl-5">
                   <li>
                     Orders and payments: what you bought, sold or sent, the amounts, and the Stellar
@@ -148,8 +148,8 @@ export function PrivacyView() {
                 <p className="text-fg font-semibold">3. Card payments</p>
                 <p>
                   When you pay by card, you type your card details into a form provided by Square.
-                  Bandcoin does not receive or store your card number. We keep a record of the order
-                  and the payment reference Square returns.
+                  Action Tokens does not receive or store your card number. We keep a record of the
+                  order and the payment reference Square returns.
                 </p>
                 <p className="text-fg font-semibold">4. Location and photos</p>
                 <p>
@@ -183,7 +183,7 @@ export function PrivacyView() {
                   <li>
                     <b className="text-fg">The Stellar network is public and permanent.</b> Your
                     wallet address, what it holds and every transaction it makes can be seen by
-                    anyone, and cannot be deleted by Bandcoin or by you.
+                    anyone, and cannot be deleted by Action Tokens or by you.
                   </li>
                 </ul>
               </InfoCard>
@@ -195,7 +195,7 @@ export function PrivacyView() {
                   <li>To run your account, show your collection and complete your orders.</li>
                   <li>To send you notifications about artists you follow and your orders.</li>
                   <li>To pay artists and work out royalties.</li>
-                  <li>To keep Bandcoin safe, and to find and fix problems.</li>
+                  <li>To keep Action Tokens safe, and to find and fix problems.</li>
                 </ul>
                 <p>We do not sell your personal information.</p>
               </InfoCard>
@@ -203,7 +203,7 @@ export function PrivacyView() {
 
             <Part id="third-party-services">
               <InfoCard title="Third-party services">
-                <p>We use these providers to run Bandcoin. Each sees only what it needs.</p>
+                <p>We use these providers to run Action Tokens. Each sees only what it needs.</p>
                 <ul className="list-disc space-y-1 pl-5">
                   <li>Google Firebase: sign-in with email, Google and Apple.</li>
                   <li>Square: card payments.</li>
@@ -228,10 +228,10 @@ export function PrivacyView() {
             <Part id="cookies">
               <InfoCard title="Cookies">
                 <p>
-                  Bandcoin sets a cookie to keep you signed in, and may remember your theme choice.
-                  We don&apos;t use advertising or tracking cookies. Services we use, such as Square
-                  and Firebase, may set their own while you use them. You can clear or block cookies
-                  in your browser, but you will then not stay signed in.
+                  Action Tokens sets a cookie to keep you signed in, and may remember your theme
+                  choice. We don&apos;t use advertising or tracking cookies. Services we use, such
+                  as Square and Firebase, may set their own while you use them. You can clear or
+                  block cookies in your browser, but you will then not stay signed in.
                 </p>
               </InfoCard>
             </Part>
@@ -265,9 +265,9 @@ export function PrivacyView() {
             <Part id="childrens-privacy">
               <InfoCard title="Children's privacy">
                 <p>
-                  Bandcoin isn&apos;t meant for anyone under 13 and we don&apos;t knowingly collect
-                  their information. If we learn we have, we delete it. A parent or guardian who
-                  knows of such a case should contact us straight away.
+                  Action Tokens isn&apos;t meant for anyone under 13 and we don&apos;t knowingly
+                  collect their information. If we learn we have, we delete it. A parent or guardian
+                  who knows of such a case should contact us straight away.
                 </p>
               </InfoCard>
             </Part>
@@ -276,7 +276,8 @@ export function PrivacyView() {
               <InfoCard title="Changes to this policy">
                 <p>
                   We may update this policy. The latest version is always on this page, and we will
-                  change its date when we do. Using Bandcoin after an update means you accept it.
+                  change its date when we do. Using Action Tokens after an update means you accept
+                  it.
                 </p>
               </InfoCard>
             </Part>

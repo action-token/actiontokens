@@ -7,23 +7,23 @@ form style (FormPage / FormSection, Wadzzo layouts), fields and flows follow mai
 
 ## Decisions (asked 2026-10-31)
 
-| Topic | Decision |
-| --- | --- |
+| Topic         | Decision                                                                                                                                       |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | Classic items | **Keep the new way**: one issuer per artist, free to create, minted at purchase or from stock (plan 04). Not main's issuer-per-item paid mint. |
-| Contract NFTs | **Main's way**: free, live at once, the platform registers the edition at the first sale; locked content; edit page; fan checkout. |
-| Also add | Tier on items, Non Stellar Items, bounty extras, Sell Page Assets. |
+| Contract NFTs | **Main's way**: free, live at once, the platform registers the edition at the first sale; locked content; edit page; fan checkout.             |
+| Also add      | Tier on items, Non Stellar Items, bounty extras, Sell Page Assets.                                                                             |
 
 ## 1. Bounty extras (smallest, first)
 
-- **Pick the type first**: "New bounty ▾" offers *General bounty* (any task,
-  manual submissions) and *Music bounty* (Last.fm listening), like main's
+- **Pick the type first**: "New bounty ▾" offers _General bounty_ (any task,
+  manual submissions) and _Music bounty_ (Last.fm listening), like main's
   menu; `/bounties/new?type=music` opens the form with the music challenge on.
   The switch inside the form stays.
 - **Target duration per track** (seconds, default 30) next to plays needed,
   stored on each bounty track and used by the listening check, as in main.
 - **Any held asset as the prize**: the currency list becomes the assets the
   artist actually holds in the chosen source (wallet or storage), with
-  balances: BANDCOIN, XLM, USDC, their fan token and any other classic asset.
+  balances: ACTION, XLM, USDC, their fan token and any other classic asset.
   The escrow takes a token address, so a classic asset is passed as its
   Stellar Asset Contract. If that contract isn't deployed yet for the asset,
   the funding transaction deploys it first (a standard network operation, not
@@ -39,9 +39,9 @@ you have M" and can't buy it until they qualify (product rule from 2026-09-28).
 ## 3. Non Stellar Items
 
 Main's "Non Stellar Item": no asset code, nothing on Stellar. Fields as main:
-name, description, supply limit, price in BANDCOIN and USD, tier, thumbnail,
+name, description, supply limit, price in ACTION and USD, tier, thumbnail,
 media type + file. Schema: `ChainType` gets `OFF_CHAIN` (migration on the dev
-database only). Buying one is a plain payment to the artist (BANDCOIN, XLM,
+database only). Buying one is a plain payment to the artist (ACTION, XLM,
 USDC or card) through the existing order flow; ownership is recorded in the
 database and stock is the limit minus copies sold, as in main.
 
@@ -52,7 +52,7 @@ database and stock is the limit minus copies sold, as in main.
 
 - **Create** is a database save: nothing to sign or pay, live at once. Fields
   as main: name (≤128), description (≤2,000), thumbnail, creator royalty
-  (0–90%), supply (1–100,000), price in BANDCOIN and USD (both required).
+  (0–90%), supply (1–100,000), price in ACTION and USD (both required).
 - **Locked content**, required (at least one): songs, images, videos or links
   hidden until a copy is bought; each can have an unlock rule (visit these
   places, radius in metres). Uses the existing `LockedContent` / `UnlockRule`
@@ -72,7 +72,7 @@ database and stock is the limit minus copies sold, as in main.
 ## 5. Sell Page Assets
 
 Main's "Sell Page Assets": the artist offers an amount of their fan token
-from their storage account, with a description and prices (BANDCOIN, USD,
+from their storage account, with a description and prices (ACTION, USD,
 XLM). One sale sells the whole amount: the buyer pays, the tokens move from
 storage to the buyer in the same transaction, the listing is marked sold.
 Needs a storage account holding the tokens; without one the page says how to

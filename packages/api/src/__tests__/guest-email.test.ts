@@ -45,7 +45,7 @@ describe("guest purchase email", () => {
     });
     expect(message.to).toBe("fan@example.com");
     expect(message.subject).toContain("2 × VIP <pass>");
-    expect(message.text).toContain("Bandcoin account for fan@example.com");
+    expect(message.text).toContain("Action Tokens account for fan@example.com");
     expect(message.text).toContain("Forgot password");
     expect(message.text).toContain("https://action-tokens.com/item/vip-pass");
     expect(message.html).not.toContain("<pass>");

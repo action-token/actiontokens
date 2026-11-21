@@ -459,7 +459,7 @@ function Preview({
 
   const push = useCallback(() => {
     frame.current?.contentWindow?.postMessage(
-      { type: "bandcoin-embed:config", config: latest.current },
+      { type: "actiontokens-embed:config", config: latest.current },
       origin,
     );
   }, [origin]);
@@ -473,9 +473,9 @@ function Preview({
         lng?: number;
         zoom?: number;
       } | null;
-      if (data?.type === "bandcoin-embed:ready") push();
+      if (data?.type === "actiontokens-embed:ready") push();
       if (
-        data?.type === "bandcoin-embed:view" &&
+        data?.type === "actiontokens-embed:view" &&
         typeof data.lat === "number" &&
         typeof data.lng === "number" &&
         typeof data.zoom === "number"

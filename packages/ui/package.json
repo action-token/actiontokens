@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Bandcoin design system: tokens, fonts, primitives and patterns shared by every web app.",
+  "description": "Action Tokens design system: tokens, fonts, primitives and patterns shared by every web app.",
   "exports": {
     "./components/use-toast": "./src/components/use-toast.ts",
     "./components/*": "./src/components/*.tsx",

@@ -21,7 +21,7 @@ import {
 const wallet = Keypair.random();
 const storageKey = Keypair.random().publicKey();
 const issuer = Keypair.random().publicKey();
-const bandcoin = { code: "BANDCOIN", issuer: Keypair.random().publicKey() };
+const actionToken = { code: "ACTION", issuer: Keypair.random().publicKey() };
 const usdc = { code: "USDC", issuer: Keypair.random().publicKey() };
 const network = { passphrase: Networks.TESTNET, baseFee: "100" };
 const ORDER = "cmvorder0000000000000031";
@@ -99,12 +99,12 @@ function setup(opts: { walletTrusts?: boolean } = {}) {
     balances: [
       { asset_type: "native", balance: "4", selling_liabilities: "0" },
       credit(song, "7"),
-      credit(bandcoin, "20"),
+      credit(actionToken, "20"),
       credit(usdc, "0"),
     ],
   });
   const chain = {
-    config: { name: "testnet", network, assets: { bandcoin, usdc } },
+    config: { name: "testnet", network, assets: { actionToken, usdc } },
     loadAccount: vi.fn((id: string) => Promise.resolve(id === storageKey ? storage : mine)),
     signWithServerKeys: vi.fn((xdr: string) => Promise.resolve(xdr)),
     submit: vi.fn(() => Promise.resolve({ hash: "txhash" })),
@@ -125,7 +125,7 @@ describe("what's in storage", () => {
     const contents = await storageContents(setup().ctx, artist);
     expect(contents?.holdings).toMatchObject([
       { code: "XLM", issuer: null, amount: "1.5000000", kind: "xlm" },
-      { code: "BANDCOIN", amount: "20.0000000", title: null, kind: "bandcoin" },
+      { code: "ACTION", amount: "20.0000000", title: null, kind: "actionToken" },
       { code: "USDC", amount: "0.0000000", kind: "usdc" },
       { code: "SONG1", amount: "7.0000000", title: "First single", itemId: "song1", kind: "other" },
     ]);

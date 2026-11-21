@@ -1,7 +1,7 @@
 import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 /**
- * Last.fm track lookup for the music-bounty picker, as the old Bandcoin had it:
+ * Last.fm track lookup for the music-bounty picker, as the old Action Tokens had it:
  * search any track, or list an artist's five top tracks. Reads need only the
  * API key (LASTFM_API_KEY, or the old NEXT_PUBLIC_LASTFM_API_KEY).
  */
@@ -59,7 +59,7 @@ async function call(
 ): Promise<Record<string, unknown> | null> {
   const url = `${API}?${new URLSearchParams({ ...params, api_key: apiKey(), format: "json" })}`;
   try {
-    const res = await fetcher(url, { headers: { "User-Agent": "Bandcoin/1.0" } });
+    const res = await fetcher(url, { headers: { "User-Agent": "Action Tokens/1.0" } });
     return res.ok ? ((await res.json()) as Record<string, unknown>) : null;
   } catch {
     return null;

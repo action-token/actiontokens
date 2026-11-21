@@ -18,7 +18,7 @@ import { failOrder, ownOrder, userSignature } from "../purchase";
 import { findRecipient } from "./gifts";
 
 /**
- * Collectible gifts, as on the old Bandcoin: an artist gives one copy of a
+ * Collectible gifts, as on the old Action Tokens: an artist gives one copy of a
  * contract NFT they own to someone, by username, email or wallet. An email
  * with no account yet gets one, made when the artist presses Send.
  *
@@ -123,7 +123,9 @@ async function prepare(ctx: ServiceCtx, user: SessionUser, input: GiftInput) {
   if (!typed) problems.push(unavailable("Choose who to send it to."));
   else if (!recipient && !newEmail)
     problems.push(
-      unavailable("We couldn't find a Bandcoin fan with that username or wallet. Try their email."),
+      unavailable(
+        "We couldn't find an Action Tokens fan with that username or wallet. Try their email.",
+      ),
     );
   else if (recipient?.id === user.id) problems.push(unavailable("You already own this copy."));
 

@@ -19,7 +19,7 @@ const price = z.string().regex(/^\d{1,12}(\.\d{1,7})?$/, "Enter a price like 12.
 const listInput = z.object({
   itemId: z.string().min(1),
   amount: z.number().int().min(1).max(MAX_LISTED),
-  priceBandcoin: price,
+  priceActionToken: price,
   priceUsd: price,
   /** Smart-contract NFTs: put the new price on these listed copies instead of listing more */
   listingIds: z.array(z.string().min(1)).max(20).optional(),
@@ -39,7 +39,7 @@ export const resaleRouter = createRouter({
     .mutation(({ ctx, input }) => submitList(ctx, ctx.session.user, input)),
 
   setPrice: authedProcedure
-    .input(z.object({ listingId: z.string().min(1), priceBandcoin: price, priceUsd: price }))
+    .input(z.object({ listingId: z.string().min(1), priceActionToken: price, priceUsd: price }))
     .mutation(({ ctx, input }) => setListingPrice(ctx, ctx.session.user, input)),
 
   quoteCancel: authedProcedure

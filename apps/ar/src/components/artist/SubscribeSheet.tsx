@@ -17,7 +17,7 @@ import { type SubscribeCurrency, useSubscribe } from "~/lib/ar/useSubscribe";
 import { api } from "~/trpc/react";
 
 const CURRENCIES: { id: SubscribeCurrency; label: string }[] = [
-  { id: "BANDCOIN", label: TOKEN_CODE },
+  { id: "ACTION", label: TOKEN_CODE },
   { id: "XLM", label: "XLM" },
   { id: "USDC", label: "USDC" },
   { id: "USD", label: "Card" },
@@ -25,7 +25,7 @@ const CURRENCIES: { id: SubscribeCurrency; label: string }[] = [
 
 /**
  * Subscribe to an artist from the AR app: trust their fan token, the same
- * order as the fan app's Subscribe dialog, paid in BANDCOIN, XLM, USDC or by
+ * order as the fan app's Subscribe dialog, paid in ACTION, XLM, USDC or by
  * card (plan 33). The fan sees the price first and nothing happens unless they
  * tap Subscribe. Short of funds, the button opens the fan app's Recharge page.
  */
@@ -43,7 +43,7 @@ export function SubscribeSheet({
   code: string;
 }) {
   const { status } = useSession();
-  const [currency, setCurrency] = useState<SubscribeCurrency>("BANDCOIN");
+  const [currency, setCurrency] = useState<SubscribeCurrency>("ACTION");
   const byCard = currency === "USD";
   const quote = api.subscribe.quote.useQuery(
     { organizationId, currency },
@@ -196,7 +196,7 @@ export function SubscribeSheet({
             icon={Wallet}
             className="mt-4"
           >
-            {currency === "BANDCOIN" ? `Add ${TOKEN_CODE}` : "Add funds"}
+            {currency === "ACTION" ? `Add ${TOKEN_CODE}` : "Add funds"}
           </ArLinkButton>
         ) : (
           <div className="mt-4 flex gap-2">

@@ -26,7 +26,7 @@ describe("vanity names", () => {
     ["luna vale", /lowercase/],
     ["-luna", /Start with/],
     ["music", /can't be used/],
-    ["bandcoin", /can't be used/],
+    ["actiontokens", /can't be used/],
     ["x-x-x", /can't be used/],
   ])("rejects %s", (name, reason) => {
     expect(validateVanityName(name)).toMatch(reason);

@@ -21,7 +21,7 @@ import { assertWritable } from "../../db/scripts/guard";
 assertWritable(process.env.DATABASE_URL, "run against the database");
 
 const slug = process.argv[2] ?? "lumen-avenue-night-drive";
-const currency = (process.argv[3] ?? "XLM") as "BANDCOIN" | "XLM" | "USDC";
+const currency = (process.argv[3] ?? "XLM") as "ACTION" | "XLM" | "USDC";
 
 const chain = createChainGateway(db);
 if (chain.config.name !== "testnet") throw new Error("Testnet only");

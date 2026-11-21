@@ -35,7 +35,7 @@ const TYPE_ICON = { SONG: Music, IMAGE: ImageIcon, VIDEO: Video, OTHER: Link2 } 
 /**
  * The NFT form's Locked content section: songs, images, videos or links only
  * owners can open, each optionally behind places to visit. At least one, up to
- * twenty; fixed once the NFT is created, as on the old Bandcoin.
+ * twenty; fixed once the NFT is created, as on the old Action Tokens.
  */
 export function LockedContentField({
   value,

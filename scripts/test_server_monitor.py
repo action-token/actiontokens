@@ -20,7 +20,7 @@ def service(**over):
 
 def observed(services=None, disk=40, mem=900, swap=0):
     return {
-        "services": services or {"bandcoin-worker": service()},
+        "services": services or {"actiontokens-worker": service()},
         "disk_used_pct": disk,
         "mem_available_mb": mem,
         "swap_used_mb": swap,
@@ -38,30 +38,30 @@ class Healthy(unittest.TestCase):
         self.assertEqual(state["problems"], {})
 
     def test_the_first_run_only_takes_a_baseline_of_failed_jobs_and_restarts(self):
-        obs = observed({"bandcoin-worker": service(failed_jobs=2, restarts=3)})
+        obs = observed({"actiontokens-worker": service(failed_jobs=2, restarts=3)})
         mail, state = run(obs)
         self.assertIsNone(mail)
-        self.assertEqual(state["last"]["bandcoin-worker"], {"failed_jobs": 2, "restarts": 3})
+        self.assertEqual(state["last"]["actiontokens-worker"], {"failed_jobs": 2, "restarts": 3})
 
 
 class Down(unittest.TestCase):
     def test_one_bad_check_is_not_an_alert_two_in_a_row_are(self):
-        bad = observed({"bandcoin-worker": service(health_ok=False)})
+        bad = observed({"actiontokens-worker": service(health_ok=False)})
         mail, state = run(bad, now=1000)
         self.assertIsNone(mail)
         mail, state = run(bad, state, now=1300)
         self.assertIsNotNone(mail)
-        self.assertIn("bandcoin-worker", mail["subject"])
+        self.assertIn("actiontokens-worker", mail["subject"])
         self.assertIn("not answering", mail["body"])
 
     def test_a_stopped_container_counts_as_down(self):
-        bad = observed({"bandcoin-worker": service(running=False, health_ok=False)})
+        bad = observed({"actiontokens-worker": service(running=False, health_ok=False)})
         _, state = run(bad, now=1000)
         mail, _ = run(bad, state, now=1300)
         self.assertIn("not running", mail["body"])
 
     def test_a_blip_that_recovers_between_checks_never_alerts(self):
-        bad = observed({"bandcoin-worker": service(health_ok=False)})
+        bad = observed({"actiontokens-worker": service(health_ok=False)})
         _, state = run(bad, now=1000)
         mail, state = run(observed(), state, now=1300)
         self.assertIsNone(mail)
@@ -69,7 +69,7 @@ class Down(unittest.TestCase):
         self.assertIsNone(mail)
 
     def test_a_standing_problem_is_not_repeated_within_six_hours_but_is_after(self):
-        bad = observed({"bandcoin-worker": service(health_ok=False)})
+        bad = observed({"actiontokens-worker": service(health_ok=False)})
         _, state = run(bad, now=0)
         mail, state = run(bad, state, now=300)
         self.assertIsNotNone(mail)
@@ -80,7 +80,7 @@ class Down(unittest.TestCase):
         self.assertIn("still", mail["body"])
 
     def test_recovery_is_announced_once(self):
-        bad = observed({"bandcoin-worker": service(health_ok=False)})
+        bad = observed({"actiontokens-worker": service(health_ok=False)})
         _, state = run(bad, now=0)
         _, state = run(bad, state, now=300)
         mail, state = run(observed(), state, now=600)
@@ -91,29 +91,29 @@ class Down(unittest.TestCase):
 
 class Events(unittest.TestCase):
     def test_new_failed_jobs_are_reported_once(self):
-        _, state = run(observed({"bandcoin-worker": service(failed_jobs=2)}), now=0)
-        more = observed({"bandcoin-worker": service(failed_jobs=5)})
+        _, state = run(observed({"actiontokens-worker": service(failed_jobs=2)}), now=0)
+        more = observed({"actiontokens-worker": service(failed_jobs=5)})
         mail, state = run(more, state, now=300)
         self.assertIn("3 new failed job", mail["body"])
         mail, _ = run(more, state, now=600)
         self.assertIsNone(mail)
 
     def test_a_restart_is_reported_once(self):
-        _, state = run(observed({"bandcoin-worker": service(restarts=1)}), now=0)
-        again = observed({"bandcoin-worker": service(restarts=2)})
+        _, state = run(observed({"actiontokens-worker": service(restarts=1)}), now=0)
+        again = observed({"actiontokens-worker": service(restarts=2)})
         mail, state = run(again, state, now=300)
         self.assertIn("restarted", mail["body"])
         mail, _ = run(again, state, now=600)
         self.assertIsNone(mail)
 
     def test_a_redeploy_that_resets_the_counters_is_not_news(self):
-        _, state = run(observed({"bandcoin-worker": service(failed_jobs=5, restarts=4)}), now=0)
-        mail, state = run(observed({"bandcoin-worker": service(failed_jobs=0, restarts=0)}), state, now=300)
+        _, state = run(observed({"actiontokens-worker": service(failed_jobs=5, restarts=4)}), now=0)
+        mail, state = run(observed({"actiontokens-worker": service(failed_jobs=0, restarts=0)}), state, now=300)
         self.assertIsNone(mail)
-        self.assertEqual(state["last"]["bandcoin-worker"], {"failed_jobs": 0, "restarts": 0})
+        self.assertEqual(state["last"]["actiontokens-worker"], {"failed_jobs": 0, "restarts": 0})
 
     def test_a_service_without_a_failed_count_is_fine(self):
-        obs = observed({"bandcoin-worker": service(failed_jobs=None)})
+        obs = observed({"actiontokens-worker": service(failed_jobs=None)})
         mail, _ = run(obs)
         self.assertIsNone(mail)
 
@@ -141,7 +141,7 @@ class Mixed(unittest.TestCase):
     def test_everything_wrong_at_once_is_one_email(self):
         obs = observed(
             {
-                "bandcoin-worker": service(health_ok=False, failed_jobs=9),
+                "actiontokens-worker": service(health_ok=False, failed_jobs=9),
                 "second-service": service(running=False, health_ok=False),
             },
             disk=95,
@@ -149,11 +149,11 @@ class Mixed(unittest.TestCase):
         first, state = run(obs, now=0)
         self.assertIn("disk", first["body"].lower())  # a full disk needs no second look
         mail, _ = run(obs, state, now=300)
-        self.assertIn("bandcoin-worker", mail["body"])
+        self.assertIn("actiontokens-worker", mail["body"])
         self.assertIn("second-service", mail["body"])
 
     def test_a_missing_optional_service_is_not_checked(self):
-        mail, state = run(observed({"bandcoin-worker": service()}))
+        mail, state = run(observed({"actiontokens-worker": service()}))
         self.assertIsNone(mail)
         self.assertNotIn("second-service", state["last"])
 
@@ -164,7 +164,7 @@ class Names(unittest.TestCase):
         # silent for an optional container, so the list is pinned.
         self.assertEqual(
             [(name, port, required) for name, port, required in sm.SERVICES],
-            [("bandcoin-worker", 8080, True)],
+            [("actiontokens-worker", 8080, True)],
         )
 
 

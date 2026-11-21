@@ -55,12 +55,12 @@ const messageOf = (error: unknown) =>
 /**
  * One form for a new item and for editing one. Editing can't change the kind,
  * and once a copy has sold the supply and code are fixed (the server enforces
- * it too). Prices are set separately in BANDCOIN and USD: nothing converts one
+ * it too). Prices are set separately in ACTION and USD: nothing converts one
  * into the other.
  *
  * Two kinds of token: a classic Stellar token (a code, any number of copies, can
  * be published right away) and a contract NFT (a fixed number of numbered
- * copies with locked content; Bandcoin puts it on the contract at its first sale).
+ * copies with locked content; Action Tokens puts it on the contract at its first sale).
  */
 export function ItemForm({ existing }: { existing?: Existing }) {
   const router = useRouter();
@@ -89,7 +89,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
   const [customCode, setCustomCode] = useState(editing);
   const [limited, setLimited] = useState(existing ? existing.supply !== null : true);
   const [supply, setSupply] = useState(existing?.supply?.toString() ?? "100");
-  const [priceBandcoin, setPriceBandcoin] = useState(existing?.priceBandcoin ?? "");
+  const [priceActionToken, setPriceActionToken] = useState(existing?.priceActionToken ?? "");
   const [priceUsd, setPriceUsd] = useState(existing?.priceUsd ?? "");
   const [royalty, setRoyalty] = useState(existing?.royaltyPercent ?? "");
   const [resale, setResale] = useState(existing?.resaleRoyaltyPercent ?? "5");
@@ -102,7 +102,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
   const shownCode = customCode ? code : assetCodeFrom(title);
   const problems = {
     code: classic && shownCode ? validateAssetCode(shownCode) : null,
-    ...priceProblems(priceBandcoin, priceUsd),
+    ...priceProblems(priceActionToken, priceUsd),
   };
   const supplyNumber = Number(supply);
   const supplyOk =
@@ -117,8 +117,8 @@ export function ItemForm({ existing }: { existing?: Existing }) {
     cover !== null &&
     (!fileRequired(type) || file !== null) &&
     (!classic || (shownCode.length > 0 && !problems.code)) &&
-    priceBandcoin !== "" &&
-    !problems.bandcoin &&
+    priceActionToken !== "" &&
+    !problems.actionToken &&
     priceUsd !== "" &&
     !problems.usd &&
     supplyOk &&
@@ -176,7 +176,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
         title,
         description,
         coverUrl: cover.url,
-        priceBandcoin,
+        priceActionToken,
         priceUsd,
         visibility,
         ...(nft ? {} : { access: accessInput(access) }),
@@ -195,7 +195,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
         coverUrl: cover.url,
         media,
         supply: supplyNumber,
-        priceBandcoin,
+        priceActionToken,
         priceUsd,
         resaleRoyaltyPercent: resale,
         visibility,
@@ -209,7 +209,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
         coverUrl: cover.url,
         media,
         supply: supplyNumber,
-        priceBandcoin,
+        priceActionToken,
         priceUsd,
         visibility,
         access: accessInput(access),
@@ -223,7 +223,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
         media,
         code: shownCode,
         supply: limited ? supplyNumber : null,
-        priceBandcoin,
+        priceActionToken,
         priceUsd,
         visibility,
         access: accessInput(access),
@@ -285,7 +285,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
                     : shownCode || "Classic token"}
               </p>
               <p className="num text-sm">
-                {priceBandcoin || "…"} BANDCOIN · ${priceUsd || "…"}
+                {priceActionToken || "…"} ACTION · ${priceUsd || "…"}
               </p>
             </div>
           </section>
@@ -332,7 +332,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
                 customCode,
                 limited,
                 supply,
-                priceBandcoin,
+                priceActionToken,
                 priceUsd,
                 imageBrief,
               };
@@ -346,7 +346,8 @@ export function ItemForm({ existing }: { existing?: Existing }) {
                 setLimited(true);
                 setSupply(String(result.supply));
               } else if (!fixed) setLimited(false);
-              if (result.priceBandcoin !== null) setPriceBandcoin(String(result.priceBandcoin));
+              if (result.priceActionToken !== null)
+                setPriceActionToken(String(result.priceActionToken));
               if (result.priceUsd !== null) setPriceUsd(String(result.priceUsd));
               setImageBrief(result.imagePrompt);
               return () => {
@@ -356,7 +357,7 @@ export function ItemForm({ existing }: { existing?: Existing }) {
                 setCustomCode(before.customCode);
                 setLimited(before.limited);
                 setSupply(before.supply);
-                setPriceBandcoin(before.priceBandcoin);
+                setPriceActionToken(before.priceActionToken);
                 setPriceUsd(before.priceUsd);
                 setImageBrief(before.imageBrief);
               };
@@ -490,9 +491,9 @@ export function ItemForm({ existing }: { existing?: Existing }) {
           )}
 
           <PriceFields
-            bandcoin={priceBandcoin}
+            actionToken={priceActionToken}
             usd={priceUsd}
-            onBandcoin={setPriceBandcoin}
+            onActionToken={setPriceActionToken}
             onUsd={setPriceUsd}
             idPrefix="item-price"
           />

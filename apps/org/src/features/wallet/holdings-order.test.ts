@@ -2,30 +2,30 @@ import { describe, expect, it } from "vitest";
 
 import { orderMain, orderStorage, pageList, storagePreview } from "./holdings-order";
 
-type Kind = "xlm" | "bandcoin" | "usdc" | "fanToken" | "other";
+type Kind = "xlm" | "actionToken" | "usdc" | "fanToken" | "other";
 const h = (code: string, amount: string, kind: Kind = "other") => ({ code, amount, kind });
 const codes = (list: { code: string }[]) => list.map((entry) => entry.code);
 
 describe("orderStorage", () => {
-  it("puts your fan token, then BANDCOIN, then the largest amounts", () => {
+  it("puts your fan token, then ACTION, then the largest amounts", () => {
     expect(
       codes(
         orderStorage([
           h("XLM", "0.5", "xlm"),
           h("SONG", "900"),
-          h("BANDCOIN", "5", "bandcoin"),
+          h("ACTION", "5", "actionToken"),
           h("TAMSIN", "10", "fanToken"),
           h("POSTER", "40"),
         ]),
       ),
-    ).toEqual(["TAMSIN", "BANDCOIN", "SONG", "POSTER", "XLM"]);
+    ).toEqual(["TAMSIN", "ACTION", "SONG", "POSTER", "XLM"]);
   });
 });
 
 describe("storagePreview", () => {
   it("lists at most 3 in that order, skips empty ones, and counts the rest", () => {
     const many = [
-      h("BANDCOIN", "0", "bandcoin"),
+      h("ACTION", "0", "actionToken"),
       ...Array.from({ length: 40 }, (_, i) => h(`T${i}`, String(i + 1))),
     ];
     const { shown, more } = storagePreview(many);
@@ -39,7 +39,7 @@ describe("storagePreview", () => {
 });
 
 describe("orderMain", () => {
-  it("keeps BANDCOIN, XLM and USDC on top, then the fan token, then by amount", () => {
+  it("keeps ACTION, XLM and USDC on top, then the fan token, then by amount", () => {
     expect(
       codes(
         orderMain([
@@ -48,10 +48,10 @@ describe("orderMain", () => {
           h("XLM", "9", "xlm"),
           h("BIG", "500"),
           h("TAMSIN", "1", "fanToken"),
-          h("BANDCOIN", "199", "bandcoin"),
+          h("ACTION", "199", "actionToken"),
         ]),
       ),
-    ).toEqual(["BANDCOIN", "XLM", "USDC", "TAMSIN", "BIG", "OTHER"]);
+    ).toEqual(["ACTION", "XLM", "USDC", "TAMSIN", "BIG", "OTHER"]);
   });
 });
 

@@ -7,7 +7,7 @@ export type BreakdownLine = {
   label: string;
   /** Small second line under the label, e.g. "2 × 25,000". */
   detail?: ReactNode;
-  /** Already formatted, e.g. "50,000 BANDCOIN". Several lines allowed. */
+  /** Already formatted, e.g. "50,000 ACTION". Several lines allowed. */
   value: ReactNode;
 };
 

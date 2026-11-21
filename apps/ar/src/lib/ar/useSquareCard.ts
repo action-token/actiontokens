@@ -39,7 +39,7 @@ function loadSquare() {
 }
 
 /**
- * Square's card field. Card numbers never touch Bandcoin's servers: `tokenize`
+ * Square's card field. Card numbers never touch Action Tokens' servers: `tokenize`
  * returns a one-time token the server charges with. A copy of the fan app's
  * (apps can't import each other); the field itself is styled where it's placed.
  */

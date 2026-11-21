@@ -3,7 +3,7 @@ import { AppError, ErrorCodes } from "@actiontokens/errors";
 import { isOwnS3Url } from "@actiontokens/storage";
 
 /**
- * Locked content inside a contract NFT, as on the old Bandcoin: songs, images,
+ * Locked content inside a contract NFT, as on the old Action Tokens: songs, images,
  * videos or links only owners can open, each optionally behind an unlock
  * condition (visit these places, within a radius). Fixed once the NFT is
  * created: owners' unlock progress and the contract's unlock records point at

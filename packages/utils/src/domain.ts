@@ -3,7 +3,7 @@
  * the portal, so the artist sees the same rule as they type.
  */
 
-/** Bandcoin's own names, and hosting names that aren't the artist's. */
+/** Action Tokens' own names, and hosting names that aren't the artist's. */
 const RESERVED_SUFFIXES = ["action-tokens.com", "vercel.app", "sslip.io", "localhost"];
 
 const LABEL = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
@@ -35,7 +35,7 @@ export function validateDomain(domain: string, ownHosts: string[] = []): string 
   }
   const reserved = [...RESERVED_SUFFIXES, ...ownHosts.map(normalizeDomain)];
   if (reserved.some((own) => own && (domain === own || domain.endsWith(`.${own}`)))) {
-    return "That's a Bandcoin address, not your own domain";
+    return "That's an Action Tokens address, not your own domain";
   }
   return null;
 }

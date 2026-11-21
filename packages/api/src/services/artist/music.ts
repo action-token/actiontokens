@@ -112,7 +112,7 @@ export async function listSongs(ctx: Pick<ServiceCtx, "db">, artist: Pick<Artist
       listings: {
         where: { kind: "PRIMARY" },
         take: 1,
-        select: { priceBandcoin: true, priceUsd: true, status: true, quantitySold: true },
+        select: { priceActionToken: true, priceUsd: true, status: true, quantitySold: true },
       },
       _count: { select: { stems: true } },
     },
@@ -139,7 +139,7 @@ export async function listSongs(ctx: Pick<ServiceCtx, "db">, artist: Pick<Artist
       albumId: row.track?.album?.id ?? null,
       albumTitle: row.track?.album?.title ?? null,
       trackNumber: row.track?.trackNumber ?? null,
-      priceBandcoin: listing?.priceBandcoin.toString() ?? null,
+      priceActionToken: listing?.priceActionToken.toString() ?? null,
       priceUsd: listing?.priceUsd.toString() ?? null,
       listingStatus: listing?.status ?? null,
       createdAt: row.createdAt,
@@ -172,7 +172,7 @@ export async function getSong(
       listings: {
         where: { kind: "PRIMARY" },
         take: 1,
-        select: { priceBandcoin: true, priceUsd: true, quantitySold: true },
+        select: { priceActionToken: true, priceUsd: true, quantitySold: true },
       },
     },
   });
@@ -194,7 +194,7 @@ export async function getSong(
     access: { kind: accessKindOf(song), tierId: song.tierId },
     /** Set when an admin took it off fans' screens */
     hidden: song.hiddenAt ? { at: song.hiddenAt, reason: song.hiddenReason } : null,
-    priceBandcoin: listing?.priceBandcoin.toString() ?? "",
+    priceActionToken: listing?.priceActionToken.toString() ?? "",
     priceUsd: listing?.priceUsd.toString() ?? "",
     audioUrl: song.media?.sourceUrl ?? null,
     durationSec: song.media?.durationSec ?? 0,

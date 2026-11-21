@@ -3,7 +3,7 @@ import { CurrencyIcon } from "@actiontokens/ui/patterns/currency-icon";
 
 import { type DisplayCurrency, formatAmount } from "~/lib/format";
 
-/** A price: the currency's icon and the amount, never the word "BANDCOIN". The name is kept for screen readers. */
+/** A price: the currency's icon and the amount, never the word "ACTION". The name is kept for screen readers. */
 export function Money({
   amount,
   currency,

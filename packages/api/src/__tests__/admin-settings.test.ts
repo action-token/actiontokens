@@ -45,7 +45,7 @@ function setup(
     config: {
       network,
       assets: {
-        bandcoin: { code: "BANDCOIN", issuer: Keypair.random().publicKey() },
+        actionToken: { code: "ACTION", issuer: Keypair.random().publicKey() },
         usdc: { code: "USDC", issuer: Keypair.random().publicKey() },
       },
       treasury,
@@ -71,9 +71,9 @@ function setup(
 const saved = {
   platformFeeBps: 250,
   platformFeeRecipient: null,
-  vanityMonthlyBandcoin: null,
+  vanityMonthlyActionToken: null,
   vanityMonthlyUsd: null,
-  vanityNameChangeBandcoin: null,
+  vanityNameChangeActionToken: null,
   vanityNameChangeUsd: null,
   nearbyPinRadiusMeters: 500,
   fanTokenStartSupply: "1000000",

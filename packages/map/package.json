@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "What every Bandcoin map shares: the map types, 2D/3D and terrain choices (kept per device) and the terrain layers. The apps bring their own buttons and panels.",
+  "description": "What every Action Tokens map shares: the map types, 2D/3D and terrain choices (kept per device) and the terrain layers. The apps bring their own buttons and panels.",
   "exports": {
     "./style": "./src/style.ts",
     "./prefs": "./src/prefs.ts",

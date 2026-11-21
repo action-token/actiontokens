@@ -13,13 +13,13 @@ import { api } from "~/trpc/react";
 import { QuoteBreakdown } from "../recharge/quote-breakdown";
 import type { WalletOrderFlow } from "./use-wallet-order";
 
-type Direction = "TO_XLM" | "TO_BANDCOIN";
-const PAYS = { TO_XLM: "BANDCOIN", TO_BANDCOIN: "XLM" } as const;
-const GETS = { TO_XLM: "XLM", TO_BANDCOIN: "BANDCOIN" } as const;
+type Direction = "TO_XLM" | "TO_ACTION";
+const PAYS = { TO_XLM: "ACTION", TO_ACTION: "XLM" } as const;
+const GETS = { TO_XLM: "XLM", TO_ACTION: "ACTION" } as const;
 const AMOUNT = /^\d{0,12}(\.\d{0,7})?$/;
 
 /**
- * Swap any amount of BANDCOIN for XLM, or XLM for BANDCOIN, with the platform
+ * Swap any amount of ACTION for XLM, or XLM for ACTION, with the platform
  * at today's price (less the 2% cushion). The server's quote shows exactly
  * what goes and what arrives before anything is signed. Used in the Wallet's
  * Swap dialog and on the Recharge page.
@@ -75,7 +75,7 @@ export function SwapForm({
         aria-label="Swap"
         className="bg-surface-2 grid grid-cols-2 gap-1 rounded-xl p-1"
       >
-        {(["TO_XLM", "TO_BANDCOIN"] as const).map((option) => (
+        {(["TO_XLM", "TO_ACTION"] as const).map((option) => (
           <button
             key={option}
             type="button"

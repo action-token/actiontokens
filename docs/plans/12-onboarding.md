@@ -21,10 +21,10 @@ the left, one step card on the right, Back / Continue, a progress bar.
 2. **Details** — artist or band name (2–60), a line about you (optional, 500).
 3. **Fan token** — two tabs, like Wadzzo's "Page asset":
    - _New_: the code (4–12 letters, suggested from the name, editable) and an
-     image. Issued from their own Bandcoin account.
+     image. Issued from their own Action Tokens account.
    - _Already on Stellar_: code + issuer, checked on the network as they type
      (`checkExistingToken`: valid, exists, not used by another artist).
-4. **Page address** — `bandcoin.io/artist/{slug}`, suggested from the name,
+4. **Page address** — `action-tokens.io/artist/{slug}`, suggested from the name,
    checked live (new `onboarding.checkSlug`). This is the free page address,
    not the paid short link.
 5. **Review & pay** — everything above in one card with Edit links, then the
@@ -59,5 +59,5 @@ real payment).
 
 ## Not in this stage
 
-The paid short link (bandcoin.io/name) stays in Settings; Wadzzo's "Vanity
+The paid short link (action-tokens.io/name) stays in Settings; Wadzzo's "Vanity
 URL" step maps to the free page address here.

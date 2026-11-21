@@ -48,8 +48,8 @@ function NowPlaying() {
               </span>
               <span className="bg-primary text-primary-foreground border-fg absolute top-2 right-2 flex items-center rounded-full border-2 px-2.5 py-1 text-[12px] font-bold shadow-[2px_2px_0_0_var(--color-fg)]">
                 <Money
-                  amount={track.price.bandcoin}
-                  currency="BANDCOIN"
+                  amount={track.price.actionToken}
+                  currency="ACTION"
                   short
                   className="font-bold"
                   onBrand

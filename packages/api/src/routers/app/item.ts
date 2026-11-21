@@ -52,11 +52,11 @@ export const itemRouter = createRouter({
           listings: {
             // Page asset bundles are sold from the artist's page, not here.
             where: { status: "ACTIVE", kind: { not: "BUNDLE" } },
-            orderBy: [{ kind: "asc" }, { priceBandcoin: "asc" }],
+            orderBy: [{ kind: "asc" }, { priceActionToken: "asc" }],
             select: {
               id: true,
               kind: true,
-              priceBandcoin: true,
+              priceActionToken: true,
               priceUsd: true,
               quantity: true,
               quantitySold: true,
@@ -100,7 +100,12 @@ export const itemRouter = createRouter({
 
       const { listings, _count, membersOnly: _, tier, organization, ...rest } = item;
       const artistView = organization
-        ? { name: organization.name, slug: organization.slug, avatarUrl: organization.avatarUrl, bio: organization.bio }
+        ? {
+            name: organization.name,
+            slug: organization.slug,
+            avatarUrl: organization.avatarUrl,
+            bio: organization.bio,
+          }
         : null;
       const allowed = gate && checkAccess(gate, user ? { account } : null);
       return {
@@ -143,7 +148,7 @@ export const itemRouter = createRouter({
         listings: listings.map((listing) => ({
           id: listing.id,
           kind: listing.kind,
-          priceBandcoin: listing.priceBandcoin.toString(),
+          priceActionToken: listing.priceActionToken.toString(),
           priceUsd: listing.priceUsd.toString(),
           remaining: remainingCopies(listing, item.supply),
           seller: listing.seller,

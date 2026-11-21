@@ -26,7 +26,7 @@ them, then hid them everywhere on 2026-11-13).
 - Fan-map filter by `layer` on the pin list, and a layers list with counts. The embed map sends
   no layer, so it shows every pin.
 
-## Bandcoin today
+## Action Tokens today
 
 `Pin` and `Hotspot` have no layer. The AR map filters by All / Following / Available / Collected
 only. The artist Pins map has clusters, hotspot areas and place search.
@@ -103,7 +103,7 @@ only. The artist Pins map has clusters, hotspot areas and place search.
 
 ## Not in this plan
 
-- Trails and trail layers; a mobile app filter (bandcoin has none); admin acting for an artist's
+- Trails and trail layers; a mobile app filter (actiontokens has none); admin acting for an artist's
   layers (plan 45); layers on embeds.
 
 ## Built (2026-11-13)

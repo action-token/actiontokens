@@ -78,7 +78,7 @@ describe("ar event", () => {
       isFull: false,
     });
     expect(event.bounties).toEqual([
-      { id: "b1", title: "Film the set", imageUrl: "/brand/bandcoin-mark.png" },
+      { id: "b1", title: "Film the set", imageUrl: "/brand/actiontokens-mark.png" },
     ]);
     expect(db.event.findUnique.mock.calls[0]?.[0]).toMatchObject({
       include: { bounties: { where: { fundTxHash: { not: null } } } },

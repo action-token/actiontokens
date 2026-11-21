@@ -9,7 +9,7 @@ import { site } from "@actiontokens/ar-core/site";
 /**
  * ── LocationGate ───────────────────────────────────────────────────────────
  *
- * Shown whenever there's no real fix. Bandcoin AR is a game about standing
+ * Shown whenever there's no real fix. Action Tokens AR is a game about standing
  * somewhere, so there is no useful degraded mode: without a position the map
  * can't say what's near you, capture can't be range-gated, and the AR scene
  * has nothing to place drops against.

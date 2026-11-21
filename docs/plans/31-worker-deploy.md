@@ -9,15 +9,15 @@ got **its own server**.
 
 ## The server
 
-| | |
-|---|---|
-| Name / id | `bandcoin-worker` · `i-0945aeab1cc369a1d` |
-| Account / region | Wadzzo AWS account (827022199028) · us-west-2a (Oregon, same region as the Neon database) |
-| Size | t3.small (2 vCPU, 2 GiB) · Ubuntu 24.04 LTS · 30 GiB gp3 (grown from 20 on 2026-11-06) · 1 GB swap |
-| Address | Elastic IP **54.69.28.110** · SSH user `ubuntu` · key pair `bandcoin-worker` (public half of `bandcoin.pem`) |
-| HTTPS name | `bandcoin.54-69-28-110.sslip.io` (this worker, host port 8080). A free name that resolves to the IP; Caddy gets a Let's Encrypt certificate for it. The plain `54-69-28-110.sslip.io` is no longer served. |
-| Open ports | 22, 80, 443 (the worker's 8080 is bound to 127.0.0.1 only) |
-| Cost | about **$21.23 a month**: server $15.18 + public IPv4 $3.65 + 30 GB disk $2.40. About $6 while stopped. No free tier in this account. |
+|                  |                                                                                                                                                                                                                |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Name / id        | `actiontokens-worker` · `i-0945aeab1cc369a1d`                                                                                                                                                                  |
+| Account / region | Wadzzo AWS account (827022199028) · us-west-2a (Oregon, same region as the Neon database)                                                                                                                      |
+| Size             | t3.small (2 vCPU, 2 GiB) · Ubuntu 24.04 LTS · 30 GiB gp3 (grown from 20 on 2026-11-06) · 1 GB swap                                                                                                             |
+| Address          | Elastic IP **54.69.28.110** · SSH user `ubuntu` · key pair `actiontokens-worker` (public half of `action-tokens.pem`)                                                                                          |
+| HTTPS name       | `actiontokens.54-69-28-110.sslip.io` (this worker, host port 8080). A free name that resolves to the IP; Caddy gets a Let's Encrypt certificate for it. The plain `54-69-28-110.sslip.io` is no longer served. |
+| Open ports       | 22, 80, 443 (the worker's 8080 is bound to 127.0.0.1 only)                                                                                                                                                     |
+| Cost             | about **$21.23 a month**: server $15.18 + public IPv4 $3.65 + 30 GB disk $2.40. About $6 while stopped. No free tier in this account.                                                                          |
 
 **Shared machine.** The same EC2 instance also runs a container of another project. That project's
 repo documents its own deploy, container, port and Caddy site; they share the instance's memory (2 GB),
@@ -46,13 +46,13 @@ The workflow does nothing unless the repository variable `DEPLOY_WORKER` is `tru
 
 ## Done on the server (2026-11-06)
 
-Swap file, Docker, Caddy (`/etc/caddy/Caddyfile`: `bandcoin.54-69-28-110.sslip.io` → `127.0.0.1:8080`, certificate
+Swap file, Docker, Caddy (`/etc/caddy/Caddyfile`: `actiontokens.54-69-28-110.sslip.io` → `127.0.0.1:8080`, certificate
 issued), password logins off,
-the watchdog and its cron line, and `~/bandcoin/worker.env` (mode 600): the production database,
+the watchdog and its cron line, and `~/actiontokens/worker.env` (mode 600): the production database,
 mainnet Stellar and treasury values, Square production, S3, the Firebase web config the shared
 wallet package reads on load, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `GOOGLE_MAP_API_KEY`,
 `NEXTAUTH_SECRET`, `SOCIAL_TOKEN_ENC_KEY` and the Google SMTP settings (login tested; mail still
-needs SPF, DKIM and DMARC records on `bandcoin.io` to avoid spam folders). `LIVE_TICKET_SECRET`
+needs SPF, DKIM and DMARC records on `action-tokens.io` to avoid spam folders). `LIVE_TICKET_SECRET`
 isn't set (falls back to `NEXTAUTH_SECRET`).
 
 The worker has run in production since 2026-11-06 (first working deploy: run 4, commit `a5da19b`).
@@ -61,14 +61,14 @@ contract-unlock transactions with `tx_insufficient_balance`: top it up.
 
 ## Still to do (owner)
 
-- **Studio on Vercel**: `LIVE_WS_URL=wss://bandcoin.54-69-28-110.sslip.io/live`, and
+- **Studio on Vercel**: `LIVE_WS_URL=wss://actiontokens.54-69-28-110.sslip.io/live`, and
   `NEXTAUTH_SECRET` identical to the worker's.
 - **Treasury**: a few XLM, so unlock transactions don't fail.
-- **Email**: SPF, DKIM and DMARC records for `bandcoin.io`.
-- **Later**: a real name (`worker.bandcoin.io`, an A record to 54.69.28.110): change the site name in
+- **Email**: SPF, DKIM and DMARC records for `action-tokens.io`.
+- **Later**: a real name (`worker.action-tokens.io`, an A record to 54.69.28.110): change the site name in
   the Caddyfile, then `LIVE_WS_URL`.
 
 ## Checks after the first deploy
 
-`curl https://bandcoin.54-69-28-110.sslip.io/health` answers 200; a WebSocket opens at `/live`;
-`docker kill bandcoin-worker` brings it back within seconds; a push that touches the worker deploys it.
+`curl https://actiontokens.54-69-28-110.sslip.io/health` answers 200; a WebSocket opens at `/live`;
+`docker kill actiontokens-worker` brings it back within seconds; a push that touches the worker deploys it.

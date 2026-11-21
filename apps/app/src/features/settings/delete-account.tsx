@@ -19,7 +19,7 @@ import { api } from "~/trpc/react";
 
 /**
  * Delete your account: types DELETE to confirm. The server says in plain words
- * when it can't (artists, funds still in a Bandcoin-held wallet, a payment in
+ * when it can't (artists, funds still in an Action Tokens-held wallet, a payment in
  * flight), and nothing is removed until it says yes.
  */
 export function DeleteAccount() {

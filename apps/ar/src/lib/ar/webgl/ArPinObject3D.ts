@@ -175,7 +175,7 @@ export class ArPinObject3D {
     rotateFaceTexture(fallback);
 
     // The pin's own `imageUrl` already resolves through a fallback chain
-    // server-side (own image → artist image → Bandcoin mark), so there's
+    // server-side (own image → artist image → Action Tokens mark), so there's
     // always something real to fetch — proxied for CORS, same reasoning as
     // `pages/api/proxy-image`.
     const loader = new THREE.TextureLoader();

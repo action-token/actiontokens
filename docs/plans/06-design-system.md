@@ -1,4 +1,4 @@
-# 06 · Design system (`@bandcoin/ui`)
+# 06 · Design system (`@actiontokens/ui`)
 
 **Approval gate:** before any app uses it, I publish one preview page with everything below, in dark and light, at desktop and phone width.
 
@@ -8,7 +8,7 @@ A music store you want to spend time in: dark first, album art provides the colo
 
 ## Tokens (CSS variables, Tailwind 4 `@theme`)
 
-- **Color:** neutral surfaces (`--bg`, `--surface`, `--surface-raised`, `--border`), text (`--fg`, `--fg-muted`), one brand accent (Bandcoin chartreuse #dbdc2c from the guitar-pick logo; a deep olive `primary-text` for accent text in light mode), plus `--success`, `--warning` and `--danger`. Contrast is tested to WCAG AA in both themes.
+- **Color:** neutral surfaces (`--bg`, `--surface`, `--surface-raised`, `--border`), text (`--fg`, `--fg-muted`), one brand accent (Action Tokens chartreuse #dbdc2c from the guitar-pick logo; a deep olive `primary-text` for accent text in light mode), plus `--success`, `--warning` and `--danger`. Contrast is tested to WCAG AA in both themes.
 - **Dynamic accent:** item and artist pages pick up the cover's dominant color (stored as `accentColor` at upload), used only for the hero glow and the play button.
 - **Spacing:** one 4px scale. Layout primitives (`Stack`, `Inline`, `Grid`, `Section`, `PageContainer`) so pages never hand-pick margins.
 - **Radius and shadow:** 3 radii and 3 elevation levels.
@@ -26,7 +26,7 @@ You can swap these in the preview before we lock them in.
 
 ## Boot and loading
 
-- **Boot screen** (first visit only, ≤ 600 ms, never blocks the server-rendered content behind it): the Bandcoin mark draws in on an equaliser pulse, then fades into the page. Repeat visits skip it.
+- **Boot screen** (first visit only, ≤ 600 ms, never blocks the server-rendered content behind it): the Action Tokens mark draws in on an equaliser pulse, then fades into the page. Repeat visits skip it.
 - **Route loading:** every route has `loading.tsx` with **skeletons shaped like the real content** (item grid, track list, artist header). No spinners for page loads.
 - **Inline loading:** buttons show their own pending state; images fade in over a blurred placeholder (`plaiceholder` at upload).
 - **Empty and error states:** one `EmptyState` / `ErrorState` pattern with an illustration, one sentence, and one action.

@@ -110,7 +110,10 @@ function Details({ person }: { person: Person }) {
               </StatusPill>
             )}
             {person.artist && (
-              <OrganizationStatus status={person.artist.status} paid={person.artist.issuer !== null} />
+              <OrganizationStatus
+                status={person.artist.status}
+                paid={person.artist.issuer !== null}
+              />
             )}
             {person.suspended && <StatusPill tone="danger">Suspended</StatusPill>}
           </div>
@@ -208,7 +211,10 @@ function Details({ person }: { person: Person }) {
               title: claim.pin.title,
               sub: (
                 <>
-                  <Link href={`/admin/artists/${claim.pin.organization.id}`} className="hover:underline">
+                  <Link
+                    href={`/admin/artists/${claim.pin.organization.id}`}
+                    className="hover:underline"
+                  >
                     {claim.pin.organization.name}
                   </Link>{" "}
                   · {timeAgo(claim.at)}
@@ -294,7 +300,7 @@ function Wallet({ person }: { person: Person }) {
   return (
     <p className="text-fg-muted mt-1 flex flex-wrap items-center gap-x-3 text-xs">
       {person.balances ? (
-        (["BANDCOIN", "XLM", "USDC"] as const).map((currency) => (
+        (["ACTION", "XLM", "USDC"] as const).map((currency) => (
           <Money key={currency} amount={person.balances![currency]} currency={currency} />
         ))
       ) : (

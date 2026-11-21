@@ -13,7 +13,7 @@ const artist = { id: "a1", fanTokenItemId: "fan", storageAccountId: "s1" };
 const user = { id: "u1" };
 const offer = {
   amount: "1000",
-  priceBandcoin: "50",
+  priceActionToken: "50",
   priceUsd: "5",
   priceXlm: "20",
   note: "Early supporter pack",
@@ -49,7 +49,7 @@ function setup({
                   id: "l1",
                   status: "SOLD_OUT",
                   bundleAmount: "100",
-                  priceBandcoin: "5",
+                  priceActionToken: "5",
                   priceUsd: "0.5",
                   priceXlm: "2",
                   note: null,

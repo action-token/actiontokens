@@ -4,9 +4,9 @@
  *   pnpm --filter @actiontokens/api testnet:trust
  *
  * Makes a throwaway artist with a fan token (its own Friendbot issuer) and a
- * throwaway fan with some BANDCOIN from the mother account. The fan then
+ * throwaway fan with some ACTION from the mother account. The fan then
  * quotes, starts, signs locally (as Freighter would) and submits the offer:
- * BANDCOIN for exactly the 0.5 XLM a trustline locks, and the line opens in the
+ * ACTION for exactly the 0.5 XLM a trustline locks, and the line opens in the
  * same transaction. Checks the chain and removes everything it made.
  */
 import { Asset, Keypair, Operation, TransactionBuilder } from "@stellar/stellar-sdk";
@@ -26,13 +26,16 @@ const mother = chain.config.mother;
 if (!mother || !process.env.MOTHER_SECRET) throw new Error("MOTHER_SECRET is needed on testnet");
 
 // TRUST_CURRENCY=XLM pays only the fee and locks the fan's own 0.5 XLM.
-const currency: "XLM" | "BANDCOIN" = process.env.TRUST_CURRENCY === "XLM" ? "XLM" : "BANDCOIN";
+const currency: "XLM" | "ACTION" = process.env.TRUST_CURRENCY === "XLM" ? "XLM" : "ACTION";
 const friendbot = (key: string) => fetch(`https://friendbot.stellar.org/?addr=${key}`);
 const issuerKeys = Keypair.random();
 const fanKeys = Keypair.random();
 await Promise.all([friendbot(issuerKeys.publicKey()), friendbot(fanKeys.publicKey())]);
 
-const bandcoin = new Asset(chain.config.assets.bandcoin.code, chain.config.assets.bandcoin.issuer);
+const actionToken = new Asset(
+  chain.config.assets.actionToken.code,
+  chain.config.assets.actionToken.issuer,
+);
 const balanceOf = async (key: string, asset?: Asset) => {
   const account = await chain.loadAccount(key);
   const line = account?.balances.find((b) =>
@@ -45,7 +48,7 @@ const balanceOf = async (key: string, asset?: Asset) => {
   return Number(line?.balance ?? 0);
 };
 
-// The fan opens a BANDCOIN line, and the mother account sends some BANDCOIN.
+// The fan opens a ACTION line, and the mother account sends some ACTION.
 const horizonAccount = async (key: string) => (await chain.loadAccount(key))!;
 {
   const fan = await horizonAccount(fanKeys.publicKey());
@@ -53,7 +56,7 @@ const horizonAccount = async (key: string) => (await chain.loadAccount(key))!;
     fee: "1000",
     networkPassphrase: chain.config.network.passphrase,
   })
-    .addOperation(Operation.changeTrust({ asset: bandcoin }))
+    .addOperation(Operation.changeTrust({ asset: actionToken }))
     .setTimeout(60)
     .build();
   open.sign(fanKeys);
@@ -64,7 +67,7 @@ const horizonAccount = async (key: string) => (await chain.loadAccount(key))!;
     networkPassphrase: chain.config.network.passphrase,
   })
     .addOperation(
-      Operation.payment({ destination: fanKeys.publicKey(), asset: bandcoin, amount: "100" }),
+      Operation.payment({ destination: fanKeys.publicKey(), asset: actionToken, amount: "100" }),
     )
     .setTimeout(60)
     .build();
@@ -121,9 +124,9 @@ try {
   const token = new Asset(code, issuerKeys.publicKey());
   const input = { kind: "TOKEN_TRUST" as const, organizationId: artist.id, currency };
   const [bandBefore, xlmBefore, motherBefore] = await Promise.all([
-    balanceOf(fanKeys.publicKey(), bandcoin),
+    balanceOf(fanKeys.publicKey(), actionToken),
     balanceOf(fanKeys.publicKey()),
-    balanceOf(mother, bandcoin),
+    balanceOf(mother, actionToken),
   ]);
   const quote = await caller.recharge.quote(input);
   if (quote.kind !== "TOKEN_TRUST") throw new Error("Expected a fan-token quote");
@@ -147,9 +150,9 @@ try {
   console.log("order", done.status, order.kind, "tx", order.txHash);
 
   const [bandAfter, xlmAfter, motherAfter, held] = await Promise.all([
-    balanceOf(fanKeys.publicKey(), bandcoin),
+    balanceOf(fanKeys.publicKey(), actionToken),
     balanceOf(fanKeys.publicKey()),
-    balanceOf(mother, bandcoin),
+    balanceOf(mother, actionToken),
     chain
       .loadAccount(fanKeys.publicKey())
       .then((a) =>
@@ -162,9 +165,9 @@ try {
       ),
   ]);
   console.log(
-    `fan BANDCOIN ${bandBefore} → ${bandAfter} (paid ${(bandBefore - bandAfter).toFixed(7)})`,
+    `fan ACTION ${bandBefore} → ${bandAfter} (paid ${(bandBefore - bandAfter).toFixed(7)})`,
   );
-  console.log(`platform BANDCOIN +${(motherAfter - motherBefore).toFixed(7)}`);
+  console.log(`platform ACTION +${(motherAfter - motherBefore).toFixed(7)}`);
   console.log(
     `fan XLM ${xlmBefore} → ${xlmAfter} (net ${(xlmAfter - xlmBefore).toFixed(7)}: received 0.5 less the fee; the 0.5 is now the line's locked reserve)`,
   );

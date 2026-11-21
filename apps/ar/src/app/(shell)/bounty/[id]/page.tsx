@@ -69,7 +69,7 @@ const LASTFM_ERRORS: Record<string, string> = {
  * report, claim your prize), so the page never asks you to work out where
  * you stand.
  *
- * Everything the old Bandcoin bounty page had is here: the brief and its
+ * Everything the old Action Tokens bounty page had is here: the brief and its
  * requirements (or the songs for a listening challenge), participants and
  * winners, your reports and Last.fm progress, the prize pool and claiming
  * your prize from escrow. Artists run their bounty from the artist portal.

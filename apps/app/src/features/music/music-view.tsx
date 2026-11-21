@@ -103,7 +103,7 @@ export function AlbumsGrid() {
   );
 }
 
-/** Every song on Bandcoin, sortable, with Play all: the bottom of Home. No songs: no section. */
+/** Every song on Action Tokens, sortable, with Play all: the bottom of Home. No songs: no section. */
 export function AllSongs({ seeAllHref }: { seeAllHref?: string }) {
   const [sort, setSort] = useState<Sort>("newest");
   const tracks = api.music.tracks.useInfiniteQuery(

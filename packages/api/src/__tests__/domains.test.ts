@@ -92,9 +92,11 @@ describe("custom domain names", () => {
     expect(validateDomain("music.coldplay.co.uk")).toBeNull();
     expect(validateDomain("coldplay")).toMatch(/whole domain/);
     expect(validateDomain("cold play.com")).toMatch(/letters/);
-    expect(validateDomain("luna.action-tokens.com")).toMatch(/Bandcoin address/);
-    expect(validateDomain("action-tokens.com")).toMatch(/Bandcoin address/);
-    expect(validateDomain("luna.mysite.app", ["https://mysite.app"])).toMatch(/Bandcoin address/);
+    expect(validateDomain("luna.action-tokens.com")).toMatch(/Action Tokens address/);
+    expect(validateDomain("action-tokens.com")).toMatch(/Action Tokens address/);
+    expect(validateDomain("luna.mysite.app", ["https://mysite.app"])).toMatch(
+      /Action Tokens address/,
+    );
   });
 });
 
@@ -181,7 +183,12 @@ describe("connecting a domain", () => {
       addDomain(setup({ mine: row() }).ctx, artist, "other.com", fakeHost()),
     ).rejects.toThrow(/Remove it first/);
     await expect(
-      addDomain(setup({ taken: row({ organizationId: "a2" }) }).ctx, artist, "coldplay.com", fakeHost()),
+      addDomain(
+        setup({ taken: row({ organizationId: "a2" }) }).ctx,
+        artist,
+        "coldplay.com",
+        fakeHost(),
+      ),
     ).rejects.toThrow(/another artist/);
   });
 
@@ -257,7 +264,7 @@ describe("checking a domain", () => {
 });
 
 describe("removing a domain", () => {
-  it("the artist removes it from the host and Bandcoin", async () => {
+  it("the artist removes it from the host and Action Tokens", async () => {
     const { ctx, db } = setup({ mine: row({ status: "LIVE" }) });
     const host = fakeHost();
     expect(await removeDomain(ctx, artist, host)).toEqual({ removed: true });

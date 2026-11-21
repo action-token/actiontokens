@@ -11,7 +11,7 @@ export type MarketItem = {
   type: string;
   coverUrl: string | null;
   artistName: string;
-  price: { bandcoin: string; usd: string } | null;
+  price: { actionToken: string; usd: string } | null;
 };
 
 /**
@@ -20,12 +20,15 @@ export type MarketItem = {
  */
 export function MarketCard({ item, className }: { item: MarketItem; className?: string }) {
   const href = `/marketplace/${encodeURIComponent(item.slug)}`;
-  const price = item.price ? formatPrice(item.price.bandcoin) : null;
+  const price = item.price ? formatPrice(item.price.actionToken) : null;
   const usd = item.price ? formatUsd(item.price.usd) : null;
 
   return (
     <div className={cn("ar-bevel rounded-ar flex flex-col overflow-hidden", className)}>
-      <Link href={href} className="group relative block aspect-square overflow-hidden border-b-2 border-[hsl(var(--st-line)/0.85)]">
+      <Link
+        href={href}
+        className="group relative block aspect-square overflow-hidden border-b-2 border-[hsl(var(--st-line)/0.85)]"
+      >
         {item.coverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img

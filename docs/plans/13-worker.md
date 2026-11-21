@@ -2,7 +2,7 @@
 
 `apps/worker`: an always-on Node process (decided 2026-10-31) that finishes
 stuck payments and processes uploaded music. It uses the same database and
-`@bandcoin/api` services as the apps, so a job does exactly what the app would.
+`@actiontokens/api` services as the apps, so a job does exactly what the app would.
 
 ## Decisions (asked 2026-10-31)
 
@@ -59,7 +59,7 @@ ends `FAILED`; the song still plays from the original upload, and the artist
 sees "Couldn't process the recording" on the song with a Retry. Existing
 songs (`LEGACY`) keep working as now; one command processes them in batches
 when you want
-(`pnpm --filter @bandcoin/worker backfill:music 50`). Stems for people who
+(`pnpm --filter @actiontokens/worker backfill:music 50`). Stems for people who
 don't own the song still get their 30 s cut from the original file.
 
 ## The worker itself
@@ -100,14 +100,14 @@ Everything above is built: queue with retries, schedules, health, payment re-che
 processing, Admin › Jobs (Retry on music jobs only), Dockerfile and env example. Since then the
 worker also runs:
 
-| Job | Runs | Retried? |
-|---|---|---|
-| `nft.unlocks`, `nft.keep-alive` | on a clock | yes (they only record, and can repeat) |
-| `hotspot.drop`, `vanity.expire` | on a clock | no, the next tick picks up what's due |
-| `studio.sweep` | every 10 min | no |
-| `studio.music`, `studio.generate` | when asked | **never**: coins are held, so one attempt |
-| `agent.run`, `pins.batch` | when asked | **never**: a retry could answer twice or double the pins |
-| live music relay | WebSocket `/live` on the health port | n/a |
+| Job                               | Runs                                 | Retried?                                                 |
+| --------------------------------- | ------------------------------------ | -------------------------------------------------------- |
+| `nft.unlocks`, `nft.keep-alive`   | on a clock                           | yes (they only record, and can repeat)                   |
+| `hotspot.drop`, `vanity.expire`   | on a clock                           | no, the next tick picks up what's due                    |
+| `studio.sweep`                    | every 10 min                         | no                                                       |
+| `studio.music`, `studio.generate` | when asked                           | **never**: coins are held, so one attempt                |
+| `agent.run`, `pins.batch`         | when asked                           | **never**: a retry could answer twice or double the pins |
+| live music relay                  | WebSocket `/live` on the health port | n/a                                                      |
 
 Changes made while finishing it:
 

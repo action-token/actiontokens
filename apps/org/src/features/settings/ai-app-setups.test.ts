@@ -25,7 +25,7 @@ describe("how each AI app is told about the server", () => {
   });
 
   it("names the server for Action Tokens", () => {
-    expect(SERVER_NAME).toBe("bandcoin");
+    expect(SERVER_NAME).toBe("actiontokens");
   });
 
   it("puts the address and the token in every snippet", () => {
@@ -42,7 +42,7 @@ describe("how each AI app is told about the server", () => {
   it("gives Claude Code the one-line command", () => {
     const claudeCode = setups.find((s) => s.id === "claude-code")!;
     expect(claudeCode.code).toBe(
-      `claude mcp add --transport http bandcoin ${URL} --header "Authorization: Bearer ${TOKEN}"`,
+      `claude mcp add --transport http actiontokens ${URL} --header "Authorization: Bearer ${TOKEN}"`,
     );
   });
 

@@ -120,7 +120,7 @@ export function CollectionReportView({ admin = false }: { admin?: boolean }) {
         : await exportOwn.mutateAsync(scope);
       if (rows.length === 0) return toast("Nothing to export for this period");
       downloadCsv(
-        `bandcoin-collections-${new Date().toISOString().slice(0, 10)}.csv`,
+        `actiontokens-collections-${new Date().toISOString().slice(0, 10)}.csv`,
         rows.map((row) => ({
           ...(admin ? { Artist: row.artist } : {}),
           Pin: row.pin,

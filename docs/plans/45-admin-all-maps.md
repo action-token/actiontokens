@@ -14,7 +14,7 @@ so they aren't offered there. The chosen brand is kept in the URL (`?brand=`), t
 per brand. Every brand API takes an optional `creatorId`; an admin may pass another brand's, and
 `resolveActingBrand` checks it (admin, brand exists, in scope). Pin review stays as its own page.
 
-## Bandcoin today
+## Action Tokens today
 
 Admin › Pin review › Map shows everyone's pins (or one artist's) and approves or rejects them; an
 admin can't make or edit anything for an artist. The artist APIs assume the caller is the artist

@@ -43,14 +43,14 @@ export function BuyPanel({
 }: {
   itemTitle: string;
   listing: Listing;
-  /** Contract NFTs are paid in BANDCOIN or by card */
+  /** Contract NFTs are paid in ACTION or by card */
   nft?: boolean;
   /** One column on wide screens, for a narrow side panel */
   stacked?: boolean;
 }) {
   const { status } = useSession();
   const openSignIn = useConnectWalletDialogStore((state) => state.setIsOpen);
-  const [currency, setCurrency] = useState<DisplayCurrency>("BANDCOIN");
+  const [currency, setCurrency] = useState<DisplayCurrency>("ACTION");
   const [quantity, setQuantity] = useState(1);
   const me = api.account.me.useQuery(undefined, { enabled: status === "authenticated" });
   const purchase = usePurchase({ itemTitle });
@@ -65,7 +65,7 @@ export function BuyPanel({
   const perOrder = nft ? MAX_NFT_PER_ORDER : MAX_PER_ORDER;
   const maxQuantity = Math.max(1, Math.min(perOrder, listing.remaining ?? perOrder));
   const currencies = nft
-    ? CURRENCIES.filter((option) => option.value === "BANDCOIN" || option.value === "USD")
+    ? CURRENCIES.filter((option) => option.value === "ACTION" || option.value === "USD")
     : CURRENCIES;
   const quote = api.order.quote.useQuery(
     { listingId: listing.id, quantity, currency },
@@ -100,8 +100,8 @@ export function BuyPanel({
   const unitPrice =
     quote.data?.currency === currency
       ? quote.data.unitPrice
-      : currency === "BANDCOIN"
-        ? listing.priceBandcoin
+      : currency === "ACTION"
+        ? listing.priceActionToken
         : currency === "USD"
           ? listing.priceUsd
           : null;
@@ -139,8 +139,8 @@ export function BuyPanel({
 
         {nft && listing.isOwn && (
           <p className="bg-surface-2 text-fg-muted rounded-md p-3 text-xs">
-            This is your NFT. The price comes back to you in BANDCOIN, so what it really costs you
-            is the fees. Copies you own can be gifted from Gifts in the artist portal.
+            This is your NFT. The price comes back to you in ACTION, so what it really costs you is
+            the fees. Copies you own can be gifted from Gifts in the artist portal.
           </p>
         )}
 

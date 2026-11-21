@@ -4,7 +4,7 @@
  *   pnpm --filter @actiontokens/api testnet:demo [artist-slug]   (default lumen-avenue)
  *
  * Gives the artist a funded testnet wallet (Friendbot), has that wallet open
- * the artist's one issuer (the artist pays, as in production), adds BANDCOIN
+ * the artist's one issuer (the artist pays, as in production), adds ACTION
  * and USDC trustlines so the artist can be paid in them, and points the
  * artist's items at the new issuer. The issuer secret is stored encrypted
  * (CHAIN_ACCOUNT_KEY); the artist wallet's secret is thrown away.
@@ -43,7 +43,7 @@ const wallet = Keypair.random();
 const issuer = Keypair.random();
 await friendbot(wallet.publicKey());
 
-// The artist opens their issuer (the production builder), then trusts BANDCOIN and USDC. The artist pays both.
+// The artist opens their issuer (the production builder), then trusts ACTION and USDC. The artist pays both.
 const setup = buildIssuerSetup({
   artist: await sequenceOf(wallet.publicKey()),
   network: config.network,
@@ -51,7 +51,7 @@ const setup = buildIssuerSetup({
 });
 const { hash } = await submit(addSignatures(setup.xdr, [wallet.secret()]));
 const trust = startTransaction(await sequenceOf(wallet.publicKey()), config.network);
-for (const asset of [config.assets.bandcoin, config.assets.usdc]) {
+for (const asset of [config.assets.actionToken, config.assets.usdc]) {
   trust.addOperation(Operation.changeTrust({ asset: new Asset(asset.code, asset.issuer) }));
 }
 await submit(addSignatures(finish(trust).xdr, [wallet.secret()]));

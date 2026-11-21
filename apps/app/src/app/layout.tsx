@@ -8,7 +8,7 @@ import { sharedThemeSeedScript } from "@actiontokens/ui/lib/shared-theme";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: { default: "Bandcoin: own the music you love", template: "%s · Bandcoin" },
+  title: { default: "Action Tokens: own the music you love", template: "%s · Action Tokens" },
   description: "Buy, collect and stream music from the artists you love, on Stellar.",
 };
 
@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     // suppressHydrationWarning: next-themes sets data-theme before hydration.
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* The theme the other Bandcoin sites chose, in place before the first paint. */}
+        {/* The theme the other Action Tokens sites chose, in place before the first paint. */}
         <script dangerouslySetInnerHTML={{ __html: sharedThemeSeedScript("theme") }} />
       </head>
       <body>

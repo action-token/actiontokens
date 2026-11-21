@@ -14,7 +14,7 @@ const CAPTION_PERKS = [
 /**
  * ── DeviceFrame ────────────────────────────────────────────────────────────
  *
- * Bandcoin AR is a mobile web app with no desktop layout — not because desktop
+ * Action Tokens AR is a mobile web app with no desktop layout — not because desktop
  * is unsupported, but because there is nothing to lay out differently. The
  * screens are a camera feed, a map, and a stack of cards. So on a big screen
  * we don't stretch them; we present the phone.

@@ -50,7 +50,7 @@ export function PageAssetOffers({ slug }: { slug: string }) {
                 </p>
                 {offer.note && <p className="text-fg-muted text-sm">{offer.note}</p>}
                 <p className="text-fg-muted num text-xs">
-                  <Money amount={offer.listing.priceBandcoin} currency="BANDCOIN" /> · $
+                  <Money amount={offer.listing.priceActionToken} currency="ACTION" /> · $
                   {tokens(offer.listing.priceUsd)}
                   {offer.priceXlm && ` · ${tokens(offer.priceXlm)} XLM`}
                 </p>

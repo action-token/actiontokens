@@ -10,7 +10,7 @@ export const LIMITS: Record<Side, { min: number; max: number }> = {
   right: { min: 260, max: 520 },
 };
 const STEP = 16;
-const STORAGE_KEY = "bandcoin.panel-widths";
+const STORAGE_KEY = "action-tokens.panel-widths";
 
 export function clampWidth(side: Side, px: number) {
   if (!Number.isFinite(px)) return DEFAULT_WIDTHS[side];

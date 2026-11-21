@@ -4,11 +4,11 @@ import { createMapPrefs } from "./prefs";
 
 describe("an app's map choices", () => {
   it("are stored under the app's own prefix", () => {
-    const ar = createMapPrefs("bandcoin-ar");
+    const ar = createMapPrefs("actiontokens-ar");
     expect(ar.keys).toEqual({
-      mode: "bandcoin-ar-map-mode",
-      base: "bandcoin-ar-map-base",
-      terrain: "bandcoin-ar-map-terrain",
+      mode: "actiontokens-ar-map-mode",
+      base: "actiontokens-ar-map-base",
+      terrain: "actiontokens-ar-map-terrain",
     });
   });
 

@@ -3,7 +3,7 @@ import { CreditCard } from "lucide-react";
 import { ACTION_LOGO } from "../lib/action-logo";
 import { cn } from "../lib/cn";
 
-export type CurrencyIconName = "BANDCOIN" | "XLM" | "USDC" | "USD";
+export type CurrencyIconName = "ACTION" | "XLM" | "USDC" | "USD";
 
 /** The mark for each way to pay: the ACTION logo, Stellar's XLM, Circle's USDC, a card. */
 export function CurrencyIcon({
@@ -15,7 +15,7 @@ export function CurrencyIcon({
 }) {
   const size = cn("size-5 shrink-0", className);
   switch (currency) {
-    case "BANDCOIN":
+    case "ACTION":
       return <img src={ACTION_LOGO} alt="" aria-hidden className={cn(size, "object-contain")} />;
     case "XLM":
       return (

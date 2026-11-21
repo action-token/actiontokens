@@ -1,6 +1,6 @@
 # 03 · Data migration (old dev DB → new dev DB)
 
-- **Source:** `old-bandcoin` dev DB, opened **read-only** (`default_transaction_read_only=on`).
+- **Source:** `old-actiontokens` dev DB, opened **read-only** (`default_transaction_read_only=on`).
 - **Target:** the new Neon dev DB. Its URL lives only in `packages/db/.env` (git-ignored).
 - **Production:** not touched. Cutover is a separate plan with its own approval (phase 9).
 

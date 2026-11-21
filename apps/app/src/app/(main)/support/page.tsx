@@ -4,7 +4,7 @@ import { SupportView } from "~/features/info/support-view";
 
 export const metadata: Metadata = {
   title: "Support",
-  description: "Contact Bandcoin support, sales, press or report a bug.",
+  description: "Contact Action Tokens support, sales, press or report a bug.",
 };
 
 export default function SupportPage() {

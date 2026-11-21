@@ -61,10 +61,9 @@ export function formatUsd(price: string | number | null | undefined): string | n
 
 /**
  * The platform token's code as users see it ("ACTION"), from the configured Stellar asset.
- * Code and data still call it `bandcoin` internally; screens never say BANDCOIN.
+ * The stored currency value is `ACTION` too; a deployment may set a different asset code.
  */
 export const TOKEN_CODE = (process.env.NEXT_PUBLIC_ASSET_CODE || "ACTION").toUpperCase();
 
-/** A currency as users read it: the stored platform value `BANDCOIN` shows as the token's code. */
-export const currencyLabel = (currency: string) =>
-  currency === "BANDCOIN" ? TOKEN_CODE : currency;
+/** A currency as users read it: the stored platform value `ACTION` shows as the token's code. */
+export const currencyLabel = (currency: string) => (currency === "ACTION" ? TOKEN_CODE : currency);

@@ -46,7 +46,7 @@ function setup(order: { buyerId: string; kind: string } | null) {
       { asset_type: "native", balance: "12", selling_liabilities: "0" },
       {
         asset_type: "credit_alphanum12",
-        asset_code: "BANDCOIN",
+        asset_code: "ACTION",
         asset_issuer: issuer,
         balance: "250",
         selling_liabilities: "0",
@@ -74,7 +74,7 @@ function setup(order: { buyerId: string; kind: string } | null) {
   const chain = {
     config: {
       assets: {
-        bandcoin: { code: "BANDCOIN", issuer },
+        actionToken: { code: "ACTION", issuer },
         usdc: { code: "USDC", issuer: Keypair.random().publicKey() },
       },
     },
@@ -126,7 +126,7 @@ describe("wallet send and swap", () => {
   it("is in the artist portal too", async () => {
     swap.quoteSwap.mockResolvedValue({ ok: true });
     await setup(null).portal.wallet.swap.quote({
-      direction: "TO_BANDCOIN",
+      direction: "TO_ACTION",
       amount: "1",
     });
     expect(swap.quoteSwap).toHaveBeenCalled();
@@ -134,7 +134,7 @@ describe("wallet send and swap", () => {
 });
 
 describe("wallet assets", () => {
-  it("lists XLM (spendable and reserved), then BANDCOIN, USDC and every other token by name", async () => {
+  it("lists XLM (spendable and reserved), then ACTION, USDC and every other token by name", async () => {
     const assets = await setup(null).caller.wallet.assets();
     expect(assets).toMatchObject({
       address: wallet,
@@ -146,7 +146,7 @@ describe("wallet assets", () => {
       assets.tokens.map((token) => [token.code, token.kind, token.title, token.amount]),
     ).toEqual([
       ["XLM", "xlm", "Stellar Lumens", "10.0000000"],
-      ["BANDCOIN", "bandcoin", "Action Tokens", "250.0000000"],
+      ["ACTION", "actionToken", "Action Tokens", "250.0000000"],
       ["USDC", "usdc", "USD Coin", "0.0000000"],
       ["NOVA", "other", "Nova fan token", "3.0000000"],
     ]);

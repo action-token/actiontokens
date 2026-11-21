@@ -30,10 +30,10 @@ const isProductionStage = stage === "prod";
 export const TrxBaseFee = isProductionStage ? "1000" : "100";
 
 /**
- * What a Stellar transaction costs, paid in BANDCOIN (same on every stage, as in bandfan).
+ * What a Stellar transaction costs, paid in ACTION (same on every stage, as in bandfan).
  * Moves to AppSetting (server-priced) in phase 3.
  */
 export const TrxBaseFeeInPlatformAsset = "1400";
 
-/** Flat platform fee, paid in BANDCOIN. Moves to AppSetting in phase 3. */
+/** Flat platform fee, paid in ACTION. Moves to AppSetting in phase 3. */
 export const PLATFORM_FEE = "6000";

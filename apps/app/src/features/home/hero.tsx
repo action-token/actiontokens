@@ -120,8 +120,8 @@ export function Hero({ items }: { items: HeroItem[] }) {
             {item.price && (
               <div className="bg-primary text-primary-foreground inline-grid w-fit -rotate-2 gap-0.5 rounded-2xl px-4 py-2">
                 <Money
-                  amount={item.price.bandcoin}
-                  currency="BANDCOIN"
+                  amount={item.price.actionToken}
+                  currency="ACTION"
                   short
                   onBrand
                   className="display text-4xl leading-none"

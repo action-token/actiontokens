@@ -25,8 +25,8 @@ import { assertWritable } from "../../db/scripts/guard";
 
 assertWritable(process.env.DATABASE_URL, "run against the database");
 
-const BANDCOIN = {
-  code: "BANDCOIN",
+const ACTION = {
+  code: "ACTION",
   issuer: "GAPWBIC6RVQZCLBQ4GTZSI3I7YRYTSBC7EJ65KHHPL4T5CJECU3PQ7PD",
 };
 const USDC = { code: "USDC", issuer: "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5" };
@@ -82,13 +82,13 @@ const chain: ChainGateway = {
   contractIsLive: () => Promise.resolve(true),
   claimableFor: () => Promise.resolve([]),
   assetHolders: () => Promise.resolve({ holders: [], complete: true }),
-  bandcoinUsd: () => Promise.resolve("0.002"),
+  actionTokenUsd: () => Promise.resolve("0.002"),
   config: {
     name: "testnet",
     network: { passphrase: Networks.TESTNET, baseFee: "100" },
     horizonUrl: "",
     rpcUrl: "",
-    assets: { bandcoin: BANDCOIN, usdc: USDC },
+    assets: { actionToken: ACTION, usdc: USDC },
     treasury: keys.treasury.publicKey(),
     mother: null,
     nftContract: null,
@@ -180,7 +180,7 @@ beforeAll(async () => {
   });
   itemId = item.id;
   const listing = await db.listing.create({
-    data: { itemId: item.id, sellerId: artistUser.id, priceBandcoin: "10", priceUsd: "2.5" },
+    data: { itemId: item.id, sellerId: artistUser.id, priceActionToken: "10", priceUsd: "2.5" },
   });
   listingId = listing.id;
 
@@ -191,8 +191,8 @@ beforeAll(async () => {
     walletType: "emailPass",
     email: buyerUser.email,
   };
-  wallets.set(keys.buyer.publicKey(), { xlm: "10", lines: [{ ...BANDCOIN, balance: "100" }] });
-  wallets.set(keys.artist.publicKey(), { xlm: "10", lines: [{ ...BANDCOIN, balance: "0" }] });
+  wallets.set(keys.buyer.publicKey(), { xlm: "10", lines: [{ ...ACTION, balance: "100" }] });
+  wallets.set(keys.artist.publicKey(), { xlm: "10", lines: [{ ...ACTION, balance: "0" }] });
 });
 
 afterAll(async () => {
@@ -209,7 +209,7 @@ afterAll(async () => {
   await db.$disconnect();
 });
 
-const purchase = (currency: "BANDCOIN" | "XLM" | "USDC" | "USD", quantity = 2) => ({
+const purchase = (currency: "ACTION" | "XLM" | "USDC" | "USD", quantity = 2) => ({
   listingId,
   quantity,
   currency,
@@ -218,12 +218,12 @@ const purchase = (currency: "BANDCOIN" | "XLM" | "USDC" | "USD", quantity = 2) =
 describe("buying a classic token", () => {
   it("quotes all four currencies from the artist's two prices, without converting", async () => {
     const caller = callerFor(buyer);
-    const bandcoin = await caller.order.quote(purchase("BANDCOIN"));
-    expect(bandcoin.totals).toEqual([
-      { currency: "BANDCOIN", amount: "20.5000000" },
+    const actionToken = await caller.order.quote(purchase("ACTION"));
+    expect(actionToken.totals).toEqual([
+      { currency: "ACTION", amount: "20.5000000" },
       { currency: "XLM", amount: "0.5000400" },
     ]);
-    expect(bandcoin.ok).toBe(true);
+    expect(actionToken.ok).toBe(true);
 
     const xlm = await caller.order.quote(purchase("XLM"));
     expect(xlm.totals).toEqual([{ currency: "XLM", amount: "21.0000400" }]);
@@ -241,14 +241,14 @@ describe("buying a classic token", () => {
     expect(card.cardSettlement).toMatchObject({ seller: "20.0000000", reserveXlm: "0.5000000" });
     expect(card.ok).toBe(true);
 
-    expect((await callerFor(null).order.quote(purchase("BANDCOIN"))).problems[0]?.code).toBe(
+    expect((await callerFor(null).order.quote(purchase("ACTION"))).problems[0]?.code).toBe(
       "SIGN_IN",
     );
   });
 
   it("lets a custodial buyer cancel during the countdown: nothing is signed or sent", async () => {
     const caller = callerFor(buyer);
-    const started = await caller.order.start(purchase("BANDCOIN"));
+    const started = await caller.order.start(purchase("ACTION"));
     expect(started.signer).toBe("custodial");
     await caller.order.cancel({ orderId: started.orderId });
 
@@ -261,7 +261,7 @@ describe("buying a classic token", () => {
 
   it("delivers after the countdown: the buyer pays everything, the artist's issuer mints", async () => {
     const caller = callerFor(buyer);
-    const started = await caller.order.start(purchase("BANDCOIN"));
+    const started = await caller.order.start(purchase("ACTION"));
     const tx = TransactionBuilder.fromXDR(started.xdr, Networks.TESTNET) as Transaction;
     expect(tx.source).toBe(keys.buyer.publicKey());
 
@@ -272,7 +272,7 @@ describe("buying a classic token", () => {
     ]);
 
     const order = await db.order.findUniqueOrThrow({ where: { id: started.orderId } });
-    expect(order).toMatchObject({ status: "DELIVERED", method: "WALLET", currency: "BANDCOIN" });
+    expect(order).toMatchObject({ status: "DELIVERED", method: "WALLET", currency: "ACTION" });
     expect(order.total.toString()).toBe("20.5");
     expect(order.sellerAmount?.toString()).toBe("20");
     const owned = await db.ownership.findUniqueOrThrow({
@@ -288,15 +288,15 @@ describe("buying a classic token", () => {
       status: "SUCCESS",
       targetType: "Order",
       targetId: started.orderId,
-      currency: "BANDCOIN",
+      currency: "ACTION",
     });
     expect(JSON.stringify(log.at(-1)?.input)).not.toContain(started.xdr.slice(0, 20));
   });
 
   it("refuses a transaction that isn't the one built for the order", async () => {
     const caller = callerFor(buyer);
-    const first = await caller.order.start(purchase("BANDCOIN", 1));
-    const second = await caller.order.start(purchase("BANDCOIN", 1));
+    const first = await caller.order.start(purchase("ACTION", 1));
+    const second = await caller.order.start(purchase("ACTION", 1));
     await expect(caller.order.submit({ orderId: first.orderId, xdr: second.xdr })).rejects.toThrow(
       /doesn't belong/,
     );
@@ -304,7 +304,7 @@ describe("buying a classic token", () => {
     await caller.order.cancel({ orderId: second.orderId });
   });
 
-  it("card: charges USD for everything, the treasury pays XLM and the seller in BANDCOIN", async () => {
+  it("card: charges USD for everything, the treasury pays XLM and the seller in ACTION", async () => {
     const caller = callerFor(buyer);
     const started = await caller.order.start(purchase("USD", 1));
     const tx = TransactionBuilder.fromXDR(started.xdr, Networks.TESTNET) as Transaction;
@@ -313,7 +313,7 @@ describe("buying a classic token", () => {
     expect(tx.operations.map((op) => [op.type, op.source ?? "buyer"])).toEqual([
       ["payment", treasury], // 0.5 XLM for the trustline reserve
       ["changeTrust", "buyer"],
-      ["payment", treasury], // the seller's 10 BANDCOIN
+      ["payment", treasury], // the seller's 10 ACTION
       ["payment", keys.issuer.publicKey()],
     ]);
     expect(tx.operations[2]).toMatchObject({
@@ -356,7 +356,7 @@ describe("buying a classic token", () => {
   it("won't start a purchase the buyer can't afford or that exceeds the supply", async () => {
     const caller = callerFor(buyer);
     await expect(caller.order.start(purchase("XLM"))).rejects.toThrow(/short/);
-    await expect(caller.order.start(purchase("BANDCOIN", 4))).rejects.toThrow(/Only 2 left/);
+    await expect(caller.order.start(purchase("ACTION", 4))).rejects.toThrow(/Only 2 left/);
   });
 });
 
@@ -376,7 +376,10 @@ describe("a members-only or tier item", () => {
         classicToken: { create: { code: fanCode, issuer: keys.issuer.publicKey() } },
       },
     });
-    await db.organization.update({ where: { id: ids.artist }, data: { fanTokenItemId: fanToken.id } });
+    await db.organization.update({
+      where: { id: ids.artist },
+      data: { fanTokenItemId: fanToken.id },
+    });
     const [low, gold] = await Promise.all([
       db.membershipTier.create({
         data: { organizationId: ids.artist, name: "Fan", description: "", requiredTokens: "10" },
@@ -390,14 +393,14 @@ describe("a members-only or tier item", () => {
       wallets.set(keys.buyer.publicKey(), {
         xlm: "10",
         lines: [
-          { ...BANDCOIN, balance: "100" },
+          { ...ACTION, balance: "100" },
           { code: fanCode, issuer: keys.issuer.publicKey(), balance },
         ],
       });
 
     await db.item.update({ where: { id: itemId }, data: { tierId: gold.id } });
     holding("20");
-    const short = await caller.order.quote(purchase("BANDCOIN", 1));
+    const short = await caller.order.quote(purchase("ACTION", 1));
     expect(short.ok).toBe(false);
     expect(short.problems[0]?.message).toBe(`Hold 50 ${fanCode} to buy this. You have 20.`);
     const page = await caller.item.bySlug({ slug: `${run}-track` });
@@ -408,22 +411,22 @@ describe("a members-only or tier item", () => {
       have: "20",
       ok: false,
     });
-    await expect(caller.order.start(purchase("BANDCOIN", 1))).rejects.toThrow(/Hold 50/);
+    await expect(caller.order.start(purchase("ACTION", 1))).rejects.toThrow(/Hold 50/);
 
     holding("50");
-    expect((await caller.order.quote(purchase("BANDCOIN", 1))).ok).toBe(true);
+    expect((await caller.order.quote(purchase("ACTION", 1))).ok).toBe(true);
 
     // Members: the lowest tier counts.
     await db.item.update({ where: { id: itemId }, data: { tierId: null, membersOnly: true } });
     holding("10");
-    expect((await caller.order.quote(purchase("BANDCOIN", 1))).ok).toBe(true);
+    expect((await caller.order.quote(purchase("ACTION", 1))).ok).toBe(true);
     holding("9");
-    expect((await caller.order.quote(purchase("BANDCOIN", 1))).problems[0]?.message).toMatch(
+    expect((await caller.order.quote(purchase("ACTION", 1))).problems[0]?.message).toMatch(
       /Hold 10/,
     );
 
     await db.item.update({ where: { id: itemId }, data: { membersOnly: false } });
-    wallets.set(keys.buyer.publicKey(), { xlm: "10", lines: [{ ...BANDCOIN, balance: "100" }] });
+    wallets.set(keys.buyer.publicKey(), { xlm: "10", lines: [{ ...ACTION, balance: "100" }] });
     await db.membershipTier.deleteMany({ where: { id: { in: [low.id, gold.id] } } });
   });
 });
@@ -447,10 +450,15 @@ describe("a Non Stellar item", () => {
     });
     offChainItem = item.id;
     const listing = await db.listing.create({
-      data: { itemId: item.id, sellerId: ids.users[0] ?? "", priceBandcoin: "10", priceUsd: "2.5" },
+      data: {
+        itemId: item.id,
+        sellerId: ids.users[0] ?? "",
+        priceActionToken: "10",
+        priceUsd: "2.5",
+      },
     });
     offChainListing = listing.id;
-    wallets.set(keys.buyer.publicKey(), { xlm: "10", lines: [{ ...BANDCOIN, balance: "100" }] });
+    wallets.set(keys.buyer.publicKey(), { xlm: "10", lines: [{ ...ACTION, balance: "100" }] });
   });
 
   afterAll(async () => {
@@ -461,11 +469,11 @@ describe("a Non Stellar item", () => {
 
   it("is a plain payment to the artist: no trustline, nothing on Stellar, owned in the database", async () => {
     const caller = callerFor(buyer);
-    const input = { listingId: offChainListing, quantity: 2, currency: "BANDCOIN" as const };
+    const input = { listingId: offChainListing, quantity: 2, currency: "ACTION" as const };
     const quote = await caller.order.quote(input);
     // 2 × 10 + 2.5 %, and only the network fee in XLM: no trustline reserve.
     expect(quote.totals).toEqual([
-      { currency: "BANDCOIN", amount: "20.5000000" },
+      { currency: "ACTION", amount: "20.5000000" },
       { currency: "XLM", amount: "0.0000200" },
     ]);
     expect(quote.lines.map((line) => line.key)).not.toContain("reserve");
@@ -506,7 +514,10 @@ describe("a page asset bundle", () => {
       },
     });
     storageId = account.id;
-    await db.organization.update({ where: { id: ids.artist }, data: { storageAccountId: account.id } });
+    await db.organization.update({
+      where: { id: ids.artist },
+      data: { storageAccountId: account.id },
+    });
     const token = await db.item.create({
       data: {
         type: "FAN_TOKEN",
@@ -527,7 +538,7 @@ describe("a page asset bundle", () => {
         kind: "BUNDLE",
         quantity: 1,
         bundleAmount: "1000",
-        priceBandcoin: "50",
+        priceActionToken: "50",
         priceUsd: "5",
         priceXlm: "8",
       },
@@ -537,7 +548,7 @@ describe("a page asset bundle", () => {
       xlm: "5",
       lines: [{ code: tokenCode, issuer: keys.issuer.publicKey(), balance: "1500" }],
     });
-    wallets.set(keys.buyer.publicKey(), { xlm: "10", lines: [{ ...BANDCOIN, balance: "100" }] });
+    wallets.set(keys.buyer.publicKey(), { xlm: "10", lines: [{ ...ACTION, balance: "100" }] });
   });
 
   afterAll(async () => {
@@ -550,7 +561,7 @@ describe("a page asset bundle", () => {
 
   it("sells the whole bundle once, from storage, with the artist's own XLM price", async () => {
     const caller = callerFor(buyer);
-    const input = { listingId: bundleListing, quantity: 1, currency: "BANDCOIN" as const };
+    const input = { listingId: bundleListing, quantity: 1, currency: "ACTION" as const };
     const xlm = await caller.order.quote({ ...input, currency: "XLM" });
     expect(xlm.lines[0]).toMatchObject({ key: "price", amount: "8.0000000" });
 
@@ -579,7 +590,7 @@ describe("a page asset bundle", () => {
         kind: "BUNDLE",
         quantity: 1,
         bundleAmount: "5000",
-        priceBandcoin: "50",
+        priceActionToken: "50",
         priceUsd: "5",
         priceXlm: "8",
       },
@@ -587,7 +598,7 @@ describe("a page asset bundle", () => {
     const quote = await callerFor(buyer).order.quote({
       listingId: short.id,
       quantity: 1,
-      currency: "BANDCOIN",
+      currency: "ACTION",
     });
     expect(quote.problems.map((problem) => problem.message)).toContain(
       "The artist's storage doesn't hold enough tokens for this offer right now.",

@@ -24,7 +24,7 @@ import {
 
 const wallet = Keypair.random();
 const tokenIssuer = Keypair.random().publicKey();
-const bandcoin = { code: "BANDCOIN", issuer: Keypair.random().publicKey() };
+const actionToken = { code: "ACTION", issuer: Keypair.random().publicKey() };
 const network = { passphrase: Networks.TESTNET, baseFee: "100" };
 const ORDER = "cmvorder0000000000000041";
 const me: SessionUser = {
@@ -58,7 +58,7 @@ const account = (id: string, ...balances: Row[]) =>
 type Opts = {
   copies?: string;
   xlm?: string;
-  hasBandcoin?: boolean;
+  hasActionToken?: boolean;
   storage?: "none" | "open";
   storageHolds?: string | null;
   item?: Row | null;
@@ -87,7 +87,7 @@ function setup(opts: Opts = {}) {
       wallet.publicKey(),
       native(opts.xlm ?? "20"),
       credit("PRINT", tokenIssuer, opts.copies ?? "5"),
-      ...(opts.hasBandcoin === false ? [] : [credit("BANDCOIN", bandcoin.issuer, "100")]),
+      ...(opts.hasActionToken === false ? [] : [credit("ACTION", actionToken.issuer, "100")]),
     ),
     [storageKey]:
       opts.storage === "open"
@@ -173,7 +173,7 @@ function setup(opts: Opts = {}) {
     config: {
       name: "testnet",
       network,
-      assets: { bandcoin, usdc: { code: "USDC", issuer: Keypair.random().publicKey() } },
+      assets: { actionToken, usdc: { code: "USDC", issuer: Keypair.random().publicKey() } },
       treasury: Keypair.random().publicKey(),
       mother: Keypair.random().publicKey(),
     },
@@ -186,7 +186,7 @@ function setup(opts: Opts = {}) {
   return { ctx, db, chain, orders, listings, storageKey };
 }
 
-const input = { itemId: "i1", amount: 3, priceBandcoin: "8", priceUsd: "0.9" };
+const input = { itemId: "i1", amount: 3, priceActionToken: "8", priceUsd: "0.9" };
 const parse = (xdr: string) => TransactionBuilder.fromXDR(xdr, Networks.TESTNET) as Transaction;
 
 describe("listing copies for resale", () => {
@@ -198,7 +198,7 @@ describe("listing copies for resale", () => {
     expect(quote.lines.map((l) => l.key)).toEqual(["storage", "networkFee", "total"]);
     expect(quote.net).toMatchObject({
       royaltyPercent: "10",
-      bandcoin: { royalty: "0.8", net: "7.2" },
+      actionToken: { royalty: "0.8", net: "7.2" },
       usd: { royalty: "0.09", net: "0.81" },
     });
   });
@@ -210,8 +210,8 @@ describe("listing copies for resale", () => {
     expect(quote.lines.map((l) => l.key)).toEqual(["networkFee", "total"]);
   });
 
-  it("adds the BANDCOIN line when the wallet can't be paid in it yet", async () => {
-    const { ctx } = setup({ storage: "open", hasBandcoin: false });
+  it("adds the ACTION line when the wallet can't be paid in it yet", async () => {
+    const { ctx } = setup({ storage: "open", hasActionToken: false });
     const quote = await quoteList(ctx, me, input);
     expect(quote.lines.map((l) => l.key)).toContain("payout");
   });
@@ -281,7 +281,7 @@ describe("listing copies for resale", () => {
       sellerId: "me",
       kind: "RESALE",
       status: "ACTIVE",
-      priceBandcoin: "8",
+      priceActionToken: "8",
       priceUsd: "0.9",
       quantity: 3,
     });
@@ -313,14 +313,14 @@ describe("listing copies for resale", () => {
 describe("changing a price", () => {
   it("sets new prices on your own live listing only", async () => {
     const { ctx, db } = setup();
-    await setListingPrice(ctx, me, { listingId: "l1", priceBandcoin: "7.5", priceUsd: "0.8" });
+    await setListingPrice(ctx, me, { listingId: "l1", priceActionToken: "7.5", priceUsd: "0.8" });
     expect(db.listing.update).toHaveBeenCalledWith({
       where: { id: "l1" },
-      data: { priceBandcoin: "7.5", priceUsd: "0.8", status: "ACTIVE" },
+      data: { priceActionToken: "7.5", priceUsd: "0.8", status: "ACTIVE" },
     });
     await expect(
-      setListingPrice(ctx, me, { listingId: "l1", priceBandcoin: "0", priceUsd: "1" }),
-    ).rejects.toThrow(/BANDCOIN price/);
+      setListingPrice(ctx, me, { listingId: "l1", priceActionToken: "0", priceUsd: "1" }),
+    ).rejects.toThrow(/ACTION price/);
     const ended = setup({
       listing: {
         id: "l1",
@@ -332,11 +332,11 @@ describe("changing a price", () => {
       },
     });
     await expect(
-      setListingPrice(ended.ctx, me, { listingId: "l1", priceBandcoin: "1", priceUsd: "1" }),
+      setListingPrice(ended.ctx, me, { listingId: "l1", priceActionToken: "1", priceUsd: "1" }),
     ).rejects.toThrow(/has ended/);
     const foreign = setup({ listing: null });
     await expect(
-      setListingPrice(foreign.ctx, me, { listingId: "x", priceBandcoin: "1", priceUsd: "1" }),
+      setListingPrice(foreign.ctx, me, { listingId: "x", priceActionToken: "1", priceUsd: "1" }),
     ).rejects.toThrow(/not found/);
   });
 });
@@ -422,7 +422,7 @@ describe("what the holder sees", () => {
     const row = (id: string, status: string, quantitySold: number) => ({
       id,
       status,
-      priceBandcoin: { toString: () => "8" },
+      priceActionToken: { toString: () => "8" },
       priceUsd: { toString: () => "0.9" },
       quantity: 4,
       quantitySold,
@@ -440,7 +440,7 @@ describe("what the holder sees", () => {
       {
         id: "l1",
         status: "ACTIVE",
-        priceBandcoin: { toString: () => "8" },
+        priceActionToken: { toString: () => "8" },
         priceUsd: { toString: () => "0.9" },
         quantity: 5,
         quantitySold: 2,
@@ -452,13 +452,13 @@ describe("what the holder sees", () => {
       listed: 5,
       sold: 2,
       left: 3,
-      priceBandcoin: "8",
+      priceActionToken: "8",
     });
     db.order.findMany.mockResolvedValue([
       {
         id: "o1",
         quantity: 2,
-        currency: "BANDCOIN",
+        currency: "ACTION",
         unitPrice: { toString: () => "8" },
         txHash: "h",
         createdAt: new Date(),

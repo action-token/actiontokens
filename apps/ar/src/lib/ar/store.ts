@@ -130,7 +130,7 @@ export const useAuth = create<AuthState>()(
       setUser: (user) => set({ user }),
     }),
     {
-      name: "bandcoin-ar-session",
+      name: "actiontokens-ar-session",
       // Only the identity survives a reload — exactly what a real NextAuth
       // cookie does. `gate` is transient UI and must never come back open.
       // It's a cache, not the source of truth: SessionSync corrects it the
@@ -155,7 +155,7 @@ export const useSettings = create<SettingsState>()(
       set: (key, value) => set({ [key]: value }),
       toggle: (key) => set((s) => ({ [key]: !s[key] })),
     }),
-    { name: "bandcoin-ar-settings" },
+    { name: "actiontokens-ar-settings" },
   ),
 );
 

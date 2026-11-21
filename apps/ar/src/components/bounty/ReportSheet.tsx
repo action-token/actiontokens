@@ -11,7 +11,7 @@ import { Markdown } from "./Markdown";
 
 /**
  * Write a report for a bounty you've joined. Reports are markdown, as on the
- * old Bandcoin, so the sheet can flip to a preview before sending.
+ * old Action Tokens, so the sheet can flip to a preview before sending.
  */
 export function ReportSheet({
   bountyId,

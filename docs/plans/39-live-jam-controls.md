@@ -19,7 +19,7 @@ steered Lyria RealTime while it played:
 
 "Only bass and drums" turned both mutes off, and either mute turned it off.
 
-## Bandcoin today
+## Action Tokens today
 
 Live Jam (`apps/studio/src/features/live`) has up to four typed ideas with a mix slider each, and
 Tempo, Busy-ness (density) and Brightness. The worker's session
@@ -31,7 +31,7 @@ Tempo, Busy-ness (density) and Brightness. The worker's session
 - The whole configuration must be sent every time; anything left out goes back to its default.
 - A tempo or key change only takes effect after the context is reset (`resetContext()` in the
   installed SDK, `@google/genai` 2.30): the stream keeps going, with a hard transition.
-- Bandcoin doesn't reset today, so its Tempo slider probably does nothing while playing (not tested).
+- Action Tokens doesn't reset today, so its Tempo slider probably does nothing while playing (not tested).
 
 ## Decisions (your answers, 2026-11-13)
 
@@ -73,7 +73,7 @@ Tempo, Busy-ness (density) and Brightness. The worker's session
 ## Not in this plan
 
 - Lyria's mode (Quality / Diversity / Vocalization), seed and top-k.
-- Bandfan's instrument, genre and mood chips: bandcoin uses typed ideas with a mix each.
+- Bandfan's instrument, genre and mood chips: actiontokens uses typed ideas with a mix each.
 
 ## Built (2026-11-13)
 

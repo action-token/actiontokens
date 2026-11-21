@@ -3,7 +3,7 @@ import { AppError, ErrorCodes } from "@actiontokens/errors";
 import { generateRedeemCode } from "@actiontokens/utils/redeem-code";
 
 /**
- * Door codes for locked content, as on the old Bandcoin: one per copy and
+ * Door codes for locked content, as on the old Action Tokens: one per copy and
  * locked piece, shown to the owner once that piece is unlocked (the artist
  * checks it at the door, on the same Redeem page as pin codes). A code
  * belongs to the copy, not the person, so it stays with a copy that changes

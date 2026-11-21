@@ -3,7 +3,7 @@ import type { Horizon } from "@stellar/stellar-sdk";
 import type { Prisma } from "@actiontokens/db";
 
 /**
- * Who can buy an item, as on the old Bandcoin's item forms:
+ * Who can buy an item, as on the old Action Tokens' item forms:
  *
  *   everyone   the default
  *   members    fans holding at least the artist's lowest tier of fan tokens

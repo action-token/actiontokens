@@ -15,7 +15,7 @@ model Bounty {
   summary           String
   description       String
   instructions      String[]
-  /// The escrow holds one asset per bounty: BANDCOIN, XLM or USDC here, or
+  /// The escrow holds one asset per bounty: ACTION, XLM or USDC here, or
   /// null when the prize is another classic asset (prizeAssetCode/Issuer)
   prizeCurrency     Currency?
   /// Any other classic asset the artist holds, such as their fan token

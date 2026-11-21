@@ -146,7 +146,7 @@ function setup(
       name: "testnet",
       network,
       assets: {
-        bandcoin: { code: "BANDCOIN", issuer: Keypair.random().publicKey() },
+        actionToken: { code: "ACTION", issuer: Keypair.random().publicKey() },
         usdc: { code: "USDC", issuer: Keypair.random().publicKey() },
       },
       treasury: Keypair.random().publicKey(),
@@ -352,7 +352,9 @@ describe("quoteIssuerOpening", () => {
   });
 
   it("prices the 1.5 XLM and the fee for a pending applicant", async () => {
-    await expect(quoteIssuerOpening(setup({ organization: pending }).ctx, me)).resolves.toMatchObject({
+    await expect(
+      quoteIssuerOpening(setup({ organization: pending }).ctx, me),
+    ).resolves.toMatchObject({
       ok: true,
       total: "1.5000100",
     });
@@ -372,7 +374,10 @@ describe("quoteIssuerOpening", () => {
       ],
     });
     await expect(
-      quoteIssuerOpening(setup({ organization: { ...pending, issuerAccountId: "chain1" } }).ctx, me),
+      quoteIssuerOpening(
+        setup({ organization: { ...pending, issuerAccountId: "chain1" } }).ctx,
+        me,
+      ),
     ).resolves.toMatchObject({
       problems: [{ code: "UNAVAILABLE", message: "Your artist account is already open." }],
     });
@@ -446,7 +451,10 @@ describe("opening the issuer", () => {
     const [issuerKey] = [...chainAccounts.keys()];
     const tx = TransactionBuilder.fromXDR(xdr, Networks.TESTNET) as Transaction;
     expect(tx.operations.map((op) => op.type)).toEqual(["createAccount", "setOptions"]);
-    expect(tx.operations[1]).toMatchObject({ source: issuerKey, homeDomain: "app.action-tokens.com" });
+    expect(tx.operations[1]).toMatchObject({
+      source: issuerKey,
+      homeDomain: "app.action-tokens.com",
+    });
 
     await submitIssuerOpening(ctx, me, { orderId: ORDER, xdr });
     expect(chain.signWithServerKeys).toHaveBeenCalledWith(xdr, [issuerKey]);

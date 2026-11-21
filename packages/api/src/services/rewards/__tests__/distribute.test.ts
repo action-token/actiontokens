@@ -11,7 +11,7 @@ const account = (id: string, trust = true) => ({
   accountId: () => id,
   sequenceNumber: () => "100",
   balances: trust
-    ? [{ asset_type: "credit_alphanum12", asset_code: "BANDCOIN", asset_issuer: issuer }]
+    ? [{ asset_type: "credit_alphanum12", asset_code: "ACTION", asset_issuer: issuer }]
     : [],
 });
 
@@ -40,7 +40,7 @@ function setup(round: Record<string, unknown> = {}, chain: Record<string, unknow
     config: {
       mother: payer,
       network: { passphrase: Networks.TESTNET, baseFee: "100" },
-      assets: { bandcoin: { code: "BANDCOIN", issuer } },
+      assets: { actionToken: { code: "ACTION", issuer } },
     },
     loadAccount: vi.fn(async (id: string) => account(id, id !== wallets[2])),
     signWithServerKeys: vi.fn(async (xdr: string) => xdr),

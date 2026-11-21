@@ -18,7 +18,7 @@ which card is open and where the pin goes. A new-pin card starts from the last p
 (everything but its spot and layer), with Clear, kept for the session. The full pages stay and take
 `?layer=`.
 
-## Bandcoin today
+## Action Tokens today
 
 Clicking the Pins map goes to `/pins/new?lat=&lng=`, "New pin" and "Draw hotspot" go to pages,
 and Edit in a pin's card goes to `/pins/[id]`. `FormPage` (in `packages/ui`) has no card mode.

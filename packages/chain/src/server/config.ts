@@ -34,7 +34,7 @@ export type ChainConfig = {
   assets: PaymentAssets;
   /** Where platform fees go, unless AppSetting.platformFeeRecipient overrides it */
   treasury: string;
-  /** Public key of the platform's mother account (MOTHER_SECRET), which sends top-up BANDCOIN and XLM; null without the key */
+  /** Public key of the platform's mother account (MOTHER_SECRET), which sends top-up ACTION and XLM; null without the key */
   mother: string | null;
   nftContract: string | null;
   escrowContract: string | null;
@@ -47,7 +47,7 @@ let cached: ChainConfig | null = null;
  * services do and pass the values in.
  *
  *   NEXT_PUBLIC_STELLAR_NETWORK   testnet | mainnet
- *   NEXT_PUBLIC_ASSET_CODE/ISSUER the BANDCOIN asset
+ *   NEXT_PUBLIC_ASSET_CODE/ISSUER the ACTION asset
  *   NEXT_PUBLIC_USDC_ISSUER       optional, defaults to Circle's
  *   PLATFORM_TREASURY             public key that receives platform fees
  *   MOTHER_SECRET                 optional here; recharge sends from this account
@@ -71,7 +71,7 @@ export function chainConfig(env: Record<string, string | undefined> = process.en
     horizonUrl: env.HORIZON_URL ?? defaults.horizonUrl,
     rpcUrl: env.SOROBAN_RPC_URL ?? defaults.rpcUrl,
     assets: {
-      bandcoin: {
+      actionToken: {
         code: requireEnv("NEXT_PUBLIC_ASSET_CODE", env.NEXT_PUBLIC_ASSET_CODE),
         issuer: requireEnv("NEXT_PUBLIC_ASSET_ISSUER", env.NEXT_PUBLIC_ASSET_ISSUER),
       },

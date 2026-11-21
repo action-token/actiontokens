@@ -160,7 +160,7 @@ function AcceptButton({
   );
 }
 
-/** The artist, the Bandcoin user, or the start and end of the address. */
+/** The artist, the Action Tokens user, or the start and end of the address. */
 function senderOf(gift: WaitingGift) {
   if (gift.artist) return gift.artist.name;
   if (gift.from.username) return `@${gift.from.username}`;

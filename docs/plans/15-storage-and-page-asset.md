@@ -1,18 +1,18 @@
 # 15 — Storage account and page asset (fan token) in use
 
 Every artist gets a storage account holding their fan token supply, and the
-app uses those tokens. Prices stay as they are (BANDCOIN, XLM, USDC, card from
+app uses those tokens. Prices stay as they are (ACTION, XLM, USDC, card from
 the artist's two prices): no extra token prices, no new platform trustlines.
 Same contracts, no contract change.
 
 ## Decisions (asked 2026-10-31)
 
-| Topic | Decision |
-| --- | --- |
-| Who pays for storage | **The platform**, at approval (≈1.5 XLM: account + fan-token trustline). The artist still pays only the 1.5 XLM issuer setup when applying. |
-| Starting supply | **A fixed amount** for every artist (1,000,000), issued into storage at approval. Kept in admin settings so it can change. |
-| Storage used by | Bounty prizes (wallet + storage, page asset shown), Sell Page Assets, **gifts from storage**, **pin rewards**, **a balances page**. |
-| Artists approved before this | **Open it from the portal**: "Open your storage account"; the platform pays, as at approval. |
+| Topic                        | Decision                                                                                                                                    |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Who pays for storage         | **The platform**, at approval (≈1.5 XLM: account + fan-token trustline). The artist still pays only the 1.5 XLM issuer setup when applying. |
+| Starting supply              | **A fixed amount** for every artist (1,000,000), issued into storage at approval. Kept in admin settings so it can change.                  |
+| Storage used by              | Bounty prizes (wallet + storage, page asset shown), Sell Page Assets, **gifts from storage**, **pin rewards**, **a balances page**.         |
+| Artists approved before this | **Open it from the portal**: "Open your storage account"; the platform pays, as at approval.                                                |
 
 ## 1. Storage at approval
 
@@ -37,7 +37,7 @@ transaction, platform pays, done once (idempotent).
 ## 3. Balances page
 
 `/balances` in the portal: what the wallet and the storage account hold
-(fan token, BANDCOIN, XLM, USDC, other tokens), with links to the explorer.
+(fan token, ACTION, XLM, USDC, other tokens), with links to the explorer.
 Move tokens between wallet and storage (wallet → storage the artist signs;
 storage → wallet the platform signs for storage), price breakdown first,
 custodial 5 s countdown.

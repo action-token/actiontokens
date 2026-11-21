@@ -22,7 +22,7 @@ const wallet = Keypair.random();
 const storageKey = Keypair.random().publicKey();
 const fan = { code: "LUNA", issuer: Keypair.random().publicKey() };
 const other = { code: "OTHER", issuer: Keypair.random().publicKey() };
-const bandcoin = { code: "BANDCOIN", issuer: Keypair.random().publicKey() };
+const actionToken = { code: "ACTION", issuer: Keypair.random().publicKey() };
 const usdc = { code: "USDC", issuer: Keypair.random().publicKey() };
 const network = { passphrase: Networks.TESTNET, baseFee: "100" };
 const ORDER = "cmvorder0000000000000041";
@@ -91,12 +91,12 @@ function setup(opts: { xlm?: string } = {}) {
     balances: [
       { asset_type: "native", balance: "4", selling_liabilities: "0" },
       credit(fan, "1000000"),
-      credit(bandcoin, "0"),
+      credit(actionToken, "0"),
       credit(usdc, "0"),
     ],
   });
   const chain = {
-    config: { name: "testnet", network, assets: { bandcoin, usdc } },
+    config: { name: "testnet", network, assets: { actionToken, usdc } },
     loadAccount: vi.fn((id: string) => Promise.resolve(id === storageKey ? storage : mine)),
     signWithServerKeys: vi.fn((xdr: string) => Promise.resolve(xdr)),
     submit: vi.fn((_xdr: string) => Promise.resolve({ hash: "txhash" })),

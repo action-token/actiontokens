@@ -310,5 +310,5 @@ export function qrFilename(
   const slug = slugify(drop.title, 32);
   const tail = item.spotId.slice(-6);
   const pin = item.pinNumber == null ? "" : `-pin-${String(item.pinNumber).padStart(2, "0")}`;
-  return `bandcoin-qr-${slug}${pin}-${tail}.${extension}`;
+  return `actiontokens-qr-${slug}${pin}-${tail}.${extension}`;
 }

@@ -10,7 +10,7 @@ import { routeCustomHost } from "./lib/custom-host";
  * cleared so it can't shadow the shared one.
  *
  * An artist's custom domain (plan 32) shows their artist page at its home;
- * other paths go to the same page on Bandcoin (see lib/custom-host).
+ * other paths go to the same page on Action Tokens (see lib/custom-host).
  */
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;

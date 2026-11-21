@@ -73,7 +73,7 @@ export default function MarketItemScreen() {
                 {open ? (
                   <>
                     <span className="font-hud text-ar-green-hot text-[24px] leading-none font-bold tabular-nums">
-                      {formatPrice(open.priceBandcoin)}
+                      {formatPrice(open.priceActionToken)}
                     </span>
                     <span className="font-hud text-ar-dim text-[10px] font-semibold tracking-[0.12em] uppercase">
                       {TOKEN_CODE}

@@ -268,8 +268,8 @@ export function FullPlayer({
                 >
                   Buy now
                   <Money
-                    amount={track.price.bandcoin}
-                    currency="BANDCOIN"
+                    amount={track.price.actionToken}
+                    currency="ACTION"
                     short
                     className="font-bold"
                     onBrand

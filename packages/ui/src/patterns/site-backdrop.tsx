@@ -14,7 +14,7 @@ const SHAPES = [
     size: "74vmin 74vmin",
     repeat: "no-repeat",
   },
-  // the BANDCOIN pick (tilt baked in, lettering cut out), off the bottom-right corner
+  // the ACTION pick (tilt baked in, lettering cut out), off the bottom-right corner
   {
     src: "/images/logo-mark.png",
     position: "right -16vmin bottom -14vmin",
@@ -43,7 +43,7 @@ const LAYERS = [
 ] as const;
 
 /**
- * The background behind every page: a guitar on the left and the BANDCOIN pick on the right,
+ * The background behind every page: a guitar on the left and the ACTION pick on the right,
  * slowly shifting between the brand yellow, teal and violet. A faint watermark in the dark theme, a soft tint in the
  * light one (--bc-mark sets how strong).
  *

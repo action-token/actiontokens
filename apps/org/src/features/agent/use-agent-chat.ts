@@ -26,7 +26,7 @@ export type ActionState = {
  */
 export function useAgentChat() {
   const utils = api.useUtils();
-  const key = "bandcoin.agent";
+  const key = "action-tokens.agent";
   const [conversationId, setConversationId] = useStored(`${key}.conversation`);
   const [jobId, setJobId] = useStored(`${key}.job`);
   const [steps, setSteps] = useState<AgentStep[]>([]);

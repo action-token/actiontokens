@@ -406,7 +406,7 @@ export function SideMenuSheet({
   );
 }
 
-/** The logo on an ink blob, "Bandcoin" and the handwritten app name; the blob alone on the rail. */
+/** The logo on an ink blob, "Action Tokens" and the handwritten app name; the blob alone on the rail. */
 function SideMark({
   href,
   label,
@@ -543,7 +543,7 @@ const tileTone = {
   },
 };
 
-/** The tiles to the other Bandcoin apps, stacked (the phone menu's footer). */
+/** The tiles to the other Action Tokens apps, stacked (the phone menu's footer). */
 export function SideLaunchTiles({ tiles }: { tiles: SideTile[] }) {
   return (
     <div className="space-y-2.5">
@@ -554,7 +554,7 @@ export function SideLaunchTiles({ tiles }: { tiles: SideTile[] }) {
   );
 }
 
-/** A tall tile that opens another Bandcoin app in a new tab. */
+/** A tall tile that opens another Action Tokens app in a new tab. */
 function LaunchTile({ tile }: { tile: SideTile }) {
   const Icon = tile.icon;
   const tone = tileTone[tile.tone];

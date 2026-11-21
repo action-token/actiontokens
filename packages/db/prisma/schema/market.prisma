@@ -16,7 +16,7 @@ enum ListingStatus {
   CLOSED
 }
 
-/// An offer to sell an Item. The seller sets two prices: BANDCOIN and USD
+/// An offer to sell an Item. The seller sets two prices: ACTION and USD
 /// (USD is also the card price). XLM and USDC are computed from USD at the
 /// live rate when a quote is made.
 model Listing {
@@ -30,7 +30,7 @@ model Listing {
   edition       NftEdition?   @relation(fields: [editionId], references: [id], onDelete: Cascade)
   kind          ListingKind   @default(PRIMARY)
   status        ListingStatus @default(ACTIVE)
-  priceBandcoin Decimal       @db.Decimal(20, 7)
+  priceActionToken Decimal       @db.Decimal(20, 7)
   priceUsd      Decimal       @db.Decimal(20, 7)
   /// Copies offered; null = all remaining supply
   quantity      Int?
@@ -76,11 +76,11 @@ enum OrderKind {
   ITEM_PURCHASE
   GIFT
   VANITY
-  /// Card top-up: the platform sends BANDCOIN to the buyer
+  /// Card top-up: the platform sends ACTION to the buyer
   RECHARGE
-  /// Swap: the buyer pays BANDCOIN and receives XLM from the platform
+  /// Swap: the buyer pays ACTION and receives XLM from the platform
   XLM_SWAP
-  /// The buyer pays BANDCOIN for the XLM a fan-token trustline locks, and the line is opened
+  /// The buyer pays ACTION for the XLM a fan-token trustline locks, and the line is opened
   TOKEN_TRUST
   /// A holder moves copies into their resale storage and lists them for sale
   RESALE_LIST
@@ -106,10 +106,10 @@ enum OrderKind {
   NFT_PLATFORM_FEE
   /// An artist gives one NFT copy they own (nft_oz transfer); they pay the network fee
   NFT_GIFT
-  /// Someone sends XLM or a token from their wallet to an address or a Bandcoin user (a gift to claim if they can't hold it)
+  /// Someone sends XLM or a token from their wallet to an address or an Action Tokens user (a gift to claim if they can't hold it)
   SEND
-  /// Swap: the buyer pays XLM and receives BANDCOIN from the platform
-  BANDCOIN_SWAP
+  /// Swap: the buyer pays XLM and receives ACTION from the platform
+  ACTION_SWAP
 }
 
 /// One payment by a buyer. Every money flow with a buyer goes through here,

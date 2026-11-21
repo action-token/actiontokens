@@ -10,7 +10,7 @@ export type DnsRecord = {
   /** The full name, e.g. "coldplay.com" or "_vercel.coldplay.com" */
   name: string;
   value: string;
-  /** "ownership" proves the domain is theirs; "point" sends visitors to Bandcoin */
+  /** "ownership" proves the domain is theirs; "point" sends visitors to Action Tokens */
   purpose: "ownership" | "point";
 };
 

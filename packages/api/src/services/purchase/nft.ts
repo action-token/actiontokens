@@ -44,30 +44,30 @@ import { failOrder, holdsLine, ownOrder, userSignature } from "./index";
 import { notSetUpProblems } from "./not-set-up";
 
 /**
- * Buying copies of a contract NFT, as on the old Bandcoin: the nft_oz
+ * Buying copies of a contract NFT, as on the old Action Tokens: the nft_oz
  * contract mints them to the buyer and pays the creator, in one call
  * (`buy_edition`). The platform registers the edition at its first sale.
  *
- * Wallet (BANDCOIN): the buyer signs the call; the platform pays the XLM
+ * Wallet (ACTION): the buyer signs the call; the platform pays the XLM
  * network fee (fee bump) and the contract charges the buyer the same cost in
- * BANDCOIN, so the buyer needs only BANDCOIN.
+ * ACTION, so the buyer needs only ACTION.
  *
  * Card (email/Google/Apple accounts only): a contract call can't carry a
  * payment too, so after the card is charged it takes two transactions:
- * (1) the platform sends the buyer the BANDCOIN price (and opens their
- * BANDCOIN trustline if needed), (2) the buy. If (1) fails the card is
- * refunded; if (2) fails the buyer keeps the BANDCOIN and nothing is bought.
+ * (1) the platform sends the buyer the ACTION price (and opens their
+ * ACTION trustline if needed), (2) the buy. If (1) fails the card is
+ * refunded; if (2) fails the buyer keeps the ACTION and nothing is bought.
  * Nothing is retried.
  *
  * The network fee shown is a fixed estimate (the exact one is only known by
- * simulating, which needs the edition registered). As on the old Bandcoin the
+ * simulating, which needs the edition registered). As on the old Action Tokens the
  * buy isn't refused over the real fee; the platform pays what the network asks.
  */
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 type PurchaseInput = { listingId: string; quantity: number; currency: Currency };
 
 /**
- * The network fee on a buy, in XLM, priced as on the old Bandcoin: 0.10 a buy
+ * The network fee on a buy, in XLM, priced as on the old Action Tokens: 0.10 a buy
  * (0.07 inclusion + 0.03 network) plus 0.40 for each copy minted, which is the
  * copy's storage reserve (its ledger entry and TTL top-ups). The real cost is
  * well under it, and the spread is what the platform keeps to cover rent.
@@ -101,7 +101,10 @@ export async function loadNftSale(db: Db, listingId: string) {
           hiddenAt: true,
           ...accessSelect,
           organization: {
-            select: { ...accessSelect.organization.select, user: { select: { walletAddress: true } } },
+            select: {
+              ...accessSelect.organization.select,
+              user: { select: { walletAddress: true } },
+            },
           },
           media: { select: { mediaType: true, sourceUrl: true } },
           contractNft: {
@@ -174,8 +177,8 @@ export async function priceNft(
   const problems: QuoteProblem[] = [];
   const unavailable = (message: string) => problems.push({ code: "UNAVAILABLE", message });
 
-  if (input.currency !== "BANDCOIN" && !card)
-    unavailable("Contract NFTs are paid in BANDCOIN or by card.");
+  if (input.currency !== "ACTION" && !card)
+    unavailable("Contract NFTs are paid in ACTION or by card.");
   if (input.quantity > NFT_MAX_PER_BUY)
     unavailable(`Up to ${NFT_MAX_PER_BUY} copies in one purchase.`);
   // Each resale listing is one numbered copy.
@@ -187,11 +190,11 @@ export async function priceNft(
   // The artist may buy their own NFT (to gift it): the contract pays the price back to them.
   if (!chain.config.nftContract) unavailable("Contract NFTs aren't set up on this server yet.");
 
-  const [buyer, settings, rates, bandcoinUsd, creatorAccount] = await Promise.all([
+  const [buyer, settings, rates, actionTokenUsd, creatorAccount] = await Promise.all([
     guest ? guest.account : user ? chain.loadAccount(user.walletAddress) : null,
     ctx.db.appSetting.findUnique({ where: { id: 1 }, select: { platformFeeBps: true } }),
     chain.rates(),
-    chain.bandcoinUsd(),
+    chain.actionTokenUsd(),
     // The contract pays the artist in the same call: their wallet has to exist.
     chain.loadAccount(sale.creator),
   ]);
@@ -201,35 +204,35 @@ export async function priceNft(
   if (user && !buyer && !guest) unavailable("Your wallet isn't active yet. Add funds first.");
   if (card && user && !isCustodial(user))
     unavailable(
-      "Card works for email, Google and Apple accounts. Pay with BANDCOIN from your wallet.",
+      "Card works for email, Google and Apple accounts. Pay with ACTION from your wallet.",
     );
 
-  const bandcoin = new Asset(
-    chain.config.assets.bandcoin.code,
-    chain.config.assets.bandcoin.issuer,
+  const actionToken = new Asset(
+    chain.config.assets.actionToken.code,
+    chain.config.assets.actionToken.issuer,
   );
   const xlmUsd = toStroops(rates.xlmUsd);
   const price = {
-    bandcoin: toStroops(sale.listing.priceBandcoin.toString()) * BigInt(input.quantity),
+    actionToken: toStroops(sale.listing.priceActionToken.toString()) * BigInt(input.quantity),
     usd: toStroops(sale.listing.priceUsd.toString()) * BigInt(input.quantity),
   };
   const buyFeeXlm = feeEstimateStroops(input.quantity);
-  // Card: the BANDCOIN goes in first; a new trustline needs its reserve, and that transaction its fee.
-  const openTrustline = card && !(buyer && holdsLine(buyer, bandcoin));
+  // Card: the ACTION goes in first; a new trustline needs its reserve, and that transaction its fee.
+  const openTrustline = card && !(buyer && holdsLine(buyer, actionToken));
   const reserveXlm = openTrustline ? toStroops(TRUSTLINE_RESERVE_XLM) : 0n;
   const topUpFeeXlm = card
     ? BigInt(chain.config.network.baseFee) * BigInt(openTrustline ? 4 : 2)
     : 0n;
-  // Wallet: the contract charges the buyer the platform's XLM cost, in BANDCOIN.
-  const feeBandcoin = card ? 0n : usdTo(toUsd(buyFeeXlm, xlmUsd), toStroops(bandcoinUsd));
+  // Wallet: the contract charges the buyer the platform's XLM cost, in ACTION.
+  const feeActionToken = card ? 0n : usdTo(toUsd(buyFeeXlm, xlmUsd), toStroops(actionTokenUsd));
 
   const lines: QuoteLine[] = [
     {
       key: "price",
       label: "Item price",
-      detail: `${input.quantity} × ${toDisplay(card ? toStroops(sale.listing.priceUsd.toString()) : toStroops(sale.listing.priceBandcoin.toString()))} ${card ? "USD" : "BANDCOIN"}`,
-      amount: toAmount(card ? price.usd : price.bandcoin),
-      currency: card ? "USD" : "BANDCOIN",
+      detail: `${input.quantity} × ${toDisplay(card ? toStroops(sale.listing.priceUsd.toString()) : toStroops(sale.listing.priceActionToken.toString()))} ${card ? "USD" : "ACTION"}`,
+      amount: toAmount(card ? price.usd : price.actionToken),
+      currency: card ? "USD" : "ACTION",
     },
   ];
   if (reserveXlm > 0n)
@@ -237,7 +240,7 @@ export async function priceNft(
       key: "reserve",
       label: "Trustline",
       detail: `${toDisplay(reserveXlm)} XLM, first time only`,
-      hint: "Lets your wallet hold BANDCOIN, which pays for the NFT. It stays yours.",
+      hint: "Lets your wallet hold ACTION, which pays for the NFT. It stays yours.",
       amount: toAmount(toUsd(reserveXlm, xlmUsd)),
       currency: "USD",
     });
@@ -245,21 +248,21 @@ export async function priceNft(
     key: "networkFee",
     label: "Network fee",
     detail: `about ${toDisplay(buyFeeXlm + topUpFeeXlm)} XLM, paid for you`,
-    amount: toAmount(card ? toUsd(buyFeeXlm + topUpFeeXlm, xlmUsd) : feeBandcoin),
-    currency: card ? "USD" : "BANDCOIN",
+    amount: toAmount(card ? toUsd(buyFeeXlm + topUpFeeXlm, xlmUsd) : feeActionToken),
+    currency: card ? "USD" : "ACTION",
   });
   const total = lines.reduce((sum, line) => sum + toStroops(line.amount), 0n);
-  const currency: Currency = card ? "USD" : "BANDCOIN";
+  const currency: Currency = card ? "USD" : "ACTION";
 
   if (!user) problems.push({ code: "SIGN_IN", message: "Sign in to pay." });
   else if (!card && buyer) {
-    const have = toStroops(fundsOf(buyer, chain.config.assets).BANDCOIN);
+    const have = toStroops(fundsOf(buyer, chain.config.assets).ACTION);
     if (have < total)
       problems.push({
         code: "INSUFFICIENT_FUNDS",
-        message: `You're ${toDisplay(total - have)} BANDCOIN short.`,
+        message: `You're ${toDisplay(total - have)} ACTION short.`,
         shortfall: {
-          currency: "BANDCOIN",
+          currency: "ACTION",
           need: toAmount(total),
           have: toAmount(have),
           short: toAmount(total - have),
@@ -272,22 +275,22 @@ export async function priceNft(
   // The contract settles a resale as: platform fee and royalty out of the price, the seller keeps the rest.
   // It rounds down; the artist's own resale pays no royalty.
   const platform = sale.resale
-    ? (price.bandcoin * BigInt(feeBps)) / 10_000n
-    : (price.bandcoin * BigInt(feeBps) + 9_999n) / 10_000n;
+    ? (price.actionToken * BigInt(feeBps)) / 10_000n
+    : (price.actionToken * BigInt(feeBps) + 9_999n) / 10_000n;
   const royalty =
     sale.resale && sale.resale.sellerWallet !== sale.creator
-      ? (price.bandcoin * BigInt(sale.nft.royaltyBps)) / 10_000n
+      ? (price.actionToken * BigInt(sale.nft.royaltyBps)) / 10_000n
       : 0n;
   const quote: Quote = {
     currency,
     quantity: input.quantity,
-    unitPrice: card ? sale.listing.priceUsd.toString() : sale.listing.priceBandcoin.toString(),
+    unitPrice: card ? sale.listing.priceUsd.toString() : sale.listing.priceActionToken.toString(),
     rateUsd: null,
     lines,
     totals: [{ currency, amount: toAmount(total) }],
     // The contract takes the platform fee (and a resale's royalty) out of the seller's share; the buyer doesn't pay them.
     payout: {
-      seller: toAmount(price.bandcoin - platform - royalty),
+      seller: toAmount(price.actionToken - platform - royalty),
       royalty: toAmount(royalty),
       platform: toAmount(platform),
     },
@@ -296,7 +299,7 @@ export async function priceNft(
     problems: shown,
     expiresAt: new Date(Date.now() + QUOTE_TTL_SECONDS * 1000).toISOString(),
   };
-  return { quote, buyer, bandcoin, price, feeBandcoin, buyFeeXlm, openTrustline, reserveXlm };
+  return { quote, buyer, actionToken, price, feeActionToken, buyFeeXlm, openTrustline, reserveXlm };
 }
 
 export async function quoteNftPurchase(
@@ -331,9 +334,9 @@ export async function ensureRegistered(ctx: ServiceCtx, sale: NftSale): Promise<
     throw new AppError(ErrorCodes.CONFIG_MISSING, {
       message: "Contract NFTs aren't set up on this server yet.",
     });
-  const bandcoin = new Asset(
-    chain.config.assets.bandcoin.code,
-    chain.config.assets.bandcoin.issuer,
+  const actionToken = new Asset(
+    chain.config.assets.actionToken.code,
+    chain.config.assets.actionToken.issuer,
   );
   const built = buildNftRegisterEdition({
     source: new Account(treasury.accountId(), treasury.sequenceNumber()),
@@ -351,8 +354,8 @@ export async function ensureRegistered(ctx: ServiceCtx, sale: NftSale): Promise<
     supply: sale.item.supply ?? 1,
     prices: [
       {
-        paymentToken: tokenAddressOf(bandcoin, chain.config.network.passphrase),
-        price: toStroops(sale.listing.priceBandcoin.toString()),
+        paymentToken: tokenAddressOf(actionToken, chain.config.network.passphrase),
+        price: toStroops(sale.listing.priceActionToken.toString()),
       },
     ],
   });
@@ -389,15 +392,15 @@ async function prepareBuy(
   resaleTokenId?: number,
 ) {
   const { chain } = ctx;
-  const bandcoin = new Asset(
-    chain.config.assets.bandcoin.code,
-    chain.config.assets.bandcoin.issuer,
+  const actionToken = new Asset(
+    chain.config.assets.actionToken.code,
+    chain.config.assets.actionToken.issuer,
   );
   const common = {
     source: new Account(buyer.accountId(), buyer.sequenceNumber()),
     network: chain.config.network,
     contract: chain.config.nftContract!,
-    paymentToken: tokenAddressOf(bandcoin, chain.config.network.passphrase),
+    paymentToken: tokenAddressOf(actionToken, chain.config.network.passphrase),
     inclusionFee: 0n,
     networkFee,
     treasury: chain.config.treasury,
@@ -416,12 +419,12 @@ async function prepareBuy(
   return { xdr: prepared, hash: Buffer.from(tx.hash()).toString("hex") };
 }
 
-/** Card, step 1's transaction: the treasury sends the BANDCOIN (and any trustline reserve) to the buyer. */
+/** Card, step 1's transaction: the treasury sends the ACTION (and any trustline reserve) to the buyer. */
 export function buildNftTopUp(
   ctx: Pick<ServiceCtx, "chain">,
   priced: Pick<
     Awaited<ReturnType<typeof priceNft>>,
-    "bandcoin" | "price" | "openTrustline" | "reserveXlm"
+    "actionToken" | "price" | "openTrustline" | "reserveXlm"
   >,
   buyer: Horizon.AccountResponse,
   orderId: string,
@@ -430,9 +433,9 @@ export function buildNftTopUp(
     buyer: new Account(buyer.accountId(), buyer.sequenceNumber()),
     network: ctx.chain.config.network,
     orderId,
-    asset: priced.bandcoin,
+    asset: priced.actionToken,
     from: ctx.chain.config.treasury,
-    amount: toAmount(priced.price.bandcoin),
+    amount: toAmount(priced.price.actionToken),
     openTrustline: priced.openTrustline,
     reserveXlm: priced.reserveXlm > 0n ? toAmount(priced.reserveXlm) : undefined,
   });
@@ -471,8 +474,8 @@ export async function startNftPurchase(ctx: ServiceCtx, user: SessionUser, input
       breakdown: {
         ...quote,
         nft: {
-          bandcoin: toAmount(priced.price.bandcoin),
-          feeBandcoin: toAmount(priced.feeBandcoin),
+          actionToken: toAmount(priced.price.actionToken),
+          feeActionToken: toAmount(priced.feeActionToken),
           openTrustline: priced.openTrustline,
           reserveXlm: toAmount(priced.reserveXlm),
           ...(sale.resale
@@ -506,7 +509,7 @@ export async function startNftPurchase(ctx: ServiceCtx, user: SessionUser, input
           buyer,
           { id: order.id, itemId: sale.item.id },
           input.quantity,
-          priced.feeBandcoin,
+          priced.feeActionToken,
           sale.resale?.tokenId,
         );
   } catch (error) {
@@ -527,7 +530,7 @@ export async function startNftPurchase(ctx: ServiceCtx, user: SessionUser, input
 
 type NftBreakdown = {
   nft: {
-    bandcoin: string;
+    actionToken: string;
     resale?: { editionId: string; tokenId: number; sellerId: string };
   };
 };
@@ -543,18 +546,18 @@ async function checkListingOnChain(ctx: ServiceCtx, sale: NftSale) {
   const onChain = await ctx.chain.nftListing(sale.resale.tokenId);
   if (!onChain || (sale.resale.sellerWallet && onChain.seller !== sale.resale.sellerWallet))
     throw stale("This copy was sold or taken off sale. Nothing was charged.");
-  const bandcoin = tokenAddressOf(
-    new Asset(ctx.chain.config.assets.bandcoin.code, ctx.chain.config.assets.bandcoin.issuer),
+  const actionToken = tokenAddressOf(
+    new Asset(ctx.chain.config.assets.actionToken.code, ctx.chain.config.assets.actionToken.issuer),
     ctx.chain.config.network.passphrase,
   );
-  const entry = onChain.prices.find((price) => price.paymentToken === bandcoin);
-  if (!entry || entry.price !== toStroops(sale.listing.priceBandcoin.toString()))
+  const entry = onChain.prices.find((price) => price.paymentToken === actionToken);
+  if (!entry || entry.price !== toStroops(sale.listing.priceActionToken.toString()))
     throw stale("The seller changed the price. Reload the page to see the new one.");
 }
 
 /**
  * Sends it. Wallet: the signed buy, fee-bumped by the treasury. Card: the card
- * is charged, the BANDCOIN goes in (refunded if that fails), then the buy.
+ * is charged, the ACTION goes in (refunded if that fails), then the buy.
  */
 export async function submitNftPurchase(
   ctx: ServiceCtx,
@@ -595,7 +598,7 @@ export async function submitNftPurchase(
     return deliverWhenVisible(ctx, order.id);
   }
 
-  // Card, step 1: charge, then the BANDCOIN goes in. A failure here refunds the card.
+  // Card, step 1: charge, then the ACTION goes in. A failure here refunds the card.
   if (!input.card)
     throw new AppError(ErrorCodes.VALIDATION_FAILED, { message: "Add a card to pay." });
   if (!user.email) throw new AppError(ErrorCodes.WALLET_NOT_CONNECTED);
@@ -613,9 +616,9 @@ export async function submitNftPurchase(
 }
 
 /**
- * A card NFT order after the charge: the BANDCOIN goes in (`signedTopUp`, the
+ * A card NFT order after the charge: the ACTION goes in (`signedTopUp`, the
  * buyer's signature on it; a failure refunds the card), then the buy (a
- * failure keeps the BANDCOIN with the buyer, no refund, no retry).
+ * failure keeps the ACTION with the buyer, no refund, no retry).
  */
 export async function runCardNftSteps(
   ctx: ServiceCtx,
@@ -637,7 +640,7 @@ export async function runCardNftSteps(
   const topUp = await bumped(await chain.signWithServerKeys(signedTopUp, [treasury]));
   await send(ctx, order.id, topUp, { paymentId, total: order.total.toString() });
 
-  // Step 2: the buy. The BANDCOIN is already the buyer's, so a failure keeps it there.
+  // Step 2: the buy. The ACTION is already the buyer's, so a failure keeps it there.
   const details = (order.breakdown as NftBreakdown).nft;
   try {
     const account = await chain.loadAccount(buyer.walletAddress);
@@ -656,7 +659,7 @@ export async function runCardNftSteps(
     if (isAppError(error) && error.code === ErrorCodes.STELLAR_TX_SUBMIT_FAILED) throw error;
     await transitionOrder(db, order.id, "FAILED", { failureCode: "NFT_BUY_FAILED_FUNDED" });
     throw new AppError(ErrorCodes.STELLAR_TX_REJECTED, {
-      message: `Your card payment became ${toDisplay(toStroops(details.bandcoin))} BANDCOIN in your wallet, but the NFT couldn't be bought. Nothing else was charged; you can buy it with that BANDCOIN.`,
+      message: `Your card payment became ${toDisplay(toStroops(details.actionToken))} ACTION in your wallet, but the NFT couldn't be bought. Nothing else was charged; you can buy it with that ACTION.`,
     });
   }
   return deliverWhenVisible(ctx, order.id);

@@ -113,7 +113,7 @@ function setup(
       name: "testnet",
       network,
       assets: {
-        bandcoin: { code: "BANDCOIN", issuer: Keypair.random().publicKey() },
+        actionToken: { code: "ACTION", issuer: Keypair.random().publicKey() },
         usdc: { code: "USDC", issuer: Keypair.random().publicKey() },
       },
       treasury: Keypair.random().publicKey(),
@@ -198,7 +198,7 @@ describe("collectible gift quote", () => {
       "Pick a copy you own.",
     );
     expect(await problemOf({ fan: { ...fan, id: "u-artist" } })).toBe("You already own this copy.");
-    expect(await problemOf({ fan: null })).toMatch(/couldn't find a Bandcoin fan/);
+    expect(await problemOf({ fan: null })).toMatch(/couldn't find an Action Tokens fan/);
     expect(await problemOf({ xlm: "1.01" })).toBe("You need 0.04 more XLM to send this.");
   });
 

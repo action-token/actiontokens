@@ -31,7 +31,7 @@ anything from the network.
 - New table `declined_gifts`: `userId`, `balanceId`, `createdAt`; one row per fan and gift; indexed
   by `balanceId` so a sender's list can look it up.
 - Migration `20261113100000_declined_gifts` (additive). **You run it:**
-  `pnpm --filter @bandcoin/db migrate:deploy`.
+  `pnpm --filter @actiontokens/db migrate:deploy`.
 
 ### API (`packages/api`)
 

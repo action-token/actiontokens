@@ -28,10 +28,10 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const album = await loadAlbum((await params).slug);
-  const by = album.artist?.name ?? "Bandcoin";
+  const by = album.artist?.name ?? "Action Tokens";
   return {
     title: `${album.title} by ${by}`,
-    description: album.description ?? `${album.title}, an album by ${by} on Bandcoin.`,
+    description: album.description ?? `${album.title}, an album by ${by} on Action Tokens.`,
     openGraph: { images: [album.coverUrl] },
   };
 }

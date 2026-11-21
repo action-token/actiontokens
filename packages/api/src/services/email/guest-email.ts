@@ -17,13 +17,13 @@ export type GuestPurchaseEmailInput = {
 
 export function guestPurchaseEmail(input: GuestPurchaseEmailInput): EmailMessage {
   const what = input.quantity > 1 ? `${input.quantity} × ${input.title}` : input.title;
-  const where = `It's in the Bandcoin account for ${input.to}.`;
+  const where = `It's in the Action Tokens account for ${input.to}.`;
   const signIn = `To open it, sign in with Google or Apple using this email, or choose "Forgot password" to set a password.`;
 
   const text = [
     "Hi,",
     "",
-    `Thanks for buying ${what} on Bandcoin.`,
+    `Thanks for buying ${what} on Action Tokens.`,
     "",
     where,
     signIn,
@@ -33,14 +33,14 @@ export function guestPurchaseEmail(input: GuestPurchaseEmailInput): EmailMessage
 
   const html = `<div style="font-family:system-ui,sans-serif;max-width:520px;margin:auto;color:#111">
 <p>Hi,</p>
-<p>Thanks for buying <b>${escape(what)}</b> on Bandcoin.</p>
+<p>Thanks for buying <b>${escape(what)}</b> on Action Tokens.</p>
 <img src="${escape(input.coverUrl)}" alt="" width="240" style="border-radius:12px;display:block;margin:16px 0" />
 <p>${escape(where)}</p>
 <p>${escape(signIn)}</p>
-<p><a href="${escape(input.link)}" style="display:inline-block;background:#111;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none">See it on Bandcoin</a></p>
+<p><a href="${escape(input.link)}" style="display:inline-block;background:#111;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none">See it on Action Tokens</a></p>
 </div>`;
 
-  return { to: input.to, subject: `Your Bandcoin purchase: ${what}`, text, html };
+  return { to: input.to, subject: `Your Action Tokens purchase: ${what}`, text, html };
 }
 
 /** Emails a guest buyer after delivery. Never throws: a failed email doesn't undo the purchase. */

@@ -25,7 +25,7 @@ import { creditLines, freeOf, openedStorage } from "./storage-withdraw";
 
 /**
  * Gifts: an artist gives some of their fan token to one of their followers,
- * for example to lift them into a membership tier, as on the old Bandcoin.
+ * for example to lift them into a membership tier, as on the old Action Tokens.
  *
  *   from storage   the tokens come out of the artist's storage account (the
  *                  supply issued at approval), so nothing new is made. A fan
@@ -131,7 +131,7 @@ async function prepare(
   if (!input.recipient.trim()) problems.push(unavailable("Choose who to send it to."));
   else if (!recipient)
     problems.push(
-      unavailable("We couldn't find a Bandcoin fan with that username, email or wallet."),
+      unavailable("We couldn't find an Action Tokens fan with that username, email or wallet."),
     );
   else if (recipient.id === user.id)
     problems.push(unavailable("You can't gift tokens to yourself."));

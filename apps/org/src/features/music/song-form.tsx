@@ -25,7 +25,11 @@ import {
   OptionList,
   SwitchRow,
 } from "@actiontokens/ui/patterns/form-page";
-import { assetCodeFrom, normalizeAssetCode, validateAssetCode } from "@actiontokens/utils/asset-code";
+import {
+  assetCodeFrom,
+  normalizeAssetCode,
+  validateAssetCode,
+} from "@actiontokens/utils/asset-code";
 import { formatDuration, latestPreviewStart, PREVIEW_SECONDS } from "@actiontokens/utils/preview";
 
 import { DeleteCard } from "~/components/delete-card";
@@ -81,9 +85,7 @@ export function SongForm({
     existing ? { url: existing.coverUrl, name: "cover", mime: "image/jpeg" } : null,
   );
   const [audio, setAudio] = useState<PickedFile | null>(
-    existing?.audioUrl
-      ? { url: existing.audioUrl, name: "Song", mime: "audio/mpeg" }
-      : null,
+    existing?.audioUrl ? { url: existing.audioUrl, name: "Song", mime: "audio/mpeg" } : null,
   );
   const [duration, setDuration] = useState(existing?.durationSec ?? 0);
   const [previewStart, setPreviewStart] = useState(existing?.previewStartSec ?? 0);
@@ -93,7 +95,7 @@ export function SongForm({
   const [customCode, setCustomCode] = useState(editing);
   const [limited, setLimited] = useState(existing ? existing.supply !== null : false);
   const [supply, setSupply] = useState(existing?.supply?.toString() ?? "100");
-  const [priceBandcoin, setPriceBandcoin] = useState(existing?.priceBandcoin ?? "");
+  const [priceActionToken, setPriceActionToken] = useState(existing?.priceActionToken ?? "");
   const [priceUsd, setPriceUsd] = useState(existing?.priceUsd ?? "");
   const [publish, setPublish] = useState(existing ? existing.visibility === "PUBLIC" : true);
   const [access, setAccess] = useState<AccessChoice>(accessChoiceOf(existing?.access));
@@ -101,7 +103,7 @@ export function SongForm({
 
   const shownCode = customCode ? code : assetCodeFrom(title);
   const codeProblem = shownCode ? validateAssetCode(shownCode) : null;
-  const prices = priceProblems(priceBandcoin, priceUsd);
+  const prices = priceProblems(priceActionToken, priceUsd);
   const supplyNumber = Number(supply);
   const supplyOk = !limited || (Number.isInteger(supplyNumber) && supplyNumber >= 1);
   const ready =
@@ -111,8 +113,8 @@ export function SongForm({
     duration > 0 &&
     shownCode.length > 0 &&
     !codeProblem &&
-    priceBandcoin !== "" &&
-    !prices.bandcoin &&
+    priceActionToken !== "" &&
+    !prices.actionToken &&
     priceUsd !== "" &&
     !prices.usd &&
     supplyOk;
@@ -133,8 +135,7 @@ export function SongForm({
     onSuccess: () => done("Song deleted"),
     onError: (error) => toast.error(messageOf(error)),
   });
-  const saving =
-    create.isPending || updateItem.isPending || updateSong.isPending;
+  const saving = create.isPending || updateItem.isPending || updateSong.isPending;
   const aiContext = { title, creditedAs: artistName, description };
   const imagePrompt = imageBrief || [title, description.slice(0, 400)].filter(Boolean).join(". ");
   const backHref = defaultAlbumId ? `/music/albums/${defaultAlbumId}` : "/music";
@@ -147,7 +148,7 @@ export function SongForm({
         title,
         description,
         coverUrl: cover.url,
-        priceBandcoin,
+        priceActionToken,
         priceUsd,
         visibility: publish ? "PUBLIC" : "DRAFT",
         access: accessInput(access),
@@ -178,7 +179,7 @@ export function SongForm({
       previewStartSec: previewStart,
       code: shownCode,
       supply: limited ? supplyNumber : null,
-      priceBandcoin,
+      priceActionToken,
       priceUsd,
       visibility: publish ? "PUBLIC" : "DRAFT",
       access: accessInput(access),
@@ -229,7 +230,7 @@ export function SongForm({
                 {duration > 0 ? ` · ${formatDuration(duration)}` : ""}
               </p>
               <p className="num text-sm">
-                {priceBandcoin || "…"} BANDCOIN · ${priceUsd || "…"}
+                {priceActionToken || "…"} ACTION · ${priceUsd || "…"}
               </p>
             </div>
           </section>
@@ -397,9 +398,9 @@ export function SongForm({
 
       <FormSection title="Price and copies" icon={Coins}>
         <PriceFields
-          bandcoin={priceBandcoin}
+          actionToken={priceActionToken}
           usd={priceUsd}
-          onBandcoin={setPriceBandcoin}
+          onActionToken={setPriceActionToken}
           onUsd={setPriceUsd}
           idPrefix="song-price"
         />

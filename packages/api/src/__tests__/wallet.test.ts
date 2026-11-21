@@ -17,7 +17,7 @@ function setup(user: SessionUser | null = me, network: "testnet" | "mainnet" = "
           id: "o1",
           kind: "ITEM_PURCHASE",
           status: "DELIVERED",
-          currency: "BANDCOIN",
+          currency: "ACTION",
           total: "50.0000000",
           quantity: 2,
           txHash: "aa",
@@ -39,7 +39,7 @@ function setup(user: SessionUser | null = me, network: "testnet" | "mainnet" = "
           id: "o3",
           kind: "XLM_SWAP",
           status: "FAILED",
-          currency: "BANDCOIN",
+          currency: "ACTION",
           total: "74.31",
           quantity: 1,
           txHash: null,
@@ -130,10 +130,10 @@ describe("wallet.history", () => {
     ).toEqual([
       ["Bounty prize: Film the set", "received", "300", "USDC", "DELIVERED"],
       ["Top-up with card", "paid", "9.99", "USD", "DELIVERED"],
-      ["Swapped for 0.98 XLM", "paid", "74.31", "BANDCOIN", "FAILED"],
+      ["Swapped for 0.98 XLM", "paid", "74.31", "ACTION", "FAILED"],
       // a send shows what was sent, not the network fee
       ["Sent to @mira as a gift", "paid", "10", null, "DELIVERED"],
-      ["Bought 2 × Night Drive", "paid", "50", "BANDCOIN", "DELIVERED"],
+      ["Bought 2 × Night Drive", "paid", "50", "ACTION", "DELIVERED"],
       ["Sent to GABCD…STUVW", "paid", "2", "XLM", "DELIVERED"],
     ]);
     expect(history[3]?.code).toBe("NOVA");

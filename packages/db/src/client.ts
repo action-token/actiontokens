@@ -47,12 +47,12 @@ function createDbClient() {
 }
 
 const globalForPrisma = globalThis as unknown as {
-  bandcoinDb: ReturnType<typeof createDbClient> | undefined;
+  actionTokenDb: ReturnType<typeof createDbClient> | undefined;
 };
 
-export const db = globalForPrisma.bandcoinDb ?? createDbClient();
+export const db = globalForPrisma.actionTokenDb ?? createDbClient();
 
 /** The shared client's type (with the secret omits), for helpers that take `db`. */
 export type Db = typeof db;
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.bandcoinDb = db;
+if (process.env.NODE_ENV !== "production") globalForPrisma.actionTokenDb = db;

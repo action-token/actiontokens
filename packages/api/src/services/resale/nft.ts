@@ -30,7 +30,7 @@ import { failOrder, ownOrder, userSignature } from "../purchase";
  * Who gets what, as the contract settles a sale: the buyer pays the listed
  * price; out of it the platform fee goes to the treasury and the artist's
  * royalty to the artist (none when the seller is the artist); the seller gets
- * the rest, in BANDCOIN. A card buyer's USD price only sets the charge.
+ * the rest, in ACTION. A card buyer's USD price only sets the charge.
  */
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 
@@ -49,7 +49,7 @@ export type NftListInput = {
   itemId: string;
   /** How many free copies to list (the lowest token numbers first) */
   amount: number;
-  priceBandcoin: string;
+  priceActionToken: string;
   priceUsd: string;
   /** Put a new price on these listed copies instead of listing more */
   listingIds?: string[];
@@ -60,7 +60,7 @@ export type NftDetails = {
   itemId: string;
   editionIds: string[];
   tokenIds: string[];
-  priceBandcoin: string;
+  priceActionToken: string;
   priceUsd: string;
 };
 
@@ -116,7 +116,7 @@ async function prepareList(ctx: ServiceCtx, user: SessionUser, input: NftListInp
   const item = await resalableNft(ctx, input.itemId);
   const problems: RechargeProblem[] = [];
   for (const [label, value] of [
-    ["BANDCOIN", input.priceBandcoin],
+    ["ACTION", input.priceActionToken],
     ["USD", input.priceUsd],
   ] as const)
     if (!PRICE.test(value) || toStroops(value) <= 0n)
@@ -176,7 +176,7 @@ async function prepareList(ctx: ServiceCtx, user: SessionUser, input: NftListInp
 function priceOf(prepared: Awaited<ReturnType<typeof prepareList>>, input: NftListInput) {
   const { problems, fee, item, feeBps } = prepared;
   const royaltyBps = isSelf(item, prepared.mine) ? 0 : (item.contractNft?.royaltyBps ?? 0);
-  const take = nftNet(input.priceBandcoin, feeBps, royaltyBps);
+  const take = nftNet(input.priceActionToken, feeBps, royaltyBps);
   return {
     ok: problems.length === 0,
     problems,
@@ -196,8 +196,8 @@ function priceOf(prepared: Awaited<ReturnType<typeof prepareList>>, input: NftLi
     net: {
       royaltyPercent: String(royaltyBps / 100),
       platformPercent: String(feeBps / 100),
-      /** The seller is paid in BANDCOIN; the USD price only sets what a card buyer is charged */
-      bandcoin: take,
+      /** The seller is paid in ACTION; the USD price only sets what a card buyer is charged */
+      actionToken: take,
       usd: null,
     },
     expiresAt: new Date(Date.now() + QUOTE_TTL_SECONDS * 1000).toISOString(),
@@ -235,7 +235,7 @@ export async function startListNft(ctx: ServiceCtx, user: SessionUser, input: Nf
     itemId: prepared.item.id,
     editionIds: prepared.chosen.map((edition) => edition.id),
     tokenIds: prepared.chosen.map((edition) => edition.tokenId),
-    priceBandcoin: toDisplay(toStroops(input.priceBandcoin)),
+    priceActionToken: toDisplay(toStroops(input.priceActionToken)),
     priceUsd: toDisplay(toStroops(input.priceUsd)),
   };
   const order = await ctx.db.order.create({
@@ -270,10 +270,10 @@ export async function startListNft(ctx: ServiceCtx, user: SessionUser, input: Nf
       prices: [
         {
           paymentToken: tokenAddressOf(
-            new Asset(chain.config.assets.bandcoin.code, chain.config.assets.bandcoin.issuer),
+            new Asset(chain.config.assets.actionToken.code, chain.config.assets.actionToken.issuer),
             chain.config.network.passphrase,
           ),
-          price: toStroops(input.priceBandcoin),
+          price: toStroops(input.priceActionToken),
         },
       ],
     });
@@ -369,7 +369,7 @@ export async function finishListNft(ctx: Pick<ServiceCtx, "db">, orderId: string
         sellerId: order.buyerId,
         kind: "RESALE" as const,
         status: "ACTIVE" as const,
-        priceBandcoin: details.priceBandcoin,
+        priceActionToken: details.priceActionToken,
         priceUsd: details.priceUsd,
         quantity: 1,
         quantitySold: 0,

@@ -55,6 +55,6 @@ describe("small helpers", () => {
 
   it("validates urls", () => {
     expect(isValidUrl("https://action-tokens.com")).toBe(true);
-    expect(isValidUrl("bandcoin")).toBe(false);
+    expect(isValidUrl("actionToken")).toBe(false);
   });
 });

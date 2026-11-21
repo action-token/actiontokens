@@ -36,7 +36,10 @@ const buyerKeys = Keypair.random();
 const artistKeys = Keypair.random();
 await Promise.all([sellerKeys, buyerKeys, artistKeys].map((k) => friendbot(k.publicKey())));
 
-const bandcoin = new Asset(chain.config.assets.bandcoin.code, chain.config.assets.bandcoin.issuer);
+const actionToken = new Asset(
+  chain.config.assets.actionToken.code,
+  chain.config.assets.actionToken.issuer,
+);
 const stamp = Date.now().toString(36).toUpperCase().slice(-6);
 
 async function run(source: Keypair, operations: ReturnType<typeof Operation.payment>[]) {
@@ -52,8 +55,8 @@ const bandOf = async (key: string) => {
   const line = account?.balances.find(
     (b) =>
       "asset_code" in b &&
-      b.asset_code === bandcoin.getCode() &&
-      b.asset_issuer === bandcoin.getIssuer(),
+      b.asset_code === actionToken.getCode() &&
+      b.asset_issuer === actionToken.getIssuer(),
   );
   return Number(line?.balance ?? 0);
 };
@@ -64,13 +67,13 @@ const sign = (xdr: string, key: Keypair) => {
 };
 
 for (const keys of [sellerKeys, buyerKeys, artistKeys])
-  await run(keys, [Operation.changeTrust({ asset: bandcoin })]);
+  await run(keys, [Operation.changeTrust({ asset: actionToken })]);
 {
   const sender = await chain.loadAccount(mother);
   const builder = new TransactionBuilder(sender!, { fee: "1000", networkPassphrase: passphrase });
   for (const keys of [sellerKeys, buyerKeys])
     builder.addOperation(
-      Operation.payment({ destination: keys.publicKey(), asset: bandcoin, amount: "300" }),
+      Operation.payment({ destination: keys.publicKey(), asset: actionToken, amount: "300" }),
     );
   await chain.submit(
     await chain.signWithServerKeys(builder.setTimeout(60).build().toXDR(), [mother]),
@@ -118,7 +121,7 @@ const primary = await db.listing.create({
     sellerId: artistUser.id,
     kind: "PRIMARY",
     status: "ACTIVE",
-    priceBandcoin: "10",
+    priceActionToken: "10",
     priceUsd: "1",
   },
 });
@@ -136,7 +139,7 @@ const as = (user: { id: string }, key: Keypair) =>
   );
 const seller = as(sellerUser, sellerKeys);
 const buyer = as(buyerUser, buyerKeys);
-const bandToken = tokenAddressOf(bandcoin, passphrase);
+const bandToken = tokenAddressOf(actionToken, passphrase);
 const onChainPrice = async (token: number) =>
   (await chain.nftListing(token))?.prices.find((p) => p.paymentToken === bandToken)?.price ?? null;
 
@@ -150,7 +153,7 @@ try {
   const primaryBuy = {
     listingId: primary.id,
     quantity: Number(process.env.NFT_QTY ?? 3),
-    currency: "BANDCOIN" as const,
+    currency: "ACTION" as const,
   };
   // The platform's fee check can trip on a busy testnet (the real cost swings); try again a few times.
   let bought: Awaited<ReturnType<typeof seller.order.submit>> | null = null;
@@ -178,7 +181,7 @@ try {
   console.log("seller bought", bought.status, "| copies", copies.map((c) => c.tokenId).join(", "));
 
   // List two.
-  const listing = { itemId: item.id, amount: 2, priceBandcoin: "40", priceUsd: "3" };
+  const listing = { itemId: item.id, amount: 2, priceActionToken: "40", priceUsd: "3" };
   const quote = await seller.resale.quoteList(listing);
   console.log(
     "list quote",
@@ -188,7 +191,7 @@ try {
     "XLM | copies",
     "copies" in quote ? quote.copies : "",
     "| net per copy",
-    quote.net.bandcoin.net,
+    quote.net.actionToken.net,
   );
   const ls = await seller.resale.startList(listing);
   const listed = await seller.resale.submitList({
@@ -214,7 +217,7 @@ try {
     bandOf(artistKeys.publicKey()),
     bandOf(buyerKeys.publicKey()),
   ]);
-  const buy = { listingId: first.id, quantity: 1, currency: "BANDCOIN" as const };
+  const buy = { listingId: first.id, quantity: 1, currency: "ACTION" as const };
   const bq = await buyer.order.quote(buy);
   console.log(
     "buyer quote",
@@ -255,7 +258,7 @@ try {
   const rp = await seller.resale.startList({
     itemId: item.id,
     amount: 1,
-    priceBandcoin: "50",
+    priceActionToken: "50",
     priceUsd: "4",
     listingIds: [second.id],
   });

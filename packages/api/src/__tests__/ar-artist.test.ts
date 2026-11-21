@@ -62,7 +62,7 @@ describe("ar artist.byId and list", () => {
       id: "a1",
       handle: "luna-vale",
       bio: "",
-      avatarUrl: "/brand/bandcoin-mark.png",
+      avatarUrl: "/brand/actiontokens-mark.png",
       verified: true,
       followed: true,
       followers: 12,
@@ -134,7 +134,9 @@ describe("ar artist.byId and list", () => {
 describe("ar artist.setFollowing", () => {
   it("follows and unfollows for free, returning the follower count", async () => {
     const { caller, db } = setup();
-    await expect(caller.artist.setFollowing({ organizationId: "a1", following: true })).resolves.toEqual({
+    await expect(
+      caller.artist.setFollowing({ organizationId: "a1", following: true }),
+    ).resolves.toEqual({
       following: true,
       subscribed: false,
       followers: 13,
@@ -147,7 +149,9 @@ describe("ar artist.setFollowing", () => {
       update: { isTemporary: true },
     });
     await caller.artist.setFollowing({ organizationId: "a1", following: false });
-    expect(db.follow.deleteMany).toHaveBeenCalledWith({ where: { userId: "me", organizationId: "a1" } });
+    expect(db.follow.deleteMany).toHaveBeenCalledWith({
+      where: { userId: "me", organizationId: "a1" },
+    });
   });
 
   it("needs a signed-in fan", async () => {

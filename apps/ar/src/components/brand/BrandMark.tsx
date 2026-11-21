@@ -4,7 +4,7 @@ import { site } from "@actiontokens/ar-core/site";
 /**
  * ── BrandMark ─────────────────────────────────────────────────────────────
  *
- * The Bandcoin guitar-pick mark (`public/brand/bandcoin-mark.png`), as a
+ * The Action Tokens guitar-pick mark (`public/brand/actiontokens-mark.png`), as a
  * `motion.img` so the boot sequence can scale, glow and animate it.
  */
 export function BrandMark({

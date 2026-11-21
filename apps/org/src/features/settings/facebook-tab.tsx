@@ -21,7 +21,7 @@ const PROBLEMS: Record<string, string> = {
 type Page = { id: string; name: string };
 
 /**
- * Settings › Facebook: copy new posts from a Facebook page into Bandcoin. Sign
+ * Settings › Facebook: copy new posts from a Facebook page into Action Tokens. Sign
  * in with Facebook, pick the page, and each new post (text and photos) is
  * copied once. Disconnect any time; posts already copied stay.
  */

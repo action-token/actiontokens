@@ -92,13 +92,13 @@ These come from the old app's `main` branch: the artist "Collectible" gift
     the price no longer matching), the order becomes FAILED and the card is
     refunded (`failOrder`). No retries.
   - For contract NFTs, the two steps (top-up, then buy) work the same as for
-    signed-in card buyers. If the buy step fails, the BANDCOIN stays in the
+    signed-in card buyers. If the buy step fails, the ACTION stays in the
     new account, as decided in plan 16.
 - **UI:**
   - The buy panel for signed-out visitors shows "Pay by card" with an email
     field (other currencies still say "Sign in to pay with …").
   - The price is shown first, then the Square card form.
-  - The success screen says "It's in the Bandcoin account for you@…: sign in
+  - The success screen says "It's in the Action Tokens account for you@…: sign in
     with Google or Apple using that email, or use 'Forgot password' to set a
     password."
   - Pages that show the buy panel: item, NFT, music and artist page bundles.

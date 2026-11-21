@@ -64,7 +64,7 @@ export async function listItems(ctx: Pick<Context, "db">, input: ItemFilter) {
         where: { kind: "PRIMARY" },
         orderBy: { createdAt: "desc" },
         take: 1,
-        select: { priceBandcoin: true, priceUsd: true, quantitySold: true, status: true },
+        select: { priceActionToken: true, priceUsd: true, quantitySold: true, status: true },
       },
     },
   });
@@ -82,7 +82,7 @@ export async function listItems(ctx: Pick<Context, "db">, input: ItemFilter) {
         coverUrl: row.coverUrl,
         artist: row.organization,
         price: listing
-          ? { bandcoin: listing.priceBandcoin.toString(), usd: listing.priceUsd.toString() }
+          ? { actionToken: listing.priceActionToken.toString(), usd: listing.priceUsd.toString() }
           : null,
         sold: listing?.quantitySold ?? 0,
         supply: row.supply,

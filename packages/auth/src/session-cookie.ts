@@ -3,7 +3,7 @@ import type { NextRequest, NextResponse } from "next/server";
 /**
  * Single sign-on across action-tokens.com and every *.action-tokens.com app (app, artist, ar, studio): when AUTH_COOKIE_DOMAIN is set (".action-tokens.com" in
  * production only), the NextAuth session cookie is written for the whole domain, so every
- * Bandcoin app on a subdomain reads the same login. All of them must share NEXTAUTH_SECRET:
+ * Action Tokens app on a subdomain reads the same login. All of them must share NEXTAUTH_SECRET:
  * an app that can't decrypt the cookie deletes it, which signs the user out everywhere.
  * Unset (Vercel previews) everything behaves as NextAuth's defaults; local dev uses its own cookie name (below).
  *
@@ -21,9 +21,9 @@ export const SESSION_COOKIE = "__Secure-next-auth.session-token";
  * On localhost every project shares one cookie jar (cookies ignore ports) and NextAuth's
  * default cookie name, so another app's login (a different secret) overwrote this one, or
  * failed to decrypt here and was deleted: an intermittent sign-out. Locally the cookie gets
- * Bandcoin's own name. The four Bandcoin apps still share it, so one login covers them all.
+ * Action Tokens' own name. The four Action Tokens apps still share it, so one login covers them all.
  */
-export const DEV_SESSION_COOKIE = "bandcoin.session-token";
+export const DEV_SESSION_COOKIE = "action-tokens.session-token";
 
 /** `cookies` option for NextAuth: only the session token is shared, the rest stay per site. */
 export const sharedSessionCookie = AUTH_COOKIE_DOMAIN

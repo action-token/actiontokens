@@ -50,7 +50,7 @@ export function ItemsView() {
         <EmptyState
           icon={Package}
           title="No items yet"
-          description="Create your first collectible. Fans can buy it with BANDCOIN or a card."
+          description="Create your first collectible. Fans can buy it with ACTION or a card."
           action={create}
         />
       ) : (
@@ -90,9 +90,9 @@ function ItemRow({ row }: { row: Row }) {
             {typeLabel(row.type)} · {row.chain === "CONTRACT_NFT" ? "NFT" : row.code} · {row.sold}{" "}
             sold{row.supply === null ? "" : ` of ${row.supply}`}
           </span>
-          {row.priceBandcoin && row.priceUsd && (
+          {row.priceActionToken && row.priceUsd && (
             <span className="text-fg-muted flex flex-wrap items-center gap-x-3 text-sm">
-              <Money amount={row.priceBandcoin} currency="BANDCOIN" />{" "}
+              <Money amount={row.priceActionToken} currency="ACTION" />{" "}
               <Money amount={row.priceUsd} currency="USD" />
             </span>
           )}

@@ -7,9 +7,9 @@
 set -euo pipefail
 
 TAG="${1:?usage: deploy-worker.sh <image tag>}"
-NAME="${NAME:-bandcoin-worker}"
-IMAGE="${IMAGE:-bandcoin-worker}"
-ENV_FILE="${ENV_FILE:-$HOME/bandcoin/worker.env}"
+NAME="${NAME:-actiontokens-worker}"
+IMAGE="${IMAGE:-actiontokens-worker}"
+ENV_FILE="${ENV_FILE:-$HOME/actionToken/worker.env}"
 HOST_PORT="${HOST_PORT:-8080}"
 WAIT_SECONDS="${WAIT_SECONDS:-90}"
 

@@ -5,14 +5,14 @@ import { isOwnHost, routeCustomHost } from "./custom-host";
 const APP = "https://app.action-tokens.com";
 
 describe("custom domains in the fan app", () => {
-  it("knows Bandcoin's own hosts", () => {
+  it("knows Action Tokens' own hosts", () => {
     for (const host of [
       "action-tokens.com",
       "ar.action-tokens.com",
       "app.action-tokens.com",
       "localhost:3000",
       "127.0.0.1:3000",
-      "bandcoin-app.vercel.app",
+      "actiontokens-app.vercel.app",
       null,
     ]) {
       expect(isOwnHost(host, APP)).toBe(true);
@@ -30,7 +30,7 @@ describe("custom domains in the fan app", () => {
     });
   });
 
-  it("sends other paths to the same page on Bandcoin", () => {
+  it("sends other paths to the same page on Action Tokens", () => {
     expect(routeCustomHost("coldplay.com", "/item/song-1", "?ref=x", APP)).toEqual({
       kind: "redirect",
       to: "https://app.action-tokens.com/item/song-1?ref=x",
@@ -48,7 +48,7 @@ describe("custom domains in the fan app", () => {
     }
   });
 
-  it("leaves Bandcoin's own hosts alone", () => {
+  it("leaves Action Tokens' own hosts alone", () => {
     expect(routeCustomHost("app.action-tokens.com", "/", "", APP)).toEqual({ kind: "own" });
   });
 });

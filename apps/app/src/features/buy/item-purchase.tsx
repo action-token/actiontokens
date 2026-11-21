@@ -20,7 +20,7 @@ export function ItemPurchase({
 }: {
   itemTitle: string;
   listings: Listing[];
-  /** A contract NFT: paid in BANDCOIN or by card, up to 20 copies at a time */
+  /** A contract NFT: paid in ACTION or by card, up to 20 copies at a time */
   nft?: boolean;
   /** One column on wide screens, for a narrow side panel */
   stacked?: boolean;
@@ -74,8 +74,8 @@ export function ItemPurchase({
                 </span>
               </span>
               <Money
-                amount={listing.priceBandcoin}
-                currency="BANDCOIN"
+                amount={listing.priceActionToken}
+                currency="ACTION"
                 className="shrink-0 text-[13px] font-semibold"
               />
             </button>

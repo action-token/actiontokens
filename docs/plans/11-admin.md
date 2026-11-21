@@ -97,7 +97,7 @@ The single `AppSetting` row as a form:
   `set_platform_fee` call; the admin signs with their own wallet (the
   contract admin), with the usual price breakdown and custodial countdown.
   Port of main's `platformFee` router (`buildSetPlatformFeeXDR`).
-- Short link prices (monthly, name change; BANDCOIN and USD).
+- Short link prices (monthly, name change; ACTION and USD).
 - Nearby pin radius.
 
 Saving shows what changed; every change is in the activity log.

@@ -35,7 +35,7 @@ const ACTIVITY = {
 /**
  * ── /bounty ────────────────────────────────────────────────────────────────
  *
- * Tasks artists are paying for, with the old Bandcoin's browse: All, Not
+ * Tasks artists are paying for, with the old Action Tokens' browse: All, Not
  * joined and Joined, search, newest or biggest prize, the top bounties and
  * who's been doing what lately.
  *

@@ -4,7 +4,7 @@ A real Stellar asset (code to be decided, e.g. `STUDIO`), issued by a platform i
 
 ## Top-up deposit (your choice)
 
-1. **Get coins:** swap Bandcoin → STUDIO (the platform sells at the admin-set price), pay with USDC/XLM, pay by card (Square, coins sent to the custodial wallet), or buy on the Stellar DEX.
+1. **Get coins:** swap Action Tokens → STUDIO (the platform sells at the admin-set price), pay with USDC/XLM, pay by card (Square, coins sent to the custodial wallet), or buy on the Stellar DEX.
 2. **Deposit:** one payment from the artist's wallet → treasury, memo = deposit id. It goes through the same `useTransaction` flow and cancel toast as any other payment.
 3. The worker (or the confirm call) verifies the payment on Horizon, then writes `StudioLedgerEntry(kind: DEPOSIT, txHash)` and increases `StudioBalance`.
 4. **Spend:** each generation reserves its price first (`SPEND`, pending), then commits it when the job succeeds. If the job fails, a `REFUND` entry is written automatically. No signing, so it's instant.

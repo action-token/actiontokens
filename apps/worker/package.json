@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Bandcoin worker: finishes payments whose answer got lost, processes music, runs agent jobs, makes batch pins, drops hotspot pins, and relays live music.",
+  "description": "Action Tokens worker: finishes payments whose answer got lost, processes music, runs agent jobs, makes batch pins, drops hotspot pins, and relays live music.",
   "scripts": {
     "dev": "tsx watch --env-file-if-exists=.env.local src/main.ts",
     "start": "tsx src/main.ts",

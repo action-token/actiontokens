@@ -192,7 +192,7 @@ export const artistRouter = createRouter({
         kind: true,
         bundleAmount: true,
         note: true,
-        priceBandcoin: true,
+        priceActionToken: true,
         priceUsd: true,
         priceXlm: true,
         seller: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
@@ -210,7 +210,7 @@ export const artistRouter = createRouter({
         listing: {
           id: offer.id,
           kind: offer.kind,
-          priceBandcoin: offer.priceBandcoin.toString(),
+          priceActionToken: offer.priceActionToken.toString(),
           priceUsd: offer.priceUsd.toString(),
           remaining: 1,
           seller: offer.seller,

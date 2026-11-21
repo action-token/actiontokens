@@ -6,11 +6,11 @@ import { api } from "~/trpc/react";
 
 import { useSignedTransaction } from "./useSignedTransaction";
 
-export type SubscribeCurrency = "BANDCOIN" | "XLM" | "USDC" | "USD";
+export type SubscribeCurrency = "ACTION" | "XLM" | "USDC" | "USD";
 type CardToken = { sourceId: string; verificationToken?: string };
 
 /**
- * Subscribing to an artist: trusting their fan token, paid in BANDCOIN, XLM,
+ * Subscribing to an artist: trusting their fan token, paid in ACTION, XLM,
  * USDC or by card (plan 33). A card is charged only after the fan signed.
  */
 export function useSubscribe(organizationId: string, code: string, currency: SubscribeCurrency) {

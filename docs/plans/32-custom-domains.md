@@ -2,7 +2,7 @@
 
 **Status: built 2026-11-09 (not yet run against a real Vercel project or clicked through in a browser).**
 
-An artist connects their own domain (e.g. `coldplay.com`) and it shows their Bandcoin artist page.
+An artist connects their own domain (e.g. `coldplay.com`) and it shows their Action Tokens artist page.
 The `custom_domains` table and 2 domains copied from bandfan exist; nothing else does yet.
 
 ## How bandfan did it (read 2026-11-09)
@@ -23,7 +23,7 @@ The `custom_domains` table and 2 domains copied from bandfan exist; nothing else
 | Question             | Answer                                                                                                                                |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | Keep it?             | **Build it**                                                                                                                          |
-| What a fan sees      | **The artist's page only.** Other links open on bandcoin.io                                                                           |
+| What a fan sees      | **The artist's page only.** Other links open on action-tokens.io                                                                      |
 | Hook-up              | **Automatic, through a host adapter.** Vercel now; another host (e.g. Amplify) is a new adapter                                       |
 | Domain kinds         | **A root domain with `www` redirecting to it, or a subdomain**                                                                        |
 | Who / price          | **Free, approved artists**, one domain each (as bandfan)                                                                              |
@@ -66,7 +66,7 @@ index.ts      picks the adapter from DOMAIN_HOST=vercel|manual (default manual)
 
 - `domain.overview`: the artist's domain, its status read **live from the host** when the page
   opens (as bandfan did), saved back to the row, plus the records to add.
-- `domain.add({ domain })`: approved artists only. It checks the domain looks real, refuses bandcoin's
+- `domain.add({ domain })`: approved artists only. It checks the domain looks real, refuses actiontokens's
   own hosts, and refuses one already used by any artist. It also refuses if this artist has one
   already (remove it first, as bandfan). It is added on the host first, and the row is saved only if
   that worked.
@@ -79,14 +79,14 @@ index.ts      picks the adapter from DOMAIN_HOST=vercel|manual (default manual)
 
 ## 4. Serving the artist page (`apps/app`)
 
-- `proxy.ts`: a request whose host isn't one of Bandcoin's own (`FAN_APP_URL`'s host, `www.`,
+- `proxy.ts`: a request whose host isn't one of Action Tokens' own (`FAN_APP_URL`'s host, `www.`,
   `localhost`, `*.vercel.app`) is a custom domain.
   - `/` is rewritten to `/domain-site/[host]`, which looks the host up and shows `ArtistView` only
     when the domain is `LIVE`. Anything else is a 404.
-  - Every other path redirects (307) to the same path on bandcoin.io, so the artist page's links
+  - Every other path redirects (307) to the same path on action-tokens.io, so the artist page's links
     work. `_next` assets and images pass straight through.
 - Metadata: the canonical URL is the custom domain.
-- Sign-in stays on bandcoin.io (the cookie can't be shared with another domain), so "Sign in" and
+- Sign-in stays on action-tokens.io (the cookie can't be shared with another domain), so "Sign in" and
   any money action happen there.
 
 ## 5. Worker
@@ -115,7 +115,7 @@ index.ts      picks the adapter from DOMAIN_HOST=vercel|manual (default manual)
 
 ## Tests
 
-- Unit: domain validation (root vs subdomain, bandcoin's own hosts refused), status transitions,
+- Unit: domain validation (root vs subdomain, actiontokens's own hosts refused), status transitions,
   the adapter's mapping from Vercel answers (fake HTTP), add/remove failure paths, and proxy host
   matching and redirects.
 - Worker: the live bell is sent once, broken is told once, and one bad domain doesn't stop the run.
@@ -129,9 +129,9 @@ index.ts      picks the adapter from DOMAIN_HOST=vercel|manual (default manual)
 ## Built (2026-11-09)
 
 - Schema + migration `20261109100000_custom_domain_status` (copied rows become `NEEDS_SETUP`). **Not applied
-  to any database yet**: run `pnpm --filter @bandcoin/db migrate:deploy` on dev, then production.
+  to any database yet**: run `pnpm --filter @actiontokens/db migrate:deploy` on dev, then production.
 - `services/domains/` (host interface, Vercel and manual adapters, status rules, service), name rules in
-  `@bandcoin/utils/domain` (shared with the portal), portal `domain.*` router, `admin.domains.*`,
+  `@actiontokens/utils/domain` (shared with the portal), portal `domain.*` router, `admin.domains.*`,
   `artist.byDomain` for the fan app, a `DOMAIN` bell note, Admin › Alerts `brokenDomain`.
 - Fan app: `proxy.ts` + `lib/custom-host.ts` route custom hosts; `/domain-site/[host]` shows the artist page.
 - Worker: `domains.check` every 15 minutes (waiting domains each run, live/broken ones daily).

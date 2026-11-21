@@ -11,7 +11,7 @@ import {
 import { getWalletProvider, signTransaction } from "@actiontokens/wallet";
 
 /**
- * The steps every Bandcoin payment goes through, for the AR app's claims and
+ * The steps every Action Tokens payment goes through, for the AR app's claims and
  * subscribing:
  *
  *   email / Google / Apple accounts: countdown with Cancel → server signs → done

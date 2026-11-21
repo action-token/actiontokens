@@ -47,7 +47,7 @@ export default function DesignPreviewPage() {
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <BrandMark className="size-[30px]" />
-          <span className="font-display text-lg font-extrabold tracking-tight">Bandcoin</span>
+          <span className="font-display text-lg font-extrabold tracking-tight">Action Tokens</span>
         </div>
         <ThemeSwitch />
       </header>
@@ -59,8 +59,8 @@ export default function DesignPreviewPage() {
             Music you can own, on a stage that stays out of the way.
           </h1>
           <p className="text-fg-muted mt-4 max-w-[58ch] text-[17px]">
-            Every Bandcoin app uses these tokens and components. Album art provides the color; the
-            interface stays calm and readable.
+            Every Action Tokens app uses these tokens and components. Album art provides the color;
+            the interface stays calm and readable.
           </p>
         </div>
         <dl className="grid gap-3 text-sm">
@@ -68,7 +68,7 @@ export default function DesignPreviewPage() {
             ["Display", "Bricolage Grotesque: headings and big moments"],
             ["Text", "Onest: everything you read"],
             ["Numbers", "JetBrains Mono: prices, balances, times"],
-            ["Accent", "Bandcoin chartreuse, from the guitar-pick logo"],
+            ["Accent", "Action Tokens chartreuse, from the guitar-pick logo"],
           ].map(([k, v]) => (
             <div key={k} className="grid grid-cols-[100px_minmax(0,1fr)] gap-3 border-b pb-3">
               <dt className="text-fg-faint">{k}</dt>
@@ -155,7 +155,7 @@ export default function DesignPreviewPage() {
             </label>
             <label className="grid gap-1.5">
               <span className="text-[13px] font-semibold">Price per copy</span>
-              <Input className="num" defaultValue="25,000 BANDCOIN" inputMode="decimal" />
+              <Input className="num" defaultValue="25,000 ACTION" inputMode="decimal" />
             </label>
           </div>
         </div>
@@ -170,7 +170,7 @@ export default function DesignPreviewPage() {
 
       <Block
         title="Item page and buying"
-        note="Pay in the currency you pick; nothing is converted. Try 2 copies in USDC. Sample balances: 60,000 BANDCOIN, 9.8 XLM, 1.50 USDC."
+        note="Pay in the currency you pick; nothing is converted. Try 2 copies in USDC. Sample balances: 60,000 ACTION, 9.8 XLM, 1.50 USDC."
       >
         <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_420px]">
           <div className="grid gap-4">

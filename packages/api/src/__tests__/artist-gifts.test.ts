@@ -26,11 +26,12 @@ const issuerKey = Keypair.random().publicKey();
 const network = { passphrase: Networks.TESTNET, baseFee: "100" };
 const ORDER = "cmvorder0000000000000007";
 const storageKey = Keypair.random().publicKey();
-const organization: { id: string; fanTokenItemId: string | null; storageAccountId: string | null } = {
-  id: "a1",
-  fanTokenItemId: "tok1",
-  storageAccountId: null,
-};
+const organization: { id: string; fanTokenItemId: string | null; storageAccountId: string | null } =
+  {
+    id: "a1",
+    fanTokenItemId: "tok1",
+    storageAccountId: null,
+  };
 const withStorage = { ...organization, storageAccountId: "st1" };
 const me: SessionUser = {
   id: "u-artist",
@@ -150,7 +151,7 @@ function setup(
       name: "testnet",
       network,
       assets: {
-        bandcoin: { code: "BANDCOIN", issuer: Keypair.random().publicKey() },
+        actionToken: { code: "ACTION", issuer: Keypair.random().publicKey() },
         usdc: { code: "USDC", issuer: Keypair.random().publicKey() },
       },
       treasury: Keypair.random().publicKey(),
@@ -248,7 +249,7 @@ describe("quoteGift", () => {
     ]);
     expect(await problems({}, { ...ask, recipient: "" })).toEqual(["Choose who to send it to."]);
     expect(await problems({ fan: null })).toEqual([
-      expect.stringContaining("couldn't find a Bandcoin fan"),
+      expect.stringContaining("couldn't find an Action Tokens fan"),
     ]);
     expect(await problems({ fan: { ...fan, id: "u-artist" } })).toEqual([
       "You can't gift tokens to yourself.",
@@ -256,9 +257,9 @@ describe("quoteGift", () => {
     expect(await problems({ fanTrusts: false })).toEqual([
       expect.stringContaining("hasn't added your token"),
     ]);
-    expect((await quoteGift(setup({ xlm: "0" }).ctx, me, organization, ask)).problems).toMatchObject([
-      { code: "INSUFFICIENT_FUNDS" },
-    ]);
+    expect(
+      (await quoteGift(setup({ xlm: "0" }).ctx, me, organization, ask)).problems,
+    ).toMatchObject([{ code: "INSUFFICIENT_FUNDS" }]);
   });
 });
 
@@ -386,7 +387,9 @@ describe("submitGift", () => {
   it("fails the order and gives nothing when the network says no", async () => {
     const { ctx, db, orders } = setup({ submit: () => Promise.reject(new Error("tx_failed")) });
     const { xdr } = await startGift(ctx, me, organization, ask);
-    await expect(submitGift(ctx, me, organization, { orderId: ORDER, xdr })).rejects.toThrow("tx_failed");
+    await expect(submitGift(ctx, me, organization, { orderId: ORDER, xdr })).rejects.toThrow(
+      "tx_failed",
+    );
     expect(db.ownership.upsert).not.toHaveBeenCalled();
     expect(orders.get(ORDER)).toMatchObject({ status: "FAILED" });
   });
@@ -402,11 +405,11 @@ describe("submitGift", () => {
       .build()
       .toXDR();
     expect(xdr).not.toBe(other);
-    await expect(submitGift(ctx, me, organization, { orderId: ORDER, xdr: other })).rejects.toMatchObject(
-      {
-        message: "That transaction doesn't belong to this order.",
-      },
-    );
+    await expect(
+      submitGift(ctx, me, organization, { orderId: ORDER, xdr: other }),
+    ).rejects.toMatchObject({
+      message: "That transaction doesn't belong to this order.",
+    });
     expect(chain.submit).not.toHaveBeenCalled();
   });
 
@@ -496,7 +499,9 @@ describe("lists", () => {
       { id: "u-fan", name: "Ana B", username: "ana", wallet: fanWallet, image: null },
     ]);
     expect(db.follow.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: expect.objectContaining({ organizationId: "a1" }) as unknown }),
+      expect.objectContaining({
+        where: expect.objectContaining({ organizationId: "a1" }) as unknown,
+      }),
     );
   });
 });

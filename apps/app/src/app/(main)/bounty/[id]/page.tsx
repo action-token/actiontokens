@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const bounty = await loadBounty((await params).id);
   return {
     title: bounty.title,
-    description: `${bounty.summary} A bounty from ${bounty.artist.name} on Bandcoin.`,
+    description: `${bounty.summary} A bounty from ${bounty.artist.name} on Action Tokens.`,
   };
 }
 

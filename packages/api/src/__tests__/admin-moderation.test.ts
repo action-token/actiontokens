@@ -143,7 +143,7 @@ describe("admin bounties", () => {
       id: "b1",
       title: "Cover contest",
       prizeAmount: { toString: () => "500" },
-      prizeCurrency: "BANDCOIN",
+      prizeCurrency: "ACTION",
       maxWinners: 1,
       status: "RUNNING",
       fundTxHash: "tx",
@@ -170,7 +170,7 @@ describe("admin bounties", () => {
       config: {
         name: "testnet",
         assets: {
-          bandcoin: { code: "BANDCOIN", issuer: Keypair.random().publicKey() },
+          actionToken: { code: "ACTION", issuer: Keypair.random().publicKey() },
           usdc: { code: "USDC", issuer: Keypair.random().publicKey() },
         },
       },
@@ -218,7 +218,7 @@ describe("admin items", () => {
             classicToken: { code: "SONG1" },
             listings: [
               {
-                priceBandcoin: { toString: () => "10" },
+                priceActionToken: { toString: () => "10" },
                 priceUsd: { toString: () => "1" },
                 quantitySold: 4,
                 status: "ACTIVE",
@@ -231,7 +231,7 @@ describe("admin items", () => {
     const page = await listItems(ctx, { status: "listed" });
     expect(page.items[0]).toMatchObject({
       code: "SONG1",
-      price: { bandcoin: "10", usd: "1" },
+      price: { actionToken: "10", usd: "1" },
       sold: 4,
       supply: 100,
       status: "listed",

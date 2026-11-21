@@ -30,9 +30,9 @@ export type TokenOffer = { code: string; organizationId: string };
 
 /**
  * After following an artist who has a fan token: "Subscribe with NOVA?". The fan
- * picks BANDCOIN, XLM, USDC or a card (plan 33) and sees the server's price
+ * picks ACTION, XLM, USDC or a card (plan 33) and sees the server's price
  * first: the 0.5 XLM the line locks (theirs back if they remove it), the
- * platform fee and, by card, the rest of the $1 minimum as BANDCOIN. Nothing
+ * platform fee and, by card, the rest of the $1 minimum as ACTION. Nothing
  * happens unless they tap Subscribe. Following never waits on this.
  */
 export function HoldTokenDialog({
@@ -47,7 +47,7 @@ export function HoldTokenDialog({
 }) {
   const { status } = useSession();
   const flow = useRecharge();
-  const [currency, setCurrency] = useState<DisplayCurrency>("BANDCOIN");
+  const [currency, setCurrency] = useState<DisplayCurrency>("ACTION");
   const byCard = currency === "USD";
   const me = api.account.me.useQuery(undefined, { enabled: status === "authenticated" });
   const { container: cardField, ...card } = useSquareCard(Boolean(offer) && byCard);
@@ -148,9 +148,7 @@ export function HoldTokenDialog({
             </Button>
             {needsFunds ? (
               <Button asChild>
-                <Link href="/recharge">
-                  {currency === "BANDCOIN" ? "Add BANDCOIN" : "Add funds"}
-                </Link>
+                <Link href="/recharge">{currency === "ACTION" ? "Add ACTION" : "Add funds"}</Link>
               </Button>
             ) : (
               <Button

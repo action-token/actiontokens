@@ -18,7 +18,7 @@ whatever the balance), they are a **subscriber**. Without the trustline they are
 - **Perks**: a new audience **Subscribers** for posts, stories and pins, between "Followers" and a membership tier. It is decided
   from the viewer's wallet (a trustline to the token), not from the saved flag, so it is never out of date.
 - **Fan button**: Follow → Following (free, instant). A separate **Subscribe** action opens the existing price dialog (about 0.5 XLM
-  of BANDCOIN, which the line locks and the fan gets back if they remove it). Once they trust the token the button reads Subscribed.
+  of ACTION, which the line locks and the fan gets back if they remove it). Once they trust the token the button reads Subscribed.
 - **Artist portal**: follower and subscriber counts.
 
 ## Not in scope

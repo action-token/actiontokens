@@ -7,7 +7,7 @@ import { cardChargeUsd, type DisplayCurrency, formatAmount } from "~/lib/format"
 
 /**
  * A price: the currency's icon and the amount ("🪙 25,000"), never the word
- * "BANDCOIN". The currency name is kept for screen readers. Card amounts show
+ * "ACTION". The currency name is kept for screen readers. Card amounts show
  * as dollars.
  */
 export function Money({

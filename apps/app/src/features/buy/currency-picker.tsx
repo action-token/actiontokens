@@ -7,7 +7,7 @@ import { Money } from "~/components/money";
 import type { DisplayCurrency } from "~/lib/format";
 
 export const CURRENCIES: { value: DisplayCurrency; label: string }[] = [
-  { value: "BANDCOIN", label: "BANDCOIN" },
+  { value: "ACTION", label: "ACTION" },
   { value: "XLM", label: "XLM" },
   { value: "USDC", label: "USDC" },
   { value: "USD", label: "Card" },
@@ -28,7 +28,7 @@ export function CurrencyPicker({
   onChange: (currency: DisplayCurrency) => void;
   options?: { value: DisplayCurrency; label: string }[];
   /** Signed in: the fan's balances; otherwise each tile says "Stellar wallet" */
-  balances?: Record<"BANDCOIN" | "XLM" | "USDC", string>;
+  balances?: Record<"ACTION" | "XLM" | "USDC", string>;
   disabled?: boolean;
 }) {
   return (

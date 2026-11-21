@@ -19,14 +19,14 @@ import { useVanityPayment, type VanityPayInput } from "./use-vanity-payment";
 
 type Currency = VanityPayInput["currency"];
 const CURRENCIES: { value: Currency; label: string }[] = [
-  { value: "BANDCOIN", label: "BANDCOIN" },
+  { value: "ACTION", label: "ACTION" },
   { value: "XLM", label: "XLM" },
   { value: "USDC", label: "USDC" },
   { value: "USD", label: "Card" },
 ];
 
 /**
- * Pay for the link: pick BANDCOIN, XLM, USDC or a card, see the whole price (a
+ * Pay for the link: pick ACTION, XLM, USDC or a card, see the whole price (a
  * month or a new name, the platform fee and, on-chain, the network fee), and
  * pay. The server does the money math; nothing is signed or charged until the
  * button is pressed.
@@ -41,7 +41,7 @@ export function PayPanel({
   name?: string;
   onDone: () => void;
 }) {
-  const [currency, setCurrency] = useState<Currency>("BANDCOIN");
+  const [currency, setCurrency] = useState<Currency>("ACTION");
   const input = { purpose, name, currency };
   const quote = api.vanity.quote.useQuery(input, {
     refetchInterval: 30_000,

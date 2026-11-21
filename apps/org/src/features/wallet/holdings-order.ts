@@ -3,7 +3,7 @@ export const SIDEBAR_PREVIEW = 3;
 /** How many holdings a Wallet page card lists before "Show all". */
 export const PAGE_PREVIEW = 10;
 
-type Kind = "xlm" | "bandcoin" | "usdc" | "fanToken" | "other";
+type Kind = "xlm" | "actionToken" | "usdc" | "fanToken" | "other";
 type Holding = { amount: string; kind?: Kind };
 
 const byAmount = (a: Holding, b: Holding) => Number(b.amount) - Number(a.amount);
@@ -12,15 +12,15 @@ const rank = (order: Kind[]) => (holding: Holding) => {
   return at === -1 ? order.length : at;
 };
 
-/** Storage: your fan token, then BANDCOIN, then the rest by amount. */
+/** Storage: your fan token, then ACTION, then the rest by amount. */
 export function orderStorage<T extends Holding>(holdings: T[]): T[] {
-  const of = rank(["fanToken", "bandcoin"]);
+  const of = rank(["fanToken", "actionToken"]);
   return [...holdings].sort((a, b) => of(a) - of(b) || byAmount(a, b));
 }
 
-/** The main wallet: BANDCOIN, XLM, USDC, your fan token, then the rest by amount. */
+/** The main wallet: ACTION, XLM, USDC, your fan token, then the rest by amount. */
 export function orderMain<T extends Holding>(holdings: T[]): T[] {
-  const of = rank(["bandcoin", "xlm", "usdc", "fanToken"]);
+  const of = rank(["actionToken", "xlm", "usdc", "fanToken"]);
   return [...holdings].sort((a, b) => of(a) - of(b) || byAmount(a, b));
 }
 

@@ -41,35 +41,39 @@ export function Toggle({
 }
 
 /** What is wrong with the two prices, if anything: empty until the artist has typed something. */
-export const priceProblems = (bandcoin: string, usd: string) => ({
-  bandcoin: bandcoin ? validatePrice(bandcoin) : null,
+export const priceProblems = (actionToken: string, usd: string) => ({
+  actionToken: actionToken ? validatePrice(actionToken) : null,
   usd: usd ? validatePrice(usd) : null,
 });
 
-/** The two prices an artist sets: BANDCOIN and USD (the card price). Nothing converts one into the other. */
+/** The two prices an artist sets: ACTION and USD (the card price). Nothing converts one into the other. */
 export function PriceFields({
-  bandcoin,
+  actionToken,
   usd,
-  onBandcoin,
+  onActionToken,
   onUsd,
   idPrefix,
 }: {
-  bandcoin: string;
+  actionToken: string;
   usd: string;
-  onBandcoin: (value: string) => void;
+  onActionToken: (value: string) => void;
   onUsd: (value: string) => void;
   idPrefix: string;
 }) {
-  const problems = priceProblems(bandcoin, usd);
+  const problems = priceProblems(actionToken, usd);
   return (
     <div className="grid gap-5 sm:grid-cols-2">
-      <Field label="Price in BANDCOIN" htmlFor={`${idPrefix}-bandcoin`} error={problems.bandcoin}>
+      <Field
+        label="Price in ACTION"
+        htmlFor={`${idPrefix}-actionToken`}
+        error={problems.actionToken}
+      >
         <Input
-          id={`${idPrefix}-bandcoin`}
+          id={`${idPrefix}-actionToken`}
           inputMode="decimal"
-          value={bandcoin}
-          aria-invalid={Boolean(problems.bandcoin)}
-          onChange={(event) => onBandcoin(event.target.value.trim())}
+          value={actionToken}
+          aria-invalid={Boolean(problems.actionToken)}
+          onChange={(event) => onActionToken(event.target.value.trim())}
         />
       </Field>
       <Field label="Price in USD (card price)" htmlFor={`${idPrefix}-usd`} error={problems.usd}>

@@ -2,7 +2,7 @@
 
 **Status: built 2026-11-13 (not committed).**
 
-First of four Studio extras bandfan had and bandcoin doesn't (the others: more live-music controls,
+First of four Studio extras bandfan had and actiontokens doesn't (the others: more live-music controls,
 your usage numbers, admin Studio totals; each gets its own plan).
 
 ## How bandfan did it (read 2026-11-13)
@@ -19,7 +19,7 @@ mix. Three sliders from −12 to +12 dB and a Reset button:
 It was heard while playing and applied to the exported file. It wasn't saved (bandfan's mixer had
 no saved projects).
 
-## Bandcoin today
+## Action Tokens today
 
 The mixer (`apps/studio/src/features/mixer`) has tracks with volume, pan, mute and solo, a master
 volume in the top bar, undo, saved projects, Export WAV and Publish (the mix plus one stem per

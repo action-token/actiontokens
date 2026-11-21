@@ -46,7 +46,7 @@ const STATUS: Record<Bounty["status"], { label: string; tone: string }> = {
 };
 
 /**
- * One bounty, with everything the old Bandcoin page had: status, the brief
+ * One bounty, with everything the old Action Tokens page had: status, the brief
  * and requirements (or the songs for a listening challenge), participants,
  * your reports and listening progress. The prize pool, joining or claiming,
  * stats and winners stay in view in a card on the right (BountySide).

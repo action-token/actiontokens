@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Every Stellar transaction Bandcoin builds: quotes and price breakdowns, classic tokens, nft_oz and bounty_escrow calls, royalty batches, and server-side signing and submit.",
+  "description": "Every Stellar transaction Action Tokens builds: quotes and price breakdowns, classic tokens, nft_oz and bounty_escrow calls, royalty batches, and server-side signing and submit.",
   "exports": {
     ".": "./src/index.ts",
     "./quote": "./src/quote/index.ts",

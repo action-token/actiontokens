@@ -9,8 +9,8 @@ import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 
 const artist = z.object({
   organizationId: z.string().min(1),
-  /** BANDCOIN, USDC, XLM or card (plan 33) */
-  currency: z.enum(["BANDCOIN", "USDC", "XLM", "USD"]),
+  /** ACTION, USDC, XLM or card (plan 33) */
+  currency: z.enum(["ACTION", "USDC", "XLM", "USD"]),
 });
 const card = z
   .object({ sourceId: z.string().min(1), verificationToken: z.string().optional() })

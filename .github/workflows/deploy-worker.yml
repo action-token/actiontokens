@@ -62,7 +62,7 @@ jobs:
           context: .
           file: apps/worker/Dockerfile
           load: true
-          tags: bandcoin-worker:${{ github.sha }}
+          tags: actiontokens-worker:${{ github.sha }}
 
       - name: Set up SSH
         run: |
@@ -74,7 +74,7 @@ jobs:
       # The image is built here, so the server never compiles anything: it only loads it.
       - name: Send the image to the server
         run: |
-          docker save bandcoin-worker:${TAG} | gzip \
+          docker save actiontokens-worker:${TAG} | gzip \
             | ssh -i ~/.ssh/deploy_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'gunzip | docker load'
 
       - name: Swap the container, wait for /health, go back if it fails
@@ -85,6 +85,6 @@ jobs:
       - name: Keep the watchdog and the monitor current
         run: |
           scp -i ~/.ssh/deploy_key.pem scripts/worker-watchdog.sh scripts/server_monitor.py \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:bandcoin/
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:actionToken/
           ssh -i ~/.ssh/deploy_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
-            'chmod +x ~/bandcoin/worker-watchdog.sh ~/bandcoin/server_monitor.py'
+            'chmod +x ~/actionToken/worker-watchdog.sh ~/actionToken/server_monitor.py'

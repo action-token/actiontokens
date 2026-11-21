@@ -10,7 +10,7 @@ import { api } from "~/trpc/react";
 /**
  * Delete your account, from the profile (the app stores require it). Tapping
  * once opens the confirm; typing DELETE is the second step. The server says in
- * plain words when it can't (artists, funds in a Bandcoin-held wallet,
+ * plain words when it can't (artists, funds in an Action Tokens-held wallet,
  * a payment in flight).
  */
 export function DeleteAccountPanel() {

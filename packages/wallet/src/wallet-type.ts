@@ -19,14 +19,14 @@ export enum WalletType {
   metamask = "metamask",
   walletConnect = "walletConnect",
 
-  // ── custodial: Bandcoin's accounts service holds the keys ────────────────
+  // ── custodial: Action Tokens' accounts service holds the keys ────────────────
   emailPass = "emailPass",
   google = "google",
   facebook = "facebook",
   apple = "apple",
 }
 
-/** Accounts whose keys live in the Bandcoin accounts service (the server signs for them). */
+/** Accounts whose keys live in the Action Tokens accounts service (the server signs for them). */
 export const CUSTODIAL_WALLET_TYPES: readonly WalletType[] = [
   WalletType.emailPass,
   WalletType.google,

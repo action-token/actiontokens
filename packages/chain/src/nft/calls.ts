@@ -130,7 +130,7 @@ export function buildNftTransfer(input: Common & { to: string; tokenId: number }
 
 /**
  * The price authority (server) sets an edition's prices per payment token.
- * The artist sets BANDCOIN and USD; the server refreshes the XLM and USDC
+ * The artist sets ACTION and USD; the server refreshes the XLM and USDC
  * entries from the live rate before a buy.
  */
 export function buildNftUpdateEdition(

@@ -28,7 +28,7 @@ import { balanceOf, failOrder, holdsLine, ownOrder, userSignature } from "../pur
 
 /**
  * Resale of classic copies, from the holder's side. Listing moves the copies
- * into the holder's own resale storage (an account Bandcoin keeps the key
+ * into the holder's own resale storage (an account Action Tokens keeps the key
  * for, opened by the holder the first time) and creates the listing in the
  * same transaction's order. Buyers are then served from that storage, so a
  * sale needs nobody to sign. Cancelling moves the unsold copies back.
@@ -49,7 +49,7 @@ export type ListInput = {
   itemId: string;
   /** Whole copies */
   amount: number;
-  priceBandcoin: string;
+  priceActionToken: string;
   priceUsd: string;
 };
 type Details = {
@@ -57,7 +57,7 @@ type Details = {
   code: string;
   issuer: string;
   amount: string;
-  priceBandcoin: string;
+  priceActionToken: string;
   priceUsd: string;
   storage: string;
   openStorage: boolean;
@@ -100,12 +100,12 @@ async function prepareList(ctx: ServiceCtx, user: SessionUser, input: ListInput)
   const item = await resalableItem(ctx, input.itemId);
   const problems: RechargeProblem[] = [];
   const token = new Asset(item.token.code, item.token.issuer);
-  const bandcoin = assetFor("BANDCOIN", chain.config.assets);
+  const actionToken = assetFor("ACTION", chain.config.assets);
 
   if (!Number.isInteger(input.amount) || input.amount < 1 || input.amount > MAX_LISTED)
     problems.push(unavailable(`List between 1 and ${MAX_LISTED.toLocaleString("en-US")} copies.`));
   for (const [label, value] of [
-    ["BANDCOIN", input.priceBandcoin],
+    ["ACTION", input.priceActionToken],
     ["USD", input.priceUsd],
   ] as const)
     if (!PRICE.test(value) || toStroops(value) <= 0n)
@@ -120,7 +120,7 @@ async function prepareList(ctx: ServiceCtx, user: SessionUser, input: ListInput)
 
   const openStorage = !(storage?.activatedAt || held);
   const openTrustline = openStorage || !(held && holdsLine(held, token));
-  const openPayoutLine = !(mine && holdsLine(mine, bandcoin));
+  const openPayoutLine = !(mine && holdsLine(mine, actionToken));
 
   // Copies already listed (and unsold) stay in storage, so only what the wallet holds is free to list.
   const free = mine ? toStroops(balanceOf(mine, token)) : 0n;
@@ -160,7 +160,7 @@ async function prepareList(ctx: ServiceCtx, user: SessionUser, input: ListInput)
   return {
     item,
     token,
-    bandcoin,
+    actionToken,
     storage,
     mine,
     openStorage,
@@ -185,7 +185,7 @@ function netOf(item: { royaltyPercent: { toString(): string } | null }, input: L
   };
   return {
     royaltyPercent: String(item.royaltyPercent?.toString() ?? "0"),
-    bandcoin: take(input.priceBandcoin),
+    actionToken: take(input.priceActionToken),
     usd: take(input.priceUsd),
   };
 }
@@ -210,7 +210,7 @@ function priceOf(prepared: Awaited<ReturnType<typeof prepareList>>, input: ListI
         ? [line("reserve", `Let storage hold ${prepared.item.token.code}`, reserve)]
         : []),
       ...(prepared.openPayoutLine
-        ? [line("payout", "Let your wallet receive BANDCOIN", payoutReserve)]
+        ? [line("payout", "Let your wallet receive ACTION", payoutReserve)]
         : []),
       line("networkFee", "Network fee", fee),
       line("total", "You pay", xlmNeeded),
@@ -259,7 +259,7 @@ export async function startList(ctx: ServiceCtx, user: SessionUser, input: ListI
     code: prepared.item.token.code,
     issuer: prepared.item.token.issuer,
     amount,
-    priceBandcoin: toDisplay(toStroops(input.priceBandcoin)),
+    priceActionToken: toDisplay(toStroops(input.priceActionToken)),
     priceUsd: toDisplay(toStroops(input.priceUsd)),
     storage: storage.publicKey,
     openStorage: prepared.openStorage,
@@ -295,7 +295,7 @@ export async function startList(ctx: ServiceCtx, user: SessionUser, input: ListI
     amount,
     openStorage: prepared.openStorage,
     openTrustline: prepared.openTrustline,
-    openPayoutLine: prepared.openPayoutLine ? ctx.chain.config.assets.bandcoin : undefined,
+    openPayoutLine: prepared.openPayoutLine ? ctx.chain.config.assets.actionToken : undefined,
   });
   // The hash doesn't change when signatures are added, so it pins the exact transaction.
   await transitionOrder(ctx.db, order.id, "AWAITING_SIGNATURE", { txHash: built.hash });
@@ -402,7 +402,7 @@ export async function finishList(ctx: Pick<ServiceCtx, "db">, orderId: string) {
         sellerId: order.buyerId,
         kind: "RESALE",
         status: "ACTIVE",
-        priceBandcoin: details.priceBandcoin,
+        priceActionToken: details.priceActionToken,
         priceUsd: details.priceUsd,
         quantity: Number(details.amount),
       },
@@ -436,10 +436,10 @@ async function ownListing(ctx: Pick<ServiceCtx, "db">, user: SessionUser, listin
 export async function setListingPrice(
   ctx: Pick<ServiceCtx, "db" | "activity">,
   user: SessionUser,
-  input: { listingId: string; priceBandcoin: string; priceUsd: string },
+  input: { listingId: string; priceActionToken: string; priceUsd: string },
 ) {
   for (const [label, value] of [
-    ["BANDCOIN", input.priceBandcoin],
+    ["ACTION", input.priceActionToken],
     ["USD", input.priceUsd],
   ] as const)
     if (!PRICE.test(value) || toStroops(value) <= 0n)
@@ -452,7 +452,7 @@ export async function setListingPrice(
   await ctx.db.listing.update({
     where: { id: listing.id },
     data: {
-      priceBandcoin: toDisplay(toStroops(input.priceBandcoin)),
+      priceActionToken: toDisplay(toStroops(input.priceActionToken)),
       priceUsd: toDisplay(toStroops(input.priceUsd)),
       status: "ACTIVE",
     },
@@ -641,7 +641,7 @@ export async function myListings(ctx: Pick<ServiceCtx, "db">, user: SessionUser)
     select: {
       id: true,
       status: true,
-      priceBandcoin: true,
+      priceActionToken: true,
       priceUsd: true,
       quantity: true,
       quantitySold: true,
@@ -657,7 +657,7 @@ export async function myListings(ctx: Pick<ServiceCtx, "db">, user: SessionUser)
     /** A smart-contract NFT: one numbered copy, listed on the contract */
     tokenId: row.edition?.tokenId ?? null,
     status: row.status,
-    priceBandcoin: row.priceBandcoin.toString(),
+    priceActionToken: row.priceActionToken.toString(),
     priceUsd: row.priceUsd.toString(),
     listed: row.quantity ?? 0,
     sold: row.quantitySold,

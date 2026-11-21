@@ -15,7 +15,7 @@ import { artistProcedure, createRouter } from "../../trpc";
 const payInput = z.object({
   itemId: z.string().min(1),
   revenue: z.string().trim().min(1).max(24),
-  currency: z.enum(["BANDCOIN", "XLM", "USDC"]),
+  currency: z.enum(["ACTION", "XLM", "USDC"]),
 });
 const payoutId = z.object({ payoutId: z.string().min(1) });
 

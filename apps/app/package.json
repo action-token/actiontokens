@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Bandcoin fan app: home, music, marketplace, items, collection, playlists, bounties, profiles.",
+  "description": "Action Tokens fan app: home, music, marketplace, items, collection, playlists, bounties, profiles.",
   "scripts": {
     "build": "next build",
     "dev": "next dev --port 3000",

@@ -1,5 +1,5 @@
 /**
- * Bandcoin's social accounts and info pages, for the sidebar footers of the
+ * Action Tokens' social accounts and info pages, for the sidebar footers of the
  * fan app and the artist portal (the same ones bandfan's sidebar had).
  */
 

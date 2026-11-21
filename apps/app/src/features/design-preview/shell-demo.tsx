@@ -63,7 +63,7 @@ export function ShellDemo() {
         <div className="flex items-center justify-center gap-2 pb-4 xl:justify-start xl:px-2">
           <BrandMark className="size-[26px]" />
           <span className="font-display hidden text-[15px] font-extrabold tracking-tight xl:inline">
-            Bandcoin
+            Action Tokens
           </span>
         </div>
         {NAV.map(({ icon: Icon, label, current, gap }) => (
@@ -92,7 +92,7 @@ export function ShellDemo() {
           </div>
           <div className="bg-surface flex h-10 items-center gap-2 rounded-full border pr-3 pl-1.5 text-[13px] font-semibold whitespace-nowrap">
             <span className="size-7 rounded-full bg-[conic-gradient(var(--color-primary),#3fb5ff,var(--color-primary))]" />
-            <span className="num hidden sm:inline">60,000 BANDCOIN</span>
+            <span className="num hidden sm:inline">60,000 ACTION</span>
           </div>
         </div>
 

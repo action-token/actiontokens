@@ -33,7 +33,7 @@ import { failOrder, ownOrder, userSignature } from "../purchase";
  *
  * A link that isn't renewed works for 7 more days (grace), then sends visitors
  * to the artist's normal page; the name stays theirs for 30 days after that.
- * Prices are the platform's (AppSetting), in BANDCOIN or USD; XLM and USDC
+ * Prices are the platform's (AppSetting), in ACTION or USD; XLM and USDC
  * follow the USD price at the live rate, and a card pays the USD price. The
  * platform fee (AppSetting.platformFeeBps) is added on top in every currency
  * (plan 33). Whatever state a link is in comes from its dates
@@ -99,11 +99,11 @@ export async function getVanity(ctx: Pick<ServiceCtx, "db">, artist: ArtistRef) 
     canClaimFree: !link && !trialUsed,
     prices: {
       monthly: {
-        bandcoin: settings?.vanityMonthlyBandcoin?.toString() ?? null,
+        actionToken: settings?.vanityMonthlyActionToken?.toString() ?? null,
         usd: settings?.vanityMonthlyUsd?.toString() ?? null,
       },
       nameChange: {
-        bandcoin: settings?.vanityNameChangeBandcoin?.toString() ?? null,
+        actionToken: settings?.vanityNameChangeActionToken?.toString() ?? null,
         usd: settings?.vanityNameChangeUsd?.toString() ?? null,
       },
     },
@@ -139,7 +139,7 @@ export async function claimVanity(ctx: ServiceCtx, artist: ArtistRef, raw: strin
         data: {
           organizationId: artist.id,
           kind: "FREE_TRIAL",
-          currency: "BANDCOIN",
+          currency: "ACTION",
           amount: "0",
           periodEnd: paidUntil,
         },
@@ -188,16 +188,19 @@ async function price(
 
   const unit =
     input.purpose === "RENEWAL"
-      ? { bandcoin: settings?.vanityMonthlyBandcoin, usd: settings?.vanityMonthlyUsd }
-      : { bandcoin: settings?.vanityNameChangeBandcoin, usd: settings?.vanityNameChangeUsd };
-  if (!unit.bandcoin || !unit.usd) problems.push(unavailable("Link prices aren't set yet."));
+      ? { actionToken: settings?.vanityMonthlyActionToken, usd: settings?.vanityMonthlyUsd }
+      : { actionToken: settings?.vanityNameChangeActionToken, usd: settings?.vanityNameChangeUsd };
+  if (!unit.actionToken || !unit.usd) problems.push(unavailable("Link prices aren't set yet."));
 
   const { network, assets } = chain.config;
   const quote = buildQuote({
     currency: input.currency,
     quantity: 1,
-    unitPrice: { bandcoin: unit.bandcoin?.toString() ?? "0", usd: unit.usd?.toString() ?? "0" },
-    rates: input.currency === "BANDCOIN" ? {} : await chain.rates(),
+    unitPrice: {
+      actionToken: unit.actionToken?.toString() ?? "0",
+      usd: unit.usd?.toString() ?? "0",
+    },
+    rates: input.currency === "ACTION" ? {} : await chain.rates(),
     platformFeeBps: settings?.platformFeeBps ?? 0,
     newTrustlines: 0,
     // A card has nothing to send on Stellar.
@@ -389,7 +392,9 @@ export async function deliverVanity(ctx: ServiceCtx, orderId: string) {
       await transitionOrder(tx, orderId, "CONFIRMED");
       const order = await tx.order.findUniqueOrThrow({ where: { id: orderId } });
       const vanity = vanityOf(order.breakdown);
-      const link = await tx.vanityUrl.findUnique({ where: { organizationId: vanity.organizationId } });
+      const link = await tx.vanityUrl.findUnique({
+        where: { organizationId: vanity.organizationId },
+      });
       let paidUntil = link?.paidUntil ?? now;
 
       if (vanity.purpose === "NAME_CHANGE") {
@@ -412,7 +417,12 @@ export async function deliverVanity(ctx: ServiceCtx, orderId: string) {
         } else {
           await releaseStaleHolder(tx, kept);
           await tx.vanityUrl.create({
-            data: { organizationId: vanity.organizationId, name: kept, status: "ACTIVE", paidUntil },
+            data: {
+              organizationId: vanity.organizationId,
+              name: kept,
+              status: "ACTIVE",
+              paidUntil,
+            },
           });
         }
       }
@@ -465,7 +475,11 @@ export async function resolveVanity(ctx: Pick<ServiceCtx, "db">, raw: string) {
   const name = normalizeVanityName(raw);
   const link = await ctx.db.vanityUrl.findUnique({
     where: { name },
-    select: { status: true, paidUntil: true, organization: { select: { slug: true, status: true } } },
+    select: {
+      status: true,
+      paidUntil: true,
+      organization: { select: { slug: true, status: true } },
+    },
   });
   if (link?.organization.status !== "APPROVED") return null;
   return { slug: link.organization.slug, works: vanityTimeline(link, new Date()).works };

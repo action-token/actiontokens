@@ -23,7 +23,7 @@ import {
 
 const wallet = Keypair.random();
 const artistWallet = Keypair.random().publicKey();
-const bandcoin = { code: "BANDCOIN", issuer: Keypair.random().publicKey() };
+const actionToken = { code: "ACTION", issuer: Keypair.random().publicKey() };
 const network = { passphrase: Networks.TESTNET, baseFee: "100" };
 const CONTRACT = "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM";
 const ORDER = "cmvorder0000000000000051";
@@ -125,7 +125,7 @@ function setup(
       name: "testnet",
       network,
       nftContract: CONTRACT,
-      assets: { bandcoin, usdc: { code: "USDC", issuer: Keypair.random().publicKey() } },
+      assets: { actionToken, usdc: { code: "USDC", issuer: Keypair.random().publicKey() } },
       treasury: Keypair.random().publicKey(),
     },
     loadAccount: vi.fn(() => Promise.resolve(account(wallet.publicKey(), opts.xlm ?? "20"))),
@@ -138,7 +138,7 @@ function setup(
   return { ctx, db, chain, orders, upserts };
 }
 
-const input = { itemId: "i1", amount: 2, priceBandcoin: "100", priceUsd: "9" };
+const input = { itemId: "i1", amount: 2, priceActionToken: "100", priceUsd: "9" };
 const call = (xdr: string) => {
   const tx = TransactionBuilder.fromXDR(xdr, Networks.TESTNET) as Transaction;
   const op = tx.operations[0] as unknown as {
@@ -165,7 +165,7 @@ describe("listing smart-contract NFTs", () => {
     const quote = await quoteListNft(ctx, me, input);
     expect(quote.ok).toBe(true);
     expect(quote.copies).toEqual(["7", "8"]);
-    expect(quote.net.bandcoin.net).toBe("87.5");
+    expect(quote.net.actionToken.net).toBe("87.5");
     expect(quote.net.usd).toBeNull();
     expect(quote.total).toBe("0.3100000");
     // Only copies the seller owns, with no live listing.
@@ -182,7 +182,7 @@ describe("listing smart-contract NFTs", () => {
     chain.loadAccount.mockResolvedValue(account(artistWallet, "20") as never);
     const quote = await quoteListNft(ctx, { ...me, walletAddress: artistWallet }, input);
     expect(quote.net.royaltyPercent).toBe("0");
-    expect(quote.net.bandcoin.net).toBe("97.5");
+    expect(quote.net.actionToken.net).toBe("97.5");
   });
 
   it("says so when there is no free copy, or too little XLM", async () => {
@@ -194,7 +194,7 @@ describe("listing smart-contract NFTs", () => {
 
   it("refuses a price of zero and an item that isn't a smart-contract NFT", async () => {
     const { ctx } = setup();
-    expect((await quoteListNft(ctx, me, { ...input, priceBandcoin: "0" })).ok).toBe(false);
+    expect((await quoteListNft(ctx, me, { ...input, priceActionToken: "0" })).ok).toBe(false);
     const other = setup({ item: null });
     await expect(quoteListNft(other.ctx, me, input)).rejects.toThrow(/can't be resold/);
   });
@@ -234,7 +234,7 @@ describe("listing smart-contract NFTs", () => {
         sellerId: "me",
         kind: "RESALE",
         status: "ACTIVE",
-        priceBandcoin: "100",
+        priceActionToken: "100",
         priceUsd: "9",
         quantity: 1,
       },

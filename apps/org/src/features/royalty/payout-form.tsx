@@ -23,7 +23,7 @@ type Currency = PayoutInput["currency"];
 type Flow = { run: (input: PayoutInput, summary: React.ReactNode) => Promise<void>; busy: boolean };
 type Details = { revenue: string; currency: Currency; report: PickedFile; reportSize: number };
 
-const CURRENCIES: Currency[] = ["BANDCOIN", "XLM", "USDC"];
+const CURRENCIES: Currency[] = ["ACTION", "XLM", "USDC"];
 const REPORT_TYPES =
   "application/pdf,text/csv,text/plain,.pdf,.csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
@@ -45,7 +45,7 @@ export function PayoutForm({ item, flow }: { item: Item; flow: Flow }) {
 
 function EarningsStep({ item, onNext }: { item: Item; onNext: (details: Details) => void }) {
   const [revenue, setRevenue] = useState("");
-  const [currency, setCurrency] = useState<Currency>("BANDCOIN");
+  const [currency, setCurrency] = useState<Currency>("ACTION");
   const [report, setReport] = useState<PickedFile | null>(null);
   const [reportSize, setReportSize] = useState(0);
   const ready = Number(revenue) > 0 && report !== null && reportSize > 0;

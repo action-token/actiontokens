@@ -41,7 +41,7 @@ function FollowContainerSize() {
 export type MapPlace = { lat: number; lng: number; label: string | null; reward: string };
 
 /**
- * The places that unlock an item's rewards, as on the old Bandcoin. Tapping a
+ * The places that unlock an item's rewards, as on the old Action Tokens. Tapping a
  * pin shows the place, what it unlocks and a link for directions. The page
  * keeps scrolling over it: moving the map takes two fingers, or ctrl and scroll.
  */

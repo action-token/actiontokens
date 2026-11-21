@@ -28,7 +28,7 @@ import { useStored } from "./use-stored";
  * appear there.
  */
 export function AgentChat() {
-  const [openSaved, setOpenSaved] = useStored("bandcoin.agent.open");
+  const [openSaved, setOpenSaved] = useStored("action-tokens.agent.open");
   const open = openSaved === "1";
   const setOpen = (o: boolean) => setOpenSaved(o ? "1" : "0");
 

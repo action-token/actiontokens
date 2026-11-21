@@ -28,7 +28,7 @@ New utilities: `blob` (uneven corners) and `dash-rule` (long-dash separator).
 
 ## Layout
 
-- **Header:** logo on an ink blob, "Bandcoin" with the handwritten app name;
+- **Header:** logo on an ink blob, "Action Tokens" with the handwritten app name;
   round ink buttons (Search and the bell in the marketplace, the bell in the
   portal).
 - **Body**, between dashed rules: `*group*` labels, big display-font links

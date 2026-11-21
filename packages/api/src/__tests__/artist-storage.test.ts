@@ -80,10 +80,10 @@ function setup(opts: { motherXlm?: string; onChain?: string[]; supply?: string }
       { asset_type: "native", balance: opts.motherXlm ?? "100", selling_liabilities: "0" },
     ],
   };
-  const bandcoin = { code: "BANDCOIN", issuer: Keypair.random().publicKey() };
+  const actionToken = { code: "ACTION", issuer: Keypair.random().publicKey() };
   const usdc = { code: "USDC", issuer: Keypair.random().publicKey() };
   const chain = {
-    config: { name: "testnet", network, mother, assets: { bandcoin, usdc } },
+    config: { name: "testnet", network, mother, assets: { actionToken, usdc } },
     loadAccount: vi.fn((id: string) =>
       Promise.resolve(id === mother ? motherAccount : opts.onChain?.includes(id) ? {} : null),
     ),

@@ -4,7 +4,7 @@
  *   pnpm --filter @actiontokens/db seed         refuses if users already exist
  *   pnpm --filter @actiontokens/db seed:reset   empties every table first
  *
- * Only runs against the Bandcoin dev database (host check below). Page
+ * Only runs against the Action Tokens dev database (host check below). Page
  * templates are product data, so they are read from the old dev database.
  */
 import "dotenv/config";
@@ -13,7 +13,6 @@ import { Keypair } from "@stellar/stellar-sdk";
 
 import { db } from "../../src/client";
 import { assertWritable } from "../guard";
-import { connectLegacyReadOnly } from "../migrate-legacy/legacy-db";
 import {
   ADMIN,
   ARTISTS,
@@ -55,39 +54,13 @@ async function seedSettings() {
       id: 1,
       platformFeeBps: 250,
       nearbyPinRadiusMeters: 500,
-      vanityMonthlyBandcoin: 50,
+      vanityMonthlyActionToken: 50,
       vanityMonthlyUsd: 1,
-      vanityNameChangeBandcoin: 200,
+      vanityNameChangeActionToken: 200,
       vanityNameChangeUsd: 4,
     },
   });
   await db.muralSettings.create({ data: { id: 1 } });
-}
-
-/** Page-builder templates are product data: copy them from the old dev DB. */
-async function copyPageTemplates() {
-  try {
-    const legacy = await connectLegacyReadOnly();
-    const { rows } = await legacy.query(
-      `SELECT key, name, description, "previewImage", "isSeedDefault", "order", blocks, theme FROM "LayoutTemplate"`,
-    );
-    await legacy.end();
-    await db.pageTemplate.createMany({
-      data: rows.map((r) => ({
-        key: r.key,
-        name: r.name,
-        description: r.description,
-        previewImageUrl: r.previewImage,
-        isSeedDefault: r.isSeedDefault,
-        sortOrder: r.order,
-        blocks: r.blocks,
-        theme: r.theme ?? undefined,
-      })),
-    });
-    console.log(`Copied ${rows.length} page templates`);
-  } catch (error) {
-    console.warn("Page templates skipped:", (error as Error).message);
-  }
 }
 
 async function seedPeople() {
@@ -180,7 +153,7 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
       organizationId: artist.id,
       createdById: user.id,
       classicToken: { create: { code: demo.fanToken, issuer } },
-      listings: { create: { sellerId: user.id, priceBandcoin: 500, priceUsd: 0.05 } },
+      listings: { create: { sellerId: user.id, priceActionToken: 500, priceUsd: 0.05 } },
     },
   });
   await db.organization.update({ where: { id: artist.id }, data: { fanTokenItemId: fanToken.id } });
@@ -249,7 +222,7 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
           listings: {
             create: {
               sellerId: user.id,
-              priceBandcoin: track.priceBandcoin,
+              priceActionToken: track.priceActionToken,
               priceUsd: track.priceUsd,
             },
           },
@@ -271,7 +244,7 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
       organizationId: artist.id,
       createdById: user.id,
       contractNft: { create: { status: "MINTED", mintedCount: 2, royaltyBps: 500 } },
-      listings: { create: { sellerId: user.id, priceBandcoin: 120000, priceUsd: 12 } },
+      listings: { create: { sellerId: user.id, priceActionToken: 120000, priceUsd: 12 } },
     },
   });
   for (const [i, fan] of fans.slice(0, 2).entries()) {
@@ -296,10 +269,10 @@ async function seedArtist(demo: DemoArtist, index: number, fans: Fan[]) {
         listingId: firstListing.id,
         itemId: first.id,
         quantity: 1,
-        currency: "BANDCOIN",
-        unitPrice: firstListing.priceBandcoin,
-        platformFee: Number(firstListing.priceBandcoin) * 0.025,
-        total: Number(firstListing.priceBandcoin) * 1.025,
+        currency: "ACTION",
+        unitPrice: firstListing.priceActionToken,
+        platformFee: Number(firstListing.priceActionToken) * 0.025,
+        total: Number(firstListing.priceActionToken) * 1.025,
         method: "WALLET",
         status: "DELIVERED",
       },
@@ -486,7 +459,6 @@ async function main() {
     throw new Error("The database already has users. Use seed:reset to start over.");
 
   await seedSettings();
-  await copyPageTemplates();
   const { fans } = await seedPeople();
   const allTracks = [];
   for (const [i, demo] of ARTISTS.entries()) {

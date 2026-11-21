@@ -24,7 +24,7 @@ import {
 type OwnedPiece = RouterOutputs["item"]["lockedForMe"]["copies"][number]["pieces"][number];
 
 /**
- * A contract NFT's locked content on its page, in the old Bandcoin's style.
+ * A contract NFT's locked content on its page, in the old Action Tokens' style.
  * Everyone sees what they get and where it unlocks; owners see each copy's
  * rewards, locked with their progress or open to play. Links only ever come
  * from the owner query.

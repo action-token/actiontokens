@@ -1,6 +1,6 @@
 # 07 · Apps and routes
 
-## apps/app (fans), `bandcoin.io`
+## apps/app (fans), `action-tokens.io`
 
 | Route                                    | Page                                                                            |
 | ---------------------------------------- | ------------------------------------------------------------------------------- |
@@ -20,7 +20,7 @@
 
 Custom domains are resolved in `proxy.ts` to `/artist/[slug]`.
 
-## apps/artist (artist portal + admin), `artist.bandcoin.io`
+## apps/artist (artist portal + admin), `artist.action-tokens.io`
 
 | Route                                       | Page                                                                                                                                                                     |
 | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -42,16 +42,16 @@ Custom domains are resolved in `proxy.ts` to `/artist/[slug]`.
 | `/admin/users/[id]`, `/admin/artists/[id]`  | Person page with an **activity timeline** (sign-ins, purchases, uploads, pin claims, bounty submissions, failed actions) next to their profile, wallet, items and orders |
 | `/admin/alerts`                             | Flags worth a look: many failed payments, unusually fast pin claims (location spoofing), many sign-in failures, large transfers                                          |
 
-## apps/ar (pin collecting), `ar.bandcoin.io`
+## apps/ar (pin collecting), `ar.action-tokens.io`
 
 `/` map with nearby pins → `/pin/[id]` details and directions → `/ar/[id]` camera view (3D model, photo, video, audio frames) → claim → `/collection` (claimed rewards, redeem codes) → `/bounties` (location bounties, Action Cam submissions). It uses the boot screen and is mobile-first and installable as a PWA.
 
-## apps/studio (AI tools), `studio.bandcoin.io`
+## apps/studio (AI tools), `studio.action-tokens.io`
 
 | Route                                 | Page                                                                               |
 | ------------------------------------- | ---------------------------------------------------------------------------------- |
 | `/`                                   | Studio home: coin balance, recent generations, tools                               |
-| `/coins`                              | Top up (Bandcoin swap, USDC/XLM, card, DEX link), ledger, withdraw                 |
+| `/coins`                              | Top up (Action Tokens swap, USDC/XLM, card, DEX link), ledger, withdraw            |
 | `/text`, `/image`, `/music`, `/video` | Generators: prompt, cost shown before running, history                             |
 | `/agent`                              | Pin and hotspot AI agent (creates drafts the artist confirms in the artist portal) |
 | `/stems`                              | Stem editor (multitrack): load your stems, mix, export a new track to the catalog  |

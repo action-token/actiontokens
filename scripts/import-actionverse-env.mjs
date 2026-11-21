@@ -2,11 +2,11 @@
 /**
  * Builds ActionTokens env files from the Actionverse ones (.env.development, .env.production).
  *
- *   node scripts/import-actionverse-env.mjs /Volumes/Data/Projects/actionverse [/Volumes/Data/Projects/bandcoin]
+ *   node scripts/import-actionverse-env.mjs /Volumes/Data/Projects/actionverse [/Volumes/Data/Projects/actionToken]
  *
- * The optional second path is the Bandcoin repo: ActionTokens shares Bandcoin's NFT and escrow
+ * The optional second path is the Action Tokens repo: ActionTokens shares Action Tokens' NFT and escrow
  * contracts (owner decision 2026-11-20), so NFT_CONTRACT and ESCROW_CONTRACT are copied from
- * Bandcoin's apps/app/.env.local (development, testnet) and .env.production (production,
+ * Action Tokens' apps/app/.env.local (development, testnet) and .env.production (production,
  * mainnet). They fill only what Actionverse doesn't have.
  *
  * Values are copied straight from file to file and NEVER printed. Only variables an app lists
@@ -41,10 +41,10 @@ const LOCAL_DB = "postgresql://actiontokens:actiontokens@127.0.0.1:55432/actiont
 const PROD_DB = "postgresql://actiontokens:actiontokens@127.0.0.1:55432/actiontokens_prod";
 const PORTS = { app: 3000, org: 3001, ar: 3002 };
 
-const bandcoinDir = process.argv[3];
+const actionTokenDir = process.argv[3];
 const SHARED_CONTRACTS = ["NFT_CONTRACT", "ESCROW_CONTRACT"];
 const readShared = (file) => {
-  const path = bandcoinDir && resolve(bandcoinDir, "apps/app", file);
+  const path = actionTokenDir && resolve(actionTokenDir, "apps/app", file);
   if (!path || !existsSync(path)) return {};
   const all = parse(readFileSync(path));
   return Object.fromEntries(SHARED_CONTRACTS.filter((k) => all[k]).map((k) => [k, all[k]]));

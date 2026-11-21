@@ -10,7 +10,7 @@ Only the AR artists page (`pages/action/artists/index.tsx`) had it: every row sh
 and a member button (the paid subscribe, which opened the fan-token trustline). The web lists
 (`post/trending-sidebar.tsx`, `post/followed-creator.tsx`) had Follow or Unfollow only.
 
-## Bandcoin today
+## Action Tokens today
 
 | Where                                  | Follow | Subscribe            |
 | -------------------------------------- | ------ | -------------------- |
@@ -20,7 +20,7 @@ and a member button (the paid subscribe, which opened the fan-token trustline). 
 | AR app, artist page                    | Yes    | Yes, after following |
 | AR app, Artists list                   | Yes    | No                   |
 
-Subscribing means opening a trustline to the artist's fan token, paid in BANDCOIN, XLM, USDC or by
+Subscribing means opening a trustline to the artist's fan token, paid in ACTION, XLM, USDC or by
 card (plan 33). A follow row records it (`Follow.isTemporary = false`).
 
 ## Decisions (your answers, 2026-11-13)

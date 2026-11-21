@@ -9,7 +9,7 @@ import { PLATFORM_ASSET, stellarNetwork } from "@actiontokens/wallet/config";
  */
 const CACHE_TTL_MS = 60_000;
 const REQUEST_TIMEOUT_MS = 8000;
-/** USD per Bandcoin token (pegged at one cent), also what test networks use. */
+/** USD per Action Tokens token (pegged at one cent), also what test networks use. */
 const PEGGED_PLATFORM_USD = 0.01;
 
 const cache = new Map<string, { value: number; loadedAt: number }>();
@@ -56,9 +56,9 @@ export function xlmUsd(): Promise<number> {
   });
 }
 
-/** USD per platform token. Bandcoin, and every token on testnet, is pegged at one cent. */
+/** USD per platform token. Action Tokens, and every token on testnet, is pegged at one cent. */
 export function platformUsd(): Promise<number> {
-  if (PLATFORM_ASSET.code.toLowerCase() === "bandcoin" || !stellarNetwork.isMainnet) {
+  if (PLATFORM_ASSET.code.toLowerCase() === "action" || !stellarNetwork.isMainnet) {
     return Promise.resolve(PEGGED_PLATFORM_USD);
   }
 

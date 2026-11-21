@@ -12,11 +12,11 @@ describe("bucket settings", () => {
   });
 
   it("names the region in public URLs and accepts the older global form as its own", () => {
-    vi.stubEnv("AWS_BUCKET_NAME", "bandcoin");
+    vi.stubEnv("AWS_BUCKET_NAME", "action-tokens");
     vi.stubEnv("AWS_BUCKET_REGION", "us-west-2");
-    expect(publicS3Url("a.png")).toBe("https://bandcoin.s3.us-west-2.amazonaws.com/a.png");
-    expect(isOwnS3Url("https://bandcoin.s3.us-west-2.amazonaws.com/a.png")).toBe(true);
-    expect(isOwnS3Url("https://bandcoin.s3.amazonaws.com/a.png")).toBe(true);
+    expect(publicS3Url("a.png")).toBe("https://action-tokens.s3.us-west-2.amazonaws.com/a.png");
+    expect(isOwnS3Url("https://action-tokens.s3.us-west-2.amazonaws.com/a.png")).toBe(true);
+    expect(isOwnS3Url("https://action-tokens.s3.amazonaws.com/a.png")).toBe(true);
     expect(isOwnS3Url("https://other.s3.us-west-2.amazonaws.com/a.png")).toBe(false);
   });
 

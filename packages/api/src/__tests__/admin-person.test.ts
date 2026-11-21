@@ -5,12 +5,10 @@ import type { Db } from "@actiontokens/db";
 import type { ChainGateway } from "../services/chain-gateway";
 import { getPerson } from "../services/admin/person";
 
-const bandcoin = { code: "BANDCOIN", issuer: "GBAND" };
+const actionToken = { code: "ACTION", issuer: "GBAND" };
 const usdc = { code: "USDC", issuer: "GUSDC" };
 
-function setup(
-  opts: { user?: Record<string, unknown> | null; offline?: boolean } = {},
-) {
+function setup(opts: { user?: Record<string, unknown> | null; offline?: boolean } = {}) {
   const user =
     opts.user === null
       ? null
@@ -49,7 +47,7 @@ function setup(
             kind: "ITEM_PURCHASE",
             status: "DELIVERED",
             total: { toString: () => "12.5" },
-            currency: "BANDCOIN",
+            currency: "ACTION",
             quantity: 1,
             txHash: "h",
             createdAt: new Date(),
@@ -114,7 +112,7 @@ function setup(
     balances: [{ asset_type: "native", balance: "10", selling_liabilities: "0" }],
   };
   const chain = {
-    config: { assets: { bandcoin, usdc } },
+    config: { assets: { actionToken, usdc } },
     loadAccount: vi.fn(() =>
       opts.offline ? Promise.reject(new Error("timeout")) : Promise.resolve(account),
     ),

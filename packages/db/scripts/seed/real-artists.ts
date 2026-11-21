@@ -8,7 +8,7 @@
  * Production is only ever READ (the session is read-only). Nothing private is copied:
  * artists get a fake user, fake issuer keys and SoundHelix demo audio, never the real
  * emails, wallets, secrets or audio. Safe to run again: an artist already in dev keeps
- * its data and only has its page re-published. Only runs against the Bandcoin dev database.
+ * its data and only has its page re-published. Only runs against the Action Tokens dev database.
  *
  * The page rules (and the few per-artist notes) are in artist-designs.ts. Facts there
  * come from the artist's own profile or a public source named next to it; nothing is
@@ -117,11 +117,11 @@ async function importArtist(slug: string, data: ProdData) {
   let n = 0;
   for (const item of data.items) {
     n += 1;
-    const listing = item.priceBandcoin
+    const listing = item.priceActionToken
       ? {
           create: {
             sellerId: user.id,
-            priceBandcoin: item.priceBandcoin,
+            priceActionToken: item.priceActionToken,
             priceUsd: item.priceUsd ?? 1,
           },
         }
@@ -149,7 +149,10 @@ async function importArtist(slug: string, data: ProdData) {
           },
         },
       });
-      await db.organization.update({ where: { id: artist.id }, data: { fanTokenItemId: created.id } });
+      await db.organization.update({
+        where: { id: artist.id },
+        data: { fanTokenItemId: created.id },
+      });
     } else if (item.type === "TRACK" && item.chainType === "CLASSIC_TOKEN") {
       await db.item.create({
         data: {
@@ -244,7 +247,10 @@ async function ensureFanToken(
       },
     },
   });
-  await db.organization.update({ where: { id: organization.id }, data: { fanTokenItemId: created.id } });
+  await db.organization.update({
+    where: { id: organization.id },
+    data: { fanTokenItemId: created.id },
+  });
 }
 
 async function publish(organizationId: string, data: ProdData) {

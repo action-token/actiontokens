@@ -11,16 +11,16 @@ import { type Context, isCustodial, type SessionUser } from "../../context";
  * would lose something that matters:
  *
  *   - an admin (another admin removes them),
- *   - an artist (their items, tokens and sales need Bandcoin support),
+ *   - an artist (their items, tokens and sales need Action Tokens support),
  *   - a payment still going through,
- *   - a Bandcoin-held (email, Google, Apple) wallet that still holds tokens or
- *     more than a little XLM: Bandcoin holds its key, so deleting would lock
+ *   - an Action Tokens-held (email, Google, Apple) wallet that still holds tokens or
+ *     more than a little XLM: Action Tokens holds its key, so deleting would lock
  *     the money away for good. Self-custody wallets keep their own key.
  */
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
 
 export const CONFIRM_WORD = "DELETE";
-/** XLM a Bandcoin-held wallet may still hold: its reserve and a little change. */
+/** XLM an Action Tokens-held wallet may still hold: its reserve and a little change. */
 const DUST_XLM = 2;
 const SUPPORT = "Email support@action-tokens.com and we'll help.";
 
@@ -54,7 +54,7 @@ export async function deleteAccount(
     );
   if (row.organization)
     throw refuse(
-      `Artist accounts have items, tokens and sales attached, so Bandcoin support removes them. ${SUPPORT}`,
+      `Artist accounts have items, tokens and sales attached, so Action Tokens support removes them. ${SUPPORT}`,
     );
 
   const inFlight = await ctx.db.order.count({
@@ -71,7 +71,7 @@ export async function deleteAccount(
     const xlm = Number(lines.find((line) => line.asset_type === "native")?.balance ?? 0);
     if (holdsTokens || xlm > DUST_XLM)
       throw refuse(
-        `Bandcoin holds the key to your wallet, and it still holds funds. Deleting would lock them away for good. ${SUPPORT}`,
+        `Action Tokens holds the key to your wallet, and it still holds funds. Deleting would lock them away for good. ${SUPPORT}`,
       );
   }
 

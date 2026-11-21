@@ -15,14 +15,14 @@ const CONTACTS = [
 
 const FAQ = [
   {
-    question: "How do I add BANDCOIN to my wallet?",
+    question: "How do I add ACTION to my wallet?",
     answer:
       "Open Recharge from the wallet menu. You can pay by card (email, Google and Apple accounts) or swap some XLM. The price you will get is shown before you confirm.",
   },
   {
     question: "Should I pay with my wallet or a card?",
     answer:
-      "If you signed in with a wallet, you pay in BANDCOIN from it. If you signed in with email, Google or Apple, you can pay by card and Bandcoin sends the BANDCOIN for you. Either way you see the total before you pay.",
+      "If you signed in with a wallet, you pay in ACTION from it. If you signed in with email, Google or Apple, you can pay by card and Action Tokens sends the ACTION for you. Either way you see the total before you pay.",
   },
   {
     question: "What is the network fee?",
@@ -47,7 +47,7 @@ const FAQ = [
   {
     question: "How do I sell something I bought?",
     answer:
-      "Open the item you own and choose Sell your copies, then set a price in BANDCOIN and in dollars for card buyers. Your listings and sales are on the Selling page, and you can change the price or take a copy off sale any time.",
+      "Open the item you own and choose Sell your copies, then set a price in ACTION and in dollars for card buyers. Your listings and sales are on the Selling page, and you can change the price or take a copy off sale any time.",
   },
   {
     question: "How do I delete my account?",

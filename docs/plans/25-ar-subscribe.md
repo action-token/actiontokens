@@ -12,7 +12,7 @@ way to do it. This brings the same Subscribe into AR.
 - **Follow first**, as in the fan app: Subscribe shows only once the fan
   follows. On a locked subscriber pin the sheet offers Follow first, then
   Subscribe.
-- **Not enough BANDCOIN:** an "Add BANDCOIN" button opens the fan app's
+- **Not enough ACTION:** an "Add ACTION" button opens the fan app's
   Recharge page. Recharge stays in the fan app.
 - **Server:** a small AR `subscribe` router that only takes the fan-token
   order (`TOKEN_TRUST`). AR can't start card top-ups or XLM swaps.
@@ -20,7 +20,7 @@ way to do it. This brings the same Subscribe into AR.
 ## How it works
 
 The fan-token order already exists (`services/recharge`): the quote prices the
-0.5 XLM the line locks in BANDCOIN, `start` builds the transaction, the fan
+0.5 XLM the line locks in ACTION, `start` builds the transaction, the fan
 signs it (email/Google/Apple accounts get the usual countdown and the server
 signs), `submit` co-signs and sends it, and the completed order marks the fan
 a subscriber (`setSubscribed`).
@@ -40,7 +40,7 @@ a subscriber (`setSubscribed`).
 ### AR app
 
 - `SubscribeSheet` (bottom sheet): what subscribing means, the price lines,
-  Subscribe / Not now, "Add BANDCOIN" when short. Uses `useSignedTransaction`
+  Subscribe / Not now, "Add ACTION" when short. Uses `useSignedTransaction`
   with the transaction toast.
 - Artist page: a Subscribe button beside Following, "Subscribed" once done.
 - Pin sheet: Follow (if not following) or Subscribe under the lock text. On
@@ -56,7 +56,7 @@ a subscriber (`setSubscribed`).
 ## Browser check (2026-11-05, dev, testnet)
 
 AR artist page, Mira Okafor: Follow → Subscribe appeared → the sheet priced
-0.5 XLM as 36.97 BANDCOIN (with the 2% cushion and network fee) → Albedo
+0.5 XLM as 36.97 ACTION (with the 2% cushion and network fee) → Albedo
 approved → "Subscribed. You now hold MIRA." → the page shows Subscribed and
 the order is `DELIVERED`. The pin-sheet path wasn't clicked: dev has no
 subscriber pins.

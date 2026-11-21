@@ -34,7 +34,7 @@ type SendDetails = {
 type Breakdown = { sendDetails?: SendDetails; receive?: { currency: string; amount: string } };
 
 const short = (address: string) => `${address.slice(0, 5)}…${address.slice(-5)}`;
-const MAIN_CURRENCIES = ["BANDCOIN", "XLM", "USDC"] as const;
+const MAIN_CURRENCIES = ["ACTION", "XLM", "USDC"] as const;
 
 function orderTitle(
   kind: OrderKind,
@@ -52,13 +52,13 @@ function orderTitle(
     case "RECHARGE":
       return "Top-up with card";
     case "XLM_SWAP":
-    case "BANDCOIN_SWAP": {
+    case "ACTION_SWAP": {
       const receive = breakdown?.receive;
       return receive
         ? `Swapped for ${toDisplay(toStroops(receive.amount))} ${receive.currency}`
         : kind === "XLM_SWAP"
-          ? "Swapped BANDCOIN for XLM"
-          : "Swapped XLM for BANDCOIN";
+          ? "Swapped ACTION for XLM"
+          : "Swapped XLM for ACTION";
     }
     case "SEND": {
       const send = breakdown?.sendDetails;
@@ -87,9 +87,9 @@ const sendInput = z.object({
   issuer: z.string().length(56).nullable(),
   amount,
 });
-const swapInput = z.object({ direction: z.enum(["TO_XLM", "TO_BANDCOIN"]), amount });
+const swapInput = z.object({ direction: z.enum(["TO_XLM", "TO_ACTION"]), amount });
 
-/** Send XLM or a token to an address or a Bandcoin @username (services/wallet/send). */
+/** Send XLM or a token to an address or an Action Tokens @username (services/wallet/send). */
 const sendRouter = createRouter({
   quote: authedProcedure
     .input(sendInput)
@@ -106,7 +106,7 @@ const sendRouter = createRouter({
   }),
 });
 
-/** Swap BANDCOIN and XLM with the treasury, any amount, either way (services/wallet/swap). */
+/** Swap ACTION and XLM with the treasury, any amount, either way (services/wallet/swap). */
 const swapRouter = createRouter({
   quote: authedProcedure
     .input(swapInput)
@@ -155,7 +155,7 @@ export const walletRouter = createRouter({
     .input(balanceInput.extend({ xdr: z.string().min(1) }))
     .mutation(({ ctx, input }) => submitTakeBack(ctx, ctx.session.user, input)),
 
-  /** What went in and out of the fan's wallet through Bandcoin, newest first. */
+  /** What went in and out of the fan's wallet through Action Tokens, newest first. */
   history: authedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
     const network = ctx.chain.config.name === "mainnet" ? "public" : "testnet";

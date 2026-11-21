@@ -8,7 +8,8 @@ import { createHash } from "node:crypto";
 
 /** Where the demo art lives. Override with DEMO_ASSET_BASE to serve it from somewhere else. */
 const DEMO_ASSET_BASE =
-  process.env.DEMO_ASSET_BASE ?? "https://bandcoin.s3.us-west-2.amazonaws.com/testnet/shared/demo";
+  process.env.DEMO_ASSET_BASE ??
+  "https://action-tokens.s3.us-west-2.amazonaws.com/testnet/shared/demo";
 const SQUARE_COUNT = 12;
 const BANNER_COUNT = 6;
 
@@ -18,17 +19,17 @@ const pick = (seed: string, count: number) =>
 
 /** A square demo cover. `size` is kept so callers read the same; the picture scales in the page. */
 export const cover = (seed: string, _size = 800) =>
-  `${DEMO_ASSET_BASE}/cover-${pick(`bandcoin-${seed}`, SQUARE_COUNT)}.jpg`;
+  `${DEMO_ASSET_BASE}/cover-${pick(`actiontokens-${seed}`, SQUARE_COUNT)}.jpg`;
 /** A wide demo banner. */
 export const banner = (seed: string) =>
-  `${DEMO_ASSET_BASE}/banner-${pick(`bandcoin-${seed}`, BANNER_COUNT)}.jpg`;
+  `${DEMO_ASSET_BASE}/banner-${pick(`actiontokens-${seed}`, BANNER_COUNT)}.jpg`;
 export const audio = (n: number) =>
   `https://www.soundhelix.com/examples/mp3/SoundHelix-Song-${n}.mp3`;
 
 export type DemoTrack = {
   title: string;
   durationSec: number;
-  priceBandcoin: number;
+  priceActionToken: number;
   priceUsd: number;
   supply: number;
 };
@@ -56,18 +57,24 @@ export const ARTISTS: DemoArtist[] = [
         {
           title: "Night Drive",
           durationSec: 211,
-          priceBandcoin: 25000,
+          priceActionToken: 25000,
           priceUsd: 2.5,
           supply: 100,
         },
         {
           title: "Sunday Tape",
           durationSec: 178,
-          priceBandcoin: 8000,
+          priceActionToken: 8000,
           priceUsd: 0.99,
           supply: 250,
         },
-        { title: "Glass Harbour", durationSec: 252, priceBandcoin: 30000, priceUsd: 3, supply: 50 },
+        {
+          title: "Glass Harbour",
+          durationSec: 252,
+          priceActionToken: 30000,
+          priceUsd: 3,
+          supply: 50,
+        },
       ],
     },
   },
@@ -84,18 +91,24 @@ export const ARTISTS: DemoArtist[] = [
         {
           title: "Velvet Static",
           durationSec: 236,
-          priceBandcoin: 18000,
+          priceActionToken: 18000,
           priceUsd: 1.99,
           supply: 100,
         },
         {
           title: "Slow Bloom",
           durationSec: 199,
-          priceBandcoin: 12000,
+          priceActionToken: 12000,
           priceUsd: 1.49,
           supply: 150,
         },
-        { title: "Gold Hour", durationSec: 224, priceBandcoin: 15000, priceUsd: 1.79, supply: 120 },
+        {
+          title: "Gold Hour",
+          durationSec: 224,
+          priceActionToken: 15000,
+          priceUsd: 1.79,
+          supply: 120,
+        },
       ],
     },
   },
@@ -112,11 +125,17 @@ export const ARTISTS: DemoArtist[] = [
         {
           title: "Circle Line",
           durationSec: 305,
-          priceBandcoin: 12000,
+          priceActionToken: 12000,
           priceUsd: 1.29,
           supply: 200,
         },
-        { title: "Green Room", durationSec: 274, priceBandcoin: 9500, priceUsd: 0.99, supply: 300 },
+        {
+          title: "Green Room",
+          durationSec: 274,
+          priceActionToken: 9500,
+          priceUsd: 0.99,
+          supply: 300,
+        },
       ],
     },
   },
@@ -131,7 +150,7 @@ export const FANS = [
 
 export const ADMIN = {
   username: "admin",
-  displayName: "Bandcoin Admin",
+  displayName: "Action Tokens Admin",
   email: "admin@demo.action-tokens.com",
 };
 
@@ -159,10 +178,10 @@ export const REAL_ARTISTS = [
 export const musicBounty = (organizationId: string, demo: DemoArtist) => ({
   organizationId,
   title: `Stream ${demo.album.title}`,
-  summary: `Play ${demo.album.title} and win BANDCOIN.`,
+  summary: `Play ${demo.album.title} and win ACTION.`,
   description: `Listen to every song on ${demo.album.title} twice. Three listeners who finish share the prize.`,
   instructions: ["Connect Last.fm", "Play each song twice", "Your progress updates as you listen"],
-  prizeCurrency: "BANDCOIN" as const,
+  prizeCurrency: "ACTION" as const,
   prizeAmount: 30000,
   maxWinners: 3,
   escrowContractId: `demo-escrow-${demo.slug}-music`,

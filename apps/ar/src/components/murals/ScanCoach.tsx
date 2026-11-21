@@ -31,7 +31,7 @@ import type { SweepStep } from "~/lib/murals/useMuralSweep";
 
 // ── First-run flag (per browser; a blocked storage just shows it again) ────
 
-const SEEN_KEY = "bandcoin-mural-coach";
+const SEEN_KEY = "actiontokens-mural-coach";
 export function scanCoachSeen() {
   try {
     return window.localStorage.getItem(SEEN_KEY) === "1";

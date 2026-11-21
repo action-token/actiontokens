@@ -12,7 +12,10 @@ async function load(domain?: string) {
 }
 
 function request(cookie?: string) {
-  return new NextRequest("https://app.action-tokens.com/", cookie ? { headers: { cookie } } : undefined);
+  return new NextRequest(
+    "https://app.action-tokens.com/",
+    cookie ? { headers: { cookie } } : undefined,
+  );
 }
 
 afterEach(() => {
@@ -37,12 +40,12 @@ describe("sharedSessionCookie", () => {
 });
 
 describe("local development", () => {
-  it("names the cookie for Bandcoin, so other apps on localhost can't overwrite or reject it", async () => {
+  it("names the cookie for Action Tokens, so other apps on localhost can't overwrite or reject it", async () => {
     vi.resetModules();
     vi.unstubAllEnvs();
     vi.stubEnv("NODE_ENV", "development");
     const { sharedSessionCookie } = await import("../session-cookie");
-    expect(sharedSessionCookie?.sessionToken.name).toBe("bandcoin.session-token");
+    expect(sharedSessionCookie?.sessionToken.name).toBe("action-tokens.session-token");
     expect(sharedSessionCookie?.sessionToken.options).toMatchObject({
       httpOnly: true,
       secure: false,

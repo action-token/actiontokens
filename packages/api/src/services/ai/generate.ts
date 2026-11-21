@@ -61,7 +61,7 @@ export async function fillForm<F extends FillForm>(
   const schema = FILL_SCHEMAS[input.form];
   return withAiQuota(ctx, who(actor), "text", async () => {
     const filled = await model.fill({
-      system: `You fill in the form for ${FORM_BRIEF[input.form]} on Bandcoin, a platform where artists sell music and collectibles to fans. ${artistLine(actor.organization)}
+      system: `You fill in the form for ${FORM_BRIEF[input.form]} on Action Tokens, a platform where artists sell music and collectibles to fans. ${artistLine(actor.organization)}
 It is now ${input.now} (${input.timeZone}). Choose sensible defaults for anything the artist didn't specify, and dates in the future.
 ${RULES}`,
       user: `${contextBlock(input.context)}\n\nWhat the artist wants:\n${input.prompt}`,
@@ -101,7 +101,7 @@ export async function writeField(
 ) {
   return withAiQuota(ctx, who(actor), "text", async () => {
     const raw = await model.write({
-      system: `You write copy for ${FORM_BRIEF[input.form]} on Bandcoin. ${artistLine(actor.organization)}
+      system: `You write copy for ${FORM_BRIEF[input.form]} on Action Tokens. ${artistLine(actor.organization)}
 ${RULES}
 Return plain text only, no quotes, no markdown.${input.maxChars ? ` Stay under ${input.maxChars} characters.` : ""} Return only the ${input.field} itself.`,
       user: `${contextBlock(input.context)}\n\n${TASKS[input.mode](input.field)}${input.current.trim() ? `\n\nCurrent ${input.field}:\n${input.current}` : ""}`,
@@ -220,7 +220,7 @@ export async function suggestTokenCodes(
   return withAiQuota(ctx, who(actor), "text", async () => {
     const filled = await model.fill({
       system: `You suggest the code of a music artist's fan token on Stellar. Fans hold it to join the artist's memberships.
-Codes are 4-12 capital letters or digits, easy to say, clearly tied to the artist (a short form of the name, a nickname, or name + FANS / CLUB / CREW). Never BANDCOIN, XLM, USDC or USD.`,
+Codes are 4-12 capital letters or digits, easy to say, clearly tied to the artist (a short form of the name, a nickname, or name + FANS / CLUB / CREW). Never ACTION, XLM, USDC or USD.`,
       user: `Organization: ${input.name}\nAbout: ${input.bio.trim().slice(0, 500) || "nothing yet"}`,
       schema: codeSchema,
     });

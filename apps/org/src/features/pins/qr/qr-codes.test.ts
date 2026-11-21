@@ -23,9 +23,9 @@ describe("qr file names", () => {
     expect(slugify("Secret show @ the fountain!")).toBe("secret-show-the-fountain");
     expect(
       qrFilename({ title: "Secret show" }, { spotId: "cabcdef123456", pinNumber: 3 }, "svg"),
-    ).toBe("bandcoin-qr-secret-show-pin-03-123456.svg");
+    ).toBe("actiontokens-qr-secret-show-pin-03-123456.svg");
     expect(qrFilename({ title: "Secret show" }, { spotId: "cabcdef123456", pinNumber: null })).toBe(
-      "bandcoin-qr-secret-show-123456.svg",
+      "actiontokens-qr-secret-show-123456.svg",
     );
   });
 });

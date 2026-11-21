@@ -97,7 +97,7 @@ export const fanTokenOf = (draft: Draft) =>
 export const tokenPicture = (draft: Draft) =>
   draft.tokenMode === "NEW" ? draft.tokenImage : draft.stellarImage;
 
-const storageKey = (userId: string) => `bandcoin-onboarding:${userId}`;
+const storageKey = (userId: string) => `actiontokens-onboarding:${userId}`;
 
 export function readDraft(userId: string): Draft | null {
   try {

@@ -30,7 +30,7 @@ describe("money", () => {
 describe("paymentOptions", () => {
   it("offers all four currencies wherever it can", () => {
     for (const kind of ["ITEM_PURCHASE", "FAN_TOKEN", "GIFT", "VANITY"] as const) {
-      expect(paymentOptions(kind)).toEqual(["BANDCOIN", "XLM", "USDC", "USD"]);
+      expect(paymentOptions(kind)).toEqual(["ACTION", "XLM", "USDC", "USD"]);
     }
   });
 
@@ -41,14 +41,14 @@ describe("paymentOptions", () => {
 });
 
 const base: QuoteInput = {
-  currency: "BANDCOIN",
+  currency: "ACTION",
   quantity: 2,
-  unitPrice: { bandcoin: "10", usd: "2.5" },
+  unitPrice: { actionToken: "10", usd: "2.5" },
   rates: { xlmUsd: "0.25", usdcUsd: "1" },
   platformFeeBps: 250,
   newTrustlines: 1,
   networkFeeXlm: "0.0000100",
-  funds: { BANDCOIN: "100", XLM: "5", USDC: "0" },
+  funds: { ACTION: "100", XLM: "5", USDC: "0" },
   now: new Date("2026-10-28T12:00:00Z"),
 };
 
@@ -56,15 +56,15 @@ const total = (quote: ReturnType<typeof buildQuote>, currency: string) =>
   quote.totals.find((entry) => entry.currency === currency)?.amount;
 
 describe("buildQuote", () => {
-  it("prices BANDCOIN from the artist's BANDCOIN price, plus fee, reserve and network fee", () => {
+  it("prices ACTION from the artist's ACTION price, plus fee, reserve and network fee", () => {
     const quote = buildQuote(base);
     expect(quote.lines.map((line) => [line.key, line.amount, line.currency])).toEqual([
-      ["price", "20.0000000", "BANDCOIN"],
-      ["platformFee", "0.5000000", "BANDCOIN"],
+      ["price", "20.0000000", "ACTION"],
+      ["platformFee", "0.5000000", "ACTION"],
       ["reserve", "0.5000000", "XLM"],
       ["networkFee", "0.0000100", "XLM"],
     ]);
-    expect(total(quote, "BANDCOIN")).toBe("20.5000000");
+    expect(total(quote, "ACTION")).toBe("20.5000000");
     expect(total(quote, "XLM")).toBe("0.5000100");
     expect(quote.rateUsd).toBeNull();
     expect(quote.ok).toBe(true);
@@ -87,7 +87,7 @@ describe("buildQuote", () => {
       funds: { ...base.funds!, XLM: "100" },
     });
     expect(quote.lines[0]).toMatchObject({ amount: "14.0000000", detail: "2 × 7 XLM" });
-    // The BANDCOIN and card prices are untouched by it.
+    // The ACTION and card prices are untouched by it.
     expect(
       buildQuote({ ...base, unitPrice: { ...base.unitPrice, xlm: "7" } }).lines[0]?.amount,
     ).toBe("20.0000000");
@@ -100,12 +100,12 @@ describe("buildQuote", () => {
     expect(usdc.cardSettlement).toBeNull();
   });
 
-  it("card: one USD total that includes the XLM costs, and the seller is paid in BANDCOIN", () => {
+  it("card: one USD total that includes the XLM costs, and the seller is paid in ACTION", () => {
     // no XLM at all: a card buyer doesn't need any
     const card = buildQuote({
       ...base,
       currency: "USD",
-      funds: { BANDCOIN: "0", XLM: "0", USDC: "0" },
+      funds: { ACTION: "0", XLM: "0", USDC: "0" },
     });
     expect(card.lines.map((line) => [line.key, line.amount, line.currency, line.detail])).toEqual([
       ["price", "5.0000000", "USD", "2 × 2.5 USD"],
@@ -130,14 +130,14 @@ describe("buildQuote", () => {
   });
 
   it("never converts: a short buyer gets exactly how much is missing", () => {
-    const quote = buildQuote({ ...base, funds: { BANDCOIN: "12", XLM: "100", USDC: "0" } });
+    const quote = buildQuote({ ...base, funds: { ACTION: "12", XLM: "100", USDC: "0" } });
     expect(quote.ok).toBe(false);
     expect(quote.problems).toEqual([
       {
         code: "INSUFFICIENT_FUNDS",
-        message: "You're 8.5 BANDCOIN short.",
+        message: "You're 8.5 ACTION short.",
         shortfall: {
-          currency: "BANDCOIN",
+          currency: "ACTION",
           need: "20.5000000",
           have: "12.0000000",
           short: "8.5000000",
@@ -147,7 +147,7 @@ describe("buildQuote", () => {
   });
 
   it("flags XLM separately when only the reserve and fee are short", () => {
-    const quote = buildQuote({ ...base, funds: { BANDCOIN: "100", XLM: "0.1", USDC: "0" } });
+    const quote = buildQuote({ ...base, funds: { ACTION: "100", XLM: "0.1", USDC: "0" } });
     expect(
       quote.problems.map(
         (problem) => problem.code === "INSUFFICIENT_FUNDS" && problem.shortfall.currency,

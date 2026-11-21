@@ -2,8 +2,8 @@
 
 import { useSyncExternalStore } from "react";
 
-const KEY = "bandcoin.sidebar-collapsed";
-const EVENT = "bandcoin-flag-change";
+const KEY = "action-tokens.sidebar-collapsed";
+const EVENT = "actiontokens-flag-change";
 
 type Storage = Pick<globalThis.Storage, "getItem" | "setItem">;
 

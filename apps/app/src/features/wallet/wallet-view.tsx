@@ -169,7 +169,7 @@ export function WalletView() {
             <DialogHeader>
               <DialogTitle className="display text-3xl">Swap</DialogTitle>
               <DialogDescription>
-                BANDCOIN for XLM, or XLM for BANDCOIN, at today&apos;s price.
+                ACTION for XLM, or XLM for ACTION, at today&apos;s price.
               </DialogDescription>
             </DialogHeader>
             <SwapForm flow={flow} onStarted={() => setOpen(null)} />
@@ -187,14 +187,14 @@ export function WalletView() {
 function Hero({ me, actions }: { me: Me; actions: WalletAction[] }) {
   return (
     <WalletHero
-      label={me.activated ? "your BANDCOIN balance" : "your wallet"}
+      label={me.activated ? "your ACTION balance" : "your wallet"}
       address={me.walletAddress}
       actions={actions}
       balance={
         me.activated ? (
           <TallText className="pb-[0.12em] text-7xl tabular-nums sm:text-8xl">
-            {formatAmount(me.balances.BANDCOIN, "BANDCOIN", { short: true })}{" "}
-            <span className="text-[0.45em]">BANDCOIN</span>
+            {formatAmount(me.balances.ACTION, "ACTION", { short: true })}{" "}
+            <span className="text-[0.45em]">ACTION</span>
           </TallText>
         ) : (
           <p className="text-side-ink/80 max-w-md font-semibold">
@@ -290,7 +290,7 @@ function ReceiveDialog({ address, onClose }: { address: string; onClose: () => v
         <DialogHeader>
           <DialogTitle>Receive</DialogTitle>
           <DialogDescription>
-            Send BANDCOIN, XLM or USDC on the Stellar network to this address.
+            Send ACTION, XLM or USDC on the Stellar network to this address.
           </DialogDescription>
         </DialogHeader>
         <div className="grid justify-items-center gap-4">

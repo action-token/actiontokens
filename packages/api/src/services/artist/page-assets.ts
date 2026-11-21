@@ -7,9 +7,9 @@ import { invalid } from "./items";
 import { creditLines, freeOf, openedStorage } from "./storage-withdraw";
 
 /**
- * Sell Page Assets, as on the old Bandcoin: the artist offers a bundle of
+ * Sell Page Assets, as on the old Action Tokens: the artist offers a bundle of
  * their fan token (say 1,000) from their storage account, with a description
- * and three prices (BANDCOIN, USD and a fixed XLM price). One sale sells the
+ * and three prices (ACTION, USD and a fixed XLM price). One sale sells the
  * whole bundle: the fan pays and the tokens move from storage to them in the
  * same transaction (services/purchase), then the offer is sold. The artist
  * can have several offers; storage must hold enough for all of them.
@@ -22,7 +22,7 @@ const MAX_NOTE = 500;
 
 export type PageAssetInput = {
   amount: string;
-  priceBandcoin: string;
+  priceActionToken: string;
   priceUsd: string;
   priceXlm: string;
   note?: string;
@@ -77,7 +77,7 @@ export async function pageAssetOverview(ctx: ServiceCtx, artist: ArtistRef) {
           id: true,
           status: true,
           bundleAmount: true,
-          priceBandcoin: true,
+          priceActionToken: true,
           priceUsd: true,
           priceXlm: true,
           note: true,
@@ -94,7 +94,7 @@ export async function pageAssetOverview(ctx: ServiceCtx, artist: ArtistRef) {
       id: offer.id,
       sold: offer.status === "SOLD_OUT",
       amount: offer.bundleAmount?.toString() ?? "0",
-      priceBandcoin: offer.priceBandcoin.toString(),
+      priceActionToken: offer.priceActionToken.toString(),
       priceUsd: offer.priceUsd.toString(),
       priceXlm: offer.priceXlm?.toString() ?? null,
       note: offer.note,
@@ -114,7 +114,7 @@ export async function createPageAssetOffer(
   const amount = input.amount.trim();
   if (!AMOUNT.test(amount) || toStroops(amount) <= 0n)
     throw invalid("Enter how many tokens the offer sells, above zero.");
-  for (const price of [input.priceBandcoin, input.priceUsd, input.priceXlm]) {
+  for (const price of [input.priceActionToken, input.priceUsd, input.priceXlm]) {
     const problem = validatePrice(price);
     if (problem) throw invalid(problem);
   }
@@ -139,7 +139,7 @@ export async function createPageAssetOffer(
       status: "ACTIVE",
       quantity: 1,
       bundleAmount: toAmount(toStroops(amount)),
-      priceBandcoin: input.priceBandcoin,
+      priceActionToken: input.priceActionToken,
       priceUsd: input.priceUsd,
       priceXlm: input.priceXlm,
       note: note || null,

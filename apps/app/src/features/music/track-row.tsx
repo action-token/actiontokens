@@ -114,7 +114,7 @@ export function TrackRow({
               {playsLabel(track.playCount)}
             </span>
             <span className="num text-fg-muted text-xs">
-              {track.price && <Money amount={track.price.bandcoin} currency="BANDCOIN" />}
+              {track.price && <Money amount={track.price.actionToken} currency="ACTION" />}
             </span>
             <span className="num text-fg-faint hidden w-10 text-right text-xs @md:block">
               {clock(track.durationSec)}

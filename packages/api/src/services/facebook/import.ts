@@ -14,7 +14,7 @@ import {
 } from "./graph";
 
 /**
- * Copying a Facebook page post into Bandcoin, once. The webhook only says
+ * Copying a Facebook page post into Action Tokens, once. The webhook only says
  * "this post was added": it is queued as a job (Meta wants a fast answer), and
  * the worker fetches the post, re-hosts its photos and videos in our storage
  * and creates the post. As in the old app, an imported post shows in the feed

@@ -86,7 +86,7 @@ export function useArtistActions() {
           <>
             Their organization tools open and they appear on Action Tokens. Action Tokens also opens
             their storage account and pays for it: about 3 XLM from the platform account, which
-            trusts BANDCOIN, USDC and their fan token
+            trusts ACTION, USDC and their fan token
             {supply > 0
               ? `, and ${supply.toLocaleString("en-US")} of their fan token are issued into it.`
               : "."}

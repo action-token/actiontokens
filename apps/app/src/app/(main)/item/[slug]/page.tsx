@@ -32,10 +32,10 @@ type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const item = await loadItem((await params).slug);
   const description = (
-    item.description ?? `${item.title} by ${item.artist?.name ?? "Bandcoin"}`
+    item.description ?? `${item.title} by ${item.artist?.name ?? "Action Tokens"}`
   ).slice(0, 180);
   return {
-    title: `${item.title} by ${item.artist?.name ?? "Bandcoin"}`,
+    title: `${item.title} by ${item.artist?.name ?? "Action Tokens"}`,
     description,
     alternates: { canonical: `/item/${item.slug}` },
     openGraph: {
@@ -63,7 +63,7 @@ export default async function ItemPage({ params }: Props) {
     loadItem(slug),
     (await serverApi()).catalog.moreFromArtist({ itemSlug: slug }),
   ]);
-  const artistName = item.artist?.name ?? item.track?.artistName ?? "Bandcoin";
+  const artistName = item.artist?.name ?? item.track?.artistName ?? "Action Tokens";
   const label = TYPE_LABEL[item.type] ?? item.type;
   const primary = item.listings.find((listing) => listing.kind === "PRIMARY") ?? item.listings[0];
   const left = primary?.remaining ?? null;

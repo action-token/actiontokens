@@ -64,7 +64,7 @@ export const catalogRouter = createRouter({
           .optional(),
         code: z.string().trim().max(12),
         supply: z.number().int().nullable(),
-        priceBandcoin: price,
+        priceActionToken: price,
         priceUsd: price,
         visibility,
         royaltyPercent: z.string().trim().max(10).optional(),
@@ -88,7 +88,7 @@ export const catalogRouter = createRouter({
           })
           .optional(),
         supply: z.number().int(),
-        priceBandcoin: price,
+        priceActionToken: price,
         priceUsd: price,
         visibility,
         access: itemAccess.optional(),
@@ -103,7 +103,7 @@ export const catalogRouter = createRouter({
     .input(
       z.object({
         amount: z.string().trim().max(24),
-        priceBandcoin: price,
+        priceActionToken: price,
         priceUsd: price,
         priceXlm: price,
         note: z.string().trim().max(500).optional(),
@@ -122,7 +122,7 @@ export const catalogRouter = createRouter({
         title: z.string().trim().min(1).max(120).optional(),
         description: z.string().trim().max(2000).optional(),
         coverUrl: z.string().url().optional(),
-        priceBandcoin: price.optional(),
+        priceActionToken: price.optional(),
         priceUsd: price.optional(),
         supply: z.number().int().nullable().optional(),
         code: z.string().trim().max(12).optional(),
@@ -151,7 +151,7 @@ export const catalogRouter = createRouter({
           })
           .optional(),
         supply: z.number().int(),
-        priceBandcoin: price,
+        priceActionToken: price,
         priceUsd: price,
         resaleRoyaltyPercent: z.string().trim().max(6),
         visibility: z.enum(["DRAFT", "PUBLIC"]),

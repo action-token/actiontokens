@@ -9,7 +9,7 @@
  *   pnpm --filter @actiontokens/db exec tsx scripts/seed/dummy-brand.ts [--layout <preset>]
  *
  * Creating them happens once; after that only their published page changes, to the
- * chosen layout preset (see LAYOUTS). Only runs against the Bandcoin dev database.
+ * chosen layout preset (see LAYOUTS). Only runs against the Action Tokens dev database.
  */
 import "dotenv/config";
 
@@ -243,7 +243,7 @@ async function createArtist(opts: {
       organizationId: artist.id,
       createdById: user.id,
       classicToken: { create: { code: opts.token, issuer } },
-      listings: { create: { sellerId: user.id, priceBandcoin: 500, priceUsd: 0.05 } },
+      listings: { create: { sellerId: user.id, priceActionToken: 500, priceUsd: 0.05 } },
     },
   });
   await db.organization.update({ where: { id: artist.id }, data: { fanTokenItemId: fanToken.id } });
@@ -298,7 +298,7 @@ async function createArtist(opts: {
           },
           track: { create: { albumId: row.id, artistName: opts.name, trackNumber: t + 1 } },
           listings: {
-            create: { sellerId: user.id, priceBandcoin: 5000 + n * 1500, priceUsd: 0.99 },
+            create: { sellerId: user.id, priceActionToken: 5000 + n * 1500, priceUsd: 0.99 },
           },
         },
       });
@@ -318,7 +318,9 @@ async function createArtist(opts: {
         organizationId: artist.id,
         createdById: user.id,
         contractNft: { create: { status: "MINTED", mintedCount: 0, royaltyBps: 500 } },
-        listings: { create: { sellerId: user.id, priceBandcoin: 40000 + i * 20000, priceUsd: 5 } },
+        listings: {
+          create: { sellerId: user.id, priceActionToken: 40000 + i * 20000, priceUsd: 5 },
+        },
       },
     });
 

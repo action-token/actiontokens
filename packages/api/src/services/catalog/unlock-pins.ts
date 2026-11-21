@@ -2,7 +2,7 @@ import type { Db, Prisma } from "@actiontokens/db";
 
 /**
  * The places an NFT owner visits to unlock its locked content, as on the old
- * Bandcoin: one private pin per copy × locked piece with an unlock condition,
+ * Action Tokens: one private pin per copy × locked piece with an unlock condition,
  * visible and collectable only by that copy's owner, one spot per place, each
  * collected separately. Progress belongs to the copy (the pin), so it carries
  * over when the copy changes hands; the pin just follows the new owner.
@@ -12,7 +12,7 @@ import type { Db, Prisma } from "@actiontokens/db";
  * it to one pin each, even when two requests race).
  */
 
-/** Unlock pins live five years, as on the old Bandcoin. */
+/** Unlock pins live five years, as on the old Action Tokens. */
 const UNLOCK_PIN_YEARS = 5;
 
 /** Leaves the private unlock pins out of the artist's and the admin's pin lists. */

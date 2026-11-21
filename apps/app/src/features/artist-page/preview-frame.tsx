@@ -27,9 +27,9 @@ type Design = { blocks: Block[]; theme: PageTheme };
  * draft. The editor sends every change as a message, so edits show at once
  * without saving first; clicking a block tells the editor which one to open.
  *
- *   in : { type: "bandcoin-page:design", blocks, theme } and { type: "bandcoin-page:select", uid }
- *   out: { type: "bandcoin-page:ready" }, { type: "bandcoin-page:select", uid } and
- *        { type: "bandcoin-page:action", action } (the block toolbar and the + buttons)
+ *   in : { type: "actiontokens-page:design", blocks, theme } and { type: "actiontokens-page:select", uid }
+ *   out: { type: "actiontokens-page:ready" }, { type: "actiontokens-page:select", uid } and
+ *        { type: "actiontokens-page:action", action } (the block toolbar and the + buttons)
  */
 export function PreviewFrame({ slug }: { slug: string }) {
   const artist = api.artist.bySlug.useQuery({ slug });
@@ -46,13 +46,13 @@ export function PreviewFrame({ slug }: { slug: string }) {
         theme?: unknown;
         uid?: unknown;
       } | null;
-      if (data?.type === "bandcoin-page:design") {
+      if (data?.type === "actiontokens-page:design") {
         const theme = themeSchema.safeParse(data.theme);
         setDesign({
           blocks: normalizeBlocks(data.blocks),
           theme: theme.success ? theme.data : DEFAULT_THEME,
         });
-      } else if (data?.type === "bandcoin-page:select") {
+      } else if (data?.type === "actiontokens-page:select") {
         setSelected(typeof data.uid === "string" ? data.uid : null);
       }
     };
@@ -60,7 +60,7 @@ export function PreviewFrame({ slug }: { slug: string }) {
     // Tell the editor we are listening (the editor then sends its current design).
     const parent =
       ALLOWED_ORIGINS.find((origin) => document.referrer.startsWith(origin)) ?? PORTAL_ORIGIN;
-    window.parent.postMessage({ type: "bandcoin-page:ready" }, parent);
+    window.parent.postMessage({ type: "actiontokens-page:ready" }, parent);
     return () => window.removeEventListener("message", onMessage);
   }, []);
 
@@ -84,7 +84,7 @@ export function PreviewFrame({ slug }: { slug: string }) {
     ALLOWED_ORIGINS.find((origin) => document.referrer.startsWith(origin)) ?? PORTAL_ORIGIN;
   const select = (uid: string) => {
     setSelected(uid);
-    window.parent.postMessage({ type: "bandcoin-page:select", uid }, parent);
+    window.parent.postMessage({ type: "actiontokens-page:select", uid }, parent);
   };
   const act = (action: PageAction) =>
     window.parent.postMessage({ type: PAGE_ACTION_MESSAGE, action }, parent);

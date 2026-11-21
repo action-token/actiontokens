@@ -46,7 +46,7 @@ export function storageStartingXlm(trustlines: number) {
   return toDisplay(toStroops("1.5") + BigInt(trustlines) * toStroops(TRUSTLINE_RESERVE_XLM));
 }
 
-/** For the usual opening: BANDCOIN and USDC. */
+/** For the usual opening: ACTION and USDC. */
 export const STORAGE_STARTING_XLM = storageStartingXlm(2);
 
 /**
@@ -54,7 +54,7 @@ export const STORAGE_STARTING_XLM = storageStartingXlm(2);
  * wait (stock): sales, pin claims and gifts take from it before minting more,
  * and it can fund bounties. `payer` is the transaction source and pays the
  * starting XLM and the fee: the platform's mother account at approval, as on
- * the old Bandcoin. Storage trusts the assets it will hold (`trust`), and the
+ * the old Action Tokens. Storage trusts the assets it will hold (`trust`), and the
  * artist's issuer can pay a starting supply of their fan token into it
  * (`supply`) in the same transaction; storage and the issuer co-sign.
  */
@@ -137,7 +137,7 @@ export function buildStockStorage(input: {
 
 /**
  * Takes something out of the artist's storage into their own wallet: copies,
- * BANDCOIN, USDC or XLM (`asset` null). The artist's wallet is the source and
+ * ACTION, USDC or XLM (`asset` null). The artist's wallet is the source and
  * pays the fee; when it doesn't hold that token yet it opens the trustline
  * first, its own 0.5 XLM reserve. Storage co-signs for the payment.
  */

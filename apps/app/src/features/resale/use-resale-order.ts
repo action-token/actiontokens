@@ -26,7 +26,7 @@ const reasonOf = (error: unknown) =>
 /**
  * One listing or take-back, from the button to "Done". The same steps as a
  * purchase: email / Google / Apple accounts get a countdown with Cancel and
- * Bandcoin signs; wallet extensions confirm in the wallet. Cancel (or a declined
+ * Action Tokens signs; wallet extensions confirm in the wallet. Cancel (or a declined
  * wallet popup) stops the order, so nothing is signed or sent.
  */
 export function useResaleOrder() {

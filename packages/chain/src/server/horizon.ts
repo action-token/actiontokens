@@ -132,19 +132,19 @@ export function fundsOf(
     return found ? available(found) : "0";
   };
   return {
-    BANDCOIN: of(assets.bandcoin),
+    ACTION: of(assets.actionToken),
     XLM: account ? spendableXlm(account) : "0",
     USDC: of(assets.usdc),
   };
 }
 
-/** Every other classic asset the account holds (not XLM, BANDCOIN or USDC), with what's spendable. */
+/** Every other classic asset the account holds (not XLM, ACTION or USDC), with what's spendable. */
 export function otherAssetsOf(
   account: Horizon.AccountResponse | null,
   assets: PaymentAssets,
 ): { code: string; issuer: string; amount: string }[] {
   if (!account) return [];
-  const known = [assets.bandcoin, assets.usdc];
+  const known = [assets.actionToken, assets.usdc];
   return account.balances.flatMap((balance) => {
     if (balance.asset_type !== "credit_alphanum4" && balance.asset_type !== "credit_alphanum12")
       return [];

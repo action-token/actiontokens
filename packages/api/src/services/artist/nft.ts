@@ -19,7 +19,7 @@ import {
 } from "./locked-content";
 
 /**
- * Contract NFTs, as on the old Bandcoin: creating one is a database save,
+ * Contract NFTs, as on the old Action Tokens: creating one is a database save,
  * nothing to sign or pay, and it can go on sale at once. The platform
  * registers the edition on the nft_oz contract at its first sale and the
  * contract mints copies as fans buy (services/purchase/nft).
@@ -89,7 +89,7 @@ export async function createNft(
           sellerId: user.id,
           kind: "PRIMARY",
           status: input.visibility === "PUBLIC" ? "ACTIVE" : "PAUSED",
-          priceBandcoin: input.priceBandcoin,
+          priceActionToken: input.priceActionToken,
           priceUsd: input.priceUsd,
         },
       },

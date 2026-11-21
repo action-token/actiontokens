@@ -22,7 +22,7 @@ root-app.ts · root-artist.ts · root-ar.ts · root-studio.ts   one router per a
 - Procedures are named verb + noun: `item.getBySlug`, `order.create`, `order.confirm`, `pin.claim`, `generation.start`.
 - Reads that public pages need are `publicProcedure` (browsing and previews work without login). Everything that changes data needs sign-in.
 - Every list is paginated by cursor (`limit` ≤ 50).
-- Inputs are Zod schemas from `@bandcoin/schemas`, so forms use the same ones.
+- Inputs are Zod schemas from `@actiontokens/schemas`, so forms use the same ones.
 - Gating is always decided on the server (`access/`). The full media URL is only signed for owners.
 - **Activity logging:** every `mutation` passes through an `activityLog` middleware that writes an `ActivityLog` row after it finishes, whether it succeeded or failed, with redacted input. Services can attach `target`, `txHash` and `amount` through `ctx.activity.set(...)`. Worker jobs log as `SYSTEM`. A test fails if any mutation procedure skips the middleware.
 - Webhooks (Square, Facebook) and file routes are Next route handlers in the app that owns them, and they call services.

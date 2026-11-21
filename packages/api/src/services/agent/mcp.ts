@@ -88,10 +88,10 @@ export function createMcpServer(
 ) {
   const safely = (name: string, run: () => Promise<CallToolResult>) => runTool(name, userId, run);
   const server = new McpServer(
-    { name: "Bandcoin map agent", version: "1.0.0" },
+    { name: "Action Tokens map agent", version: "1.0.0" },
     {
       instructions:
-        "Bandcoin's map agent for one artist. It finds real places and events, reports on the artist's pins, " +
+        "Action Tokens' map agent for one artist. It finds real places and events, reports on the artist's pins, " +
         "hotspots, events and announcements, and prepares changes to them. Start with ask_agent. " +
         "Changes are proposals: nothing happens until confirm_proposal is called, so show the person what a proposal " +
         "does and ask before confirming.",

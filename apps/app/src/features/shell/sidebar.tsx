@@ -88,7 +88,7 @@ function Frame({
   return (
     <SideFrame
       label="Main"
-      home={{ href: "/", label: "Bandcoin marketplace home", tagline: "marketplace" }}
+      home={{ href: "/", label: "Action Tokens marketplace home", tagline: "marketplace" }}
       tools={<HeaderTools />}
       groups={groups}
       tiles={[
@@ -104,14 +104,9 @@ function Frame({
               balances
                 ? {
                     amount: (
-                      <Money
-                        amount={balances.BANDCOIN}
-                        currency="BANDCOIN"
-                        short
-                        className="display"
-                      />
+                      <Money amount={balances.ACTION} currency="ACTION" short className="display" />
                     ),
-                    code: "BANDCOIN",
+                    code: "ACTION",
                   }
                 : null
             }

@@ -5,7 +5,7 @@ import type { EmailMessage } from "./mailer";
 
 /**
  * The email someone gets when an artist gives them an NFT copy, as on the old
- * Bandcoin: what it is, who sent it, how much of its locked content is open,
+ * Action Tokens: what it is, who sent it, how much of its locked content is open,
  * the door codes of pieces already unlocked, and how to sign in. A new
  * account is told how to get in for the first time.
  */
@@ -31,8 +31,8 @@ export function giftEmail(input: GiftEmailInput): EmailMessage {
   const hello = input.recipientName ? `Hi ${input.recipientName},` : "Hi,";
   const what = `${input.title} #${input.tokenId}`;
   const signIn = input.newAccount
-    ? `We made a Bandcoin account for ${input.to} to hold it. Sign in with Google or Apple using this email, or choose "Forgot password" to set a password.`
-    : `Sign in to Bandcoin with ${input.to} to see it.`;
+    ? `We made an Action Tokens account for ${input.to} to hold it. Sign in with Google or Apple using this email, or choose "Forgot password" to set a password.`
+    : `Sign in to Action Tokens with ${input.to} to see it.`;
   const progress =
     input.locked.total > 0
       ? `${input.locked.unlocked} of ${input.locked.total} locked pieces are unlocked. Visit its places on the map to unlock the rest.`
@@ -42,7 +42,7 @@ export function giftEmail(input: GiftEmailInput): EmailMessage {
   const text = [
     hello,
     "",
-    `${input.senderName} sent you ${what} on Bandcoin.`,
+    `${input.senderName} sent you ${what} on Action Tokens.`,
     "",
     ...(progress ? [progress, ""] : []),
     ...(codes.length > 0 ? ["Door codes:", ...codes, ""] : []),
@@ -53,7 +53,7 @@ export function giftEmail(input: GiftEmailInput): EmailMessage {
 
   const html = `<div style="font-family:system-ui,sans-serif;max-width:520px;margin:auto;color:#111">
 <p>${escape(hello)}</p>
-<p><b>${escape(input.senderName)}</b> sent you <b>${escape(what)}</b> on Bandcoin.</p>
+<p><b>${escape(input.senderName)}</b> sent you <b>${escape(what)}</b> on Action Tokens.</p>
 <img src="${escape(input.coverUrl)}" alt="" width="240" style="border-radius:12px;display:block;margin:16px 0" />
 ${progress ? `<p>${escape(progress)}</p>` : ""}
 ${
@@ -64,7 +64,7 @@ ${
     : ""
 }
 <p>${escape(signIn)}</p>
-<p><a href="${escape(input.link)}" style="display:inline-block;background:#111;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none">See it on Bandcoin</a></p>
+<p><a href="${escape(input.link)}" style="display:inline-block;background:#111;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none">See it on Action Tokens</a></p>
 </div>`;
 
   return { to: input.to, subject: `${input.senderName} sent you ${what}`, text, html };
@@ -100,7 +100,10 @@ export async function notifyNftGift(
       to: recipient.email,
       recipientName: recipient.displayName ?? recipient.username,
       senderName:
-        sender?.organization?.name ?? sender?.displayName ?? sender?.username ?? "An artist on Bandcoin",
+        sender?.organization?.name ??
+        sender?.displayName ??
+        sender?.username ??
+        "An artist on Action Tokens",
       title: item.title,
       coverUrl: item.coverUrl,
       tokenId: gift.tokenId,

@@ -9,13 +9,13 @@ Why App Router: public pages (item, artist, song, album) become Server Component
 ## Tree
 
 ```
-bandcoin/
+actiontokens/
 ├─ apps/
-│  ├─ app/        @bandcoin/app      fans: home, music, marketplace, item, collections, playlists, profiles, bounties
-│  ├─ artist/     @bandcoin/artist   artist portal + /admin
-│  ├─ ar/         @bandcoin/ar       map, nearby pins, AR camera, claim
-│  ├─ studio/     @bandcoin/studio   AI generators, pin agent, stem editor, studio coin wallet
-│  └─ worker/     @bandcoin/worker   Express + job runner (tsup bundle, PM2 on EC2)
+│  ├─ app/        @actiontokens/app      fans: home, music, marketplace, item, collections, playlists, profiles, bounties
+│  ├─ artist/     @actiontokens/artist   artist portal + /admin
+│  ├─ ar/         @actiontokens/ar       map, nearby pins, AR camera, claim
+│  ├─ studio/     @actiontokens/studio   AI generators, pin agent, stem editor, studio coin wallet
+│  └─ worker/     @actiontokens/worker   Express + job runner (tsup bundle, PM2 on EC2)
 ├─ packages/
 │  ├─ db/         Prisma schema, client (`/server`), generated types, migration script
 │  ├─ api/        tRPC: context, procedures, routers per app, shared services
@@ -71,6 +71,6 @@ The old misspellings (`wallate`, `steller`, `aprovalSend`, `steamUrl`, `genreati
 
 - No file over 1000 lines (`max-lines`).
 - No imports across apps; no `~/` inside packages.
-- `@bandcoin/db/server` and `@bandcoin/chain/server` can't be imported in client components.
+- `@actiontokens/db/server` and `@actiontokens/chain/server` can't be imported in client components.
 - No `throw new Error`; use `AppError` with a code.
 - No new dependency outside the catalog.

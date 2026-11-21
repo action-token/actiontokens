@@ -4,7 +4,7 @@ import { isZero } from "./purchase";
 import { finish, type NetworkParams, startTransaction } from "../transaction";
 
 /**
- * Card top-up: the platform sends BANDCOIN to the buyer, who opens the
+ * Card top-up: the platform sends ACTION to the buyer, who opens the
  * trustline first if needed. The buyer is the source, so the same signing
  * flow as a purchase applies; the platform account fee-bumps it on submit.
  * `reserveXlm`: XLM the platform sends first so a new trustline can be opened
@@ -15,7 +15,7 @@ export function buildTopUp(input: {
   network: NetworkParams;
   orderId: string;
   asset: Asset;
-  /** The platform account that sends the BANDCOIN */
+  /** The platform account that sends the ACTION */
   from: string;
   amount: string;
   openTrustline: boolean;
@@ -83,7 +83,7 @@ export function buildSwap(input: {
 }
 
 /**
- * Subscribing with BANDCOIN, USDC or XLM (plan 33): the fan pays the platform
+ * Subscribing with ACTION, USDC or XLM (plan 33): the fan pays the platform
  * for the XLM it sends (not when paying in XLM), the platform fee goes to the
  * treasury, and the fan's own account opens the fan-token line, all together
  * or not at all. The fan is the source and pays the network fee.
@@ -96,7 +96,7 @@ export function buildTrustWithPayment(input: {
   token: Asset;
   /** What the fan pays in */
   asset: Asset;
-  /** The platform account that sells the XLM (BANDCOIN, USDC) */
+  /** The platform account that sells the XLM (ACTION, USDC) */
   platform: string;
   /** To the platform for the XLM; "0" when paying in XLM */
   pay: string;
@@ -131,8 +131,8 @@ export function buildTrustWithPayment(input: {
 
 /**
  * Subscribing by card (plan 33): the card paid in USD, so the platform sends
- * the XLM the line(s) lock, the fan opens a BANDCOIN line when one is needed
- * and the fan-token line, and what's left of the charge arrives as BANDCOIN.
+ * the XLM the line(s) lock, the fan opens a ACTION line when one is needed
+ * and the fan-token line, and what's left of the charge arrives as ACTION.
  * The fan is the source; the platform fee-bumps it on submit.
  */
 export function buildTrustByCard(input: {
@@ -140,10 +140,10 @@ export function buildTrustByCard(input: {
   network: NetworkParams;
   orderId: string;
   token: Asset;
-  /** The platform account that sends the XLM and BANDCOIN */
+  /** The platform account that sends the XLM and ACTION */
   from: string;
   sendXlm: string;
-  bandcoin: { asset: Asset; amount: string; openLine: boolean };
+  actionToken: { asset: Asset; amount: string; openLine: boolean };
 }) {
   if (isZero(input.sendXlm)) throw new RangeError("The line's reserve must be sent");
   const builder = startTransaction(input.buyer, input.network, {
@@ -156,16 +156,16 @@ export function buildTrustByCard(input: {
       amount: input.sendXlm,
     }),
   );
-  if (input.bandcoin.openLine)
-    builder.addOperation(Operation.changeTrust({ asset: input.bandcoin.asset }));
+  if (input.actionToken.openLine)
+    builder.addOperation(Operation.changeTrust({ asset: input.actionToken.asset }));
   builder.addOperation(Operation.changeTrust({ asset: input.token }));
-  if (!isZero(input.bandcoin.amount))
+  if (!isZero(input.actionToken.amount))
     builder.addOperation(
       Operation.payment({
         source: input.from,
         destination: input.buyer.accountId(),
-        asset: input.bandcoin.asset,
-        amount: input.bandcoin.amount,
+        asset: input.actionToken.asset,
+        amount: input.actionToken.amount,
       }),
     );
   return finish(builder, [input.from]);

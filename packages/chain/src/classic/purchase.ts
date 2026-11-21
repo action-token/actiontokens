@@ -15,7 +15,7 @@ export type ClassicPurchaseInput = {
   /**
    * The payouts. Wallet orders: the buyer pays seller, fee and royalty.
    * Card orders: `from` is the treasury, paying the seller (and royalty) in
-   * BANDCOIN; the platform fee stays with the card charge.
+   * ACTION; the platform fee stays with the card charge.
    */
   payment: {
     asset: Asset;

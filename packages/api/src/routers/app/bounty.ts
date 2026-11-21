@@ -11,7 +11,7 @@ import { countScrobbles } from "../../services/lastfm";
 import { authedProcedure, createRouter, publicProcedure } from "../../trpc";
 
 /**
- * Bounties for fans, feature for feature with the old Bandcoin (bandfan
+ * Bounties for fans, feature for feature with the old Action Tokens (bandfan
  * `main`): browse (All / Not joined / Joined, search, newest or biggest
  * prize), top bounties and recent activity, then one bounty with its
  * participants, your reports, your listening progress and your prize claim.
@@ -156,7 +156,10 @@ export const bountyRouter = createRouter({
           ? { participants: { some: { userId: viewerId } } }
           : { status: { not: "COMPLETED" } }),
         ...(input.filter === "not_joined" && viewerId
-          ? { participants: { none: { userId: viewerId } }, organization: { userId: { not: viewerId } } }
+          ? {
+              participants: { none: { userId: viewerId } },
+              organization: { userId: { not: viewerId } },
+            }
           : {}),
       };
       const rows = await ctx.db.bounty.findMany({

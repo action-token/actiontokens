@@ -65,9 +65,9 @@ function track(id: string, e: EmbedEvent) {
 
 /**
  * Preview mode only (the artist portal's editor frames `/embed/preview`):
- *  - settings arrive as `{ type: "bandcoin-embed:config", config }` messages, so
+ *  - settings arrive as `{ type: "actiontokens-embed:config", config }` messages, so
  *    editing a field updates the map in place instead of reloading it;
- *  - every settled view goes back up as `{ type: "bandcoin-embed:view", … }`,
+ *  - every settled view goes back up as `{ type: "actiontokens-embed:view", … }`,
  *    which the editor offers as "Set start view here".
  * Messages are accepted only from the artist portal's origins.
  */
@@ -81,11 +81,11 @@ function usePreviewBridge(initial: EmbedConfig, origins: string[] | undefined) {
         type?: string;
         config?: Record<string, unknown>;
       } | null;
-      if (data?.type === "bandcoin-embed:config" && data.config)
+      if (data?.type === "actiontokens-embed:config" && data.config)
         setConfig(normalizeConfig(data.config, "preview"));
     };
     window.addEventListener("message", onMessage);
-    window.parent.postMessage({ type: "bandcoin-embed:ready" }, "*");
+    window.parent.postMessage({ type: "actiontokens-embed:ready" }, "*");
     return () => window.removeEventListener("message", onMessage);
   }, [origins]);
   return config;
@@ -319,7 +319,7 @@ export function EmbedClient({
             if (previewOrigins) {
               window.parent.postMessage(
                 {
-                  type: "bandcoin-embed:view",
+                  type: "actiontokens-embed:view",
                   lat: v.center.lat,
                   lng: v.center.lng,
                   zoom: v.zoom,

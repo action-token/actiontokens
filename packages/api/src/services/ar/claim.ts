@@ -32,7 +32,7 @@ type ServiceCtx = Pick<Context, "db" | "chain" | "activity">;
  *   submit  → checks it is this claim, co-signs, submits, records it
  */
 
-/** An item reward gives one copy per claim, as on the old Bandcoin. */
+/** An item reward gives one copy per claim, as on the old Action Tokens. */
 export const CLAIM_AMOUNT = "1";
 /** Stellar's base reserve: what a new trustline locks in the fan's wallet. */
 const TRUSTLINE_RESERVE_XLM = "0.5";
@@ -97,7 +97,9 @@ async function loadClaim(ctx: ServiceCtx, userId: string, claimId: string) {
           stockAccount,
           storageOnly,
           minter:
-            token.isExternal || storageOnly ? null : minterOf(token, pin.organization.issuerAccount),
+            token.isExternal || storageOnly
+              ? null
+              : minterOf(token, pin.organization.issuerAccount),
         }
       : null;
   return { claim, pin, item, reward };

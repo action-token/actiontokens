@@ -17,7 +17,7 @@ Bottom-left of every portal map:
   (Default, Streets, Outdoors, Satellite, Light, Dark), a 2D / 3D switch and a Terrain switch. The
   choice is stored per device and every map follows it. There is no separate 3D button.
 
-## Bandcoin today (seen in the browser)
+## Action Tokens today (seen in the browser)
 
 The portal's one base map (`map-kit/base-map.tsx`) has a corner "3D" text button, Zoom in and Zoom out.
 No locate button and no map types or terrain (only the AR app has them, plan 47, in its own code).
@@ -32,14 +32,14 @@ No locate button and no map types or terrain (only the AR app has them, plan 47,
 
 ## What gets built
 
-### New package `packages/map` (`@bandcoin/map`)
+### New package `packages/map` (`@actiontokens/map`)
 
 - `style.ts` (moved from AR's `lib/ar/theme.ts`): `MAP_BASES`, labels, the 2D/3D Mapbox style URLs,
   `mapStyleFor(mode, theme, base)`, `isStandardStyle`, and `createMapPrefs(prefix)`, which returns the
   stored choices (`useMapMode/setMapMode`, `useMapBase/setMapBase`, `useMapTerrain/setMapTerrain`),
   each safe when storage is blocked and live-shared between every map on the page. AR uses prefix
-  `bandcoin-ar` (its existing keys, so nobody's saved choice is lost); the portal uses
-  `bandcoin-artist` (its existing 2D/3D key keeps working).
+  `actiontokens-ar` (its existing keys, so nobody's saved choice is lost); the portal uses
+  `actiontokens-artist` (its existing 2D/3D key keeps working).
 - `terrain.tsx` (moved from AR's `MapTerrain.tsx`): hill shading and contour lines under the labels.
 - The existing tests move with the code (`map-style.test.ts`); AR keeps thin re-exports so its
   imports don't change.
@@ -80,10 +80,10 @@ No locate button and no map types or terrain (only the AR app has them, plan 47,
 
 ## Built (2026-11-13)
 
-- `packages/map` (`@bandcoin/map`): `style` (types, 2D/3D URLs, `mapStyleFor`, `isStandardStyle`),
+- `packages/map` (`@actiontokens/map`): `style` (types, 2D/3D URLs, `mapStyleFor`, `isStandardStyle`),
   `prefs` (`storedChoice`, `createMapPrefs(prefix)`) and `terrain` (`MapTerrainLayers`). AR keeps its
-  saved choices (`bandcoin-ar-map-*`) and re-exports from `lib/ar/theme.ts`; the portal uses
-  `bandcoin-artist-map-*`. Tests: `style.test.ts`, `prefs.test.ts` (8).
+  saved choices (`actiontokens-ar-map-*`) and re-exports from `lib/ar/theme.ts`; the portal uses
+  `actiontokens-artist-map-*`. Tests: `style.test.ts`, `prefs.test.ts` (8).
 - Portal `map-kit`: `base-map.tsx` has Layers (own box), Locate, Zoom in, Zoom out (one box) and no
   corner 3D button; `controls` is `true` (full), `"zoom"` (map picker, unlock places, mural sheet) or
   `false`; `locate` defaults on with the full set; `forceTerrain`. `map-control-stack.ts` and

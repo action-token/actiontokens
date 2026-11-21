@@ -72,8 +72,8 @@ export function CollectQr({ post }: { post: FeedPost }) {
       <DialogContent className="max-w-sm text-center">
         <DialogTitle className="text-center">Scan to collect</DialogTitle>
         <DialogDescription className="text-center">
-          Open the Bandcoin AR app&apos;s scanner, or your phone&apos;s camera, and point it here.
-          The post lands in your AR collection.
+          Open the Action Tokens AR app&apos;s scanner, or your phone&apos;s camera, and point it
+          here. The post lands in your AR collection.
         </DialogDescription>
         <div className="mx-auto rounded-xl border bg-white p-4">
           <QRCode value={collectLink(post.id)} size={232} level="M" />

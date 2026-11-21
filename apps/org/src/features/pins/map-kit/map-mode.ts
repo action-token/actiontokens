@@ -4,7 +4,7 @@ import { createMapPrefs } from "@actiontokens/map/prefs";
 
 /**
  * The portal's map choices (2D / 3D, map type, terrain), shared by every portal map and kept per
- * device under `bandcoin-artist-map-*`. The styles and how they are picked are shared with the AR
+ * device under `actiontokens-artist-map-*`. The styles and how they are picked are shared with the AR
  * app (`@actiontokens/map`).
  */
 export {
@@ -18,7 +18,7 @@ export {
   type MapMode,
 } from "@actiontokens/map/style";
 
-const prefs = createMapPrefs("bandcoin-artist");
+const prefs = createMapPrefs("actiontokens-artist");
 
 export const MAP_MODE_STORAGE_KEY = prefs.keys.mode;
 export const useMapMode = prefs.useMapMode;

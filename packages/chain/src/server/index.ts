@@ -18,7 +18,7 @@ export {
   submit,
   trusts,
 } from "./horizon";
-export { clearRateCache, liveBandcoinUsd, liveRates, type Rates } from "./rates";
+export { clearRateCache, liveActionTokenUsd, liveRates, type Rates } from "./rates";
 export { decryptSecret, encryptSecret } from "./secrets";
 export {
   contractIsLive,

@@ -8,7 +8,8 @@ import { SongsView } from "~/features/songs/songs-view";
 
 export const metadata: Metadata = {
   title: "Songs",
-  description: "Every song on Bandcoin: what's trending this week, search, filter by price, play.",
+  description:
+    "Every song on Action Tokens: what's trending this week, search, filter by price, play.",
 };
 
 export default function SongsPage() {
@@ -16,7 +17,7 @@ export default function SongsPage() {
     <>
       <SongsHero />
       <PageBody wide className="grid gap-6">
-        <PageHeader title="Songs" note="*everything on Bandcoin, trending first*" />
+        <PageHeader title="Songs" note="*everything on Action Tokens, trending first*" />
         <Suspense>
           <SongsView />
         </Suspense>

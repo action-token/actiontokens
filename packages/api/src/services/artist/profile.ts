@@ -8,7 +8,7 @@ import { invalid } from "./items";
 type ServiceCtx = Pick<Context, "db" | "activity">;
 type ArtistRef = { id: string; slug: string };
 
-/** Limits carried over from the old Bandcoin app's profile form. */
+/** Limits carried over from the old Action Tokens app's profile form. */
 export const NAME_MIN = 3;
 export const NAME_MAX = 98;
 export const BIO_MAX = 200;
@@ -116,9 +116,15 @@ export async function updateProfile(ctx: ServiceCtx, artist: ArtistRef, input: P
     if (problem) throw invalid(`That name makes the page address "${slug}": ${problem}.`);
     const [current, previous] = await Promise.all([
       ctx.db.organization.findUnique({ where: { slug }, select: { id: true } }),
-      ctx.db.organizationSlugHistory.findUnique({ where: { slug }, select: { organizationId: true } }),
+      ctx.db.organizationSlugHistory.findUnique({
+        where: { slug },
+        select: { organizationId: true },
+      }),
     ]);
-    if ((current && current.id !== artist.id) || (previous && previous.organizationId !== artist.id))
+    if (
+      (current && current.id !== artist.id) ||
+      (previous && previous.organizationId !== artist.id)
+    )
       throw new AppError(ErrorCodes.RESOURCE_CONFLICT, {
         message: `Another artist already uses the page address "${slug}". Try a slightly different name.`,
       });

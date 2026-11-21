@@ -10,11 +10,11 @@ import {
   RECHARGE_PACKAGES_USD,
 } from "../recharge";
 
-const rates = { bandcoinUsd: toStroops("0.002"), xlmUsd: toStroops("0.1") };
+const rates = { actionTokenUsd: toStroops("0.002"), xlmUsd: toStroops("0.1") };
 
 describe("quoteTopUp", () => {
-  it("shows the charge, the network fee and the BANDCOIN that arrives", () => {
-    // $9.99 charged; the 0.00002 XLM fee is $0.000002 and comes out of it, the rest buys BANDCOIN at $0.002
+  it("shows the charge, the network fee and the ACTION that arrives", () => {
+    // $9.99 charged; the 0.00002 XLM fee is $0.000002 and comes out of it, the rest buys ACTION at $0.002
     const quote = quoteTopUp({ packageUsd: "9.99", ...rates, networkFeeXlm: "0.00002" });
     expect(quote.ok).toBe(true);
     expect(quote.chargeCents).toBe(999);
@@ -26,7 +26,7 @@ describe("quoteTopUp", () => {
   it("rounds what the buyer receives down, never up", () => {
     const quote = quoteTopUp({
       packageUsd: "1.99",
-      bandcoinUsd: toStroops("0.0030001"),
+      actionTokenUsd: toStroops("0.0030001"),
       xlmUsd: rates.xlmUsd,
       networkFeeXlm: "0",
     });
@@ -35,7 +35,7 @@ describe("quoteTopUp", () => {
     );
   });
 
-  it("shows the refundable 0.5 XLM wallet reserve when BANDCOIN isn't in the wallet yet, and what's missing", () => {
+  it("shows the refundable 0.5 XLM wallet reserve when ACTION isn't in the wallet yet, and what's missing", () => {
     const ok = quoteTopUp({
       packageUsd: "9.99",
       ...rates,
@@ -59,7 +59,7 @@ describe("quoteTopUp", () => {
     expect(short.problems).toEqual([
       {
         code: "INSUFFICIENT_FUNDS",
-        message: "You need 0.3 more XLM to add BANDCOIN to your wallet.",
+        message: "You need 0.3 more XLM to add ACTION to your wallet.",
         shortfall: { currency: "XLM", need: "0.5", have: "0.2", short: "0.3" },
       },
     ]);
@@ -75,7 +75,12 @@ describe("quoteTopUp", () => {
 
   it("refuses without a usable price", () => {
     expect(
-      quoteTopUp({ packageUsd: "9.99", bandcoinUsd: 0n, xlmUsd: rates.xlmUsd, networkFeeXlm: "0" }),
+      quoteTopUp({
+        packageUsd: "9.99",
+        actionTokenUsd: 0n,
+        xlmUsd: rates.xlmUsd,
+        networkFeeXlm: "0",
+      }),
     ).toMatchObject({
       ok: false,
       problems: [{ code: "RATE_UNAVAILABLE" }],
@@ -84,19 +89,19 @@ describe("quoteTopUp", () => {
 });
 
 describe("quoteFanTokenTrust", () => {
-  // 1 XLM = $0.10, 1 BANDCOIN = $0.002, USDC = $1; 0.5 XLM = $0.05
+  // 1 XLM = $0.10, 1 ACTION = $0.002, USDC = $1; 0.5 XLM = $0.05
   const base = {
     ...rates,
     usdcUsd: toStroops("1"),
     feeBps: 250,
     networkFeeXlm: "0.00003",
-    funds: { BANDCOIN: "500", USDC: "10", XLM: "10" },
-    hasBandcoinLine: true,
+    funds: { ACTION: "500", USDC: "10", XLM: "10" },
+    hasActionTokenLine: true,
   };
 
-  it("BANDCOIN: the reserve at today's price, the 2% cushion, then the fee on top", () => {
-    // 0.5 XLM = 25 BANDCOIN; cushion 0.5; fee 2.5% of 25.5 = 0.6375
-    const quote = quoteFanTokenTrust({ ...base, currency: "BANDCOIN" });
+  it("ACTION: the reserve at today's price, the 2% cushion, then the fee on top", () => {
+    // 0.5 XLM = 25 ACTION; cushion 0.5; fee 2.5% of 25.5 = 0.6375
+    const quote = quoteFanTokenTrust({ ...base, currency: "ACTION" });
     expect(quote.ok).toBe(true);
     expect(quote.lines.map((line) => [line.key, line.amount])).toEqual([
       ["market", "25"],
@@ -138,12 +143,12 @@ describe("quoteFanTokenTrust", () => {
     ]);
   });
 
-  it("card: never under $1, the rest arrives as BANDCOIN", () => {
+  it("card: never under $1, the rest arrives as ACTION", () => {
     const quote = quoteFanTokenTrust({ ...base, currency: "USD" });
     // cost 0.50003 XLM = $0.050003, fee $0.0012501 (rounded up); charge $1.00, the rest / $0.002
     expect(quote.total).toBe("1.0000000");
     expect(quote.sendXlm).toBe("0.5000000");
-    expect(quote.card).toEqual({ extraBandcoin: "474.3734500", openBandcoinLine: false });
+    expect(quote.card).toEqual({ extraActionToken: "474.3734500", openActionTokenLine: false });
     expect(quote.lines.map((line) => line.key)).toEqual([
       "reserve",
       "networkFee",
@@ -153,12 +158,12 @@ describe("quoteFanTokenTrust", () => {
     ]);
   });
 
-  it("card without a BANDCOIN line: the line is opened and its reserve paid out of the $1", () => {
-    const quote = quoteFanTokenTrust({ ...base, currency: "USD", hasBandcoinLine: false });
+  it("card without a ACTION line: the line is opened and its reserve paid out of the $1", () => {
+    const quote = quoteFanTokenTrust({ ...base, currency: "USD", hasActionTokenLine: false });
     expect(quote.sendXlm).toBe("1.0000000");
-    expect(quote.card?.openBandcoinLine).toBe(true);
-    expect(quote.lines.map((line) => line.key)).toContain("bandcoinReserve");
-    expect(Number(quote.card?.extraBandcoin)).toBeLessThan(474.37335);
+    expect(quote.card?.openActionTokenLine).toBe(true);
+    expect(quote.lines.map((line) => line.key)).toContain("actionTokenReserve");
+    expect(Number(quote.card?.extraActionToken)).toBeLessThan(474.37335);
   });
 
   it("card above the minimum charges the cost and the fee, rounded up to the cent", () => {
@@ -170,38 +175,38 @@ describe("quoteFanTokenTrust", () => {
   it("says exactly what's missing and asks signed-out fans to sign in", () => {
     const short = quoteFanTokenTrust({
       ...base,
-      currency: "BANDCOIN",
-      funds: { ...base.funds, BANDCOIN: "20" },
+      currency: "ACTION",
+      funds: { ...base.funds, ACTION: "20" },
     });
     expect(short.problems[0]).toMatchObject({
       code: "INSUFFICIENT_FUNDS",
-      message: "You need 6.1375 more BANDCOIN.",
+      message: "You need 6.1375 more ACTION.",
     });
-    expect(quoteFanTokenTrust({ ...base, currency: "BANDCOIN", funds: null }).problems).toEqual([
+    expect(quoteFanTokenTrust({ ...base, currency: "ACTION", funds: null }).problems).toEqual([
       { code: "SIGN_IN", message: "Sign in to subscribe." },
     ]);
   });
 
   it("won't price without today's rates", () => {
     expect(
-      quoteFanTokenTrust({ ...base, currency: "BANDCOIN", bandcoinUsd: 0n }).problems[0]?.code,
+      quoteFanTokenTrust({ ...base, currency: "ACTION", actionTokenUsd: 0n }).problems[0]?.code,
     ).toBe("RATE_UNAVAILABLE");
   });
 });
 
 describe("quoteSwap", () => {
-  const funds = { BANDCOIN: "1000", XLM: "10" };
-  const treasury = { BANDCOIN: "100000", XLM: "1000" };
+  const funds = { ACTION: "1000", XLM: "10" };
+  const treasury = { ACTION: "100000", XLM: "1000" };
   const base = { ...rates, funds, treasury, networkFeeXlm: "0.00002" };
 
-  it("BANDCOIN to XLM: any amount, at today's price less the 2% cushion", () => {
-    // 100 BANDCOIN = $0.20 = 2 XLM; the cushion keeps 0.04 XLM
+  it("ACTION to XLM: any amount, at today's price less the 2% cushion", () => {
+    // 100 ACTION = $0.20 = 2 XLM; the cushion keeps 0.04 XLM
     const quote = quoteSwap({ ...base, direction: "TO_XLM", amount: "100" });
     expect(quote.ok).toBe(true);
-    expect(quote.pay).toEqual({ currency: "BANDCOIN", amount: "100.0000000" });
+    expect(quote.pay).toEqual({ currency: "ACTION", amount: "100.0000000" });
     expect(quote.receive).toEqual({ currency: "XLM", amount: "1.9600000" });
     expect(quote.lines.map((line) => [line.key, line.currency, line.amount])).toEqual([
-      ["pay", "BANDCOIN", "100"],
+      ["pay", "ACTION", "100"],
       ["market", "XLM", "2"],
       ["margin", "XLM", "0.04"],
       ["networkFee", "XLM", "0.00002"],
@@ -209,15 +214,15 @@ describe("quoteSwap", () => {
     ]);
   });
 
-  it("XLM to BANDCOIN: opens the BANDCOIN line when the wallet has none, and counts its reserve", () => {
+  it("XLM to ACTION: opens the ACTION line when the wallet has none, and counts its reserve", () => {
     const quote = quoteSwap({
       ...base,
-      direction: "TO_BANDCOIN",
+      direction: "TO_ACTION",
       amount: "2",
       openTrustline: true,
     });
     expect(quote.ok).toBe(true);
-    expect(quote.receive).toEqual({ currency: "BANDCOIN", amount: "98.0000000" });
+    expect(quote.receive).toEqual({ currency: "ACTION", amount: "98.0000000" });
     expect(quote.lines.map((line) => line.key)).toEqual([
       "pay",
       "market",
@@ -229,8 +234,8 @@ describe("quoteSwap", () => {
     // 2 XLM + 0.5 reserve + the fee is more than 2.4 XLM
     const short = quoteSwap({
       ...base,
-      funds: { BANDCOIN: "0", XLM: "2.4" },
-      direction: "TO_BANDCOIN",
+      funds: { ACTION: "0", XLM: "2.4" },
+      direction: "TO_ACTION",
       amount: "2",
       openTrustline: true,
     });
@@ -246,7 +251,7 @@ describe("quoteSwap", () => {
   it("rounds what the fan receives down, never up", () => {
     const quote = quoteSwap({
       ...base,
-      bandcoinUsd: toStroops("0.0030001"),
+      actionTokenUsd: toStroops("0.0030001"),
       direction: "TO_XLM",
       amount: "33.3333333",
     });
@@ -254,13 +259,13 @@ describe("quoteSwap", () => {
     expect(toStroops(quote.receive.amount)).toBeLessThan(market);
   });
 
-  it("says how much BANDCOIN is missing", () => {
+  it("says how much ACTION is missing", () => {
     const quote = quoteSwap({ ...base, direction: "TO_XLM", amount: "1200" });
     expect(quote.problems).toEqual([
       {
         code: "INSUFFICIENT_FUNDS",
-        message: "You need 200 more BANDCOIN.",
-        shortfall: { currency: "BANDCOIN", need: "1200", have: "1000", short: "200" },
+        message: "You need 200 more ACTION.",
+        shortfall: { currency: "ACTION", need: "1200", have: "1000", short: "200" },
       },
     ]);
   });
@@ -270,7 +275,7 @@ describe("quoteSwap", () => {
     expect(
       quoteSwap({
         ...base,
-        treasury: { BANDCOIN: "0", XLM: "1" },
+        treasury: { ACTION: "0", XLM: "1" },
         direction: "TO_XLM",
         amount: "100",
       }).problems,
@@ -286,7 +291,8 @@ describe("quoteSwap", () => {
       quoteSwap({ ...base, direction: "TO_XLM", amount: "0.0000001" }).problems[0]?.message,
     ).toBe("That's too little to swap.");
     expect(
-      quoteSwap({ ...base, bandcoinUsd: 0n, direction: "TO_XLM", amount: "100" }).problems[0]?.code,
+      quoteSwap({ ...base, actionTokenUsd: 0n, direction: "TO_XLM", amount: "100" }).problems[0]
+        ?.code,
     ).toBe("RATE_UNAVAILABLE");
     expect(
       quoteSwap({ ...base, funds: null, direction: "TO_XLM", amount: "100" }).problems,

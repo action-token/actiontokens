@@ -14,7 +14,7 @@ import { invalid } from "./items";
 
 /**
  * Bounties, the artist's side: write one, fund its prize into escrow, watch
- * fans join and submit, pick winners. Same rules as the old Bandcoin: the prize
+ * fans join and submit, pick winners. Same rules as the old Action Tokens: the prize
  * and who it is paid to can't change once funded; the text, instructions and
  * listening rules can. Funding and winner picks are in bounty-escrow.ts.
  */

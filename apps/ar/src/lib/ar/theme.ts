@@ -32,7 +32,7 @@ export type ThemePreference = "auto" | "light" | "dark" | "contrast";
 export type AppliedTheme = "light" | "dark" | "contrast";
 export type ResolvedTheme = "light" | "dark";
 
-export const THEME_STORAGE_KEY = "bandcoin-ar-theme";
+export const THEME_STORAGE_KEY = "actiontokens-ar-theme";
 
 /** The two `theme-color` values — see the matching hex in app/layout.tsx. */
 const THEME_COLOR: Record<AppliedTheme, string> = {
@@ -45,7 +45,7 @@ const THEME_COLOR: Record<AppliedTheme, string> = {
  * ── Map style: 2D / 3D, map type, terrain ─────────────────────────────────
  *
  * The styles, the stored choices and how a style URL is picked are shared with the artist portal
- * (`@actiontokens/map`); AR keeps its own saved choices under `bandcoin-ar-map-*`. Every map in the
+ * (`@actiontokens/map`); AR keeps its own saved choices under `actiontokens-ar-map-*`. Every map in the
  * app follows them, so flipping 2D/3D on the main map also applies to directions, a collected
  * card's mini-map and the embed.
  */
@@ -59,7 +59,7 @@ export {
 } from "@actiontokens/map/style";
 export { storedChoice } from "@actiontokens/map/prefs";
 
-const prefs = createMapPrefs("bandcoin-ar");
+const prefs = createMapPrefs("actiontokens-ar");
 
 export const MAP_MODE_STORAGE_KEY = prefs.keys.mode;
 export const useMapBase = prefs.useMapBase;
@@ -97,7 +97,7 @@ export function readStoredPreference(): ThemePreference {
 }
 
 /**
- * The theme is shared with the other Bandcoin sites through a cookie (`@actiontokens/ui/lib/shared-theme`),
+ * The theme is shared with the other Action Tokens sites through a cookie (`@actiontokens/ui/lib/shared-theme`),
  * whose word for "auto" is "system".
  */
 export const toShared = (pref: ThemePreference): SharedTheme =>
@@ -114,7 +114,6 @@ function writeStoredPreference(pref: ThemePreference) {
     // and not worth surfacing an error over.
   }
 }
-
 
 /**
  * "auto" resolved against the OS: "more contrast" wins, then a light system theme; otherwise dark.
@@ -217,7 +216,7 @@ export function useTheme() {
     applyTheme(next);
   }, []);
 
-  // A change picked up from another Bandcoin site (see `useSharedThemeSync`).
+  // A change picked up from another Action Tokens site (see `useSharedThemeSync`).
   useEffect(() => {
     const onChange = () => {
       const pref = readStoredPreference();
@@ -255,7 +254,7 @@ export function useTheme() {
 const themeListeners = new Set<() => void>();
 
 /**
- * Keeps the theme in step with the other Bandcoin sites (mounted once, in the shell layout). The
+ * Keeps the theme in step with the other Action Tokens sites (mounted once, in the shell layout). The
  * seed script already applied the shared cookie on load; this takes over afterwards: the stored
  * choice is written to the cookie once (an older device that only had it in localStorage), and
  * when the tab comes back into view a change made on another site is applied here.

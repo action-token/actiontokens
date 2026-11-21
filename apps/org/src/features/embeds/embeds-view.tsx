@@ -43,7 +43,7 @@ const messageOf = (error: unknown) =>
   error instanceof Error ? error.message : "Something went wrong.";
 
 /**
- * Website map: the Bandcoin pin map, set up here and pasted onto your own site
+ * Website map: the Action Tokens pin map, set up here and pasted onto your own site
  * with one snippet. The map is served by the AR app; changes saved here go live
  * without touching the website.
  */

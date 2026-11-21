@@ -20,7 +20,7 @@ import { failOrder, ownOrder, userSignature } from "../purchase";
 
 /**
  * Send: XLM or any classic token from the main wallet to a Stellar address or
- * a Bandcoin @username. The sender's wallet is the source and pays everything.
+ * an Action Tokens @username. The sender's wallet is the source and pays everything.
  *
  *   payment  the recipient holds the token (or it's XLM to an existing account)
  *   gift     they can't hold it yet: a claimable balance they accept later (the
@@ -40,7 +40,7 @@ const GIFT_RESERVE = toStroops("1");
 const ACCOUNT_MINIMUM = toStroops("1");
 const unavailable = (message: string): RechargeProblem => ({ code: "UNAVAILABLE", message });
 
-/** `@mira` or `G…`, as a wallet address and, when it's a Bandcoin user, who. */
+/** `@mira` or `G…`, as a wallet address and, when it's an Action Tokens user, who. */
 async function recipientOf(
   ctx: ServiceCtx,
   user: SessionUser,
@@ -61,7 +61,7 @@ async function recipientOf(
   }
   const username = text.replace(/^@/, "").toLowerCase();
   if (!text.startsWith("@") || !/^[a-z0-9_.-]{1,40}$/.test(username))
-    return { problem: unavailable("Enter a Stellar address (G…) or a Action Tokens @username.") };
+    return { problem: unavailable("Enter a Stellar address (G…) or an Action Tokens @username.") };
   const found = await ctx.db.user.findUnique({ where: { username }, select });
   if (!found) return { problem: unavailable(`There's no Action Tokens user called @${username}.`) };
   if (!found.walletAddress)

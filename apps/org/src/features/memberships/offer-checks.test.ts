@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { offerProblems } from "./offer-checks";
 
-const draft = { amount: "1000", priceBandcoin: "50", priceUsd: "5", priceXlm: "20", note: "" };
+const draft = { amount: "1000", priceActionToken: "50", priceUsd: "5", priceXlm: "20", note: "" };
 
 describe("page asset offer checks", () => {
   it("is ready with an amount storage can cover and three prices", () => {

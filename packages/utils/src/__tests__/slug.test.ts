@@ -33,6 +33,6 @@ describe("validateSlug", () => {
 
   it("keeps names that look like the platform for the platform", () => {
     expect(validateSlug("admin")).toBe("That address is reserved");
-    expect(validateSlug("bandcoin")).toBe("That address is reserved");
+    expect(validateSlug("actiontokens")).toBe("That address is reserved");
   });
 });

@@ -18,9 +18,9 @@ import { alreadyFinished, finishOrder } from "./finish";
  *
  * Contract NFT purchases are settled by the contract's receipt for the order
  * (its purchase ref) first: whatever happened to the answer, a receipt means
- * the copies were minted. A card order whose BANDCOIN went in (step 1 landed)
+ * the copies were minted. A card order whose ACTION went in (step 1 landed)
  * but has no receipt by the lost time failed in step 2: the buyer keeps the
- * BANDCOIN, so the card isn't refunded.
+ * ACTION, so the card isn't refunded.
  */
 type ReconcileCtx = Pick<Context, "db" | "chain" | "activity">;
 

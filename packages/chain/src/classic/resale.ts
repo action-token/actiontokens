@@ -7,7 +7,7 @@ import { finish, type NetworkParams, startTransaction } from "../transaction";
 
 /**
  * Resale of classic copies. A holder moves the copies they want to sell into
- * their own resale storage (an account Bandcoin holds the key for), so a sale
+ * their own resale storage (an account Action Tokens holds the key for), so a sale
  * can pay out of it without the seller signing each time. The seller's wallet
  * is the source and pays the network fee; storage co-signs the one trustline
  * it opens for the token.
@@ -28,7 +28,7 @@ export function buildResaleList(input: {
   openStorage: boolean;
   /** Storage doesn't trust this token yet */
   openTrustline: boolean;
-  /** The seller's wallet can't receive this payout asset yet (BANDCOIN): its line opens too */
+  /** The seller's wallet can't receive this payout asset yet (ACTION): its line opens too */
   openPayoutLine?: AssetRef;
 }) {
   if (!(Number(input.amount) > 0)) throw new RangeError("List at least one copy");

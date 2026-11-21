@@ -40,7 +40,7 @@ import { loadSale } from "./sale";
  * Money first, account second: every failure before the account opens
  * refunds the whole charge. Once this order opened the account, a failed
  * purchase refunds the item part only; the opening XLM is in their account.
- * Contract NFTs keep their own rule: once the BANDCOIN went in, a failed
+ * Contract NFTs keep their own rule: once the ACTION went in, a failed
  * buy leaves it with the buyer. Nothing is retried.
  */
 type ServiceCtx = Pick<Context, "db" | "chain" | "activity" | "ip">;
@@ -126,7 +126,7 @@ async function priceGuest(ctx: ServiceCtx, input: GuestInput) {
             key: "account" as const,
             label: "Opening your account",
             detail: `${toDisplay(toStroops(opening.startingBalance))} XLM, first time only`,
-            hint: "Opens the Bandcoin account for your email on Stellar. The XLM stays yours.",
+            hint: "Opens the Action Tokens account for your email on Stellar. The XLM stays yours.",
             amount: toAmount(opening.usd),
             currency: "USD" as const,
           },
@@ -206,8 +206,8 @@ export async function startGuestPurchase(ctx: ServiceCtx, input: GuestInput) {
         ...("price" in priced
           ? {
               nft: {
-                bandcoin: toAmount(priced.price.bandcoin),
-                feeBandcoin: toAmount(priced.feeBandcoin),
+                actionToken: toAmount(priced.price.actionToken),
+                feeActionToken: toAmount(priced.feeActionToken),
                 openTrustline: priced.openTrustline,
                 reserveXlm: toAmount(priced.reserveXlm),
               },

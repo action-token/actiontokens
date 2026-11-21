@@ -4,7 +4,7 @@
  * not as a substring, so "canal" is fine.
  */
 export const BANNED_NAMES: readonly string[] = [
-  "bandcoin",
+  "actiontokens",
   "www",
   "xlm",
   "stellar",

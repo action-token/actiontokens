@@ -3,7 +3,7 @@ import { validatePrice } from "@actiontokens/utils/asset-code";
 /** A page-asset offer as the form edits it. */
 export type OfferDraft = {
   amount: string;
-  priceBandcoin: string;
+  priceActionToken: string;
   priceUsd: string;
   priceXlm: string;
   note: string;
@@ -23,7 +23,7 @@ export function offerProblems(draft: OfferDraft, free: string | null) {
     problems.amount = "Enter how many tokens, above zero.";
   else if (amount && free !== null && Number(amount) > Number(free))
     problems.amount = `Storage can offer ${Number(free).toLocaleString("en-US")} more.`;
-  for (const key of ["priceBandcoin", "priceUsd", "priceXlm"] as const) {
+  for (const key of ["priceActionToken", "priceUsd", "priceXlm"] as const) {
     if (draft[key].trim()) {
       const problem = validatePrice(draft[key].trim());
       if (problem) problems[key] = problem;
@@ -31,6 +31,9 @@ export function offerProblems(draft: OfferDraft, free: string | null) {
   }
   if (draft.note.trim().length > 500) problems.note = "Keep it to 500 characters.";
   const filled =
-    amount !== "" && draft.priceBandcoin !== "" && draft.priceUsd !== "" && draft.priceXlm !== "";
+    amount !== "" &&
+    draft.priceActionToken !== "" &&
+    draft.priceUsd !== "" &&
+    draft.priceXlm !== "";
   return { problems, ready: filled && Object.keys(problems).length === 0 };
 }

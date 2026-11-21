@@ -27,13 +27,13 @@ const keyOf = (token: { code: string; issuer: string | null }) =>
 const AMOUNT = /^\d{0,12}(\.\d{0,7})?$/;
 const short = (address: string) => `${address.slice(0, 5)}…${address.slice(-5)}`;
 
-/** An amount of the token being sent: XLM, BANDCOIN and USDC with their icon, others with their code. */
+/** An amount of the token being sent: XLM, ACTION and USDC with their icon, others with their code. */
 function Amount({ amount, token }: { amount: string; token: Token }) {
   return <Money amount={amount} currency={CURRENCY[token.kind]} code={token.code} />;
 }
 
 /**
- * Send XLM or any token in the wallet to a Stellar address or a Bandcoin
+ * Send XLM or any token in the wallet to a Stellar address or an Action Tokens
  * @username. The server's quote names the recipient and shows everything that
  * leaves the wallet before anything is signed; a token they can't hold yet
  * goes as a gift they accept.
@@ -101,7 +101,7 @@ export function SendDialog({
         <DialogHeader>
           <DialogTitle className="display text-3xl">Send</DialogTitle>
           <DialogDescription>
-            Send XLM or any token in your wallet to a Stellar address or a Action Tokens @username.
+            Send XLM or any token in your wallet to a Stellar address or an Action Tokens @username.
           </DialogDescription>
         </DialogHeader>
 

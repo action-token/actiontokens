@@ -10,7 +10,7 @@ the button to take a waiting gift back.
 It had no take-back. A waiting gift was a claimable balance with the fan as its only claimant
 (`lib/stellar/fan/send_gift.ts`, `lib/stellar/walletBalance/acc.ts`), so it could never come back.
 
-## Bandcoin today
+## Action Tokens today
 
 A waiting gift has two claimants, the receiver and the sender, so either can claim it at any time
 (`packages/chain/src/classic/transfer.ts`). There is no button for the sender. Plan 15 lists it as

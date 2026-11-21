@@ -26,7 +26,7 @@ import type { ChainGateway } from "../services/chain-gateway";
 
 const wallet = Keypair.random();
 const treasury = Keypair.random().publicKey();
-const bandcoinIssuer = Keypair.random().publicKey();
+const actionTokenIssuer = Keypair.random().publicKey();
 const network = { passphrase: Networks.TESTNET, baseFee: "100" };
 const ORDER = "cmvorder0000000000000009";
 const artist = { id: "a1" };
@@ -47,7 +47,7 @@ function setup(
     trialUsed?: boolean;
     prices?: boolean;
     feeBps?: number;
-    bandcoin?: string;
+    actionToken?: string;
     submit?: () => Promise<{ hash: string }>;
   } = {},
 ) {
@@ -63,9 +63,9 @@ function setup(
     opts.prices === false
       ? null
       : {
-          vanityMonthlyBandcoin: "50",
+          vanityMonthlyActionToken: "50",
           vanityMonthlyUsd: "1",
-          vanityNameChangeBandcoin: "200",
+          vanityNameChangeActionToken: "200",
           vanityNameChangeUsd: "4",
           platformFeeBps: opts.feeBps ?? 0,
         };
@@ -137,9 +137,9 @@ function setup(
       { asset_type: "native", balance: "10", selling_liabilities: "0" },
       {
         asset_type: "credit_alphanum12",
-        asset_code: "BANDCOIN",
-        asset_issuer: bandcoinIssuer,
-        balance: opts.bandcoin ?? "500",
+        asset_code: "ACTION",
+        asset_issuer: actionTokenIssuer,
+        balance: opts.actionToken ?? "500",
         selling_liabilities: "0",
       },
     ],
@@ -149,7 +149,7 @@ function setup(
       name: "testnet",
       network,
       assets: {
-        bandcoin: { code: "BANDCOIN", issuer: bandcoinIssuer },
+        actionToken: { code: "ACTION", issuer: actionTokenIssuer },
         usdc: { code: "USDC", issuer: Keypair.random().publicKey() },
       },
       treasury,
@@ -175,7 +175,7 @@ function setup(
   };
 }
 
-const renew: VanityPayInput = { purpose: "RENEWAL", currency: "BANDCOIN" };
+const renew: VanityPayInput = { purpose: "RENEWAL", currency: "ACTION" };
 
 describe("checkVanityName", () => {
   it("accepts a free, well formed name", async () => {
@@ -194,7 +194,11 @@ describe("checkVanityName", () => {
       reason: "That name is taken",
     });
     expect(
-      await checkVanityName(setup({ links: [{ ...live, organizationId: "a1" }] }).ctx, artist, "luna"),
+      await checkVanityName(
+        setup({ links: [{ ...live, organizationId: "a1" }] }).ctx,
+        artist,
+        "luna",
+      ),
     ).toMatchObject({ ok: true });
     const stale = { ...live, paidUntil: days(-60) };
     expect(await checkVanityName(setup({ links: [stale] }).ctx, artist, "luna")).toMatchObject({
@@ -246,7 +250,7 @@ describe("getVanity", () => {
     const overview = await getVanity(setup({ links: [link] }).ctx, artist);
     expect(overview.link).toMatchObject({ name: "luna", status: "GRACE", works: true });
     expect(overview.canClaimFree).toBe(false);
-    expect(overview.prices.monthly).toEqual({ bandcoin: "50", usd: "1" });
+    expect(overview.prices.monthly).toEqual({ actionToken: "50", usd: "1" });
   });
 
   it("offers the free month to someone who never had one", async () => {
@@ -258,7 +262,7 @@ describe("getVanity", () => {
 describe("quoteVanity", () => {
   const link = { organizationId: "a1", name: "luna", status: "ACTIVE", paidUntil: days(10) };
 
-  it("prices a month in BANDCOIN with the platform fee and the network fee on top", async () => {
+  it("prices a month in ACTION with the platform fee and the network fee on top", async () => {
     const quote = await quoteVanity(setup({ links: [link] }).ctx, me, artist, renew);
     expect(quote.ok).toBe(true);
     expect(quote.lines.map((line) => line.key)).toEqual(["price", "platformFee", "networkFee"]);
@@ -276,7 +280,7 @@ describe("quoteVanity", () => {
 
   it("says how short the balance is", async () => {
     const quote = await quoteVanity(
-      setup({ links: [link], bandcoin: "20" }).ctx,
+      setup({ links: [link], actionToken: "20" }).ctx,
       me,
       artist,
       renew,
@@ -345,7 +349,7 @@ describe("pay for the link", () => {
     expect(orders.get(ORDER)).toMatchObject({
       kind: "VANITY",
       status: "AWAITING_SIGNATURE",
-      currency: "BANDCOIN",
+      currency: "ACTION",
       total: "50.0000000",
       platformFee: "0.0000000",
       txHash: Buffer.from(tx.hash()).toString("hex"),
@@ -354,7 +358,7 @@ describe("pay for the link", () => {
   });
 
   it("refuses to start when the price can't be paid", async () => {
-    await expect(started({ bandcoin: "1" })).rejects.toThrow(/short/);
+    await expect(started({ actionToken: "1" })).rejects.toThrow(/short/);
   });
 
   it("a paid renewal adds a month to the time left and logs the payment", async () => {

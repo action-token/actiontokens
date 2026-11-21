@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { browseSongs, songWhere } from "../services/catalog/song-browse";
 
 const now = new Date("2026-11-15T12:00:00Z");
-const price = (value: number) => ({ priceBandcoin: { toNumber: () => value } });
+const price = (value: number) => ({ priceActionToken: { toNumber: () => value } });
 
 /** A song as the ranking query sees it. */
 const candidate = (id: string, over: object = {}) => ({
@@ -73,7 +73,7 @@ describe("song filters", () => {
   it("a price range means for sale within it", () => {
     const where = songWhere(null, { show: "all", minPrice: 5000, maxPrice: 20000 });
     expect(where?.AND).toContainEqual({
-      listings: { some: { status: "ACTIVE", priceBandcoin: { gte: 5000, lte: 20000 } } },
+      listings: { some: { status: "ACTIVE", priceActionToken: { gte: 5000, lte: 20000 } } },
     });
   });
 

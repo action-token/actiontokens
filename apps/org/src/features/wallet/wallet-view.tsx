@@ -63,9 +63,9 @@ type Assets = RouterOutputs["wallet"]["assets"];
 type Token = Assets["tokens"][number];
 type Open = { kind: "send"; token?: Token } | { kind: "swap" } | { kind: "receive" } | null;
 
-const MAIN = ["BANDCOIN", "XLM", "USDC"] as const;
+const MAIN = ["ACTION", "XLM", "USDC"] as const;
 
-type Kind = "xlm" | "bandcoin" | "usdc" | "fanToken" | "other";
+type Kind = "xlm" | "actionToken" | "usdc" | "fanToken" | "other";
 type Holding = {
   code: string;
   issuer: string | null;
@@ -90,8 +90,8 @@ const keyOf = (holding: Holding) => `${holding.code}:${holding.issuer ?? ""}`;
 
 /** `short`: 2 decimals, and millions and up as "25B", for the sidebar card. */
 function HoldingAmount({ holding, short }: { holding: Holding; short?: boolean }) {
-  if (holding.kind === "bandcoin")
-    return <Money amount={holding.amount} currency="BANDCOIN" short={short} />;
+  if (holding.kind === "actionToken")
+    return <Money amount={holding.amount} currency="ACTION" short={short} />;
   if (holding.kind === "usdc")
     return <Money amount={holding.amount} currency="USDC" short={short} />;
   if (holding.issuer === null)
@@ -231,7 +231,7 @@ function Hero({ me, actions }: { me: Me; actions: WalletAction[] }) {
       balance={
         me.activated ? (
           <TallText className="pb-[0.12em] text-7xl tabular-nums sm:text-8xl">
-            {formatAmount(me.balances.BANDCOIN, "BANDCOIN", { short: true })}{" "}
+            {formatAmount(me.balances.ACTION, "ACTION", { short: true })}{" "}
             <span className="text-[0.45em]">{TOKEN_NAME}</span>
           </TallText>
         ) : (
@@ -500,7 +500,7 @@ export function WalletSidebarCard({ rail = false }: { rail?: boolean }) {
       main={
         balances
           ? {
-              amount: <Money amount={balances.BANDCOIN} currency="BANDCOIN" short />,
+              amount: <Money amount={balances.ACTION} currency="ACTION" short />,
               code: TOKEN_NAME,
             }
           : null

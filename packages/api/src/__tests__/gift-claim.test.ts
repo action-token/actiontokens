@@ -52,7 +52,11 @@ function setup(opts: { trusts?: boolean; xlm?: string; declined?: { balanceId: s
         {
           code: "LUNA",
           issuer,
-          item: { id: "fan-item", title: "Luna fan token", organization: { name: "Luna", slug: "luna" } },
+          item: {
+            id: "fan-item",
+            title: "Luna fan token",
+            organization: { name: "Luna", slug: "luna" },
+          },
         },
       ]),
       findUnique: vi.fn().mockResolvedValue({ itemId: "fan-item" }),
@@ -73,7 +77,7 @@ function setup(opts: { trusts?: boolean; xlm?: string; declined?: { balanceId: s
     config: {
       network,
       assets: {
-        bandcoin: { code: "BANDCOIN", issuer: Keypair.random().publicKey() },
+        actionToken: { code: "ACTION", issuer: Keypair.random().publicKey() },
         usdc: { code: "USDC", issuer: Keypair.random().publicKey() },
       },
     },

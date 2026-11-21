@@ -62,7 +62,9 @@ function setup(
       findMany: vi.fn().mockResolvedValue(opts.tiers ?? []),
       findFirst: vi
         .fn()
-        .mockResolvedValue(opts.tier === undefined ? { id: "t1", organizationId: "a1" } : opts.tier),
+        .mockResolvedValue(
+          opts.tier === undefined ? { id: "t1", organizationId: "a1" } : opts.tier,
+        ),
       create: vi.fn(({ data }: { data: Row }) => Promise.resolve({ id: "t1", ...data })),
       update: vi.fn().mockResolvedValue({}),
       delete: vi.fn().mockResolvedValue({}),
@@ -126,7 +128,7 @@ describe("createFanToken", () => {
     await expect(
       createFanToken(setup().ctx, artist, user, {
         mode: "CUSTOM",
-        code: "BANDCOIN",
+        code: "ACTION",
         coverUrl: cover,
       }),
     ).rejects.toMatchObject({ message: "That code is reserved" });

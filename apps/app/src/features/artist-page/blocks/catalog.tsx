@@ -15,7 +15,7 @@ import { collectiblesOf, type ArtistPageData } from "../artist-page-data";
 
 import { BlockSection, CARD_GRID, EmptyLine, countSetting, fill, textSetting } from "./shared";
 
-/** The blocks that show what the artist already has on Bandcoin: songs, albums, collectibles, tiers and events. */
+/** The blocks that show what the artist already has on Action Tokens: songs, albums, collectibles, tiers and events. */
 
 type DataBlock = { block: Block; artist: ArtistPageData; empty: boolean };
 

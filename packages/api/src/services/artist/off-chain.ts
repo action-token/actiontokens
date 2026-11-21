@@ -14,8 +14,8 @@ import {
 } from "./items";
 
 /**
- * Non Stellar items, as on the old Bandcoin: no asset code and nothing on
- * Stellar. Fans buy them with a plain payment to the artist (BANDCOIN, XLM,
+ * Non Stellar items, as on the old Action Tokens: no asset code and nothing on
+ * Stellar. Fans buy them with a plain payment to the artist (ACTION, XLM,
  * USDC or card, through the usual order flow) and ownership lives in the
  * database; the stock is the supply limit minus the copies sold. Free to
  * create, and no artist account is needed. They can't be resold.
@@ -31,7 +31,7 @@ export type CreateOffChainInput = {
   media?: { url: string; mediaType: "AUDIO" | "VIDEO" | "IMAGE" | "MODEL_3D" | "DOCUMENT" };
   /** How many can be sold, as main's supply limit */
   supply: number;
-  priceBandcoin: string;
+  priceActionToken: string;
   priceUsd: string;
   visibility: "DRAFT" | "PUBLIC";
   access?: ItemAccessInput;
@@ -73,7 +73,7 @@ export async function createOffChainItem(
           sellerId: user.id,
           kind: "PRIMARY",
           status: input.visibility === "PUBLIC" ? "ACTIVE" : "PAUSED",
-          priceBandcoin: input.priceBandcoin,
+          priceActionToken: input.priceActionToken,
           priceUsd: input.priceUsd,
         },
       },

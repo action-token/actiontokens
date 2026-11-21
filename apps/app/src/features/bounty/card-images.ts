@@ -2,7 +2,7 @@ const MAX_MUSIC_IMAGES = 3;
 
 /**
  * What goes behind a bounty card: up to 3 music covers side by side when it has
- * them (as on the old Bandcoin), otherwise the creator's image.
+ * them (as on the old Action Tokens), otherwise the creator's image.
  */
 export function cardImages(bounty: {
   musicArt: { albumArtUrl: string | null }[];

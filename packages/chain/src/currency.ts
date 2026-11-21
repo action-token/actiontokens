@@ -1,18 +1,18 @@
 import { Asset } from "@stellar/stellar-sdk";
 
 /** Mirrors the `Currency` enum in @actiontokens/db. USD means a card payment. */
-export const CURRENCIES = ["BANDCOIN", "XLM", "USDC", "USD"] as const;
+export const CURRENCIES = ["ACTION", "XLM", "USDC", "USD"] as const;
 export type Currency = (typeof CURRENCIES)[number];
 export type OnChainCurrency = Exclude<Currency, "USD">;
 
 export type AssetRef = { code: string; issuer: string };
 
 /** The two credit assets payments use; XLM is native. */
-export type PaymentAssets = { bandcoin: AssetRef; usdc: AssetRef };
+export type PaymentAssets = { actionToken: AssetRef; usdc: AssetRef };
 
 export function assetFor(currency: OnChainCurrency, assets: PaymentAssets): Asset {
   if (currency === "XLM") return Asset.native();
-  const { code, issuer } = currency === "BANDCOIN" ? assets.bandcoin : assets.usdc;
+  const { code, issuer } = currency === "ACTION" ? assets.actionToken : assets.usdc;
   return new Asset(code, issuer);
 }
 
@@ -21,12 +21,7 @@ export function assetFor(currency: OnChainCurrency, assets: PaymentAssets): Asse
  * The rule: all four wherever the chain allows it.
  */
 export type PaymentKind =
-  | "ITEM_PURCHASE"
-  | "FAN_TOKEN"
-  | "GIFT"
-  | "VANITY"
-  | "BOUNTY_FUND"
-  | "ROYALTY_PAYOUT";
+  "ITEM_PURCHASE" | "FAN_TOKEN" | "GIFT" | "VANITY" | "BOUNTY_FUND" | "ROYALTY_PAYOUT";
 
 /**
  * Currencies offered for a payment. A bounty's escrow holds one asset and a

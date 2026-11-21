@@ -29,4 +29,4 @@ export {
   accountServiceResponseSchema,
   type AccountServiceResponse,
 } from "./providers/custodial/account-service-schema";
-export type { BandcoinSessionUser } from "./session/session-user";
+export type { ActionTokenSessionUser } from "./session/session-user";

@@ -1,17 +1,17 @@
 /**
- * ── Bandcoin AR: arcade design layer ───────────────────────────────────────
+ * ── Action Tokens AR: arcade design layer ───────────────────────────────────────
  *
  * Wadzzo AR's collector HUD (bevelled card stock, trading-card holo foil,
- * scanlines, a terrain grid) re-tinted to Bandcoin: green #0aff54 on
- * olive-dark ground, with olive-biased neutrals. Loaded after the Bandcoin
+ * scanlines, a terrain grid) re-tinted to Action Tokens: green #0aff54 on
+ * olive-dark ground, with olive-biased neutrals. Loaded after the Action Tokens
  * theme, so these win on equal specificity.
  *
  * `:root` is the light palette and `.dark` the dark one. The boot script in
  * app/layout.tsx and `useTheme` (lib/ar/theme.ts) toggle `.dark` together
- * with `data-theme`, which the shared Bandcoin components (the wallet
+ * with `data-theme`, which the shared Action Tokens components (the wallet
  * dialog) read.
  *
- * In light mode the accent is deep olive (as Bandcoin's light accent text
+ * In light mode the accent is deep olive (as Action Tokens' light accent text
  * is), because chartreuse on white can't carry text or thin borders.
  */
 

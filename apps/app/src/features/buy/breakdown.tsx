@@ -15,7 +15,7 @@ export function Breakdown({
   balances,
 }: {
   quote: Quote;
-  balances?: Record<"BANDCOIN" | "XLM" | "USDC", string>;
+  balances?: Record<"ACTION" | "XLM" | "USDC", string>;
 }) {
   const shortfalls = quote.problems.flatMap((problem) =>
     problem.code === "INSUFFICIENT_FUNDS" ? [problem.shortfall] : [],

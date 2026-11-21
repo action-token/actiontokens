@@ -1,5 +1,5 @@
 /** Currencies the platform itself issues or accepts; an artist's item can't take their names. */
-const RESERVED = new Set(["BANDCOIN", "XLM", "USDC", "USD"]);
+const RESERVED = new Set(["ACTION", "XLM", "USDC", "USD"]);
 
 /** A code suggestion from a title or name: letters and numbers only, up to 12. */
 export const assetCodeFrom = (text: string) =>

@@ -43,7 +43,7 @@ export const viewport: Viewport = {
 const themeBootScript = `
 (function () {
   try {
-    var key = "bandcoin-ar-theme";
+    var key = "actiontokens-ar-theme";
     var pref = null;
     try { pref = localStorage.getItem(key); } catch (e) {}
     if (["auto", "light", "dark", "contrast"].indexOf(pref) < 0) pref = "dark";

@@ -84,7 +84,7 @@ export function SentWaiting() {
   );
 }
 
-/** The Bandcoin user, or the start and end of the address. */
+/** The Action Tokens user, or the start and end of the address. */
 function receiverOf(send: WaitingSend) {
   if (send.to.username) return `@${send.to.username}`;
   return send.to.address

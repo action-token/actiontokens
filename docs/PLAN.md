@@ -3,7 +3,7 @@
 > **Status:** plan approved for drafting on 2026-11-19. Phase 0 has not started; this file is the only thing in the repo.
 > **Owner decisions** are in §2 and the **decision log** in §20. **Progress** is tracked in §19.
 > **New session?** Start at §0.
-> **Strategy change (2026-11-20):** ActionTokens will be a **fork of the Bandcoin monorepo** plus the
+> **Strategy change (2026-11-20):** ActionTokens will be a **fork of the Action Tokens monorepo** plus the
 > Actionverse-only features, not a from-scratch build. Read **[FORK-PLAN.md](FORK-PLAN.md)** first; it overrides
 > this file's schema, API, migration and phase sections. Data safety, design system, homepage and cutover here still apply.
 
@@ -48,7 +48,7 @@ A new session continuing this work should:
 4. Look at the reference repos only for what the checklist points to:
    - `/Volumes/Data/Projects/actionverse`: legacy main app (feature source of truth).
    - `/Volumes/Data/Projects/gallery-actiontokens`: legacy 3D museum (fork of actionverse).
-   - `/Volumes/Data/Projects/bandcoin`: **engineering** reference only (monorepo setup, package boundaries, migration script pattern, worker pattern). Not a UI reference (§11).
+   - `/Volumes/Data/Projects/actiontokens`: **engineering** reference only (monorepo setup, package boundaries, migration script pattern, worker pattern). Not a UI reference (§11).
 5. Never write to a legacy database (§4). Never edit the legacy repos.
 6. When a task is done, tick it in §17, update §19, and add any new decision to §20. Commit with a clear message.
 7. Ask the owner before anything in §20 "Open questions" that blocks the current task.
@@ -56,7 +56,7 @@ A new session continuing this work should:
 ### Hard rules (non-negotiable)
 
 - **Production data is never erased or altered.** The legacy databases are read-only sources (§4.3).
-- **ActionTokens has its own UI and UX.** Do not copy bandcoin screens, shell or components (§11).
+- **ActionTokens has its own UI and UX.** Do not copy actiontokens screens, shell or components (§11).
 - Secrets never go in git. Only `*.example` env files are committed.
 - No file over 1000 lines. No `throw new Error` (use `AppError`). All transactions are built in `packages/chain`.
 
@@ -68,13 +68,13 @@ A Stellar-based platform where **organizations** (brands, causes, artists, venue
 
 It replaces three legacy codebases with one monorepo of five apps:
 
-| App       | Domain                      | For                                                     |
-| --------- | --------------------------- | ------------------------------------------------------- |
+| App       | Domain                      | For                                                                           |
+| --------- | --------------------------- | ----------------------------------------------------------------------------- |
 | `web`     | `app.action-tokens.com`     | Everyone: homepage, marketplace, bounties, communities, organizations, wallet |
-| `org`     | `org.action-tokens.com`     | Organizations: their command center, plus `/admin` for platform admins |
-| `ar`      | `ar.action-tokens.com`      | The real-world layer: map, pins, AR collect, QR, action-cam |
-| `gallery` | `gallery.action-tokens.com` | 3D walkable museum per organization                     |
-| `worker`  | internal                    | Background jobs                                         |
+| `org`     | `org.action-tokens.com`     | Organizations: their command center, plus `/admin` for platform admins        |
+| `ar`      | `ar.action-tokens.com`      | The real-world layer: map, pins, AR collect, QR, action-cam                   |
+| `gallery` | `gallery.action-tokens.com` | 3D walkable museum per organization                                           |
+| `worker`  | internal                    | Background jobs                                                               |
 
 Bare `action-tokens.com` 301-redirects to `app.action-tokens.com`.
 
@@ -84,19 +84,19 @@ Bare `action-tokens.com` 301-redirects to `app.action-tokens.com`.
 
 All decided by the owner on 2026-11-19.
 
-| Topic        | Decision |
-| ------------ | -------- |
-| Repo         | New repo at `/Volumes/Data/Projects/actiontokens`, fresh git history. Legacy repos untouched. |
-| Structure    | Turborepo + pnpm workspaces with a version catalog, like bandcoin. |
-| Organization | "Creator" is renamed **Organization** everywhere: code, DB, URLs, copy. |
-| Data         | **Migrate all data** into a new, renamed schema. Production data is never erased (§4). |
+| Topic        | Decision                                                                                                                                                                                             |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Repo         | New repo at `/Volumes/Data/Projects/actiontokens`, fresh git history. Legacy repos untouched.                                                                                                        |
+| Structure    | Turborepo + pnpm workspaces with a version catalog, like actiontokens.                                                                                                                               |
+| Organization | "Creator" is renamed **Organization** everywhere: code, DB, URLs, copy.                                                                                                                              |
+| Data         | **Migrate all data** into a new, renamed schema. Production data is never erased (§4).                                                                                                               |
 | Env          | **Reuse actionverse's env values** for development and production for now. The owner replaces them later. The only exception is the database URL, where the new schema gets its own database (§4.2). |
-| Dropped      | Christmas/seasonal assets, Beam (cards, reactions, comments, AR beam gallery), `/api/game`. |
-| Kept         | Everything else, including music, Last.fm music bounties, Telegram, reward checker, action-cam, vibe-studio AI, agent, Square payments. |
-| Gallery      | Its own app (`apps/gallery`); 3D engine in `packages/gallery-core`. |
-| Look         | Neon-green phonk (§12). |
-| UI/UX        | Unique to ActionTokens (§11). Bandcoin is the engineering reference only. |
-| Domains      | `app.` / `org.` / `ar.` / `gallery.` `.action-tokens.com`. Auth cookie on `.action-tokens.com`. |
+| Dropped      | Christmas/seasonal assets, Beam (cards, reactions, comments, AR beam gallery), `/api/game`.                                                                                                          |
+| Kept         | Everything else, including music, Last.fm music bounties, Telegram, reward checker, action-cam, vibe-studio AI, agent, Square payments.                                                              |
+| Gallery      | Its own app (`apps/gallery`); 3D engine in `packages/gallery-core`.                                                                                                                                  |
+| Look         | Neon-green phonk (§12).                                                                                                                                                                              |
+| UI/UX        | Unique to ActionTokens (§11). Action Tokens is the engineering reference only.                                                                                                                       |
+| Domains      | `app.` / `org.` / `ar.` / `gallery.` `.action-tokens.com`. Auth cookie on `.action-tokens.com`.                                                                                                      |
 
 ---
 
@@ -122,9 +122,10 @@ All decided by the owner on 2026-11-19.
   - `src/pages/settings.tsx` (1934 lines): the gallery editor.
   - Models: `CreatorGallery`, `GallerySlotOverride`, `GallerySlotLike`, `MuseumRoom`.
 
-### 3.3 `bandcoin` (`/Volumes/Data/Projects/bandcoin`): engineering reference
+### 3.3 `actiontokens` (`/Volumes/Data/Projects/actiontokens`): engineering reference
 
 Use these files as **patterns**, never as UI:
+
 - Root: `package.json`, `pnpm-workspace.yaml` (catalog), `turbo.json`, `tooling/*`.
 - `packages/db` (multi-file Prisma schema, `prisma.config.ts`, `scripts/migrate-legacy/`).
 - `packages/api` (context, procedures, activity log, services, one root router per app).
@@ -148,9 +149,9 @@ Use these files as **patterns**, never as UI:
 
 The new schema renames and restructures tables, so it **cannot** run on the legacy database without altering production data. So:
 
-| Variable              | Development                                         | Production                                                  |
-| --------------------- | --------------------------------------------------- | ----------------------------------------------------------- |
-| `LEGACY_DATABASE_URL` | actionverse dev DB (Neon, `neondb`), **read-only**   | actionverse prod DB (`actiontokens` on the existing Postgres host), **read-only** |
+| Variable              | Development                                                     | Production                                                                                          |
+| --------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `LEGACY_DATABASE_URL` | actionverse dev DB (Neon, `neondb`), **read-only**              | actionverse prod DB (`actiontokens` on the existing Postgres host), **read-only**                   |
 | `DATABASE_URL`        | a **new** database `action_tokens_dev` in the same Neon project | a **new** database `action_tokens` on the same Postgres host (or a new Neon project; owner chooses) |
 
 Creating the new production database needs the owner's go-ahead (open question Q2).
@@ -176,7 +177,7 @@ Pointing the new apps at the legacy tables through Prisma `@@map` (a "compatibil
 
 ## 5. Stack
 
-From one pnpm `catalog:` (start from bandcoin's catalog versions, then prune):
+From one pnpm `catalog:` (start from actiontokens's catalog versions, then prune):
 
 - Next 16 App Router, React 19, TypeScript strict, Tailwind 4, tRPC 11 + TanStack Query 5, Prisma 7 with `@prisma/adapter-pg`, NextAuth 4, Zod 4, Stellar SDK 17, Vitest, Playwright, Turborepo, pnpm 12, Node ≥ 20.19.
 - 3D and motion: three, `@react-three/fiber` 9, `@react-three/drei` 10, `@react-three/postprocessing`, `gsap` (ScrollTrigger), `lenis`, `framer-motion`.
@@ -249,23 +250,23 @@ A `page.tsx` only loads data and composes features. Public pages (item, organiza
 
 ## 7. Domain language
 
-| Legacy                                              | Code / DB name            | UI copy (§11.2) |
-| --------------------------------------------------- | ------------------------- | --------------- |
-| Creator                                             | `Organization`            | Organization / "Org" |
-| CreatorPageAsset, `customPageAssetCodeIssuer`       | `OrgToken`                | Action token ($CODE) |
-| Subscription                                        | `MembershipTier`          | Pass |
-| Asset, Nft, SellPageAsset, non-stellar item         | `Item` (`chainType: CLASSIC_TOKEN \| CONTRACT_NFT \| OFF_CHAIN`) | Drop |
-| MarketAsset, NftListing                             | `Listing` (`kind: PRIMARY \| RESALE`) | Listing |
-| User_Asset, User_Song, NftToken.owner               | `Ownership`               | Stash |
-| NftPurchase                                         | `Order`                   | Order |
-| Location / LocationGroup / LocationConsumer         | `Pin` / `PinDrop` / `PinClaim` | Pin / Drop zone / Claim |
-| Redeem / RedeemConsumer                             | `RedeemCode` / `RedeemClaim` | Code |
-| OriginReward / QuarterReward (+ blocked users)      | `RewardPeriod` / `RewardPayout` / `RewardBlockedUser` | Rewards |
-| Community                                           | `Community`               | Crew |
-| Bounty                                              | `Bounty`                  | Bounty ("WANTED") |
-| CreatorGallery / MuseumRoom / GallerySlotOverride / GallerySlotLike | `Gallery` / `GalleryRoom` / `GalleryArtwork` / `GalleryArtworkLike` | Gallery / Room / Piece |
-| Admin table                                         | `User.role = ADMIN`       | Admin |
-| User profile                                        | `User`                    | Rep card |
+| Legacy                                                              | Code / DB name                                                      | UI copy (§11.2)         |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------- | ----------------------- |
+| Creator                                                             | `Organization`                                                      | Organization / "Org"    |
+| CreatorPageAsset, `customPageAssetCodeIssuer`                       | `OrgToken`                                                          | Action token ($CODE)    |
+| Subscription                                                        | `MembershipTier`                                                    | Pass                    |
+| Asset, Nft, SellPageAsset, non-stellar item                         | `Item` (`chainType: CLASSIC_TOKEN \| CONTRACT_NFT \| OFF_CHAIN`)    | Drop                    |
+| MarketAsset, NftListing                                             | `Listing` (`kind: PRIMARY \| RESALE`)                               | Listing                 |
+| User_Asset, User_Song, NftToken.owner                               | `Ownership`                                                         | Stash                   |
+| NftPurchase                                                         | `Order`                                                             | Order                   |
+| Location / LocationGroup / LocationConsumer                         | `Pin` / `PinDrop` / `PinClaim`                                      | Pin / Drop zone / Claim |
+| Redeem / RedeemConsumer                                             | `RedeemCode` / `RedeemClaim`                                        | Code                    |
+| OriginReward / QuarterReward (+ blocked users)                      | `RewardPeriod` / `RewardPayout` / `RewardBlockedUser`               | Rewards                 |
+| Community                                                           | `Community`                                                         | Crew                    |
+| Bounty                                                              | `Bounty`                                                            | Bounty ("WANTED")       |
+| CreatorGallery / MuseumRoom / GallerySlotOverride / GallerySlotLike | `Gallery` / `GalleryRoom` / `GalleryArtwork` / `GalleryArtworkLike` | Gallery / Room / Piece  |
+| Admin table                                                         | `User.role = ADMIN`                                                 | Admin                   |
+| User profile                                                        | `User`                                                              | Rep card                |
 
 ---
 
@@ -294,20 +295,20 @@ Location: `packages/db/prisma/schema/*.prisma`, with `prisma.config.ts` pointing
 
 ### 8.3 Files and models
 
-| File                  | Models |
-| --------------------- | ------ |
-| `identity.prisma`     | User, AuthAccount, AuthSession, VerificationToken, ChainAccount, Follow (`isTemporary` replaces TemporalFollow) |
-| `organization.prisma` | Organization, OrgToken, MembershipTier, VanityUrl (+ VanitySubscription data), PageLayout, PageWidget (Appearance, Widget) |
-| `catalog.prisma`      | Item, ClassicToken, ContractNft, NftEdition, ItemMedia, ItemCollection, ItemCollectionLike, ItemLike, LockedContent, UnlockRule, UnlockPoint, Tag, ItemTag |
-| `market.prisma`       | Listing, ListingPrice, Order, Ownership, RedeemCode, RedeemClaim, PlatformFee |
-| `music.prisma`        | Album, Track (1:1 with Item), LastFmAccount |
-| `map.prisma`          | Pin, PinDrop, PinClaim, Hotspot, LocationTag, PinDropTag, GeoCache, PinBatchJob (LocationGroupJob), LocationTagCache |
-| `bounty.prisma`       | Bounty, BountyParticipant, BountyMusicRule, BountyTrack, BountyTrackProgress, BountySubmission, BountySubmissionMedia, BountyCapture, BountyWinner |
+| File                  | Models                                                                                                                                                                            |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `identity.prisma`     | User, AuthAccount, AuthSession, VerificationToken, ChainAccount, Follow (`isTemporary` replaces TemporalFollow)                                                                   |
+| `organization.prisma` | Organization, OrgToken, MembershipTier, VanityUrl (+ VanitySubscription data), PageLayout, PageWidget (Appearance, Widget)                                                        |
+| `catalog.prisma`      | Item, ClassicToken, ContractNft, NftEdition, ItemMedia, ItemCollection, ItemCollectionLike, ItemLike, LockedContent, UnlockRule, UnlockPoint, Tag, ItemTag                        |
+| `market.prisma`       | Listing, ListingPrice, Order, Ownership, RedeemCode, RedeemClaim, PlatformFee                                                                                                     |
+| `music.prisma`        | Album, Track (1:1 with Item), LastFmAccount                                                                                                                                       |
+| `map.prisma`          | Pin, PinDrop, PinClaim, Hotspot, LocationTag, PinDropTag, GeoCache, PinBatchJob (LocationGroupJob), LocationTagCache                                                              |
+| `bounty.prisma`       | Bounty, BountyParticipant, BountyMusicRule, BountyTrack, BountyTrackProgress, BountySubmission, BountySubmissionMedia, BountyCapture, BountyWinner                                |
 | `community.prisma`    | Community, CommunityTokenRequirement, CommunityMember, CommunityPost, CommunityPostMedia, CommunityPostLike, CommunityComment, CommunityActivity, CommunityNotificationPreference |
-| `social.prisma`       | Post (PostGroup), PostMedia, PostLike, PostComment, PostCollectible, PostCollect, NotificationEvent, Notification |
-| `gallery.prisma`      | Gallery, GalleryRoom, GalleryArtwork, GalleryArtworkLike |
-| `rewards.prisma`      | RewardPeriod, RewardPayout, RewardBlockedUser |
-| `platform.prisma`     | PlatformAsset (AdminAsset), PlatformAssetTag, PlatformSetting (AppConfig), TelegramConfig, AgentJob, Job (worker queue), ActivityLog, LegacyIdMap |
+| `social.prisma`       | Post (PostGroup), PostMedia, PostLike, PostComment, PostCollectible, PostCollect, NotificationEvent, Notification                                                                 |
+| `gallery.prisma`      | Gallery, GalleryRoom, GalleryArtwork, GalleryArtworkLike                                                                                                                          |
+| `rewards.prisma`      | RewardPeriod, RewardPayout, RewardBlockedUser                                                                                                                                     |
+| `platform.prisma`     | PlatformAsset (AdminAsset), PlatformAssetTag, PlatformSetting (AppConfig), TelegramConfig, AgentJob, Job (worker queue), ActivityLog, LegacyIdMap                                 |
 
 Dropped: `Beam`, `BeamReaction`, `BeamComment`, enums `BeamType`, `StyleCategory`. Their rows are counted in the migration report, never deleted from the legacy DB.
 
@@ -343,23 +344,23 @@ Phase 1 writes `docs/plans/01-schema.md` with a column-by-column map for every m
 
 ### Legacy router → new router
 
-| Legacy (`src/server/api/routers`)                       | New |
-| ------------------------------------------------------- | --- |
+| Legacy (`src/server/api/routers`)                                                 | New                                                                                                    |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | `fan/asset, creator, membership, post, notification, user, dashboard, music, trx` | `item`, `organization`, `membership`, `post`, `notification`, `user`, `orgDashboard`, `track`, `order` |
-| `marketplace/marketplace, pay, steller, trade`          | `listing`, `order`, `quote` |
-| `nft.ts`, `collection.ts`                               | `item`, `nftEdition`, `collection`, `lockedContent` |
-| `music/album, song, steller`                            | `album`, `track` |
-| `maps/pin, trx`                                         | `pin`, `pinDrop`, `hotspot` |
-| `bounty/bounty`                                         | `bounty`, `bountySubmission`, `bountyWinner` |
-| `community/*`                                           | `community`, `communityPost`, `communityMember`, `communityActivity` |
-| `wallate/*`, `walletBalance/*`                          | `wallet`, `platformAsset` |
-| `action-token/checker`, `trigger.ts`                    | `reward` |
-| `admin/creator, platformFee, telegram, users`           | `admin.organization`, `admin.platformFee`, `admin.telegram`, `admin.user` |
-| `auth/trx`                                              | `account` (activation, trustlines) |
-| `agent.ts`, `pages/api/vibe-studio-ai/*`                | `agent`, `studio` (work runs in the worker) |
-| `action-cam-storage`, `qr`, `s3`, `tags`                | `actionCam`, `qr`, `upload`, `tag` |
-| gallery fork `gallery.ts`                               | `gallery`, `galleryRoom`, `galleryArtwork` |
-| `beam.ts`, `game.ts`                                    | dropped |
+| `marketplace/marketplace, pay, steller, trade`                                    | `listing`, `order`, `quote`                                                                            |
+| `nft.ts`, `collection.ts`                                                         | `item`, `nftEdition`, `collection`, `lockedContent`                                                    |
+| `music/album, song, steller`                                                      | `album`, `track`                                                                                       |
+| `maps/pin, trx`                                                                   | `pin`, `pinDrop`, `hotspot`                                                                            |
+| `bounty/bounty`                                                                   | `bounty`, `bountySubmission`, `bountyWinner`                                                           |
+| `community/*`                                                                     | `community`, `communityPost`, `communityMember`, `communityActivity`                                   |
+| `wallate/*`, `walletBalance/*`                                                    | `wallet`, `platformAsset`                                                                              |
+| `action-token/checker`, `trigger.ts`                                              | `reward`                                                                                               |
+| `admin/creator, platformFee, telegram, users`                                     | `admin.organization`, `admin.platformFee`, `admin.telegram`, `admin.user`                              |
+| `auth/trx`                                                                        | `account` (activation, trustlines)                                                                     |
+| `agent.ts`, `pages/api/vibe-studio-ai/*`                                          | `agent`, `studio` (work runs in the worker)                                                            |
+| `action-cam-storage`, `qr`, `s3`, `tags`                                          | `actionCam`, `qr`, `upload`, `tag`                                                                     |
+| gallery fork `gallery.ts`                                                         | `gallery`, `galleryRoom`, `galleryArtwork`                                                             |
+| `beam.ts`, `game.ts`                                                              | dropped                                                                                                |
 
 ### REST endpoints kept (route handlers)
 
@@ -369,7 +370,7 @@ Phase 1 writes `docs/plans/01-schema.md` with a column-by-column map for every m
 
 ## 11. Product UX: the ActionTokens identity
 
-Bandcoin is a music store with a sidebar, a contextual right panel and a player bar. **ActionTokens is not that.** It is a game-like action network: you discover something to do, do it, prove it, earn, and show it off. Everything below is designed for that loop.
+Action Tokens is a music store with a sidebar, a contextual right panel and a player bar. **ActionTokens is not that.** It is a game-like action network: you discover something to do, do it, prove it, earn, and show it off. Everything below is designed for that loop.
 
 ### 11.1 The core loop
 
@@ -420,18 +421,18 @@ Approved in the homepage mockup (`docs/mockups/home.html`, 2026-11-19).
 
 ### 11.4 Signature screens
 
-| Screen | UX |
-| ------ | -- |
-| **Homepage** | Scroll-scrubbed 3D hero (§13), then live sections. |
-| **Drop page** (item) | Full-bleed art with a 3D tilt card, edition counter ("#12 / 100"), sticky buy bar, price breakdown sheet, provenance timeline (mint → sales → current owner), "seen in gallery" link, locked-content preview with an unlock requirement. |
-| **Bounty board** | Grid of WANTED posters: prize in escrow (with a Stellar explorer link), deadline countdown, slots left, difficulty, rule chips (action-cam, location, music). Filters as chips, not a sidebar. |
-| **Bounty page** | Poster header → rules as a checklist that ticks as you progress → "Submit proof" flow (action-cam / media upload / link) → live participants and winners. The org's judge view lives in the Command Center. |
-| **Crew page** | Banner + token-gate pill ("Hold 10 $CODE: you have 3 · Buy"), feed, members wall, activity ticker, crew bounties. |
-| **Organization card** | Grid: **4 per row** on desktop (3 below 1360px, 2 below 1060px, 1 on phones). Cover banner with category pills, overlapping chrome monogram logo (64px, 18px radius), name + verified badge + tagline, token box (symbol, price, % change, sparkline green/red), 3 stat tiles (Drops · Live bounties in red · Crew), actions: Follow + "Buy $TOKEN". Hover: lifts 4px, cover zooms, neon border. |
-| **Organization page** (`/org/[slug]`) | Chrome-logo header, action token price + chart, tabs: Drops · Bounties · Pins · Crew · Gallery · Music · About. Keeps the org's custom widgets (PageLayout). |
-| **Stash** | Everything owned: tokens with value, NFTs as a grid you can flip into a 3D shelf, claimed pins, won bounties. |
-| **Rep card** | A shareable profile card (OG image generated): level, XP, badges, top pieces, crews. |
-| **Map (AR app)** | Full-screen map, pins as glowing markers by rarity, bottom sheet with the nearest pins, "Navigate" and "Collect in AR". |
+| Screen                                | UX                                                                                                                                                                                                                                                                                                                                                                                               |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Homepage**                          | Scroll-scrubbed 3D hero (§13), then live sections.                                                                                                                                                                                                                                                                                                                                               |
+| **Drop page** (item)                  | Full-bleed art with a 3D tilt card, edition counter ("#12 / 100"), sticky buy bar, price breakdown sheet, provenance timeline (mint → sales → current owner), "seen in gallery" link, locked-content preview with an unlock requirement.                                                                                                                                                         |
+| **Bounty board**                      | Grid of WANTED posters: prize in escrow (with a Stellar explorer link), deadline countdown, slots left, difficulty, rule chips (action-cam, location, music). Filters as chips, not a sidebar.                                                                                                                                                                                                   |
+| **Bounty page**                       | Poster header → rules as a checklist that ticks as you progress → "Submit proof" flow (action-cam / media upload / link) → live participants and winners. The org's judge view lives in the Command Center.                                                                                                                                                                                      |
+| **Crew page**                         | Banner + token-gate pill ("Hold 10 $CODE: you have 3 · Buy"), feed, members wall, activity ticker, crew bounties.                                                                                                                                                                                                                                                                                |
+| **Organization card**                 | Grid: **4 per row** on desktop (3 below 1360px, 2 below 1060px, 1 on phones). Cover banner with category pills, overlapping chrome monogram logo (64px, 18px radius), name + verified badge + tagline, token box (symbol, price, % change, sparkline green/red), 3 stat tiles (Drops · Live bounties in red · Crew), actions: Follow + "Buy $TOKEN". Hover: lifts 4px, cover zooms, neon border. |
+| **Organization page** (`/org/[slug]`) | Chrome-logo header, action token price + chart, tabs: Drops · Bounties · Pins · Crew · Gallery · Music · About. Keeps the org's custom widgets (PageLayout).                                                                                                                                                                                                                                     |
+| **Stash**                             | Everything owned: tokens with value, NFTs as a grid you can flip into a 3D shelf, claimed pins, won bounties.                                                                                                                                                                                                                                                                                    |
+| **Rep card**                          | A shareable profile card (OG image generated): level, XP, badges, top pieces, crews.                                                                                                                                                                                                                                                                                                             |
+| **Map (AR app)**                      | Full-screen map, pins as glowing markers by rarity, bottom sheet with the nearest pins, "Navigate" and "Collect in AR".                                                                                                                                                                                                                                                                          |
 
 ### 11.5 Feedback and micro-interactions
 
@@ -461,19 +462,19 @@ A phonk drift-night underground: near-black, one neon green, chrome lettering, c
 
 ### 12.2 Tokens (Tailwind 4 `@theme`)
 
-| Token | Value |
-| ----- | ----- |
-| `--bg` | `#050605` |
-| `--surface` / `--surface-raised` / `--surface-sunken` | `#0c0f0c` / `#131813` / `#020302` |
-| `--border` / `--border-strong` | `#1f2a1f` / `#2f402f` |
-| `--fg` / `--fg-muted` / `--fg-subtle` | `#e9f5e9` / `#8fa38f` / `#5b6b5b` |
-| `--accent` | `#39ff14` (placeholder; final hex sampled from the video's logo in Phase 2) |
-| `--accent-fg` | `#031003` (text on accent) |
-| `--accent-glow` | `color-mix(in oklab, var(--accent) 40%, transparent)` |
-| `--chrome` | `linear-gradient(180deg,#fdfdfd 0%,#a7a7a7 45%,#ffffff 52%,#4d4d4d 100%)` for display type |
-| `--danger` / `--warning` / `--info` | `#ff3b5c` / `#ffb020` / `#3aa0ff` (status only) |
-| Radius | 4 / 10 / 20 px (sharp by default, posters have 2 px) |
-| Motion | 120 / 220 / 480 ms; easing `cubic-bezier(.2,.8,.2,1)`; "hit" spring for STAMP |
+| Token                                                 | Value                                                                                      |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `--bg`                                                | `#050605`                                                                                  |
+| `--surface` / `--surface-raised` / `--surface-sunken` | `#0c0f0c` / `#131813` / `#020302`                                                          |
+| `--border` / `--border-strong`                        | `#1f2a1f` / `#2f402f`                                                                      |
+| `--fg` / `--fg-muted` / `--fg-subtle`                 | `#e9f5e9` / `#8fa38f` / `#5b6b5b`                                                          |
+| `--accent`                                            | `#39ff14` (placeholder; final hex sampled from the video's logo in Phase 2)                |
+| `--accent-fg`                                         | `#031003` (text on accent)                                                                 |
+| `--accent-glow`                                       | `color-mix(in oklab, var(--accent) 40%, transparent)`                                      |
+| `--chrome`                                            | `linear-gradient(180deg,#fdfdfd 0%,#a7a7a7 45%,#ffffff 52%,#4d4d4d 100%)` for display type |
+| `--danger` / `--warning` / `--info`                   | `#ff3b5c` / `#ffb020` / `#3aa0ff` (status only)                                            |
+| Radius                                                | 4 / 10 / 20 px (sharp by default, posters have 2 px)                                       |
+| Motion                                                | 120 / 220 / 480 ms; easing `cubic-bezier(.2,.8,.2,1)`; "hit" spring for STAMP              |
 
 Dark only for v1. Spacing is a 4px scale.
 
@@ -537,12 +538,12 @@ VHS grain overlay (one tiled noise PNG, animated offset), scanlines (hero only),
 
 ### 13.4 Storyboard
 
-| Scroll | Frames | On screen |
-| ------ | ------ | --------- |
-| 0 to 15 % | 0–30 | Black + grain. The hand rises. Chrome headline types in: **TAKE ACTION.** |
-| 15 to 45 % | 30–100 | The logo forms from particles. The headline swaps to **EARN TOKENS.** A live stats ticker fades in (orgs, bounties paid, drops collected, pins claimed). |
-| 45 to 70 % | 100–150 | The logo locks with a glitch hit and STAMP sound (if on). The camera pushes in (parallax grows). CTAs: **Explore Drops** · **Hunt Bounties**. |
-| 70 to 100 % | 150–175 | The hand closes and the frame darkens. The plane shrinks into a card that docks into the "Live drops" section below (hand-off transition). |
+| Scroll      | Frames  | On screen                                                                                                                                                |
+| ----------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0 to 15 %   | 0–30    | Black + grain. The hand rises. Chrome headline types in: **TAKE ACTION.**                                                                                |
+| 15 to 45 %  | 30–100  | The logo forms from particles. The headline swaps to **EARN TOKENS.** A live stats ticker fades in (orgs, bounties paid, drops collected, pins claimed). |
+| 45 to 70 %  | 100–150 | The logo locks with a glitch hit and STAMP sound (if on). The camera pushes in (parallax grows). CTAs: **Explore Drops** · **Hunt Bounties**.            |
+| 70 to 100 % | 150–175 | The hand closes and the frame darkens. The plane shrinks into a card that docks into the "Live drops" section below (hand-off transition).               |
 
 ### 13.5 Sections below the hero
 
@@ -594,18 +595,18 @@ Map (Mapbox via `packages/map`), nearby pins sheet, navigate, **AR collect** (lo
 
 An always-on Node process (Docker; Railway/Fly/EC2 + PM2), using `@actiontokens/api` services so a job does exactly what the app would. A `Job` table holds the queue (status, attempts, backoff, runAt, lastError); dead letters show in `/admin`.
 
-| Job | Schedule | Replaces |
-| --- | -------- | -------- |
-| `reward.distribute` | on demand / scheduled | `trigger/distribute.ts` |
-| `reward.quarterly` | quarterly | `trigger/quarter-reward.ts` |
-| `reward.syncStatus` | every 5 min | `trigger/status.ts` |
-| `order.reconcile` | every minute | new: re-checks SUBMITTED orders on Horizon |
-| `agent.run` | queued | `express-wadzzo` agent pipeline (`lib/express/taskClient-sdk.ts`) |
-| `pin.batchCreate`, `hotspot.drop` | queued / scheduled | `express-wadzzo` pin creation (`hotspotClient-sdk.ts`) |
-| `studio.generate` | queued | `api/vibe-studio-ai/*` |
-| `media.process` | queued | `server/image-optimizer.ts` + video posters |
-| `telegram.dispatch` | queued | `lib/telegram` |
-| health | `GET /health` | `api/internal/keep-alive*` |
+| Job                               | Schedule              | Replaces                                                          |
+| --------------------------------- | --------------------- | ----------------------------------------------------------------- |
+| `reward.distribute`               | on demand / scheduled | `trigger/distribute.ts`                                           |
+| `reward.quarterly`                | quarterly             | `trigger/quarter-reward.ts`                                       |
+| `reward.syncStatus`               | every 5 min           | `trigger/status.ts`                                               |
+| `order.reconcile`                 | every minute          | new: re-checks SUBMITTED orders on Horizon                        |
+| `agent.run`                       | queued                | `express-wadzzo` agent pipeline (`lib/express/taskClient-sdk.ts`) |
+| `pin.batchCreate`, `hotspot.drop` | queued / scheduled    | `express-wadzzo` pin creation (`hotspotClient-sdk.ts`)            |
+| `studio.generate`                 | queued                | `api/vibe-studio-ai/*`                                            |
+| `media.process`                   | queued                | `server/image-optimizer.ts` + video posters                       |
+| `telegram.dispatch`               | queued                | `lib/telegram`                                                    |
+| health                            | `GET /health`         | `api/internal/keep-alive*`                                        |
 
 Cutover rule: in-flight Trigger.dev runs must finish before the worker takes over rewards.
 
@@ -745,23 +746,23 @@ Rule: before starting a phase, write `docs/plans/NN-<name>.md` with its detailed
 
 ## 19. Progress tracker
 
-| Phase | Status | Notes |
-| ----- | ------ | ----- |
-| Plan  | done (2026-11-19) | this file |
-| Homepage mockup | in review (2026-11-19) | `docs/mockups/home.html`; serve with `python3 -m http.server 4173` in `docs/mockups`; `?hold` keeps the boot loader on screen |
-| 0 Scaffold | not started | |
-| 1 Schema | not started | |
-| 2 Design system | not started | |
-| 3 Homepage hero | not started | |
-| 4 Core packages | not started | |
-| 5 Data migration | not started | |
-| 6 Web app | not started | |
-| 7 Command Center + admin | not started | |
-| 8 AR app | not started | |
-| 9 Gallery app | not started | |
-| 10 Worker | not started | |
-| 11 Hardening | not started | |
-| 12 Cutover | not started | |
+| Phase                    | Status                 | Notes                                                                                                                         |
+| ------------------------ | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Plan                     | done (2026-11-19)      | this file                                                                                                                     |
+| Homepage mockup          | in review (2026-11-19) | `docs/mockups/home.html`; serve with `python3 -m http.server 4173` in `docs/mockups`; `?hold` keeps the boot loader on screen |
+| 0 Scaffold               | not started            |                                                                                                                               |
+| 1 Schema                 | not started            |                                                                                                                               |
+| 2 Design system          | not started            |                                                                                                                               |
+| 3 Homepage hero          | not started            |                                                                                                                               |
+| 4 Core packages          | not started            |                                                                                                                               |
+| 5 Data migration         | not started            |                                                                                                                               |
+| 6 Web app                | not started            |                                                                                                                               |
+| 7 Command Center + admin | not started            |                                                                                                                               |
+| 8 AR app                 | not started            |                                                                                                                               |
+| 9 Gallery app            | not started            |                                                                                                                               |
+| 10 Worker                | not started            |                                                                                                                               |
+| 11 Hardening             | not started            |                                                                                                                               |
+| 12 Cutover               | not started            |                                                                                                                               |
 
 ---
 
@@ -769,19 +770,19 @@ Rule: before starting a phase, write `docs/plans/NN-<name>.md` with its detailed
 
 ### Log
 
-| Date | Decision |
-| ---- | -------- |
-| 2026-11-19 | New repo `actiontokens`; legacy repos untouched. |
-| 2026-11-19 | Migrate all data; production data is never erased. |
-| 2026-11-19 | Drop Christmas/seasonal and Beam + game; keep everything else. |
-| 2026-11-19 | Gallery is its own app. |
-| 2026-11-19 | Neon-green phonk look; UI/UX unique to ActionTokens (bandcoin is the engineering reference only). |
-| 2026-11-19 | Domains `app.` / `org.` / `ar.` / `gallery.` `.action-tokens.com`. |
-| 2026-11-19 | Reuse actionverse env values for dev and prod for now; the owner replaces them later. |
-| 2026-11-19 | New schema lives in a new database next to the legacy one (§4.2), because renaming tables in place would alter production data. |
-| 2026-11-19 | Homepage mockup `docs/mockups/home.html` reviewed. Sidebar appears after the hero on desktop; dock on phones; Maggie-style boot loader (§11.3). Performance rules in §12.6. |
-| 2026-11-19 | Sidebar restyled with the phonk fonts (Faster One sections, Bungee labels, Bungee Shade level/ACT) Explore as list rows (a tile grid was tried and rejected); organizations show 4 per row. |
-| 2026-11-19 | Bottom nav (dock) removed: ACT moves into the header island; phones get a sidebar drawer from a header menu button. |
+| Date       | Decision                                                                                                                                                                                                                                                                                                                                                                                       |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-11-19 | New repo `actiontokens`; legacy repos untouched.                                                                                                                                                                                                                                                                                                                                               |
+| 2026-11-19 | Migrate all data; production data is never erased.                                                                                                                                                                                                                                                                                                                                             |
+| 2026-11-19 | Drop Christmas/seasonal and Beam + game; keep everything else.                                                                                                                                                                                                                                                                                                                                 |
+| 2026-11-19 | Gallery is its own app.                                                                                                                                                                                                                                                                                                                                                                        |
+| 2026-11-19 | Neon-green phonk look; UI/UX unique to ActionTokens (actiontokens is the engineering reference only).                                                                                                                                                                                                                                                                                          |
+| 2026-11-19 | Domains `app.` / `org.` / `ar.` / `gallery.` `.action-tokens.com`.                                                                                                                                                                                                                                                                                                                             |
+| 2026-11-19 | Reuse actionverse env values for dev and prod for now; the owner replaces them later.                                                                                                                                                                                                                                                                                                          |
+| 2026-11-19 | New schema lives in a new database next to the legacy one (§4.2), because renaming tables in place would alter production data.                                                                                                                                                                                                                                                                |
+| 2026-11-19 | Homepage mockup `docs/mockups/home.html` reviewed. Sidebar appears after the hero on desktop; dock on phones; Maggie-style boot loader (§11.3). Performance rules in §12.6.                                                                                                                                                                                                                    |
+| 2026-11-19 | Sidebar restyled with the phonk fonts (Faster One sections, Bungee labels, Bungee Shade level/ACT) Explore as list rows (a tile grid was tried and rejected); organizations show 4 per row.                                                                                                                                                                                                    |
+| 2026-11-19 | Bottom nav (dock) removed: ACT moves into the header island; phones get a sidebar drawer from a header menu button.                                                                                                                                                                                                                                                                            |
 | 2026-11-19 | Second mockup round: header becomes a notch / Dynamic Island with live activity; sidebar redesigned as a floating panel with rep card and icon tiles; loader font picked: Bungee Shade, one line ACTIONTOKENS, no logo; glimmer sweep with a Silkscreen pixel-glyph flash added (rejected: custom glyphs with an O face, Grenze Gotisch + pin logo); richer organization cards (§11.3, §11.4). |
 
 ### Open questions (ask the owner when the phase needs them)
@@ -794,103 +795,103 @@ Rule: before starting a phase, write `docs/plans/NN-<name>.md` with its detailed
 
 ---
 
-### 2026-11-20: fork Bandcoin instead of building from scratch
+### 2026-11-20: fork Action Tokens instead of building from scratch
 
-Owner asked to compare features and fork Bandcoin with a new UI/UX plus the extra Actionverse features, to avoid
-re-writing most files. Analysis: Bandcoin's legacy migration already covers 66 of 87 Actionverse tables; extras
+Owner asked to compare features and fork Action Tokens with a new UI/UX plus the extra Actionverse features, to avoid
+re-writing most files. Analysis: Action Tokens' legacy migration already covers 66 of 87 Actionverse tables; extras
 are Communities, the 3D gallery, holder rewards and Telegram broadcast. Details and phases: FORK-PLAN.md.
 
 ## Appendix A: legacy → new route map
 
-| Legacy (actionverse / gallery) | New | 301 |
-| ------------------------------ | --- | --- |
-| `/` | `app./` | – |
-| `/marketplace` | `app./drops` | yes |
-| `/asset/[id]`, `/market-asset/[id]`, `/nft/[id]` | `app./drops/[slug]` | yes |
-| `/nft/manage` | `org./drops` | yes |
-| `/action/collections`, `/action/collections/[id]` | `app./drops/collections/[slug]` | yes |
-| `/bounty`, `/bounty/[id]`, `/bounty/joined` | `app./bounties`, `/bounties/[id]`, `/bounties/joined` | yes |
-| `/bounty/create`, `/bounty/edit/*` | `org./bounties/new`, `/bounties/[id]/edit` | yes |
-| `/community`, `/community/[id]`, `/community/activity` | `app./crews`, `/crews/[slug]`, `/crews/activity` | yes |
-| `/organization/[id]`, vanity URLs | `app./org/[slug]` (vanity kept as `app./[vanity]`) | yes |
-| `/action/organizations` | `app./orgs` | yes |
-| `/music`, `/music/album/*` | `app./music`, `/music/album/[id]` | yes |
-| `/my-collection` | `app./stash` | yes |
-| `/wallet-balance`, `/recharge` | `app./wallet`, `/wallet/recharge` | yes |
-| `/notification`, `/settings` | `app./notifications`, `/settings` | yes |
-| `/reward-checker`, `/action/home`, `/action/profile` | `app./rewards`, `/me` (rep card) | yes |
-| `/about`, `/privacy`, `/support` | same on `app.` | – |
-| `/pins`, `/action/ar`, `/action/qr/*`, `/action/actions/*` | `ar./map`, `ar./collect`, `ar./scan`, `ar./actions/[id]` | yes |
-| `/organization/home`, `/profile`, `/new-profile`, `/create` | `org./`, `org./settings/profile`, `org./onboarding` | yes |
-| `/organization/{classic-nft,non-stellar-item,smart-contract,sell-page-asset,store}/*` | `org./drops/*` | yes |
-| `/organization/{map,map/collection-report,qr,redeem,gift,post,music,settings}` | `org./pins`, `/pins/reports`, `/qr`, `/codes`, `/gifts`, `/posts`, `/music`, `/settings` | yes |
-| `/smart-contract/*` | `org./drops/contract/*` | yes |
-| `/admin/*` | `org./admin/*` | yes |
-| gallery `/museum/[id]` | `gallery./[orgSlug]` | yes |
-| gallery `/settings` | `org./gallery` | yes |
-| `/beam/*`, `/api/game/*`, `/test`, `/albedo` | removed (`/albedo` callback moves into `packages/wallet` if still required) | 410 |
+| Legacy (actionverse / gallery)                                                        | New                                                                                      | 301 |
+| ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | --- |
+| `/`                                                                                   | `app./`                                                                                  | –   |
+| `/marketplace`                                                                        | `app./drops`                                                                             | yes |
+| `/asset/[id]`, `/market-asset/[id]`, `/nft/[id]`                                      | `app./drops/[slug]`                                                                      | yes |
+| `/nft/manage`                                                                         | `org./drops`                                                                             | yes |
+| `/action/collections`, `/action/collections/[id]`                                     | `app./drops/collections/[slug]`                                                          | yes |
+| `/bounty`, `/bounty/[id]`, `/bounty/joined`                                           | `app./bounties`, `/bounties/[id]`, `/bounties/joined`                                    | yes |
+| `/bounty/create`, `/bounty/edit/*`                                                    | `org./bounties/new`, `/bounties/[id]/edit`                                               | yes |
+| `/community`, `/community/[id]`, `/community/activity`                                | `app./crews`, `/crews/[slug]`, `/crews/activity`                                         | yes |
+| `/organization/[id]`, vanity URLs                                                     | `app./org/[slug]` (vanity kept as `app./[vanity]`)                                       | yes |
+| `/action/organizations`                                                               | `app./orgs`                                                                              | yes |
+| `/music`, `/music/album/*`                                                            | `app./music`, `/music/album/[id]`                                                        | yes |
+| `/my-collection`                                                                      | `app./stash`                                                                             | yes |
+| `/wallet-balance`, `/recharge`                                                        | `app./wallet`, `/wallet/recharge`                                                        | yes |
+| `/notification`, `/settings`                                                          | `app./notifications`, `/settings`                                                        | yes |
+| `/reward-checker`, `/action/home`, `/action/profile`                                  | `app./rewards`, `/me` (rep card)                                                         | yes |
+| `/about`, `/privacy`, `/support`                                                      | same on `app.`                                                                           | –   |
+| `/pins`, `/action/ar`, `/action/qr/*`, `/action/actions/*`                            | `ar./map`, `ar./collect`, `ar./scan`, `ar./actions/[id]`                                 | yes |
+| `/organization/home`, `/profile`, `/new-profile`, `/create`                           | `org./`, `org./settings/profile`, `org./onboarding`                                      | yes |
+| `/organization/{classic-nft,non-stellar-item,smart-contract,sell-page-asset,store}/*` | `org./drops/*`                                                                           | yes |
+| `/organization/{map,map/collection-report,qr,redeem,gift,post,music,settings}`        | `org./pins`, `/pins/reports`, `/qr`, `/codes`, `/gifts`, `/posts`, `/music`, `/settings` | yes |
+| `/smart-contract/*`                                                                   | `org./drops/contract/*`                                                                  | yes |
+| `/admin/*`                                                                            | `org./admin/*`                                                                           | yes |
+| gallery `/museum/[id]`                                                                | `gallery./[orgSlug]`                                                                     | yes |
+| gallery `/settings`                                                                   | `org./gallery`                                                                           | yes |
+| `/beam/*`, `/api/game/*`, `/test`, `/albedo`                                          | removed (`/albedo` callback moves into `packages/wallet` if still required)              | 410 |
 
 ## Appendix B: legacy code → new location map
 
-| Legacy | New |
-| ------ | --- |
-| `src/server/db.ts`, `prisma/` | `packages/db` |
-| `src/server/auth.ts`, `pages/api/auth` | `packages/auth` + each app's `app/api/auth/[...nextauth]/route.ts` |
-| `src/server/s3.ts`, `lib/s3-upload.service.ts`, `routers/s3.ts`, `pages/api/file.ts` | `packages/storage` |
-| `src/server/image-optimizer.ts` | `packages/storage` + worker `media.process` |
-| `src/server/api-cors.ts` | per-route CORS helper in `packages/api` |
-| `src/server/services/lastfm.ts`, `pages/api/lastfm` | `packages/api/services/lastfm` + `web` route handlers |
-| `src/server/api/routers/*` | `packages/api/src/{routers,services}` (§10) |
-| `src/lib/stellar/*` | `packages/chain` (builders) + `packages/stellar` (reads) |
-| `src/lib/augmented-reality/*` | `packages/ar-core` + `apps/ar/features/ar` |
-| `src/lib/action-cam/*` | `packages/ar-core/action-cam` (validation) + `apps/ar/features/action-cam` |
-| `src/lib/bounty/*`, `lib/state/bounty-create-store.ts` | `apps/web/features/bounties`, `apps/org/features/bounties` |
-| `src/lib/state/*` (Zustand) | feature-local stores, or replaced by tRPC/React Query state |
-| `src/lib/express/*` | `apps/worker` jobs (`agent.run`, `pin.batchCreate`, `hotspot.drop`) |
-| `src/lib/telegram/*` | `packages/api/services/telegram` + worker |
-| `src/lib/qstash.ts` | worker queue (QStash only for webhook verification if needed) |
-| `src/lib/usdc.ts`, `lib/defaults.ts`, `lib/common.ts`, `lib/utils.ts`, `lib/helper` | `packages/utils` / `packages/chain` |
-| `src/trigger/*` | `apps/worker` |
-| `src/components/shadcn/*` | rebuilt in `packages/ui` (new design, not copied) |
-| `src/components/layout/*` | replaced by the HUD (web) and Mission rail (org); not ported |
-| `src/components/{bounty,community,creator,nft,nft-create,music,player,post,store,widget,map,ar,action-cam,agent,recharge,reward-checker,payment,notification,wallet-balance,upload,3d-model,smart-contract,modal}` | feature folders in the matching app (Appendix A), split under 1000 lines |
-| `src/components/{christmas,beam}` | dropped |
-| `src/components/common/home-video-player.tsx` | replaced by the hero (§13) |
-| `package/connect_wallet` | `packages/wallet` |
-| `package/express-wadzzo` | `apps/worker` |
-| `contracts/*` | `packages/contracts` |
-| gallery `components/exhibition/*` | `packages/gallery-core` |
-| gallery `routers/gallery.ts` | `packages/api` `gallery*` routers |
-| gallery `pages/settings.tsx` | `apps/org/features/gallery-editor` |
+| Legacy                                                                                                                                                                                                             | New                                                                        |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| `src/server/db.ts`, `prisma/`                                                                                                                                                                                      | `packages/db`                                                              |
+| `src/server/auth.ts`, `pages/api/auth`                                                                                                                                                                             | `packages/auth` + each app's `app/api/auth/[...nextauth]/route.ts`         |
+| `src/server/s3.ts`, `lib/s3-upload.service.ts`, `routers/s3.ts`, `pages/api/file.ts`                                                                                                                               | `packages/storage`                                                         |
+| `src/server/image-optimizer.ts`                                                                                                                                                                                    | `packages/storage` + worker `media.process`                                |
+| `src/server/api-cors.ts`                                                                                                                                                                                           | per-route CORS helper in `packages/api`                                    |
+| `src/server/services/lastfm.ts`, `pages/api/lastfm`                                                                                                                                                                | `packages/api/services/lastfm` + `web` route handlers                      |
+| `src/server/api/routers/*`                                                                                                                                                                                         | `packages/api/src/{routers,services}` (§10)                                |
+| `src/lib/stellar/*`                                                                                                                                                                                                | `packages/chain` (builders) + `packages/stellar` (reads)                   |
+| `src/lib/augmented-reality/*`                                                                                                                                                                                      | `packages/ar-core` + `apps/ar/features/ar`                                 |
+| `src/lib/action-cam/*`                                                                                                                                                                                             | `packages/ar-core/action-cam` (validation) + `apps/ar/features/action-cam` |
+| `src/lib/bounty/*`, `lib/state/bounty-create-store.ts`                                                                                                                                                             | `apps/web/features/bounties`, `apps/org/features/bounties`                 |
+| `src/lib/state/*` (Zustand)                                                                                                                                                                                        | feature-local stores, or replaced by tRPC/React Query state                |
+| `src/lib/express/*`                                                                                                                                                                                                | `apps/worker` jobs (`agent.run`, `pin.batchCreate`, `hotspot.drop`)        |
+| `src/lib/telegram/*`                                                                                                                                                                                               | `packages/api/services/telegram` + worker                                  |
+| `src/lib/qstash.ts`                                                                                                                                                                                                | worker queue (QStash only for webhook verification if needed)              |
+| `src/lib/usdc.ts`, `lib/defaults.ts`, `lib/common.ts`, `lib/utils.ts`, `lib/helper`                                                                                                                                | `packages/utils` / `packages/chain`                                        |
+| `src/trigger/*`                                                                                                                                                                                                    | `apps/worker`                                                              |
+| `src/components/shadcn/*`                                                                                                                                                                                          | rebuilt in `packages/ui` (new design, not copied)                          |
+| `src/components/layout/*`                                                                                                                                                                                          | replaced by the HUD (web) and Mission rail (org); not ported               |
+| `src/components/{bounty,community,creator,nft,nft-create,music,player,post,store,widget,map,ar,action-cam,agent,recharge,reward-checker,payment,notification,wallet-balance,upload,3d-model,smart-contract,modal}` | feature folders in the matching app (Appendix A), split under 1000 lines   |
+| `src/components/{christmas,beam}`                                                                                                                                                                                  | dropped                                                                    |
+| `src/components/common/home-video-player.tsx`                                                                                                                                                                      | replaced by the hero (§13)                                                 |
+| `package/connect_wallet`                                                                                                                                                                                           | `packages/wallet`                                                          |
+| `package/express-wadzzo`                                                                                                                                                                                           | `apps/worker`                                                              |
+| `contracts/*`                                                                                                                                                                                                      | `packages/contracts`                                                       |
+| gallery `components/exhibition/*`                                                                                                                                                                                  | `packages/gallery-core`                                                    |
+| gallery `routers/gallery.ts`                                                                                                                                                                                       | `packages/api` `gallery*` routers                                          |
+| gallery `pages/settings.tsx`                                                                                                                                                                                       | `apps/org/features/gallery-editor`                                         |
 
 ## Appendix C: env key map
 
 Values are copied from actionverse's `.env.development` (dev) and `.env.production` (prod) by `scripts/env-from-legacy.ts`. Never commit them.
 
-| Legacy key | New key | Used by |
-| ---------- | ------- | ------- |
-| `DATABASE_URL` | `LEGACY_DATABASE_URL` (read-only) | db scripts |
-| new | `DATABASE_URL` (new database, §4.2) | all apps, worker |
-| `NEXTAUTH_SECRET` | `NEXTAUTH_SECRET` (shared) | web, org, ar, gallery |
-| `NEXTAUTH_URL` | `NEXTAUTH_URL` (per app) | each app |
-| `NEXT_PUBLIC_URL`, `NEXT_PUBLIC_HOME_DOMAIN` | `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_ORG_URL`, `NEXT_PUBLIC_AR_URL`, `NEXT_PUBLIC_GALLERY_URL`, `NEXT_PUBLIC_HOME_DOMAIN` | all |
-| `NEXT_PUBLIC_TITLE`, `_SITE`, `_KEYWORD`, `_DESC`, `_ICON`, `_PLATFORM_CREATOR_TERM` | same, except `PLATFORM_CREATOR_TERM` defaults to "Organization" | all |
-| `NEXT_PUBLIC_STELLAR_PUBNET`, `NEXT_PUBLIC_STAGE` | `NEXT_PUBLIC_STELLAR_NETWORK`, `NEXT_PUBLIC_STAGE` | all |
-| `STORAGE_SECRET`, `MOTHER_SECRET`, `TREASURY_SECRET`, `RUBY_ACCOUNTS_SECRET` | same | chain/server (web, org, worker) |
-| new | `CHAIN_SECRET_KEY` (AES key for `ChainAccount`) | db migration, chain/server |
-| `NEXT_PUBLIC_ASSET_CODE`, `NEXT_PUBLIC_ASSET_ISSUER` | same | all |
-| `NEXT_PUBLIC_NFT_MARKETPLACE_CONTRACT_ID` | same | web, org |
-| `PINATA_JWT` | same | org, worker |
-| `SQUARE_ACCESS_TOKEN`, `SQUARE_ENVIRONMENT`, `NEXT_PUBLIC_SQUARE_APP_ID`, `NEXT_PUBLIC_SQUARE_LOCATION` | same | web, worker |
-| `NEXT_PUBLIC_AUTH_*` (Firebase client) | `NEXT_PUBLIC_FIREBASE_*` | all web apps |
-| `FIREBASE_ADMIN_PRIVATE_KEY`, `FIREBASE_ADMIN_CLIENT_EMAIL` | same | auth |
-| `TRIGGER_SECRET_KEY` | dropped after Phase 10 | – |
-| `NEXT_PUBLIC_GOOGLE_MAP_API_KEY`, `NEXT_PUBLIC_MAPBOX_API` | `NEXT_PUBLIC_GOOGLE_MAPS_KEY`, `NEXT_PUBLIC_MAPBOX_TOKEN` | ar, org, web |
-| `NEXT_PUBLIC_NODEMAILER_USER`, `NEXT_PUBLIC_NODEMAILER_PASS` | `SMTP_USER`, `SMTP_PASS` (server-only) | api, worker |
-| `NEXT_AWS_BUCKET_NAME`, `_BUCKET_REGION`, `_ACCESS_KEY`, `_SECRET_ACCESS_KEY` | `AWS_S3_BUCKET`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | storage |
-| `QSTASH_TOKEN`, `QSTASH_CURRENT_SIGNING_KEY`, `QSTASH_NEXT_SIGNING_KEY` | same (only if webhooks remain) | worker |
-| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | api |
-| `OPENAI_API_KEY`, `GEMINI_API_KEY` | same | worker, org |
-| `ACTION_CAM_HMAC_SECRET` | same | ar, api |
-| `NEXT_PUBLIC_LASTFM_API_KEY`, `NEXT_PUBLIC_LASTFM_API_SECRET`, `NEXT_PUBLIC_LASTFM_CALLBACK_URL` | `NEXT_PUBLIC_LASTFM_API_KEY`, `LASTFM_API_SECRET` (server-only), `LASTFM_CALLBACK_URL` | web, api |
-| `UPLOADTHING_SECRET`, `UPLOADTHING_APP_ID`, `PRISMA_CLI_BINARY_TARGETS`, `NEXT_PUBLIC_LOG_ENABLE` | dropped (`LOG_LEVEL` replaces the last) | – |
+| Legacy key                                                                                              | New key                                                                                                                  | Used by                         |
+| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------- |
+| `DATABASE_URL`                                                                                          | `LEGACY_DATABASE_URL` (read-only)                                                                                        | db scripts                      |
+| new                                                                                                     | `DATABASE_URL` (new database, §4.2)                                                                                      | all apps, worker                |
+| `NEXTAUTH_SECRET`                                                                                       | `NEXTAUTH_SECRET` (shared)                                                                                               | web, org, ar, gallery           |
+| `NEXTAUTH_URL`                                                                                          | `NEXTAUTH_URL` (per app)                                                                                                 | each app                        |
+| `NEXT_PUBLIC_URL`, `NEXT_PUBLIC_HOME_DOMAIN`                                                            | `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_ORG_URL`, `NEXT_PUBLIC_AR_URL`, `NEXT_PUBLIC_GALLERY_URL`, `NEXT_PUBLIC_HOME_DOMAIN` | all                             |
+| `NEXT_PUBLIC_TITLE`, `_SITE`, `_KEYWORD`, `_DESC`, `_ICON`, `_PLATFORM_CREATOR_TERM`                    | same, except `PLATFORM_CREATOR_TERM` defaults to "Organization"                                                          | all                             |
+| `NEXT_PUBLIC_STELLAR_PUBNET`, `NEXT_PUBLIC_STAGE`                                                       | `NEXT_PUBLIC_STELLAR_NETWORK`, `NEXT_PUBLIC_STAGE`                                                                       | all                             |
+| `STORAGE_SECRET`, `MOTHER_SECRET`, `TREASURY_SECRET`, `RUBY_ACCOUNTS_SECRET`                            | same                                                                                                                     | chain/server (web, org, worker) |
+| new                                                                                                     | `CHAIN_SECRET_KEY` (AES key for `ChainAccount`)                                                                          | db migration, chain/server      |
+| `NEXT_PUBLIC_ASSET_CODE`, `NEXT_PUBLIC_ASSET_ISSUER`                                                    | same                                                                                                                     | all                             |
+| `NEXT_PUBLIC_NFT_MARKETPLACE_CONTRACT_ID`                                                               | same                                                                                                                     | web, org                        |
+| `PINATA_JWT`                                                                                            | same                                                                                                                     | org, worker                     |
+| `SQUARE_ACCESS_TOKEN`, `SQUARE_ENVIRONMENT`, `NEXT_PUBLIC_SQUARE_APP_ID`, `NEXT_PUBLIC_SQUARE_LOCATION` | same                                                                                                                     | web, worker                     |
+| `NEXT_PUBLIC_AUTH_*` (Firebase client)                                                                  | `NEXT_PUBLIC_FIREBASE_*`                                                                                                 | all web apps                    |
+| `FIREBASE_ADMIN_PRIVATE_KEY`, `FIREBASE_ADMIN_CLIENT_EMAIL`                                             | same                                                                                                                     | auth                            |
+| `TRIGGER_SECRET_KEY`                                                                                    | dropped after Phase 10                                                                                                   | –                               |
+| `NEXT_PUBLIC_GOOGLE_MAP_API_KEY`, `NEXT_PUBLIC_MAPBOX_API`                                              | `NEXT_PUBLIC_GOOGLE_MAPS_KEY`, `NEXT_PUBLIC_MAPBOX_TOKEN`                                                                | ar, org, web                    |
+| `NEXT_PUBLIC_NODEMAILER_USER`, `NEXT_PUBLIC_NODEMAILER_PASS`                                            | `SMTP_USER`, `SMTP_PASS` (server-only)                                                                                   | api, worker                     |
+| `NEXT_AWS_BUCKET_NAME`, `_BUCKET_REGION`, `_ACCESS_KEY`, `_SECRET_ACCESS_KEY`                           | `AWS_S3_BUCKET`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`                                              | storage                         |
+| `QSTASH_TOKEN`, `QSTASH_CURRENT_SIGNING_KEY`, `QSTASH_NEXT_SIGNING_KEY`                                 | same (only if webhooks remain)                                                                                           | worker                          |
+| `KV_REST_API_URL`, `KV_REST_API_TOKEN`                                                                  | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`                                                                     | api                             |
+| `OPENAI_API_KEY`, `GEMINI_API_KEY`                                                                      | same                                                                                                                     | worker, org                     |
+| `ACTION_CAM_HMAC_SECRET`                                                                                | same                                                                                                                     | ar, api                         |
+| `NEXT_PUBLIC_LASTFM_API_KEY`, `NEXT_PUBLIC_LASTFM_API_SECRET`, `NEXT_PUBLIC_LASTFM_CALLBACK_URL`        | `NEXT_PUBLIC_LASTFM_API_KEY`, `LASTFM_API_SECRET` (server-only), `LASTFM_CALLBACK_URL`                                   | web, api                        |
+| `UPLOADTHING_SECRET`, `UPLOADTHING_APP_ID`, `PRISMA_CLI_BINARY_TARGETS`, `NEXT_PUBLIC_LOG_ENABLE`       | dropped (`LOG_LEVEL` replaces the last)                                                                                  | –                               |

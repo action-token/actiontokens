@@ -3,13 +3,13 @@ import { useEffect, useState } from "react";
 import { cn } from "@actiontokens/ui/lib/cn";
 import { site } from "@actiontokens/ar-core/site";
 
-/** The stand-in when an artist's picture can't load: the Bandcoin mark, shipped with the app. */
+/** The stand-in when an artist's picture can't load: the Action Tokens mark, shipped with the app. */
 const FALLBACK_SRC = site.assets.mark;
 
 /**
  * ── ArtistAvatar ───────────────────────────────────────────────────────────
  *
- * An artist's picture, falling back to the Bandcoin mark when the URL doesn't
+ * An artist's picture, falling back to the Action Tokens mark when the URL doesn't
  * load. Old uploads sit on several hosts, and public IPFS gateways rate-limit
  * and then block, so a dead URL must degrade to the mark instead of a broken
  * image glyph.

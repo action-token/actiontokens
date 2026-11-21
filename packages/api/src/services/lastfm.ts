@@ -3,7 +3,7 @@ import crypto from "node:crypto";
 import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 /**
- * Last.fm, as the old Bandcoin used it for music bounties: connect an account
+ * Last.fm, as the old Action Tokens used it for music bounties: connect an account
  * (web auth → session key) and count a user's scrobbles of a track since a
  * moment. Ported from bandfan `main` (src/lib/lastfm/api.ts and
  * pages/api/lastfm/callback.ts); the matching rules are unchanged.
@@ -26,7 +26,7 @@ export function lastFmKeys(env: Record<string, string | undefined> = process.env
   return { apiKey, secret };
 }
 
-/** Where to send the browser so the user can approve Bandcoin on Last.fm. */
+/** Where to send the browser so the user can approve Action Tokens on Last.fm. */
 export const lastFmAuthUrl = (apiKey: string, callbackUrl: string) =>
   `https://www.last.fm/api/auth/?api_key=${apiKey}&cb=${encodeURIComponent(callbackUrl)}`;
 
@@ -60,7 +60,7 @@ const sign = (params: Record<string, string>, secret: string) =>
     )
     .digest("hex");
 
-/** Trades the token from the auth redirect for a session, plus the profile shown on Bandcoin. */
+/** Trades the token from the auth redirect for a session, plus the profile shown on Action Tokens. */
 export async function lastFmSession(token: string) {
   const { apiKey, secret } = lastFmKeys();
   const params = { method: "auth.getSession", token, api_key: apiKey };

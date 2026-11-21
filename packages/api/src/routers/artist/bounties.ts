@@ -56,7 +56,7 @@ const text = {
 
 const bountyId = z.object({ bountyId: z.string().min(1) });
 
-/** The artist's bounties (see services/artist/bounties and bounty-escrow). Contract calls are unchanged from the old Bandcoin. */
+/** The artist's bounties (see services/artist/bounties and bounty-escrow). Contract calls are unchanged from the old Action Tokens. */
 export const bountiesRouter = createRouter({
   list: artistProcedure.query(({ ctx }) => listBounties(ctx, ctx.artist)),
   get: artistProcedure

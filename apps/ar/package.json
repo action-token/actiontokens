@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Bandcoin AR: find pins on a map, collect them in AR, keep them in your collection.",
+  "description": "Action Tokens AR: find pins on a map, collect them in AR, keep them in your collection.",
   "scripts": {
     "build": "next build",
     "dev": "next dev --port 3002",

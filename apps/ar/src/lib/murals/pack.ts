@@ -36,9 +36,9 @@ const MANIFEST: Manifest = {
 };
 const TJS_CACHE = "transformers-cache";
 const CHUNK = 1024 * 1024;
-const DB_NAME = "bandcoin-mural-pack";
+const DB_NAME = "actiontokens-mural-pack";
 const STORE = "chunks";
-const READY_KEY = "bandcoin.muralPack.ready";
+const READY_KEY = "action-tokens.muralPack.ready";
 /** Seconds between automatic retries after a network failure. */
 const RETRY_S = 8;
 

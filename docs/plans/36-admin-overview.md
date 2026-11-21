@@ -9,7 +9,7 @@ One page that shows an admin what needs attention, with a link to each place.
 It had no Overview. `/admin` (`pages/admin/index.tsx`) redirected to `/admin/wallet`, the curated
 asset list. No admin page showed counts or totals.
 
-## Bandcoin today
+## Action Tokens today
 
 `/admin` redirects to Artists. Plan 11 designed an Overview and then didn't build it ("`/admin`
 opens Artists, as in Wadzzo", 2026-10-30). Since then the admin gained Pin review, Story review,

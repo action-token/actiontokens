@@ -114,7 +114,11 @@ export const catalogRouter = createRouter({
     .query(async ({ ctx, input }) => {
       const item = await ctx.db.item.findUnique({
         where: { slug: input.itemSlug },
-        select: { id: true, organizationId: true, organization: { select: { name: true, slug: true } } },
+        select: {
+          id: true,
+          organizationId: true,
+          organization: { select: { name: true, slug: true } },
+        },
       });
       if (!item?.organizationId) return null;
       const rows = await ctx.db.item.findMany({
@@ -126,7 +130,7 @@ export const catalogRouter = createRouter({
       return { artist: item.organization, items: rows.map(toItemCard) };
     }),
 
-  /** The marketplace grid: everything for sale, by type, search and sort, a page at a time. `locked`: only NFTs with locked content (the old Bandcoin's gated list). */
+  /** The marketplace grid: everything for sale, by type, search and sort, a page at a time. `locked`: only NFTs with locked content (the old Action Tokens' gated list). */
   browse: publicProcedure
     .input(
       z.object({

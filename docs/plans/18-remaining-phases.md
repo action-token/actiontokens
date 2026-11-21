@@ -6,12 +6,12 @@ you can open and check, and every stage ships with tests.
 
 ## Decisions (asked 2026-11-02)
 
-| Question         | Answer                                                                                                                         |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Studio coin      | **In-app balance first.** A ledgered balance, topped up with BANDCOIN, XLM, USDC or card. It can become a Stellar token later. |
+| Question         | Answer                                                                                                                            |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Studio coin      | **In-app balance first.** A ledgered balance, topped up with ACTION, XLM, USDC or card. It can become a Stellar token later.      |
 | AI providers     | **Same as bandfan, plus music:** OpenAI and Google for text, images and video, and a music generator (provider asked at stage 6). |
-| Facebook sync    | **Build it.** It needs a Facebook app (id and secret) and page permissions; real artists need app review.                      |
-| Copying old data | **Now, into the dev database.** The old database is opened read only. Production is never touched.                             |
+| Facebook sync    | **Build it.** It needs a Facebook app (id and secret) and page permissions; real artists need app review.                         |
+| Copying old data | **Now, into the dev database.** The old database is opened read only. Production is never touched.                                |
 
 ## Already done inline (no worker job needed)
 
@@ -79,16 +79,16 @@ Original plan:
 
 Decided: anyone signed in; portal AI helpers stay free; 1 coin = $0.01; a run costs
 the AI provider's cost + a 30% platform fee (Admin › Settings › Studio), rounded up to
-whole coins; top up $1–$500 or a package (dollar price + bonus coins); BANDCOIN at its
+whole coins; top up $1–$500 or a package (dollar price + bonus coins); ACTION at its
 live price, XLM/USDC at the live rate, or card. Held while a run goes, kept on success,
-refunded once on failure. `pnpm --filter @bandcoin/api testnet:studio` runs a real
+refunded once on failure. `pnpm --filter @actiontokens/api testnet:studio` runs a real
 testnet top-up.
 
 Original plan:
 
 - New Next app with the same shell, sign-in and theme as the artist portal.
 - `/` home: balance, recent generations, the tools.
-- `/coins`: top up with a package or any amount, paid with BANDCOIN, XLM or USDC (one
+- `/coins`: top up with a package or any amount, paid with ACTION, XLM or USDC (one
   signed payment to the treasury, with the cancel countdown) or by card (Square). The
   ledger lists every top-up, spend and refund. No withdraw while it's an in-app balance.
 - Prices per generation type in Admin › Settings (`studioPrices`), shown on every
@@ -156,7 +156,7 @@ MCP (built 2026-11-04, as Wadzzo): the portal's `/api/mcp` serves the agent to A
 ### 8a. Facebook post sync (built 2026-11-04; waiting for a Facebook app to try it for real)
 
 Portal Settings › Facebook: Connect Facebook (`/api/facebook/start` → Facebook → `/api/facebook/callback`),
-pick a page, and Bandcoin listens to its feed. Meta's webhook (`/api/webhooks/facebook`, checked
+pick a page, and Action Tokens listens to its feed. Meta's webhook (`/api/webhooks/facebook`, checked
 against the app secret) queues `facebook.import`; the worker fetches the post, re-hosts its
 photos and videos in our storage and creates the post once (a post id is only copied once).
 As in the old app, an imported post shows in the feed but has no collectible copies, and the
@@ -170,7 +170,7 @@ wasn't carried over (its token was sealed with the old key): they connect again.
 
 - Settings › Facebook: connect a page (Facebook login), choose auto-publish or manual.
 - Worker `facebook.sync`: new page posts are copied as posts (text and images), once each.
-  Optional: publish a Bandcoin post to the page.
+  Optional: publish an Action Tokens post to the page.
 
 **You check:** with a test page in a Facebook developer app.
 

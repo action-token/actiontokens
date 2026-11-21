@@ -1,7 +1,7 @@
 {
   "name": "actiontokens",
   "private": true,
-  "description": "Bandcoin monorepo: fan app, artist portal, AR collector, worker and the shared packages behind them.",
+  "description": "Action Tokens monorepo: fan app, artist portal, AR collector, worker and the shared packages behind them.",
   "packageManager": "pnpm@12.9.1",
   "engines": {
     "node": ">=20.19.0"

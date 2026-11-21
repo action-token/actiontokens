@@ -25,7 +25,7 @@ export function slotLabel(bounty: Pick<BountyCardData, "status" | "maxWinners" |
 }
 
 /**
- * A bounty in the grid (same content as the old Bandcoin card): the prize
+ * A bounty in the grid (same content as the old Action Tokens card): the prize
  * (linked to the asset on Stellar Expert) and how many winners share it,
  * slots left, title, a 250-character brief and who posted it, over its images
  * (see cardImages). Join right from the card, or View once you're in.

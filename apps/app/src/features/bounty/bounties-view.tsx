@@ -23,7 +23,7 @@ const SORTS: { value: Sort; label: string }[] = [
 ];
 
 /**
- * Every bounty, as on the old Bandcoin: search, sort (newest or highest
+ * Every bounty, as on the old Action Tokens: search, sort (newest or highest
  * prize), All / Not joined / Joined, and an endless grid. Top Bounties and
  * Recent Activity are in the app's right panel (BountiesPanel). Filters live in the URL so a view can be shared.
  */

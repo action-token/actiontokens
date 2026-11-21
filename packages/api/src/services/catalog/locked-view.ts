@@ -4,7 +4,7 @@ import { contentCodeFor } from "./content-codes";
 import { ensureUnlockPins } from "./unlock-pins";
 
 /**
- * What fans see of a contract NFT's locked content, as on the old Bandcoin.
+ * What fans see of a contract NFT's locked content, as on the old Action Tokens.
  *
  *   lockedPreview  → anyone, before buying: what each piece is and where its
  *                    places are. Never the links.

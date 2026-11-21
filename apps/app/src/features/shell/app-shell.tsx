@@ -41,7 +41,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { widths, load } = usePanelWidths();
   const { collapsed, setCollapsed } = useSidebarCollapsed();
   // Closed until the fan opens it; remembered per browser.
-  const [rightOpen, setRightOpen] = usePersistedFlag("bandcoin.right-panel-open", false);
+  const [rightOpen, setRightOpen] = usePersistedFlag("action-tokens.right-panel-open", false);
   // Saved widths are read after the first render, so the server and the browser agree.
   useEffect(load, [load]);
 

@@ -18,7 +18,7 @@ export const DEFAULT_THEME: PageTheme = {
 };
 
 export const FONT_PAIRS: { value: PageTheme["fontPair"]; label: string }[] = [
-  { value: "grotesk", label: "Bandcoin" },
+  { value: "grotesk", label: "Action Tokens" },
   { value: "sans", label: "Clean sans" },
   { value: "serif", label: "Editorial serif" },
 ];

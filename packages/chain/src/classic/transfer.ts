@@ -59,7 +59,7 @@ export function buildClaimGift(input: {
 }
 
 /**
- * An artist's gift from their storage account, as the old Bandcoin sent it.
+ * An artist's gift from their storage account, as the old Action Tokens sent it.
  * The artist's wallet is the source and pays the fee. A fan who trusts the
  * token is paid straight from storage; otherwise storage makes a claimable
  * balance they accept later (storage can take it back until then), and the

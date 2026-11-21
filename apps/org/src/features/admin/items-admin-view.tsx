@@ -34,7 +34,7 @@ const STATUS: Record<Row["status"], { tone: Tone; label: string }> = {
   hidden: { tone: "danger", label: "Hidden by admin" },
 };
 
-/** Every item on Bandcoin (bandfan's "market assets"). Hiding one stops fans seeing or buying it. */
+/** Every item on Action Tokens (bandfan's "market assets"). Hiding one stops fans seeing or buying it. */
 export function ItemsAdminView() {
   const utils = api.useUtils();
   const [filter, setFilter] = useState<Filter>("all");
@@ -94,7 +94,7 @@ export function ItemsAdminView() {
       skeleton: "number",
       cell: (row) =>
         row.price ? (
-          <Money amount={row.price.bandcoin} currency="BANDCOIN" />
+          <Money amount={row.price.actionToken} currency="ACTION" />
         ) : (
           <span className="text-fg-faint text-sm">Not listed</span>
         ),

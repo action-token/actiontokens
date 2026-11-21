@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    ActionTokens "Street Sticker" language (docs/AR-STICKER-REDESIGN.md)
 
-   Loaded after arcade.css, so these rules replace the Bandcoin console look of
+   Loaded after arcade.css, so these rules replace the Action Tokens console look of
    the shared primitives (.ar-key, .ar-bevel, .ar-glass, …) everywhere at once:
    thick outlines, hard offset shadows with no blur, paper and neon-green faces.
    The .dark-scoped selectors are repeated so they win over arcade.css's own

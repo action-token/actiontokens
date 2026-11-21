@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { availableOf, fundsOf, otherAssetsOf } from "../server/horizon";
 
 const assets = {
-  bandcoin: { code: "BANDCOIN", issuer: Keypair.random().publicKey() },
+  actionToken: { code: "ACTION", issuer: Keypair.random().publicKey() },
   usdc: { code: "USDC", issuer: Keypair.random().publicKey() },
 };
 const fanIssuer = Keypair.random().publicKey();
@@ -15,8 +15,8 @@ const account = {
     { asset_type: "native", balance: "10", selling_liabilities: "1" },
     {
       asset_type: "credit_alphanum12",
-      asset_code: "BANDCOIN",
-      asset_issuer: assets.bandcoin.issuer,
+      asset_code: "ACTION",
+      asset_issuer: assets.actionToken.issuer,
       balance: "50",
       selling_liabilities: "0",
     },
@@ -45,7 +45,7 @@ describe("balances", () => {
     expect(availableOf(account, Asset.native())).toBe("6.5000000");
     expect(availableOf(null, Asset.native())).toBe("0");
     expect(fundsOf(account, assets)).toEqual({
-      BANDCOIN: "50.0000000",
+      ACTION: "50.0000000",
       XLM: "6.5000000",
       USDC: "0",
     });

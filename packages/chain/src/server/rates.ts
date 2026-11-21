@@ -20,10 +20,10 @@ const defaultFetcher: Fetcher = async (url) => {
 };
 
 let cache: { rates: Rates; at: number } | null = null;
-let bandcoinCache: { price: string; at: number } | null = null;
+let actionTokenCache: { price: string; at: number } | null = null;
 export const clearRateCache = () => {
   cache = null;
-  bandcoinCache = null;
+  actionTokenCache = null;
 };
 
 const usable = (value: unknown): value is number =>
@@ -39,7 +39,7 @@ export async function liveRates(
   const xlmUsd = (await fromStellarExpert(fetcher)) ?? (await fromBinance(fetcher));
   if (xlmUsd === null) {
     throw new AppError(ErrorCodes.EXTERNAL_SERVICE_FAILED, {
-      message: "Couldn't load the XLM price. Pay with BANDCOIN, or try again in a moment.",
+      message: "Couldn't load the XLM price. Pay with ACTION, or try again in a moment.",
     });
   }
   const rates = { xlmUsd: xlmUsd.toFixed(7), usdcUsd: "1" };
@@ -70,21 +70,21 @@ async function fromBinance(fetcher: Fetcher) {
   }
 }
 
-/** USD per BANDCOIN on testnet, where the test asset has no market: the old Bandcoin's price. */
-export const TESTNET_BANDCOIN_USD = "0.00231";
+/** USD per ACTION on testnet, where the test asset has no market: the old Action Tokens' price. */
+export const TESTNET_ACTION_USD = "0.00231";
 
 /**
- * USD per BANDCOIN. On mainnet, only the asset's market price from Stellar
+ * USD per ACTION. On mainnet, only the asset's market price from Stellar
  * Expert; with no price, or no answer, it refuses rather than guessing. On
- * testnet the fixed `TESTNET_BANDCOIN_USD`, and the market is never asked.
+ * testnet the fixed `TESTNET_ACTION_USD`, and the market is never asked.
  */
-export async function liveBandcoinUsd(
+export async function liveActionTokenUsd(
   input: { name: "mainnet" | "testnet"; asset: { code: string; issuer: string } },
   fetcher: Fetcher = defaultFetcher,
   now = Date.now(),
 ): Promise<string> {
-  if (input.name === "testnet") return Number.parseFloat(TESTNET_BANDCOIN_USD).toFixed(7);
-  if (bandcoinCache && now - bandcoinCache.at < CACHE_TTL_MS) return bandcoinCache.price;
+  if (input.name === "testnet") return Number.parseFloat(TESTNET_ACTION_USD).toFixed(7);
+  if (actionTokenCache && now - actionTokenCache.at < CACHE_TTL_MS) return actionTokenCache.price;
 
   let price: number | null = null;
   try {
@@ -97,9 +97,9 @@ export async function liveBandcoinUsd(
   }
   if (price === null) {
     throw new AppError(ErrorCodes.EXTERNAL_SERVICE_FAILED, {
-      message: "Couldn't load the BANDCOIN price. Try again in a moment.",
+      message: "Couldn't load the ACTION price. Try again in a moment.",
     });
   }
-  bandcoinCache = { price: price.toFixed(7), at: now };
-  return bandcoinCache.price;
+  actionTokenCache = { price: price.toFixed(7), at: now };
+  return actionTokenCache.price;
 }

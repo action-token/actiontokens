@@ -25,7 +25,7 @@ const input = {
   media: { url: "https://cdn.example/art.png", mediaType: "IMAGE" as const },
   code: "nightdrv",
   supply: 100,
-  priceBandcoin: "25",
+  priceActionToken: "25",
   priceUsd: "0.5",
   visibility: "PUBLIC" as const,
 };
@@ -105,7 +105,7 @@ describe("createItem", () => {
           sellerId: "u1",
           kind: "PRIMARY",
           status: "ACTIVE",
-          priceBandcoin: "25",
+          priceActionToken: "25",
           priceUsd: "0.5",
         },
       },
@@ -152,7 +152,7 @@ describe("createItem", () => {
       createItem(setup({ takenCode: true }).ctx, artist, user, input),
     ).rejects.toMatchObject({ message: "You already use that code for another item." });
     await expect(
-      createItem(setup().ctx, artist, user, { ...input, code: "bandcoin" }),
+      createItem(setup().ctx, artist, user, { ...input, code: "action" }),
     ).rejects.toMatchObject({ message: "That code is reserved" });
     await expect(
       createItem(setup().ctx, artist, user, { ...input, priceUsd: "0" }),
@@ -279,7 +279,7 @@ describe("updateItem", () => {
       title: "Night Drive II",
       description: "New",
       coverUrl: "https://cdn.example/c2.jpg",
-      priceBandcoin: "30",
+      priceActionToken: "30",
       priceUsd: "0.6",
     });
     expect(db.item.update).toHaveBeenCalledWith({
@@ -288,7 +288,7 @@ describe("updateItem", () => {
     });
     expect(db.listing.update).toHaveBeenCalledWith({
       where: { id: "l1" },
-      data: { priceBandcoin: "30", priceUsd: "0.6" },
+      data: { priceActionToken: "30", priceUsd: "0.6" },
     });
   });
 
@@ -374,7 +374,7 @@ describe("contract NFT items", () => {
       itemId: "i1",
       title: "New title",
       supply: 20,
-      priceBandcoin: "30",
+      priceActionToken: "30",
     });
     expect(db.item.update).toHaveBeenCalledWith({
       where: { id: "i1" },
@@ -382,7 +382,7 @@ describe("contract NFT items", () => {
     });
     expect(db.listing.update).toHaveBeenCalledWith({
       where: { id: "l1" },
-      data: { priceBandcoin: "30" },
+      data: { priceActionToken: "30" },
     });
     expect(db.classicToken.update).not.toHaveBeenCalled();
   });
@@ -466,7 +466,7 @@ describe("getItem", () => {
       listings: [
         {
           id: "l1",
-          priceBandcoin: { toString: () => "25" },
+          priceActionToken: { toString: () => "25" },
           priceUsd: { toString: () => "0.5" },
           status: "ACTIVE",
           quantitySold: 0,
@@ -482,7 +482,7 @@ describe("getItem", () => {
       supply: 100,
       sold: 0,
       locked: false,
-      priceBandcoin: "25",
+      priceActionToken: "25",
       priceUsd: "0.5",
       fileUrl: "https://cdn.example/art.png",
     });
@@ -537,7 +537,7 @@ describe("listMyItems", () => {
         listings: [
           {
             id: "l1",
-            priceBandcoin: { toString: () => "25" },
+            priceActionToken: { toString: () => "25" },
             priceUsd: { toString: () => "0.5" },
             status: "ACTIVE",
             quantitySold: 4,
@@ -554,7 +554,7 @@ describe("listMyItems", () => {
         registered: null,
         sold: 4,
         supply: 100,
-        priceBandcoin: "25",
+        priceActionToken: "25",
         priceUsd: "0.5",
         listingStatus: "ACTIVE",
       }),
@@ -609,7 +609,7 @@ describe("Non Stellar items", () => {
     expect(created[0]).toMatchObject({
       chainType: "OFF_CHAIN",
       supply: 25,
-      listings: { create: { kind: "PRIMARY", status: "ACTIVE", priceBandcoin: "25" } },
+      listings: { create: { kind: "PRIMARY", status: "ACTIVE", priceActionToken: "25" } },
     });
     expect(created[0]!.classicToken).toBeUndefined();
   });

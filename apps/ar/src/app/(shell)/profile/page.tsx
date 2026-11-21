@@ -199,7 +199,7 @@ export default function ProfileScreen() {
                 <p className="font-hud mt-1.5 text-[13px] font-bold">Couldn&rsquo;t load</p>
               ) : (
                 <p className="font-display mt-1 text-[34px] leading-none tabular-nums">
-                  {Number(me.data.balances.BANDCOIN).toLocaleString(undefined, {
+                  {Number(me.data.balances.ACTION).toLocaleString(undefined, {
                     maximumFractionDigits: 2,
                   })}
                 </p>

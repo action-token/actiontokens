@@ -47,8 +47,9 @@ export function PreviewPane({
     const onMessage = (event: MessageEvent) => {
       if (event.origin !== APP_ORIGIN || event.source !== frame.current?.contentWindow) return;
       const data = event.data as { type?: string; uid?: unknown; action?: unknown } | null;
-      if (data?.type === "bandcoin-page:ready") setReady(true);
-      if (data?.type === "bandcoin-page:select" && typeof data.uid === "string") onSelect(data.uid);
+      if (data?.type === "actiontokens-page:ready") setReady(true);
+      if (data?.type === "actiontokens-page:select" && typeof data.uid === "string")
+        onSelect(data.uid);
       if (data?.type === PAGE_ACTION_MESSAGE) {
         const action = parsePageAction(data.action);
         if (action) handlers.current.onAction(action);
@@ -63,7 +64,7 @@ export function PreviewPane({
     const timer = setTimeout(
       () =>
         frame.current?.contentWindow?.postMessage(
-          { type: "bandcoin-page:design", blocks, theme },
+          { type: "actiontokens-page:design", blocks, theme },
           APP_ORIGIN,
         ),
       120,
@@ -74,7 +75,7 @@ export function PreviewPane({
   useEffect(() => {
     if (ready)
       frame.current?.contentWindow?.postMessage(
-        { type: "bandcoin-page:select", uid: selectedUid },
+        { type: "actiontokens-page:select", uid: selectedUid },
         APP_ORIGIN,
       );
   }, [ready, selectedUid]);

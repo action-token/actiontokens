@@ -19,7 +19,7 @@ export type SongBrowseInput = {
   search?: string;
   sort: SongSort;
   show: SongOwnership;
-  /** BANDCOIN, inclusive; either one means "for sale in this range". */
+  /** ACTION, inclusive; either one means "for sale in this range". */
   minPrice?: number;
   maxPrice?: number;
   /** Only songs with stems (ones you can remix). */
@@ -60,7 +60,7 @@ export function songWhere(
         some: {
           status: "ACTIVE",
           ...(priced
-            ? { priceBandcoin: { gte: input.minPrice ?? 0, lte: input.maxPrice ?? undefined } }
+            ? { priceActionToken: { gte: input.minPrice ?? 0, lte: input.maxPrice ?? undefined } }
             : {}),
         },
       },
@@ -131,9 +131,9 @@ export async function browseSongs(
       createdAt: true,
       listings: {
         where: { status: "ACTIVE" },
-        orderBy: { priceBandcoin: "asc" },
+        orderBy: { priceActionToken: "asc" },
         take: 1,
-        select: { priceBandcoin: true },
+        select: { priceActionToken: true },
       },
     },
     take: RANK_CAP,
@@ -149,7 +149,7 @@ export async function browseSongs(
     for (const row of counts) weekly.set(row.itemId, row._count._all);
   }
 
-  const price = (row: (typeof candidates)[number]) => row.listings[0]?.priceBandcoin.toNumber();
+  const price = (row: (typeof candidates)[number]) => row.listings[0]?.priceActionToken.toNumber();
   const byNewest = (a: (typeof candidates)[number], b: (typeof candidates)[number]) =>
     b.createdAt.getTime() - a.createdAt.getTime() || a.id.localeCompare(b.id);
   const pool = input.playedThisWeek

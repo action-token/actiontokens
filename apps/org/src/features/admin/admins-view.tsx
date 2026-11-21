@@ -29,7 +29,7 @@ import { messageOf } from "./murals/model";
 
 type Admin = RouterOutputs["admin"]["users"]["list"]["users"][number];
 
-/** Admin › Admins, following Wadzzo's: who can run Bandcoin. Any admin adds or removes others, never themselves. */
+/** Admin › Admins, following Wadzzo's: who can run Action Tokens. Any admin adds or removes others, never themselves. */
 export function AdminsView() {
   const me = useSession().data?.user.id;
   const utils = api.useUtils();

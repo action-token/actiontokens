@@ -9,7 +9,7 @@
 
 ## The model change (the one real risk)
 
-Today each track *is* one clip (start, trims and volume all sit on the track). Split and duplicate need **several clips per track**:
+Today each track _is_ one clip (start, trims and volume all sit on the track). Split and duplicate need **several clips per track**:
 
 ```ts
 MixClip  { id, url, startTime, trimStart, trimEnd, duration, fadeIn, fadeOut }
@@ -23,17 +23,17 @@ MixProject { version: 2, bpm, masterVolume, snap, tracks, publish? }
 
 ## Features
 
-| Feature | Behaviour |
-|---|---|
-| Select | Click a clip to select it (outlined). Esc clears. |
-| Split | **S** or the scissors button: cuts the selected clip at the playhead (it must be inside the clip, and each side at least 0.25 s). |
-| Duplicate | **Cmd/Ctrl+D**: copies the clip right after itself on the same track. |
-| Delete | **Delete/Backspace** removes the selected clip. A track with no clips stays until you remove it. |
+| Feature     | Behaviour                                                                                                                                                                       |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Select      | Click a clip to select it (outlined). Esc clears.                                                                                                                               |
+| Split       | **S** or the scissors button: cuts the selected clip at the playhead (it must be inside the clip, and each side at least 0.25 s).                                               |
+| Duplicate   | **Cmd/Ctrl+D**: copies the clip right after itself on the same track.                                                                                                           |
+| Delete      | **Delete/Backspace** removes the selected clip. A track with no clips stays until you remove it.                                                                                |
 | Undo / redo | **Cmd/Ctrl+Z**, **Shift+Cmd/Ctrl+Z**. One step per drag (taken on pointer-up), per split, delete, volume change and so on. Up to 100 steps. Cleared when another project opens. |
-| Snap | Toggle in the transport (on by default). Moves, trims and the playhead snap to beats at the project BPM. Hold **Alt** to drag freely. |
-| Fades | A small handle at each top corner of a clip. Drag inward to fade in/out. Drawn as a shaded curve. |
-| Pan | A small L–R slider per track. |
-| Play | **Space** plays and pauses. Shortcuts are ignored while typing in a field. |
+| Snap        | Toggle in the transport (on by default). Moves, trims and the playhead snap to beats at the project BPM. Hold **Alt** to drag freely.                                           |
+| Fades       | A small handle at each top corner of a clip. Drag inward to fade in/out. Drawn as a shaded curve.                                                                               |
+| Pan         | A small L–R slider per track.                                                                                                                                                   |
+| Play        | **Space** plays and pauses. Shortcuts are ignored while typing in a field.                                                                                                      |
 
 Playback, WAV export and publish stems all use the same per-clip schedule: a gain envelope for the fades, then a `StereoPannerNode` per track. Stems are rendered one per track, with all its clips.
 
@@ -86,7 +86,7 @@ On http://localhost:3102/mixer in a new tab:
 
 ## Publish is for artists (added 2026-11-05)
 
-Anyone signed in can use the whole editor: create, edit, export a WAV, save projects. **Publish to Bandcoin** shows for everyone:
+Anyone signed in can use the whole editor: create, edit, export a WAV, save projects. **Publish to Action Tokens** shows for everyone:
 
 - **Approved artist:** works as today (renders the mix and stems, then opens the portal's new-song form).
 - **No artist page:** the button is locked (lock icon). Clicking it opens a small panel: "Publishing is for artists", with a **Join as Artist** link to the artist portal home, where sign-up starts.

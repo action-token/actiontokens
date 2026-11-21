@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { AppError, ErrorCodes } from "@actiontokens/errors";
 
 import { chainConfig } from "../server/config";
-import { clearRateCache, liveBandcoinUsd, liveRates, TESTNET_BANDCOIN_USD } from "../server/rates";
+import { clearRateCache, liveActionTokenUsd, liveRates, TESTNET_ACTION_USD } from "../server/rates";
 import { decryptSecret, encryptSecret } from "../server/secrets";
 
 const KEY = "a".repeat(64);
@@ -34,7 +34,7 @@ describe("secrets", () => {
 describe("chainConfig mother account", () => {
   const base = {
     NEXT_PUBLIC_STELLAR_NETWORK: "testnet",
-    NEXT_PUBLIC_ASSET_CODE: "BANDCOIN",
+    NEXT_PUBLIC_ASSET_CODE: "ACTION",
     NEXT_PUBLIC_ASSET_ISSUER: Keypair.random().publicKey(),
     PLATFORM_TREASURY: Keypair.random().publicKey(),
   };
@@ -75,9 +75,9 @@ describe("liveRates", () => {
   });
 });
 
-describe("liveBandcoinUsd", () => {
+describe("liveActionTokenUsd", () => {
   beforeEach(clearRateCache);
-  const asset = { code: "BANDCOIN", issuer: "GISSUER" };
+  const asset = { code: "ACTION", issuer: "GISSUER" };
 
   it("on mainnet reads the market price of the asset and caches it for a minute", async () => {
     const urls: string[] = [];
@@ -85,9 +85,9 @@ describe("liveBandcoinUsd", () => {
       urls.push(url);
       return { price: 0.0023 };
     };
-    expect(await liveBandcoinUsd({ name: "mainnet", asset }, fetcher, 0)).toBe("0.0023000");
-    await liveBandcoinUsd({ name: "mainnet", asset }, fetcher, 30_000);
-    expect(urls).toEqual(["https://api.stellar.expert/explorer/public/asset/BANDCOIN-GISSUER"]);
+    expect(await liveActionTokenUsd({ name: "mainnet", asset }, fetcher, 0)).toBe("0.0023000");
+    await liveActionTokenUsd({ name: "mainnet", asset }, fetcher, 30_000);
+    expect(urls).toEqual(["https://api.stellar.expert/explorer/public/asset/ACTION-GISSUER"]);
   });
 
   it("on mainnet refuses when the market has no price or can't be reached, with no fallback", async () => {
@@ -96,9 +96,11 @@ describe("liveBandcoinUsd", () => {
       async () => ({ price: null }),
       () => Promise.reject(new Error("offline")),
     ]) {
-      await expect(liveBandcoinUsd({ name: "mainnet", asset }, fetcher, 0)).rejects.toMatchObject({
+      await expect(
+        liveActionTokenUsd({ name: "mainnet", asset }, fetcher, 0),
+      ).rejects.toMatchObject({
         code: "EXTERNAL_SERVICE_FAILED",
-        message: "Couldn't load the BANDCOIN price. Try again in a moment.",
+        message: "Couldn't load the ACTION price. Try again in a moment.",
       });
     }
   });
@@ -106,7 +108,7 @@ describe("liveBandcoinUsd", () => {
   it("on testnet uses the fixed price and never asks the market", async () => {
     const never = () =>
       Promise.reject(new AppError(ErrorCodes.INTERNAL, { message: "must not call the network" }));
-    expect(TESTNET_BANDCOIN_USD).toBe("0.00231");
-    expect(await liveBandcoinUsd({ name: "testnet", asset }, never, 0)).toBe("0.0023100");
+    expect(TESTNET_ACTION_USD).toBe("0.00231");
+    expect(await liveActionTokenUsd({ name: "testnet", asset }, never, 0)).toBe("0.0023100");
   });
 });

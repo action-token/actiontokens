@@ -7,7 +7,7 @@ import { AppError, ErrorCodes } from "@actiontokens/errors";
  * The app id Apple issued identity tokens for. White-label apps with their own
  * bundle id set `APPLE_SIGN_IN_AUDIENCE`.
  */
-const DEFAULT_APPLE_AUDIENCE = "com.thebillboardapp.bandcoin";
+const DEFAULT_APPLE_AUDIENCE = "com.thebillboardapp.actionToken";
 
 const appleKeys = jwksClient({ jwksUri: "https://appleid.apple.com/auth/keys" });
 

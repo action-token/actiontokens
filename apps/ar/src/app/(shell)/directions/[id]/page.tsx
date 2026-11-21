@@ -100,7 +100,7 @@ const ORIGIN_GRID = 0.001;
 
 /** Navigation look: Google-style, or the compass HUD. Remembered per device. */
 type NavStyle = "classic" | "compass";
-const STYLE_KEY = "bandcoin-ar-nav-style";
+const STYLE_KEY = "actiontokens-ar-nav-style";
 const readStyle = (): NavStyle => {
   try {
     return localStorage.getItem(STYLE_KEY) === "compass" ? "compass" : "classic";

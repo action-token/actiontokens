@@ -6,15 +6,15 @@ import { applyBps, sum, toAmount, toDisplay, toStroops, toUsd, usdTo } from "../
  * live rates and the buyer's balances; the UI only displays what comes back.
  *
  * Rules it enforces:
- * - The artist sets two prices: BANDCOIN and USD. XLM and USDC are worked
+ * - The artist sets two prices: ACTION and USD. XLM and USDC are worked
  *   out from USD at the live rate. Card charges the USD price.
  * - Nothing is ever converted. If the buyer is short in the currency they
  *   chose, the quote says how much is missing.
  * - The buyer pays every cost: price, platform fee, trustline reserve and the
  *   network fee. The platform account never fronts anything.
  * - Card buyers pay the XLM costs in dollars too (the platform sends the XLM
- *   and is paid back by the card), and the seller is paid in BANDCOIN at the
- *   artist's BANDCOIN price.
+ *   and is paid back by the card), and the seller is paid in ACTION at the
+ *   artist's ACTION price.
  */
 
 /** XLM a new trustline locks in the buyer's account (refundable). */
@@ -26,7 +26,7 @@ export type QuoteInput = {
   currency: Currency;
   quantity: number;
   /** Price of one copy, as the artist set it. `xlm`: a fixed XLM price (page asset bundles, as old main), used instead of working XLM out from USD */
-  unitPrice: { bandcoin: string; usd: string; xlm?: string };
+  unitPrice: { actionToken: string; usd: string; xlm?: string };
   /** USD per XLM and per USDC, from the live feed (the one being paid in; XLM for card) */
   rates: { xlmUsd?: string; usdcUsd?: string };
   platformFeeBps: number;
@@ -47,7 +47,7 @@ export type QuoteLineKey = "price" | "platformFee" | "reserve" | "networkFee" | 
 export type QuoteLine = {
   key: QuoteLineKey;
   label: string;
-  /** e.g. "2 × 10 BANDCOIN" or "2.5 %" */
+  /** e.g. "2 × 10 ACTION" or "2.5 %" */
   detail?: string;
   hint?: string;
   amount: string;
@@ -68,16 +68,16 @@ export type Quote = {
   currency: Currency;
   quantity: number;
   unitPrice: string;
-  /** USD per unit of `currency`; null for BANDCOIN, which has its own price */
+  /** USD per unit of `currency`; null for ACTION, which has its own price */
   rateUsd: string | null;
   lines: QuoteLine[];
-  /** What the buyer pays, one entry per currency ("20.5 BANDCOIN + 0.50001 XLM") */
+  /** What the buyer pays, one entry per currency ("20.5 ACTION + 0.50001 XLM") */
   totals: { currency: Currency; amount: string }[];
   /** Where the money goes, in `currency` */
   payout: { seller: string; royalty: string; platform: string };
   /**
    * Card only: what the platform pays out on-chain for the card charge — the
-   * seller and royalty in BANDCOIN, and the XLM it sends the buyer's account.
+   * seller and royalty in ACTION, and the XLM it sends the buyer's account.
    */
   cardSettlement: {
     seller: string;
@@ -177,7 +177,7 @@ export function buildQuote(input: QuoteInput): Quote {
 }
 
 function cardSettlementOf(input: QuoteInput, reserve: bigint, networkFee: bigint) {
-  const price = toStroops(input.unitPrice.bandcoin) * BigInt(input.quantity);
+  const price = toStroops(input.unitPrice.actionToken) * BigInt(input.quantity);
   const royalty = applyBps(price, input.royaltyBps ?? 0);
   return {
     seller: toAmount(price - royalty),
@@ -205,7 +205,7 @@ function unitPriceIn(
   unitPrice: QuoteInput["unitPrice"],
   rateUsd: bigint | null,
 ) {
-  if (currency === "BANDCOIN") return toStroops(unitPrice.bandcoin);
+  if (currency === "ACTION") return toStroops(unitPrice.actionToken);
   if (currency === "USD") return toStroops(unitPrice.usd);
   if (currency === "XLM" && unitPrice.xlm !== undefined) return toStroops(unitPrice.xlm);
   return usdTo(toStroops(unitPrice.usd), rateUsd!);

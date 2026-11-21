@@ -56,7 +56,9 @@ async function loadToken(ctx: ServiceCtx, artist: ArtistRef, itemId: string) {
           issuerAccount: { select: { publicKey: true } },
         },
       },
-      organization: { select: { issuerAccount: { select: { publicKey: true, activatedAt: true } } } },
+      organization: {
+        select: { issuerAccount: { select: { publicKey: true, activatedAt: true } } },
+      },
     },
   });
   if (!item) throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND, { message: "Item not found" });
@@ -91,7 +93,9 @@ async function prepare(ctx: ServiceCtx, user: SessionUser, artist: ArtistRef, in
     problems.push(unavailable("Only items sold as Stellar tokens can be kept in storage."));
   else if (!minter)
     problems.push(
-      unavailable("This token wasn't issued by your Bandcoin account, so copies can't be added."),
+      unavailable(
+        "This token wasn't issued by your Action Tokens account, so copies can't be added.",
+      ),
     );
 
   if (!Number.isInteger(input.quantity) || input.quantity < 1 || input.quantity > MAX_STOCK)

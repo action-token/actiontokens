@@ -329,8 +329,8 @@ export function PlayerBar() {
               Buy
               {track.price && (
                 <Money
-                  amount={track.price.bandcoin}
-                  currency="BANDCOIN"
+                  amount={track.price.actionToken}
+                  currency="ACTION"
                   short
                   className="font-bold"
                   onBrand

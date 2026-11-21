@@ -95,18 +95,18 @@ describe("the seed script", () => {
 
   it("copies the cookie into the app's own key", () => {
     const script = sharedThemeSeedScript("theme");
-    expect(run(script, "a=1; bandcoin-theme=dark; b=2").get("theme")).toBe("dark");
+    expect(run(script, "a=1; actiontokens-theme=dark; b=2").get("theme")).toBe("dark");
   });
 
   it("renames a value to the app's own word (AR calls system auto)", () => {
-    const script = sharedThemeSeedScript("bandcoin-ar-theme", { system: "auto" });
-    expect(run(script, "bandcoin-theme=system").get("bandcoin-ar-theme")).toBe("auto");
-    expect(run(script, "bandcoin-theme=light").get("bandcoin-ar-theme")).toBe("light");
+    const script = sharedThemeSeedScript("actiontokens-ar-theme", { system: "auto" });
+    expect(run(script, "actiontokens-theme=system").get("actiontokens-ar-theme")).toBe("auto");
+    expect(run(script, "actiontokens-theme=light").get("actiontokens-ar-theme")).toBe("light");
   });
 
   it("does nothing for an unknown value or no cookie", () => {
     const script = sharedThemeSeedScript("theme");
-    expect(run(script, "bandcoin-theme=contrast").size).toBe(0);
+    expect(run(script, "actiontokens-theme=contrast").size).toBe(0);
     expect(run(script, "other=1").size).toBe(0);
   });
 });

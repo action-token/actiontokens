@@ -10,7 +10,7 @@ import {
   assetTomlUrl,
   decryptSecret,
   findTransaction,
-  liveBandcoinUsd,
+  liveActionTokenUsd,
   liveRates,
   loadAccount,
   loadAssetHolders,
@@ -46,8 +46,8 @@ export type ChainGateway = {
   config: ChainConfig;
   loadAccount(id: string): Promise<Horizon.AccountResponse | null>;
   rates(): Promise<Rates>;
-  /** USD per BANDCOIN: the Stellar market price on mainnet, a fixed price on testnet */
-  bandcoinUsd(): Promise<string>;
+  /** USD per ACTION: the Stellar market price on mainnet, a fixed price on testnet */
+  actionTokenUsd(): Promise<string>;
   /** Signs with the platform-held keys (issuer, storage) the builder listed */
   signWithServerKeys(xdr: string, publicKeys: string[]): Promise<string>;
   /** Signs for an email/Google/Apple account, whose key the platform keeps */
@@ -142,9 +142,9 @@ export function createChainGateway(db: Db): ChainGateway {
     config: chainConfig(),
     loadAccount,
     rates: () => liveRates(),
-    bandcoinUsd() {
+    actionTokenUsd() {
       const config = chainConfig();
-      return liveBandcoinUsd({ name: config.name, asset: config.assets.bandcoin });
+      return liveActionTokenUsd({ name: config.name, asset: config.assets.actionToken });
     },
     signWithServerKeys: async (xdr, publicKeys) => {
       // Only keys this transaction needs: Stellar refuses an extra signature (tx_bad_auth_extra).

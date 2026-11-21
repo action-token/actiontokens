@@ -24,9 +24,9 @@ const ago = (value: Date | string) => {
 /**
  * ── /notifications ─────────────────────────────────────────────────────────
  *
- * The same notifications as the Bandcoin app's bell: new posts, releases and
+ * The same notifications as the Action Tokens app's bell: new posts, releases and
  * bounties from artists you follow, replies, prizes. Bounties open here;
- * everything else opens in the Bandcoin app. Opening the screen marks them seen.
+ * everything else opens in the Action Tokens app. Opening the screen marks them seen.
  */
 export default function NotificationsScreen() {
   const signedIn = useAuth((s) => Boolean(s.user));
@@ -133,7 +133,7 @@ export default function NotificationsScreen() {
   );
 }
 
-/** Bounties have their own screen here; everything else opens in the Bandcoin app. */
+/** Bounties have their own screen here; everything else opens in the Action Tokens app. */
 function Row({ href, children }: { href: string | null; children: ReactNode }) {
   const className = "flex items-center gap-3 px-4 py-3.5";
   if (!href) return <div className={className}>{children}</div>;

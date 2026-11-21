@@ -8,7 +8,7 @@ const RESERVED = new Set([
   "artists",
   "about",
   "album",
-  "bandcoin",
+  "actiontokens",
   "bounty",
   "bounties",
   "collection",

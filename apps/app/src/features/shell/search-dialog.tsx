@@ -29,7 +29,7 @@ import { Avatar } from "./context-panel";
  * One search palette for the whole app, as in Wadzzo: the sidebar's Search
  * button, the phone header and Ctrl/⌘ + K all open it.
  */
-const EVENT = "bandcoin-search";
+const EVENT = "actiontokens-search";
 let open = false;
 const setOpen = (next: boolean) => {
   open = next;

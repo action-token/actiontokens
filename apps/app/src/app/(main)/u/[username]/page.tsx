@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const name = profile.displayName ?? `@${profile.username}`;
   return {
     title: name,
-    description: profile.bio ?? `${name}'s collection and playlists on Bandcoin.`,
+    description: profile.bio ?? `${name}'s collection and playlists on Action Tokens.`,
   };
 }
 

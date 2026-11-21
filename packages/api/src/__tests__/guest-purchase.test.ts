@@ -331,12 +331,12 @@ describe("guest pay", () => {
     mocks.loadNftSale.mockResolvedValue({ item: { id: "nft1" } });
     mocks.priceNft.mockResolvedValue({
       quote: itemQuote(),
-      price: { bandcoin: 500_000_000n, usd: 50_000_000n },
-      feeBandcoin: 0n,
+      price: { actionToken: 500_000_000n, usd: 50_000_000n },
+      feeActionToken: 0n,
       buyFeeXlm: 600_000n,
       openTrustline: true,
       reserveXlm: 5_000_000n,
-      bandcoin: {},
+      actionToken: {},
     });
     mocks.buildNftTopUp.mockReturnValue({ xdr: "topup-xdr", hash: "topup-hash" });
     mocks.runCardNftSteps.mockResolvedValue({ orderId: ORDER, status: "DELIVERED" });

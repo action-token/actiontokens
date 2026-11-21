@@ -37,7 +37,7 @@ type Row = Record<string, unknown>;
 const escrow = "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC";
 const network = { passphrase: Networks.TESTNET, baseFee: "100" };
 const assets = {
-  bandcoin: { code: "BANDCOIN", issuer: Keypair.random().publicKey() },
+  actionToken: { code: "ACTION", issuer: Keypair.random().publicKey() },
   usdc: { code: "USDC", issuer: Keypair.random().publicKey() },
 };
 const fan = { code: "LUNA", issuer: Keypair.random().publicKey() };
@@ -60,7 +60,7 @@ const base = {
   instructions: ["Post a link"],
   requiresActionCam: false,
   prizeAmount: "250",
-  prizeCurrency: "BANDCOIN" as const,
+  prizeCurrency: "ACTION" as const,
   maxWinners: 3,
   fundedFromStorage: false,
 };
@@ -72,7 +72,7 @@ const track = {
   lastFmUrl: "https://www.last.fm/music/Luna/_/Hello",
 };
 
-const account = (address: string, bandcoin = "500") => ({
+const account = (address: string, actionToken = "500") => ({
   accountId: () => address,
   sequenceNumber: () => "1",
   subentry_count: 0,
@@ -80,9 +80,9 @@ const account = (address: string, bandcoin = "500") => ({
     { asset_type: "native", balance: "100", selling_liabilities: "0" },
     {
       asset_type: "credit_alphanum12",
-      asset_code: "BANDCOIN",
-      asset_issuer: assets.bandcoin.issuer,
-      balance: bandcoin,
+      asset_code: "ACTION",
+      asset_issuer: assets.actionToken.issuer,
+      balance: actionToken,
       selling_liabilities: "0",
     },
     {
@@ -100,7 +100,7 @@ function setup(
     bounty?: Row | null;
     winners?: Row[];
     joined?: Row | null;
-    bandcoin?: string;
+    actionToken?: string;
     tokenLive?: boolean;
   } = {},
 ) {
@@ -112,7 +112,7 @@ function setup(
           fundTxHash: null,
           status: "RUNNING",
           prizeAmount: "250",
-          prizeCurrency: "BANDCOIN",
+          prizeCurrency: "ACTION",
           maxWinners: 3,
           fundedFromStorage: false,
           escrowContractId: escrow,
@@ -170,7 +170,7 @@ function setup(
   };
   const chain = {
     config: { network, escrowContract: escrow as string | null, assets },
-    loadAccount: vi.fn((address: string) => Promise.resolve(account(address, opts.bandcoin))),
+    loadAccount: vi.fn((address: string) => Promise.resolve(account(address, opts.actionToken))),
     prepareContractCall: vi.fn((xdr: string) => Promise.resolve(xdr)),
     signWithServerKeys: vi.fn((xdr: string) => Promise.resolve(`${xdr}`)),
     signForCustodialUser: vi.fn((xdr: string) => Promise.resolve(xdr)),
@@ -210,7 +210,7 @@ const fundXdr = (over: Partial<Parameters<typeof buildBountyFund>[0]> = {}) =>
     contract: escrow,
     bountyId: "b1",
     creator: wallet,
-    token: tokenAddressOf(assetFor("BANDCOIN", assets), network.passphrase),
+    token: tokenAddressOf(assetFor("ACTION", assets), network.passphrase),
     amount: 2_500_000_000n,
     maxWinners: 3,
     ...over,
@@ -231,7 +231,7 @@ describe("creating a bounty", () => {
       organizationId: "a1",
       title: "Cover my song",
       prizeAmount: "250",
-      prizeCurrency: "BANDCOIN",
+      prizeCurrency: "ACTION",
       maxWinners: 3,
       escrowContractId: escrow,
       rewardNote: "Paid in a week",
@@ -351,7 +351,7 @@ describe("managing a bounty", () => {
         fundTxHash: "tx0",
         status: "RUNNING",
         prizeAmount: "250",
-        prizeCurrency: "BANDCOIN",
+        prizeCurrency: "ACTION",
         maxWinners: 3,
         fundedFromStorage: false,
         escrowContractId: escrow,
@@ -373,7 +373,7 @@ describe("managing a bounty", () => {
       {
         id: "b1",
         prizeAmount: "250",
-        prize: expect.objectContaining({ amount: "250", code: "BANDCOIN" }) as unknown,
+        prize: expect.objectContaining({ amount: "250", code: "ACTION" }) as unknown,
         funded: false,
         hasMusic: false,
         participants: 2,
@@ -391,7 +391,7 @@ describe("funding the prize", () => {
     expect(prepared).toMatchObject({
       signer: "wallet",
       prize: "250.0000000",
-      code: "BANDCOIN",
+      code: "ACTION",
     });
     expect(decode(prepared.xdr).name).toBe("create_bounty");
     expect(chain.prepareContractCall).toHaveBeenCalledWith(expect.any(String), undefined);
@@ -404,7 +404,7 @@ describe("funding the prize", () => {
         fundTxHash: null,
         status: "RUNNING",
         prizeAmount: "250",
-        prizeCurrency: "BANDCOIN",
+        prizeCurrency: "ACTION",
         maxWinners: 3,
         fundedFromStorage: true,
         escrowContractId: escrow,
@@ -417,15 +417,15 @@ describe("funding the prize", () => {
 
   it("refuses when the source can't cover the prize, and when it is already funded", async () => {
     await expect(
-      prepareFunding(setup({ bandcoin: "100" }).ctx, artist, user, "b1"),
-    ).rejects.toThrow(/enough BANDCOIN/);
+      prepareFunding(setup({ actionToken: "100" }).ctx, artist, user, "b1"),
+    ).rejects.toThrow(/enough ACTION/);
     const funded = setup({
       bounty: {
         id: "b1",
         fundTxHash: "tx0",
         status: "RUNNING",
         prizeAmount: "250",
-        prizeCurrency: "BANDCOIN",
+        prizeCurrency: "ACTION",
         maxWinners: 3,
         fundedFromStorage: false,
         escrowContractId: escrow,
@@ -477,7 +477,7 @@ describe("funding the prize", () => {
         fundTxHash: null,
         status: "RUNNING",
         prizeAmount: "250",
-        prizeCurrency: "BANDCOIN",
+        prizeCurrency: "ACTION",
         maxWinners: 3,
         fundedFromStorage: true,
         escrowContractId: escrow,
@@ -492,8 +492,8 @@ describe("funding the prize", () => {
     const { ctx } = setup();
     const sources = await fundingSources(ctx, { ...artist, fanTokenItemId: "fan" }, user);
     expect(sources.fanToken).toEqual(fan);
-    expect(sources.wallet?.BANDCOIN).toBe("500.0000000");
-    expect(sources.storage?.BANDCOIN).toBe("500.0000000");
+    expect(sources.wallet?.ACTION).toBe("500.0000000");
+    expect(sources.storage?.ACTION).toBe("500.0000000");
     expect(sources.wallet?.others).toEqual([
       { code: "LUNA", issuer: fan.issuer, amount: "900.0000000" },
     ]);
@@ -520,7 +520,7 @@ describe("a prize in the artist's own token", () => {
   const setupXdr = (asset = new Asset(fan.code, fan.issuer), source = wallet) =>
     buildAssetContractSetup({ source: new Account(source, "1"), network, asset }).xdr;
 
-  it("stores the token, or the currency when the token is really BANDCOIN", async () => {
+  it("stores the token, or the currency when the token is really ACTION", async () => {
     const { ctx, written, chain } = setup();
     const { prizeCurrency: _, ...rest } = base;
     await expect(createBounty(ctx, artist, { ...rest, prizeAsset: fan })).resolves.toEqual({
@@ -534,8 +534,8 @@ describe("a prize in the artist's own token", () => {
     });
     expect(chain.assetExists).toHaveBeenCalledWith("LUNA", fan.issuer);
 
-    await createBounty(ctx, artist, { ...rest, prizeAsset: assets.bandcoin });
-    expect(written[1]).toMatchObject({ prizeCurrency: "BANDCOIN", prizeAssetCode: null });
+    await createBounty(ctx, artist, { ...rest, prizeAsset: assets.actionToken });
+    expect(written[1]).toMatchObject({ prizeCurrency: "ACTION", prizeAssetCode: null });
     await expect(createBounty(ctx, artist, { ...base, prizeAsset: fan })).rejects.toThrow(
       /Choose what the prize is paid in/,
     );
@@ -601,7 +601,7 @@ describe("picking winners", () => {
     fundTxHash: "tx0",
     status: "RUNNING",
     prizeAmount: "250",
-    prizeCurrency: "BANDCOIN",
+    prizeCurrency: "ACTION",
     maxWinners: 3,
     fundedFromStorage: false,
     escrowContractId: escrow,

@@ -53,7 +53,7 @@ const account = (id = buyerKey) => new Account(id, "100");
 const parse = (xdr: string) => TransactionBuilder.fromXDR(xdr, Networks.TESTNET) as Transaction;
 
 const item = new Asset("NIGHTDRV", issuer);
-const bandcoin = new Asset("BANDCOIN", key());
+const actionToken = new Asset("ACTION", key());
 const orderId = "cm9x2a7f0000abcd1234efgh";
 
 const purchase = () =>
@@ -64,7 +64,7 @@ const purchase = () =>
     item,
     openTrustline: true,
     payment: {
-      asset: bandcoin,
+      asset: actionToken,
       seller: { to: seller, amount: "18" },
       platformFee: { to: treasury, amount: "0.5" },
       royalty: { to: creator, amount: "2" },
@@ -100,7 +100,7 @@ describe("buildClassicPurchase", () => {
     ).toBe(tx.operations.length);
   });
 
-  it("card order: treasury tops up the reserve, pays the seller in BANDCOIN, and fee-bumps", () => {
+  it("card order: treasury tops up the reserve, pays the seller in ACTION, and fee-bumps", () => {
     const built = buildClassicPurchase({
       buyer: account(),
       network,
@@ -108,7 +108,7 @@ describe("buildClassicPurchase", () => {
       item,
       openTrustline: true,
       topUp: { from: treasury, amount: "0.5" },
-      payment: { asset: bandcoin, from: treasury, seller: { to: seller, amount: "20" } },
+      payment: { asset: actionToken, from: treasury, seller: { to: seller, amount: "20" } },
       delivery: { mint: { issuer, amount: "2" } },
     });
     const tx = parse(built.xdr);
@@ -150,7 +150,7 @@ describe("buildClassicPurchase", () => {
       item,
       openTrustline: false,
       payment: {
-        asset: bandcoin,
+        asset: actionToken,
         seller: { to: seller, amount: "5" },
         platformFee: { to: treasury, amount: "0" },
       },
@@ -179,7 +179,7 @@ describe("Non Stellar item purchase", () => {
       orderId,
       item: null,
       payment: {
-        asset: bandcoin,
+        asset: actionToken,
         seller: { to: seller, amount: "10" },
         platformFee: { to: treasury, amount: "0.5" },
       },
@@ -202,7 +202,7 @@ describe("Non Stellar item purchase", () => {
       network,
       orderId,
       item: null,
-      payment: { asset: bandcoin, seller: { to: seller, amount: "10" } },
+      payment: { asset: actionToken, seller: { to: seller, amount: "10" } },
     };
     expect(() =>
       buildClassicPurchase({
@@ -218,12 +218,12 @@ describe("Non Stellar item purchase", () => {
 describe("recharge builders", () => {
   const mother = key();
 
-  it("top-up: the buyer is the source, the platform sends the BANDCOIN, trustline opened first if needed", () => {
+  it("top-up: the buyer is the source, the platform sends the ACTION, trustline opened first if needed", () => {
     const built = buildTopUp({
       buyer: account(),
       network,
       orderId,
-      asset: bandcoin,
+      asset: actionToken,
       from: mother,
       amount: "4994.999",
       openTrustline: true,
@@ -244,7 +244,7 @@ describe("recharge builders", () => {
           buyer: account(),
           network,
           orderId,
-          asset: bandcoin,
+          asset: actionToken,
           from: mother,
           amount: "1",
           openTrustline: false,
@@ -259,7 +259,7 @@ describe("recharge builders", () => {
         buyer: account(),
         network,
         orderId,
-        asset: bandcoin,
+        asset: actionToken,
         from: mother,
         amount: "12",
         openTrustline: true,
@@ -281,7 +281,7 @@ describe("recharge builders", () => {
       network,
       orderId,
       platform: mother,
-      pay: { asset: bandcoin, amount: "51" },
+      pay: { asset: actionToken, amount: "51" },
       receive: { asset: Asset.native(), amount: "1" },
       openTrustline: false,
     });
@@ -296,7 +296,7 @@ describe("recharge builders", () => {
     expect(built.serverSigners).toEqual([mother]);
   });
 
-  it("swap to BANDCOIN: opens the line first when the wallet has none", () => {
+  it("swap to ACTION: opens the line first when the wallet has none", () => {
     const tx = parse(
       buildSwap({
         buyer: account(),
@@ -304,7 +304,7 @@ describe("recharge builders", () => {
         orderId,
         platform: mother,
         pay: { asset: Asset.native(), amount: "2" },
-        receive: { asset: bandcoin, amount: "98" },
+        receive: { asset: actionToken, amount: "98" },
         openTrustline: true,
       }).xdr,
     );
@@ -312,14 +312,14 @@ describe("recharge builders", () => {
     expect(tx.operations[2]).toMatchObject({ source: mother, amount: "98.0000000" });
   });
 
-  it("subscribing with BANDCOIN: pays for the reserve, the fee to the treasury, gets the XLM, opens the line", () => {
+  it("subscribing with ACTION: pays for the reserve, the fee to the treasury, gets the XLM, opens the line", () => {
     const fanToken = new Asset("NOVA", creator);
     const built = buildTrustWithPayment({
       buyer: account(),
       network,
       orderId,
       token: fanToken,
-      asset: bandcoin,
+      asset: actionToken,
       platform: mother,
       pay: "25.5",
       sendXlm: "0.5",
@@ -370,7 +370,7 @@ describe("recharge builders", () => {
         network,
         orderId,
         token: new Asset("NOVA", creator),
-        asset: bandcoin,
+        asset: actionToken,
         platform: mother,
         pay: "0",
         sendXlm: "0.5",
@@ -380,7 +380,7 @@ describe("recharge builders", () => {
     ).toThrow(RangeError);
   });
 
-  it("subscribing by card: the platform sends the reserves, the fan opens both lines, the rest arrives as BANDCOIN", () => {
+  it("subscribing by card: the platform sends the reserves, the fan opens both lines, the rest arrives as ACTION", () => {
     const built = buildTrustByCard({
       buyer: account(),
       network,
@@ -388,7 +388,7 @@ describe("recharge builders", () => {
       token: new Asset("NOVA", creator),
       from: mother,
       sendXlm: "1",
-      bandcoin: { asset: bandcoin, amount: "300", openLine: true },
+      actionToken: { asset: actionToken, amount: "300", openLine: true },
     });
     const tx = parse(built.xdr);
     expect(tx.operations.map((op) => op.type)).toEqual([
@@ -399,7 +399,7 @@ describe("recharge builders", () => {
     ]);
     expect(tx.operations[0]).toMatchObject({ source: mother, amount: "1.0000000" });
     expect(tx.operations[1]).toMatchObject({
-      line: expect.objectContaining({ code: bandcoin.code }),
+      line: expect.objectContaining({ code: actionToken.code }),
     });
     expect(tx.operations[2]).toMatchObject({ line: expect.objectContaining({ code: "NOVA" }) });
     expect(tx.operations[3]).toMatchObject({ source: mother, amount: "300.0000000" });
@@ -413,7 +413,7 @@ describe("recharge builders", () => {
         token: new Asset("NOVA", creator),
         from: mother,
         sendXlm: "0.5",
-        bandcoin: { asset: bandcoin, amount: "0", openLine: false },
+        actionToken: { asset: actionToken, amount: "0", openLine: false },
       }).xdr,
     );
     expect(noExtra.operations.map((op) => op.type)).toEqual(["payment", "changeTrust"]);
@@ -431,7 +431,7 @@ describe("recharge builders", () => {
       amount: "3",
       openStorage: true,
       openTrustline: true,
-      openPayoutLine: { code: "BANDCOIN", issuer: creator },
+      openPayoutLine: { code: "ACTION", issuer: creator },
     });
     const tx = parse(built.xdr);
     expect(tx.operations.map((op) => op.type)).toEqual([
@@ -523,7 +523,7 @@ describe("recharge builders", () => {
         buyer: account(),
         network,
         orderId,
-        asset: bandcoin,
+        asset: actionToken,
         from: mother,
         amount: "0",
         openTrustline: false,
@@ -535,7 +535,7 @@ describe("recharge builders", () => {
         network,
         orderId,
         platform: mother,
-        pay: { asset: bandcoin, amount: "0" },
+        pay: { asset: actionToken, amount: "0" },
         receive: { asset: Asset.native(), amount: "1" },
         openTrustline: false,
       }),
@@ -548,8 +548,8 @@ describe("verifyTransaction", () => {
     source: buyerKey,
     memo: orderId,
     payments: [
-      { to: seller, asset: bandcoin, amount: "18" },
-      { to: treasury, asset: bandcoin, amount: "0.5" },
+      { to: seller, asset: actionToken, amount: "18" },
+      { to: treasury, asset: actionToken, amount: "0.5" },
       { from: issuer, to: buyerKey, asset: item, amount: "1" },
     ],
   };
@@ -567,7 +567,7 @@ describe("verifyTransaction", () => {
       network,
       orderId: "another-order",
       to: seller,
-      asset: bandcoin,
+      asset: actionToken,
       amount: "1",
     });
     const result = verifyTransaction(other.xdr, Networks.TESTNET, expectation);
@@ -669,7 +669,7 @@ describe("other builders", () => {
     const batches = buildRoyaltyPayouts({
       payer: account(creator),
       network,
-      asset: bandcoin,
+      asset: actionToken,
       lines,
       payoutId: "payout-1",
     });
@@ -683,7 +683,7 @@ describe("other builders", () => {
     const batch = buildRewardBatch({
       payer: account(creator),
       network,
-      asset: bandcoin,
+      asset: actionToken,
       lines: [
         { to: a, amount: "2.5000000", claimable: false },
         { to: b, amount: "1.0000000", claimable: true },
@@ -698,7 +698,7 @@ describe("other builders", () => {
       buildRewardBatch({
         payer: account(creator),
         network,
-        asset: bandcoin,
+        asset: actionToken,
         lines: [],
         memo: "x",
         timeoutSeconds: 1,

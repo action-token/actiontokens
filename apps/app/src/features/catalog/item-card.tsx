@@ -106,8 +106,8 @@ export function ItemCard({
           {item.price && (
             <span className="bg-primary text-primary-foreground shrink-0 rotate-3 rounded-lg px-2 py-0.5 text-right transition-transform duration-200 group-hover:scale-105 group-hover:rotate-0">
               <Money
-                amount={item.price.bandcoin}
-                currency="BANDCOIN"
+                amount={item.price.actionToken}
+                currency="ACTION"
                 short
                 onBrand
                 className="display text-xl leading-none"

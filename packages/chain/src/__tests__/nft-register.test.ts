@@ -17,7 +17,7 @@ const artist = key();
 const authority = key();
 const creator = key();
 const contract = "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC";
-const bandcoin = new Asset("BANDCOIN", key());
+const actionToken = new Asset("ACTION", key());
 
 const base = () => ({
   source: new Account(artist, "10"),
@@ -33,7 +33,7 @@ const base = () => ({
   creator,
   royaltyBps: 500,
   supply: 100,
-  prices: [{ paymentToken: tokenAddressOf(bandcoin, network.passphrase), price: 250_000_000n }],
+  prices: [{ paymentToken: tokenAddressOf(actionToken, network.passphrase), price: 250_000_000n }],
 });
 
 const invocation = (xdr: string) => {
@@ -68,7 +68,7 @@ describe("buildNftRegisterEdition", () => {
       royalty_bps: 500,
       supply: 100,
       prices: [
-        { payment_token: tokenAddressOf(bandcoin, network.passphrase), price: 250_000_000n },
+        { payment_token: tokenAddressOf(actionToken, network.passphrase), price: 250_000_000n },
       ],
     });
   });
@@ -98,9 +98,9 @@ describe("buildNftRegisterEdition", () => {
 
 describe("tokenAddressOf", () => {
   it("is the asset's Stellar Asset Contract address, the same on every call", () => {
-    const address = tokenAddressOf(bandcoin, network.passphrase);
+    const address = tokenAddressOf(actionToken, network.passphrase);
     expect(address).toMatch(/^C[A-Z2-7]{55}$/);
-    expect(tokenAddressOf(new Asset("BANDCOIN", bandcoin.getIssuer()), network.passphrase)).toBe(
+    expect(tokenAddressOf(new Asset("ACTION", actionToken.getIssuer()), network.passphrase)).toBe(
       address,
     );
     expect(tokenAddressOf(Asset.native(), network.passphrase)).not.toBe(address);

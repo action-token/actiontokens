@@ -5,7 +5,7 @@ import { safeUrl, videoEmbed } from "./links";
 /**
  * The blocks an artist builds their page from. Each block has a type, a width
  * (in quarters of a row), two visibility switches and its own settings. A
- * block either shows data that already lives on Bandcoin (music, albums,
+ * block either shows data that already lives on Action Tokens (music, albums,
  * collectibles, membership tiers, events, stories) or content typed into its settings
  * (about, links, videos, band members).
  *
@@ -220,7 +220,7 @@ export type BlockDef = {
   category: BlockCategory;
   defaultWidth: BlockWidth;
   defaultHideWhenEmpty: boolean;
-  /** "data" blocks show what's already on Bandcoin; "settings" blocks hold what the artist types */
+  /** "data" blocks show what's already on Action Tokens; "settings" blocks hold what the artist types */
   source: "data" | "settings";
   /** Every page has exactly one, and it can't be removed (the cover) */
   locked?: boolean;

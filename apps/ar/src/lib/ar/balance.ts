@@ -1,5 +1,5 @@
 /**
- * How the map's profile capsule writes a BANDCOIN balance (plan 46): in full up to 100,000
+ * How the map's profile capsule writes a ACTION balance (plan 46): in full up to 100,000
  * (two decimals at most), compact above ("1.2M"). Null when it couldn't be read.
  */
 export function formatCapsuleBalance(balance: string | number | null | undefined): string | null {

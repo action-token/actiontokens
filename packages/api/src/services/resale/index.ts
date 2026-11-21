@@ -56,7 +56,7 @@ export async function submitList(
 export async function setListingPrice(
   ctx: ServiceCtx,
   user: SessionUser,
-  input: { listingId: string; priceBandcoin: string; priceUsd: string },
+  input: { listingId: string; priceActionToken: string; priceUsd: string },
 ) {
   if (await isNftListing(ctx, input.listingId))
     throw new AppError(ErrorCodes.VALIDATION_FAILED, {

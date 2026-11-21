@@ -158,7 +158,7 @@ export function useQrScanner({
  * too, so a code generated elsewhere still works.
  *
  * Returns null for anything else — a Wi-Fi code, a business card, another
- * app's QR — so the scanner can say "not a Bandcoin code" instead of firing a
+ * app's QR — so the scanner can say "not an Action Tokens code" instead of firing a
  * request that was never going to succeed.
  */
 export function pinIdFromScan(text: string): string | null {
