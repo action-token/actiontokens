@@ -1,139 +1,217 @@
 "use client";
 
-import {
-  ArrowRight,
-  BadgeCheck,
-  Code2,
-  Coins,
-  LogIn,
-  MapPinned,
-  Music2,
-  Sparkles,
-  Trophy,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowUpRight, Coins, LogIn, ScanLine, Store, Users, type LucideIcon } from "lucide-react";
+import { type ReactNode, useEffect, useRef } from "react";
 
+import { cn } from "@actiontokens/ui/lib/cn";
 import { BrandMark } from "@actiontokens/ui/patterns/boot-screen";
 import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
+import { AR_URL, FAN_APP_URL } from "./links";
+import { anton, gothic } from "./landing-fonts";
+import { LandingHero } from "./landing-hero";
+import { DropRail, MapPanels, OrgCardPreview, WantedBoard } from "./landing-sections";
+
 /**
- * Signed out: the portal's front page. Every portal address shows it until you sign in. A hero
- * with the product shown as floating cards (a pin drop on a map, a bounty, a collectible, the
- * vault), what an organization can do, three steps, and a last call to sign up. The pictures are
- * illustrations drawn in code (no images); every button opens the sign-in dialog.
+ * Signed out: the portal's front page, after docs/mockups/home.html. A scroll-played hero (the
+ * Action frames with three headlines), a neon ribbon, then sections with a blackletter tag and a
+ * chrome title that rise into view. Every portal address shows it until you sign in. The cards
+ * are examples drawn in code. Kept light: no particles, no blur, nothing animating at rest
+ * beyond small CSS transforms.
  */
 export function Landing() {
   const open = useConnectWalletDialogStore((state) => state.setIsOpen);
   const signIn = () => open(true);
+  const root = useReveal<HTMLDivElement>();
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 pt-8 pb-16 sm:px-8 lg:pt-14">
-      {/* ── Hero ── */}
-      <section className="grid items-center gap-12 lg:grid-cols-[1.05fr_1fr]">
-        <div className="ap-rise">
-          <p data-slot="page-eyebrow">Organization portal</p>
-          <h1 className="lp-title mt-4">
-            Put your world <span className="lp-hl">on the map.</span>
-          </h1>
-          <p className="text-fg-muted mt-5 max-w-lg text-base text-pretty sm:text-lg">
-            Drop collectibles at real places, run bounties with prizes held in escrow, sell music,
-            items and memberships, and get paid in ACTION on Stellar. One portal for your whole
-            organization.
+    <div ref={root} className={cn(anton.variable, gothic.variable)}>
+      <LandingHero onSignIn={signIn} />
+      <Marquee />
+
+      <div className="mx-auto grid w-full max-w-6xl gap-24 px-4 pt-16 pb-20 sm:px-8">
+        <Section
+          tag="Fresh off the block"
+          title="Live drops"
+          note="Sell songs, art, tickets, merch and memberships as tokens fans keep. Limited runs, timed drops, resales that pay you again."
+        >
+          <DropRail />
+        </Section>
+
+        <Section
+          tag="The board"
+          title="Bounties"
+          note="Every prize sits in escrow on-chain before the hunt starts. Fans do the thing, prove it, and you pick the winners."
+        >
+          <WantedBoard />
+        </Section>
+
+        <Section
+          tag="Out in the world"
+          title="The map"
+          note="Your drops live on the real map, and on your own website."
+        >
+          <MapPanels />
+        </Section>
+
+        <Section
+          tag="Stack it"
+          title="Get paid"
+          note="Your organization gets a page, a token and a wallet. Every sale lands in ACTION."
+        >
+          <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,380px)_1fr]">
+            <OrgCardPreview />
+            <ul className="grid gap-6" data-reveal>
+              <Point icon={Coins} title="Your own token">
+                Fans hold it, trade it and use it to unlock what you decide: tracks, tickets, rooms.
+              </Point>
+              <Point icon={Users} title="Members and royalties">
+                Membership tiers pay you every month, and royalties keep paying when fans resell.
+              </Point>
+              <Point icon={Store} title="Swap, send, keep">
+                Move between ACTION, XLM and USDC from your wallet whenever you like.
+              </Point>
+            </ul>
+          </div>
+        </Section>
+
+        <Section tag="Three moves" title="How it works" note="From sign-in to your first drop.">
+          <ol className="grid gap-4 md:grid-cols-3">
+            {STEPS.map((step, index) => (
+              <li
+                key={step.title}
+                className="lp-step"
+                data-reveal
+                style={{ transitionDelay: `${index * 100}ms` }}
+              >
+                <span className="lp-step-no">{String(index + 1).padStart(2, "0")}</span>
+                <p className="lp-h3 mt-4">{step.title}</p>
+                <p className="text-fg-muted mt-2 text-sm text-pretty">{step.body}</p>
+              </li>
+            ))}
+          </ol>
+        </Section>
+
+        <section className="lp-final" data-reveal>
+          <span className="lp-final-mark" aria-hidden>
+            <BrandMark className="h-10" />
+          </span>
+          <p className="lp-sec-title lp-chrome mt-5 text-center">Ready to drop?</p>
+          <p className="text-fg-muted mx-auto mt-3 max-w-md text-center text-pretty">
+            Sign in to set up your organization. Fans find you on the map, in the marketplace and on
+            your own page.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-7 flex justify-center">
             <button type="button" onClick={signIn} className="lp-cta">
-              <LogIn className="size-5" strokeWidth={2.4} />
-              Sign in / Sign up
-            </button>
-            <button type="button" onClick={signIn} className="lp-cta lp-cta--ghost">
-              Become an organization <ArrowRight className="size-4" />
+              <LogIn className="size-5" strokeWidth={2.4} /> Sign in / Sign up
             </button>
           </div>
-          <p className="gx-mono text-fg-faint mt-5">Email · Google · Apple · any Stellar wallet</p>
-        </div>
-
-        <HeroDeck />
-      </section>
-
-      {/* ── What you can do ── */}
-      <section className="mt-24">
-        <p data-slot="page-eyebrow">What you can do</p>
-        <h2 className="lp-h2 mt-3">Everything fans can collect, in one place</h2>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((feature, index) => (
-            <Feature key={feature.title} {...feature} index={index} />
-          ))}
-        </div>
-      </section>
-
-      {/* ── How it works ── */}
-      <section className="mt-24">
-        <p data-slot="page-eyebrow">How it works</p>
-        <h2 className="lp-h2 mt-3">Live in three steps</h2>
-        <ol className="mt-8 grid gap-4 md:grid-cols-3">
-          {STEPS.map((step, index) => (
-            <li key={step.title} className="lp-step">
-              <span className="lp-step-no">{String(index + 1).padStart(2, "0")}</span>
-              <h3 className="lp-h3 mt-4">{step.title}</h3>
-              <p className="text-fg-muted mt-2 text-sm text-pretty">{step.body}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      {/* ── Last call ── */}
-      <section className="lp-final mt-24">
-        <span className="lp-final-mark" aria-hidden>
-          <BrandMark className="h-10" />
-        </span>
-        <h2 className="lp-h2 mt-5 text-center">Ready to drop?</h2>
-        <p className="text-fg-muted mx-auto mt-3 max-w-md text-center text-pretty">
-          Sign in to set up your organization. Fans find you on the map, in the marketplace and on
-          your own page.
-        </p>
-        <div className="mt-7 flex justify-center">
-          <button type="button" onClick={signIn} className="lp-cta">
-            <Sparkles className="size-5" strokeWidth={2.4} />
-            Start now
-          </button>
-        </div>
-      </section>
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
+            <a href={FAN_APP_URL} className="lp-chip">
+              <Store className="size-4" /> See the marketplace <ArrowUpRight className="size-3.5" />
+            </a>
+            <a href={AR_URL} className="lp-chip">
+              <ScanLine className="size-4" /> Open the AR app <ArrowUpRight className="size-3.5" />
+            </a>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
 
-const FEATURES: { icon: LucideIcon; title: string; body: string }[] = [
-  {
-    icon: MapPinned,
-    title: "Drops on the real map",
-    body: "Pin collectibles to places. Fans walk there and collect them in AR. Schedule them, limit them, see who came.",
-  },
-  {
-    icon: Trophy,
-    title: "Bounties",
-    body: "Set a challenge and a prize. The prize waits in escrow until you pick the winners.",
-  },
-  {
-    icon: Music2,
-    title: "Music, items, memberships",
-    body: "Sell songs, art, tickets and merch as tokens, and give members tiers with their own perks.",
-  },
-  {
-    icon: Coins,
-    title: "Paid in ACTION",
-    body: "Every sale lands in your wallet on Stellar. Swap, send or keep it. Royalties included.",
-  },
-  {
-    icon: Code2,
-    title: "Your map on your site",
-    body: "Embed your live map on any website with one snippet. Your pins, your colours.",
-  },
-  {
-    icon: BadgeCheck,
-    title: "Your own page",
-    body: "A page for your organization with your songs, drops, events and links, on your own domain if you like.",
-  },
+const RIBBON = [
+  "Drop pins IRL",
+  "Bounties in escrow",
+  "Sell music",
+  "Memberships",
+  "Paid in ACTION",
+  "On Stellar",
+  "Your own token",
 ];
+
+/** The tilted neon ribbon under the hero (CSS only: one transform animation). */
+function Marquee() {
+  const run = [...RIBBON, ...RIBBON];
+  return (
+    <div className="lp-marquee-box" aria-hidden>
+      <div className="lp-marquee">
+        <div className="lp-marquee-track">
+          {run.map((word, index) => (
+            <span key={index}>{word}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Section({
+  tag,
+  title,
+  note,
+  children,
+}: {
+  tag: string;
+  title: string;
+  note: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="grid gap-7" aria-label={title}>
+      <div data-reveal>
+        <p className="lp-tag">{tag}</p>
+        <h2 className="lp-sec-title lp-chrome">{title}</h2>
+        <p className="text-fg-muted mt-3 max-w-md">{note}</p>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Point({
+  icon: Icon,
+  title,
+  children,
+}: {
+  icon: LucideIcon;
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <li className="flex gap-4">
+      <span className="gx-launch-icon mt-0.5 shrink-0">
+        <Icon className="size-4" strokeWidth={2.4} />
+      </span>
+      <span>
+        <span className="lp-h3 block">{title}</span>
+        <span className="text-fg-muted mt-1.5 block text-sm text-pretty">{children}</span>
+      </span>
+    </li>
+  );
+}
+
+/** Marks each `[data-reveal]` inside the returned ref with `data-in` once it reaches the screen. */
+function useReveal<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    const items = ref.current?.querySelectorAll<HTMLElement>("[data-reveal]");
+    if (!items?.length) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.setAttribute("data-in", "");
+          observer.unobserve(entry.target);
+        }
+      },
+      { rootMargin: "0px 0px -10% 0px" },
+    );
+    items.forEach((item) => observer.observe(item));
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
 
 const STEPS = [
   {
@@ -149,147 +227,3 @@ const STEPS = [
     body: "Put pins on the map, open a bounty, list your first item. Fans collect, you earn.",
   },
 ];
-
-function Feature({
-  icon: Icon,
-  title,
-  body,
-  index,
-}: {
-  icon: LucideIcon;
-  title: string;
-  body: string;
-  index: number;
-}) {
-  return (
-    <div className="lp-feature ap-rise" style={{ animationDelay: `${index * 60}ms` }}>
-      <span className="gx-launch-icon">
-        <Icon className="size-4" strokeWidth={2.4} />
-      </span>
-      <h3 className="lp-h3 mt-4">{title}</h3>
-      <p className="text-fg-muted mt-2 text-sm text-pretty">{body}</p>
-    </div>
-  );
-}
-
-/** The product as a stack of floating cards: a map with live pins, a collectible, a bounty and the vault. */
-function HeroDeck() {
-  return (
-    <div aria-hidden className="relative mx-auto h-[470px] w-full max-w-[520px]">
-      {/* map */}
-      <div className="lp-card ap-float absolute top-0 left-0 z-10 w-[72%]">
-        <div className="flex items-center justify-between px-4 pt-3.5">
-          <span className="gx-mono text-fg-muted">Map · live drops</span>
-          <span className="gx-mono text-primary-text flex items-center gap-1.5">
-            <span className="gx-live" /> 3 live
-          </span>
-        </div>
-        <MiniMap />
-      </div>
-
-      {/* collectible */}
-      <div
-        className="lp-card ap-float absolute top-[20%] right-0 z-20 w-[40%] p-3"
-        style={{ animationDelay: "-2.4s" }}
-      >
-        <div className="lp-art">
-          <span className="lp-art-sun" />
-        </div>
-        <p className="lp-h3 mt-3 text-[1.05rem]">Sunset sessions</p>
-        <div className="mt-1 flex items-center justify-between">
-          <span className="gx-mono text-primary-text">250 ACTION</span>
-          <span className="gx-mono text-fg-faint">41/300</span>
-        </div>
-      </div>
-
-      {/* bounty */}
-      <div
-        className="lp-card ap-float absolute bottom-[3%] left-0 z-30 w-[55%] p-4"
-        style={{ animationDelay: "-4.2s" }}
-      >
-        <div className="flex items-center gap-2.5">
-          <span className="gx-launch-icon !size-7">
-            <Trophy className="size-3.5" strokeWidth={2.4} />
-          </span>
-          <span className="gx-mono text-fg-muted">Bounty · running</span>
-        </div>
-        <p className="lp-h3 mt-3 text-[1.05rem]">Best rooftop moment</p>
-        <div className="mt-3 flex items-center justify-between">
-          <span className="gx-mono text-[var(--gx-acid-text)]">Prize 750 ACTION</span>
-          <span className="gx-mono text-fg-faint">12 joined</span>
-        </div>
-        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--gx-fill-strong)]">
-          <div className="h-full w-[62%] rounded-full bg-[var(--gx-neon)] shadow-[0_0_10px_var(--gx-glow)]" />
-        </div>
-      </div>
-
-      {/* vault chip */}
-      <div
-        className="ap-float absolute right-[4%] bottom-0 z-30 w-[38%]"
-        style={{ animationDelay: "-1.2s" }}
-      >
-        <div className="gx-vault">
-          <span className="gx-vault-in">
-            <span className="gx-mono text-fg-muted">Vault</span>
-            <span className="gx-amount mt-1 block">+1,250</span>
-            <span className="gx-mono text-[var(--gx-acid-text)]">ACTION today</span>
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/** A small map: streets on a grid, a river, and three pulsing pins. */
-function MiniMap() {
-  const pins = [
-    { x: 92, y: 70, delay: "0s" },
-    { x: 210, y: 118, delay: "-0.8s" },
-    { x: 300, y: 54, delay: "-1.6s" },
-  ];
-  return (
-    <svg viewBox="0 0 380 190" className="mt-2 block w-full">
-      <defs>
-        <linearGradient id="lp-river" x1="0" x2="1">
-          <stop offset="0" stopColor="var(--gx-neon)" stopOpacity="0.25" />
-          <stop offset="1" stopColor="var(--gx-acid)" stopOpacity="0.2" />
-        </linearGradient>
-      </defs>
-      <g stroke="var(--gx-line)" strokeWidth="1">
-        {Array.from({ length: 9 }, (_, i) => (
-          <line key={`v${i}`} x1={i * 46 + 10} y1="0" x2={i * 46 - 20} y2="190" />
-        ))}
-        {Array.from({ length: 5 }, (_, i) => (
-          <line key={`h${i}`} x1="0" y1={i * 44 + 14} x2="380" y2={i * 44 + 4} />
-        ))}
-      </g>
-      <path
-        d="M-10 160 C 80 120, 140 180, 230 140 S 340 90, 400 110"
-        fill="none"
-        stroke="url(#lp-river)"
-        strokeWidth="14"
-        strokeLinecap="round"
-      />
-      <path
-        d="M20 30 L120 40 L170 100 L280 90"
-        fill="none"
-        stroke="var(--gx-line-strong)"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeDasharray="2 7"
-      />
-      {pins.map((pin) => (
-        <g key={pin.x} transform={`translate(${pin.x} ${pin.y})`}>
-          <circle
-            r="16"
-            fill="var(--gx-neon)"
-            opacity="0.25"
-            className="lp-pulse"
-            style={{ animationDelay: pin.delay }}
-          />
-          <circle r="7" fill="var(--gx-neon)" stroke="var(--gx-panel-a)" strokeWidth="2.5" />
-        </g>
-      ))}
-    </svg>
-  );
-}
