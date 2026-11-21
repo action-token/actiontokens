@@ -209,3 +209,67 @@ h3 {
   border-radius: 14px;
   box-shadow: 4px 4px 0 0 var(--st-pop);
 }
+
+/* ── Portal backdrop: engraved blocks lit from below, a faint shade in the right corner
+   (features/shell/portal-backdrop.tsx). Blocks one step above the page, sides one below, seams
+   exactly the page colour: an unlit seam disappears and seams only show where light comes through. */
+:root {
+  --bg-tile-a: #171a18;
+  --bg-tile-b: #0e100f;
+  --bg-side: #020302;
+  --bg-gap: var(--bc-bg);
+  --bg-rim: rgb(255 255 255 / 0.06);
+  --bg-engrave-lo: rgb(0 0 0 / 0.75);
+  --bg-engrave-hi: rgb(255 255 255 / 0.08);
+}
+:root[data-theme="light"] {
+  --bg-tile-a: #ffffff;
+  --bg-tile-b: #f4f8f5;
+  --bg-side: #d3ead9;
+  --bg-gap: var(--bc-bg);
+  --bg-rim: rgb(255 255 255 / 0.9);
+  --bg-engrave-lo: rgb(8 19 11 / 0.13);
+  --bg-engrave-hi: rgb(255 255 255 / 1);
+}
+.at-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+.at-scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* a shade, not a picture */
+  opacity: 0.32;
+  /* soft edges: the scene melts into the page colour */
+  mask-image: radial-gradient(
+    130% 110% at 70% 35%,
+    #000 35%,
+    rgb(0 0 0 / 0.55) 65%,
+    transparent 100%
+  );
+  -webkit-mask-image: radial-gradient(
+    130% 110% at 70% 35%,
+    #000 35%,
+    rgb(0 0 0 / 0.55) 65%,
+    transparent 100%
+  );
+}
+/* Light: multiply, so white blocks vanish into the page and only the sides, marks and light show */
+:root[data-theme="light"] .at-scene {
+  opacity: 0.35;
+  mix-blend-mode: multiply;
+}
+/* a wash of the page colour over the scene, so text on the page stays calm */
+.at-wash {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, transparent 0%, var(--bc-bg) 100%) bottom / 100% 25% no-repeat,
+    radial-gradient(60% 70% at 35% 45%, rgb(from var(--bc-bg) r g b / 0.42), transparent 75%);
+}

@@ -10,7 +10,6 @@ import { useSidebarCollapsed } from "@actiontokens/ui/lib/sidebar-collapsed";
 import { BrandMark } from "@actiontokens/ui/patterns/boot-screen";
 import { PhoneTabBar } from "@actiontokens/ui/patterns/phone-tab-bar";
 import { SideLaunchTiles, SideMenuSheet } from "@actiontokens/ui/patterns/side-frame";
-import { SiteBackdrop } from "@actiontokens/ui/patterns/site-backdrop";
 
 import { AccountButton } from "~/features/account/account-button";
 import {
@@ -24,6 +23,7 @@ import { AR_URL, FAN_APP_URL } from "./links";
 import { isActive, type NavGroup, type NavItem, navFor, phoneLabel, phoneTabs } from "./nav";
 import { Sidebar } from "./sidebar";
 import { SignInCard } from "./sign-in-card";
+import { PortalBackdrop } from "./portal-backdrop";
 
 /**
  * The frame around every portal page: a sidebar of what this person may use
@@ -47,7 +47,7 @@ export function PortalShell({
 
   return (
     <div className="grid min-h-dvh grid-cols-1 sm:grid-cols-[auto_minmax(0,1fr)]">
-      <SiteBackdrop />
+      <PortalBackdrop />
       <Sidebar
         groups={groups}
         pathname={pathname}
