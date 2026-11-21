@@ -66,7 +66,7 @@ export default function MarketItemScreen() {
                 {data.title}
               </h2>
               <p className="text-ar-faint mt-1 text-[13px]">
-                {data.artist?.name ?? data.track?.artistName ?? "ActionTokens"}
+                {data.artist?.name ?? data.track?.artistName ?? "Action Tokens"}
               </p>
 
               <p className="mt-4 flex items-baseline gap-2">

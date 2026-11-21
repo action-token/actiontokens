@@ -107,10 +107,10 @@ export default function BountyScreen() {
 
                     <span
                       className={cn(
-                        "font-hud absolute top-2 left-2 flex h-6 min-w-6 items-center justify-center rounded-full border px-1.5 text-[11px] font-bold backdrop-blur-xs",
+                        "font-display absolute top-2 left-2 flex h-6 min-w-6 items-center justify-center rounded-md border-2 px-1.5 text-[13px] leading-none",
                         i === 0
-                          ? "border-rarity-legendary/60 bg-rarity-legendary/20 text-rarity-legendary"
-                          : "border-ar-line-bright bg-ar-void/50 text-ar-text",
+                          ? "border-[hsl(var(--st-ink))] bg-[#ffc933] text-[hsl(var(--st-ink))]"
+                          : "bg-ar-surface text-ar-text border-[hsl(var(--st-line)/0.7)]",
                       )}
                     >
                       #{i + 1}

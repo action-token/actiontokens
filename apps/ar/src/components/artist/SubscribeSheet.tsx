@@ -12,7 +12,7 @@ import { ArButton, ArLinkButton } from "~/components/ui/ArButton";
 import { BottomSheet } from "~/components/ui/BottomSheet";
 import { SegmentedTabs } from "~/components/ui/SegmentedTabs";
 import { useSquareCard } from "~/lib/ar/useSquareCard";
-import { TOKEN_CODE } from "~/lib/market";
+import { currencyLabel, TOKEN_CODE } from "~/lib/market";
 import { type SubscribeCurrency, useSubscribe } from "~/lib/ar/useSubscribe";
 import { api } from "~/trpc/react";
 
@@ -224,4 +224,6 @@ const trimAmount = (amount: string) => amount.replace(/(\.\d*?)0+$/, "$1").repla
 
 /** "1.0000000" USD → "$1.00"; anything else keeps stroop precision and its code. */
 const formatAmount = (amount: string, currency: string) =>
-  currency === "USD" ? `$${Number(amount).toFixed(2)}` : `${trimAmount(amount)} ${currency}`;
+  currency === "USD"
+    ? `$${Number(amount).toFixed(2)}`
+    : `${trimAmount(amount)} ${currencyLabel(currency)}`;

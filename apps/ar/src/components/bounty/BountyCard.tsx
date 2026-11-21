@@ -13,6 +13,7 @@ import {
   TONE_CLASS,
   viewerBadge,
 } from "~/lib/ar/bounty";
+import { currencyLabel } from "~/lib/market";
 
 /**
  * ── BountyCard ─────────────────────────────────────────────────────────────
@@ -49,14 +50,14 @@ export function BountyCard({ bounty }: { bounty: BountyCardData }) {
 
         <span
           className={cn(
-            "font-hud absolute top-2.5 right-2.5 inline-flex h-[22px] items-center rounded-full border px-2.5 text-[10px] font-semibold tracking-[0.12em] uppercase backdrop-blur-xs",
+            "font-hud absolute top-2.5 right-2.5 inline-flex h-[22px] items-center rounded-md border-2 px-2 text-[10px] font-semibold tracking-[0.12em] uppercase shadow-[2px_2px_0_0_hsl(var(--st-ink))]",
             TONE_CLASS[badge.tone],
           )}
         >
           {badge.label}
         </span>
         {art.length > 0 && (
-          <span className="font-hud border-ar-line-bright bg-ar-void/60 text-ar-dim absolute top-2.5 left-2.5 inline-flex h-[22px] items-center gap-1 rounded-full border px-2.5 text-[10px] font-semibold tracking-[0.12em] uppercase backdrop-blur-xs">
+          <span className="font-hud bg-ar-surface text-ar-text absolute top-2.5 left-2.5 inline-flex h-[22px] items-center gap-1 rounded-md border-2 border-[hsl(var(--st-line)/0.7)] px-2 text-[10px] font-semibold tracking-[0.12em] uppercase">
             <Music size={10} strokeWidth={2.6} /> Listening
           </span>
         )}
@@ -85,8 +86,8 @@ export function BountyCard({ bounty }: { bounty: BountyCardData }) {
             </p>
             <p className="font-hud text-ar-faint mt-1 text-[10px] font-semibold tabular-nums">
               {bounty.maxWinners > 1
-                ? `${formatAmount(perWinner(bounty))} ${bounty.prize.currency} per winner`
-                : `${bounty.prize.currency} prize pool`}
+                ? `${formatAmount(perWinner(bounty))} ${currencyLabel(bounty.prize.code)} per winner`
+                : `${currencyLabel(bounty.prize.code)} prize pool`}
             </p>
           </div>
 

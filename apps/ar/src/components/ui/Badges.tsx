@@ -46,7 +46,7 @@ export function RarityPlate({
 
 const TONE: Record<string, string> = {
   accent: "border-[hsl(var(--st-ink))] bg-ar-accent text-[hsl(var(--st-ink))]",
-  gold: "border-[hsl(var(--st-ink))] bg-rarity-legendary text-[hsl(var(--st-ink))]",
+  gold: "border-[hsl(var(--st-ink))] bg-[#ffc933] text-[hsl(var(--st-ink))]",
   danger: "border-[hsl(var(--st-ink))] bg-ar-danger text-white",
   muted: "border-[hsl(var(--st-line)/0.7)] bg-ar-surface text-ar-dim",
 };

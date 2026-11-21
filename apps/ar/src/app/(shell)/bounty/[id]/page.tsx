@@ -50,6 +50,7 @@ import { useAuth } from "~/lib/ar/store";
 import { useBountyClaim } from "~/lib/ar/useRewardClaim";
 import { useQueryParams, useRouter } from "~/lib/navigation";
 import { api } from "~/trpc/react";
+import { currencyLabel } from "~/lib/market";
 
 type Section = "brief" | "people" | "mine";
 const SECTIONS: Section[] = ["brief", "people", "mine"];
@@ -198,10 +199,10 @@ export default function BountyDetailScreen() {
                   href={bounty.prize.explorerUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  title={`View ${bounty.prize.currency} on Stellar Expert`}
+                  title={`View ${currencyLabel(bounty.prize.code)} on Stellar Expert`}
                   className="font-hud text-ar-dim hover:text-ar-text inline-flex items-center gap-1 text-[11px] font-semibold"
                 >
-                  {bounty.prize.currency} <ExternalLink size={10} strokeWidth={2.4} />
+                  {currencyLabel(bounty.prize.code)} <ExternalLink size={10} strokeWidth={2.4} />
                 </a>
                 {bounty.maxWinners > 1 && (
                   <p className="font-hud text-ar-faint mt-0.5 text-[10px] font-semibold tabular-nums">
@@ -654,7 +655,7 @@ function WinnerBanner({
       <div className="min-w-0">
         <p className="text-ar-text text-[14px] font-semibold">You won this bounty</p>
         <p className="text-ar-dim mt-0.5 text-[12px] leading-snug">
-          {formatAmount(prize)} {bounty.prize.currency}{" "}
+          {formatAmount(prize)} {currencyLabel(bounty.prize.code)}{" "}
           {claimed ? "is in your wallet." : "is waiting in escrow. Claim it below."}
         </p>
       </div>
@@ -745,12 +746,13 @@ function PrimaryAction({
         onClick={() =>
           claim.claim(
             <>
-              Claim {formatAmount(winner.prize)} {bounty.prize.currency} from the bounty escrow.
+              Claim {formatAmount(winner.prize)} {currencyLabel(bounty.prize.code)} from the bounty
+              escrow.
             </>,
           )
         }
       >
-        Claim {formatAmount(winner.prize)} {bounty.prize.currency}
+        Claim {formatAmount(winner.prize)} {currencyLabel(bounty.prize.code)}
       </ArButton>
     );
   }

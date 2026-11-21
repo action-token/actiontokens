@@ -15,10 +15,10 @@ export type BountyPerson = BountyDetail["participantList"][number]["user"];
 export type Tone = "accent" | "gold" | "muted" | "info";
 
 export const TONE_CLASS: Record<Tone, string> = {
-  accent: "border-ar-accent/50 bg-ar-accent/15 text-ar-accent-hot",
-  gold: "border-rarity-legendary/50 bg-rarity-legendary/15 text-rarity-legendary",
-  muted: "border-ar-line-bright bg-white/[0.05] text-ar-faint",
-  info: "border-rarity-rare/50 bg-rarity-rare/15 text-rarity-rare",
+  accent: "border-[hsl(var(--st-ink))] bg-ar-accent text-[hsl(var(--st-ink))]",
+  gold: "border-[hsl(var(--st-ink))] bg-[#ffc933] text-[hsl(var(--st-ink))]",
+  muted: "border-[hsl(var(--st-line)/0.7)] bg-ar-surface text-ar-dim",
+  info: "border-rarity-rare bg-ar-surface text-rarity-rare",
 };
 
 /** The one badge a card shows: where *you* stand on it, else whether it's open. */

@@ -12,6 +12,7 @@ import { BottomSheet } from "~/components/ui/BottomSheet";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { useRewardClaim } from "~/lib/ar/useRewardClaim";
 import { api } from "~/trpc/react";
+import { currencyLabel } from "~/lib/market";
 
 /**
  * "Claim to wallet" on a collected pin's card page. Collecting already
@@ -125,7 +126,7 @@ function ClaimSheet({
           <b className="text-ar-text">
             {trimAmount(amount)} {name}
           </b>{" "}
-          to your Stellar wallet. You only pay Stellar&apos;s costs; ActionTokens charges nothing.
+          to your Stellar wallet. You only pay Stellar&apos;s costs; Action Tokens charges nothing.
         </p>
 
         <div className="mt-4 min-h-24">
@@ -148,7 +149,7 @@ function ClaimSheet({
                       )}
                     </span>
                     <span className="font-hud shrink-0 text-[12.5px] font-semibold tabular-nums">
-                      {trimAmount(line.amount)} {line.currency}
+                      {trimAmount(line.amount)} {currencyLabel(line.currency)}
                     </span>
                   </li>
                 ))}
@@ -157,7 +158,7 @@ function ClaimSheet({
                     Total
                   </span>
                   <span className="font-hud text-ar-text text-[15px] font-bold tabular-nums">
-                    {trimAmount(q.total)} {q.currency}
+                    {trimAmount(q.total)} {currencyLabel(q.currency)}
                   </span>
                 </li>
               </ul>

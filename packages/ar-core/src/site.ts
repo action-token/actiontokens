@@ -3,12 +3,12 @@
  * constant. Colours: neon green #0aff54 (the logo green #007a23, brightened) on near-black green (docs/PLAN.md §12).
  */
 export const site = {
-  name: "ActionTokens",
+  name: "Action Tokens",
   /** Off-chain points earned by scanning murals; not the BANDCOIN token */
   coinName: "Mural Coins",
-  coinOwner: "ActionTokens",
+  coinOwner: "Action Tokens",
   wordmark: {
-    letters: ["A", "C", "T", "I", "O", "N", "T", "O", "K", "E", "N", "S"],
+    letters: ["A", "C", "T", "I", "O", "N", "-", "T", "O", "K", "E", "N", "S"],
     plate: "AR",
   },
   assets: {

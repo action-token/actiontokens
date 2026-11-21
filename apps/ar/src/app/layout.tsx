@@ -18,7 +18,7 @@ import { fontVariables } from "~/lib/fonts";
 import { TRPCReactProvider } from "~/trpc/react";
 
 export const metadata: Metadata = {
-  title: { default: "ActionTokens AR: collect the real world", template: "%s · ActionTokens AR" },
+  title: { default: "Action-Tokens AR: collect the real world", template: "%s · Action-Tokens AR" },
   description:
     "Walk to pins organizations dropped around the city, collect them in AR and keep the rewards.",
   appleWebApp: { capable: true, statusBarStyle: "black-translucent" },

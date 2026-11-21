@@ -195,7 +195,7 @@ export default function CollectionScreen() {
                     key={r}
                     active={rarity === r}
                     onClick={() => setRarity(r)}
-                    className={cn(n === 0 && "opacity-40")}
+                    className={cn(n === 0 && "border-dashed")}
                   >
                     <span style={{ color: `hsl(${RARITY_META[r].hsl})` }}>
                       {RARITY_META[r].short}

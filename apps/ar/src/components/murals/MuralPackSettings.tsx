@@ -135,7 +135,7 @@ export function MuralPackSettings() {
             setBusy("delete");
             void deleteMuralPack()
               .then(() =>
-                setNote("Deleted. It downloads again next time you open ActionTokens AR."),
+                setNote("Deleted. It downloads again next time you open Action Tokens AR."),
               )
               .finally(() => setBusy(null));
           }}

@@ -77,7 +77,7 @@ function TapeBand({ t, rotate, top, delay, green, dir }: { t: number; rotate: nu
   const outP = inCubic(seg(t, EXIT + 60, 420));
   const x = lerp(-130 * dir, 0, inP) + 130 * dir * outP;
   const run = (t * 0.06 * dir) % 260;
-  const text = "ACTIONTOKENS ★ AR ★ ";
+  const text = "ACTION-TOKENS ★ AR ★ ";
   return (
     <div
       className="absolute left-[-30%] w-[160%] border-y-[3px] border-black py-1.5"
@@ -340,7 +340,7 @@ export function BootLock({ t }: { t: number }) {
 
       <div className="absolute inset-x-0 top-[68%] flex flex-col items-center gap-2">
         <span className="font-display text-[24px] leading-none text-[hsl(var(--st-paper))]" style={{ opacity: seg(t, 500, 300) }}>
-          ACTIONTOKENS
+          ACTION-TOKENS
         </span>
         <span className="font-display bg-black px-2 py-1 text-[10px] text-[hsl(var(--ar-accent))] outline-2 outline-[hsl(var(--ar-accent))]" style={{ opacity: seg(t, 650, 300) }}>
           AR · COLLECT THE REAL WORLD
@@ -387,7 +387,7 @@ function PosterBand({ t, rotate, top, delay, ink, dir }: { t: number; rotate: nu
         className="font-display text-[28px] leading-[0.9] pt-1 whitespace-nowrap"
         style={{ color: ink ? GREEN : INK, transform: `translateX(${run - 260}px)` }}
       >
-        {"ACTIONTOKENS ★ AR ★ ".repeat(8)}
+        {"ACTION-TOKENS ★ AR ★ ".repeat(8)}
       </div>
     </div>
   );
