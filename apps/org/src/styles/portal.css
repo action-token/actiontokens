@@ -1413,7 +1413,7 @@ a.lp-chip:hover {
   overscroll-behavior: contain;
   scrollbar-width: none;
   /* the top clears the front page's notch */
-  padding: 68px clamp(20px, 3vw, 40px) 92px;
+  padding: 68px clamp(20px, 3vw, 40px) clamp(20px, 3vw, 40px);
 }
 .tour-page::-webkit-scrollbar {
   display: none;
@@ -1448,100 +1448,6 @@ a.lp-chip:hover {
   background: #000;
   opacity: calc(var(--dim, 0) * 0.6);
   pointer-events: none;
-}
-
-/* the dock: caption + page tabs, floating at the bottom */
-.tour-dock {
-  position: absolute;
-  z-index: 40;
-  left: 0;
-  right: 0;
-  bottom: 22px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  width: max-content;
-  max-width: calc(100% - 32px);
-  margin-inline: auto;
-  padding: 8px 10px 8px 18px;
-  border-radius: 22px;
-  border: 1px solid var(--gx-line-strong);
-  background: var(--bc-surface);
-  box-shadow:
-    var(--gx-shadow),
-    0 24px 60px -24px rgb(0 0 0 / 0.6),
-    0 0 0 1px var(--gx-line);
-  opacity: 0;
-  transform: translateY(30px);
-  transition:
-    opacity 0.4s ease,
-    transform 0.5s cubic-bezier(0.2, 0.9, 0.3, 1);
-}
-.tour-dock[data-on] {
-  opacity: 1;
-  transform: none;
-}
-.tour-dock-copy {
-  width: 250px;
-  min-width: 0;
-}
-.tour-dock-title {
-  font-family: var(--lp-display), var(--font-display);
-  font-size: 20px;
-  line-height: 1;
-  text-transform: uppercase;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.tour-dock-tabs {
-  display: flex;
-  gap: 3px;
-  padding-left: 14px;
-  border-left: 1px solid var(--gx-line);
-}
-.tour-dock-tabs button {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  height: 40px;
-  padding: 0 11px;
-  border-radius: 13px;
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-  color: var(--bc-fg-muted);
-  transition:
-    background 0.25s,
-    color 0.25s;
-}
-.tour-dock-tabs button span {
-  display: none;
-}
-.tour-dock-tabs button:hover {
-  color: var(--bc-fg);
-  background: var(--gx-fill);
-}
-.tour-dock-tabs button[data-on] {
-  background: var(--gx-neon);
-  color: var(--gx-on-neon);
-}
-.tour-dock-tabs button[data-on] span {
-  display: inline;
-}
-.tour-dock-count {
-  padding: 0 6px;
-  color: var(--bc-fg-faint);
-}
-@media (max-width: 1099px) {
-  .tour-dock-copy,
-  .tour-dock-count {
-    display: none;
-  }
-  .tour-dock-tabs {
-    padding-left: 0;
-    border-left: 0;
-  }
 }
 
 /* My page preview */
@@ -1691,16 +1597,6 @@ main .tour-big {
 }
 
 /* the caption: what this page is for */
-.tour-caption-in {
-  min-width: 0;
-  animation: tour-caption-in 0.4s ease both;
-}
-@keyframes tour-caption-in {
-  from {
-    opacity: 0;
-    transform: translateX(14px);
-  }
-}
 .tour-tag {
   display: inline-flex;
   align-items: center;
@@ -1816,9 +1712,7 @@ main .tour-big {
 
 @media (prefers-reduced-motion: reduce) {
   .tour-page [data-a],
-  .tour-pin,
-  .tour-dock,
-  .tour-caption-in {
+  .tour-pin {
     transition: none !important;
     animation: none !important;
   }

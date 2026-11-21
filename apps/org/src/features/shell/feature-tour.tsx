@@ -194,7 +194,6 @@ export function FeatureTour() {
   const [active, setActive] = useState(-1);
   // the furthest panel reached: panels behind it stay filled in
   const [reached, setReached] = useState(-1);
-  const jump = useRef<(panel: number) => void>(() => undefined);
 
   useEffect(() => {
     const el = section.current;
@@ -258,7 +257,6 @@ export function FeatureTour() {
       if (!box) return 0;
       return dir > 0 ? box.scrollHeight - box.clientHeight - box.scrollTop : box.scrollTop;
     };
-    jump.current = goTo;
 
     const update = () => {
       raf = 0;
@@ -433,11 +431,6 @@ export function FeatureTour() {
   }, [active]);
   useEffect(() => () => void dispatchEvent(new CustomEvent(TOUR_EVENT, { detail: -1 })), []);
 
-  /** Jump to a page from the tabs (the same eased move as a scroll). */
-  const go = (panel: number) => jump.current(panel);
-
-  const current = active >= 0 ? CHAPTERS[active] : undefined;
-
   return (
     <section
       ref={section}
@@ -480,37 +473,6 @@ export function FeatureTour() {
           ))}
         </div>
 
-        {/* the dock: what this page is for, and every page as a tab */}
-        <div className="tour-dock" data-on={current ? true : undefined}>
-          <div className="tour-dock-copy" aria-live="polite">
-            {current && (
-              <div key={current.id} className="tour-caption-in">
-                <p className="tour-dock-title">{current.title}</p>
-                <p className="text-fg-muted truncate text-xs">{current.body}</p>
-              </div>
-            )}
-          </div>
-          <nav className="tour-dock-tabs" aria-label="Tour pages">
-            {CHAPTERS.map((chapter, index) => (
-              <button
-                key={chapter.id}
-                type="button"
-                onClick={() => go(index + 1)}
-                data-on={active === index || undefined}
-                aria-current={active === index ? "page" : undefined}
-                aria-label={chapter.tag}
-                title={chapter.tag}
-              >
-                <chapter.icon className="size-4" />
-                <span>{chapter.tag}</span>
-              </button>
-            ))}
-          </nav>
-          <span className="tour-dock-count gx-mono" aria-hidden>
-            {String(Math.max(0, active + 1)).padStart(2, "0")}/
-            {String(CHAPTERS.length).padStart(2, "0")}
-          </span>
-        </div>
         <div className="tour-progress" aria-hidden>
           <i />
         </div>
@@ -1405,7 +1367,7 @@ function EventsPage() {
               </StatusPill>
             </span>
             <div className="grid gap-0.5 px-3.5 py-3">
-              <h3 className="display truncate text-lg">{title}</h3>
+              <h3 className="display truncate text-xl!">{title}</h3>
               <p className="text-fg-muted text-xs">{when}</p>
               <p className="text-fg-muted flex items-center gap-1.5 text-xs">
                 <MapPin className="size-3.5 shrink-0" /> <span className="truncate">{where}</span>
