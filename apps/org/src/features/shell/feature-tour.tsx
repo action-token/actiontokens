@@ -289,6 +289,26 @@ export function FeatureTour() {
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(update);
     };
+    // every page fits one screen: a page a little taller than the screen is shrunk to fit
+    // (never below 80%), same layout. Measured on load and resize only.
+    const fit = () => {
+      track.current?.querySelectorAll<HTMLElement>(".tour-page:not([data-full])").forEach((box) => {
+        const page = box.firstElementChild as HTMLElement | null;
+        if (!page) return;
+        page.style.zoom = "1";
+        const style = getComputedStyle(box);
+        const room =
+          box.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+        const scale = Math.min(1, room / page.offsetHeight);
+        page.style.zoom = String(Math.max(0.8, scale).toFixed(3));
+      });
+    };
+    fit();
+    void document.fonts?.ready.then(fit);
+    const onResize = () => {
+      fit();
+      onScroll();
+    };
     // one wheel gesture = one page, while the section is pinned. The momentum that follows a
     // flick keeps arriving for a while; it belongs to the same gesture and is swallowed.
     const onWheel = (event: WheelEvent) => {
@@ -313,7 +333,7 @@ export function FeatureTour() {
       if (Math.abs(event.deltaY) < 1) return;
       const dir = event.deltaY > 0 ? 1 : -1;
       // a tall page scrolls top to bottom first
-      if (room(dir) > 1) {
+      if (room(dir) > 4) {
         event.preventDefault();
         scrollerOf(panel)!.scrollTop += event.deltaY;
         gesture = "inner";
@@ -340,7 +360,7 @@ export function FeatureTour() {
             : 0;
       if (!dir) return;
       const arrow = event.key === "ArrowDown" || event.key === "ArrowUp";
-      if (arrow && !moving() && room(dir) > 1) {
+      if (arrow && !moving() && room(dir) > 4) {
         event.preventDefault();
         scrollerOf(panel)!.scrollBy({ top: dir * 120, behavior: "smooth" });
         return;
@@ -356,13 +376,13 @@ export function FeatureTour() {
       const on = entry?.isIntersecting ?? false;
       if (on && !listening) {
         addEventListener("scroll", onScroll, { passive: true });
-        addEventListener("resize", onScroll);
+        addEventListener("resize", onResize);
         addEventListener("wheel", onWheel, { passive: false });
         addEventListener("keydown", onKey);
         onScroll();
       } else if (!on && listening) {
         removeEventListener("scroll", onScroll);
-        removeEventListener("resize", onScroll);
+        removeEventListener("resize", onResize);
         removeEventListener("wheel", onWheel);
         removeEventListener("keydown", onKey);
       }
@@ -374,7 +394,7 @@ export function FeatureTour() {
       clearTimeout(settle);
       cancelAnimationFrame(tween);
       removeEventListener("scroll", onScroll);
-      removeEventListener("resize", onScroll);
+      removeEventListener("resize", onResize);
       removeEventListener("wheel", onWheel);
       removeEventListener("keydown", onKey);
       if (raf) cancelAnimationFrame(raf);
@@ -932,7 +952,7 @@ function BountiesPage() {
           <article
             key={card.title}
             className={cn(
-              "bg-surface relative isolate flex min-h-64 flex-col overflow-hidden rounded-[1.4rem] border-2 p-5",
+              "bg-surface relative isolate flex flex-col overflow-hidden rounded-[1.4rem] border-2 p-4",
               index === 0 && "shadow-[6px_7px_0_0_var(--color-primary)]",
             )}
             {...a(index + 6)}
@@ -961,8 +981,8 @@ function BountiesPage() {
                 {card.left}
               </span>
             </div>
-            <h3 className="display mt-4 line-clamp-2 text-2xl leading-tight">{card.title}</h3>
-            <p className="text-fg-muted mt-2 mb-4 line-clamp-4 text-[13.5px] leading-relaxed">
+            <h3 className="display mt-3 truncate text-2xl leading-tight">{card.title}</h3>
+            <p className="text-fg-muted mt-1 mb-3 line-clamp-2 text-[13px] leading-relaxed">
               {card.text}
             </p>
             <div className="mt-auto flex items-center justify-between gap-3 border-t pt-3">
@@ -1076,12 +1096,12 @@ function ItemsPage() {
             className="bg-surface overflow-hidden rounded-[1.4rem] border-2"
             {...a(index + 6)}
           >
-            <span className="relative block aspect-[4/3]" style={{ background: art }}>
+            <span className="relative block h-24" style={{ background: art }}>
               <StatusPill tone={tone} className="bg-surface absolute top-2.5 left-2.5 shadow-sm">
                 {status}
               </StatusPill>
             </span>
-            <div className="grid gap-1 p-3.5">
+            <div className="grid gap-0.5 p-3">
               <b className="truncate">{title}</b>
               <span className="text-fg-muted truncate text-xs">
                 {type} · {sold}
@@ -1129,10 +1149,9 @@ function MembershipsPage() {
     ["velvet.ops", "Supporter", "310", "Yesterday"],
     ["drift.king", "Fan", "120", "Yesterday"],
     ["sabbir", "VIP", "2,050", "2 days ago"],
-    ["tasnim.k", "Fan", "75", "3 days ago"],
   ] as const;
   return (
-    <div className="grid content-start gap-5">
+    <div className="grid content-start gap-4">
       <div {...a(0)}>
         <PageHeader
           eyebrow="Fans"
@@ -1146,7 +1165,7 @@ function MembershipsPage() {
         />
       </div>
       <section
-        className="bg-surface border-fg/10 flex flex-wrap items-center gap-x-10 gap-y-4 rounded-[1.4rem] border-2 p-5"
+        className="bg-surface border-fg/10 flex flex-wrap items-center gap-x-10 gap-y-4 rounded-[1.4rem] border-2 p-4"
         {...a(1)}
       >
         <span className="tour-token">RR</span>
@@ -1178,7 +1197,7 @@ function MembershipsPage() {
           <li
             key={tier.name}
             className={cn(
-              "bg-surface border-fg/10 flex flex-col rounded-[1.4rem] border-2 p-5",
+              "bg-surface border-fg/10 flex flex-col rounded-[1.4rem] border-2 p-4",
               tier.popular && "border-primary-text/50",
             )}
             {...a(index + 2)}
@@ -1201,7 +1220,7 @@ function MembershipsPage() {
               <span className="text-fg-muted text-sm">ROOF to hold</span>
             </p>
             <p className="text-fg-muted mt-2 text-sm">{tier.text}</p>
-            <ul className="mt-4 grid gap-1.5 border-t pt-4 text-sm">
+            <ul className="mt-3 grid gap-1 border-t pt-3 text-sm">
               {tier.perks.map((perk) => (
                 <li key={perk} className="flex gap-2">
                   <Check className="text-primary-text mt-0.5 size-4 shrink-0" /> {perk}
@@ -1216,7 +1235,7 @@ function MembershipsPage() {
           <Heading icon={Users}>Newest members</Heading>
           <ul className="mt-2 divide-y">
             {members.map(([name, tier, hold, when]) => (
-              <li key={name} className="flex items-center gap-3 py-2">
+              <li key={name} className="flex items-center gap-3 py-1.5">
                 <Person name={name} size="sm" />
                 <StatusPill
                   tone={tier === "VIP" ? "warning" : tier === "Supporter" ? "success" : "neutral"}
@@ -1231,7 +1250,7 @@ function MembershipsPage() {
         </section>
         <section className="bg-surface rounded-[1.4rem] border-2 p-4" {...a(6)}>
           <Heading icon={Crown}>Members by tier</Heading>
-          <ul className="mt-4 grid gap-4">
+          <ul className="mt-3 grid gap-3">
             {tiers.map((tier) => (
               <li key={tier.name} className="grid gap-1.5">
                 <span className="flex justify-between text-sm">
@@ -1247,7 +1266,7 @@ function MembershipsPage() {
               </li>
             ))}
           </ul>
-          <p className="text-fg-muted mt-5 border-t pt-3 text-xs">
+          <p className="text-fg-muted mt-4 border-t pt-3 text-xs">
             1,204 holders · 1,204 in a tier. Members move up the moment they hold more.
           </p>
         </section>
@@ -1345,7 +1364,7 @@ function EventsPage() {
             className="bg-surface overflow-hidden rounded-[1.4rem] border-2"
             {...a(index + 6)}
           >
-            <span className="relative block h-28" style={{ background: art }}>
+            <span className="relative block h-16" style={{ background: art }}>
               <StatusPill
                 tone={status === "Past" ? "neutral" : "success"}
                 className="bg-surface absolute top-2.5 right-2.5 shadow-sm"
@@ -1353,8 +1372,8 @@ function EventsPage() {
                 {status}
               </StatusPill>
             </span>
-            <div className="grid gap-1.5 p-4">
-              <h3 className="display truncate text-2xl">{title}</h3>
+            <div className="grid gap-1 p-3.5">
+              <h3 className="display truncate text-xl">{title}</h3>
               <p className="text-fg-muted text-sm">{when}</p>
               <p className="text-fg-muted flex items-center gap-1.5 text-sm">
                 <MapPin className="size-4 shrink-0" /> <span className="truncate">{where}</span>
@@ -1624,7 +1643,6 @@ function WalletPage() {
     [Trophy, "Bounty prize to escrow", "Remix the single · 3h ago", "-1,200", false],
     [Ticket, "Sold: Backstage pass", "to m0ss · 5h ago", "+1,500", true],
     [Gift, "Gift from a fan", "velvet.ops · Yesterday", "+100", true],
-    [ArrowDownUp, "Swapped XLM for ACTION", "Yesterday", "+3,000", true],
   ] as const;
   return (
     <div className="grid content-start gap-5">
@@ -1636,7 +1654,7 @@ function WalletPage() {
           label="your ACTION balance"
           address="GDROOFTOPRECORDSEXAMPLEWALLETADDRESSFORTHETOURPAGE0000"
           balance={
-            <TallText className="pb-[0.12em] text-7xl tabular-nums sm:text-8xl">
+            <TallText className="pb-[0.12em] text-6xl tabular-nums sm:text-7xl">
               48.6K <span className="text-[0.45em]">ACTION</span>
             </TallText>
           }
@@ -1683,7 +1701,7 @@ function WalletPage() {
           <Heading icon={Clock}>Recent activity</Heading>
           <ul className="mt-2 divide-y">
             {activity.map(([Icon, title, sub, amount, plus]) => (
-              <li key={title} className="flex items-center gap-3 py-2.5">
+              <li key={title} className="flex items-center gap-3 py-2">
                 <span className="bg-surface-2 grid size-9 shrink-0 place-items-center rounded-full">
                   <Icon className="text-fg-muted size-4" />
                 </span>

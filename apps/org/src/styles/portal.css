@@ -1413,7 +1413,7 @@ a.lp-chip:hover {
   overscroll-behavior: contain;
   scrollbar-width: none;
   /* the top clears the front page's notch */
-  padding: 76px clamp(20px, 3vw, 40px) 120px;
+  padding: 68px clamp(20px, 3vw, 40px) 92px;
 }
 .tour-page::-webkit-scrollbar {
   display: none;
