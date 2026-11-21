@@ -1096,19 +1096,19 @@ function ItemsPage() {
             className="bg-surface overflow-hidden rounded-[1.4rem] border-2"
             {...a(index + 6)}
           >
-            <span className="relative block h-24" style={{ background: art }}>
+            <span className="relative block h-32" style={{ background: art }}>
               <StatusPill tone={tone} className="bg-surface absolute top-2.5 left-2.5 shadow-sm">
                 {status}
               </StatusPill>
             </span>
-            <div className="grid gap-0.5 p-3">
-              <b className="truncate">{title}</b>
-              <span className="text-fg-muted truncate text-xs">
+            <div className="grid gap-0.5 px-3 py-2.5">
+              <b className="truncate text-[13px]">{title}</b>
+              <span className="text-fg-muted truncate text-[11px]">
                 {type} · {sold}
               </span>
-              <span className="mt-1 flex items-center justify-between text-sm">
+              <span className="mt-1 flex items-center justify-between text-xs">
                 <span className="num font-semibold">{action} ACTION</span>
-                <span className="text-fg-muted num text-xs">{usd}</span>
+                <span className="text-fg-muted num text-[11px]">{usd}</span>
               </span>
             </div>
           </li>
@@ -1364,7 +1364,7 @@ function EventsPage() {
             className="bg-surface overflow-hidden rounded-[1.4rem] border-2"
             {...a(index + 6)}
           >
-            <span className="relative block h-16" style={{ background: art }}>
+            <span className="relative block h-24" style={{ background: art }}>
               <StatusPill
                 tone={status === "Past" ? "neutral" : "success"}
                 className="bg-surface absolute top-2.5 right-2.5 shadow-sm"
@@ -1372,13 +1372,13 @@ function EventsPage() {
                 {status}
               </StatusPill>
             </span>
-            <div className="grid gap-1 p-3.5">
-              <h3 className="display truncate text-xl">{title}</h3>
-              <p className="text-fg-muted text-sm">{when}</p>
-              <p className="text-fg-muted flex items-center gap-1.5 text-sm">
-                <MapPin className="size-4 shrink-0" /> <span className="truncate">{where}</span>
+            <div className="grid gap-0.5 px-3.5 py-3">
+              <h3 className="display truncate text-lg">{title}</h3>
+              <p className="text-fg-muted text-xs">{when}</p>
+              <p className="text-fg-muted flex items-center gap-1.5 text-xs">
+                <MapPin className="size-3.5 shrink-0" /> <span className="truncate">{where}</span>
               </p>
-              <p className="text-fg-faint truncate text-xs">{rsvp}</p>
+              <p className="text-fg-faint truncate text-[11px]">{rsvp}</p>
             </div>
           </li>
         ))}
