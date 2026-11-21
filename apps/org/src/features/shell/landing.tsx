@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, Coins, LogIn, ScanLine, Store, Users, type LucideIcon } from "lucide-react";
+import { ArrowUpRight, LogIn, ScanLine, Store } from "lucide-react";
 import { type ReactNode, useEffect, useRef } from "react";
 
 import { cn } from "@actiontokens/ui/lib/cn";
@@ -10,7 +10,8 @@ import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 import { AR_URL, FAN_APP_URL } from "./links";
 import { anton, gothic } from "./landing-fonts";
 import { LandingHero } from "./landing-hero";
-import { DropRail, MapPanels, OrgCardPreview, WantedBoard } from "./landing-sections";
+import { FeatureTour } from "./feature-tour";
+import { DropRail, WantedBoard } from "./landing-sections";
 
 /**
  * Signed out: the portal's front page, after docs/mockups/home.html. A scroll-played hero (the
@@ -31,6 +32,14 @@ export function Landing() {
 
       <div className="mx-auto grid w-full max-w-6xl gap-24 px-4 pt-16 pb-20 sm:px-8">
         <Section
+          tag="Inside the portal"
+          title="What you can do"
+          note="Everything an organization runs from one place. Scroll through it."
+        >
+          <FeatureTour />
+        </Section>
+
+        <Section
           tag="Fresh off the block"
           title="Live drops"
           note="Sell songs, art, tickets, merch and memberships as tokens fans keep. Limited runs, timed drops, resales that pay you again."
@@ -44,35 +53,6 @@ export function Landing() {
           note="Every prize sits in escrow on-chain before the hunt starts. Fans do the thing, prove it, and you pick the winners."
         >
           <WantedBoard />
-        </Section>
-
-        <Section
-          tag="Out in the world"
-          title="The map"
-          note="Your drops live on the real map, and on your own website."
-        >
-          <MapPanels />
-        </Section>
-
-        <Section
-          tag="Stack it"
-          title="Get paid"
-          note="Your organization gets a page, a token and a wallet. Every sale lands in ACTION."
-        >
-          <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,380px)_1fr]">
-            <OrgCardPreview />
-            <ul className="grid gap-6" data-reveal>
-              <Point icon={Coins} title="Your own token">
-                Fans hold it, trade it and use it to unlock what you decide: tracks, tickets, rooms.
-              </Point>
-              <Point icon={Users} title="Members and royalties">
-                Membership tiers pay you every month, and royalties keep paying when fans resell.
-              </Point>
-              <Point icon={Store} title="Swap, send, keep">
-                Move between ACTION, XLM and USDC from your wallet whenever you like.
-              </Point>
-            </ul>
-          </div>
         </Section>
 
         <Section tag="Three moves" title="How it works" note="From sign-in to your first drop.">
@@ -166,28 +146,6 @@ function Section({
       </div>
       {children}
     </section>
-  );
-}
-
-function Point({
-  icon: Icon,
-  title,
-  children,
-}: {
-  icon: LucideIcon;
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <li className="flex gap-4">
-      <span className="gx-launch-icon mt-0.5 shrink-0">
-        <Icon className="size-4" strokeWidth={2.4} />
-      </span>
-      <span>
-        <span className="lp-h3 block">{title}</span>
-        <span className="text-fg-muted mt-1.5 block text-sm text-pretty">{children}</span>
-      </span>
-    </li>
   );
 }
 

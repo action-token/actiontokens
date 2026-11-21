@@ -7,9 +7,7 @@ const labels = (input: PortalNavInput) =>
 
 describe("portal navigation", () => {
   it("shows only the way in to someone who is not an organization yet", () => {
-    expect(labels({ signedIn: true, step: null, isAdmin: false })).toEqual([
-      "Become an org",
-    ]);
+    expect(labels({ signedIn: true, step: null, isAdmin: false })).toEqual(["Become an org"]);
   });
 
   it("shows no links to someone who is signed out", () => {

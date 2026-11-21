@@ -33,8 +33,6 @@ export function LandingHero({ onSignIn }: { onSignIn: () => void }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const root = useRef<HTMLDivElement>(null);
-  const counter = useRef<HTMLSpanElement>(null);
-  const bar = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const hero = section.current;
@@ -121,10 +119,6 @@ export function LandingHero({ onSignIn }: { onSignIn: () => void }) {
         stage.current.style.borderRadius = `${Math.round(dock * 28)}px`;
         stage.current.style.setProperty("--dock", dock.toFixed(2));
       }
-      if (counter.current) {
-        counter.current.textContent = `FRAME ${String(want + 1).padStart(3, "0")} / ${FRAMES}`;
-      }
-      if (bar.current) bar.current.style.transform = `scaleX(${p.toFixed(3)})`;
     };
 
     let raf = 0;
@@ -196,12 +190,6 @@ export function LandingHero({ onSignIn }: { onSignIn: () => void }) {
           </button>
         </div>
 
-        <div className="lph-progress" aria-hidden>
-          <span ref={counter}>FRAME 001 / {FRAMES}</span>
-          <div>
-            <i ref={bar} />
-          </div>
-        </div>
         <div className="lph-hint" aria-hidden>
           SCROLL ↓
         </div>
