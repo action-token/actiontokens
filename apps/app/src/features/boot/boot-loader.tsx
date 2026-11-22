@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 
-import { StageLoader } from "@actiontokens/ui/patterns/stage-loader/stage-loader";
+import { ActionLoader } from "@actiontokens/ui/patterns/action-loader";
+
+import { anton } from "../home/landing-fonts";
 
 import { useBootProgress } from "./use-boot-progress";
 
-/** The stage loader on every full page load, driven by real readiness. Unmounts once played. */
+/** The Action-Tokens loading screen on every full page load, driven by real readiness. Unmounts once played. */
 export function BootLoader() {
   const [done, setDone] = useState(false);
   if (done) return null;
@@ -15,5 +17,5 @@ export function BootLoader() {
 
 function BootLoaderShow({ onDone }: { onDone: () => void }) {
   const progress = useBootProgress();
-  return <StageLoader progress={progress} onDone={onDone} />;
+  return <ActionLoader progress={progress} onDone={onDone} className={anton.variable} />;
 }

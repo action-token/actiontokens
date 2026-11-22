@@ -494,3 +494,152 @@ a.lp-chip:hover {
     border-radius: 0 0 26px 26px;
   }
 }
+
+/* ── The loading screen (patterns/action-loader.tsx), in the hero's look: black stage, scan
+   lines, the mark glowing neon, a chrome title and a neon bar (scaleX). It slides up when done. ── */
+.at-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #000;
+  color: #f2f2f2;
+  transition:
+    transform 0.65s cubic-bezier(0.7, 0, 0.2, 1),
+    opacity 0.65s ease;
+}
+.at-loader--contained {
+  position: absolute;
+}
+.at-loader[data-phase="leave"] {
+  transform: translateY(-100%);
+}
+.at-loader-scan {
+  position: absolute;
+  inset: 0;
+  opacity: 0.14;
+  background:
+    repeating-linear-gradient(0deg, rgb(0 0 0 / 0.6) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 0.05) 0 1px, transparent 1px 4px);
+}
+.at-loader-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(40% 35% at 50% 45%, rgb(77 255 42 / 0.16), transparent 70%),
+    radial-gradient(120% 90% at 50% 45%, transparent 45%, rgb(0 0 0 / 0.85) 100%);
+}
+.at-loader-core {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  animation: at-loader-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes at-loader-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+}
+.at-loader-mark {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgb(77 255 42 / 0.6),
+    0 0 40px rgb(77 255 42 / 0.45),
+    0 0 90px rgb(77 255 42 / 0.2);
+  animation: at-loader-pulse 1.6s ease-in-out infinite;
+}
+@keyframes at-loader-pulse {
+  50% {
+    transform: scale(1.04);
+  }
+}
+.at-loader-title {
+  margin: 10px 0 0;
+  font-family: var(--lp-display), var(--font-display);
+  font-size: clamp(44px, 8vw, 96px);
+  line-height: 0.9;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  transform: skewX(-6deg);
+  background-image: linear-gradient(
+    180deg,
+    #fdfdfd 0%,
+    #bdbdbd 40%,
+    #fff 52%,
+    #6a6a6a 70%,
+    #d9d9d9 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+.at-loader-kicker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: #a3a3a3;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+.at-loader-kicker i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4dff2a;
+  box-shadow: 0 0 10px #4dff2a;
+}
+.at-loader-foot {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(32px, 9vh, 80px);
+  width: min(460px, calc(100% - 48px));
+  translate: -50% 0;
+}
+.at-loader-track {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgb(255 255 255 / 0.1);
+}
+.at-loader-bar {
+  height: 100%;
+  border-radius: inherit;
+  background: #4dff2a;
+  box-shadow: 0 0 14px #4dff2a;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.at-loader-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  color: #a3a3a3;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+.at-loader-meta > span:last-child {
+  color: #4dff2a;
+  letter-spacing: 0.08em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .at-loader,
+  .at-loader-core,
+  .at-loader-mark {
+    transition: none;
+    animation: none;
+  }
+}
