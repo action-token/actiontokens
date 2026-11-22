@@ -692,164 +692,6 @@
   color: var(--bc-primary-text);
 }
 
-/* ── Explore: the gallery and the AR map (dark stages in both themes) ── */
-.hm-explore {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
-  gap: 18px;
-}
-.hm-way {
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-  min-height: 340px;
-  overflow: hidden;
-  padding: 26px;
-  border: 1px solid rgb(77 255 42 / 0.16);
-  border-radius: 24px;
-  background: #070907;
-  color: #eafff0;
-  transition: border-color 0.25s;
-}
-.hm-way:hover {
-  border-color: rgb(77 255 42 / 0.5);
-}
-.hm-way-text {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  justify-items: start;
-  gap: 8px;
-}
-.hm-way .text-fg-muted {
-  color: #9fb4a5;
-}
-.hm-way-title {
-  font-family: var(--lp-display), var(--font-display);
-  font-size: clamp(40px, 4.4vw, 60px);
-  line-height: 0.9;
-  text-transform: uppercase;
-  background-image: linear-gradient(
-    180deg,
-    #fdfdfd 0%,
-    #bdbdbd 40%,
-    #fff 52%,
-    #6a6a6a 70%,
-    #d9d9d9 100%
-  ) !important;
-}
-.hm-way-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-  padding: 12px 20px;
-  border-radius: 12px;
-  background: var(--gx-neon);
-  color: var(--gx-on-neon);
-  font-weight: 700;
-  box-shadow: 0 0 24px rgb(77 255 42 / 0.35);
-}
-.hm-way-btn--ghost {
-  border: 1px solid rgb(255 255 255 / 0.25);
-  background: transparent;
-  color: #eafff0;
-  box-shadow: none;
-}
-/* the gallery: frames receding down a corridor */
-.hm-way-art {
-  position: absolute;
-  inset: 0;
-  perspective: 600px;
-}
-.hm-way-art i {
-  position: absolute;
-  top: 18%;
-  width: 22%;
-  height: 46%;
-  border: 3px solid #e8e8e8;
-  background: radial-gradient(circle at 50% 45%, rgb(77 255 42 / 0.35), #050605 70%);
-}
-.hm-way-art i:nth-child(odd) {
-  left: 4%;
-  transform: rotateY(55deg) translateZ(calc(var(--k, 0) * -1px));
-}
-.hm-way-art i:nth-child(even) {
-  right: 4%;
-  transform: rotateY(-55deg);
-}
-.hm-way-art i:nth-child(3) {
-  left: 16%;
-  scale: 0.7;
-}
-.hm-way-art i:nth-child(4) {
-  right: 16%;
-  scale: 0.7;
-}
-.hm-way-art i:nth-child(5) {
-  left: 26%;
-  scale: 0.45;
-}
-.hm-way-art i:nth-child(6) {
-  right: 26%;
-  scale: 0.45;
-}
-/* the AR map: a grid with glowing pins and you */
-.hm-way-map {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(rgb(77 255 42 / 0.08) 1px, transparent 1px) 0 0 / 34px 34px,
-    linear-gradient(90deg, rgb(77 255 42 / 0.08) 1px, transparent 1px) 0 0 / 34px 34px,
-    radial-gradient(80% 80% at 70% 30%, rgb(77 255 42 / 0.12), transparent);
-  mask-image: linear-gradient(90deg, transparent 0%, #000 45%);
-}
-.hm-way-map i,
-.hm-way-map b {
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #4dff2a;
-  box-shadow:
-    0 0 0 8px rgb(77 255 42 / 0.12),
-    0 0 18px rgb(77 255 42 / 0.6);
-}
-.hm-way-map i[data-gold] {
-  background: #ffb02e;
-  box-shadow:
-    0 0 0 8px rgb(255 176 46 / 0.14),
-    0 0 18px rgb(255 176 46 / 0.6);
-}
-.hm-way-map b {
-  background: #4d8dff;
-  box-shadow: 0 0 0 6px rgb(77 141 255 / 0.2);
-}
-
-@media (max-width: 639px) {
-  .hm-head {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .hm-crew {
-    flex-wrap: wrap;
-  }
-  .hm-gate {
-    max-width: none;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hm-drop:hover .hm-drop-art img,
-  .hm-drop:hover .hm-drop-blank {
-    animation: none;
-  }
-  .hm-drop,
-  .hm-poster,
-  .hm-org {
-    transition: none;
-  }
-}
-
 /* ── The notch's search field and balance chip ── */
 .hm-notch {
   gap: 10px;
@@ -950,5 +792,201 @@ html[data-hero] .hm-notch {
     flex: 1;
     width: auto;
     min-width: 0;
+  }
+}
+
+/* ── The footer: the organization portal, AR and the studio exhibition, then the sign-off and
+   links. A dark stage in both themes, full width beside the sidebar. ── */
+.hm-foot {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(48px, 6vw, 80px) clamp(16px, 3vw, 44px) 28px;
+  border-top: 1px solid rgb(77 255 42 / 0.18);
+  background:
+    radial-gradient(70% 60% at 15% 0%, rgb(77 255 42 / 0.1), transparent 70%),
+    radial-gradient(50% 50% at 100% 100%, rgb(77 141 255 / 0.08), transparent 70%), #050605;
+  color: #eafff0;
+}
+.hm-foot-places {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 16px;
+}
+.hm-place {
+  position: relative;
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: 8px;
+  min-height: 260px;
+  padding: 24px;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 0.09);
+  border-radius: 24px;
+  background: linear-gradient(160deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0.01));
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s;
+}
+/* a faint grid in each place, like the map stage */
+.hm-place::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background:
+    linear-gradient(rgb(77 255 42 / 0.05) 1px, transparent 1px) 0 0 / 28px 28px,
+    linear-gradient(90deg, rgb(77 255 42 / 0.05) 1px, transparent 1px) 0 0 / 28px 28px;
+  mask-image: linear-gradient(200deg, #000, transparent 70%);
+}
+a.hm-place:hover {
+  transform: translateY(-4px);
+  border-color: rgb(77 255 42 / 0.55);
+}
+.hm-place[data-soon] {
+  opacity: 0.75;
+}
+.hm-place-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 18px;
+  border-radius: 16px;
+  background: var(--gx-neon);
+  color: var(--gx-on-neon);
+  box-shadow: 0 0 28px rgb(77 255 42 / 0.35);
+}
+.hm-place[data-place="ar"] .hm-place-icon {
+  background: #4d8dff;
+  color: #fff;
+  box-shadow: 0 0 28px rgb(77 141 255 / 0.4);
+}
+.hm-place[data-place="gallery"] .hm-place-icon {
+  background: #e9e3d2;
+  color: #151515;
+  box-shadow: 0 0 28px rgb(233 227 210 / 0.25);
+}
+.hm-place-title {
+  font-family: var(--lp-display), var(--font-display);
+  font-size: clamp(34px, 3.2vw, 46px);
+  line-height: 0.95;
+  text-transform: uppercase;
+  background-image: linear-gradient(
+    180deg,
+    #fdfdfd 0%,
+    #bdbdbd 40%,
+    #fff 52%,
+    #6a6a6a 70%,
+    #d9d9d9 100%
+  ) !important;
+}
+.hm-place-text {
+  max-width: 30ch;
+  color: #9fb4a5;
+  font-size: 14px;
+}
+.hm-place-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 14px;
+  color: var(--gx-neon);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.hm-place[data-soon] .hm-place-cta {
+  color: #9fb4a5;
+}
+.hm-foot-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 40px;
+  margin-top: clamp(56px, 7vw, 96px);
+}
+.hm-foot-big {
+  margin: 0;
+  font-family: var(--lp-display), var(--font-display);
+  font-size: clamp(64px, 9vw, 150px);
+  line-height: 0.86;
+  text-transform: uppercase;
+  background-image: linear-gradient(
+    180deg,
+    #fdfdfd 0%,
+    #bdbdbd 40%,
+    #fff 52%,
+    #6a6a6a 70%,
+    #d9d9d9 100%
+  ) !important;
+}
+.hm-foot-cols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(28px, 5vw, 72px);
+}
+.hm-foot-cols ul {
+  display: grid;
+  align-content: start;
+  line-height: 1.4;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+}
+.hm-foot-cols li:first-child {
+  margin-bottom: 4px;
+  color: var(--gx-neon);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.hm-foot-cols a,
+.hm-foot-cols span {
+  color: #b9c8bd;
+  transition: color 0.2s;
+}
+.hm-foot-cols span {
+  color: #6f8075;
+}
+.hm-foot-cols a:hover {
+  color: #fff;
+}
+.hm-foot-base {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 44px;
+  padding-top: 20px;
+  border-top: 1px solid rgb(255 255 255 / 0.08);
+  color: #6f8075;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.hm-foot-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.hm-foot-live i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gx-neon);
+  box-shadow: 0 0 8px var(--gx-neon);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hm-place {
+    transition: none;
   }
 }

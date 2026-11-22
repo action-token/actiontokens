@@ -2,11 +2,13 @@
 
 import {
   ArrowRight,
+  ArrowUpRight,
   BadgeCheck,
+  Building2,
   ChevronLeft,
   ChevronRight,
-  Compass,
   Crosshair,
+  Landmark,
   ScanLine,
   Users,
 } from "lucide-react";
@@ -21,7 +23,7 @@ import { Money } from "~/components/money";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import { FollowButton } from "../artist/follow-button";
-import { AR_URL } from "../shell/nav";
+import { AR_URL, artistEntry, ORG_URL } from "../shell/nav";
 import { HomeNotch } from "./home-notch";
 import { anton, gothic } from "./landing-fonts";
 
@@ -31,7 +33,7 @@ type Org = Home["artists"][number];
 type Bounty = Home["bounties"][number];
 type Crew = RouterOutputs["community"]["trending"][number];
 
-/** The gallery app, once it has an address (owner to confirm the domain). */
+/** The studio exhibition (the 3D gallery), once it has an address (owner to confirm the domain). */
 const GALLERY_URL = process.env.NEXT_PUBLIC_GALLERY_URL;
 
 const HERO_LINES = [
@@ -147,48 +149,138 @@ export function HomeFront({ home, children }: { home: Home; children?: ReactNode
         <Crews signedIn={status === "authenticated"} />
 
         {children}
-
-        <Section tag="Out there" title="Explore">
-          <div className={cn("hm-explore", !GALLERY_URL && "hm-explore--one")}>
-            {GALLERY_URL && (
-              <a href={GALLERY_URL} className="hm-way hm-way--gallery">
-                <span className="hm-way-art" aria-hidden>
-                  {Array.from({ length: 6 }, (_, index) => (
-                    <i key={index} />
-                  ))}
-                </span>
-                <span className="hm-way-text">
-                  <span className="lp-tag">Walk it</span>
-                  <span className="hm-way-title lp-chrome">Enter the gallery</span>
-                  <span className="hm-way-btn hm-way-btn--ghost">
-                    Open the gallery <Compass className="size-4" />
-                  </span>
-                </span>
-              </a>
-            )}
-            <a href={AR_URL} className="hm-way hm-way--ar">
-              <span className="hm-way-map" aria-hidden>
-                <i style={{ left: "22%", top: "30%" }} />
-                <i style={{ left: "64%", top: "22%" }} data-gold />
-                <i style={{ left: "46%", top: "58%" }} />
-                <i style={{ left: "78%", top: "64%" }} />
-                <b style={{ left: "55%", top: "44%" }} />
-              </span>
-              <span className="hm-way-text">
-                <span className="lp-tag">Touch grass</span>
-                <span className="hm-way-title lp-chrome">Go out there</span>
-                <span className="text-fg-muted max-w-xs text-sm">
-                  Pins dropped by organizations wait on the map. Walk up, open AR, collect.
-                </span>
-                <span className="hm-way-btn">
-                  Open AR map <ScanLine className="size-4" />
-                </span>
-              </span>
-            </a>
-          </div>
-        </Section>
       </div>
+      <HomeFooter />
     </div>
+  );
+}
+
+/**
+ * The foot of the page: the three other places Action Tokens lives (the organization portal, the
+ * AR app and the studio exhibition, the organizations' 3D gallery), then the mockup's
+ * "Do something." sign-off and the links. A dark stage in both themes.
+ */
+function HomeFooter() {
+  const { status } = useSession();
+  const me = api.account.me.useQuery(undefined, { enabled: status === "authenticated" });
+  const org = artistEntry(me.data?.organization ?? null);
+  const places = [
+    {
+      key: "org",
+      href: ORG_URL,
+      icon: Building2,
+      tag: "For organizations",
+      title: org.title,
+      text: "Launch drops, post bounties, run your fan token and your crew.",
+      cta: org.title === "Become an organization" ? "Get started" : "Open the portal",
+    },
+    {
+      key: "ar",
+      href: AR_URL,
+      icon: ScanLine,
+      tag: "Out there",
+      title: "Action AR",
+      text: "Pins wait on the map. Walk up, open the camera, collect the drop.",
+      cta: "Open AR",
+    },
+    {
+      key: "gallery",
+      href: GALLERY_URL,
+      icon: Landmark,
+      tag: "Walk it",
+      title: "Studio exhibition",
+      text: "Every organization's 3D gallery: walk the halls and see what hangs on the walls.",
+      cta: GALLERY_URL ? "Enter the exhibition" : "Opening soon",
+    },
+  ];
+  return (
+    <footer className="hm-foot">
+      <div className="hm-foot-places">
+        {places.map((place) => {
+          const body = (
+            <>
+              <span className="hm-place-icon">
+                <place.icon className="size-6" strokeWidth={1.8} />
+              </span>
+              <span className="lp-tag">{place.tag}</span>
+              <span className="hm-place-title lp-chrome">{place.title}</span>
+              <span className="hm-place-text">{place.text}</span>
+              <span className="hm-place-cta">
+                {place.cta} {place.href && <ArrowUpRight className="size-4" />}
+              </span>
+            </>
+          );
+          return place.href ? (
+            <a key={place.key} href={place.href} className="hm-place" data-place={place.key}>
+              {body}
+            </a>
+          ) : (
+            <div key={place.key} className="hm-place" data-place={place.key} data-soon>
+              {body}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="hm-foot-main">
+        <p className="hm-foot-big lp-chrome">
+          Do
+          <br />
+          something.
+        </p>
+        <nav className="hm-foot-cols" aria-label="Footer">
+          <ul>
+            <li>Platform</li>
+            <li>
+              <Link href="/marketplace">Drops</Link>
+            </li>
+            <li>
+              <Link href="/bounties">Bounties</Link>
+            </li>
+            <li>
+              <Link href="/artists">Organizations</Link>
+            </li>
+            <li>
+              <Link href="/music">Music</Link>
+            </li>
+          </ul>
+          <ul>
+            <li>Elsewhere</li>
+            <li>
+              <a href={ORG_URL}>Organization portal</a>
+            </li>
+            <li>
+              <a href={AR_URL}>Action AR</a>
+            </li>
+            <li>
+              {GALLERY_URL ? (
+                <a href={GALLERY_URL}>Studio exhibition</a>
+              ) : (
+                <span>Studio exhibition · soon</span>
+              )}
+            </li>
+          </ul>
+          <ul>
+            <li>Action Tokens</li>
+            <li>
+              <Link href="/about">About</Link>
+            </li>
+            <li>
+              <Link href="/privacy">Privacy</Link>
+            </li>
+            <li>
+              <Link href="/support">Support</Link>
+            </li>
+          </ul>
+        </nav>
+      </div>
+      <div className="hm-foot-base">
+        <span>© {new Date().getFullYear()} Action Tokens</span>
+        <span className="hm-foot-live">
+          <i /> Live on Stellar
+        </span>
+      </div>
+    </footer>
   );
 }
 
