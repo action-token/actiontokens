@@ -1,4 +1,15 @@
-import { Home, Layers, ListMusic, Newspaper, Star, Store, Tag, Trophy } from "lucide-react";
+import {
+  Award,
+  Home,
+  Layers,
+  ListMusic,
+  Newspaper,
+  Star,
+  Store,
+  Tag,
+  Trophy,
+  Users,
+} from "lucide-react";
 
 export const AR_URL = process.env.NEXT_PUBLIC_AR_URL ?? "https://ar.action-tokens.com";
 export const ORG_URL = process.env.NEXT_PUBLIC_ORG_URL ?? "https://org.action-tokens.com";
@@ -22,6 +33,7 @@ export const GROUPS: { title: string; items: NavItem[] }[] = [
       { href: "/feed", icon: Newspaper, label: "Feed" },
       { href: "/marketplace", icon: Store, label: "Marketplace", also: ["/item", "/album"] },
       { href: "/bounties", icon: Trophy, label: "Bounties", also: ["/bounty"] },
+      { href: "/communities", icon: Users, label: "Communities" },
     ],
   },
   {
@@ -31,6 +43,7 @@ export const GROUPS: { title: string; items: NavItem[] }[] = [
       { href: "/selling", icon: Tag, label: "MY LISTING" },
       { href: "/collection?tab=favorites", icon: Star, label: "Favourites", tab: "favorites" },
       { href: "/playlists", icon: ListMusic, label: "Playlists", also: ["/playlist"] },
+      { href: "/rewards", icon: Award, label: "Reward checker" },
     ],
   },
 ];

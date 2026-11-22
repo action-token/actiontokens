@@ -90,15 +90,18 @@ async function logActivity(
 }
 
 /** Decimals don't survive the wire (superjson has no Decimal type): the required balance as text. */
+type Plain<R> = Omit<R, "requiredBalance"> & { requiredBalance: string };
+
 function withPlainBalances<
   T extends { requirements: { requiredBalance: { toString(): string } }[] },
->(row: T) {
+>(row: T): Omit<T, "requirements"> & { requirements: Plain<T["requirements"][number]>[] } {
   return {
     ...row,
-    requirements: row.requirements.map((req) => ({
-      ...req,
-      requiredBalance: req.requiredBalance.toString(),
-    })),
+    requirements: row.requirements.map(
+      // TypeScript can't follow a spread over a generic, so it's told what comes out.
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+      (req) => ({ ...req, requiredBalance: req.requiredBalance.toString() }) as Plain<typeof req>,
+    ),
   };
 }
 
@@ -164,6 +167,24 @@ const communityRouter = createRouter({
   searchAssets: authedProcedure
     .input(z.object({ search: z.string().trim().min(1).max(50) }))
     .query(({ input }) => searchAssets(input.search)),
+
+  /** Whether a token typed in by hand (code + issuer) exists on the network, for the gate. */
+  checkAsset: authedProcedure
+    .input(
+      z.object({
+        assetCode: z
+          .string()
+          .trim()
+          .regex(/^[A-Za-z0-9]{1,12}$/),
+        assetIssuer: z
+          .string()
+          .trim()
+          .regex(/^G[A-Z2-7]{55}$/),
+      }),
+    )
+    .query(async ({ ctx, input }) => ({
+      exists: await ctx.chain.assetExists(input.assetCode, input.assetIssuer),
+    })),
 
   /** People to invite: by name, username or email, leaving out the caller and current members. */
   searchUsers: authedProcedure
@@ -261,7 +282,11 @@ const communityRouter = createRouter({
     if (!community || (community.hiddenAt && community.ownerId !== viewer?.id))
       throw notFound("community");
     const member = viewer ? await membership(ctx.db, community.id, viewer.id) : null;
-    return { ...community, isMember: Boolean(member), isOwner: community.ownerId === viewer?.id };
+    return {
+      ...withPlainBalances(community),
+      isMember: Boolean(member),
+      isOwner: community.ownerId === viewer?.id,
+    };
   }),
 
   /** Whether the caller holds what the gate asks, with the numbers for the join screen. */

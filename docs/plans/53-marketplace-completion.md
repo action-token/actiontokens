@@ -68,25 +68,37 @@ additive diff was applied to the local Docker database only. Neon / production w
 
 ## 3 · Communities (fan screens)
 
-Over `api.community.*` (see `packages/api/src/routers/app/community.ts`).
+Over `api.community.*` (see `packages/api/src/routers/app/community.ts`). Code in
+`apps/app/src/features/community/*`, styles in `apps/app/src/styles/community.css` (`cm-*`).
 
-- [ ] Nav entry "Communities" (Browse group).
-- [ ] `/communities`: list + trending + mine, search.
-- [ ] `/communities/[id]`: cover, profile, description, gate (requirements, AND/OR, your balance from
-      `community.gate`), Join / Leave, members (respects `memberListVisibility`), activity.
-- [ ] Posts: list, create (if `postPermission` allows), edit/delete own, like; comments with replies,
-      delete own.
-- [ ] Invite (search users), notification switches (`notifySettings` / `setNotifySettings`).
-- [ ] Create / edit / delete a community (title, description, cover, profile picture, gate builder
-      with `searchAssets`, visibility, who can post).
+- [x] Nav entry "Communities" (Browse group).
+- [x] `/communities`: All crews (Biggest / Newest, search, load more) and My crews. Trending is not
+      shown yet (`community.trending` exists).
+- [x] `/communities/[id]`: cover, profile, owner, counts, description, gate panel (each token, your
+      balance and verdict from `community.gate`), Join / Leave, Members (owner can remove), Activity.
+- [x] Posts: list, composer (when `postPermission` allows), like, delete own / owner; comments with
+      one level of replies, delete. Editing a post is not built yet (`post.update` exists).
+- [x] Invite dialog (`searchUsers` → `invite`), notification switches dialog.
+- [x] Create / edit / delete on ONE page (owner asked for one step) with a live preview beside it:
+      banner + picture upload (`account.imageUpload`) or pasted address, name, description, who sees
+      members, who posts, token gate (Stellar search via `searchAssets`, or code + issuer checked
+      with the new `community.checkAsset`; amount 0 = trustline only; all / any). Ideas taken from
+      actionverse `create-community-modal.tsx`.
+- [x] `community.byId` now returns plain-string balances (`withPlainBalances`); superjson has no
+      Decimal.
 - [ ] Notification inbox links already go to `/communities/:id`: check they land.
 
 ## 4 · Holder rewards
 
-- [ ] Fan: a Rewards page (from wallet or collection) over `api.reward.mine`: rounds, your share,
-      paid / pending, Stellar links.
+- [x] Fan: `/rewards` "Reward checker" (Library nav), four tabs as in actionverse `/reward-checker`,
+      tab + wallet kept in the address: - Checker: program cards, Your rewards (`reward.mine`: paid / pending totals, rounds, blocked
+      note), Check a wallet (`reward.check`, public: tokens from the chain, this month / quarter
+      standing, its rounds). - Asset holders: token search (signed in) or code + issuer → `reward.holders` (top 200). - Origin / Quarter rewards: round picker (`reward.rounds`) → ranked table
+      (`reward.leaderboard`: holding, share, paid, blocked), wallet search, "Find me", pages of 50.
+      Clicking a wallet opens it in Checker. - Services in `packages/api/src/services/rewards/public.ts`; tests `reward-checker.test.ts`.
 - [ ] Admin (org portal `/admin/rewards`, `/admin/telegram`) over `admin.rewards.*` /
-      `admin.telegram.*`: rounds, set pot, sync, distribute (confirm dialog), blocked list.
+      `admin.telegram.*`: rounds, set pot, sync, distribute (confirm dialog), blocked list. The old
+      checker's Sync / Download buttons belong here.
 - [ ] Real payout dry-run still needs `MOTHER_SECRET`, `REWARD_*` env and a funded testnet payer from
       the owner. Never run `distribute` against mainnet without the owner.
 

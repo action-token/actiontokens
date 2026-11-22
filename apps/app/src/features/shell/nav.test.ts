@@ -33,6 +33,7 @@ describe("sidebar", () => {
       "Feed",
       "Marketplace",
       "Bounties",
+      "Communities",
     ]);
   });
 });
