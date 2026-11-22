@@ -635,7 +635,114 @@ a.lp-chip:hover {
   color: #4dff2a;
   letter-spacing: 0.08em;
 }
+/* the scattered words: each flickers in, then drifts a little (transform only) */
+.at-loader-words {
+  position: absolute;
+  inset: 0;
+}
+.at-loader-words span {
+  position: absolute;
+  font-family: var(--lp-display), var(--font-display);
+  line-height: 0.9;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  animation:
+    at-word-in 0.5s steps(3) forwards,
+    at-word-drift 7s ease-in-out infinite alternate;
+}
+@keyframes at-word-in {
+  0% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes at-word-drift {
+  from {
+    transform: translate3d(0, -6px, 0);
+  }
+  to {
+    transform: translate3d(0, 6px, 0);
+  }
+}
+.at-loader-words [data-look="o"] {
+  color: transparent;
+  -webkit-text-stroke: 1px rgb(255 255 255 / 0.22);
+}
+.at-loader-words [data-look="n"] {
+  color: rgb(77 255 42 / 0.22);
+  text-shadow: 0 0 24px rgb(77 255 42 / 0.25);
+}
+.at-loader-words [data-look="g"] {
+  font-family: var(--lp-gothic), serif;
+  text-transform: none;
+  color: rgb(255 255 255 / 0.16);
+}
+.at-loader-words [data-look="m"] {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  color: rgb(255 255 255 / 0.32);
+}
+.at-loader-words [data-look="f"] {
+  color: rgb(255 255 255 / 0.07);
+}
+/* a neon ribbon across the stage, tilted, its words sliding by */
+.at-loader-ribbon {
+  position: absolute;
+  left: -5%;
+  right: -5%;
+  top: 68%;
+  overflow: hidden;
+  padding: 10px 0;
+  background: #4dff2a;
+  color: #050605;
+  rotate: -4deg;
+  box-shadow: 0 0 40px rgb(77 255 42 / 0.35);
+}
+.at-loader-ribbon-track {
+  display: flex;
+  width: max-content;
+  gap: 36px;
+  font-family: var(--lp-display), var(--font-display);
+  font-size: 22px;
+  line-height: 1;
+  text-transform: uppercase;
+  animation: at-ribbon 18s linear infinite;
+}
+.at-loader-ribbon-track span::after {
+  content: "✦";
+  margin-left: 36px;
+}
+@keyframes at-ribbon {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+@media (max-width: 639px) {
+  .at-loader-words [data-look="m"] {
+    display: none;
+  }
+  .at-loader-ribbon-track {
+    font-size: 16px;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
+  .at-loader-words span {
+    opacity: 1;
+    animation: none;
+  }
+  .at-loader-ribbon-track {
+    animation: none;
+  }
   .at-loader,
   .at-loader-core,
   .at-loader-mark {

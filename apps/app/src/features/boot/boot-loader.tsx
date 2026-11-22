@@ -4,7 +4,9 @@ import { useState } from "react";
 
 import { ActionLoader } from "@actiontokens/ui/patterns/action-loader";
 
-import { anton } from "../home/landing-fonts";
+import { cn } from "@actiontokens/ui/lib/cn";
+
+import { anton, gothic } from "../home/landing-fonts";
 
 import { useBootProgress } from "./use-boot-progress";
 
@@ -17,5 +19,11 @@ export function BootLoader() {
 
 function BootLoaderShow({ onDone }: { onDone: () => void }) {
   const progress = useBootProgress();
-  return <ActionLoader progress={progress} onDone={onDone} className={anton.variable} />;
+  return (
+    <ActionLoader
+      progress={progress}
+      onDone={onDone}
+      className={cn(anton.variable, gothic.variable)}
+    />
+  );
 }

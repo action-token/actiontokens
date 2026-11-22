@@ -7,6 +7,44 @@ import { BrandMark } from "./boot-screen";
 
 type Phase = "play" | "leave" | "gone";
 
+/**
+ * The words scattered over the stage: [text, left %, top %, size (vw), turn (deg), look].
+ * Looks: o = chrome outline, n = neon, g = gothic, m = small mono, f = faint solid. Fixed, so the
+ * server and the browser draw the same thing; the middle is left clear for the mark and title.
+ */
+const SCATTER: [string, number, number, number, number, "o" | "n" | "g" | "m" | "f"][] = [
+  ["Drops", 4, 6, 9, -6, "o"],
+  ["$ACTION", 62, 4, 5, 4, "n"],
+  ["Wanted", 34, 9, 4.2, -3, "g"],
+  ["Live bounties", 80, 14, 1, 0, "m"],
+  ["Escrow", 84, 24, 6, 8, "f"],
+  ["Prove it.", 2, 30, 5.5, -10, "f"],
+  ["Claim pins IRL", 6, 46, 1, 0, "m"],
+  ["Own it.", 78, 40, 6.5, 6, "o"],
+  ["AR", 90, 54, 9, -4, "n"],
+  ["Fan tokens", 3, 58, 4.4, 5, "g"],
+  ["#001 / 250", 70, 62, 1, 0, "m"],
+  ["Bounties", 58, 74, 8, -5, "o"],
+  ["Collect", 2, 72, 6, 3, "n"],
+  ["Crews", 24, 74, 4.8, -8, "g"],
+  ["XLM · USDC", 86, 80, 1, 0, "m"],
+  ["Take action.", 72, 88, 4.2, 4, "f"],
+  ["Limited", 10, 88, 3.4, -2, "o"],
+  ["Touch grass", 40, 2, 1, 0, "m"],
+  ["Earn", 22, 20, 5, 9, "n"],
+  ["Stellar", 44, 94, 3, 0, "g"],
+];
+
+/** The ribbon's words, repeated so it can loop. */
+const RIBBON = [
+  "New drops",
+  "Live bounties",
+  "Prizes in escrow",
+  "Claim pins IRL",
+  "Fan tokens",
+  "ACTION on Stellar",
+];
+
 /** The words under the bar, one after another as the page comes in. */
 const STEPS = ["Booting", "Loading drops", "Loading bounties", "Checking the chain", "Ready"];
 
@@ -107,6 +145,33 @@ export function ActionLoader({
       className={cn("at-loader", contained && "at-loader--contained", className)}
       data-phase={phase}
     >
+      <div className="at-loader-words" aria-hidden>
+        {SCATTER.map(([text, left, top, size, turn, look], index) => (
+          <span
+            key={text}
+            data-look={look}
+            style={{
+              left: `${left}%`,
+              top: `${top}%`,
+              fontSize:
+                look === "m"
+                  ? undefined
+                  : `clamp(${Math.round(size * 5)}px, ${size}vw, ${Math.round(size * 18)}px)`,
+              rotate: `${turn}deg`,
+              animationDelay: `${(index % 10) * 0.12}s, ${(index % 7) * -1.3}s`,
+            }}
+          >
+            {text}
+          </span>
+        ))}
+      </div>
+      <div className="at-loader-ribbon" aria-hidden>
+        <div className="at-loader-ribbon-track">
+          {[...RIBBON, ...RIBBON, ...RIBBON, ...RIBBON].map((word, index) => (
+            <span key={index}>{word}</span>
+          ))}
+        </div>
+      </div>
       <div className="at-loader-scan" aria-hidden />
       <div className="at-loader-glow" aria-hidden />
       <div className="at-loader-core">
