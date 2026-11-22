@@ -13,6 +13,10 @@ type Phase = "play" | "leave" | "gone";
  * server and the browser draw the same thing; the middle is left clear for the mark and title.
  */
 const SCATTER: [string, number, number, number, number, "o" | "n" | "g" | "m" | "f"][] = [
+  // the name itself, huge and faint, behind everything else
+  ["Action", -3, 14, 17, -8, "f"],
+  ["Tokens", 48, 62, 17, -8, "o"],
+  ["Action Tokens", 18, 92, 3.2, 0, "o"],
   ["Drops", 4, 6, 9, -6, "o"],
   ["$ACTION", 62, 4, 5, 4, "n"],
   ["Wanted", 34, 9, 4.2, -3, "g"],
@@ -148,7 +152,7 @@ export function ActionLoader({
       <div className="at-loader-words" aria-hidden>
         {SCATTER.map(([text, left, top, size, turn, look], index) => (
           <span
-            key={text}
+            key={`${text}-${index}`}
             data-look={look}
             style={{
               left: `${left}%`,

@@ -695,6 +695,10 @@ a.lp-chip:hover {
 .at-loader-words [data-look="f"] {
   color: rgb(255 255 255 / 0.07);
 }
+/* the huge name words: thicker outline so they read at that size */
+.at-loader-words span:nth-child(-n + 2) {
+  -webkit-text-stroke-width: 1.5px;
+}
 /* a neon ribbon across the stage, tilted, its words sliding by */
 .at-loader-ribbon {
   position: absolute;
