@@ -24,6 +24,7 @@ import { api, type RouterOutputs } from "~/trpc/react";
 
 import { FollowButton } from "../artist/follow-button";
 import { AR_URL, artistEntry, ORG_URL } from "../shell/nav";
+import { HomeFooter } from "./home-footer";
 import { HomeNotch } from "./home-notch";
 import { anton, gothic } from "./landing-fonts";
 
@@ -150,137 +151,8 @@ export function HomeFront({ home, children }: { home: Home; children?: ReactNode
 
         {children}
       </div>
-      <HomeFooter />
+      <HomeFooter home={home} />
     </div>
-  );
-}
-
-/**
- * The foot of the page: the three other places Action Tokens lives (the organization portal, the
- * AR app and the studio exhibition, the organizations' 3D gallery), then the mockup's
- * "Do something." sign-off and the links. A dark stage in both themes.
- */
-function HomeFooter() {
-  const { status } = useSession();
-  const me = api.account.me.useQuery(undefined, { enabled: status === "authenticated" });
-  const org = artistEntry(me.data?.organization ?? null);
-  const places = [
-    {
-      key: "org",
-      href: ORG_URL,
-      icon: Building2,
-      tag: "For organizations",
-      title: org.title,
-      text: "Launch drops, post bounties, run your fan token and your crew.",
-      cta: org.title === "Become an organization" ? "Get started" : "Open the portal",
-    },
-    {
-      key: "ar",
-      href: AR_URL,
-      icon: ScanLine,
-      tag: "Out there",
-      title: "Action AR",
-      text: "Pins wait on the map. Walk up, open the camera, collect the drop.",
-      cta: "Open AR",
-    },
-    {
-      key: "gallery",
-      href: GALLERY_URL,
-      icon: Landmark,
-      tag: "Walk it",
-      title: "Studio exhibition",
-      text: "Every organization's 3D gallery: walk the halls and see what hangs on the walls.",
-      cta: GALLERY_URL ? "Enter the exhibition" : "Opening soon",
-    },
-  ];
-  return (
-    <footer className="hm-foot">
-      <div className="hm-foot-places">
-        {places.map((place) => {
-          const body = (
-            <>
-              <span className="hm-place-icon">
-                <place.icon className="size-6" strokeWidth={1.8} />
-              </span>
-              <span className="lp-tag">{place.tag}</span>
-              <span className="hm-place-title lp-chrome">{place.title}</span>
-              <span className="hm-place-text">{place.text}</span>
-              <span className="hm-place-cta">
-                {place.cta} {place.href && <ArrowUpRight className="size-4" />}
-              </span>
-            </>
-          );
-          return place.href ? (
-            <a key={place.key} href={place.href} className="hm-place" data-place={place.key}>
-              {body}
-            </a>
-          ) : (
-            <div key={place.key} className="hm-place" data-place={place.key} data-soon>
-              {body}
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="hm-foot-main">
-        <p className="hm-foot-big lp-chrome">
-          Do
-          <br />
-          something.
-        </p>
-        <nav className="hm-foot-cols" aria-label="Footer">
-          <ul>
-            <li>Platform</li>
-            <li>
-              <Link href="/marketplace">Drops</Link>
-            </li>
-            <li>
-              <Link href="/bounties">Bounties</Link>
-            </li>
-            <li>
-              <Link href="/artists">Organizations</Link>
-            </li>
-            <li>
-              <Link href="/music">Music</Link>
-            </li>
-          </ul>
-          <ul>
-            <li>Elsewhere</li>
-            <li>
-              <a href={ORG_URL}>Organization portal</a>
-            </li>
-            <li>
-              <a href={AR_URL}>Action AR</a>
-            </li>
-            <li>
-              {GALLERY_URL ? (
-                <a href={GALLERY_URL}>Studio exhibition</a>
-              ) : (
-                <span>Studio exhibition · soon</span>
-              )}
-            </li>
-          </ul>
-          <ul>
-            <li>Action Tokens</li>
-            <li>
-              <Link href="/about">About</Link>
-            </li>
-            <li>
-              <Link href="/privacy">Privacy</Link>
-            </li>
-            <li>
-              <Link href="/support">Support</Link>
-            </li>
-          </ul>
-        </nav>
-      </div>
-      <div className="hm-foot-base">
-        <span>© {new Date().getFullYear()} Action Tokens</span>
-        <span className="hm-foot-live">
-          <i /> Live on Stellar
-        </span>
-      </div>
-    </footer>
   );
 }
 
