@@ -1,17 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search } from "lucide-react";
 import { type CSSProperties, type ReactNode, useEffect } from "react";
 
 import { cn } from "@actiontokens/ui/lib/cn";
 import { PhoneTabBar } from "@actiontokens/ui/patterns/phone-tab-bar";
-import { BrandMark } from "@actiontokens/ui/patterns/boot-screen";
 import { PortalBackdrop } from "@actiontokens/ui/patterns/portal-backdrop";
 import { usePersistedFlag, useSidebarCollapsed } from "@actiontokens/ui/lib/sidebar-collapsed";
 
-import { AccountButton } from "~/features/account/account-button";
+import { AppNotch } from "~/features/notch/app-notch";
 import { BountiesPanel } from "~/features/bounty/bounties-panel";
 import { ClaimPlays } from "~/features/player/claim-plays";
 import { PlayerBar } from "~/features/player/player-bar";
@@ -22,7 +19,7 @@ import { AR_URL, isActive, MOBILE_TABS, TAB_LABEL, type NavItem } from "./nav";
 import { usePanelWidths } from "./panel-widths";
 import { contextPanelFor } from "./panel-rule";
 import { RightRail } from "./right-frame";
-import { openSearch, SearchDialog } from "./search-dialog";
+import { SearchDialog } from "./search-dialog";
 import { Sidebar } from "./sidebar";
 
 /** Width of the closed right rail. */
@@ -67,25 +64,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       <SearchDialog />
 
       <div className="flex min-w-0 flex-col">
-        {/* Phones have no sidebar, so search and the account sit in a notch hanging from the top
-            edge, like the desktop home's. The home page brings its own (with the live feed). */}
-        {pathname !== "/" && (
-          <>
-            <header className="lp-top shell-notch sm:hidden!">
-              <Link href="/" aria-label="Home" className="shrink-0">
-                <span className="gx-logo grid size-9 place-items-center rounded-xl bg-white">
-                  <BrandMark className="h-6" />
-                </span>
-              </Link>
-              <button type="button" onClick={openSearch} className="hm-notch-search">
-                <Search className="size-4 shrink-0" />
-                <span className="truncate">Search</span>
-              </button>
-              <AccountButton />
-            </header>
-            <div className="h-[68px] sm:hidden" aria-hidden />
-          </>
-        )}
+        {/* The notch hangs from the top on every page (on phones it is the top bar too): search,
+            what's playing, balance, and whatever is happening (transactions, messages, news). */}
+        <AppNotch />
+        {pathname !== "/" && <div className="h-[68px] sm:h-12" aria-hidden />}
         <main
           className={cn(
             "flex-1 pb-[calc(var(--phone-bar-space)+5rem)] sm:pl-(--side-w)",

@@ -1,7 +1,8 @@
 "use client";
 
 import { Check, PenLine, X } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 import { cn } from "../lib/cn";
 
@@ -249,8 +250,29 @@ export function TransactionToast({
   }
 }
 
-/** Fixed corner where transaction toasts live (bottom-right, above the player on phones). */
+/** The id of the slot a page-wide notch offers transaction toasts (the marketplace's notch). */
+export const NOTCH_TX_SLOT = "at-notch-tx";
+
+const noSubscribe = () => () => undefined;
+
+/**
+ * Where transaction toasts live: inside the notch when the page has one (they grow out of it,
+ * countdown and buttons included), otherwise the fixed bottom-right corner (above the player on
+ * phones).
+ */
 export function ToastViewport({ children }: { children: ReactNode }) {
+  const slot = useSyncExternalStore(
+    noSubscribe,
+    () => document.getElementById(NOTCH_TX_SLOT),
+    () => null,
+  );
+  if (slot)
+    return createPortal(
+      <div aria-live="assertive" className="grid gap-2">
+        {children}
+      </div>,
+      slot,
+    );
   return (
     <div
       aria-live="assertive"

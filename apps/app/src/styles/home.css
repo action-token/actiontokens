@@ -692,7 +692,7 @@
   color: var(--bc-primary-text);
 }
 
-/* ── The notch's search field and balance chip ── */
+/* ── The notch's search field ── */
 .hm-notch {
   gap: 10px;
 }
@@ -721,26 +721,6 @@
   border-radius: 6px;
   font-family: var(--font-mono);
   font-size: 10px;
-}
-.hm-notch-bal {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  height: 40px;
-  padding: 0 14px;
-  border: 1px solid var(--bc-border);
-  border-radius: 999px;
-  background: var(--ap-fill);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  white-space: nowrap;
-}
-.hm-notch-bal i {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--gx-neon);
-  box-shadow: 0 0 8px var(--gx-neon);
 }
 
 /* ── Hero mode (html[data-hero], set by useHeroMode): the sidebar slides away while the hero fills
@@ -1500,5 +1480,170 @@ a.hm-place:hover {
 @media (prefers-reduced-motion: reduce) {
   .hm-place {
     transition: none;
+  }
+}
+
+/* ═══ The notch on every page (features/notch/app-notch.tsx) ═══════════════════════════════
+   Transactions, messages, notifications and the idle feed grow out of it; the page's own toaster
+   hides while it is there. Transform and opacity only. */
+html[data-notch] .at-toaster {
+  display: none;
+}
+.app-notch {
+  transition: --side-w 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+/* above dialogs only while it is saying something (a payment, a message) */
+.app-notch[data-open] {
+  z-index: 60;
+}
+.app-notch-drop {
+  display: grid;
+  gap: 6px;
+  min-width: min(380px, calc(100vw - 48px));
+}
+.app-notch-tx[hidden] {
+  display: none;
+}
+/* the transaction toast sits flat in the notch instead of floating as its own card */
+.app-notch-tx > div > div {
+  margin-top: 6px;
+  border-color: var(--gx-line);
+  box-shadow: none;
+  background: var(--ap-fill, var(--bc-surface-2));
+}
+.app-notch-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--gx-neon);
+  color: var(--gx-on-neon);
+}
+.app-notch-icon[data-kind="community"] {
+  background: #b98bff;
+  color: #1a0a33;
+}
+.app-notch-icon[data-kind="bell"] {
+  background: var(--bc-fg);
+  color: var(--bc-surface);
+}
+.app-notch-msg[data-tone="bad"] .app-notch-icon {
+  background: #e5484d;
+  color: #fff;
+}
+.app-notch-msg[data-tone="info"] .app-notch-icon {
+  background: var(--bc-fg);
+  color: var(--bc-surface);
+}
+.app-notch-close {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: var(--bc-fg-faint);
+}
+.app-notch-close:hover {
+  background: var(--bc-surface-2);
+  color: var(--bc-fg);
+}
+
+/* now playing: the cover (tap to play / pause), the title on wide screens, moving bars */
+.app-notch-play {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 10px 0 3px;
+  border: 1px solid var(--bc-border);
+  border-radius: 999px;
+  background: var(--ap-fill);
+}
+.app-notch-cover {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  overflow: hidden;
+  border-radius: 50%;
+}
+.app-notch-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.app-notch-play[data-playing] .app-notch-cover img {
+  animation: st-spin 8s linear infinite;
+}
+.app-notch-cover-btn {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgb(0 0 0 / 0.45);
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.app-notch-cover:hover .app-notch-cover-btn,
+.app-notch-cover:focus-visible .app-notch-cover-btn,
+.app-notch-play:not([data-playing]) .app-notch-cover-btn {
+  opacity: 1;
+}
+.app-notch-track {
+  max-width: 140px;
+  font-size: 12px;
+  line-height: 1.2;
+  text-align: left;
+}
+.app-notch-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 16px;
+}
+.app-notch-bars i {
+  width: 3px;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--gx-neon);
+  transform-origin: bottom;
+  transform: scaleY(0.25);
+}
+.app-notch-play[data-playing] .app-notch-bars i {
+  animation: app-notch-eq 0.9s ease-in-out infinite alternate;
+}
+.app-notch-bars i:nth-child(2) {
+  animation-delay: -0.3s !important;
+}
+.app-notch-bars i:nth-child(3) {
+  animation-delay: -0.6s !important;
+}
+.app-notch-bars i:nth-child(4) {
+  animation-delay: -0.15s !important;
+}
+@keyframes app-notch-eq {
+  from {
+    transform: scaleY(0.25);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+@media (max-width: 639px) {
+  .app-notch-play {
+    padding-right: 3px;
+  }
+  .app-notch-bars {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-notch-play[data-playing] .app-notch-cover img,
+  .app-notch-play[data-playing] .app-notch-bars i {
+    animation: none;
   }
 }

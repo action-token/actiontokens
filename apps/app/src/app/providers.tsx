@@ -26,7 +26,7 @@ export function Providers({ children }: { children: ReactNode }) {
         <TRPCReactProvider>
           {children}
           {/* the connect dialog and the toaster every wallet and payment toast uses */}
-          <ConnectWalletPopups className="" />
+          <ConnectWalletPopups className="at-toaster" />
           <SessionSync />
           {/* the stage loader on every full page load */}
           <BootLoader />

@@ -1,17 +1,6 @@
 "use client";
 
-import {
-  ArrowRight,
-  ArrowUpRight,
-  BadgeCheck,
-  Building2,
-  ChevronLeft,
-  ChevronRight,
-  Crosshair,
-  Landmark,
-  ScanLine,
-  Users,
-} from "lucide-react";
+import { ArrowRight, BadgeCheck, ChevronLeft, ChevronRight, Crosshair, Users } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
@@ -23,9 +12,9 @@ import { Money } from "~/components/money";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import { FollowButton } from "../artist/follow-button";
-import { AR_URL, artistEntry, ORG_URL } from "../shell/nav";
+import {} from "../shell/nav";
 import { HomeFooter } from "./home-footer";
-import { HomeNotch } from "./home-notch";
+import { useHomeFeed } from "./home-feed";
 import { anton, gothic } from "./landing-fonts";
 
 type Home = RouterOutputs["catalog"]["home"];
@@ -33,9 +22,6 @@ type Drop = Home["drops"][number];
 type Org = Home["artists"][number];
 type Bounty = Home["bounties"][number];
 type Crew = RouterOutputs["community"]["trending"][number];
-
-/** The studio exhibition (the 3D gallery), once it has an address (owner to confirm the domain). */
-const GALLERY_URL = process.env.NEXT_PUBLIC_GALLERY_URL;
 
 const HERO_LINES = [
   { from: 0, top: "Take", bottom: "Action." },
@@ -65,9 +51,9 @@ export function HomeFront({ home, children }: { home: Home; children?: ReactNode
   const bounties = useShelf("bounties", home.bounties, home.more.bounties);
   const orgs = useShelf("artists", home.artists, home.more.artists);
   useHeroMode(root);
+  useHomeFeed(home);
   return (
     <div ref={root} className={cn(anton.variable, gothic.variable, "hm")}>
-      <HomeNotch home={home} />
       <ScrollHero
         label="Action Tokens marketplace"
         kicker="Live on Stellar"
