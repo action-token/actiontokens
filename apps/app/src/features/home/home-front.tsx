@@ -1,27 +1,24 @@
 "use client";
 
-import { ArrowRight, BadgeCheck, ChevronLeft, ChevronRight, Crosshair, Users } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { cn } from "@actiontokens/ui/lib/cn";
 import { ScrollHero } from "@actiontokens/ui/patterns/scroll-hero";
 
-import { Money } from "~/components/money";
 import { api, type RouterOutputs } from "~/trpc/react";
 
-import { FollowButton } from "../artist/follow-button";
+import { OrgCircle } from "../artists/artists-view";
+import { BountyCard } from "../bounty/bounty-card";
+import { CommunityCard } from "../community/parts";
+import { ItemCard } from "../catalog/item-card";
 import {} from "../shell/nav";
 import { HomeFooter } from "./home-footer";
 import { useHomeFeed } from "./home-feed";
 import { anton, gothic } from "./landing-fonts";
 
 type Home = RouterOutputs["catalog"]["home"];
-type Drop = Home["drops"][number];
-type Org = Home["artists"][number];
-type Bounty = Home["bounties"][number];
-type Crew = RouterOutputs["community"]["trending"][number];
 
 const HERO_LINES = [
   { from: 0, top: "Take", bottom: "Action." },
@@ -45,7 +42,6 @@ const RIBBON = [
  * Light on the GPU: transforms and opacity only, nothing moving at rest but the ribbon.
  */
 export function HomeFront({ home, children }: { home: Home; children?: ReactNode }) {
-  const { status } = useSession();
   const root = useReveal<HTMLDivElement>();
   const drops = useShelf("drops", home.drops, home.more.drops);
   const bounties = useShelf("bounties", home.bounties, home.more.bounties);
@@ -96,7 +92,7 @@ export function HomeFront({ home, children }: { home: Home; children?: ReactNode
           >
             <div ref={drops.rowRef} className="hm-shelf hm-shelf--drops">
               {drops.items.map((drop) => (
-                <DropCard key={drop.id} drop={drop} />
+                <ItemCard key={drop.id} item={drop} queue={drops.items} />
               ))}
             </div>
           </Section>
@@ -112,7 +108,7 @@ export function HomeFront({ home, children }: { home: Home; children?: ReactNode
           >
             <div ref={bounties.rowRef} className="hm-shelf hm-shelf--board">
               {bounties.items.map((bounty) => (
-                <Poster key={bounty.id} bounty={bounty} />
+                <BountyCard key={bounty.id} bounty={bounty} />
               ))}
             </div>
           </Section>
@@ -127,13 +123,16 @@ export function HomeFront({ home, children }: { home: Home; children?: ReactNode
           >
             <div ref={orgs.rowRef} className="hm-shelf hm-shelf--orgs">
               {orgs.items.map((org) => (
-                <OrgCard key={org.slug} org={org} signedIn={status === "authenticated"} />
+                <OrgCircle
+                  key={org.slug}
+                  artist={{ ...org, songs: org.items, tokenCode: org.token?.code ?? null }}
+                />
               ))}
             </div>
           </Section>
         )}
 
-        <Crews signedIn={status === "authenticated"} />
+        <Crews />
 
         {children}
       </div>
@@ -280,270 +279,8 @@ function useShelf<K extends Shelf>(
   return { items, rowRef, busy, ...edges, prev: () => slide(-1), next: () => slide(1) };
 }
 
-/** A live drop: square art with the edition and, when the sale ends, a countdown. */
-function DropCard({ drop }: { drop: Drop }) {
-  const left = drop.supply != null ? Math.max(0, drop.supply - drop.sold) : null;
-  const tilt = useTilt<HTMLElement>();
-  return (
-    <article ref={tilt} className="hm-drop" data-type={drop.type}>
-      <Link href={`/item/${drop.slug}`} className="hm-drop-art">
-        {drop.coverUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts
-          <img src={drop.coverUrl} alt="" loading="lazy" />
-        ) : (
-          <span className="hm-drop-blank" aria-hidden />
-        )}
-        <span className="hm-chip hm-chip--type">{TYPE_LABEL[drop.type] ?? drop.type}</span>
-        <span className="hm-chip hm-chip--ed">
-          {drop.supply == null
-            ? "Open"
-            : drop.sold > 0
-              ? `${drop.sold.toLocaleString("en-US")} / ${drop.supply.toLocaleString("en-US")}`
-              : `Ed. ${drop.supply.toLocaleString("en-US")}`}
-        </span>
-        <span className="hm-cd">
-          {drop.saleEndsAt ? (
-            <>
-              <span>Ends in</span>
-              <Countdown to={drop.saleEndsAt} />
-            </>
-          ) : left === 0 ? (
-            <span>Sold out</span>
-          ) : (
-            <>
-              <span>{drop.supply == null ? "Open edition" : "Left"}</span>
-              <b>{left == null ? "∞" : left}</b>
-            </>
-          )}
-        </span>
-      </Link>
-      <div className="hm-drop-meta">
-        {drop.artistSlug ? (
-          <Link href={`/artist/${drop.artistSlug}`} className="hm-drop-org">
-            <BadgeCheck className="size-3.5" /> {drop.artistName}
-          </Link>
-        ) : (
-          <span className="hm-drop-org">
-            <BadgeCheck className="size-3.5" /> {drop.artistName}
-          </span>
-        )}
-        <h3 className="hm-drop-title">{drop.title}</h3>
-        <div className="hm-drop-foot">
-          {drop.price ? (
-            <span className="hm-price">
-              <Money amount={drop.price.actionToken} currency="ACTION" short />
-              <small>
-                ≈ <Money amount={drop.price.usd} currency="USD" />
-              </small>
-            </span>
-          ) : (
-            <span className="hm-price">—</span>
-          )}
-          <Link href={`/item/${drop.slug}`} className="hm-collect">
-            Collect
-          </Link>
-        </div>
-      </div>
-    </article>
-  );
-}
-
-/**
- * The card leans toward the pointer (as in the mockup), with transform only and at most once a
- * frame; it settles back when the pointer leaves. Mouse and pen only, and not for reduced motion.
- */
-function useTilt<T extends HTMLElement>() {
-  const ref = useRef<T>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    let raf = 0;
-    let x = 0;
-    let y = 0;
-    const apply = () => {
-      raf = 0;
-      el.style.transform = `perspective(700px) rotateY(${x * 10}deg) rotateX(${-y * 10}deg) translateY(-4px)`;
-    };
-    const move = (event: PointerEvent) => {
-      if (event.pointerType === "touch") return;
-      const rect = el.getBoundingClientRect();
-      x = (event.clientX - rect.left) / rect.width - 0.5;
-      y = (event.clientY - rect.top) / rect.height - 0.5;
-      if (!raf) raf = requestAnimationFrame(apply);
-    };
-    const leave = () => {
-      if (raf) cancelAnimationFrame(raf);
-      raf = 0;
-      el.style.transform = "";
-    };
-    el.addEventListener("pointermove", move);
-    el.addEventListener("pointerleave", leave);
-    return () => {
-      leave();
-      el.removeEventListener("pointermove", move);
-      el.removeEventListener("pointerleave", leave);
-    };
-  }, []);
-  return ref;
-}
-
-const TYPE_LABEL: Record<string, string> = {
-  IMAGE: "Art",
-  VIDEO: "Video",
-  MODEL_3D: "3D",
-  DOCUMENT: "Doc",
-  ROYALTY: "Royalty",
-  TICKET: "Ticket",
-  MERCH: "Merch",
-};
-
-/** Time left as hh:mm:ss (days in front past 24h), ticking once a second while on screen. */
-function Countdown({ to }: { to: Date | string }) {
-  const end = new Date(to).getTime();
-  const [now, setNow] = useState<number | null>(null);
-  useEffect(() => {
-    setNow(Date.now());
-    const id = window.setInterval(() => {
-      if (!document.hidden) setNow(Date.now());
-    }, 1000);
-    return () => window.clearInterval(id);
-  }, []);
-  if (now == null) return <b>…</b>;
-  const t = Math.max(0, Math.floor((end - now) / 1000));
-  if (t === 0) return <b>Ended</b>;
-  const d = Math.floor(t / 86400);
-  const hms = [Math.floor(t / 3600) % 24, Math.floor(t / 60) % 60, t % 60]
-    .map((n) => String(n).padStart(2, "0"))
-    .join(":");
-  return <b>{d > 0 ? `${d}d ${hms}` : hms}</b>;
-}
-
-/** A bounty as a "Wanted" poster pinned to the board. */
-function Poster({ bounty }: { bounty: Bounty }) {
-  return (
-    <Link href={`/bounty/${bounty.id}`} className="hm-poster">
-      <span className="hm-poster-w">Wanted</span>
-      <span className="hm-poster-by">By {bounty.artist?.name ?? "Action Tokens"}</span>
-      <span className="hm-poster-mug" aria-hidden>
-        {bounty.artist?.avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- avatars come from many hosts
-          <img src={bounty.artist.avatarUrl} alt="" loading="lazy" />
-        ) : (
-          <Crosshair className="size-14" strokeWidth={1.4} />
-        )}
-      </span>
-      <span className="hm-poster-title">{bounty.title}</span>
-      {bounty.summary && <span className="hm-poster-sum">{bounty.summary}</span>}
-      <span className="hm-poster-reward">
-        <span>Reward</span>
-        <b>
-          <Money
-            amount={bounty.prize.amount}
-            currency={bounty.prize.currency}
-            code={bounty.prize.code}
-            short
-          />
-        </b>
-      </span>
-      <span className="hm-poster-foot">
-        <span>
-          <span className="hm-escrow">
-            <i /> In escrow
-          </span>
-          {bounty.participants} {bounty.participants === 1 ? "hunter" : "hunters"}
-        </span>
-        <span className="hm-poster-join">Join</span>
-      </span>
-    </Link>
-  );
-}
-
-/** An organization: cover, initials badge, its fan token's price, counts, Follow and Buy. */
-function OrgCard({ org, signedIn }: { org: Org; signedIn: boolean }) {
-  const initials = org.name
-    .split(/\s+/)
-    .map((word) => word[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-  return (
-    <article className="hm-org">
-      <Link href={`/artist/${org.slug}`} className="hm-org-cover" aria-hidden tabIndex={-1}>
-        {org.coverUrl && (
-          // eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts
-          <img src={org.coverUrl} alt="" loading="lazy" />
-        )}
-      </Link>
-      <div className="hm-org-body">
-        <Link href={`/artist/${org.slug}`} className="hm-org-top">
-          <span className="hm-org-logo">
-            {org.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element -- avatars come from many hosts
-              <img src={org.avatarUrl} alt="" />
-            ) : (
-              <span className="lp-chrome">{initials}</span>
-            )}
-          </span>
-          <span className="min-w-0 pb-1">
-            <span className="hm-org-name">
-              <span className="truncate">{org.name}</span>
-              <BadgeCheck className="text-primary-text size-4 shrink-0" />
-            </span>
-            {org.bio && <span className="hm-org-bio">{org.bio}</span>}
-          </span>
-        </Link>
-        {org.token && (
-          <div className="hm-org-tok">
-            <span>
-              <span className="hm-org-sym">${org.token.code}</span>
-              <span className="hm-org-px">
-                {org.token.price ? (
-                  <Money amount={org.token.price.actionToken} currency="ACTION" short />
-                ) : (
-                  "Not for sale"
-                )}
-              </span>
-            </span>
-            {org.token.price && (
-              <span className="hm-org-usd">
-                ≈ <Money amount={org.token.price.usd} currency="USD" />
-              </span>
-            )}
-          </div>
-        )}
-        <div className="hm-org-stats">
-          <span>
-            <b>{org.items}</b>
-            <small>Drops</small>
-          </span>
-          <span>
-            <b>{compact(org.followers)}</b>
-            <small>Crew</small>
-          </span>
-        </div>
-        <div className="hm-org-actions">
-          <FollowButton
-            slug={org.slug}
-            initial={signedIn && org.following}
-            initialSubscribed={signedIn && org.subscribed}
-            compact
-          />
-          {org.token?.price && (
-            <Link href={`/item/${org.token.slug}`} className="hm-buy-tok">
-              Buy ${org.token.code}
-            </Link>
-          )}
-        </div>
-      </div>
-    </article>
-  );
-}
-
-const compact = (n: number) =>
-  n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : String(n);
-
 /** Crews: the biggest token-gated communities, each saying what it takes to get in. */
-function Crews({ signedIn }: { signedIn: boolean }) {
+function Crews() {
   const crews = api.community.trending.useQuery({ limit: 4 });
   if (!crews.data?.length) return null;
   return (
@@ -553,49 +290,12 @@ function Crews({ signedIn }: { signedIn: boolean }) {
       note="Token-gated communities. Hold the token, get in the room."
       more={{ href: "/communities", label: "All crews" }}
     >
-      <div className="hm-crews">
+      <div className="cm-grid">
         {crews.data.map((crew) => (
-          <CrewRow key={crew.id} crew={crew} signedIn={signedIn} />
+          <CommunityCard key={crew.id} community={crew} />
         ))}
       </div>
     </Section>
-  );
-}
-
-function CrewRow({ crew, signedIn }: { crew: Crew; signedIn: boolean }) {
-  const gated = crew.isTokenGated && crew.requirements.length > 0;
-  const gate = api.community.gate.useQuery(
-    { communityId: crew.id },
-    { enabled: signedIn && gated, staleTime: 60_000 },
-  );
-  const first = crew.requirements[0];
-  const check = gate.data?.checks?.[0];
-  const label = !gated
-    ? "Open crew"
-    : `Hold ${Number(first!.requiredBalance).toLocaleString("en-US")} $${first!.assetCode}` +
-      (crew.requirements.length > 1 ? ` +${crew.requirements.length - 1}` : "") +
-      (check ? ` · you have ${check.held.toLocaleString("en-US")}` : "");
-  const ok = !gated || gate.data?.passes === true;
-  return (
-    <Link href={`/communities/${crew.id}`} className="hm-crew">
-      <span className="hm-crew-ban" aria-hidden>
-        {crew.profileUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- pictures come from many hosts
-          <img src={crew.profileUrl} alt="" loading="lazy" />
-        ) : (
-          <Users className="size-7" />
-        )}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="hm-crew-title">{crew.title}</span>
-        <span className="hm-crew-desc">{crew.description}</span>
-        <span className="hm-crew-count">
-          <Users className="size-3.5" /> {compact(crew._count.members)} members ·{" "}
-          {compact(crew._count.posts)} posts
-        </span>
-      </span>
-      <span className={cn("hm-gate", ok && "hm-gate--ok")}>{label}</span>
-    </Link>
   );
 }
 
@@ -640,8 +340,8 @@ function useHeroMode(root: React.RefObject<HTMLDivElement | null>) {
 function useReveal<T extends HTMLElement>() {
   const ref = useRef<T>(null);
   useEffect(() => {
-    const items = ref.current?.querySelectorAll<HTMLElement>("[data-reveal]");
-    if (!items?.length) return;
+    const root = ref.current;
+    if (!root) return;
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -652,8 +352,21 @@ function useReveal<T extends HTMLElement>() {
       },
       { rootMargin: "0px 0px -10% 0px" },
     );
-    items.forEach((item) => observer.observe(item));
-    return () => observer.disconnect();
+    const watched = new WeakSet<Element>();
+    const watch = () =>
+      root.querySelectorAll<HTMLElement>("[data-reveal]:not([data-in])").forEach((item) => {
+        if (watched.has(item)) return;
+        watched.add(item);
+        observer.observe(item);
+      });
+    watch();
+    // Sections that load after the page (Crews) are watched when they appear.
+    const added = new MutationObserver(watch);
+    added.observe(root, { childList: true, subtree: true });
+    return () => {
+      added.disconnect();
+      observer.disconnect();
+    };
   }, []);
   return ref;
 }

@@ -14,16 +14,13 @@ import { SearchInput, Toolbar } from "@actiontokens/ui/patterns/toolbar";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import { FollowSubscribe } from "../artist/follow-subscribe";
-import { ArtistCircle } from "./artist-circle";
+import { ArtistCircle, type CircleArtist } from "./artist-circle";
 import { HERO_COUNT } from "./artists-hero";
 
 type View = "popular" | "newest" | "following";
 type Artist = RouterOutputs["artist"]["directory"]["artists"][number];
 
 const GRID = "grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-[repeat(auto-fill,minmax(184px,1fr))]";
-
-const tokenOf = (artist: Artist) =>
-  artist.tokenCode ? { code: artist.tokenCode, organizationId: artist.id } : null;
 
 /** A follower count that moves when you follow, unfollow or subscribe. */
 function useFollowers(initial: number) {
@@ -149,8 +146,15 @@ export function ArtistsView() {
   );
 }
 
+/** What an organization circle with Follow and Subscribe needs (the directory and the home shelf). */
+export type OrgCircleData = CircleArtist & {
+  id: string;
+  following: boolean;
+  subscribed: boolean;
+};
+
 /** A circle with Follow and Subscribe under it. */
-function DirectoryArtist({ artist }: { artist: Artist }) {
+export function OrgCircle({ artist }: { artist: OrgCircleData }) {
   const { followers, onFollowers, onJoined } = useFollowers(artist.followers);
   return (
     <ArtistCircle
@@ -160,11 +164,15 @@ function DirectoryArtist({ artist }: { artist: Artist }) {
           slug={artist.slug}
           initialFollowing={artist.following}
           initialSubscribed={artist.subscribed}
-          token={tokenOf(artist)}
+          token={artist.tokenCode ? { code: artist.tokenCode, organizationId: artist.id } : null}
           onFollowers={onFollowers}
           onJoined={onJoined}
         />
       }
     />
   );
+}
+
+function DirectoryArtist({ artist }: { artist: Artist }) {
+  return <OrgCircle artist={artist} />;
 }

@@ -29,7 +29,8 @@ const userSelect = { username: true, displayName: true, avatarUrl: true } as con
 /** Bounties fans can see: funded, and not hidden by an admin. */
 export const publicBountyWhere = { fundTxHash: { not: null }, hiddenAt: null } as const;
 
-const cardSelect = {
+/** What a bounty card needs (the Bounties page and the home shelf). */
+export const cardSelect = {
   id: true,
   title: true,
   summary: true,
@@ -58,7 +59,13 @@ type CardRow = Prisma.BountyGetPayload<{ select: typeof cardSelect }>;
 
 const snippet = (text: string) => (text.length > SNIPPET ? `${text.slice(0, SNIPPET)}…` : text);
 
-function toCard(row: CardRow, config: ChainConfig, viewerId: string | undefined, joined: boolean) {
+/** A bounty as the fan cards show it. */
+export function toCard(
+  row: CardRow,
+  config: ChainConfig,
+  viewerId: string | undefined,
+  joined: boolean,
+) {
   const { userId: artistUserId, ...artist } = row.organization;
   return {
     id: row.id,

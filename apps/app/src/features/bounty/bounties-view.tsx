@@ -136,6 +136,6 @@ export function BountiesView() {
 
 function Grid({ children }: { children: ReactNode }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-[repeat(auto-fill,minmax(19rem,1fr))]">{children}</div>
+    <div className="grid gap-4 sm:grid-cols-[repeat(auto-fill,minmax(16rem,1fr))]">{children}</div>
   );
 }

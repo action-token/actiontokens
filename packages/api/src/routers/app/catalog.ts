@@ -2,8 +2,7 @@ import { z } from "zod";
 
 import { ItemType, type Prisma } from "@actiontokens/db";
 
-import { publicBountyWhere } from "./bounty";
-import { prizeView } from "../../services/bounty/prize";
+import { cardSelect, publicBountyWhere, toCard } from "./bounty";
 import { itemCardSelect, listedItemWhere, toItemCard } from "../../services/catalog/item-card";
 import { browseSongs } from "../../services/catalog/song-browse";
 import type { ServiceCtx } from "../../services/gifts/claim";
@@ -60,36 +59,31 @@ async function loadDrops(ctx: ServiceCtx, skip: number) {
   };
 }
 
-/** Running public bounties, newest first. */
-async function loadBounties(ctx: ServiceCtx, skip: number) {
+/** Running public bounties, newest first, as the Bounties page's cards (joined = the viewer is in). */
+async function loadBounties(ctx: ServiceCtx, viewerId: string | null, skip: number) {
   const rows = await ctx.db.bounty.findMany({
     where: { ...publicBountyWhere, status: "RUNNING" },
     orderBy: [{ createdAt: "desc" }, { id: "asc" }],
     skip,
     take: SHELF + 1,
-    select: {
-      id: true,
-      title: true,
-      summary: true,
-      prizeAmount: true,
-      prizeCurrency: true,
-      prizeAssetCode: true,
-      prizeAssetIssuer: true,
-      organization: { select: { name: true, slug: true, avatarUrl: true } },
-      _count: { select: { participants: true } },
-    },
+    select: cardSelect,
   });
   const { items, hasMore } = page(rows);
+  const joined = new Set(
+    viewerId && items.length
+      ? (
+          await ctx.db.bountyParticipant.findMany({
+            where: { userId: viewerId, bountyId: { in: items.map((row) => row.id) } },
+            select: { bountyId: true },
+          })
+        ).map((row) => row.bountyId)
+      : [],
+  );
   return {
     hasMore,
-    items: items.map((bounty) => ({
-      id: bounty.id,
-      title: bounty.title,
-      summary: bounty.summary,
-      prize: prizeView(bounty, ctx.chain.config),
-      artist: bounty.organization,
-      participants: bounty._count.participants,
-    })),
+    items: items.map((row) =>
+      toCard(row, ctx.chain.config, viewerId ?? undefined, joined.has(row.id)),
+    ),
   };
 }
 
@@ -188,7 +182,7 @@ export const catalogRouter = createRouter({
         select: itemCardSelect,
       }),
       loadOrgs(ctx, viewerId, 0),
-      loadBounties(ctx, 0),
+      loadBounties(ctx, viewerId, 0),
       loadDrops(ctx, 0),
     ]);
     const hero =
@@ -230,7 +224,7 @@ export const catalogRouter = createRouter({
       if (input.shelf === "drops")
         return { shelf: "drops" as const, ...(await loadDrops(ctx, skip)) };
       if (input.shelf === "bounties")
-        return { shelf: "bounties" as const, ...(await loadBounties(ctx, skip)) };
+        return { shelf: "bounties" as const, ...(await loadBounties(ctx, viewerId, skip)) };
       return { shelf: "artists" as const, ...(await loadOrgs(ctx, viewerId, skip)) };
     }),
 
