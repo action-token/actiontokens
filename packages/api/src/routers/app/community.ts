@@ -89,6 +89,19 @@ async function logActivity(
   await db.communityActivity.create({ data: { communityId, actorId, type, entityId } });
 }
 
+/** Decimals don't survive the wire (superjson has no Decimal type): the required balance as text. */
+function withPlainBalances<
+  T extends { requirements: { requiredBalance: { toString(): string } }[] },
+>(row: T) {
+  return {
+    ...row,
+    requirements: row.requirements.map((req) => ({
+      ...req,
+      requiredBalance: req.requiredBalance.toString(),
+    })),
+  };
+}
+
 const communityRouter = createRouter({
   list: publicProcedure
     .input(
@@ -119,28 +132,32 @@ const communityRouter = createRouter({
         ...(input.cursor ? { cursor: { id: input.cursor }, skip: 1 } : {}),
         include: {
           owner: { select: userSelect },
-          requirements: { select: { assetCode: true, assetImageUrl: true } },
+          requirements: { select: { assetCode: true, assetImageUrl: true, requiredBalance: true } },
           _count: { select: { members: true, posts: true } },
         },
       });
       const next = rows.length > PAGE ? rows.pop() : undefined;
-      return { items: rows, nextCursor: next?.id ?? null };
+      return { items: rows.map(withPlainBalances), nextCursor: next?.id ?? null };
     }),
 
   /** The biggest communities, for the discover screen. */
   trending: publicProcedure
     .input(z.object({ limit: z.number().int().min(1).max(20).default(5) }))
-    .query(({ ctx, input }) =>
-      ctx.db.community.findMany({
-        where: { hiddenAt: null },
-        take: input.limit,
-        orderBy: [{ members: { _count: "desc" } }, { id: "asc" }],
-        include: {
-          owner: { select: userSelect },
-          requirements: { select: { assetCode: true, assetImageUrl: true } },
-          _count: { select: { members: true, posts: true } },
-        },
-      }),
+    .query(async ({ ctx, input }) =>
+      (
+        await ctx.db.community.findMany({
+          where: { hiddenAt: null },
+          take: input.limit,
+          orderBy: [{ members: { _count: "desc" } }, { id: "asc" }],
+          include: {
+            owner: { select: userSelect },
+            requirements: {
+              select: { assetCode: true, assetImageUrl: true, requiredBalance: true },
+            },
+            _count: { select: { members: true, posts: true } },
+          },
+        })
+      ).map(withPlainBalances),
     ),
 
   /** Finds Stellar assets for the gate's token picker. */

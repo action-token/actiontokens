@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search } from "lucide-react";
@@ -8,7 +7,8 @@ import { type CSSProperties, type ReactNode, useEffect } from "react";
 
 import { cn } from "@actiontokens/ui/lib/cn";
 import { PhoneTabBar } from "@actiontokens/ui/patterns/phone-tab-bar";
-import { SiteBackdrop } from "@actiontokens/ui/patterns/site-backdrop";
+import { BrandMark } from "@actiontokens/ui/patterns/boot-screen";
+import { PortalBackdrop } from "@actiontokens/ui/patterns/portal-backdrop";
 import { usePersistedFlag, useSidebarCollapsed } from "@actiontokens/ui/lib/sidebar-collapsed";
 
 import { AccountButton } from "~/features/account/account-button";
@@ -62,7 +62,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           "in-data-resizing:transition-none motion-reduce:transition-none xl:grid-cols-[auto_minmax(0,1fr)_var(--right-w)] xl:transition-[grid-template-columns] xl:duration-400 xl:ease-[ease]",
       )}
     >
-      <SiteBackdrop />
+      <PortalBackdrop />
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       <SearchDialog />
 
@@ -70,7 +70,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Phones have no sidebar, so search and the account stay in a small bar. */}
         <header className="bg-bg/85 sticky top-0 z-30 flex h-16 items-center gap-3 border-b px-4 backdrop-blur sm:hidden">
           <Link href="/" aria-label="Home">
-            <Image src="/images/logo.png" alt="" width={313} height={364} className="h-8 w-auto" />
+            <span className="gx-logo grid size-9 place-items-center rounded-xl bg-white">
+              <BrandMark className="h-6" />
+            </span>
           </Link>
           <button
             type="button"

@@ -1,0 +1,788 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   The marketplace front page (features/home/home-front.tsx), after docs/mockups/home.html:
+   drop cards, the Wanted-poster bounty board, organization cards, crews and the two ways out.
+   Reads the shared --gx-* / --bc-* tokens, so Light and Dark are one design. Hover moves use
+   transform only; nothing animates at rest.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* the page's own background, so the brand tiles behind stay a faint shade here too */
+.hm {
+  position: relative;
+  min-width: 0;
+  background: rgb(from var(--bc-bg) r g b / 0.86);
+}
+.hm-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(72px, 9vw, 120px);
+  width: 100%;
+  max-width: 96rem;
+  margin-inline: auto;
+  padding: clamp(48px, 6vw, 88px) clamp(16px, 4vw, 56px) 96px;
+}
+.hm-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 26px;
+}
+.hm-more {
+  flex: none;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--gx-line-strong);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--bc-fg-muted);
+  transition: color 0.2s;
+}
+.hm-more:hover {
+  color: var(--bc-primary-text);
+}
+
+/* ── Live drops: a sideways rail of square cards ── */
+.hm-rail {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 236px;
+  gap: 18px;
+  overflow-x: auto;
+  padding: 4px 2px 22px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.hm-rail::-webkit-scrollbar {
+  display: none;
+}
+.hm-drop {
+  /* the anchor for absolutely placed bits inside (the price's screen-reader text), so they stay
+     inside the rail's scroll box instead of widening the page */
+  position: relative;
+  scroll-snap-align: start;
+  padding: 10px;
+  border: 1px solid var(--bc-border);
+  border-radius: 20px;
+  background: var(--bc-surface);
+  transition:
+    transform 0.25s ease,
+    border-color 0.2s;
+}
+.hm-drop:hover {
+  transform: translateY(-4px);
+  border-color: var(--gx-neon);
+}
+.hm-drop-art {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #000;
+}
+.hm-drop-art img,
+.hm-drop-blank {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.hm-drop-blank {
+  background:
+    radial-gradient(60% 60% at 50% 40%, rgb(from var(--gx-neon) r g b / 0.35), transparent), #050605;
+}
+.hm-chip {
+  position: absolute;
+  top: 10px;
+  padding: 4px 8px;
+  border-radius: 5px;
+  background: rgb(0 0 0 / 0.75);
+  color: #f2f2f2;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.hm-chip--type {
+  left: 10px;
+  border: 1px solid var(--gx-neon);
+  color: var(--gx-neon);
+}
+.hm-chip--ed {
+  right: 10px;
+  letter-spacing: 0.04em;
+}
+.hm-cd {
+  position: absolute;
+  inset: auto 10px 10px;
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-radius: 9px;
+  background: rgb(5 6 5 / 0.85);
+  color: #cfd8d1;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.hm-cd b {
+  color: var(--gx-neon);
+  letter-spacing: 0.02em;
+}
+.hm-drop-meta {
+  padding: 12px 4px 4px;
+}
+.hm-drop-org {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--bc-fg-muted);
+}
+.hm-drop-org svg {
+  color: var(--bc-primary-text);
+}
+.hm-drop-title {
+  margin: 4px 0 12px;
+  overflow: hidden;
+  font-family: var(--font-sans);
+  font-size: 17px !important;
+  font-weight: 700;
+  line-height: 1.2 !important;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+.hm-drop-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.hm-price {
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 700;
+}
+.hm-price small {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--bc-fg-faint);
+}
+.hm-collect {
+  flex: none;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 9px;
+  background: var(--bc-fg);
+  color: var(--bc-bg);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 36px;
+  transition: background 0.2s;
+}
+.hm-collect:hover {
+  background: var(--gx-neon);
+  color: var(--gx-on-neon);
+}
+
+/* ── Bounties: Wanted posters pinned to a board (paper in both themes) ── */
+.hm-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 26px 22px;
+  padding-top: 10px;
+}
+.hm-poster {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 20px 18px;
+  border-radius: 2px;
+  background: #e9e3d2;
+  color: #151515;
+  box-shadow: 0 22px 44px rgb(0 0 0 / 0.35);
+  transform: rotate(-1.3deg);
+  transition: transform 0.3s ease;
+}
+.hm-poster:nth-child(even) {
+  transform: rotate(1.1deg);
+}
+.hm-poster:hover {
+  transform: rotate(0) translateY(-6px);
+}
+.hm-poster::before {
+  content: "";
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  z-index: 2;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #bdbdbd, #3a3a3a);
+  box-shadow: 0 3px 6px rgb(0 0 0 / 0.5);
+}
+.hm-poster::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  background:
+    radial-gradient(120% 80% at 50% 0%, transparent 50%, rgb(90 60 20 / 0.45)),
+    radial-gradient(40% 30% at 85% 90%, rgb(90 60 20 / 0.25), transparent);
+}
+.hm-poster-w {
+  font-family: var(--lp-gothic), serif;
+  font-size: 50px;
+  line-height: 1;
+  text-align: center;
+}
+.hm-poster-by {
+  margin: 6px 0 14px;
+  padding: 4px 0;
+  border-block: 2px solid #151515;
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 0.2em;
+  text-align: center;
+  text-transform: uppercase;
+}
+.hm-poster-mug {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 10;
+  margin-bottom: 14px;
+  overflow: hidden;
+  border: 3px solid #151515;
+  background: #111;
+  color: var(--gx-neon);
+}
+.hm-poster-mug img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) contrast(1.15);
+}
+.hm-poster-title {
+  font-family: var(--lp-display), var(--font-display);
+  font-size: 24px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.hm-poster-sum {
+  display: -webkit-box;
+  margin-top: 8px;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.hm-poster-reward {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 2px dashed #151515;
+  position: relative;
+  top: 10px;
+}
+.hm-poster-reward > span {
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.hm-poster-reward b {
+  font-family: var(--font-mono);
+  font-size: 21px;
+}
+.hm-poster-foot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 22px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.hm-escrow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.hm-escrow i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2e9a18;
+}
+.hm-poster-join {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 2px;
+  background: #151515;
+  color: #e9e3d2;
+  font-family: var(--font-display);
+  font-size: 16px;
+  letter-spacing: 0.1em;
+  line-height: 38px;
+  text-transform: uppercase;
+}
+.hm-poster:hover .hm-poster-join {
+  color: var(--gx-neon);
+}
+
+/* ── Organizations ── */
+.hm-orgs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 18px;
+}
+.hm-org {
+  overflow: hidden;
+  border: 1px solid var(--bc-border);
+  border-radius: 22px;
+  background: var(--bc-surface);
+  transition:
+    transform 0.3s ease,
+    border-color 0.25s;
+}
+.hm-org:hover {
+  transform: translateY(-4px);
+  border-color: var(--gx-line-strong);
+}
+.hm-org-cover {
+  position: relative;
+  display: block;
+  height: 104px;
+  overflow: hidden;
+  background:
+    radial-gradient(70% 90% at 30% 20%, rgb(from var(--gx-neon) r g b / 0.28), transparent),
+    radial-gradient(60% 80% at 80% 40%, rgb(from var(--gx-acid) r g b / 0.2), transparent),
+    var(--bc-surface-2);
+}
+.hm-org-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.hm-org-cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 30%, var(--bc-surface));
+}
+.hm-org-body {
+  position: relative;
+  margin-top: -34px;
+  padding: 0 16px 16px;
+}
+.hm-org-top {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+.hm-org-logo {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  border: 3px solid var(--bc-surface);
+  border-radius: 18px;
+  background: #000;
+  box-shadow: 0 0 0 1px var(--gx-line-strong);
+  font-family: var(--lp-display), var(--font-display);
+  font-size: 26px;
+}
+.hm-org-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.hm-org-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 17px;
+  font-weight: 700;
+}
+.hm-org-bio {
+  display: block;
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--bc-fg-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hm-org-tok {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 14px 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--bc-border);
+  border-radius: 14px;
+  background: var(--bc-surface-2);
+}
+.hm-org-sym {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--bc-fg-muted);
+}
+.hm-org-px {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 17px;
+  font-weight: 700;
+}
+.hm-org-usd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--bc-fg-faint);
+}
+.hm-org-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin: 14px 0;
+}
+.hm-org-tok + .hm-org-stats {
+  margin-top: 0;
+}
+.hm-org-stats span {
+  padding: 8px 0;
+  border-radius: 10px;
+  background: var(--ap-fill);
+  text-align: center;
+}
+.hm-org-stats b {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 15px;
+}
+.hm-org-stats small {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bc-fg-faint);
+}
+.hm-org-actions {
+  display: flex;
+  gap: 8px;
+}
+.hm-org-actions > * {
+  flex: 1;
+}
+.hm-buy-tok {
+  display: grid;
+  place-items: center;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--gx-neon);
+  color: var(--gx-on-neon);
+  font-size: 13px;
+  font-weight: 700;
+  transition: transform 0.2s;
+}
+.hm-buy-tok:hover {
+  transform: translateY(-1px);
+}
+
+/* ── Crews ── */
+.hm-crews {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 460px), 1fr));
+  gap: 14px;
+}
+.hm-crew {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--bc-border);
+  border-radius: 20px;
+  background: var(--bc-surface);
+  transition: border-color 0.2s;
+}
+.hm-crew:hover {
+  border-color: var(--gx-line-strong);
+}
+.hm-crew-ban {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #050605;
+  color: var(--gx-neon);
+}
+.hm-crew-ban img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.hm-crew-title {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+}
+.hm-crew-desc {
+  display: block;
+  overflow: hidden;
+  font-size: 13px;
+  color: var(--bc-fg-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hm-crew-count {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--bc-fg-faint);
+}
+.hm-gate {
+  flex: none;
+  max-width: 46%;
+  padding: 6px 10px;
+  border: 1px solid var(--bc-border-strong);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--bc-fg-muted);
+  text-align: center;
+}
+.hm-gate--ok {
+  border-color: var(--gx-neon);
+  color: var(--bc-primary-text);
+}
+
+/* ── Explore: the gallery and the AR map (dark stages in both themes) ── */
+.hm-explore {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: 18px;
+}
+.hm-way {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: 340px;
+  overflow: hidden;
+  padding: 26px;
+  border: 1px solid rgb(77 255 42 / 0.16);
+  border-radius: 24px;
+  background: #070907;
+  color: #eafff0;
+  transition: border-color 0.25s;
+}
+.hm-way:hover {
+  border-color: rgb(77 255 42 / 0.5);
+}
+.hm-way-text {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+}
+.hm-way .text-fg-muted {
+  color: #9fb4a5;
+}
+.hm-way-title {
+  font-family: var(--lp-display), var(--font-display);
+  font-size: clamp(40px, 4.4vw, 60px);
+  line-height: 0.9;
+  text-transform: uppercase;
+  background-image: linear-gradient(
+    180deg,
+    #fdfdfd 0%,
+    #bdbdbd 40%,
+    #fff 52%,
+    #6a6a6a 70%,
+    #d9d9d9 100%
+  ) !important;
+}
+.hm-way-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  background: var(--gx-neon);
+  color: var(--gx-on-neon);
+  font-weight: 700;
+  box-shadow: 0 0 24px rgb(77 255 42 / 0.35);
+}
+.hm-way-btn--ghost {
+  border: 1px solid rgb(255 255 255 / 0.25);
+  background: transparent;
+  color: #eafff0;
+  box-shadow: none;
+}
+/* the gallery: frames receding down a corridor */
+.hm-way-art {
+  position: absolute;
+  inset: 0;
+  perspective: 600px;
+}
+.hm-way-art i {
+  position: absolute;
+  top: 18%;
+  width: 22%;
+  height: 46%;
+  border: 3px solid #e8e8e8;
+  background: radial-gradient(circle at 50% 45%, rgb(77 255 42 / 0.35), #050605 70%);
+}
+.hm-way-art i:nth-child(odd) {
+  left: 4%;
+  transform: rotateY(55deg) translateZ(calc(var(--k, 0) * -1px));
+}
+.hm-way-art i:nth-child(even) {
+  right: 4%;
+  transform: rotateY(-55deg);
+}
+.hm-way-art i:nth-child(3) {
+  left: 16%;
+  scale: 0.7;
+}
+.hm-way-art i:nth-child(4) {
+  right: 16%;
+  scale: 0.7;
+}
+.hm-way-art i:nth-child(5) {
+  left: 26%;
+  scale: 0.45;
+}
+.hm-way-art i:nth-child(6) {
+  right: 26%;
+  scale: 0.45;
+}
+/* the AR map: a grid with glowing pins and you */
+.hm-way-map {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgb(77 255 42 / 0.08) 1px, transparent 1px) 0 0 / 34px 34px,
+    linear-gradient(90deg, rgb(77 255 42 / 0.08) 1px, transparent 1px) 0 0 / 34px 34px,
+    radial-gradient(80% 80% at 70% 30%, rgb(77 255 42 / 0.12), transparent);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 45%);
+}
+.hm-way-map i,
+.hm-way-map b {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #4dff2a;
+  box-shadow:
+    0 0 0 8px rgb(77 255 42 / 0.12),
+    0 0 18px rgb(77 255 42 / 0.6);
+}
+.hm-way-map i[data-gold] {
+  background: #ffb02e;
+  box-shadow:
+    0 0 0 8px rgb(255 176 46 / 0.14),
+    0 0 18px rgb(255 176 46 / 0.6);
+}
+.hm-way-map b {
+  background: #4d8dff;
+  box-shadow: 0 0 0 6px rgb(77 141 255 / 0.2);
+}
+
+@media (max-width: 639px) {
+  .hm-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .hm-crew {
+    flex-wrap: wrap;
+  }
+  .hm-gate {
+    max-width: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hm-drop,
+  .hm-poster,
+  .hm-org {
+    transition: none;
+  }
+}
+
+/* ── The notch's search field and balance chip ── */
+.hm-notch {
+  gap: 10px;
+}
+.hm-notch-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: clamp(200px, 22vw, 320px);
+  height: 40px;
+  padding: 0 10px 0 14px;
+  border: 1px solid var(--bc-border);
+  border-radius: 999px;
+  background: var(--ap-fill);
+  color: var(--bc-fg-faint);
+  font-size: 13px;
+  text-align: left;
+  transition: border-color 0.2s;
+}
+.hm-notch-search:hover {
+  border-color: var(--gx-line-strong);
+}
+.hm-notch-search kbd {
+  margin-left: auto;
+  padding: 2px 6px;
+  border: 1px solid var(--bc-border);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+.hm-notch-bal {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--bc-border);
+  border-radius: 999px;
+  background: var(--ap-fill);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.hm-notch-bal i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gx-neon);
+  box-shadow: 0 0 8px var(--gx-neon);
+}

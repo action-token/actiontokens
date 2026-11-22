@@ -31,18 +31,40 @@ Visible text says "Organization(s)" (short: "Orgs"), never "Artist". Routes, cod
 
 One look across both apps, from shared code.
 
-- [ ] Move the generic part of `portal.css` (tokens through backdrop) to
+- [x] Move the generic part of `portal.css` (tokens through backdrop) to
       `packages/ui/src/styles/gx.css`; `portal.css` imports it and keeps sidebar/landing/tour.
       Org must look identical afterwards (screenshot compare: dashboard, a form, a table, wallet,
       dark + light).
-- [ ] `apps/app/src/styles/globals.css` imports `gx.css`.
-- [ ] The control-deck sidebar: move to `packages/ui` (props: groups, header tools, footer, balance
+- [x] `apps/app/src/styles/globals.css` imports `gx.css`.
+- [x] The control-deck sidebar: move to `packages/ui` (props: groups, header tools, footer, balance
       card, signed-in state), CSS with it; org and app both use it. The app keeps its extra tools
       (search, bell, now-playing rail, right panel, player bar).
 - [ ] Theme control (Light / Dark / System) the same as org; Light must be checked on every page.
 - [ ] Re-check marketplace pages in both themes and at 390px: home, marketplace, item, organization
       page, bounties, collection, wallet, settings, music/player.
-- [ ] Notch: decide with the owner whether the marketplace gets one (org has it only signed out).
+- [x] Home page after the owner's prototype `docs/mockups/home.html` (2026-11-23): see "Home page" below.
+- [ ] Re-check the other marketplace pages in the new look (Light, Dark, 390px).
+
+### Home page (done 2026-11-23)
+
+`apps/app/src/features/home/home-front.tsx` (+ `home-notch.tsx`, `styles/home.css`), data from
+`catalog.home` (now also `drops` with supply / sold / saleEndsAt, and organizations with `bio`,
+`coverUrl`, `token {code, slug, price}`, `following`, `subscribed`) and `community.trending` (now with
+`requiredBalance`, sent as text). Sections: notch (search, balance or Sign in, bell, a real new drop or
+bounty dropping down every 4 s), scroll hero "Take Action." (shared `ScrollHero`, frames copied to
+`apps/app/public/landing/frames`), neon ribbon, Live drops (edition, copies left, countdown when the
+sale ends), Bounties as Wanted posters, Organizations (fan token price, drops, crew, Follow, Buy),
+Crews (gate text, "you have N" when signed in), Hear it (music rows, only when there are songs),
+Explore (AR map; the gallery card shows only when `NEXT_PUBLIC_GALLERY_URL` is set).
+**Left out on purpose (no data behind them):** top collectors, a public activity feed, token price
+history (sparklines), XP / levels. Each needs a backend first; ask the owner.
+Shared pieces now in `packages/ui`: `styles/gx.css` (look + sidebar + neon button),
+`styles/landing.css` (hero, ribbon, section titles, reveal, notch), `patterns/control-deck.tsx`
+(`ControlDeck`, `DeckVault`), `patterns/scroll-hero.tsx`, `patterns/theme-control.tsx`,
+`patterns/portal-backdrop.tsx`.
+**Local dev DB note:** `actiontokens_dev` had drifted from the regenerated init migration (missing
+community `hiddenAt`/`hiddenReason`, gallery, rewards and Telegram tables, 6 notification types); the
+additive diff was applied to the local Docker database only. Neon / production were not touched.
 
 ## 3 · Communities (fan screens)
 

@@ -4,7 +4,7 @@ import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
-import { cn } from "@actiontokens/ui/lib/cn";
+import { cn } from "../lib/cn";
 
 const OPTIONS = [
   { value: "light", label: "Light", icon: Sun },

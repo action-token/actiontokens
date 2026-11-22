@@ -1,16 +1,12 @@
 "use client";
 
-import { Mic2, ScanLine, Wallet } from "lucide-react";
+import { Building2, ScanLine } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { Suspense } from "react";
 
-import {
-  SideBalance,
-  SideFrame,
-  type SideAccount,
-  type SideGroup,
-} from "@actiontokens/ui/patterns/side-frame";
+import { ControlDeck, DeckVault } from "@actiontokens/ui/patterns/control-deck";
+import type { SideAccount, SideGroup } from "@actiontokens/ui/patterns/side-frame";
 import { abbreviateAddress } from "@actiontokens/utils/address";
 import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
@@ -21,10 +17,9 @@ import { AR_URL, ORG_URL, artistEntry, GROUPS, isActive } from "./nav";
 import { HeaderTools } from "./sidebar-search";
 
 /**
- * The desktop sidebar, the same frame as the artist portal's (Wadzzo's look):
- * Search and the bell beside the logo, the links in groups, tiles to AR and
- * the artist portal, your balances, then your account, the theme and the info
- * pages. The chevron on its edge folds it to a rail.
+ * The desktop sidebar: the shared Action-Tokens control deck (the same as the org portal's), with
+ * Search and the bell beside the logo, the links in groups, launch cards to AR and the
+ * organization portal, the vault, then your account and the theme. The chevron folds it.
  */
 export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   return (
@@ -52,7 +47,7 @@ function Frame({
   const { status } = useSession();
   const openWallet = useConnectWalletDialogStore((state) => state.setIsOpen);
   const me = api.account.me.useQuery(undefined, { enabled: status === "authenticated" });
-  const artist = artistEntry(me.data?.organization ?? null);
+  const org = artistEntry(me.data?.organization ?? null);
   const signedIn = status === "authenticated";
   const balances = me.data?.balances;
 
@@ -86,40 +81,32 @@ function Frame({
           };
 
   return (
-    <SideFrame
-      label="Main"
-      home={{ href: "/", label: "Action Tokens marketplace home", tagline: "marketplace" }}
+    <ControlDeck
+      home={{ href: "/", label: "Action-Tokens marketplace home" }}
+      tagline="Marketplace"
       tools={<HeaderTools />}
+      railTools={<HeaderTools />}
       groups={groups}
-      tiles={[
-        { href: AR_URL, title: "Go to AR", hint: "Collect drops", icon: ScanLine, tone: "ink" },
-        { href: ORG_URL, title: artist.title, hint: artist.hint, icon: Mic2, tone: "mint" },
+      launch={[
+        { href: AR_URL, label: "Go to AR", hint: "Collect drops", icon: ScanLine },
+        { href: ORG_URL, label: org.title, hint: org.hint, icon: Building2, acid: true },
       ]}
       balance={
         signedIn && (
-          <SideBalance
+          <DeckVault
             href="/wallet"
-            icon={Wallet}
-            main={
-              balances
-                ? {
-                    amount: (
-                      <Money amount={balances.ACTION} currency="ACTION" short className="display" />
-                    ),
-                    code: "ACTION",
-                  }
-                : null
-            }
+            code="ACTION"
+            amount={balances ? <Money amount={balances.ACTION} currency="ACTION" short /> : null}
             lines={(["XLM", "USDC"] as const).map((currency) => ({
               label: currency,
-              value: balances && <Money amount={balances[currency]} currency={currency} short />,
+              value: balances ? (
+                <Money amount={balances[currency]} currency={currency} short />
+              ) : null,
             }))}
           />
         )
       }
-      railBalance={signedIn && <SideBalance href="/wallet" icon={Wallet} main={null} rail />}
       account={account}
-      navSize="2.15rem"
       collapsed={collapsed}
       onToggle={onToggle}
     />

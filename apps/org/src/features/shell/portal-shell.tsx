@@ -24,7 +24,7 @@ import { isActive, type NavGroup, type NavItem, navFor, phoneLabel, phoneTabs } 
 import { Sidebar } from "./sidebar";
 import { Landing } from "./landing";
 import { TOUR_EVENT, TOUR_NAV } from "./feature-tour";
-import { PortalBackdrop } from "./portal-backdrop";
+import { PortalBackdrop } from "@actiontokens/ui/patterns/portal-backdrop";
 
 /**
  * The frame around every portal page: a sidebar of what this person may use

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowRight,
   ArrowUpRight,
   CalendarDays,
   Crown,
@@ -20,8 +21,8 @@ import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
 import { AR_URL, FAN_APP_URL, PORTAL_MENU_EVENT } from "./links";
 import { anton, gothic } from "./landing-fonts";
-import { LandingHero } from "./landing-hero";
-import { ThemeControl } from "./theme-control";
+import { ScrollHero } from "@actiontokens/ui/patterns/scroll-hero";
+import { ThemeControl } from "@actiontokens/ui/patterns/theme-control";
 import { FeatureTour } from "./feature-tour";
 
 /**
@@ -81,7 +82,22 @@ export function Landing() {
         </span>
         <NotchFeed onOpen={setNotchOpen} />
       </header>
-      <LandingHero onSignIn={signIn} />
+      <ScrollHero
+        label="Action Tokens for organizations"
+        kicker="Organization portal · live on Stellar"
+        lines={HERO_LINES}
+        facts={HERO_FACTS}
+        ctas={
+          <>
+            <button type="button" onClick={signIn} className="lph-btn lph-btn--neon">
+              <LogIn className="size-4" strokeWidth={2.4} /> Sign in / Sign up
+            </button>
+            <button type="button" onClick={signIn} className="lph-btn lph-btn--chrome">
+              Become an organization <ArrowRight className="size-4" />
+            </button>
+          </>
+        }
+      />
       <Marquee />
 
       <FeatureTour />
@@ -114,6 +130,20 @@ export function Landing() {
     </div>
   );
 }
+
+/** The three lines the hero swaps through as the frames play (first frame each one shows from). */
+const HERO_LINES = [
+  { from: 0, top: "Drop it.", bottom: "Get found." },
+  { from: 40, top: "Run", bottom: "Bounties." },
+  { from: 100, top: "Sell it.", bottom: "Get paid." },
+];
+
+const HERO_FACTS: [string, string][] = [
+  ["Stellar", "every sale on-chain"],
+  ["Escrow", "every bounty prize"],
+  ["AR", "collected on the spot"],
+  ["ACTION", "paid straight to you"],
+];
 
 /** Example notifications for the front page's notch (what an organization gets told about). */
 const NOTES = [

@@ -9,7 +9,6 @@ import { MediaCarousel } from "@actiontokens/ui/patterns/media-carousel";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 
-import { ArtistCircle } from "../artists/artist-circle";
 import { ItemCard, POSTER_WIDTH } from "../catalog/item-card";
 import { AlbumsCarousel, AllSongs } from "../music/music-view";
 import { existingListeningSession } from "../player/listening-id";
@@ -28,24 +27,12 @@ const seeAll = (href: string) => (
   </Link>
 );
 
-/** Home below the hero: recently played, trending, popular artists, new songs, albums, then every song. Bounties live in the right panel. */
+/** The music on the home page (under "Hear it"): recently played, trending, new songs, albums, then every song. */
 export function HomeView({ home }: { home: Home }) {
   return (
     <div className="grid gap-9">
       <RecentlyPlayed />
       <TrendingCarousel home={home} />
-      {home.artists.length > 0 && (
-        <MediaCarousel
-          title="Popular organizations"
-          note="most followed on Action Tokens"
-          action={seeAll("/artists")}
-          itemWidth="minmax(150px,176px)"
-        >
-          {home.artists.map((artist) => (
-            <ArtistCircle key={artist.slug} artist={{ ...artist, songs: artist.items }} />
-          ))}
-        </MediaCarousel>
-      )}
       <NewSongsCarousel home={home} />
       <AlbumsCarousel action={seeAll("/albums")} />
       <AllSongs seeAllHref="/songs" />

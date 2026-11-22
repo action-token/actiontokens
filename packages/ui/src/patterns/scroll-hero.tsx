@@ -1,34 +1,40 @@
 "use client";
 
-import { ArrowRight, LogIn } from "lucide-react";
+import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
 
 const FRAMES = 175;
 const src = (i: number) => `/landing/frames/f${String(i + 1).padStart(3, "0")}.jpg`;
 
-/** The three lines the hero swaps through as the frames play (first frame each one shows from). */
-const LINES = [
-  { from: 0, top: "Drop it.", bottom: "Get found." },
-  { from: 40, top: "Run", bottom: "Bounties." },
-  { from: 100, top: "Sell it.", bottom: "Get paid." },
-];
-
-const FACTS = [
-  ["Stellar", "every sale on-chain"],
-  ["Escrow", "every bounty prize"],
-  ["AR", "collected on the spot"],
-  ["ACTION", "paid straight to you"],
-];
+/** A headline the hero swaps to as the frames play: `from` is the first frame it shows on. */
+export type HeroLine = { from: number; top: string; bottom: string };
 
 /**
- * The landing page's opening, after docs/mockups/home.html: a tall section whose sticky,
+ * A front page's opening, after docs/mockups/home.html: a tall section whose sticky,
  * full-screen stage plays 175 frames as you scroll (the hand and the Action mark), with three
  * headlines swapping over it, the facts rail and the buttons; at the end the stage docks into a
  * glowing card. Kept light on the GPU: a frame is drawn only when the scroll position changes
  * (one requestAnimationFrame per scroll, none at rest), scroll is only watched while the hero is
  * on screen, and the dock moves with transform and opacity only. No particles, no tilt, no blur.
  */
-export function LandingHero({ onSignIn }: { onSignIn: () => void }) {
+export function ScrollHero({
+  lines,
+  facts,
+  kicker,
+  ctas,
+  label,
+}: {
+  /** Up to three headlines, first frame first (shown from frame 0) */
+  lines: HeroLine[];
+  /** The rail of small facts: [big, small] */
+  facts: [string, string][];
+  kicker: ReactNode;
+  /** The buttons (use .lph-btn with --neon or --chrome) */
+  ctas: ReactNode;
+  /** The section's accessible name */
+  label: string;
+}) {
+  const linesRef = useRef(lines);
   const section = useRef<HTMLElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const stage = useRef<HTMLDivElement>(null);
@@ -102,7 +108,7 @@ export function LandingHero({ onSignIn }: { onSignIn: () => void }) {
       want = Math.round(Math.min(1, p / 0.9) * (FRAMES - 1));
       draw(want);
       const dock = Math.min(1, Math.max(0, (p - 0.84) / 0.16));
-      const line = LINES.reduce((at, l, i) => (want >= l.from ? i : at), 0);
+      const line = linesRef.current.reduce((at, l, i) => (want >= l.from ? i : at), 0);
       const next =
         `${line}|${want >= 30 && want < 150 ? 1 : 0}|${p < 0.88 ? 1 : 0}|` +
         `${p > 0.02 ? 1 : 0}|${p >= 0.84 ? 1 : 0}`;
@@ -151,7 +157,7 @@ export function LandingHero({ onSignIn }: { onSignIn: () => void }) {
   }, []);
 
   return (
-    <section ref={section} className="lph bleed" aria-label="Action Tokens for organizations">
+    <section ref={section} className="lph bleed" aria-label={label}>
       <div ref={root} className="lph-stick" data-line="0">
         <div ref={stage} className="lph-stage">
           <canvas ref={canvas} width={1280} height={720} className="lph-frame" aria-hidden />
@@ -161,10 +167,10 @@ export function LandingHero({ onSignIn }: { onSignIn: () => void }) {
         </div>
 
         <p className="lph-kicker">
-          <i aria-hidden /> Organization portal · live on Stellar
+          <i aria-hidden /> {kicker}
         </p>
 
-        {LINES.map((line, index) => (
+        {lines.map((line, index) => (
           <h1 key={line.top} className="lph-headline" data-i={index} aria-hidden={index > 0}>
             <span className="lph-chrome">{line.top}</span>
             <br />
@@ -173,7 +179,7 @@ export function LandingHero({ onSignIn }: { onSignIn: () => void }) {
         ))}
 
         <div className="lph-facts">
-          {FACTS.map(([big, small]) => (
+          {facts.map(([big, small]) => (
             <div key={big} className="lph-fact">
               <b>{big}</b>
               <span>{small}</span>
@@ -181,14 +187,7 @@ export function LandingHero({ onSignIn }: { onSignIn: () => void }) {
           ))}
         </div>
 
-        <div className="lph-ctas">
-          <button type="button" onClick={onSignIn} className="lph-btn lph-btn--neon">
-            <LogIn className="size-4" strokeWidth={2.4} /> Sign in / Sign up
-          </button>
-          <button type="button" onClick={onSignIn} className="lph-btn lph-btn--chrome">
-            Become an organization <ArrowRight className="size-4" />
-          </button>
-        </div>
+        <div className="lph-ctas">{ctas}</div>
 
         <div className="lph-hint" aria-hidden>
           SCROLL ↓

@@ -25,7 +25,8 @@ export const catalogRouter = createRouter({
       ...listedItemWhere,
       listings: { some: { status: "ACTIVE", kind: { not: "BUNDLE" } } },
     } satisfies Prisma.ItemWhereInput;
-    const [featured, trending, newMusic, artists, bounties] = await Promise.all([
+    const viewerId = ctx.session?.user.id ?? null;
+    const [featured, trending, newMusic, artists, bounties, drops] = await Promise.all([
       ctx.db.item.findMany({
         where: { ...forSale, listings: { some: { status: "ACTIVE", isFeatured: true } } },
         orderBy: { createdAt: "desc" },
@@ -51,10 +52,29 @@ export const catalogRouter = createRouter({
         orderBy: [{ followers: { _count: "desc" } }, { createdAt: "asc" }],
         take: HOME_ROW,
         select: {
+          id: true,
           name: true,
           slug: true,
           avatarUrl: true,
+          coverUrl: true,
+          // the viewer's own follow, if any (isTemporary false = also a subscriber)
+          followers: viewerId
+            ? { where: { userId: viewerId }, select: { isTemporary: true } }
+            : false,
+          bio: true,
           _count: { select: { followers: true, items: true } },
+          fanTokenItem: {
+            select: {
+              slug: true,
+              classicToken: { select: { code: true } },
+              listings: {
+                where: { status: "ACTIVE" },
+                orderBy: { priceActionToken: "asc" },
+                take: 1,
+                select: { priceActionToken: true, priceUsd: true },
+              },
+            },
+          },
         },
       }),
       ctx.db.bounty.findMany({
@@ -73,7 +93,23 @@ export const catalogRouter = createRouter({
           _count: { select: { participants: true } },
         },
       }),
+      // Live drops: the newest items on sale, songs and fan tokens aside (they have their own rows)
+      ctx.db.item.findMany({
+        where: { ...forSale, type: { notIn: ["TRACK", "FAN_TOKEN"] } },
+        orderBy: [{ createdAt: "desc" }, { id: "asc" }],
+        take: HOME_ROW,
+        select: { ...itemCardSelect, saleEndsAt: true },
+      }),
     ]);
+    // copies sold so far (primary sales), for the "#sold / supply" edition line
+    const soldRows = drops.length
+      ? await ctx.db.listing.groupBy({
+          by: ["itemId"],
+          where: { itemId: { in: drops.map((drop) => drop.id) }, kind: "PRIMARY" },
+          _sum: { quantitySold: true },
+        })
+      : [];
+    const sold = new Map(soldRows.map((row) => [row.itemId, row._sum.quantitySold ?? 0]));
     const hero =
       featured.length > 0
         ? featured
@@ -90,12 +126,42 @@ export const catalogRouter = createRouter({
       /** Where `music.browse` (trending, played this week) / `music.tracks` (newest) pick up when the carousel nears its end. */
       trendingCursor: trending.nextCursor,
       newMusicCursor: newMusic.length === HOME_ROW ? newMusic.at(-1)?.id : undefined,
-      artists: artists.map((artist) => ({
-        name: artist.name,
-        slug: artist.slug,
-        avatarUrl: artist.avatarUrl,
-        followers: artist._count.followers,
-        items: artist._count.items,
+      artists: artists.map((artist) => {
+        const token = artist.fanTokenItem;
+        const price = token?.listings[0];
+        const follow = artist.followers?.[0];
+        return {
+          id: artist.id,
+          following: follow !== undefined,
+          subscribed: follow !== undefined && !follow.isTemporary,
+          name: artist.name,
+          slug: artist.slug,
+          avatarUrl: artist.avatarUrl,
+          coverUrl: artist.coverUrl,
+          bio: artist.bio,
+          followers: artist._count.followers,
+          items: artist._count.items,
+          /** The organization's fan token and its cheapest open price, when it sells one */
+          token:
+            token?.classicToken?.code != null
+              ? {
+                  code: token.classicToken.code,
+                  slug: token.slug,
+                  price: price
+                    ? {
+                        actionToken: price.priceActionToken.toString(),
+                        usd: price.priceUsd.toString(),
+                      }
+                    : null,
+                }
+              : null,
+        };
+      }),
+      drops: drops.map((drop) => ({
+        ...toItemCard(drop),
+        supply: drop.supply,
+        sold: sold.get(drop.id) ?? 0,
+        saleEndsAt: drop.saleEndsAt,
       })),
       bounties: bounties.map((bounty) => ({
         id: bounty.id,

@@ -3,7 +3,7 @@
  * blocks with the engraved Action mark, a grid turned about -15deg, blocks at slightly different
  * heights, and light coming from underneath (yellow upper-left, green right). It only fills the
  * right corner and is kept faint, a shade behind the page. Colours: --bg-* and .at-* in
- * styles/portal.css. Fixed numbers (no Math.random), so the server and the browser agree.
+ * @actiontokens/ui/styles/gx.css. Fixed numbers (no Math.random), so the server and the browser agree.
  */
 import type { ReactNode } from "react";
 
