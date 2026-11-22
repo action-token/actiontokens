@@ -67,24 +67,25 @@ export function AppShell({ children }: { children: ReactNode }) {
       <SearchDialog />
 
       <div className="flex min-w-0 flex-col">
-        {/* Phones have no sidebar, so search and the account stay in a small bar. */}
-        <header className="bg-bg/85 sticky top-0 z-30 flex h-16 items-center gap-3 border-b px-4 backdrop-blur sm:hidden">
-          <Link href="/" aria-label="Home">
-            <span className="gx-logo grid size-9 place-items-center rounded-xl bg-white">
-              <BrandMark className="h-6" />
-            </span>
-          </Link>
-          <button
-            type="button"
-            onClick={openSearch}
-            aria-label="Search"
-            className="bg-surface-2 text-fg-faint flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full border px-3.5 text-left text-sm"
-          >
-            <Search className="size-4 shrink-0" />
-            <span className="truncate">Search songs, organizations</span>
-          </button>
-          <AccountButton />
-        </header>
+        {/* Phones have no sidebar, so search and the account sit in a notch hanging from the top
+            edge, like the desktop home's. The home page brings its own (with the live feed). */}
+        {pathname !== "/" && (
+          <>
+            <header className="lp-top shell-notch sm:hidden!">
+              <Link href="/" aria-label="Home" className="shrink-0">
+                <span className="gx-logo grid size-9 place-items-center rounded-xl bg-white">
+                  <BrandMark className="h-6" />
+                </span>
+              </Link>
+              <button type="button" onClick={openSearch} className="hm-notch-search">
+                <Search className="size-4 shrink-0" />
+                <span className="truncate">Search</span>
+              </button>
+              <AccountButton />
+            </header>
+            <div className="h-[68px] sm:hidden" aria-hidden />
+          </>
+        )}
         <main
           className={cn(
             "flex-1 pb-[calc(var(--phone-bar-space)+5rem)] sm:pl-(--side-w)",

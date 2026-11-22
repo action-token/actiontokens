@@ -46,7 +46,7 @@ function notesFrom(home: Home): Note[] {
 /**
  * The marketplace home's notch, after docs/mockups/home.html: the brand, search, your balance (or
  * Sign in) and the bell. Like an iPhone island it grows down every few seconds to show what's new
- * (a drop or a bounty), then folds back. Desktop only; phones have their own top bar.
+ * (a drop or a bounty), then folds back. On phones it is the top bar (logo, search, account).
  */
 export function HomeNotch({ home }: { home: Home }) {
   const { status } = useSession();
@@ -81,7 +81,7 @@ export function HomeNotch({ home }: { home: Home }) {
 
   const note = notes[index];
   return (
-    <header className="lp-top hm-notch max-sm:!hidden" data-open={(open && !!note) || undefined}>
+    <header className="lp-top hm-notch" data-open={(open && !!note) || undefined}>
       <Link href="/" className="flex items-center gap-2" aria-label="Action-Tokens home">
         <span className="gx-logo grid size-9 place-items-center rounded-xl bg-white">
           <BrandMark className="h-6" />
@@ -90,12 +90,13 @@ export function HomeNotch({ home }: { home: Home }) {
       </Link>
       <button type="button" onClick={openSearch} className="hm-notch-search">
         <Search className="size-4 shrink-0" />
-        <span className="truncate">Search drops, bounties, orgs…</span>
-        <kbd>⌘K</kbd>
+        <span className="truncate max-sm:hidden">Search drops, bounties, orgs…</span>
+        <span className="truncate sm:hidden">Search</span>
+        <kbd className="max-sm:hidden">⌘K</kbd>
       </button>
       {signedIn ? (
         <>
-          <Link href="/wallet" className="hm-notch-bal" aria-label="Wallet">
+          <Link href="/wallet" className="hm-notch-bal max-sm:hidden!" aria-label="Wallet">
             <i aria-hidden />
             {balances ? (
               <>
@@ -114,7 +115,7 @@ export function HomeNotch({ home }: { home: Home }) {
         <button
           type="button"
           onClick={() => openWallet(true)}
-          className="lp-cta !h-10 !px-4 !text-[1.05rem]"
+          className="lp-cta !h-10 shrink-0 !px-4 !text-[1.05rem]"
         >
           <LogIn className="size-4" strokeWidth={2.4} /> Sign in
         </button>

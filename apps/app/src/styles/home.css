@@ -16,9 +16,7 @@
   grid-template-columns: minmax(0, 1fr);
   gap: clamp(72px, 9vw, 120px);
   width: 100%;
-  max-width: 96rem;
-  margin-inline: auto;
-  padding: clamp(48px, 6vw, 88px) clamp(16px, 4vw, 56px) 96px;
+  padding: clamp(48px, 6vw, 88px) clamp(16px, 3vw, 44px) 96px;
 }
 .hm-head {
   display: flex;
@@ -41,22 +39,98 @@
 .hm-more:hover {
   color: var(--bc-primary-text);
 }
+.hm-head-end {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 18px;
+}
+/* the arrows that page a shelf (7 cards a page) */
+.hm-pager {
+  display: flex;
+  gap: 8px;
+}
+.hm-pager button {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--gx-line-strong);
+  border-radius: 999px;
+  background: var(--bc-surface);
+  color: var(--bc-fg);
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s;
+}
+.hm-pager button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: var(--gx-neon);
+}
+.hm-pager button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
 
-/* ── Live drops: a sideways rail of square cards ── */
-.hm-rail {
+/* ── A shelf: a sideways row showing as many whole cards as fit (--n); the arrows slide it one
+   screenful (smooth scroll, nothing repainted), and more cards are added as it nears the end.
+   Phones show a card and a half so the row reads as swipeable. ── */
+.hm-sec {
+  container-type: inline-size;
+}
+.hm-shelf {
+  --n: 1.6;
+  --gap: 22px;
   position: relative;
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 236px;
-  gap: 18px;
+  grid-auto-columns: calc((100% - (var(--n) - 1) * var(--gap)) / var(--n));
+  gap: var(--gap);
   overflow-x: auto;
+  overscroll-behavior-x: contain;
   padding: 4px 2px 22px;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
 }
-.hm-rail::-webkit-scrollbar {
+.hm-shelf::-webkit-scrollbar {
   display: none;
 }
+.hm-shelf > * {
+  scroll-snap-align: start;
+}
+@container (min-width: 560px) {
+  .hm-shelf {
+    --n: 2;
+  }
+}
+@container (min-width: 820px) {
+  .hm-shelf {
+    --n: 3;
+  }
+}
+@container (min-width: 1080px) {
+  .hm-shelf {
+    --n: 4;
+  }
+}
+@container (min-width: 1400px) {
+  .hm-shelf {
+    --n: 5;
+  }
+}
+@container (min-width: 1900px) {
+  .hm-shelf {
+    --n: 6;
+  }
+}
+.hm-shelf--board {
+  --gap: 28px;
+  /* room for the pins above and the tilted posters' shadows, which the sideways scroll would clip */
+  margin: -10px 0 -40px;
+  padding: 22px 8px 64px;
+}
+
+/* ── Live drops: square cards ── */
 .hm-drop {
   /* the anchor for absolutely placed bits inside (the price's screen-reader text), so they stay
      inside the rail's scroll box instead of widening the page */
@@ -73,6 +147,28 @@
 .hm-drop:hover {
   transform: translateY(-4px);
   border-color: var(--gx-neon);
+}
+/* while the pointer moves the tilt follows it at once; on leave it eases back */
+.hm-drop:hover {
+  transition:
+    transform 0.08s linear,
+    border-color 0.2s;
+}
+/* the art twitches once on hover (two steps, transform only) */
+.hm-drop:hover .hm-drop-art img,
+.hm-drop:hover .hm-drop-blank {
+  animation: hm-jit 0.22s steps(2) 1;
+}
+@keyframes hm-jit {
+  0% {
+    transform: translateX(-3px);
+  }
+  50% {
+    transform: translateX(3px);
+  }
+  100% {
+    transform: none;
+  }
 }
 .hm-drop-art {
   position: relative;
@@ -107,9 +203,29 @@
   text-transform: uppercase;
 }
 .hm-chip--type {
+  --tone: var(--gx-neon);
   left: 10px;
-  border: 1px solid var(--gx-neon);
-  color: var(--gx-neon);
+  border: 1px solid var(--tone);
+  color: var(--tone);
+}
+/* each kind of drop has its own badge colour */
+.hm-drop[data-type="TICKET"] .hm-chip--type {
+  --tone: #ffb547;
+}
+.hm-drop[data-type="MERCH"] .hm-chip--type {
+  --tone: #d4d4d4;
+}
+.hm-drop[data-type="VIDEO"] .hm-chip--type {
+  --tone: #6aa8ff;
+}
+.hm-drop[data-type="MODEL_3D"] .hm-chip--type {
+  --tone: #c58bff;
+}
+.hm-drop[data-type="ROYALTY"] .hm-chip--type {
+  --tone: #ffd84d;
+}
+.hm-drop[data-type="DOCUMENT"] .hm-chip--type {
+  --tone: #7fe3d4;
 }
 .hm-chip--ed {
   right: 10px;
@@ -193,12 +309,6 @@
 }
 
 /* ── Bounties: Wanted posters pinned to a board (paper in both themes) ── */
-.hm-board {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 26px 22px;
-  padding-top: 10px;
-}
 .hm-poster {
   position: relative;
   display: flex;
@@ -350,11 +460,6 @@
 }
 
 /* ── Organizations ── */
-.hm-orgs {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 18px;
-}
 .hm-org {
   overflow: hidden;
   border: 1px solid var(--bc-border);
@@ -493,6 +598,7 @@
 }
 .hm-org-actions > * {
   flex: 1;
+  min-width: 0;
 }
 .hm-buy-tok {
   display: grid;
@@ -501,8 +607,12 @@
   border-radius: 10px;
   background: var(--gx-neon);
   color: var(--gx-on-neon);
-  font-size: 13px;
+  padding-inline: 6px;
+  overflow: hidden;
+  font-size: 12.5px;
   font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   transition: transform 0.2s;
 }
 .hm-buy-tok:hover {
@@ -729,6 +839,10 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .hm-drop:hover .hm-drop-art img,
+  .hm-drop:hover .hm-drop-blank {
+    animation: none;
+  }
   .hm-drop,
   .hm-poster,
   .hm-org {
@@ -826,5 +940,15 @@ html[data-hero] .hm-notch {
   .hm .lph-ctas,
   .hm-notch {
     transition: none;
+  }
+}
+
+@media (max-width: 639px) {
+  /* phones: the notch is the top bar on every page; its search takes whatever room the logo and
+     the account leave */
+  .hm-notch-search {
+    flex: 1;
+    width: auto;
+    min-width: 0;
   }
 }

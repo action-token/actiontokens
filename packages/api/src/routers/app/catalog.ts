@@ -6,11 +6,15 @@ import { publicBountyWhere } from "./bounty";
 import { prizeView } from "../../services/bounty/prize";
 import { itemCardSelect, listedItemWhere, toItemCard } from "../../services/catalog/item-card";
 import { browseSongs } from "../../services/catalog/song-browse";
+import type { ServiceCtx } from "../../services/gifts/claim";
 import { createRouter, publicProcedure } from "../../trpc";
 
 const PAGE_SIZE = 24;
 /** Cards in each Home carousel before it loads more. */
 const HOME_ROW = 12;
+/** Cards per fetch on a home shelf (drops, bounties, organizations); the row loads the next batch
+    as the arrows near its end. */
+export const SHELF = 10;
 
 const SORTS = {
   newest: [{ createdAt: "desc" }],
@@ -18,15 +22,151 @@ const SORTS = {
   title: [{ title: "asc" }],
 } satisfies Record<string, Prisma.ItemOrderByWithRelationInput[]>;
 
+const forSaleWhere = {
+  ...listedItemWhere,
+  listings: { some: { status: "ACTIVE", kind: { not: "BUNDLE" } } },
+} satisfies Prisma.ItemWhereInput;
+
+/** Takes one extra row to know whether a next page exists. */
+const page = <T>(rows: T[]) => ({ items: rows.slice(0, SHELF), hasMore: rows.length > SHELF });
+
+/** Live drops: the newest items on sale, songs and fan tokens aside (they have their own rows). */
+async function loadDrops(ctx: ServiceCtx, skip: number) {
+  const rows = await ctx.db.item.findMany({
+    where: { ...forSaleWhere, type: { notIn: ["TRACK", "FAN_TOKEN"] } },
+    orderBy: [{ createdAt: "desc" }, { id: "asc" }],
+    skip,
+    take: SHELF + 1,
+    select: { ...itemCardSelect, saleEndsAt: true },
+  });
+  const { items, hasMore } = page(rows);
+  // copies sold so far (primary sales), for the "sold / supply" edition line
+  const soldRows = items.length
+    ? await ctx.db.listing.groupBy({
+        by: ["itemId"],
+        where: { itemId: { in: items.map((drop) => drop.id) }, kind: "PRIMARY" },
+        _sum: { quantitySold: true },
+      })
+    : [];
+  const sold = new Map(soldRows.map((row) => [row.itemId, row._sum.quantitySold ?? 0]));
+  return {
+    hasMore,
+    items: items.map((drop) => ({
+      ...toItemCard(drop),
+      supply: drop.supply,
+      sold: sold.get(drop.id) ?? 0,
+      saleEndsAt: drop.saleEndsAt,
+    })),
+  };
+}
+
+/** Running public bounties, newest first. */
+async function loadBounties(ctx: ServiceCtx, skip: number) {
+  const rows = await ctx.db.bounty.findMany({
+    where: { ...publicBountyWhere, status: "RUNNING" },
+    orderBy: [{ createdAt: "desc" }, { id: "asc" }],
+    skip,
+    take: SHELF + 1,
+    select: {
+      id: true,
+      title: true,
+      summary: true,
+      prizeAmount: true,
+      prizeCurrency: true,
+      prizeAssetCode: true,
+      prizeAssetIssuer: true,
+      organization: { select: { name: true, slug: true, avatarUrl: true } },
+      _count: { select: { participants: true } },
+    },
+  });
+  const { items, hasMore } = page(rows);
+  return {
+    hasMore,
+    items: items.map((bounty) => ({
+      id: bounty.id,
+      title: bounty.title,
+      summary: bounty.summary,
+      prize: prizeView(bounty, ctx.chain.config),
+      artist: bounty.organization,
+      participants: bounty._count.participants,
+    })),
+  };
+}
+
+/** Approved organizations, most followed first, with the viewer's follow and the fan token price. */
+async function loadOrgs(ctx: ServiceCtx, viewerId: string | null, skip: number) {
+  const rows = await ctx.db.organization.findMany({
+    where: { status: "APPROVED" },
+    orderBy: [{ followers: { _count: "desc" } }, { createdAt: "asc" }, { id: "asc" }],
+    skip,
+    take: SHELF + 1,
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      avatarUrl: true,
+      coverUrl: true,
+      // the viewer's own follow, if any (isTemporary false = also a subscriber)
+      followers: viewerId ? { where: { userId: viewerId }, select: { isTemporary: true } } : false,
+      bio: true,
+      _count: { select: { followers: true, items: true } },
+      fanTokenItem: {
+        select: {
+          slug: true,
+          classicToken: { select: { code: true } },
+          listings: {
+            where: { status: "ACTIVE" },
+            orderBy: { priceActionToken: "asc" },
+            take: 1,
+            select: { priceActionToken: true, priceUsd: true },
+          },
+        },
+      },
+    },
+  });
+  const { items, hasMore } = page(rows);
+  return {
+    hasMore,
+    items: items.map((artist) => {
+      const token = artist.fanTokenItem;
+      const price = token?.listings[0];
+      const follow = artist.followers?.[0];
+      return {
+        id: artist.id,
+        following: follow !== undefined,
+        subscribed: follow !== undefined && !follow.isTemporary,
+        name: artist.name,
+        slug: artist.slug,
+        avatarUrl: artist.avatarUrl,
+        coverUrl: artist.coverUrl,
+        bio: artist.bio,
+        followers: artist._count.followers,
+        items: artist._count.items,
+        /** The organization's fan token and its cheapest open price, when it sells one */
+        token:
+          token?.classicToken?.code != null
+            ? {
+                code: token.classicToken.code,
+                slug: token.slug,
+                price: price
+                  ? {
+                      actionToken: price.priceActionToken.toString(),
+                      usd: price.priceUsd.toString(),
+                    }
+                  : null,
+              }
+            : null,
+      };
+    }),
+  };
+}
+
 export const catalogRouter = createRouter({
   /** The home page in one request: hero picks, trending, new music, top artists, live bounties. */
   home: publicProcedure.query(async ({ ctx }) => {
-    const forSale = {
-      ...listedItemWhere,
-      listings: { some: { status: "ACTIVE", kind: { not: "BUNDLE" } } },
-    } satisfies Prisma.ItemWhereInput;
+    const forSale = forSaleWhere;
     const viewerId = ctx.session?.user.id ?? null;
-    const [featured, trending, newMusic, artists, bounties, drops] = await Promise.all([
+    const [featured, trending, newMusic, orgs, bounties, drops] = await Promise.all([
       ctx.db.item.findMany({
         where: { ...forSale, listings: { some: { status: "ACTIVE", isFeatured: true } } },
         orderBy: { createdAt: "desc" },
@@ -47,69 +187,10 @@ export const catalogRouter = createRouter({
         take: HOME_ROW,
         select: itemCardSelect,
       }),
-      ctx.db.organization.findMany({
-        where: { status: "APPROVED" },
-        orderBy: [{ followers: { _count: "desc" } }, { createdAt: "asc" }],
-        take: HOME_ROW,
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          avatarUrl: true,
-          coverUrl: true,
-          // the viewer's own follow, if any (isTemporary false = also a subscriber)
-          followers: viewerId
-            ? { where: { userId: viewerId }, select: { isTemporary: true } }
-            : false,
-          bio: true,
-          _count: { select: { followers: true, items: true } },
-          fanTokenItem: {
-            select: {
-              slug: true,
-              classicToken: { select: { code: true } },
-              listings: {
-                where: { status: "ACTIVE" },
-                orderBy: { priceActionToken: "asc" },
-                take: 1,
-                select: { priceActionToken: true, priceUsd: true },
-              },
-            },
-          },
-        },
-      }),
-      ctx.db.bounty.findMany({
-        where: { ...publicBountyWhere, status: "RUNNING" },
-        orderBy: { createdAt: "desc" },
-        take: 4,
-        select: {
-          id: true,
-          title: true,
-          summary: true,
-          prizeAmount: true,
-          prizeCurrency: true,
-          prizeAssetCode: true,
-          prizeAssetIssuer: true,
-          organization: { select: { name: true, slug: true, avatarUrl: true } },
-          _count: { select: { participants: true } },
-        },
-      }),
-      // Live drops: the newest items on sale, songs and fan tokens aside (they have their own rows)
-      ctx.db.item.findMany({
-        where: { ...forSale, type: { notIn: ["TRACK", "FAN_TOKEN"] } },
-        orderBy: [{ createdAt: "desc" }, { id: "asc" }],
-        take: HOME_ROW,
-        select: { ...itemCardSelect, saleEndsAt: true },
-      }),
+      loadOrgs(ctx, viewerId, 0),
+      loadBounties(ctx, 0),
+      loadDrops(ctx, 0),
     ]);
-    // copies sold so far (primary sales), for the "#sold / supply" edition line
-    const soldRows = drops.length
-      ? await ctx.db.listing.groupBy({
-          by: ["itemId"],
-          where: { itemId: { in: drops.map((drop) => drop.id) }, kind: "PRIMARY" },
-          _sum: { quantitySold: true },
-        })
-      : [];
-    const sold = new Map(soldRows.map((row) => [row.itemId, row._sum.quantitySold ?? 0]));
     const hero =
       featured.length > 0
         ? featured
@@ -126,55 +207,33 @@ export const catalogRouter = createRouter({
       /** Where `music.browse` (trending, played this week) / `music.tracks` (newest) pick up when the carousel nears its end. */
       trendingCursor: trending.nextCursor,
       newMusicCursor: newMusic.length === HOME_ROW ? newMusic.at(-1)?.id : undefined,
-      artists: artists.map((artist) => {
-        const token = artist.fanTokenItem;
-        const price = token?.listings[0];
-        const follow = artist.followers?.[0];
-        return {
-          id: artist.id,
-          following: follow !== undefined,
-          subscribed: follow !== undefined && !follow.isTemporary,
-          name: artist.name,
-          slug: artist.slug,
-          avatarUrl: artist.avatarUrl,
-          coverUrl: artist.coverUrl,
-          bio: artist.bio,
-          followers: artist._count.followers,
-          items: artist._count.items,
-          /** The organization's fan token and its cheapest open price, when it sells one */
-          token:
-            token?.classicToken?.code != null
-              ? {
-                  code: token.classicToken.code,
-                  slug: token.slug,
-                  price: price
-                    ? {
-                        actionToken: price.priceActionToken.toString(),
-                        usd: price.priceUsd.toString(),
-                      }
-                    : null,
-                }
-              : null,
-        };
-      }),
-      drops: drops.map((drop) => ({
-        ...toItemCard(drop),
-        supply: drop.supply,
-        sold: sold.get(drop.id) ?? 0,
-        saleEndsAt: drop.saleEndsAt,
-      })),
-      bounties: bounties.map((bounty) => ({
-        id: bounty.id,
-        title: bounty.title,
-        summary: bounty.summary,
-        prize: prizeView(bounty, ctx.chain.config),
-        artist: bounty.organization,
-        participants: bounty._count.participants,
-      })),
+      artists: orgs.items,
+      drops: drops.items,
+      bounties: bounties.items,
+      /** Whether each shelf has a next page (`catalog.shelf` serves it) */
+      more: { artists: orgs.hasMore, drops: drops.hasMore, bounties: bounties.hasMore },
     };
   }),
 
   /** "More from this artist" beside an item page. */
+  /** One batch of a home shelf (10 cards), loaded as the arrows near the end of the row. */
+  shelf: publicProcedure
+    .input(
+      z.object({
+        shelf: z.enum(["drops", "bounties", "artists"]),
+        page: z.number().int().min(0).max(200),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const skip = input.page * SHELF;
+      const viewerId = ctx.session?.user.id ?? null;
+      if (input.shelf === "drops")
+        return { shelf: "drops" as const, ...(await loadDrops(ctx, skip)) };
+      if (input.shelf === "bounties")
+        return { shelf: "bounties" as const, ...(await loadBounties(ctx, skip)) };
+      return { shelf: "artists" as const, ...(await loadOrgs(ctx, viewerId, skip)) };
+    }),
+
   moreFromArtist: publicProcedure
     .input(z.object({ itemSlug: z.string().min(1) }))
     .query(async ({ ctx, input }) => {

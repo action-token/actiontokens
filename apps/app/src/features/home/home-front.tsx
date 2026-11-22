@@ -1,9 +1,18 @@
 "use client";
 
-import { ArrowRight, BadgeCheck, Compass, Crosshair, ScanLine, Users } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  ChevronLeft,
+  ChevronRight,
+  Compass,
+  Crosshair,
+  ScanLine,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { cn } from "@actiontokens/ui/lib/cn";
 import { ScrollHero } from "@actiontokens/ui/patterns/scroll-hero";
@@ -49,6 +58,9 @@ const RIBBON = [
 export function HomeFront({ home, children }: { home: Home; children?: ReactNode }) {
   const { status } = useSession();
   const root = useReveal<HTMLDivElement>();
+  const drops = useShelf("drops", home.drops, home.more.drops);
+  const bounties = useShelf("bounties", home.bounties, home.more.bounties);
+  const orgs = useShelf("artists", home.artists, home.more.artists);
   useHeroMode(root);
   return (
     <div ref={root} className={cn(anton.variable, gothic.variable, "hm")}>
@@ -91,9 +103,10 @@ export function HomeFront({ home, children }: { home: Home; children?: ReactNode
             title="Live drops"
             note="Limited editions from organizations on Action Tokens. Collect, flex, resell."
             more={{ href: "/marketplace", label: "See all drops" }}
+            pager={drops}
           >
-            <div className="hm-rail">
-              {home.drops.map((drop) => (
+            <div ref={drops.rowRef} className="hm-shelf hm-shelf--drops">
+              {drops.items.map((drop) => (
                 <DropCard key={drop.id} drop={drop} />
               ))}
             </div>
@@ -106,9 +119,10 @@ export function HomeFront({ home, children }: { home: Home; children?: ReactNode
             title="Bounties"
             note="Every prize sits in escrow on-chain before the hunt starts. Do the thing, prove it, get paid."
             more={{ href: "/bounties", label: "Full board" }}
+            pager={bounties}
           >
-            <div className="hm-board">
-              {home.bounties.map((bounty) => (
+            <div ref={bounties.rowRef} className="hm-shelf hm-shelf--board">
+              {bounties.items.map((bounty) => (
                 <Poster key={bounty.id} bounty={bounty} />
               ))}
             </div>
@@ -120,9 +134,10 @@ export function HomeFront({ home, children }: { home: Home; children?: ReactNode
             tag="Who's dropping"
             title="Organizations"
             more={{ href: "/artists", label: "All orgs" }}
+            pager={orgs}
           >
-            <div className="hm-orgs">
-              {home.artists.slice(0, 8).map((org) => (
+            <div ref={orgs.rowRef} className="hm-shelf hm-shelf--orgs">
+              {orgs.items.map((org) => (
                 <OrgCard key={org.slug} org={org} signedIn={status === "authenticated"} />
               ))}
             </div>
@@ -182,12 +197,14 @@ function Section({
   title,
   note,
   more,
+  pager,
   children,
 }: {
   tag: string;
   title: string;
   note?: string;
   more?: { href: string; label: string };
+  pager?: Pager;
   children: ReactNode;
 }) {
   return (
@@ -198,22 +215,127 @@ function Section({
           <h2 className="lp-sec-title lp-chrome">{title}</h2>
           {note && <p className="text-fg-muted mt-2 max-w-md text-[15px]">{note}</p>}
         </div>
-        {more && (
-          <Link href={more.href} className="hm-more">
-            {more.label} →
-          </Link>
-        )}
+        <div className="hm-head-end">
+          {more && (
+            <Link href={more.href} className="hm-more">
+              {more.label} →
+            </Link>
+          )}
+          {pager && (
+            <div className="hm-pager" role="group" aria-label={`${title} pages`}>
+              <button
+                type="button"
+                onClick={pager.prev}
+                disabled={pager.atStart}
+                aria-label="Previous"
+              >
+                <ChevronLeft className="size-5" />
+              </button>
+              <button type="button" onClick={pager.next} disabled={pager.atEnd} aria-label="Next">
+                <ChevronRight className="size-5" />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
       {children}
     </section>
   );
 }
 
+type Shelf = "drops" | "bounties" | "artists";
+type Pager = {
+  rowRef: React.RefObject<HTMLDivElement | null>;
+  atStart: boolean;
+  atEnd: boolean;
+  busy: boolean;
+  prev: () => void;
+  next: () => void;
+};
+
+/**
+ * One home shelf: a row showing as many cards as fit; the arrows slide it one screenful either way.
+ * The first 10 come with the home data; when the row gets within a screenful of its end the next 10
+ * are fetched (`catalog.shelf`) and added on, so Next keeps going until the shelf runs out.
+ */
+function useShelf<K extends Shelf>(
+  shelf: K,
+  first: Home[K],
+  firstHasMore: boolean,
+): Pager & { items: Home[K] } {
+  const utils = api.useUtils();
+  const rowRef = useRef<HTMLDivElement>(null);
+  const [items, setItems] = useState<Home[K]>(first);
+  const [hasMore, setHasMore] = useState(firstHasMore);
+  const [busy, setBusy] = useState(false);
+  const [edges, setEdges] = useState({ atStart: true, atEnd: !firstHasMore });
+  // batches loaded so far and the one in flight, kept in refs so two scroll events (or a re-run
+  // effect) can't fetch the same batch twice
+  const loaded = useRef(1);
+  const inFlight = useRef(false);
+
+  const loadMore = useCallback(async () => {
+    if (!hasMore || inFlight.current) return;
+    inFlight.current = true;
+    setBusy(true);
+    try {
+      const batch = await utils.catalog.shelf.fetch({ shelf, page: loaded.current });
+      loaded.current += 1;
+      setItems((current) => {
+        const seen = new Set(current.map((item) => item.id));
+        return [...current, ...batch.items.filter((item) => !seen.has(item.id))] as Home[K];
+      });
+      setHasMore(batch.hasMore);
+    } finally {
+      inFlight.current = false;
+      setBusy(false);
+    }
+  }, [utils, shelf, hasMore]);
+
+  // which arrows apply, and fetching the next batch as the row nears its end
+  useEffect(() => {
+    const row = rowRef.current;
+    if (!row) return;
+    let raf = 0;
+    // only after the visitor slides: the first 10 come with the page, nothing more is fetched on load
+    let moved = false;
+    const measure = () => {
+      raf = 0;
+      const left = row.scrollLeft;
+      const room = row.scrollWidth - row.clientWidth;
+      setEdges({ atStart: left <= 2, atEnd: left >= room - 2 && !hasMore });
+      if (moved && hasMore && left + row.clientWidth * 2 >= row.scrollWidth) void loadMore();
+    };
+    const onScroll = (event?: Event) => {
+      if (event?.type === "scroll") moved = true;
+      if (!raf) raf = requestAnimationFrame(measure);
+    };
+    measure();
+    if (row.scrollLeft > 2) moved = true;
+    row.addEventListener("scroll", onScroll, { passive: true });
+    addEventListener("resize", onScroll);
+    return () => {
+      row.removeEventListener("scroll", onScroll);
+      removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [hasMore, loadMore, items.length]);
+
+  const slide = (direction: 1 | -1) => {
+    const row = rowRef.current;
+    if (!row) return;
+    const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
+    row.scrollBy({ left: direction * (row.clientWidth + gap), behavior: "smooth" });
+  };
+  return { items, rowRef, busy, ...edges, prev: () => slide(-1), next: () => slide(1) };
+}
+
 /** A live drop: square art with the edition and, when the sale ends, a countdown. */
 function DropCard({ drop }: { drop: Drop }) {
   const left = drop.supply != null ? Math.max(0, drop.supply - drop.sold) : null;
+  const tilt = useTilt<HTMLElement>();
   return (
-    <article className="hm-drop">
+    <article ref={tilt} className="hm-drop" data-type={drop.type}>
       <Link href={`/item/${drop.slug}`} className="hm-drop-art">
         {drop.coverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts
@@ -223,7 +345,11 @@ function DropCard({ drop }: { drop: Drop }) {
         )}
         <span className="hm-chip hm-chip--type">{TYPE_LABEL[drop.type] ?? drop.type}</span>
         <span className="hm-chip hm-chip--ed">
-          {drop.supply != null ? `${drop.sold} / ${drop.supply} sold` : "Open edition"}
+          {drop.supply == null
+            ? "Open"
+            : drop.sold > 0
+              ? `${drop.sold.toLocaleString("en-US")} / ${drop.supply.toLocaleString("en-US")}`
+              : `Ed. ${drop.supply.toLocaleString("en-US")}`}
         </span>
         <span className="hm-cd">
           {drop.saleEndsAt ? (
@@ -270,6 +396,45 @@ function DropCard({ drop }: { drop: Drop }) {
       </div>
     </article>
   );
+}
+
+/**
+ * The card leans toward the pointer (as in the mockup), with transform only and at most once a
+ * frame; it settles back when the pointer leaves. Mouse and pen only, and not for reduced motion.
+ */
+function useTilt<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let raf = 0;
+    let x = 0;
+    let y = 0;
+    const apply = () => {
+      raf = 0;
+      el.style.transform = `perspective(700px) rotateY(${x * 10}deg) rotateX(${-y * 10}deg) translateY(-4px)`;
+    };
+    const move = (event: PointerEvent) => {
+      if (event.pointerType === "touch") return;
+      const rect = el.getBoundingClientRect();
+      x = (event.clientX - rect.left) / rect.width - 0.5;
+      y = (event.clientY - rect.top) / rect.height - 0.5;
+      if (!raf) raf = requestAnimationFrame(apply);
+    };
+    const leave = () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+      el.style.transform = "";
+    };
+    el.addEventListener("pointermove", move);
+    el.addEventListener("pointerleave", leave);
+    return () => {
+      leave();
+      el.removeEventListener("pointermove", move);
+      el.removeEventListener("pointerleave", leave);
+    };
+  }, []);
+  return ref;
 }
 
 const TYPE_LABEL: Record<string, string> = {
