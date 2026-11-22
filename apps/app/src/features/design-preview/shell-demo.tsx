@@ -88,7 +88,7 @@ export function ShellDemo() {
         <div className="flex items-center gap-3">
           <div className="bg-surface text-fg-faint flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full border px-4 text-sm">
             <Search className="size-4 shrink-0" />
-            <span className="truncate">Search songs, artists, items</span>
+            <span className="truncate">Search songs, organizations, items</span>
           </div>
           <div className="bg-surface flex h-10 items-center gap-2 rounded-full border pr-3 pl-1.5 text-[13px] font-semibold whitespace-nowrap">
             <span className="size-7 rounded-full bg-[conic-gradient(var(--color-primary),#3fb5ff,var(--color-primary))]" />

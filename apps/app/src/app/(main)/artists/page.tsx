@@ -6,9 +6,9 @@ import { ArtistsHero } from "~/features/artists/artists-hero";
 import { ArtistsView } from "~/features/artists/artists-view";
 
 export const metadata: Metadata = {
-  title: "Artists",
+  title: "Organizations",
   description:
-    "Discover the artists on Action Tokens: follow them, hear their music, collect their drops.",
+    "Discover the organizations on Action Tokens: follow them, hear their music, collect their drops.",
 };
 
 export default function ArtistsPage() {
@@ -16,7 +16,7 @@ export default function ArtistsPage() {
     <>
       <ArtistsHero />
       <PageBody wide className="grid gap-6">
-        <PageHeader title="Artists" note="*the people making the music, art and drops*" />
+        <PageHeader title="Organizations" note="*the people making the music, art and drops*" />
         <ArtistsView />
       </PageBody>
     </>

@@ -14,7 +14,11 @@ const noSubscribe = () => () => undefined;
 /** Real readiness for the stage loader: fonts, hydration, session and the page's first data. */
 export function useBootProgress(): number {
   // false in the server render, true once React has hydrated on the client
-  const hydrated = useSyncExternalStore(noSubscribe, () => true, () => false);
+  const hydrated = useSyncExternalStore(
+    noSubscribe,
+    () => true,
+    () => false,
+  );
   const [fonts, setFonts] = useState(false);
   const [data, setData] = useState(false);
   const { status } = useSession();

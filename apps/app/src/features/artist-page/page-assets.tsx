@@ -29,8 +29,8 @@ export function PageAssetOffers({ slug }: { slug: string }) {
       <div>
         <h2 className="display text-3xl">{code} bundles</h2>
         <p className="text-fg-muted text-sm">
-          The artist&apos;s fan token, sold in bundles. Each one goes whole to the first fan to buy
-          it.
+          The organization&apos;s fan token, sold in bundles. Each one goes whole to the first fan
+          to buy it.
         </p>
       </div>
       <ul className="grid gap-3">

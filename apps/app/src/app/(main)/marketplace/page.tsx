@@ -7,7 +7,7 @@ import { MarketplaceView } from "~/features/marketplace/marketplace-view";
 
 export const metadata: Metadata = {
   title: "Marketplace",
-  description: "Music, artwork, tickets and fan tokens from the artists you love.",
+  description: "Music, artwork, tickets and fan tokens from the organizations you love.",
 };
 
 export default function MarketplacePage() {
@@ -15,7 +15,7 @@ export default function MarketplacePage() {
     <PageBody wide className="grid gap-6">
       <PageHeader
         title="Marketplace"
-        note="*music, art, tickets & fan tokens, straight from the artists*"
+        note="*music, art, tickets & fan tokens, straight from the organizations*"
       />
       <Suspense>
         <MarketplaceView />

@@ -96,7 +96,9 @@ export function FollowButton({
       {canSubscribe && (
         <Button
           className={compact ? "h-8 rounded-full px-3 text-xs" : "h-10 rounded-full px-5"}
-          onClick={() => token && setOffer({ code: token.code, organizationId: token.organizationId })}
+          onClick={() =>
+            token && setOffer({ code: token.code, organizationId: token.organizationId })
+          }
         >
           Subscribe
         </Button>

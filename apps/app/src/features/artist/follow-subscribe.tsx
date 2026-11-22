@@ -110,7 +110,7 @@ export function FollowSubscribe({
           title={
             token
               ? `Hold ${token.code} to open their subscriber posts and perks`
-              : "This artist has no fan token yet"
+              : "This organization has no fan token yet"
           }
           onClick={() => {
             if (!token) return;

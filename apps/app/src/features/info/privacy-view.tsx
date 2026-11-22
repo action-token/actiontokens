@@ -81,7 +81,7 @@ export function PrivacyView() {
 
         <p className="max-w-3xl text-lg leading-relaxed text-pretty">
           This policy explains what information Action Tokens collects when you use the marketplace,
-          the artist portal and the AR app, how it is used, and the choices you have. By using
+          the organization portal and the AR app, how it is used, and the choices you have. By using
           Action Tokens you agree to the practices described here.
         </p>
 
@@ -109,10 +109,10 @@ export function PrivacyView() {
             <Part id="introduction">
               <InfoCard title="Introduction">
                 <p>
-                  Action Tokens is a platform where artists sell music and collectibles to fans, and
-                  where fans follow artists, collect drops with AR and resell what they own.
-                  Purchases are recorded on the Stellar network. This policy covers the Action
-                  Tokens websites and apps.
+                  Action Tokens is a platform where organizations sell music and collectibles to
+                  fans, and where fans follow organizations, collect drops with AR and resell what
+                  they own. Purchases are recorded on the Stellar network. This policy covers the
+                  Action Tokens websites and apps.
                 </p>
               </InfoCard>
             </Part>
@@ -129,7 +129,7 @@ export function PrivacyView() {
                   </li>
                   <li>
                     Your name or username and profile picture, if you add them, and your links if
-                    you are an artist.
+                    you are an organization.
                   </li>
                 </ul>
                 <p className="text-fg font-semibold">2. What you do on Action Tokens</p>
@@ -158,10 +158,10 @@ export function PrivacyView() {
                   phone, and those features then won&apos;t work. Where you scan a mural, the photo
                   is checked and kept with your scan.
                 </p>
-                <p className="text-fg font-semibold">5. What artists upload</p>
+                <p className="text-fg font-semibold">5. What organizations upload</p>
                 <p>
-                  Artists upload music, artwork, posts, stories and videos. Each is shown to the
-                  audience the artist chooses.
+                  Organizations upload music, artwork, posts, stories and videos. Each is shown to
+                  the audience the organization chooses.
                 </p>
                 <p className="text-fg font-semibold">6. Technical information</p>
                 <p>
@@ -175,11 +175,11 @@ export function PrivacyView() {
               <InfoCard title="What is public">
                 <ul className="list-disc space-y-1 pl-5">
                   <li>
-                    Artist pages, their items, and public posts and stories can be seen by anyone,
-                    as the artist chooses. An artist&apos;s old stories stay on their page as
-                    highlights until they remove them.
+                    Organization pages, their items, and public posts and stories can be seen by
+                    anyone, as the organization chooses. An organization&apos;s old stories stay on
+                    their page as highlights until they remove them.
                   </li>
-                  <li>An artist&apos;s follower and subscriber counts are public.</li>
+                  <li>An organization&apos;s follower and subscriber counts are public.</li>
                   <li>
                     <b className="text-fg">The Stellar network is public and permanent.</b> Your
                     wallet address, what it holds and every transaction it makes can be seen by
@@ -193,8 +193,8 @@ export function PrivacyView() {
               <InfoCard title="How we use it">
                 <ul className="list-disc space-y-1 pl-5">
                   <li>To run your account, show your collection and complete your orders.</li>
-                  <li>To send you notifications about artists you follow and your orders.</li>
-                  <li>To pay artists and work out royalties.</li>
+                  <li>To send you notifications about organizations you follow and your orders.</li>
+                  <li>To pay organizations and work out royalties.</li>
                   <li>To keep Action Tokens safe, and to find and fix problems.</li>
                 </ul>
                 <p>We do not sell your personal information.</p>
@@ -213,12 +213,12 @@ export function PrivacyView() {
                   <li>Google Cloud Vision: checking mural scan photos.</li>
                   <li>An email service: gift emails and account messages.</li>
                   <li>
-                    Last.fm and Facebook: only if you, as a fan or an artist, choose to connect
-                    them.
+                    Last.fm and Facebook: only if you, as a fan or an organization, choose to
+                    connect them.
                   </li>
                   <li>
-                    OpenAI and Google AI: artists can use these to help write text and make images
-                    or music. What the artist types in is sent to them for that.
+                    OpenAI and Google AI: organizations can use these to help write text and make
+                    images or music. What the organization types in is sent to them for that.
                   </li>
                   <li>Our hosting and database providers.</li>
                 </ul>
@@ -241,9 +241,9 @@ export function PrivacyView() {
                 <ul className="list-disc space-y-1 pl-5">
                   <li>Change your profile in Settings.</li>
                   <li>
-                    Delete your account in Settings. Artist accounts have items and sales attached,
-                    so write to us and we will remove them. Records of payments we must keep, and
-                    anything already on the Stellar network, stay.
+                    Delete your account in Settings. Organization accounts have items and sales
+                    attached, so write to us and we will remove them. Records of payments we must
+                    keep, and anything already on the Stellar network, stay.
                   </li>
                   <li>Disconnect Last.fm or Facebook whenever you like.</li>
                   <li>Refuse location or camera access in your browser or phone settings.</li>

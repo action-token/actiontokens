@@ -32,12 +32,12 @@ const FAQ = [
   {
     question: "What is the difference between following and subscribing?",
     answer:
-      "Following an artist is free. Subscribing means you also trust their fan token, which costs a small refundable reserve. Artists can keep some posts, stories and drops for subscribers only.",
+      "Following an organization is free. Subscribing means you also trust their fan token, which costs a small refundable reserve. Organizations can keep some posts, stories and drops for subscribers only.",
   },
   {
     question: "Why can't I see a post or story?",
     answer:
-      "The artist chose who can see it: followers, subscribers or members who hold enough of their fan token. A locked card tells you what unlocks it.",
+      "The organization chose who can see it: followers, subscribers or members who hold enough of their fan token. A locked card tells you what unlocks it.",
   },
   {
     question: "How do I collect a drop in AR?",
@@ -52,7 +52,7 @@ const FAQ = [
   {
     question: "How do I delete my account?",
     answer:
-      "Go to Settings. Artist accounts have items and sales attached, so write to technical support and we will remove them. Anything already recorded on the Stellar network stays there.",
+      "Go to Settings. Organization accounts have items and sales attached, so write to technical support and we will remove them. Anything already recorded on the Stellar network stays there.",
   },
 ];
 

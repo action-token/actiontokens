@@ -22,40 +22,40 @@ const THINGS = [
   {
     icon: Music,
     title: "Music and collectibles",
-    text: "Buy songs, albums, artwork, tickets and fan tokens from the artists themselves, and keep them in your wallet.",
+    text: "Buy songs, albums, artwork, tickets and fan tokens from the organizations themselves, and keep them in your wallet.",
   },
   {
     icon: Newspaper,
     title: "Feed and stories",
-    text: "Follow artists for their posts and 24-hour stories. Past stories stay on their page as highlights.",
+    text: "Follow organizations for their posts and 24-hour stories. Past stories stay on their page as highlights.",
   },
   {
     icon: MapPin,
     title: "AR drops and bounties",
-    text: "Find drops on the map, collect them in AR, and take on bounties artists set for their fans.",
+    text: "Find drops on the map, collect them in AR, and take on bounties organizations set for their fans.",
   },
   {
     icon: Repeat,
     title: "Resale",
-    text: "Sell a copy you own to another fan at the price you choose. Artists can earn a royalty on every resale.",
+    text: "Sell a copy you own to another fan at the price you choose. Organizations can earn a royalty on every resale.",
   },
   {
     icon: BadgeCheck,
     title: "Follow and subscribe",
-    text: "Following is free. Subscribe by trusting an artist's fan token to unlock the posts, stories and drops kept for subscribers.",
+    text: "Following is free. Subscribe by trusting an organization's fan token to unlock the posts, stories and drops kept for subscribers.",
   },
   {
     icon: Ticket,
     title: "Events",
-    text: "See where artists play next, and use tickets that live in your wallet.",
+    text: "See where organizations play next, and use tickets that live in your wallet.",
   },
 ];
 
 const WHY = [
   {
     icon: Mic2,
-    title: "Artists keep control",
-    text: "Artists set their prices and audiences, and are paid straight to their own accounts.",
+    title: "Organizations keep control",
+    text: "Organizations set their prices and audiences, and are paid straight to their own accounts.",
   },
   {
     icon: Headphones,
@@ -78,7 +78,7 @@ const ARTISTS = [
 
 const FANS = [
   "Own the music and collectibles you buy, and resell them if you like.",
-  "Follow your favourite artists for free, and subscribe for more.",
+  "Follow your favourite organizations for free, and subscribe for more.",
   "Collect drops around you with AR, and take part in bounties.",
   "Pay with ACTION from your wallet, or by card.",
 ];
@@ -105,7 +105,7 @@ export function AboutView() {
       <InfoHero
         eyebrow="About Action Tokens"
         title="Music and fans, on Stellar"
-        note="artists get paid, fans get to keep it"
+        note="organizations get paid, fans get to keep it"
       >
         <Button asChild size="lg" className="bg-fg text-bg hover:bg-fg/90">
           <Link href="/marketplace">Explore the marketplace</Link>
@@ -116,16 +116,16 @@ export function AboutView() {
       </InfoHero>
       <PageBody className="mx-auto grid max-w-5xl gap-10">
         <p className="max-w-3xl text-lg leading-relaxed text-pretty">
-          Action Tokens is where artists sell music and more straight to the fans who love it, and
-          where fans collect, follow and support them. Everything you buy is recorded on the Stellar
-          network, so it is yours, not ours.
+          Action Tokens is where organizations sell music and more straight to the fans who love it,
+          and where fans collect, follow and support them. Everything you buy is recorded on the
+          Stellar network, so it is yours, not ours.
         </p>
 
         <div className="grid gap-5 md:grid-cols-2">
           <section
             className={`bg-primary text-primary-foreground grid content-start gap-5 rounded-[1.6rem] p-6 sm:p-8 ${STICKER} shadow-[6px_7px_0_0_var(--color-fg)]`}
           >
-            <h2 className="display text-4xl">For artists</h2>
+            <h2 className="display text-4xl">For organizations</h2>
             <Checklist items={ARTISTS} />
           </section>
           <section

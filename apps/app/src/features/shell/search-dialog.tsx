@@ -46,7 +46,7 @@ const MIN_LENGTH = 2;
 
 const QUICK = [
   { href: "/marketplace", label: "Marketplace", icon: Store },
-  { href: "/artists", label: "Artists", icon: Users },
+  { href: "/artists", label: "Organizations", icon: Users },
   { href: "/bounties", label: "Bounties", icon: Target },
   { href: "/feed", label: "Feed", icon: Rss },
 ];
@@ -100,7 +100,7 @@ export function SearchDialog() {
       >
         <DialogTitle className="sr-only">Search</DialogTitle>
         <DialogDescription className="sr-only">
-          Find songs and items, artists and bounties
+          Find songs and items, organizations and bounties
         </DialogDescription>
         <form onSubmit={submit} className="flex items-center gap-3 border-b px-4">
           <Search className="text-primary-text size-5 shrink-0" />
@@ -109,7 +109,7 @@ export function SearchDialog() {
             type="search"
             value={text}
             onChange={(event) => setText(event.target.value)}
-            placeholder="Search songs, artists, bounties"
+            placeholder="Search songs, organizations, bounties"
             aria-label="Search"
             className="placeholder:text-fg-faint h-14 min-w-0 flex-1 bg-transparent text-base outline-none [&::-webkit-search-cancel-button]:hidden"
           />
@@ -174,7 +174,7 @@ export function SearchDialog() {
                   />
                 ))}
               </Group>
-              <Group title="Artists" show={found.artists.length > 0}>
+              <Group title="Organizations" show={found.artists.length > 0}>
                 {found.artists.map((artist) => (
                   <Hit
                     key={artist.slug}

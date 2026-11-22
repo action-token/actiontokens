@@ -101,7 +101,7 @@ export function SellPanel({
             <DialogDescription>
               Buyers pay 2.5% on top of your price.
               {royaltyPercent && Number(royaltyPercent) > 0
-                ? ` The artist's ${royaltyPercent}% resale royalty comes out of your share.`
+                ? ` The organization's ${royaltyPercent}% resale royalty comes out of your share.`
                 : ""}
             </DialogDescription>
           </DialogHeader>

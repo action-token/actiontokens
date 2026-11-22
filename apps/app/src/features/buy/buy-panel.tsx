@@ -140,7 +140,7 @@ export function BuyPanel({
         {nft && listing.isOwn && (
           <p className="bg-surface-2 text-fg-muted rounded-md p-3 text-xs">
             This is your NFT. The price comes back to you in ACTION, so what it really costs you is
-            the fees. Copies you own can be gifted from Gifts in the artist portal.
+            the fees. Copies you own can be gifted from Gifts in the organization portal.
           </p>
         )}
 

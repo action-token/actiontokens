@@ -37,7 +37,7 @@ export function PostPage({ postId }: { postId: string }) {
         <EmptyState
           icon={Newspaper}
           title="This post isn't here anymore"
-          description="The artist may have removed it."
+          description="The organization may have removed it."
           action={
             <Button asChild variant="secondary">
               <Link href="/feed">Back to the feed</Link>

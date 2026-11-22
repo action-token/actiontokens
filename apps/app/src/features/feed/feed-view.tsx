@@ -78,7 +78,7 @@ export function FeedView({ afterFirst }: { afterFirst?: ReactNode }) {
             <EmptyState
               icon={Newspaper}
               title="No posts yet"
-              description="When artists post news, photos or music, it shows up here."
+              description="When organizations post news, photos or music, it shows up here."
             />
           ) : (
             <FollowingEmpty following={pages[0]?.following ?? 0} />
@@ -113,15 +113,15 @@ function FollowingEmpty({ following }: { following: number }) {
   return (
     <EmptyState
       icon={Newspaper}
-      title={following === 0 ? "Follow artists to fill your feed" : "No posts yet"}
+      title={following === 0 ? "Follow organizations to fill your feed" : "No posts yet"}
       description={
         following === 0
-          ? "When artists you follow post news, photos or music, it shows up here."
-          : "The artists you follow haven't posted yet. New posts show up here."
+          ? "When organizations you follow post news, photos or music, it shows up here."
+          : "The organizations you follow haven't posted yet. New posts show up here."
       }
       action={
         <Button asChild variant={following === 0 ? "default" : "secondary"}>
-          <Link href="/marketplace">Find artists</Link>
+          <Link href="/marketplace">Find organizations</Link>
         </Button>
       }
     />

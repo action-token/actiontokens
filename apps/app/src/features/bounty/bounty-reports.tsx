@@ -219,7 +219,7 @@ function ListeningProgress({ bounty, music }: { bounty: Bounty; music: Music }) 
       <EmptyState
         icon={Headphones}
         title="No tracks configured yet"
-        description="The artist hasn't added any tracks yet."
+        description="The organization hasn't added any tracks yet."
       />
     );
   }

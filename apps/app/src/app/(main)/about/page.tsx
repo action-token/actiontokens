@@ -4,7 +4,7 @@ import { AboutView } from "~/features/info/about-view";
 
 export const metadata: Metadata = {
   title: "About",
-  description: "What Action Tokens is, for artists and fans.",
+  description: "What Action Tokens is, for organizations and fans.",
 };
 
 export default function AboutPage() {

@@ -77,7 +77,7 @@ export function AlbumsGrid() {
       <EmptyState
         icon={ListMusic}
         title="No albums yet"
-        description="When artists put out full releases, they show up here."
+        description="When organizations put out full releases, they show up here."
       />
     );
   }

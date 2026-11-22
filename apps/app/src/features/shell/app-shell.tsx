@@ -79,7 +79,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             className="bg-surface-2 text-fg-faint flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full border px-3.5 text-left text-sm"
           >
             <Search className="size-4 shrink-0" />
-            <span className="truncate">Search songs, artists</span>
+            <span className="truncate">Search songs, organizations</span>
           </button>
           <AccountButton />
         </header>

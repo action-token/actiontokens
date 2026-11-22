@@ -93,7 +93,7 @@ class BlockBoundary extends Component<{ children: ReactNode; label: string }, { 
     return { failed: true };
   }
   override componentDidCatch(error: unknown, info: ErrorInfo) {
-    console.error("[artist page block]", this.props.label, error, info.componentStack);
+    console.error("[organization page block]", this.props.label, error, info.componentStack);
   }
   override render() {
     return this.state.failed ? (

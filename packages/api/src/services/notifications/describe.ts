@@ -40,7 +40,7 @@ export function describeVanity(vanity: NotificationSubject["vanity"]) {
       };
     case "LAPSED":
       return {
-        text: `${link} stopped working and now opens your artist page. The name is yours for ${VANITY_RESERVE_DAYS} more days if you renew.`,
+        text: `${link} stopped working and now opens your organization page. The name is yours for ${VANITY_RESERVE_DAYS} more days if you renew.`,
         href,
       };
   }

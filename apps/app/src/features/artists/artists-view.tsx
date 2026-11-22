@@ -109,17 +109,17 @@ export function ArtistsView() {
           <EmptyState
             icon={Users}
             title="You're not following anyone yet"
-            description="Follow artists to see their drops, posts and stories first."
+            description="Follow organizations to see their drops, posts and stories first."
             action={
               <Button variant="secondary" onClick={() => setView("popular")}>
-                Find artists
+                Find organizations
               </Button>
             }
           />
         ) : (
           <EmptyState
             icon={Users}
-            title="No artists found"
+            title="No organizations found"
             description={search ? `Nobody called “${search}”.` : "Artists will show up here."}
           />
         )

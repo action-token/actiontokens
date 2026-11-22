@@ -36,7 +36,7 @@ export function HomeView({ home }: { home: Home }) {
       <TrendingCarousel home={home} />
       {home.artists.length > 0 && (
         <MediaCarousel
-          title="Popular artists"
+          title="Popular organizations"
           note="most followed on Action Tokens"
           action={seeAll("/artists")}
           itemWidth="minmax(150px,176px)"

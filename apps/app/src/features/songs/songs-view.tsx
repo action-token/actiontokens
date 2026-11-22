@@ -246,7 +246,7 @@ export function SongsView() {
           <EmptyState
             icon={Music}
             title="No songs yet"
-            description="When artists release music, it shows up here."
+            description="When organizations release music, it shows up here."
           />
         )
       ) : (
@@ -416,8 +416,8 @@ function SearchToggle({ value, onSearch }: { value: string; onSearch: (text: str
       <input
         ref={input}
         type="search"
-        aria-label="Search songs or artists"
-        placeholder="Search songs or artists"
+        aria-label="Search songs or organizations"
+        placeholder="Search songs or organizations"
         tabIndex={open ? 0 : -1}
         value={text}
         onChange={(event) => change(event.target.value)}

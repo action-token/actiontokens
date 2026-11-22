@@ -9,7 +9,7 @@ import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: { default: "Action Tokens: own the music you love", template: "%s · Action Tokens" },
-  description: "Buy, collect and stream music from the artists you love, on Stellar.",
+  description: "Buy, collect and stream music from the organizations you love, on Stellar.",
 };
 
 export const viewport: Viewport = {

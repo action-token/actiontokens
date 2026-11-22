@@ -45,7 +45,7 @@ export function NotificationsView() {
       <EmptyState
         icon={Bell}
         title="Sign in to see your notifications"
-        description="New posts from artists you follow, replies, bounty news and more."
+        description="New posts from organizations you follow, replies, bounty news and more."
         action={<Button onClick={() => openSignIn(true)}>Sign in</Button>}
       />
     );
@@ -64,10 +64,10 @@ export function NotificationsView() {
       <EmptyState
         icon={Bell}
         title="No notifications yet"
-        description="Follow artists and join bounties: their news shows up here."
+        description="Follow organizations and join bounties: their news shows up here."
         action={
           <Button asChild variant="secondary">
-            <Link href="/marketplace">Find artists</Link>
+            <Link href="/marketplace">Find organizations</Link>
           </Button>
         }
       />

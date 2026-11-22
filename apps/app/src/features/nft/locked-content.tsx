@@ -182,7 +182,7 @@ function RewardRow({
               <span className="text-fg font-mono font-semibold tracking-widest">
                 {piece.code.code}
               </span>
-              {piece.code.redeemedAt ? " · redeemed" : " · show it to the artist to redeem"}
+              {piece.code.redeemedAt ? " · redeemed" : " · show it to the organization to redeem"}
             </span>
           )}
           {piece.onChain?.txHash && (

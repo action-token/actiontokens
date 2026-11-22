@@ -15,14 +15,14 @@ describe("composerTarget", () => {
 
   it("explains the wait while the artist page is in review", () => {
     expect(composerTarget(true, { name: "New", status: "PENDING" }, null).action).toBe(
-      "Artist portal",
+      "Organization portal",
     );
   });
 
   it("invites a fan to become an artist", () => {
     expect(composerTarget(true, null, "Ana")).toMatchObject({
-      prompt: "What's on your mind, Ana? Become an artist to post.",
-      action: "Become an artist",
+      prompt: "What's on your mind, Ana? Become an organization to post.",
+      action: "Become an organization",
     });
   });
 });

@@ -200,7 +200,7 @@ export function ArtistsToFollow() {
   );
   if (artists.data?.length === 0) return null;
   return (
-    <Block title="Artists to follow" note="find your next favourite" href="/artists">
+    <Block title="Organizations to follow" note="find your next favourite" href="/artists">
       {artists.isPending ? (
         <Loading className="h-[4.5rem] w-72" />
       ) : (

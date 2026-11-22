@@ -70,7 +70,7 @@ export function PreviewFrame({ slug }: { slug: string }) {
         <ErrorState
           message={
             draft.error?.data?.code === "FORBIDDEN" || draft.error?.data?.code === "UNAUTHORIZED"
-              ? "Sign in as this artist to preview the page."
+              ? "Sign in as this organization to preview the page."
               : "Couldn't load the preview."
           }
         />

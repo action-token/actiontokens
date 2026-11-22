@@ -67,7 +67,7 @@ export function ItemPurchase({
             >
               <span className="min-w-0 truncate">
                 {listing.kind === "PRIMARY"
-                  ? "From the artist"
+                  ? "From the organization"
                   : (listing.seller.displayName ?? listing.seller.username ?? "A fan")}
                 <span className="text-fg-faint block text-xs">
                   {listing.remaining === null ? "Unlimited" : `${listing.remaining} left`}

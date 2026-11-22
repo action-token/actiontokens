@@ -38,7 +38,7 @@ export function ArtistsHero() {
   if (artists.length === 0) return null;
   return (
     <HeroCarousel
-      label="Top artists"
+      label="Top organizations"
       items={artists}
       keyOf={(artist) => artist.id}
       nameOf={(artist) => artist.name}

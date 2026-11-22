@@ -27,7 +27,9 @@ export function CoverBanner({
 }) {
   const banner = artist.coverUrl ?? artist.avatarUrl;
   const centered = align === "center";
-  const token = artist.tokenCode ? { code: artist.tokenCode, organizationId: artist.organizationId } : null;
+  const token = artist.tokenCode
+    ? { code: artist.tokenCode, organizationId: artist.organizationId }
+    : null;
 
   return (
     <ArtistStandingProvider

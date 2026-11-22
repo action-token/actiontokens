@@ -7,7 +7,8 @@ import { BountiesView } from "~/features/bounty/bounties-view";
 
 export const metadata: Metadata = {
   title: "Bounties",
-  description: "Discover challenges, complete tasks, and earn rewards from the artists you love.",
+  description:
+    "Discover challenges, complete tasks, and earn rewards from the organizations you love.",
 };
 
 export default function BountiesPage() {

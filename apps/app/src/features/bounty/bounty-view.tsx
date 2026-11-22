@@ -286,8 +286,8 @@ function ManageInPortal({ bountyId }: { bountyId: string }) {
   return (
     <EmptyState
       icon={FileText}
-      title="Review submissions in the artist portal"
-      description="Read entries, pick winners and change the bounty's status from your artist portal."
+      title="Review submissions in the organization portal"
+      description="Read entries, pick winners and change the bounty's status from your organization portal."
       action={
         <Button asChild>
           <a href={`${ORG_URL}/bounties/${bountyId}`}>

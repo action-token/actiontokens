@@ -1,6 +1,6 @@
 /**
  * Custom domains (plan 32): a request for a host that isn't Action Tokens' own is
- * an artist's domain. Its home shows the artist's page; every other path goes
+ * an organization's domain. Its home shows the organization's page; every other path goes
  * to the same path on Action Tokens, so the page's links keep working. The API and
  * Next's own files are served here, since the artist page loads through them.
  */

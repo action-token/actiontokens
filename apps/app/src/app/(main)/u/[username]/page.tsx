@@ -111,7 +111,7 @@ export default async function ProfilePage({ params }: Props) {
                   href={`/artist/${profile.artistSlug}`}
                   className="bg-primary text-primary-foreground flex h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold"
                 >
-                  <Mic2 className="size-4" /> Artist page
+                  <Mic2 className="size-4" /> Organization page
                 </Link>
               )}
               {profile.isSelf && (
@@ -171,7 +171,7 @@ export default async function ProfilePage({ params }: Props) {
         )}
 
         {profile.following.length > 0 && (
-          <Section title="Following" note="artists they back">
+          <Section title="Following" note="organizations they back">
             <ul className="flex flex-wrap gap-4">
               {profile.following.map((artist) => (
                 <li key={artist.slug}>

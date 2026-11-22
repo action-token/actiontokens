@@ -110,9 +110,9 @@ export function HoldTokenDialog({
           <DialogHeader>
             <DialogTitle>Subscribe with {offer?.code}</DialogTitle>
             <DialogDescription>
-              Subscribers are followers who trust the artist&apos;s fan token, and can open posts,
-              stories and pins made for subscribers. It locks 0.5 XLM in your wallet, which you get
-              back if you remove the line. Nothing happens unless you tap Subscribe.
+              Subscribers are followers who trust the organization&apos;s fan token, and can open
+              posts, stories and pins made for subscribers. It locks 0.5 XLM in your wallet, which
+              you get back if you remove the line. Nothing happens unless you tap Subscribe.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">

@@ -135,7 +135,7 @@ export function StoryViewer({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={`Stories from ${data.data?.organization.name ?? "an artist"}`}
+      aria-label={`Stories from ${data.data?.organization.name ?? "an organization"}`}
       className="fixed inset-0 z-[70] grid place-items-center bg-black/90 backdrop-blur-sm"
     >
       <button

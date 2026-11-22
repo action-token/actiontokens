@@ -18,12 +18,12 @@ export function composerTarget(
   if (organization)
     return {
       href: portal,
-      prompt: "Your artist page is in review. You can post once it's approved.",
-      action: "Artist portal",
+      prompt: "Your organization page is in review. You can post once it's approved.",
+      action: "Organization portal",
     };
   return {
     href: portal,
-    prompt: `What's on your mind${displayName ? `, ${displayName}` : ""}? Become an artist to post.`,
-    action: "Become an artist",
+    prompt: `What's on your mind${displayName ? `, ${displayName}` : ""}? Become an organization to post.`,
+    action: "Become an organization",
   };
 }

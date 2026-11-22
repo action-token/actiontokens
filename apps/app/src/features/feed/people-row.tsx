@@ -61,7 +61,7 @@ export function PeopleRow() {
   return (
     <>
       <nav
-        aria-label="Stories and artists"
+        aria-label="Stories and organizations"
         className="flex [scrollbar-width:none] gap-4 overflow-x-auto py-1.5"
       >
         {ring.isPending && artists.isPending

@@ -178,7 +178,7 @@ export function MoreFromArtist({
       <div className="flex items-end justify-between gap-3">
         <div>
           <h2 className="display text-3xl">More from {more.artist?.name ?? artistName}</h2>
-          <p className="marker text-fg-muted text-base">same artist, more drops</p>
+          <p className="marker text-fg-muted text-base">same organization, more drops</p>
         </div>
         {more.artist && (
           <Link

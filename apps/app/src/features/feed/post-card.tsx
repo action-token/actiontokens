@@ -210,7 +210,7 @@ function LockedNote({ post, artistHref }: { post: FeedPost; artistHref: string }
         <p className="text-fg-muted text-sm">
           {lock.code
             ? `Subscribe to ${post.organization.name} (trust ${lock.code}) to open it.`
-            : "This artist's subscriptions open soon."}
+            : "This organization's subscriptions open soon."}
         </p>
         {lock.code && (
           <Link
@@ -231,7 +231,7 @@ function LockedNote({ post, artistHref }: { post: FeedPost; artistHref: string }
       <p className="text-fg-muted text-sm">
         {lock.code
           ? `Hold ${needed} ${lock.code} to open it. You have ${Number(lock.have).toLocaleString("en-US")}.`
-          : "This artist's membership opens soon."}
+          : "This organization's membership opens soon."}
       </p>
       {lock.code && (
         <Link

@@ -71,7 +71,7 @@ function Loaded({ settings }: { settings: Settings }) {
           </Card>
           <Card
             title="Delete account"
-            note="Removes your profile and sign-in for good. Artists and wallets that still hold funds need our help."
+            note="Removes your profile and sign-in for good. Organizations and wallets that still hold funds need our help."
           >
             <div>
               <DeleteAccount />
