@@ -786,3 +786,45 @@
   background: var(--gx-neon);
   box-shadow: 0 0 8px var(--gx-neon);
 }
+
+/* ── Hero mode (html[data-hero], set by useHeroMode): the sidebar slides away while the hero fills
+   the screen, and comes back past it. The sidebar moves with transform only; the hero and the
+   notch drop the sidebar's width (the sections below keep it, so nothing below reflows). ── */
+.side-island > div {
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+html[data-hero] .side-island > div {
+  transform: translateX(calc(-100% - 16px));
+}
+/* the hero always runs under the sidebar (full width, so nothing reflows when it hides); its text
+   moves aside with transform only when the sidebar is in */
+.hm .lph {
+  padding-inline-start: 0;
+}
+.hm .lph-kicker,
+.hm .lph-headline,
+.hm .lph-ctas {
+  translate: var(--side-w) 0;
+  transition-property: opacity, transform, translate;
+  transition-duration: 0.45s;
+}
+html[data-hero] .hm .lph-kicker,
+html[data-hero] .hm .lph-headline,
+html[data-hero] .hm .lph-ctas {
+  translate: 0 0;
+}
+.hm-notch {
+  transition: --side-w 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+html[data-hero] .hm-notch {
+  --side-w: 0px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .side-island > div,
+  .hm .lph-kicker,
+  .hm .lph-headline,
+  .hm .lph-ctas,
+  .hm-notch {
+    transition: none;
+  }
+}

@@ -49,6 +49,7 @@ const RIBBON = [
 export function HomeFront({ home, children }: { home: Home; children?: ReactNode }) {
   const { status } = useSession();
   const root = useReveal<HTMLDivElement>();
+  useHeroMode(root);
   return (
     <div ref={root} className={cn(anton.variable, gothic.variable, "hm")}>
       <HomeNotch home={home} />
@@ -481,6 +482,43 @@ function CrewRow({ crew, signedIn }: { crew: Crew; signedIn: boolean }) {
       <span className={cn("hm-gate", ok && "hm-gate--ok")}>{label}</span>
     </Link>
   );
+}
+
+/**
+ * While the hero fills the screen the page is all hero: the sidebar slides away and the hero and
+ * the notch use the full width. Past the hero (with a third of a screen to spare, as in the
+ * mockup) the sidebar slides back in. The sections below are laid out for the sidebar all along,
+ * so nothing reflows. Sets `data-hero` on <html>; styles in home.css.
+ */
+function useHeroMode(root: React.RefObject<HTMLDivElement | null>) {
+  useEffect(() => {
+    const html = document.documentElement;
+    const hero = root.current?.querySelector<HTMLElement>(".lph");
+    if (!hero) return;
+    let raf = 0;
+    let on: boolean | null = null;
+    const update = () => {
+      raf = 0;
+      const rect = hero.getBoundingClientRect();
+      // still inside the hero until its end is within a third of a screen of the bottom edge
+      const next = rect.bottom > innerHeight * 1.35;
+      if (next === on) return;
+      on = next;
+      html.toggleAttribute("data-hero", next);
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    update();
+    addEventListener("scroll", onScroll, { passive: true });
+    addEventListener("resize", onScroll);
+    return () => {
+      removeEventListener("scroll", onScroll);
+      removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+      html.removeAttribute("data-hero");
+    };
+  }, [root]);
 }
 
 /** Marks each `[data-reveal]` inside the returned ref with `data-in` once it reaches the screen. */
