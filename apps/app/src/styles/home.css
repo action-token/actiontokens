@@ -128,6 +128,16 @@
   margin: -8px 0 -18px;
   padding: 8px 0 18px;
 }
+/* bounty cards are text-heavy: one across on phones, two from tablets up */
+.hm-shelf.hm-shelf--board {
+  --n: 1.15;
+}
+@container (min-width: 700px) {
+  .hm-shelf.hm-shelf--board {
+    --n: 2;
+  }
+}
+
 /* organization circles are smaller than posters: one more of them across */
 .hm-shelf.hm-shelf--orgs {
   --n: 2.4;
