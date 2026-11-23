@@ -5,6 +5,7 @@ import {
   signInWithPopup,
   type UserCredential,
 } from "firebase/auth";
+import type { FirebaseError } from "firebase/app";
 import toast from "react-hot-toast";
 
 import { firebaseAuth } from "../../firebase/client";
@@ -37,6 +38,29 @@ async function startSessionAndProvisionAccount(
       error: "Unable to get public key",
     });
   }
+}
+
+/**
+ * Firebase refuses an Apple sign-in whose email already belongs to a Google or
+ * email account ("account exists with a different credential"). The error still
+ * carries Apple's identity token, so the server signs the person in by that
+ * verified email instead: same account and wallet as their other sign-ins.
+ * Resolves `false` when the error isn't one it can recover from.
+ */
+async function signInWithAppleOnServer(error: unknown): Promise<boolean> {
+  const firebaseError = error as FirebaseError;
+  if (firebaseError?.code !== "auth/account-exists-with-different-credential") return false;
+  const appleToken = OAuthProvider.credentialFromError(firebaseError)?.idToken;
+  const email = firebaseError.customData?.email;
+  if (!appleToken || typeof email !== "string") return false;
+
+  const result = await toast.promise(
+    signInWithApple({ email, appleToken, walletType: WalletType.apple }),
+    LOGIN_PENDING,
+  );
+  if (result?.error) toast.error(result.error);
+  else if (result?.ok) toast.success("Login Successfully");
+  return true;
 }
 
 export const googleProvider: WalletProvider = {
@@ -89,7 +113,13 @@ export const appleProvider: WalletProvider = {
         { provisionAccount: true },
       );
     } catch (error) {
+      if (await signInWithAppleOnServer(error)) return;
       console.error("[Apple sign-in] failed", error);
+      if ((error as FirebaseError)?.code === "auth/provider-already-linked") {
+        toast.error(
+          "This account already has another Apple sign-in connected. Use Google or email for now, or contact support.",
+        );
+      }
     }
   },
 
