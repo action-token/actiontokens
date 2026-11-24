@@ -116,6 +116,12 @@
   --side-badge: var(--bc-primary-ink);
   --side-chip: var(--bc-surface);
 }
+/* light: the right rail and panel turn to a light card too, or their ink (the theme's text) vanishes */
+:root[data-theme="light"] .side-card {
+  --side: var(--bc-surface);
+  --island-shadow: 0 20px 40px -18px rgb(0 0 0 / 0.18);
+  --side-chip: var(--bc-surface-2);
+}
 
 /* ── Tailwind mapping ───────────────────────────────────────────────────── */
 @theme inline {
