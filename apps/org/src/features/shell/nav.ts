@@ -26,6 +26,7 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   Users,
+  UsersRound,
   Wallet,
   Workflow,
   type LucideIcon,
@@ -130,6 +131,7 @@ const READY_TOOLS: NavGroup[] = [
         also: ["/stories"],
       },
       { href: "/bounties", icon: Trophy, label: "Bounties" },
+      { href: "/communities", icon: UsersRound, label: "Communities", shortLabel: "Crews" },
     ],
   },
   {

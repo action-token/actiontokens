@@ -2,6 +2,7 @@
 @import "@actiontokens/ui/styles/theme.css";
 @import "@actiontokens/ui/styles/gx.css";
 @import "@actiontokens/ui/styles/landing.css";
+@import "@actiontokens/ui/styles/community.css";
 @import "./portal.css";
 
 /* Class names used inside shared packages (Tailwind only scans the app by default). */

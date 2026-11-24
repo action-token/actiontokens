@@ -40,6 +40,7 @@ describe("portal navigation", () => {
       "My page",
       "Posts & stories",
       "Bounties",
+      "Communities",
       "Music",
       "Items",
       "Memberships",
@@ -67,6 +68,7 @@ describe("portal navigation", () => {
       "My page",
       "Posts & stories",
       "Bounties",
+      "Communities",
       "Music",
       "Items",
       "Memberships",
@@ -113,8 +115,9 @@ describe("portal navigation", () => {
     );
     const lit = (pathname: string) =>
       entries.filter((entry) => isActive(entry, pathname)).map((entry) => entry.label);
-    expect(entries.length).toBeLessThanOrEqual(15);
+    expect(entries.length).toBeLessThanOrEqual(16);
     expect(lit("/pins")).toEqual(["Map & pins"]);
+    expect(lit("/communities/abc/edit")).toEqual(["Communities"]);
     expect(lit("/pins/manage")).toEqual(["Pin management"]);
     expect(lit("/pins/shapes")).toEqual(["Pin management"]);
     expect(lit("/pins/templates")).toEqual(["Pin management"]);

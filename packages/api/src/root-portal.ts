@@ -2,6 +2,7 @@ import { accountRouter } from "./routers/app/account";
 import { activationRouter } from "./routers/app/activation";
 import { rechargeRouter } from "./routers/app/recharge";
 import { walletRouter } from "./routers/app/wallet";
+import { communitiesRouter } from "./routers/app/community";
 import { adminRouter } from "./routers/admin";
 import { agentRouter } from "./routers/artist/agent";
 import { aiRouter } from "./routers/artist/ai";
@@ -48,6 +49,8 @@ export const portalRouter = createRouter({
   activation: activationRouter,
   /** Send, Swap, assets, history and gifts, the same as the fan app's */
   wallet: walletRouter,
+  /** Communities (crews), the same as the fan app's: an organization starts and runs its own */
+  community: communitiesRouter,
   portal: portalStatusRouter,
   onboarding: onboardingRouter,
   admin: adminRouter,
