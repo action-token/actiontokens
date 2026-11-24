@@ -10,7 +10,6 @@ import { MediaCarousel } from "@actiontokens/ui/patterns/media-carousel";
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import { ItemCard, POSTER_WIDTH } from "../catalog/item-card";
-import { AlbumsCarousel, AllSongs } from "../music/music-view";
 import { existingListeningSession } from "../player/listening-id";
 
 type Home = RouterOutputs["catalog"]["home"];
@@ -26,19 +25,6 @@ const seeAll = (href: string) => (
     See all
   </Link>
 );
-
-/** The music on the home page: recently played, trending, new songs, albums, then every song. */
-export function HomeView({ home }: { home: Home }) {
-  return (
-    <div className="grid gap-9">
-      <RecentlyPlayed />
-      <TrendingCarousel home={home} />
-      <NewSongsCarousel home={home} />
-      <AlbumsCarousel action={seeAll("/albums")} />
-      <AllSongs seeAllHref="/songs" />
-    </div>
-  );
-}
 
 /** Your last 12 different songs (or this browser's, as a guest). Hidden until there's something to show. */
 export function RecentlyPlayed() {
