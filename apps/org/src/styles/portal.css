@@ -611,3 +611,16 @@ main .lp-h2 {
     display: none;
   }
 }
+
+/* the last step's way out: Marketplace and the AR app as two big buttons */
+.lm-go {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 15rem));
+  gap: 10px;
+  margin-top: 14px;
+}
+@media (max-width: 480px) {
+  .lm-go {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

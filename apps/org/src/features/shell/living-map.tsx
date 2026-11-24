@@ -20,8 +20,7 @@ import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 
 import { PinGlyph } from "@actiontokens/ui/patterns/pin-glyph";
 
 import { MAPBOX_TOKEN } from "../pins/mapbox";
-import { AR_URL, FAN_APP_URL, PORTAL_MENU_CLOSE_EVENT } from "./links";
-import type { NavGroup } from "./nav";
+import { AR_URL, FAN_APP_URL } from "./links";
 
 /**
  * The signed-out front page: a living map. The map fills the screen and stays put; scrolling
@@ -94,21 +93,6 @@ const STEPS: Step[] = [
 /** The last step: everything in place, and the way in. */
 const LAST = STEPS.length;
 
-/** The steps as sidebar entries (signed out, the sidebar lists only these). */
-export const TOUR_NAV: NavGroup[] = [
-  {
-    title: "Inside the portal",
-    items: STEPS.map((step, index) => ({
-      href: `/#tour-${index + 1}`,
-      label: step.tag,
-      icon: step.icon,
-      exact: true,
-    })),
-  },
-];
-/** Fired on window with the step on screen (-1: none), for the sidebar's highlight. */
-export const TOUR_EVENT = "tour:active";
-
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
 export function LivingMap({ onSignIn }: { onSignIn: () => void }) {
@@ -160,40 +144,17 @@ export function LivingMap({ onSignIn }: { onSignIn: () => void }) {
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(update);
     };
-    // sidebar entries (/#tour-N) scroll to that step
-    const onLink = (event: MouseEvent) => {
-      const link = (event.target as Element | null)?.closest?.('a[href^="/#tour-"]');
-      if (!link) return;
-      event.preventDefault();
-      event.stopPropagation();
-      const k = Number(link.getAttribute("href")!.slice("/#tour-".length)) - 1;
-      const top = el.getBoundingClientRect().top + scrollY;
-      const span = el.offsetHeight - innerHeight;
-      scrollTo({
-        top: phone.matches ? top : top + (span * k) / LAST,
-        behavior: still.matches ? "auto" : "smooth",
-      });
-      dispatchEvent(new Event(PORTAL_MENU_CLOSE_EVENT));
-    };
-
-    document.addEventListener("click", onLink, true);
     addEventListener("scroll", onScroll, { passive: true });
     addEventListener("resize", onScroll);
     phone.addEventListener("change", onScroll);
     update();
     return () => {
-      document.removeEventListener("click", onLink, true);
       removeEventListener("scroll", onScroll);
       removeEventListener("resize", onScroll);
       phone.removeEventListener("change", onScroll);
       if (raf) cancelAnimationFrame(raf);
     };
   }, []);
-
-  useEffect(() => {
-    dispatchEvent(new CustomEvent(TOUR_EVENT, { detail: active }));
-  }, [active]);
-  useEffect(() => () => void dispatchEvent(new CustomEvent(TOUR_EVENT, { detail: -1 })), []);
 
   return (
     <section
@@ -226,7 +187,7 @@ export function LivingMap({ onSignIn }: { onSignIn: () => void }) {
         {/* one headline per step, in the same place */}
         <div className="lm-heads">
           {STEPS.map((step, k) => (
-            <div key={step.id} className="lm-head" data-k={k} id={`tour-${k + 1}`}>
+            <div key={step.id} className="lm-head" data-k={k}>
               <p className="lm-kicker">
                 <step.icon className="size-3.5" />
                 {k === 0
@@ -266,11 +227,27 @@ export function LivingMap({ onSignIn }: { onSignIn: () => void }) {
               <button type="button" onClick={onSignIn} className="lp-cta">
                 <LogIn className="size-5" strokeWidth={2.4} /> Sign in / Sign up
               </button>
-              <a href={FAN_APP_URL} className="lp-chip">
-                <Store className="size-4" /> Marketplace <ArrowUpRight className="size-3.5" />
+            </div>
+            <div className="lm-go">
+              <a href={FAN_APP_URL} className="gx-go" title="See the portal as fans do">
+                <Store className="gx-go-icon" strokeWidth={2} />
+                <span className="min-w-0">
+                  <span className="gx-go-label">Marketplace</span>
+                  <span className="gx-go-hint">See it as fans</span>
+                </span>
+                <span className="gx-go-arrow" aria-hidden>
+                  <ArrowUpRight className="size-4" strokeWidth={2.6} />
+                </span>
               </a>
-              <a href={AR_URL} className="lp-chip">
-                <ScanLine className="size-4" /> AR app <ArrowUpRight className="size-3.5" />
+              <a href={AR_URL} className="gx-go gx-go--neon" title="Open the AR app">
+                <ScanLine className="gx-go-icon" strokeWidth={2} />
+                <span className="min-w-0">
+                  <span className="gx-go-label">AR app</span>
+                  <span className="gx-go-hint">Drops on the map</span>
+                </span>
+                <span className="gx-go-arrow" aria-hidden>
+                  <ArrowUpRight className="size-4" strokeWidth={2.6} />
+                </span>
               </a>
             </div>
           </div>

@@ -1,13 +1,12 @@
 "use client";
 
-import { CalendarDays, Crown, LogIn, Menu, MapPin, ShoppingBag, Trophy } from "lucide-react";
+import { CalendarDays, Crown, LogIn, MapPin, ShoppingBag, Trophy } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@actiontokens/ui/lib/cn";
 import { BrandMark } from "@actiontokens/ui/patterns/boot-screen";
 import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
-import { PORTAL_MENU_EVENT } from "./links";
 import { anton, gothic } from "./landing-fonts";
 import { ThemeControl } from "@actiontokens/ui/patterns/theme-control";
 import { LivingMap } from "./living-map";
@@ -50,15 +49,6 @@ export function Landing() {
           >
             <LogIn className="size-4" strokeWidth={2.4} />{" "}
             <span className="max-[380px]:hidden">Sign in</span>
-          </button>
-          {/* phones: the menu (the side sheet), since the notch stands in for the phone header */}
-          <button
-            type="button"
-            onClick={() => dispatchEvent(new Event(PORTAL_MENU_EVENT))}
-            aria-label="Menu"
-            className="bg-primary text-primary-ink grid size-10 place-items-center rounded-xl sm:hidden"
-          >
-            <Menu className="size-5" />
           </button>
         </span>
         <NotchFeed onOpen={setNotchOpen} />
