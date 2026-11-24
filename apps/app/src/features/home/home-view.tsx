@@ -27,7 +27,7 @@ const seeAll = (href: string) => (
   </Link>
 );
 
-/** The music on the home page (under "Hear it"): recently played, trending, new songs, albums, then every song. */
+/** The music on the home page: recently played, trending, new songs, albums, then every song. */
 export function HomeView({ home }: { home: Home }) {
   return (
     <div className="grid gap-9">

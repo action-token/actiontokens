@@ -4,8 +4,13 @@ import { contextPanelFor } from "./panel-rule";
 
 describe("contextPanelFor", () => {
   it("is empty until a song is loaded, then shows now playing", () => {
+    expect(contextPanelFor("/music", false)).toBeNull();
+    expect(contextPanelFor("/music", true)).toBe("music");
+  });
+
+  it("never shows on the home page: what's playing lives in the notch there", () => {
     expect(contextPanelFor("/", false)).toBeNull();
-    expect(contextPanelFor("/", true)).toBe("music");
+    expect(contextPanelFor("/", true)).toBeNull();
   });
 
   it("shows now playing on every page while a song is loaded", () => {

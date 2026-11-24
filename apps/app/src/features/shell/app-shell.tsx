@@ -35,6 +35,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const hasTrack = usePlayer((state) => state.queue.length > 0);
   const playing = usePlayer((state) => state.playing);
   const panel = contextPanelFor(pathname, hasTrack);
+  // Home: no player bar either; the notch plays and controls the song there.
+  const home = pathname === "/";
   const { widths, load } = usePanelWidths();
   const { collapsed, setCollapsed } = useSidebarCollapsed();
   // Closed until the fan opens it; remembered per browser.
@@ -72,7 +74,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main
           className={cn(
             "flex-1 pb-[calc(var(--phone-bar-space)+5rem)] sm:pl-(--side-w)",
-            hasTrack ? "sm:pb-24" : "sm:pb-0",
+            hasTrack && !home ? "sm:pb-24" : "sm:pb-0",
           )}
         >
           {children}
@@ -98,6 +100,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         className={cn(
           // A floating card like the sidebar: its bottom edge lines up with the sidebar card's (12px)
           "pointer-events-none fixed inset-x-0 bottom-[calc(var(--phone-bar-h)-1.5rem)] z-40 sm:bottom-0 sm:left-(--side-w) sm:pr-3 sm:pb-3 sm:pl-1",
+          // hidden, not unmounted: the bar holds the <audio>, so the song plays on
+          home && "hidden",
           panel &&
             "in-data-resizing:transition-none motion-reduce:transition-none xl:right-(--right-w) xl:transition-[right] xl:duration-400 xl:ease-[ease]",
         )}
