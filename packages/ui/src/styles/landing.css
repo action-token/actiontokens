@@ -458,6 +458,8 @@ a.lp-chip:hover {
 .lp-feed[data-open] {
   transform: none;
   opacity: 1;
+  /* open, it takes clicks: the player's buttons and the notes' links live in it */
+  pointer-events: auto;
 }
 .lp-feed-item {
   display: flex;
