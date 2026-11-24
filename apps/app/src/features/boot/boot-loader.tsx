@@ -1,28 +1,21 @@
 "use client";
 
-import { useState } from "react";
-
-import { ActionLoader } from "@actiontokens/ui/patterns/action-loader";
+import { useIsFetching } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 
 import { cn } from "@actiontokens/ui/lib/cn";
+import { BootLoader as SharedBootLoader } from "@actiontokens/ui/patterns/boot-loader";
 
 import { anton, gothic } from "../home/landing-fonts";
 
-import { useBootProgress } from "./use-boot-progress";
-
-/** The Action-Tokens loading screen on every full page load, driven by real readiness. Unmounts once played. */
+/** The Action-Tokens loading screen on every full page load (shared with the org portal). */
 export function BootLoader() {
-  const [done, setDone] = useState(false);
-  if (done) return null;
-  return <BootLoaderShow onDone={() => setDone(true)} />;
-}
-
-function BootLoaderShow({ onDone }: { onDone: () => void }) {
-  const progress = useBootProgress();
+  const { status } = useSession();
+  const fetching = useIsFetching();
   return (
-    <ActionLoader
-      progress={progress}
-      onDone={onDone}
+    <SharedBootLoader
+      sessionReady={status !== "loading"}
+      fetching={fetching}
       className={cn(anton.variable, gothic.variable)}
     />
   );
