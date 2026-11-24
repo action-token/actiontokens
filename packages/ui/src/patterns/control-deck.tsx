@@ -85,11 +85,10 @@ export function ControlDeck({
     >
       <div className="pointer-events-none absolute inset-y-0 left-0 w-(--side-w) p-3">
         <div className="gx-panel pointer-events-auto flex h-full flex-col overflow-hidden">
-          {/* ── open ── */}
+          {/* ── open: as in docs/mockups/home.html ── */}
           <div className={cn("h-full min-h-0 flex-col", collapsed ? "hidden" : "hidden xl:flex")}>
-            {!header && <div className="h-3 shrink-0" />}
             {header && (
-              <div className="flex shrink-0 items-center gap-2.5 px-4 pt-5 pb-3">
+              <div className="flex shrink-0 items-center gap-2.5 px-4 pt-5 pb-1">
                 <Link
                   href={home.href}
                   aria-label={home.label}
@@ -110,86 +109,27 @@ export function ControlDeck({
               </div>
             )}
 
-            <nav
-              aria-label="Sections"
-              className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-3 py-2 [scrollbar-width:thin]"
-            >
-              {groups.map((group) => (
-                <div key={group.title}>
-                  <p className="gx-section gx-mono">{`// ${group.title}`}</p>
-                  <ul className="space-y-0.5">
-                    {group.items.map((entry) => {
-                      const Icon = entry.icon;
-                      return (
-                        <li key={entry.href}>
-                          <DeckLink
-                            href={entry.href}
-                            external={entry.external}
-                            active={entry.active}
-                            className="gx-item"
-                          >
-                            <span className="gx-tile">
-                              <Icon className="size-4" strokeWidth={entry.active ? 2.5 : 2} />
-                            </span>
-                            <span className="truncate">{entry.label}</span>
-                          </DeckLink>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              ))}
-
-              {launch.length > 0 && (
-                <div>
-                  <p className="gx-section gx-mono">{"// Launch"}</p>
-                  <div className="grid gap-2.5 px-1">
-                    {launch.map(({ href, label: title, hint, icon: Icon, acid }) => (
-                      <a
-                        key={href}
-                        href={href}
-                        className={cn("gx-launch", acid && "gx-launch--acid")}
-                      >
-                        <span className="gx-launch-in">
-                          <span className="gx-launch-icon">
-                            <Icon className="size-4" strokeWidth={2.4} />
-                          </span>
-                          <span className="min-w-0 flex-1">
-                            <span className="gx-launch-title block">{title}</span>
-                            <span className="gx-mono text-fg-muted mt-1 block truncate !text-[9px] !tracking-[0.14em]">
-                              {hint}
-                            </span>
-                          </span>
-                          <ArrowUpRight className="text-fg-faint size-4 shrink-0" />
-                        </span>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </nav>
-
-            <div className="shrink-0 space-y-3 border-t border-[var(--gx-line)] p-3">
-              {balance}
+            {/* who you are, then your balance */}
+            <div className="gx-me">
               {account.state === "signedIn" ? (
-                <div className="flex items-center gap-2.5 px-1">
+                <div className="flex items-center gap-2.5">
                   <button
                     type="button"
                     onClick={account.onOpen}
                     className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
                   >
-                    <span className="gx-ring shrink-0">
-                      <Avatar className="size-8 border-2 border-[var(--gx-panel-b)]">
-                        {avatarUrl && <AvatarImage src={avatarUrl} alt="" />}
-                        <AvatarFallback>{name.slice(0, 1).toUpperCase()}</AvatarFallback>
-                      </Avatar>
+                    <span className="gx-me-av">
+                      {avatarUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- avatars come from many hosts
+                        <img src={avatarUrl} alt="" />
+                      ) : (
+                        name.slice(0, 2).toUpperCase()
+                      )}
                     </span>
-                    <span className="min-w-0 leading-tight">
-                      <span className="gx-brand block truncate !text-base">{name}</span>
+                    <span className="min-w-0">
+                      <strong className="gx-me-name">{name}</strong>
                       {account.address && (
-                        <span className="text-fg-faint block truncate font-mono text-[11px]">
-                          {short(account.address)}
-                        </span>
+                        <span className="gx-me-sub">{short(account.address)}</span>
                       )}
                     </span>
                   </button>
@@ -197,7 +137,7 @@ export function ControlDeck({
                     href={account.settingsHref}
                     aria-label="Settings"
                     title="Settings"
-                    className="text-fg-muted hover:text-fg flex size-8 items-center justify-center rounded-full hover:bg-[var(--ap-fill)]"
+                    className="gx-me-btn"
                   >
                     <Settings className="size-4" />
                   </Link>
@@ -206,7 +146,7 @@ export function ControlDeck({
                     onClick={account.onSignOut}
                     aria-label="Sign out"
                     title="Sign out"
-                    className="text-fg-muted hover:text-fg flex size-8 items-center justify-center rounded-full hover:bg-[var(--ap-fill)]"
+                    className="gx-me-btn"
                   >
                     <LogOut className="size-4" />
                   </button>
@@ -222,10 +162,79 @@ export function ControlDeck({
               ) : (
                 <div className="h-11 animate-pulse rounded-xl bg-[var(--ap-fill)]" />
               )}
-              <div className="flex items-center justify-between px-1">
+              {balance && <div className="mt-3">{balance}</div>}
+            </div>
+
+            <nav aria-label="Sections" className="gx-nav">
+              {groups.map((group) => (
+                <div key={group.title}>
+                  <p className="gx-sec">{group.title}</p>
+                  <ul>
+                    {group.items.map((entry) => {
+                      const Icon = entry.icon;
+                      return (
+                        <li key={entry.href}>
+                          <DeckLink
+                            href={entry.href}
+                            external={entry.external}
+                            active={entry.active}
+                            className="gx-row"
+                          >
+                            <Icon strokeWidth={2} />
+                            <span className="gx-lbl truncate">{entry.label}</span>
+                            {entry.meta && <span className="gx-meta">{entry.meta}</span>}
+                          </DeckLink>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+
+              {launch.length > 1 && (
+                <div>
+                  <p className="gx-sec">Launch</p>
+                  <ul>
+                    {launch.slice(1).map(({ href, label: title, hint, icon: Icon }) => (
+                      <li key={href}>
+                        <a href={href} title={hint} className="gx-row">
+                          <Icon strokeWidth={2} />
+                          <span className="gx-lbl truncate">{title}</span>
+                          <span className="gx-meta">↗</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between px-0.5 pt-4">
                 <ThemeControl />
                 <span className="gx-mono text-fg-faint">© {new Date().getFullYear()}</span>
               </div>
+            </nav>
+
+            {/* the big ACT button (the first launch target, AR) and the fold */}
+            <div className="gx-foot">
+              {launch[0] && (
+                <a href={launch[0].href} className="gx-act" title={launch[0].hint}>
+                  <b>ACT</b>
+                  <small>{launch[0].label}</small>
+                  <kbd>
+                    <ArrowUpRight className="size-4" strokeWidth={2.6} />
+                  </kbd>
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={onToggle}
+                className="gx-collapse"
+                aria-label="Collapse sidebar"
+                title="Collapse sidebar"
+                aria-expanded
+              >
+                <ChevronLeft className="size-4" strokeWidth={2.4} />
+              </button>
             </div>
           </div>
 
@@ -295,7 +304,10 @@ export function ControlDeck({
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           aria-expanded={!collapsed}
-          className="text-primary-text pointer-events-auto absolute top-1/2 right-0 z-50 hidden size-6 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--gx-line-strong)] bg-[var(--gx-panel-b)] shadow-[0_0_12px_var(--gx-glow-soft)] transition-transform hover:scale-110 xl:flex"
+          className={cn(
+            "text-primary-text pointer-events-auto absolute top-1/2 right-0 z-50 hidden size-6 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--gx-line-strong)] bg-[var(--gx-panel-b)] shadow-[0_0_12px_var(--gx-glow-soft)] transition-transform hover:scale-110",
+            collapsed && "xl:flex",
+          )}
         >
           {collapsed ? <ChevronRight className="size-3.5" /> : <ChevronLeft className="size-3.5" />}
         </button>

@@ -5,6 +5,8 @@ import type { ReactNode } from "react";
 
 import { sharedThemeSeedScript } from "@actiontokens/ui/lib/shared-theme";
 
+import { deckFonts } from "~/features/shell/landing-fonts";
+
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
@@ -33,7 +35,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {/* The theme the other Action Tokens sites chose, in place before the first paint. */}
         <script dangerouslySetInnerHTML={{ __html: sharedThemeSeedScript("theme") }} />
       </head>
-      <body>
+      <body className={deckFonts}>
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -42,6 +42,8 @@ export type SideLink = {
   active: boolean;
   /** Another app: opens as a plain link */
   external?: boolean;
+  /** A count or note at the row's end ("24 live", "3") */
+  meta?: string;
 };
 export type SideGroup = { title: string; items: SideLink[] };
 export type SideTile = {

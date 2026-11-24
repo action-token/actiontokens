@@ -584,11 +584,7 @@ a[class*="rounded-[1.4rem]"]:hover {
   border-radius: inherit;
   pointer-events: none;
   background:
-    radial-gradient(120% 40% at 50% -5%, var(--gx-glow-soft), transparent 70%),
-    repeating-linear-gradient(0deg, var(--gx-scan) 0 1px, transparent 1px 3px),
-    linear-gradient(var(--gx-grid) 1px, transparent 1px) 0 0 / 24px 24px,
-    linear-gradient(90deg, var(--gx-grid) 1px, transparent 1px) 0 0 / 24px 24px;
-  mask-image: linear-gradient(180deg, #000, rgb(0 0 0 / 0.35) 60%, #000);
+    radial-gradient(120% 40% at 0% 0%, var(--gx-glow-soft), transparent 60%);
 }
 .gx-panel > * {
   position: relative;
@@ -876,4 +872,238 @@ a[class*="rounded-[1.4rem]"]:hover {
 }
 .lp-cta--ghost:hover {
   box-shadow: 0 0 20px -8px var(--gx-glow);
+}
+
+/* ═══ Sidebar, as in docs/mockups/home.html ═════════════════════════════════════════════ */
+/* who you are */
+.gx-me {
+  flex: none;
+  margin: 12px 12px 2px;
+  padding: 12px;
+  border: 1px solid var(--gx-line);
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--bc-fg) 3%, transparent);
+}
+.gx-me-av {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  overflow: hidden;
+  border-radius: 13px;
+  background: conic-gradient(from 200deg, #183a12, var(--gx-neon), #0b1a08, #a8ffa0, #183a12);
+  color: var(--gx-on-neon);
+  font-family: var(--deck-bungee), var(--font-display);
+  font-size: 12px;
+}
+.gx-me-av img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.gx-me-name {
+  display: block;
+  overflow: hidden;
+  font-family: var(--deck-bungee), var(--font-display);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gx-me-sub {
+  display: block;
+  margin-top: 2px;
+  color: var(--bc-fg-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+.gx-me-btn {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  color: var(--bc-fg-muted);
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
+}
+.gx-me-btn:hover {
+  color: var(--bc-fg);
+  background: var(--gx-fill);
+}
+
+/* the links */
+.gx-nav {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 12px 8px;
+  scrollbar-width: none;
+}
+.gx-nav::-webkit-scrollbar {
+  display: none;
+}
+.gx-sec {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 2px 8px;
+  color: var(--bc-primary-text);
+  font-family: var(--deck-faster), var(--font-display);
+  font-size: 17px;
+  line-height: 1;
+  white-space: nowrap;
+  text-shadow: 0 0 12px var(--gx-glow-soft);
+}
+.gx-sec::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--gx-line-strong), transparent);
+}
+.gx-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  height: 40px;
+  padding: 0 10px;
+  overflow: hidden;
+  border-radius: 11px;
+  color: var(--bc-fg-muted);
+  white-space: nowrap;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
+}
+.gx-row > * {
+  position: relative;
+}
+.gx-row svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+.gx-lbl {
+  font-family: var(--deck-bungee), var(--font-display);
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+}
+.gx-meta {
+  margin-left: auto;
+  color: var(--bc-fg-faint);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+.gx-row:hover {
+  color: var(--bc-fg);
+  background: var(--gx-fill);
+}
+/* the current page: a hatched neon bar */
+.gx-row[aria-current="page"] {
+  color: var(--gx-on-neon);
+  background: var(--gx-neon);
+  box-shadow: 0 0 22px -4px var(--gx-glow);
+}
+.gx-row[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(-45deg, transparent 0 10px, rgb(0 0 0 / 0.07) 10px 20px);
+}
+.gx-row[aria-current="page"] .gx-meta {
+  color: var(--gx-on-neon);
+}
+
+/* ACT and the fold */
+.gx-foot {
+  display: flex;
+  flex: none;
+  gap: 8px;
+  padding: 10px 12px 12px;
+}
+.gx-act {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  height: 56px;
+  padding: 0 10px 0 16px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--gx-neon);
+  color: var(--gx-on-neon);
+  box-shadow: 0 10px 30px -8px var(--gx-glow);
+  transition: transform 200ms ease;
+}
+.gx-act::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(-45deg, transparent 0 10px, rgb(0 0 0 / 0.06) 10px 20px);
+}
+.gx-act:hover {
+  transform: translateY(-2px);
+}
+.gx-act > * {
+  position: relative;
+}
+.gx-act b {
+  font-family: var(--deck-shade), var(--font-display);
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1;
+}
+.gx-act small {
+  margin-right: auto;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.35;
+  opacity: 0.75;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.gx-act kbd {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgb(0 0 0 / 0.85);
+  color: var(--gx-neon);
+}
+.gx-collapse {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 56px;
+  border: 1px solid var(--gx-line);
+  border-radius: 14px;
+  color: var(--bc-fg-faint);
+  transition:
+    color 150ms ease,
+    border-color 150ms ease;
+}
+.gx-collapse:hover {
+  border-color: var(--gx-line-strong);
+  color: var(--bc-fg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .gx-act {
+    transition: none;
+  }
 }

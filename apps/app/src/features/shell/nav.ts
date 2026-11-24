@@ -42,7 +42,7 @@ export const GROUPS: { title: string; items: NavItem[] }[] = [
     title: "Library",
     items: [
       { href: "/collection", icon: Layers, label: "My collection" },
-      { href: "/selling", icon: Tag, label: "MY LISTING" },
+      { href: "/selling", icon: Tag, label: "My listing" },
       { href: "/collection?tab=favorites", icon: Star, label: "Favourites", tab: "favorites" },
       { href: "/playlists", icon: ListMusic, label: "Playlists", also: ["/playlist"] },
       { href: "/rewards", icon: Award, label: "Reward checker" },
