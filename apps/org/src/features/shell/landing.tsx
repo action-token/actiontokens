@@ -1,31 +1,20 @@
 "use client";
 
-import {
-  ArrowUpRight,
-  CalendarDays,
-  Crown,
-  LogIn,
-  Menu,
-  MapPin,
-  ScanLine,
-  ShoppingBag,
-  Store,
-  Trophy,
-} from "lucide-react";
+import { CalendarDays, Crown, LogIn, Menu, MapPin, ShoppingBag, Trophy } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@actiontokens/ui/lib/cn";
 import { BrandMark } from "@actiontokens/ui/patterns/boot-screen";
 import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
-import { AR_URL, FAN_APP_URL, PORTAL_MENU_EVENT } from "./links";
+import { PORTAL_MENU_EVENT } from "./links";
 import { anton, gothic } from "./landing-fonts";
 import { ThemeControl } from "@actiontokens/ui/patterns/theme-control";
-import { FeatureTour } from "./feature-tour";
+import { LivingMap } from "./living-map";
 
 /**
- * Signed out: the portal's front page. It opens on the map page, and scrolling plays the portal's
- * pages one after another (FeatureTour), then a closing call to sign in. Every portal address shows it until you sign in. The cards
+ * Signed out: the portal's front page, a living map (LivingMap): the map first, then scrolling
+ * docks the portal's pieces around it until the whole portal is there, and the way in. Every portal address shows it until you sign in. The cards
  * are examples drawn in code. Kept light: no particles, no blur, nothing animating at rest
  * beyond small CSS transforms.
  */
@@ -74,33 +63,7 @@ export function Landing() {
         </span>
         <NotchFeed onOpen={setNotchOpen} />
       </header>
-      <FeatureTour />
-
-      <div className="mx-auto grid w-full max-w-6xl gap-24 px-4 pt-16 pb-20 sm:px-8">
-        <section className="lp-final" data-reveal>
-          <span className="lp-final-mark" aria-hidden>
-            <BrandMark className="h-10" />
-          </span>
-          <p className="lp-sec-title lp-chrome mt-5 text-center">Ready to drop?</p>
-          <p className="text-fg-muted mx-auto mt-3 max-w-md text-center text-pretty">
-            Sign in to set up your organization. Fans find you on the map, in the marketplace and on
-            your own page.
-          </p>
-          <div className="mt-7 flex justify-center">
-            <button type="button" onClick={signIn} className="lp-cta">
-              <LogIn className="size-5" strokeWidth={2.4} /> Sign in / Sign up
-            </button>
-          </div>
-          <div className="mt-6 flex flex-wrap justify-center gap-2">
-            <a href={FAN_APP_URL} className="lp-chip">
-              <Store className="size-4" /> See the marketplace <ArrowUpRight className="size-3.5" />
-            </a>
-            <a href={AR_URL} className="lp-chip">
-              <ScanLine className="size-4" /> Open the AR app <ArrowUpRight className="size-3.5" />
-            </a>
-          </div>
-        </section>
-      </div>
+      <LivingMap onSignIn={signIn} />
     </div>
   );
 }

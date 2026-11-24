@@ -1,4 +1,4 @@
-/* Org portal only: the signed-out landing and the feature tour. The shared look (tokens, type,
+/* Org portal only: the signed-out landing and its living map. The shared look (tokens, type,
    cards, buttons, fields, overlays, backdrop, the control-deck sidebar) is
    @actiontokens/ui/styles/gx.css, imported before this file. */
 
@@ -150,623 +150,464 @@ main .lp-h2 {
   }
 }
 
-/* ── Feature tour (features/shell/feature-tour.tsx): pinned, one page per scroll, sideways.
-   Pages are the portal's own pages at full size; motion is transform and opacity only. ── */
-.tour {
+/* ── Living map (features/shell/living-map.tsx) ─────────────────────────────────────────────
+   One tall section, a sticky stage: the map fills it and stays put; the pieces dock around it.
+   JS writes --s (the step, 0 → --steps) on the stage and --e (docked) / --f (in focus) on each
+   piece. Motion is transform and opacity only. */
+.lm {
   position: relative;
+  height: calc((var(--steps) + 1) * 100svh);
 }
-.tour-stick {
+.lm-stage {
+  --s: 0;
+  --done: 0;
   position: sticky;
   top: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
   height: 100svh;
   overflow: hidden;
+  isolation: isolate;
+  background: var(--bc-bg);
 }
-.tour-track {
-  position: relative;
-  height: 100%;
-}
-.tour-panel {
+
+/* the map: edge to edge, easing back a little as the portal builds up */
+.lm-map {
   position: absolute;
   inset: 0;
-  overflow: hidden;
-  background: var(--bc-bg);
-  will-change: transform;
-  transform-origin: 50% 50%;
-  box-shadow: -30px 0 60px -20px rgb(0 0 0 / 0.55);
-}
-.tour-panel::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 0;
-  height: 60px;
-  background: linear-gradient(transparent, var(--bc-bg));
-  pointer-events: none;
-}
-.tour-page {
-  /* a tall page scrolls inside itself first; the wheel turns the page once it reaches the end */
-  height: 100%;
-  overflow: hidden auto;
-  overscroll-behavior: contain;
-  scrollbar-width: none;
-  /* the top clears the front page's notch */
-  padding: 68px clamp(20px, 3vw, 40px) clamp(20px, 3vw, 40px);
-}
-.tour-page::-webkit-scrollbar {
-  display: none;
-}
-.tour-page[data-full] {
-  overflow: hidden;
-  padding: 0;
-}
-/* the map runs under the notch; the page editor starts below it */
-.tour-page[data-full][data-pad] {
-  padding-top: 60px;
-}
-.tour-page [data-a] {
-  opacity: 0;
-  transform: translateY(22px);
-  transition:
-    opacity 0.45s ease,
-    transform 0.6s cubic-bezier(0.2, 0.9, 0.3, 1);
-  transition-delay: calc(var(--i, 0) * 70ms + 150ms);
-}
-.tour-panel[data-on] .tour-page [data-a] {
-  opacity: 1;
-  transform: none;
-}
-
-.tour-panel::before {
-  /* the page underneath dims as the next one slides over it */
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 30;
-  background: #000;
-  opacity: calc(var(--dim, 0) * 0.6);
-  pointer-events: none;
-}
-
-/* My page preview */
-.tour-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 36px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid var(--gx-line);
-  background: var(--bc-surface);
-  font-size: 13px;
-}
-.tour-site {
-  width: 100%;
-  max-width: 980px;
-  overflow: hidden;
-  align-self: flex-start;
-  border-radius: 16px;
-  border: 1px solid var(--gx-line);
-  background: var(--bc-bg);
-  box-shadow: var(--gx-shadow);
-}
-.tour-site-cover {
-  position: relative;
-  height: 130px;
-}
-.tour-site-nav {
-  position: absolute;
-  inset: 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  padding: 12px 20px;
-  font-size: 12px;
-  color: #fff;
-  background: linear-gradient(rgb(0 0 0 / 0.4), transparent);
-}
-.tour-site-nav b {
-  margin-right: auto;
-  font-size: 13px;
-}
-.tour-site-btn {
-  display: inline-grid;
-  place-items: center;
-  height: 34px;
-  padding: 0 16px;
-  margin-bottom: 4px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 700;
-  background: #ff5c8a;
-  color: #fff;
-}
-.tour-site-btn--ghost {
-  background: transparent;
-  color: var(--bc-fg);
-  border: 1px solid var(--gx-line-strong);
-}
-.tour-site-block {
-  position: relative;
-  padding: 14px;
-  border-radius: 14px;
-  border: 1px solid var(--gx-line);
-  background: var(--bc-surface);
-}
-.tour-site-block[data-selected] {
-  outline: 2px solid var(--bc-primary);
-  outline-offset: 3px;
-}
-.tour-site-tag {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--bc-fg-muted);
-}
-.tour-site-add {
-  position: absolute;
-  left: 50%;
-  bottom: -15px;
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  margin-left: -12px;
-  border-radius: 50%;
-  background: var(--bc-primary);
-  color: var(--gx-on-neon);
-  box-shadow: var(--gx-shadow);
-}
-.tour-site-date {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  flex: none;
-  border-radius: 10px;
-  font-weight: 800;
-  line-height: 1;
-  background: var(--gx-fill-strong);
-}
-.tour-site-date small {
-  font-size: 9px;
-  font-weight: 700;
-  color: #ff5c8a;
-}
-
-/* intro */
-.tour-intro {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 0 clamp(20px, 6vw, 120px) 6vh;
-}
-.tour-intro::after {
-  display: none;
-}
-main .tour-big {
-  font-family: var(--lp-display), var(--font-display);
-  font-weight: 400;
-  font-size: clamp(64px, 10.5vw, 180px);
-  line-height: 0.86;
-  text-transform: uppercase;
-  text-shadow: none;
-  margin-top: 8px;
-}
-.tour-big em {
-  font-style: normal;
-  color: var(--gx-neon);
-  -webkit-text-fill-color: var(--gx-neon);
-}
-.tour-cue {
-  position: absolute;
-  right: clamp(20px, 4vw, 64px);
-  bottom: 8vh;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--bc-fg-muted);
-}
-
-/* the caption: what this page is for */
-.tour-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 26px;
-  padding: 0 10px;
-  border-radius: 999px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--bc-primary-text);
-  border: 1px solid var(--gx-line-strong);
-  background: var(--gx-fill);
-}
-
-/* map page */
-.tour-map {
-  position: relative;
-  height: 100%;
+  z-index: 0;
   overflow: hidden;
   background:
     linear-gradient(var(--gx-grid) 1px, transparent 1px) 0 0 / 36px 36px,
     linear-gradient(90deg, var(--gx-grid) 1px, transparent 1px) 0 0 / 36px 36px,
     var(--bc-surface);
+  transform: scale(calc(1.12 - var(--s) / var(--steps) * 0.12));
+  transform-origin: 58% 45%;
+  will-change: transform;
 }
-.tour-map-img {
+.lm-map-img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.tour-map-img[data-for="light"],
-:root[data-theme="light"] .tour-map-img[data-for="dark"] {
+.lm-map-img[data-for="light"],
+:root[data-theme="light"] .lm-map-img[data-for="dark"] {
   display: none;
 }
-:root[data-theme="light"] .tour-map-img[data-for="light"] {
+:root[data-theme="light"] .lm-map-img[data-for="light"] {
   display: block;
 }
-/* map layers: heat glow, hotspot areas + trail, their labels and the trail's stops */
-.tour-heat {
+.lm-heat {
   position: absolute;
   translate: -50% -50%;
   border-radius: 50%;
   background: radial-gradient(
     closest-side,
-    rgb(255 92 138 / 0.42),
-    rgb(255 176 32 / 0.22) 55%,
+    rgb(255 92 138 / 0.4),
+    rgb(255 176 32 / 0.2) 55%,
     transparent
   );
-  pointer-events: none;
 }
-.tour-overlay {
+.lm-overlay {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  pointer-events: none;
 }
-.tour-tag {
+.lm-tag {
   position: absolute;
-  z-index: 1;
   display: inline-flex;
   align-items: center;
   gap: 5px;
   padding: 3px 9px;
   border-radius: 999px;
+  background: #4dff2a;
+  color: #0b2b00;
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
-  color: #0b2b00;
-  background: #4dff2a;
   box-shadow: 0 4px 14px rgb(0 0 0 / 0.35);
 }
-.tour-tag--trail {
-  color: #3a2400;
+.lm-tag--trail {
   background: #ffb020;
-}
-.tour-stop {
-  position: absolute;
-  z-index: 1;
-  translate: 14px -26px;
-  display: grid;
-  place-items: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  font-size: 10px;
-  font-weight: 800;
   color: #3a2400;
-  background: #ffb020;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 6px rgb(0 0 0 / 0.4);
 }
-.tour-pin {
+/* pins drop in once, on load */
+.lm-pin {
   position: absolute;
-  z-index: 1;
   translate: -50% -50%;
-  opacity: 0;
-  transform: translateY(-36px) scale(0.6);
-  transition:
-    opacity 0.3s ease,
-    transform 0.55s cubic-bezier(0.3, 1.5, 0.5, 1);
-  transition-delay: calc(var(--i) * 120ms + 300ms);
+  animation: lm-drop 0.6s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+  animation-delay: calc(var(--i) * 110ms + 250ms);
 }
-.tour-panel[data-on] .tour-pin {
-  opacity: 1;
-  transform: none;
+@keyframes lm-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-40px) scale(0.6);
+  }
 }
-.tour-drop {
-  position: absolute;
-  z-index: 1;
-  translate: -50% -50%;
-}
-.tour-tabs {
-  display: inline-flex;
-  width: max-content;
-  gap: 4px;
-  padding: 4px;
-}
-.tour-tabs [data-slot="tabs-trigger"] {
-  padding: 6px 14px;
-  font-size: 13px;
-  font-weight: 600;
-}
-.tour-token {
-  display: grid;
-  place-items: center;
-  width: 56px;
-  height: 56px;
-  flex: none;
-  border-radius: 16px;
-  font-family: var(--lp-display), var(--font-display);
-  font-size: 24px;
-  color: #4dff2a;
-  background: #000;
-  border: 3px solid var(--bc-surface);
-}
-.tour-preview {
-  overflow: hidden;
-  align-self: start;
-  border-radius: 1.4rem;
-  border: 2px solid var(--gx-line-strong);
-  background: var(--bc-surface);
-}
-.tour-preview-cover {
-  display: block;
-  height: 110px;
-}
-.tour-progress {
-  position: absolute;
-  z-index: 6;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 3px;
-  background: var(--gx-line);
-}
-.tour-progress i {
+
+/* a soft shade behind the headline, so the words read over any part of the map */
+.lm-scrim {
   position: absolute;
   inset: 0;
-  background: var(--gx-neon);
-  transform: scaleX(var(--p, 0));
-  transform-origin: left;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tour-page [data-a],
-  .tour-pin {
-    transition: none !important;
-    animation: none !important;
-  }
-}
-
-/* phones: no sideways tour; the pages stack one under another at their natural height */
-@media (max-width: 767px) {
-  .tour {
-    height: auto !important;
-  }
-  .tour-stick {
-    position: static;
-    display: block;
-    height: auto;
-    overflow: visible;
-  }
-  .tour-track {
-    height: auto;
-  }
-  .tour-panel {
-    position: relative;
-    inset: auto;
-    overflow: visible;
-    box-shadow: none;
-    border-top: 1px solid var(--gx-line);
-  }
-  .tour-panel::before,
-  .tour-panel::after,
-  .tour-progress {
-    display: none;
-  }
-  .tour-intro {
-    min-height: 0;
-    padding-block: 64px 40px;
-  }
-  .tour-page {
-    height: auto;
-    overflow: visible;
-    padding: 28px 16px 32px;
-  }
-  .tour-page[data-full] {
-    padding: 0;
-  }
-  .tour-cue,
-  .tour-tag {
-    display: none;
-  }
-  .tour-page[data-full][data-pad] {
-    padding-top: 0;
-  }
-  /* the map keeps a screenful */
-  .tour-page[data-full]:not([data-pad]) {
-    height: 78svh;
-  }
-}
-
-/* a page's column never grows past the screen; filter tabs scroll sideways when they don't fit */
-.tour-page > .grid {
-  grid-template-columns: minmax(0, 1fr);
-}
-.tour-tabs {
-  max-width: 100%;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-/* desktop: the front page settles at the tour's start (which then turns one page per scroll)
-   and on the closing section. Proximity, so the hero can still play its frames as you scroll.
-   Phones scroll freely: snapping to pages taller than the screen traps touch scrolling there
-   (a swipe back up gets pulled back to the page edge). */
-@media (min-width: 768px) {
-  html.lp-snap {
-    scroll-snap-type: y proximity;
-  }
-  html.lp-snap .tour {
-    scroll-snap-align: start;
-  }
-  html.lp-snap .lp-final {
-    scroll-snap-align: center;
-  }
-}
-
-/* ── Scroll story (features/shell/feature-tour.tsx) ──────────────────────────────────────────
-   Each chapter is a tall section with a sticky stage. The next chapter overlaps the last screen
-   of the one before (negative margin), so it slides up over it while that one stays put.
-   JS writes --pa (0→1, put together) and --out (0→1, covered); everything else is CSS,
-   transform and opacity only. */
-.story {
-  position: relative;
-  height: 300svh;
-  margin-top: -100svh;
-}
-.story[data-first] {
-  height: 200svh;
-  margin-top: 0;
-}
-.story-stick {
-  --pa: 1;
-  --out: 0;
-  --in: clamp(0, calc(var(--pa) * 2.2), 1);
-  position: sticky;
-  top: 0;
-  height: 100svh;
-  overflow: hidden;
-  padding: 10px;
-}
-.story-frame.tour-panel {
-  position: relative;
-  inset: auto;
-  height: 100%;
-  overflow: hidden;
-  border: 1px solid var(--gx-line);
-  border-radius: 26px;
-  background: var(--bc-bg);
-  box-shadow:
-    0 -30px 80px -30px rgb(0 0 0 / 0.6),
-    0 0 0 1px rgb(255 255 255 / 0.03) inset;
-  transform-origin: 50% 0;
-  transform: translate3d(0, calc((1 - var(--in)) * 6vh), 0)
-    scale(calc((0.92 + var(--in) * 0.08) * (1 - var(--out) * 0.08)));
-  will-change: transform;
-}
-/* the page underneath sinks back and dims as the next slides over it */
-.story-frame.tour-panel::before {
-  opacity: calc(var(--out) * 0.65);
-}
-/* the parts fly in from alternating sides and snap together, in order */
-.story .tour-page [data-a] {
-  --e: clamp(0, calc((var(--pa) - var(--i, 0) * 0.045) * 2.6), 1);
-  opacity: var(--e);
-  transform: translate3d(calc((1 - var(--e)) * var(--dx, 0px)), calc((1 - var(--e)) * 70px), 0)
-    scale(calc(0.9 + var(--e) * 0.1));
-  transition: none;
-  transition-delay: 0s;
-}
-.story .tour-page {
-  overflow: hidden;
-}
-/* the caption: what this page is for, a solid card that comes in after the page */
-.story-cap {
-  --c: clamp(0, calc((var(--pa) - 0.45) * 3), 1);
-  position: absolute;
-  right: 34px;
-  bottom: 34px;
-  z-index: 40;
-  width: min(360px, 34vw);
-  padding: 20px 22px 18px;
-  border: 1px solid var(--gx-line-strong);
-  border-radius: 20px;
-  background: var(--gx-panel-b, var(--bc-surface));
-  box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.55);
-  opacity: calc(var(--c) * (1 - var(--out)));
-  transform: translate3d(0, calc((1 - var(--c)) * 40px), 0);
+  z-index: 1;
   pointer-events: none;
+  background:
+    radial-gradient(
+      70% 75% at 0% 100%,
+      color-mix(in oklab, var(--bc-bg) 92%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(180deg, color-mix(in oklab, var(--bc-bg) 55%, transparent), transparent 22%);
 }
-.story-cap-tag {
+
+/* the headline: one per step, all in the same place, bottom left */
+.lm-heads {
+  position: absolute;
+  left: clamp(20px, 3.5vw, 56px);
+  bottom: clamp(24px, 6vh, 64px);
+  z-index: 3;
+  width: min(600px, 46vw);
+  display: grid;
+}
+.lm-head {
+  grid-area: 1 / 1;
+  align-self: end;
+  will-change: transform, opacity;
+}
+.lm-kicker {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   color: var(--bc-primary-text);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.lm-title {
+  margin-top: 10px;
+  font-family: var(--lp-display), var(--font-display);
+  font-size: clamp(52px, min(7.4vw, 13vh), 128px);
+  font-weight: 400;
+  line-height: 0.86;
+  text-transform: uppercase;
+}
+.lm-title em {
+  font-style: normal;
+  color: var(--gx-neon);
+  text-shadow: 0 0 34px var(--gx-glow-soft);
+}
+:root[data-theme="light"] .lm-title em {
+  color: var(--bc-primary-text);
+  text-shadow: none;
+}
+.lm-body {
+  max-width: 30rem;
+  margin-top: 14px;
+  color: var(--bc-fg-muted);
+  font-size: 1rem;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+.lm-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-top: 20px;
+}
+.lm-hint {
+  color: var(--bc-fg-faint);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* the pieces: fly in from off the edge with a tilt, then dock; the one in focus glows */
+.lm-card {
+  --e: 0;
+  --f: 0;
+  position: absolute;
+  z-index: 2;
+  width: 290px;
+  padding: 14px 16px;
+  border: 1px solid var(--gx-line-strong);
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--bc-surface) 94%, transparent);
+  box-shadow: 0 24px 60px -24px rgb(0 0 0 / 0.6);
+  opacity: min(1, calc(var(--e) * 1.6));
+  transform: translate3d(calc((1 - var(--e)) * var(--fx)), calc((1 - var(--e)) * var(--fy)), 0)
+    rotate(calc((1 - var(--e)) * var(--fr))) scale(calc(0.86 + var(--e) * 0.14 + var(--f) * 0.03));
+  will-change: transform, opacity;
+}
+/* the focus ring: an outline that fades in, painted once */
+.lm-card::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border: 1.5px solid var(--gx-neon);
+  border-radius: inherit;
+  box-shadow: 0 0 30px -6px var(--gx-glow);
+  opacity: var(--f);
+  pointer-events: none;
+}
+.lm-card[data-spot="tl"] {
+  top: 84px;
+  left: clamp(20px, 3.5vw, 56px);
+}
+.lm-card[data-spot="tc"] {
+  /* below the notch, even when a notification drops it open */
+  top: 150px;
+  left: calc(clamp(20px, 3.5vw, 56px) + 310px);
+  width: 250px;
+}
+.lm-card[data-spot="tr"] {
+  top: 84px;
+  right: 56px;
+}
+.lm-card[data-spot="br"] {
+  right: 56px;
+  bottom: clamp(24px, 6vh, 64px);
+}
+.lm-card[data-spot="bc"] {
+  right: calc(56px + 310px);
+  bottom: clamp(24px, 6vh, 64px);
+  width: 260px;
+}
+
+.lm-card-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--bc-fg-muted);
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
-.story-cap-title {
-  margin-top: 10px;
+.lm-card-title {
+  margin-top: 6px;
   font-family: var(--font-display);
-  font-size: 2.1rem;
+  font-size: 1.6rem;
   font-weight: 600;
-  line-height: 0.95;
+  line-height: 1;
   text-transform: uppercase;
 }
-.story-cap-body {
-  margin-top: 8px;
+.lm-card-sub {
+  margin-top: 3px;
   color: var(--bc-fg-muted);
-  font-size: 0.9rem;
-  line-height: 1.45;
+  font-size: 12px;
 }
-.story-cap-points {
+.lm-card-meta {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 12px;
-}
-.story-cap-points li {
-  padding: 3px 9px;
-  border: 1px solid var(--gx-line);
-  border-radius: 999px;
-  color: var(--bc-fg-muted);
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+  color: var(--bc-fg-faint);
   font-family: var(--font-mono);
   font-size: 10px;
 }
+.lm-live {
+  color: var(--color-danger, #ff4d4d);
+}
+.lm-prize {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  margin-top: 10px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--gx-neon);
+  color: var(--gx-on-neon);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.lm-prize b {
+  font-size: 15px;
+}
+.lm-price {
+  margin-top: 6px;
+  color: var(--bc-primary-text);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+.lm-price b {
+  font-size: 15px;
+}
+.lm-meter {
+  height: 5px;
+  margin-top: 10px;
+  overflow: hidden;
+  border-radius: 9px;
+  background: var(--gx-fill);
+}
+.lm-meter i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-deep, #3ea024), var(--gx-neon));
+  transform-origin: left;
+}
+.lm-cover {
+  width: 86px;
+  height: 86px;
+  flex: none;
+  border-radius: 12px;
+  object-fit: cover;
+}
+.lm-perks {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+  color: var(--bc-fg-muted);
+  font-size: 12px;
+}
+.lm-perks li::before {
+  content: "✓ ";
+  color: var(--bc-primary-text);
+  font-weight: 700;
+}
+.lm-big {
+  margin-top: 6px;
+  font-family: var(--font-display);
+  font-size: 2.3rem;
+  font-weight: 600;
+  line-height: 1;
+}
+.lm-big small {
+  color: var(--bc-fg-faint);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+.lm-up {
+  color: var(--bc-primary-text);
+}
+.lm-in {
+  margin-top: 8px;
+  padding: 5px 8px;
+  border-radius: 9px;
+  background: var(--gx-fill);
+  color: var(--bc-primary-text);
+  font-size: 11px;
+  font-weight: 600;
+}
+.lm-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 64px;
+  margin-top: 10px;
+}
+.lm-bars i {
+  flex: 1;
+  border-radius: 3px 3px 1px 1px;
+  background: var(--gx-neon);
+  opacity: calc(0.45 + var(--i) * 0.04);
+  transform: scaleY(min(1, calc(var(--e) * 2 - var(--i) * 0.05)));
+  transform-origin: bottom;
+}
 
-@media (max-width: 767px) {
-  .story,
-  .story[data-first] {
-    height: auto;
-    margin-top: 0;
+/* the build rail: one dot per step, right edge */
+.lm-rail {
+  position: absolute;
+  top: 50%;
+  right: 18px;
+  z-index: 3;
+  display: grid;
+  gap: 8px;
+  translate: 0 -50%;
+}
+.lm-rail li {
+  width: 6px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--gx-line-strong);
+  transition: background-color 0.3s ease;
+}
+.lm-rail li[data-on] {
+  background: var(--gx-neon);
+}
+
+/* mid-size screens: fewer pieces, so the map still shows */
+@media (max-width: 1279px) {
+  .lm-card[data-spot="tc"],
+  .lm-card[data-spot="bc"] {
+    display: none;
   }
-  .story-stick {
-    position: relative;
-    height: auto;
-    padding: 8px 8px 0;
+}
+@media (max-height: 640px) and (min-width: 768px) {
+  .lm-card {
+    zoom: 0.86;
   }
-  .story-frame.tour-panel {
-    height: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lm-pin {
+    animation: none;
+  }
+  .lm-map {
     transform: none;
   }
-  .story-frame .tour-page[data-full] {
-    height: 80svh;
+}
+
+/* phones: the map with the first headline, then the pieces stacked, already in place */
+@media (max-width: 767px) {
+  .lm {
+    height: auto;
   }
-  .story-cap {
+  .lm-stage {
     position: relative;
-    right: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: auto;
+    padding: 0 12px 24px;
+    overflow: visible;
+  }
+  .lm-map {
+    position: relative;
+    inset: auto;
+    height: 62svh;
+    margin: 0 -12px;
+    transform: none;
+  }
+  .lm-scrim {
+    display: none;
+  }
+  .lm-heads {
+    position: relative;
+    left: auto;
     bottom: auto;
+    order: -1;
     width: auto;
-    margin: 10px 0 8px;
+    padding: 84px 4px 8px;
+  }
+  .lm-head:not([data-k="0"]) {
+    display: none;
+  }
+  .lm-head {
+    opacity: 1 !important;
+    transform: none !important;
+    visibility: visible !important;
+  }
+  .lm-card,
+  .lm-card[data-spot] {
+    position: relative;
+    inset: auto;
+    display: block;
+    width: auto;
     opacity: 1;
     transform: none;
+  }
+  .lm-card::after,
+  .lm-rail {
+    display: none;
   }
 }

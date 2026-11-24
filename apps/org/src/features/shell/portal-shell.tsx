@@ -23,7 +23,7 @@ import { AR_URL, FAN_APP_URL, PORTAL_MENU_CLOSE_EVENT, PORTAL_MENU_EVENT } from 
 import { isActive, type NavGroup, type NavItem, navFor, phoneLabel, phoneTabs } from "./nav";
 import { Sidebar } from "./sidebar";
 import { Landing } from "./landing";
-import { TOUR_EVENT, TOUR_NAV } from "./feature-tour";
+import { TOUR_EVENT, TOUR_NAV } from "./living-map";
 import { PortalBackdrop } from "@actiontokens/ui/patterns/portal-backdrop";
 
 /**
@@ -68,7 +68,13 @@ export function PortalShell({
 
       <MobileTabs groups={navGroups} pathname={navPath} signedIn={signedIn} header={!signedOut} />
 
-      <main className="min-w-0 pb-[var(--phone-bar-space)] sm:pb-12 sm:pl-(--side-w)">
+      <main
+        className={cn(
+          "min-w-0 pb-[var(--phone-bar-space)] sm:pl-(--side-w)",
+          // the front page's map runs to the bottom edge
+          signedOut ? "sm:pb-0" : "sm:pb-12",
+        )}
+      >
         {signedOut ? <Landing /> : children}
       </main>
     </div>
