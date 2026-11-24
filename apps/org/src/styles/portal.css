@@ -628,3 +628,145 @@ main .tour-big {
     scroll-snap-align: center;
   }
 }
+
+/* ── Scroll story (features/shell/feature-tour.tsx) ──────────────────────────────────────────
+   Each chapter is a tall section with a sticky stage. The next chapter overlaps the last screen
+   of the one before (negative margin), so it slides up over it while that one stays put.
+   JS writes --pa (0→1, put together) and --out (0→1, covered); everything else is CSS,
+   transform and opacity only. */
+.story {
+  position: relative;
+  height: 300svh;
+  margin-top: -100svh;
+}
+.story[data-first] {
+  height: 200svh;
+  margin-top: 0;
+}
+.story-stick {
+  --pa: 1;
+  --out: 0;
+  --in: clamp(0, calc(var(--pa) * 2.2), 1);
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  padding: 10px;
+}
+.story-frame.tour-panel {
+  position: relative;
+  inset: auto;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--gx-line);
+  border-radius: 26px;
+  background: var(--bc-bg);
+  box-shadow:
+    0 -30px 80px -30px rgb(0 0 0 / 0.6),
+    0 0 0 1px rgb(255 255 255 / 0.03) inset;
+  transform-origin: 50% 0;
+  transform: translate3d(0, calc((1 - var(--in)) * 6vh), 0)
+    scale(calc((0.92 + var(--in) * 0.08) * (1 - var(--out) * 0.08)));
+  will-change: transform;
+}
+/* the page underneath sinks back and dims as the next slides over it */
+.story-frame.tour-panel::before {
+  opacity: calc(var(--out) * 0.65);
+}
+/* the parts fly in from alternating sides and snap together, in order */
+.story .tour-page [data-a] {
+  --e: clamp(0, calc((var(--pa) - var(--i, 0) * 0.045) * 2.6), 1);
+  opacity: var(--e);
+  transform: translate3d(calc((1 - var(--e)) * var(--dx, 0px)), calc((1 - var(--e)) * 70px), 0)
+    scale(calc(0.9 + var(--e) * 0.1));
+  transition: none;
+  transition-delay: 0s;
+}
+.story .tour-page {
+  overflow: hidden;
+}
+/* the caption: what this page is for, a solid card that comes in after the page */
+.story-cap {
+  --c: clamp(0, calc((var(--pa) - 0.45) * 3), 1);
+  position: absolute;
+  right: 34px;
+  bottom: 34px;
+  z-index: 40;
+  width: min(360px, 34vw);
+  padding: 20px 22px 18px;
+  border: 1px solid var(--gx-line-strong);
+  border-radius: 20px;
+  background: var(--gx-panel-b, var(--bc-surface));
+  box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.55);
+  opacity: calc(var(--c) * (1 - var(--out)));
+  transform: translate3d(0, calc((1 - var(--c)) * 40px), 0);
+  pointer-events: none;
+}
+.story-cap-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--bc-primary-text);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.story-cap-title {
+  margin-top: 10px;
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+  font-weight: 600;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+.story-cap-body {
+  margin-top: 8px;
+  color: var(--bc-fg-muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.story-cap-points {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.story-cap-points li {
+  padding: 3px 9px;
+  border: 1px solid var(--gx-line);
+  border-radius: 999px;
+  color: var(--bc-fg-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+@media (max-width: 767px) {
+  .story,
+  .story[data-first] {
+    height: auto;
+    margin-top: 0;
+  }
+  .story-stick {
+    position: relative;
+    height: auto;
+    padding: 8px 8px 0;
+  }
+  .story-frame.tour-panel {
+    height: auto;
+    transform: none;
+  }
+  .story-frame .tour-page[data-full] {
+    height: 80svh;
+  }
+  .story-cap {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: auto;
+    margin: 10px 0 8px;
+    opacity: 1;
+    transform: none;
+  }
+}

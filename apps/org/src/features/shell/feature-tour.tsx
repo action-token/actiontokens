@@ -7,7 +7,6 @@ import {
   ArrowUp,
   ArrowUpRight,
   BadgeCheck,
-  ArrowRight,
   BarChart3,
   CalendarDays,
   Check,
@@ -173,13 +172,10 @@ const CHAPTERS: Chapter[] = [
   },
 ];
 
-/** Panels on the track: the intro, then one per chapter. */
-const PANELS = CHAPTERS.length + 1;
-
 /** The tour's pages as sidebar entries (signed out, the sidebar lists only these). */
 export const TOUR_NAV: NavGroup[] = [
   {
-    title: "What you can do",
+    title: "Inside the portal",
     items: CHAPTERS.map((chapter, index) => ({
       href: `/#tour-${index + 1}`,
       label: chapter.tag,
@@ -191,289 +187,111 @@ export const TOUR_NAV: NavGroup[] = [
 /** Fired on window with the chapter on screen (-1: none), for the sidebar's highlight. */
 export const TOUR_EVENT = "tour:active";
 
+/** Where in a chapter's scroll its page is fully put together (see .story in portal.css). */
+const BUILT = 0.55;
+
+/**
+ * The front page's scroll story: the portal's real pages (example data), one after another. The
+ * map page is there, whole, when the page loads. Each page after it slides up over the one before
+ * while its parts fly in from the sides and snap together; the page underneath sinks back and
+ * dims. Plain scrolling drives it all, nothing is hijacked. One scroll listener writes two numbers
+ * per chapter on screen (--pa: put together, --out: covered); the CSS does the rest with transform
+ * and opacity. Phones: the pages stack, already put together.
+ */
 export function FeatureTour() {
-  const section = useRef<HTMLElement>(null);
-  const stick = useRef<HTMLDivElement>(null);
-  const track = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(-1);
-  // the furthest panel reached: panels behind it stay filled in
-  const [reached, setReached] = useState(-1);
+  const root = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(0);
 
   useEffect(() => {
-    const el = section.current;
-    if (!el) return;
+    const box = root.current;
+    if (!box) return;
+    const sections = [...box.querySelectorAll<HTMLElement>(":scope > .story")];
+    const phone = matchMedia("(max-width: 767px)");
+    const still = matchMedia("(prefers-reduced-motion: reduce)");
     let raf = 0;
     let last = -2;
-    const phone = matchMedia("(max-width: 767px)");
-    let flat = false;
-    let lastAhead = -2;
-    let panel = 0;
-    let settle = 0;
-    // page moves: our own eased scroll, so nothing can interrupt or stretch it
-    let tween = 0;
-    let target = -1;
-    // wheel gestures: a flick (and its trackpad momentum) is one gesture, and moves one page
-    let lastWheel = 0;
-    let lastSize = 0;
-    // what the current gesture is doing: scrolling a tall page, or turning the page
-    let gesture: "" | "inner" | "page" = "";
-
-    const geometry = () => {
-      const rect = el.getBoundingClientRect();
-      const span = Math.max(1, rect.height - innerHeight);
-      return { rect, span, top: rect.top + scrollY };
-    };
-    const engaged = () => {
-      const { rect } = geometry();
-      return rect.top <= 1 && rect.bottom >= innerHeight - 1;
-    };
-    const goTo = (index: number) => {
-      // phones: the pages are stacked, so just scroll to that one (under the notch)
-      if (phone.matches) {
-        const node = track.current?.children[index] as HTMLElement | undefined;
-        if (node)
-          scrollTo({ top: node.getBoundingClientRect().top + scrollY - 56, behavior: "smooth" });
-        return;
-      }
-      const { span, top } = geometry();
-      const from = scrollY;
-      const to = top + (span * index) / (PANELS - 1);
-      cancelAnimationFrame(tween);
-      const box = scrollerOf(index);
-      if (box) box.scrollTop = index < panel ? box.scrollHeight : 0;
-      target = index;
-      if (Math.abs(to - from) < 1) {
-        target = -1;
-        return;
-      }
-      const start = performance.now();
-      const duration = 700;
-      // page snapping (html.lp-snap) would pull this move toward a snap point: off while it runs
-      const root = document.documentElement;
-      root.style.scrollSnapType = "none";
-      const step = (now: number) => {
-        const t = Math.min(1, (now - start) / duration);
-        const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-        scrollTo({ top: from + (to - from) * eased, behavior: "instant" });
-        if (t < 1) tween = requestAnimationFrame(step);
-        else {
-          tween = 0;
-          target = -1;
-          root.style.scrollSnapType = "";
-        }
-      };
-      tween = requestAnimationFrame(step);
-    };
-    const moving = () => target !== -1;
-    const scrollerOf = (index: number) =>
-      track.current?.children[index]?.querySelector<HTMLElement>(".tour-page:not([data-full])") ??
-      null;
-    /** How far the current page can still scroll in this direction, in px. */
-    const room = (dir: number) => {
-      const box = scrollerOf(panel);
-      if (!box) return 0;
-      return dir > 0 ? box.scrollHeight - box.clientHeight - box.scrollTop : box.scrollTop;
-    };
 
     const update = () => {
       raf = 0;
-      // phones: the pages simply stack, one under another (see the CSS); only the highlight moves
-      if (phone.matches) {
-        const nodes = track.current?.querySelectorAll<HTMLElement>(":scope > .tour-panel");
-        if (!flat) {
-          flat = true;
-          nodes?.forEach((node) => {
-            node.style.transform = "";
-            node.style.visibility = "";
-            node.style.zIndex = "";
-            node.style.removeProperty("--dim");
-          });
-          setReached(PANELS);
+      const vh = innerHeight;
+      let on = -1;
+      sections.forEach((section, index) => {
+        const stick = section.firstElementChild as HTMLElement;
+        const rect = section.getBoundingClientRect();
+        if (rect.top < vh * 0.5) on = index;
+        if (phone.matches || still.matches) {
+          stick.style.setProperty("--pa", "1");
+          stick.style.setProperty("--out", "0");
+          return;
         }
-        let on = 0;
-        nodes?.forEach((node, i) => {
-          if (node.getBoundingClientRect().top < innerHeight * 0.5) on = i;
-        });
-        if (on - 1 !== last) {
-          last = on - 1;
-          setActive(on - 1);
-        }
-        return;
-      }
-      flat = false;
-      const { rect, span } = geometry();
-      const p = Math.min(1, Math.max(0, -rect.top / span));
-      const x = p * (PANELS - 1);
-      // stacked pages: the next one slides in over the current one, which sinks back and dims
-      track.current?.querySelectorAll<HTMLElement>(":scope > .tour-panel").forEach((node, i) => {
-        const d = i - x;
-        let transform = "translate3d(100%,0,0)";
-        let dim = 0;
-        const shown = d > -1 && d < 1;
-        if (d >= 0 && d < 1) transform = `translate3d(${(d * 100).toFixed(2)}%,0,0)`;
-        else if (d < 0 && d > -1) {
-          transform = `translate3d(${(d * 6).toFixed(2)}%,0,0) scale(${(1 + d * 0.08).toFixed(4)})`;
-          dim = -d;
-        }
-        node.style.transform = transform;
-        node.style.visibility = shown ? "visible" : "hidden";
-        node.style.setProperty("--dim", dim.toFixed(3));
-        node.style.zIndex = String(i);
+        // off screen: leave it be
+        if (rect.bottom < -vh || rect.top > vh * 1.2) return;
+        const p = Math.min(1, Math.max(0, (vh - rect.top) / rect.height));
+        const covered = (rect.height - vh) / rect.height;
+        const pa = index === 0 ? 1 : Math.min(1, p / BUILT);
+        const out = Math.min(1, Math.max(0, (p - covered) / (1 - covered)));
+        stick.style.setProperty("--pa", pa.toFixed(4));
+        stick.style.setProperty("--out", out.toFixed(4));
       });
-      stick.current?.style.setProperty("--p", p.toFixed(4));
-      panel = Math.round(x);
-      const index = panel - 1;
-      if (index !== last) {
-        last = index;
-        setActive(index);
+      if (on !== last) {
+        last = on;
+        setActive(on);
       }
-      // a page starts playing as soon as it begins to slide in
-      const ahead = Math.min(PANELS - 1, Math.ceil(x - 0.02)) - 1;
-      if (ahead > lastAhead) {
-        lastAhead = ahead;
-        setReached(ahead);
-      }
-      // when scrolling stops between two pages, finish the move to the nearer one
-      clearTimeout(settle);
-      settle = window.setTimeout(() => {
-        if (!engaged() || moving() || performance.now() - lastWheel < 180) return;
-        const off = Math.abs(x - panel) * innerHeight;
-        if (off > 2) goTo(panel);
-      }, 160);
     };
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(update);
     };
-    // every page fits one screen: a page a little taller than the screen is shrunk to fit
-    // (never below 80%), same layout. Measured on load and resize only.
+
+    // a page a little taller than the frame is shrunk to fit (never below 75%), same layout
     const fit = () => {
-      if (phone.matches) {
-        track.current
-          ?.querySelectorAll<HTMLElement>(".tour-page > *")
-          .forEach((page) => (page.style.zoom = ""));
-        return;
-      }
-      track.current?.querySelectorAll<HTMLElement>(".tour-page:not([data-full])").forEach((box) => {
-        const page = box.firstElementChild as HTMLElement | null;
+      box.querySelectorAll<HTMLElement>(".tour-page:not([data-full])").forEach((frame) => {
+        const page = frame.firstElementChild as HTMLElement | null;
         if (!page) return;
         page.style.zoom = "1";
-        const style = getComputedStyle(box);
+        if (phone.matches) {
+          page.style.zoom = "";
+          return;
+        }
+        const style = getComputedStyle(frame);
         const room =
-          box.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
-        const scale = Math.min(1, room / page.offsetHeight);
-        page.style.zoom = String(Math.max(0.8, scale).toFixed(3));
+          frame.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+        page.style.zoom = String(Math.max(0.75, Math.min(1, room / page.offsetHeight)).toFixed(3));
       });
     };
     fit();
     void document.fonts?.ready.then(fit);
-    // sidebar entries (/#tour-N) slide the tour to that page instead of navigating
+
+    // sidebar entries (/#tour-N) scroll to where that page is put together
     const onLink = (event: MouseEvent) => {
       const link = (event.target as Element | null)?.closest?.('a[href^="/#tour-"]');
       if (!link) return;
       event.preventDefault();
       event.stopPropagation();
-      goTo(Number(link.getAttribute("href")!.slice("/#tour-".length)));
+      const index = Number(link.getAttribute("href")!.slice("/#tour-".length)) - 1;
+      const section = sections[index];
+      if (section) {
+        const top = section.getBoundingClientRect().top + scrollY;
+        const at =
+          index === 0 || phone.matches ? top : top - innerHeight + section.offsetHeight * BUILT;
+        scrollTo({ top: Math.max(0, at), behavior: still.matches ? "auto" : "smooth" });
+      }
       dispatchEvent(new Event(PORTAL_MENU_CLOSE_EVENT));
     };
-    document.addEventListener("click", onLink, true);
     const onResize = () => {
       fit();
       onScroll();
     };
-    // one wheel gesture = one page, while the section is pinned. The momentum that follows a
-    // flick keeps arriving for a while; it belongs to the same gesture and is swallowed.
-    const onWheel = (event: WheelEvent) => {
-      if (phone.matches) return;
-      const now = performance.now();
-      const size = Math.abs(event.deltaY);
-      // a new swipe: a pause, or the speed picking up again (momentum only ever slows down)
-      const fresh = now - lastWheel > 180 || (size > 10 && size > lastSize * 1.6);
-      if (fresh) gesture = "";
-      lastWheel = now;
-      lastSize = size;
-      if (!engaged()) {
-        // a gesture that carries the page into the tour doesn't also turn a page
-        gesture = "page";
-        return;
-      }
-      if (moving() || gesture === "page") {
-        // a swipe made during a slide is spent on it, momentum and all
-        gesture = "page";
-        event.preventDefault();
-        return;
-      }
-      if (Math.abs(event.deltaY) < 1) return;
-      const dir = event.deltaY > 0 ? 1 : -1;
-      // a tall page scrolls top to bottom first
-      if (room(dir) > 4) {
-        event.preventDefault();
-        scrollerOf(panel)!.scrollTop += event.deltaY;
-        gesture = "inner";
-        return;
-      }
-      // the momentum that scrolled it to the end doesn't also turn the page
-      if (gesture === "inner") {
-        event.preventDefault();
-        return;
-      }
-      const next = panel + dir;
-      if (next < 0 || next > PANELS - 1) return; // a fresh gesture past the ends leaves the tour
-      event.preventDefault();
-      gesture = "page";
-      goTo(next);
-    };
-    const onKey = (event: KeyboardEvent) => {
-      if (phone.matches) return;
-      if (!engaged()) return;
-      const dir =
-        event.key === "ArrowDown" || event.key === "PageDown" || event.key === "ArrowRight"
-          ? 1
-          : event.key === "ArrowUp" || event.key === "PageUp" || event.key === "ArrowLeft"
-            ? -1
-            : 0;
-      if (!dir) return;
-      const arrow = event.key === "ArrowDown" || event.key === "ArrowUp";
-      if (arrow && !moving() && room(dir) > 4) {
-        event.preventDefault();
-        scrollerOf(panel)!.scrollBy({ top: dir * 120, behavior: "smooth" });
-        return;
-      }
-      const next = (moving() ? target : panel) + dir;
-      if (next < 0 || next > PANELS - 1) return;
-      event.preventDefault();
-      goTo(next);
-    };
 
-    let listening = false;
-    const io = new IntersectionObserver(([entry]) => {
-      const on = entry?.isIntersecting ?? false;
-      if (on && !listening) {
-        addEventListener("scroll", onScroll, { passive: true });
-        addEventListener("resize", onResize);
-        addEventListener("wheel", onWheel, { passive: false });
-        addEventListener("keydown", onKey);
-        onScroll();
-      } else if (!on && listening) {
-        removeEventListener("scroll", onScroll);
-        removeEventListener("resize", onResize);
-        removeEventListener("wheel", onWheel);
-        removeEventListener("keydown", onKey);
-      }
-      listening = on;
-    });
-    io.observe(el);
+    document.addEventListener("click", onLink, true);
+    addEventListener("scroll", onScroll, { passive: true });
+    addEventListener("resize", onResize);
     phone.addEventListener("change", onResize);
+    update();
     return () => {
-      io.disconnect();
-      clearTimeout(settle);
-      cancelAnimationFrame(tween);
-      document.documentElement.style.scrollSnapType = "";
       document.removeEventListener("click", onLink, true);
-      phone.removeEventListener("change", onResize);
       removeEventListener("scroll", onScroll);
       removeEventListener("resize", onResize);
-      removeEventListener("wheel", onWheel);
-      removeEventListener("keydown", onKey);
+      phone.removeEventListener("change", onResize);
       if (raf) cancelAnimationFrame(raf);
     };
   }, []);
@@ -485,52 +303,45 @@ export function FeatureTour() {
   useEffect(() => () => void dispatchEvent(new CustomEvent(TOUR_EVENT, { detail: -1 })), []);
 
   return (
-    <section
-      ref={section}
-      className="tour bleed"
-      style={{ height: `${PANELS * 100}vh` }}
-      aria-label="What you can do in the portal"
-    >
-      <div ref={stick} className="tour-stick">
-        <div ref={track} className="tour-track">
-          <div className="tour-panel tour-intro">
-            <p className="lp-tag">Inside the portal</p>
-            <h2 className="tour-big lp-chrome">
-              What you
-              <br />
-              can do<em>.</em>
-            </h2>
-            <p className="text-fg-muted mt-6 max-w-md text-lg text-pretty">
-              Every page of the portal, as you&apos;ll see it. One scroll, one page.
-            </p>
-            <span className="tour-cue" aria-hidden>
-              Scroll <ArrowRight className="size-4" />
-            </span>
-          </div>
-
-          {CHAPTERS.map((chapter, index) => (
-            <div
-              key={chapter.id}
-              className="tour-panel"
-              data-on={index <= reached || undefined}
-              aria-hidden={active !== index}
-            >
-              <div
-                className="tour-page"
-                data-full={chapter.id === "map" || chapter.id === "page" || undefined}
-                data-pad={chapter.id === "page" || undefined}
-              >
-                <chapter.Page />
+    <div ref={root} className="story-run bleed" aria-label="Inside the portal">
+      {CHAPTERS.map((chapter, index) => {
+        const Icon = chapter.icon;
+        return (
+          <section
+            key={chapter.id}
+            id={`tour-${index + 1}`}
+            className="story"
+            data-first={index === 0 || undefined}
+            style={{ zIndex: index + 1 }}
+          >
+            <div className="story-stick">
+              <div className="story-frame tour-panel" data-on aria-hidden={active !== index}>
+                <div
+                  className="tour-page"
+                  data-full={chapter.id === "map" || chapter.id === "page" || undefined}
+                  data-pad={chapter.id === "page" || undefined}
+                >
+                  <chapter.Page />
+                </div>
               </div>
+              <aside className="story-cap">
+                <span className="story-cap-tag">
+                  <Icon className="size-3.5" />
+                  {String(index + 1).padStart(2, "0")} · {chapter.tag}
+                </span>
+                <h2 className="story-cap-title">{chapter.title}</h2>
+                <p className="story-cap-body">{chapter.body}</p>
+                <ul className="story-cap-points">
+                  {chapter.points.map((point) => (
+                    <li key={point}>{point}</li>
+                  ))}
+                </ul>
+              </aside>
             </div>
-          ))}
-        </div>
-
-        <div className="tour-progress" aria-hidden>
-          <i />
-        </div>
-      </div>
-    </section>
+          </section>
+        );
+      })}
+    </div>
   );
 }
 /* ── The pages, as the portal draws them (example data) ─────────────────── */
@@ -547,8 +358,14 @@ const ART = {
   mint: "linear-gradient(160deg,#b8ffe9,#2ee6a6 50%,#0b3d33)",
 };
 
-/** Stagger: elements with data-a rise in, in order, when their panel turns on. */
-const a = (i: number) => ({ "data-a": "", style: { ["--i" as string]: i } });
+/** Parts of a page that fly in, in order (--i), from alternating sides (--dx), as you scroll. */
+const a = (i: number) => ({
+  "data-a": "",
+  style: {
+    ["--i" as string]: i,
+    ["--dx" as string]: `${(i % 2 ? -1 : 1) * (60 + (i % 4) * 30)}px`,
+  },
+});
 
 /** A real map picture of Williamsburg, Brooklyn (Mapbox static images, the same API the map style
  * thumbnails use), one per theme. */

@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ArrowRight,
   ArrowUpRight,
   CalendarDays,
   Crown,
@@ -21,14 +20,12 @@ import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
 import { AR_URL, FAN_APP_URL, PORTAL_MENU_EVENT } from "./links";
 import { anton, gothic } from "./landing-fonts";
-import { ScrollHero } from "@actiontokens/ui/patterns/scroll-hero";
 import { ThemeControl } from "@actiontokens/ui/patterns/theme-control";
 import { FeatureTour } from "./feature-tour";
 
 /**
- * Signed out: the portal's front page, after docs/mockups/home.html. A scroll-played hero (the
- * Action frames with three headlines), a neon ribbon, then sections with a blackletter tag and a
- * chrome title that rise into view. Every portal address shows it until you sign in. The cards
+ * Signed out: the portal's front page. It opens on the map page, and scrolling plays the portal's
+ * pages one after another (FeatureTour), then a closing call to sign in. Every portal address shows it until you sign in. The cards
  * are examples drawn in code. Kept light: no particles, no blur, nothing animating at rest
  * beyond small CSS transforms.
  */
@@ -37,11 +34,6 @@ export function Landing() {
   const signIn = () => open(true);
   const root = useReveal<HTMLDivElement>();
   const [notchOpen, setNotchOpen] = useState(false);
-  // the front page scrolls section by section (see .lp-snap in portal.css)
-  useEffect(() => {
-    document.documentElement.classList.add("lp-snap");
-    return () => document.documentElement.classList.remove("lp-snap");
-  }, []);
 
   return (
     <div ref={root} className={cn(anton.variable, gothic.variable)}>
@@ -82,24 +74,6 @@ export function Landing() {
         </span>
         <NotchFeed onOpen={setNotchOpen} />
       </header>
-      <ScrollHero
-        label="Action Tokens for organizations"
-        kicker="Organization portal · live on Stellar"
-        lines={HERO_LINES}
-        facts={HERO_FACTS}
-        ctas={
-          <>
-            <button type="button" onClick={signIn} className="lph-btn lph-btn--neon">
-              <LogIn className="size-4" strokeWidth={2.4} /> Sign in / Sign up
-            </button>
-            <button type="button" onClick={signIn} className="lph-btn lph-btn--chrome">
-              Become an organization <ArrowRight className="size-4" />
-            </button>
-          </>
-        }
-      />
-      <Marquee />
-
       <FeatureTour />
 
       <div className="mx-auto grid w-full max-w-6xl gap-24 px-4 pt-16 pb-20 sm:px-8">
@@ -130,20 +104,6 @@ export function Landing() {
     </div>
   );
 }
-
-/** The three lines the hero swaps through as the frames play (first frame each one shows from). */
-const HERO_LINES = [
-  { from: 0, top: "Drop it.", bottom: "Get found." },
-  { from: 40, top: "Run", bottom: "Bounties." },
-  { from: 100, top: "Sell it.", bottom: "Get paid." },
-];
-
-const HERO_FACTS: [string, string][] = [
-  ["Stellar", "every sale on-chain"],
-  ["Escrow", "every bounty prize"],
-  ["AR", "collected on the spot"],
-  ["ACTION", "paid straight to you"],
-];
 
 /** Example notifications for the front page's notch (what an organization gets told about). */
 const NOTES = [
@@ -191,32 +151,6 @@ function NotchFeed({ onOpen }: { onOpen: (open: boolean) => void }) {
           <span className="text-fg-muted block truncate text-[12px]">{note.text}</span>
         </span>
         <span className="text-fg-faint shrink-0 self-start text-[11px]">{note.when}</span>
-      </div>
-    </div>
-  );
-}
-
-const RIBBON = [
-  "Drop pins IRL",
-  "Bounties in escrow",
-  "Sell music",
-  "Memberships",
-  "Paid in ACTION",
-  "On Stellar",
-  "Your own token",
-];
-
-/** The tilted neon ribbon under the hero (CSS only: one transform animation). */
-function Marquee() {
-  const run = [...RIBBON, ...RIBBON];
-  return (
-    <div className="lp-marquee-box" aria-hidden>
-      <div className="lp-marquee">
-        <div className="lp-marquee-track">
-          {run.map((word, index) => (
-            <span key={index}>{word}</span>
-          ))}
-        </div>
       </div>
     </div>
   );
