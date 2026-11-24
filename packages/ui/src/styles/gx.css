@@ -583,8 +583,7 @@ a[class*="rounded-[1.4rem]"]:hover {
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  background:
-    radial-gradient(120% 40% at 0% 0%, var(--gx-glow-soft), transparent 60%);
+  background: radial-gradient(120% 40% at 0% 0%, var(--gx-glow-soft), transparent 60%);
 }
 .gx-panel > * {
   position: relative;
@@ -1106,4 +1105,41 @@ a[class*="rounded-[1.4rem]"]:hover {
   .gx-act {
     transition: none;
   }
+}
+
+/* the balance inside the account card: a slim strip */
+.gx-wallet {
+  display: block;
+  padding: 8px 10px;
+  border: 1px solid var(--gx-line);
+  border-radius: 11px;
+  background: color-mix(in oklab, var(--gx-neon) 6%, transparent);
+  transition: border-color 150ms ease;
+}
+.gx-wallet:hover {
+  border-color: var(--gx-line-strong);
+}
+.gx-wallet-amount {
+  min-width: 0;
+  color: var(--bc-primary-text);
+  font-family: var(--font-mono);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.gx-wallet-code {
+  color: var(--bc-fg-faint);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+.gx-wallet-lines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  margin-top: 4px;
+  color: var(--bc-fg-faint);
+  font-family: var(--font-mono);
+  font-size: 10px;
 }

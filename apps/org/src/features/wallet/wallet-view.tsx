@@ -17,6 +17,8 @@ import {
   Wallet,
 } from "lucide-react";
 import Link from "next/link";
+
+import { DeckVault } from "@actiontokens/ui/patterns/control-deck";
 import { useSession } from "next-auth/react";
 import { type ReactNode, useState } from "react";
 import QRCode from "react-qr-code";
@@ -490,32 +492,15 @@ export function WalletSummary() {
   if (!signedIn) return null;
   const balances = me.data?.balances;
   return (
-    <Link href="/wallet" className="gx-vault group" aria-label="Wallet">
-      <span className="gx-vault-in">
-        <span className="gx-mono text-fg-muted flex items-center justify-between gap-2">
-          Vault
-          <span className="flex items-center gap-1.5">
-            <span className="text-[var(--gx-acid-text)]">{TOKEN_NAME}</span>
-            <span className="text-primary-text transition-transform group-hover:translate-x-0.5">
-              →
-            </span>
-          </span>
-        </span>
-        <span className="gx-amount mt-2 block truncate">
-          {balances ? <Money amount={balances.ACTION} currency="ACTION" short /> : "…"}
-        </span>
-        <span className="gx-mono text-fg-faint mt-2 flex flex-wrap gap-x-3 gap-y-1">
-          {MAIN.slice(1).map((currency) => (
-            <span key={currency} className="flex items-center gap-1">
-              {currency}
-              <span className="text-fg">
-                {balances ? <Money amount={balances[currency]} currency={currency} short /> : "…"}
-              </span>
-            </span>
-          ))}
-        </span>
-      </span>
-    </Link>
+    <DeckVault
+      href="/wallet"
+      code={TOKEN_NAME}
+      amount={balances ? <Money amount={balances.ACTION} currency="ACTION" short /> : null}
+      lines={MAIN.slice(1).map((currency) => ({
+        label: currency,
+        value: balances ? <Money amount={balances[currency]} currency={currency} short /> : null,
+      }))}
+    />
   );
 }
 

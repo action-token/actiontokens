@@ -128,7 +128,8 @@ export function ControlDeck({
                     </span>
                     <span className="min-w-0">
                       <strong className="gx-me-name">{name}</strong>
-                      {account.address && (
+                      {/* the address under the name, unless the name already is the address */}
+                      {account.address && !name.startsWith(account.address.slice(0, 3)) && (
                         <span className="gx-me-sub">{short(account.address)}</span>
                       )}
                     </span>
@@ -162,7 +163,7 @@ export function ControlDeck({
               ) : (
                 <div className="h-11 animate-pulse rounded-xl bg-[var(--ap-fill)]" />
               )}
-              {balance && <div className="mt-3">{balance}</div>}
+              {balance && <div className="mt-2.5">{balance}</div>}
             </div>
 
             <nav aria-label="Sections" className="gx-nav">
@@ -363,29 +364,24 @@ export function DeckVault({
   lines?: { label: string; value: ReactNode | null }[];
 }) {
   return (
-    <Link href={href} className="gx-vault group" aria-label="Wallet">
-      <span className="gx-vault-in">
-        <span className="gx-mono text-fg-muted flex items-center justify-between gap-2">
-          Vault
-          <span className="flex items-center gap-1.5">
-            <span className="text-[var(--gx-acid-text)]">{code}</span>
-            <span className="text-primary-text transition-transform group-hover:translate-x-0.5">
-              →
-            </span>
-          </span>
+    <Link href={href} className="gx-wallet group" aria-label="Wallet">
+      <span className="flex items-baseline gap-1.5">
+        <span className="gx-wallet-amount truncate">{amount ?? "…"}</span>
+        <span className="gx-wallet-code">{code}</span>
+        <span className="text-primary-text ml-auto text-xs transition-transform group-hover:translate-x-0.5">
+          →
         </span>
-        <span className="gx-amount mt-2 block truncate">{amount ?? "…"}</span>
-        {lines.length > 0 && (
-          <span className="gx-mono text-fg-faint mt-2 flex flex-wrap gap-x-3 gap-y-1">
-            {lines.map((line) => (
-              <span key={line.label} className="flex items-center gap-1">
-                {line.label}
-                <span className="text-fg">{line.value ?? "…"}</span>
-              </span>
-            ))}
-          </span>
-        )}
       </span>
+      {lines.length > 0 && (
+        <span className="gx-wallet-lines">
+          {lines.map((line) => (
+            <span key={line.label} className="flex items-center gap-1">
+              {line.label}
+              <span className="text-fg">{line.value ?? "…"}</span>
+            </span>
+          ))}
+        </span>
+      )}
     </Link>
   );
 }
