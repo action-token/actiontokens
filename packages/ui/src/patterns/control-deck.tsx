@@ -116,7 +116,7 @@ export function ControlDeck({
             >
               {groups.map((group) => (
                 <div key={group.title}>
-                  <p className="gx-section gx-mono">{group.title}</p>
+                  <p className="gx-section gx-mono">{`// ${group.title}`}</p>
                   <ul className="space-y-0.5">
                     {group.items.map((entry) => {
                       const Icon = entry.icon;
@@ -142,23 +142,25 @@ export function ControlDeck({
 
               {launch.length > 0 && (
                 <div>
-                  <p className="gx-section gx-mono">Launch</p>
-                  <div className="grid grid-cols-2 gap-2 px-1">
+                  <p className="gx-section gx-mono">{"// Launch"}</p>
+                  <div className="grid gap-2.5 px-1">
                     {launch.map(({ href, label: title, hint, icon: Icon, acid }) => (
                       <a
                         key={href}
                         href={href}
-                        title={hint}
                         className={cn("gx-launch", acid && "gx-launch--acid")}
                       >
                         <span className="gx-launch-in">
-                          <span className="flex items-center justify-between">
-                            <span className="gx-launch-icon">
-                              <Icon className="size-4" strokeWidth={2.4} />
-                            </span>
-                            <ArrowUpRight className="text-fg-faint size-3.5 shrink-0" />
+                          <span className="gx-launch-icon">
+                            <Icon className="size-4" strokeWidth={2.4} />
                           </span>
-                          <span className="gx-launch-title line-clamp-2">{title}</span>
+                          <span className="min-w-0 flex-1">
+                            <span className="gx-launch-title block">{title}</span>
+                            <span className="gx-mono text-fg-muted mt-1 block truncate !text-[9px] !tracking-[0.14em]">
+                              {hint}
+                            </span>
+                          </span>
+                          <ArrowUpRight className="text-fg-faint size-4 shrink-0" />
                         </span>
                       </a>
                     ))}

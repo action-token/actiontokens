@@ -583,7 +583,12 @@ a[class*="rounded-[1.4rem]"]:hover {
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  background: radial-gradient(120% 30% at 50% -5%, var(--gx-glow-soft), transparent 70%);
+  background:
+    radial-gradient(120% 40% at 50% -5%, var(--gx-glow-soft), transparent 70%),
+    repeating-linear-gradient(0deg, var(--gx-scan) 0 1px, transparent 1px 3px),
+    linear-gradient(var(--gx-grid) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(90deg, var(--gx-grid) 1px, transparent 1px) 0 0 / 24px 24px;
+  mask-image: linear-gradient(180deg, #000, rgb(0 0 0 / 0.35) 60%, #000);
 }
 .gx-panel > * {
   position: relative;
@@ -611,37 +616,37 @@ a[class*="rounded-[1.4rem]"]:hover {
   }
 }
 
-/* section label: a neon dot and a quiet lowercase word */
+/* section label: // DROPS ———— */
 .gx-section {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 0 12px 6px;
+  gap: 8px;
   color: var(--bc-fg-faint);
-  text-transform: lowercase;
+  padding: 0 10px 6px;
 }
-.gx-section::before {
+.gx-section::after {
   content: "";
-  width: 5px;
-  height: 5px;
-  border-radius: 999px;
-  background: var(--gx-neon);
-  box-shadow: 0 0 6px var(--gx-glow);
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--gx-line-strong), transparent);
 }
 
-/* nav row: a pill; the current page is a solid neon pill */
+/* nav row */
 .gx-item {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 10px;
   height: 40px;
-  padding: 0 14px 0 12px;
-  border-radius: 999px;
+  padding: 0 10px 0 8px;
+  border-radius: 10px;
   color: var(--bc-fg-muted);
-  font-size: 14px;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.2rem;
   line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   transition:
     color 150ms ease,
     background-color 150ms ease;
@@ -655,20 +660,40 @@ a[class*="rounded-[1.4rem]"]:hover {
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
-  transition: transform 150ms ease;
+  width: 28px;
+  height: 28px;
+  background: var(--gx-fill);
+  border: 1px solid var(--gx-line);
+  /* angled corners, like a HUD chip */
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
 }
 .gx-item:hover .gx-tile {
-  transform: translateX(2px);
+  border-color: var(--gx-line-strong);
 }
 .gx-item[aria-current="page"] {
-  color: var(--gx-on-neon);
+  color: var(--bc-primary-text);
+  background: linear-gradient(90deg, var(--bc-primary-soft), transparent 80%);
+  text-shadow: var(--gx-text-glow);
+}
+.gx-item[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
   background: var(--gx-neon);
-  box-shadow: 0 6px 18px -8px var(--gx-glow);
+  box-shadow: 0 0 12px var(--gx-glow);
 }
 .gx-item[aria-current="page"] .gx-tile {
-  transform: none;
+  background: var(--gx-neon);
+  border-color: var(--gx-neon);
+  color: var(--gx-on-neon);
+  box-shadow: 0 0 14px var(--gx-glow);
 }
 .gx-rail-item[aria-current="page"] {
   background: var(--gx-neon);
@@ -778,28 +803,33 @@ a[class*="rounded-[1.4rem]"]:hover {
   outline-offset: 3px;
 }
 .gx-launch-in {
-  display: grid;
-  gap: 10px;
-  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 11px;
   border-radius: 13px;
-  padding: 10px;
+  padding: 10px 12px 10px 10px;
   background:
-    linear-gradient(160deg, color-mix(in srgb, var(--gx-c) 14%, transparent), transparent 60%),
+    linear-gradient(90deg, color-mix(in srgb, var(--gx-c) 12%, transparent), transparent 55%),
     var(--gx-panel-b);
+  box-shadow: inset 0 0 16px -8px color-mix(in srgb, var(--gx-c) 80%, transparent);
 }
 .gx-launch-icon {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
   color: var(--gx-on-neon);
   background: var(--gx-c, var(--gx-neon));
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
 }
 .gx-launch-title {
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.2;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.15rem;
+  line-height: 0.95;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--bc-fg);
 }
 
