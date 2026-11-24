@@ -954,9 +954,13 @@ a[class*="rounded-[1.4rem]"]:hover {
   gap: 8px;
   padding: 18px 2px 8px;
   color: var(--bc-primary-text);
-  font-family: var(--deck-faster), var(--font-display);
-  font-size: 21px;
+  /* the landing's poster face (Anton), small and spaced: a label over the big row words */
+  font-family: var(--lp-display), var(--font-display);
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 0.14em;
   line-height: 1;
+  text-transform: uppercase;
   white-space: nowrap;
   text-shadow: 0 0 12px var(--gx-glow-soft);
 }
