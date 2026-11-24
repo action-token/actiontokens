@@ -187,6 +187,12 @@
   text-align: left;
   transition: border-color 0.2s;
 }
+.hm-notch-search--icon {
+  justify-content: center;
+  width: 40px;
+  padding: 0;
+  color: var(--bc-fg-muted);
+}
 .hm-notch-search:hover {
   border-color: var(--gx-line-strong);
 }
@@ -980,6 +986,7 @@ html[data-notch] .at-toaster {
 }
 .app-notch-drop {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 6px;
   min-width: min(380px, calc(100vw - 48px));
 }
@@ -1034,58 +1041,111 @@ html[data-notch] .at-toaster {
 }
 
 /* now playing: the cover (tap to play / pause), the title on wide screens, moving bars */
+/* music, like the iPhone island. Compact: cover left, bars right, inside the notch row. */
 .app-notch-play {
   display: flex;
   flex: none;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   height: 40px;
-  padding: 0 10px 0 3px;
-  border: 1px solid var(--bc-border);
+  padding: 0 12px 0 4px;
   border-radius: 999px;
-  background: var(--ap-fill);
+  background: color-mix(in oklab, var(--bc-fg) 6%, transparent);
+  transition: background-color 0.2s;
+}
+.app-notch-play:hover,
+.app-notch-play[data-open] {
+  background: color-mix(in oklab, var(--bc-fg) 10%, transparent);
 }
 .app-notch-cover {
-  position: relative;
-  width: 34px;
-  height: 34px;
+  display: grid;
+  flex: none;
+  place-items: center;
   overflow: hidden;
-  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    var(--gx-neon),
+    color-mix(in oklab, var(--gx-neon) 40%, #0b3d2a)
+  );
+  color: var(--gx-on-neon);
 }
 .app-notch-cover img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.app-notch-play[data-playing] .app-notch-cover img {
-  animation: st-spin 8s linear infinite;
+.app-notch-cover--sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
 }
-.app-notch-cover-btn {
-  position: absolute;
-  inset: 0;
+.app-notch-cover--md {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+}
+/* expanded: one row and a hairline */
+.app-notch-music {
   display: grid;
+  gap: 6px;
+  padding: 8px 4px 2px;
+}
+.app-notch-time {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 10px;
+  color: var(--bc-fg-faint);
+  font-variant-numeric: tabular-nums;
+}
+.app-notch-progress {
+  flex: 1;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: color-mix(in oklab, var(--bc-fg) 14%, transparent);
+}
+.app-notch-progress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--gx-neon);
+  transform-origin: left;
+  transition: transform 0.25s linear;
+}
+.app-notch-ctl {
+  display: grid;
+  flex: none;
   place-items: center;
-  background: rgb(0 0 0 / 0.45);
-  color: #fff;
-  opacity: 0;
-  transition: opacity 0.2s;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: var(--bc-fg-muted);
+  transition:
+    transform 0.15s,
+    color 0.15s;
 }
-.app-notch-cover:hover .app-notch-cover-btn,
-.app-notch-cover:focus-visible .app-notch-cover-btn,
-.app-notch-play:not([data-playing]) .app-notch-cover-btn {
-  opacity: 1;
+.app-notch-ctl--main {
+  width: 34px;
+  height: 34px;
+  background: var(--gx-neon);
+  color: var(--gx-on-neon);
 }
-.app-notch-track {
-  max-width: 140px;
-  font-size: 12px;
-  line-height: 1.2;
-  text-align: left;
+.app-notch-ctl:not(.app-notch-ctl--main):hover:not(:disabled) {
+  color: var(--bc-fg);
+}
+.app-notch-ctl:disabled {
+  opacity: 0.3;
+}
+.app-notch-ctl:active:not(:disabled) {
+  transform: scale(0.88);
 }
 .app-notch-bars {
   display: flex;
   align-items: flex-end;
   gap: 2px;
-  height: 16px;
+  height: 14px;
 }
 .app-notch-bars i {
   width: 3px;
@@ -1115,17 +1175,11 @@ html[data-notch] .at-toaster {
     transform: scaleY(1);
   }
 }
-@media (max-width: 639px) {
-  .app-notch-play {
-    padding-right: 3px;
-  }
-  .app-notch-bars {
-    display: none;
-  }
-}
 @media (prefers-reduced-motion: reduce) {
-  .app-notch-play[data-playing] .app-notch-cover img,
   .app-notch-play[data-playing] .app-notch-bars i {
     animation: none;
+  }
+  .app-notch-progress i {
+    transition: none;
   }
 }

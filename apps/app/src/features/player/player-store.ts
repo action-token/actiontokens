@@ -52,3 +52,17 @@ export const usePlayer = create<PlayerState>((set) => ({
 
 export const currentTrack = (state: Pick<PlayerState, "queue" | "index">) =>
   state.queue[state.index] ?? null;
+
+/**
+ * How far through the current song the bar is, 0–1, for small displays elsewhere (the
+ * notch). Its own store, so the many timeupdates don't re-render the player's subscribers.
+ */
+export const usePlayerProgress = create<{ value: number; current: number; duration: number }>(
+  () => ({ value: 0, current: 0, duration: 0 }),
+);
+export const setPlayerProgress = (current: number, duration: number) =>
+  usePlayerProgress.setState({
+    current,
+    duration,
+    value: duration > 0 ? Math.min(1, Math.max(0, current / duration)) : 0,
+  });

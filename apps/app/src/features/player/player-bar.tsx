@@ -27,7 +27,7 @@ import { StemRows } from "../stems/stem-rows";
 import { useStemMode } from "../stems/use-stem-mode";
 import { FullPlayer } from "./full-player";
 import { listeningSession } from "./listening-id";
-import { currentTrack, usePlayer } from "./player-store";
+import { currentTrack, setPlayerProgress, usePlayer } from "./player-store";
 import { clock, progressPercent } from "./time";
 import { showSidebarBuy } from "../shell/sidebar-buy";
 
@@ -183,6 +183,7 @@ export function PlayerBar() {
                 current: element.currentTime,
                 duration: element.duration || 0,
               });
+              setPlayerProgress(element.currentTime, duration);
               // A preview cut by bytes can run a little long; it ends at its stated length.
               if (preview && duration && element.currentTime >= duration) {
                 element.pause();

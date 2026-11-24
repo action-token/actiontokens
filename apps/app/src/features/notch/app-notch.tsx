@@ -2,6 +2,7 @@
 
 import {
   Bell,
+  SkipBack,
   Check,
   Crosshair,
   Info,
@@ -9,10 +10,12 @@ import {
   Loader2,
   LogIn,
   MessageCircle,
+  Music,
   Package,
   Pause,
   Play,
   Search,
+  SkipForward,
   UserPlus,
   UserRound,
   Users,
@@ -29,7 +32,8 @@ import { NOTCH_TX_SLOT } from "@actiontokens/ui/patterns/transaction-toast";
 import { useConnectWalletDialogStore } from "@actiontokens/wallet";
 
 import { AccountButton } from "~/features/account/account-button";
-import { usePlayer } from "~/features/player/player-store";
+import { usePlayer, usePlayerProgress } from "~/features/player/player-store";
+import { clock } from "~/features/player/time";
 import { api } from "~/trpc/react";
 
 import { openSearch } from "../shell/search-dialog";
@@ -46,10 +50,11 @@ const PEEK_MS = 4200;
  * first:
  *
  *   1. a transaction in progress (the flows' own toast, countdown and buttons, portalled in)
- *   2. an action you just took (joining a bounty or a crew, following…): busy, then done
- *   3. a message (any react-hot-toast success / error, so call sites don't change)
- *   4. a new notification (community replies, new drops from orgs you follow…)
- *   5. the page's idle feed (the home page's new drops and bounties)
+ *   2. the music panel, when tapped open or for a moment when a song starts
+ *   3. an action you just took (joining a bounty or a crew, following…): busy, then done
+ *   4. a message (any react-hot-toast success / error, so call sites don't change)
+ *   5. a new notification (community replies, new drops from orgs you follow…)
+ *   6. the page's idle feed (the home page's new drops and bounties)
  *
  * Moves are transform and opacity only.
  */
@@ -58,19 +63,23 @@ export function AppNotch({ hero = false }: { hero?: boolean }) {
   const signedIn = status === "authenticated";
   const openWallet = useConnectWalletDialogStore((state) => state.setIsOpen);
 
+  const hasTrack = usePlayer((state) => state.queue.length > 0);
   const txBusy = useTxSlot();
+  const music = useMusicPanel();
   const activity = useActivity();
   const message = useLatestToast();
-  const note = useNotes(signedIn, !txBusy && !activity && !message);
-  const show: "tx" | "activity" | "toast" | "note" | null = txBusy
+  const note = useNotes(signedIn, !txBusy && !music.shown && !activity && !message);
+  const show: "tx" | "music" | "activity" | "toast" | "note" | null = txBusy
     ? "tx"
-    : activity
-      ? "activity"
-      : message
-        ? "toast"
-        : note
-          ? "note"
-          : null;
+    : music.shown
+      ? "music"
+      : activity
+        ? "activity"
+        : message
+          ? "toast"
+          : note
+            ? "note"
+            : null;
 
   // While the notch speaks, the page's own toaster stays hidden: there is one place for messages.
   useEffect(() => {
@@ -92,13 +101,26 @@ export function AppNotch({ hero = false }: { hero?: boolean }) {
         </span>
         <span className="gx-brand text-[1.2rem]! max-lg:hidden">Action-Tokens</span>
       </Link>
-      <button type="button" onClick={openSearch} className="hm-notch-search">
-        <Search className="size-4 shrink-0" />
-        <span className="truncate max-sm:hidden">Search drops, bounties, orgs…</span>
-        <span className="truncate sm:hidden">Search</span>
-        <kbd className="max-sm:hidden">⌘K</kbd>
-      </button>
-      <NowPlaying />
+      {/* With a song on, the player takes the room and search folds to an icon. */}
+      {hasTrack ? (
+        <button
+          type="button"
+          onClick={openSearch}
+          className="hm-notch-search hm-notch-search--icon"
+          aria-label="Search"
+          title="Search (Ctrl or ⌘ + K)"
+        >
+          <Search className="size-4" />
+        </button>
+      ) : (
+        <button type="button" onClick={openSearch} className="hm-notch-search">
+          <Search className="size-4 shrink-0" />
+          <span className="truncate max-sm:hidden">Search drops, bounties, orgs…</span>
+          <span className="truncate sm:hidden">Search</span>
+          <kbd className="max-sm:hidden">⌘K</kbd>
+        </button>
+      )}
+      <NowPlaying open={music.shown} onToggle={music.toggle} />
       {signedIn ? (
         <>
           <SidebarTools className="max-sm:hidden" />
@@ -120,6 +142,7 @@ export function AppNotch({ hero = false }: { hero?: boolean }) {
       <div className="lp-feed app-notch-drop" data-open={show ? "" : undefined} aria-live="polite">
         {/* Transaction toasts render in here (ToastViewport portals into this slot). */}
         <div id={NOTCH_TX_SLOT} className="app-notch-tx" hidden={!txBusy} />
+        {show === "music" && <MusicPanel onClose={music.close} />}
         {show === "activity" && activity && <ActivityRow activity={activity} />}
         {show === "toast" && message && <MessageRow message={message} />}
         {show === "note" && note && <NoteRow note={note} />}
@@ -322,41 +345,174 @@ function NoteRow({ note }: { note: NotchNote }) {
 
 /* ── Now playing: the cover and moving bars, tap to play / pause ────────── */
 
-function NowPlaying() {
+/* ── music: the island's compact and expanded states ───────────────────── */
+
+/** Compact, like the iPhone island: the cover on the left, the bars on the right. Tap to open. */
+function NowPlaying({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+  const track = usePlayer((state) => state.queue[state.index]);
+  const playing = usePlayer((state) => state.playing);
+  if (!track) return null;
+  return (
+    <button
+      type="button"
+      className="app-notch-play"
+      data-playing={playing || undefined}
+      data-open={open || undefined}
+      onClick={onToggle}
+      aria-expanded={open}
+      aria-label={`${playing ? "Playing" : "Paused"}: ${track.title}. Show the player`}
+    >
+      <NotchCover key={track.coverUrl} src={track.coverUrl} className="app-notch-cover--sm" />
+      <Bars />
+    </button>
+  );
+}
+
+function Bars() {
+  return (
+    <span className="app-notch-bars" aria-hidden>
+      <i />
+      <i />
+      <i />
+      <i />
+    </span>
+  );
+}
+
+/** Expanded, kept small: cover, title and the controls on one line, a hairline of progress under it. */
+function MusicPanel({ onClose }: { onClose: () => void }) {
   const track = usePlayer((state) => state.queue[state.index]);
   const playing = usePlayer((state) => state.playing);
   const toggle = usePlayer((state) => state.toggle);
-  const open = usePlayer((state) => state.setFullOpen);
+  const next = usePlayer((state) => state.next);
+  const previous = usePlayer((state) => state.previous);
+  const index = usePlayer((state) => state.index);
+  const last = usePlayer((state) => state.queue.length - 1);
+  const openFull = usePlayer((state) => state.setFullOpen);
+  const { value, current, duration } = usePlayerProgress();
   if (!track) return null;
   return (
-    <span className="app-notch-play" data-playing={playing || undefined}>
-      <button
-        type="button"
-        className="app-notch-cover"
-        onClick={toggle}
-        aria-label={playing ? `Pause ${track.title}` : `Play ${track.title}`}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts */}
-        <img src={track.coverUrl} alt="" />
-        <span className="app-notch-cover-btn">
-          {playing ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}
+    <div className="app-notch-music" data-playing={playing || undefined}>
+      <div className="flex items-center gap-2.5">
+        <button
+          type="button"
+          className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
+          onClick={() => {
+            openFull(true);
+            onClose();
+          }}
+          title="Open the full player"
+        >
+          <NotchCover key={track.coverUrl} src={track.coverUrl} className="app-notch-cover--md" />
+          <span className="min-w-0">
+            <b className="block truncate text-[13px] leading-tight">{track.title}</b>
+            <span className="text-fg-muted block truncate text-[11px]">{track.artistName}</span>
+          </span>
+        </button>
+        <button
+          type="button"
+          className="app-notch-ctl"
+          onClick={previous}
+          disabled={index === 0}
+          aria-label="Previous song"
+        >
+          <SkipBack className="size-4" fill="currentColor" strokeWidth={0} />
+        </button>
+        <button
+          type="button"
+          className="app-notch-ctl app-notch-ctl--main"
+          onClick={toggle}
+          aria-label={playing ? "Pause" : "Play"}
+        >
+          {playing ? (
+            <Pause className="size-4" fill="currentColor" strokeWidth={0} />
+          ) : (
+            <Play className="size-4 translate-x-px" fill="currentColor" strokeWidth={0} />
+          )}
+        </button>
+        <button
+          type="button"
+          className="app-notch-ctl"
+          onClick={next}
+          disabled={index >= last}
+          aria-label="Next song"
+        >
+          <SkipForward className="size-4" fill="currentColor" strokeWidth={0} />
+        </button>
+      </div>
+      <div className="app-notch-time">
+        <span>{clock(current)}</span>
+        <span className="app-notch-progress" aria-hidden>
+          <i style={{ transform: `scaleX(${value})` }} />
         </span>
-      </button>
-      <button
-        type="button"
-        className="app-notch-track max-lg:hidden"
-        onClick={() => open(true)}
-        title="Open the player"
-      >
-        <b className="block truncate">{track.title}</b>
-        <span className="text-fg-faint block truncate">{track.artistName}</span>
-      </button>
-      <span className="app-notch-bars" aria-hidden>
-        <i />
-        <i />
-        <i />
-        <i />
-      </span>
+        <span>{duration > 0 ? clock(duration) : "--:--"}</span>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Whether the music panel is open: tapped open, or for a few seconds when a new song starts
+ * (as the iPhone island does). A tap outside the notch or Escape closes it.
+ */
+function useMusicPanel() {
+  const trackId = usePlayer((state) => state.queue[state.index]?.id ?? null);
+  const [open, setOpen] = useState(false);
+  const [peekId, setPeekId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!trackId) return;
+    const show = window.setTimeout(() => setPeekId(trackId), 0);
+    const hide = window.setTimeout(() => setPeekId(null), 3600);
+    return () => {
+      window.clearTimeout(show);
+      window.clearTimeout(hide);
+    };
+  }, [trackId]);
+
+  const shown = Boolean(trackId) && (open || peekId === trackId);
+  useEffect(() => {
+    if (!shown) return;
+    const close = () => {
+      setOpen(false);
+      setPeekId(null);
+    };
+    const onDown = (event: PointerEvent) => {
+      if (!(event.target as Element | null)?.closest(".app-notch")) close();
+    };
+    const onKey = (event: KeyboardEvent) => event.key === "Escape" && close();
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [shown]);
+
+  return {
+    shown,
+    toggle: () => {
+      setPeekId(null);
+      setOpen(!shown);
+    },
+    close: () => {
+      setOpen(false);
+      setPeekId(null);
+    },
+  };
+}
+
+/** The cover, or a tile with a note when there is none or it fails to load. */
+function NotchCover({ src, className }: { src: string | null | undefined; className?: string }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <span className={cn("app-notch-cover", className)}>
+      {src && !failed ? (
+        // eslint-disable-next-line @next/next/no-img-element -- covers come from many hosts
+        <img src={src} alt="" onError={() => setFailed(true)} />
+      ) : (
+        <Music className="size-4" strokeWidth={2.4} />
+      )}
     </span>
   );
 }
