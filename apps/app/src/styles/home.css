@@ -1087,6 +1087,8 @@ html[data-notch] .at-toaster {
 /* expanded: one row and a hairline */
 .app-notch-music {
   display: grid;
+  /* long titles truncate instead of pushing the controls out of the island */
+  grid-template-columns: minmax(0, 1fr);
   gap: 6px;
   padding: 8px 4px 2px;
 }
