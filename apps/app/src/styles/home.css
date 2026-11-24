@@ -968,6 +968,12 @@ html[data-notch] .at-toaster {
 .app-notch {
   transition: --side-w 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
+/* centred over the page, between the sidebar and the right panel (which only exists from xl) */
+@media (min-width: 80rem) {
+  .app-notch {
+    right: var(--right-w, 0px);
+  }
+}
 /* above dialogs only while it is saying something (a payment, a message) */
 .app-notch[data-open] {
   z-index: 60;
