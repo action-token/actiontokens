@@ -213,7 +213,7 @@ export function ConnectWalletDialog() {
         <div className="border-border relative mb-3 flex items-center gap-2 border-b pr-8 pb-2.5">
           <Image src={brandMark} alt="" width={22} height={22} />
           <span className="font-display text-foreground text-[15px] leading-none tracking-[0.05em]">
-            ACTIONTOKENS
+            ACTION-TOKENS
           </span>
           <span className="text-primary flex items-center gap-1.5 font-mono text-[9px] tracking-[0.16em] uppercase">
             <span className="bg-primary at-pulse size-1.5 rounded-full" />
@@ -490,10 +490,10 @@ export function ConnectWalletDialog() {
               className="absolute -bottom-24 left-1/2 h-56 w-[140%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgb(77_255_42/0.35),transparent)]"
             />
             <div className="relative">
-              <Image src={brandMark} alt="ActionTokens" width={64} height={64} priority />
+              <Image src={brandMark} alt="Action-Tokens" width={64} height={64} priority />
               <p className="font-neon at-neon-text mt-4 text-2xl">Welcome</p>
               <p className="font-shade mt-3 text-[44px] leading-[0.95] text-white">
-                ACTION
+                ACTION-
                 <br />
                 TOKENS
               </p>
@@ -590,7 +590,7 @@ export function ConnectWalletDialog() {
             )}
 
             <p className="text-fg-faint text-center text-[11px]">
-              By continuing you agree to the ActionTokens terms.
+              By continuing you agree to the Action-Tokens terms.
             </p>
           </div>
         </DialogContent>
@@ -696,7 +696,7 @@ function BrandHeader({ framed }: { framed: boolean }) {
       </span>
       <span className="relative flex min-w-0 flex-col items-start gap-1.5">
         <span className="font-display bg-primary inline-block -rotate-2 border-[2.5px] border-black px-2 py-0.5 text-[22px] leading-none tracking-[0.03em] text-black shadow-[3px_3px_0_0_var(--sticker-line,#f2f7f2)]">
-          ACTIONTOKENS
+          ACTION-TOKENS
         </span>
         <span className="font-display ml-2 inline-block rotate-2 bg-[#f2f7f2] px-1.5 py-[3px] text-[11px] leading-none tracking-[0.1em] text-black">
           ACTION AUTH SYSTEM
