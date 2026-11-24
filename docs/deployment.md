@@ -3,11 +3,16 @@
 The three web apps deploy to Vercel, one **project per app per environment**. The worker runs on a server
 (see [architecture.md](architecture.md#deploys)).
 
-| App          | Folder     | Development project    | Production project (later) | Production domain       |
-| ------------ | ---------- | ---------------------- | -------------------------- | ----------------------- |
-| AR collector | `apps/ar`  | `actiontokens-ar-dev`  | `actiontokens-ar`          | `ar.action-tokens.com`  |
-| Fan app      | `apps/app` | `actiontokens-app-dev` | `actiontokens-app`         | `app.action-tokens.com` |
-| Org portal   | `apps/org` | `actiontokens-org-dev` | `actiontokens-org`         | `org.action-tokens.com` |
+| App          | Folder      | Vercel project        | Address now                           | Domain later            |
+| ------------ | ----------- | --------------------- | ------------------------------------- | ----------------------- |
+| Fan app      | `apps/app`  | `app-actiontokens`    | `https://app-actiontokens.vercel.app` | `app.action-tokens.com` |
+| Org portal   | `apps/org`  | `org-actiontokens`    | `https://org-actiontokens.vercel.app` | `org.action-tokens.com` |
+| AR collector | `apps/ar`   | `ar-actiontokens`     | `https://ar-actiontokens.vercel.app`  | `ar.action-tokens.com`  |
+| Studio       | (not built) | `studio-actiontokens` | -                                     | -                       |
+
+Production (since 2026-11-24): mainnet, the production database on the `actiontokens-worker` EC2 server
+(see [Production server](#production-server-aws-ec2)), functions in `pdx1` (Oregon) next to it. The old
+`actiontokens-ar-dev` project was deleted for a clean start.
 
 "Development" projects use **testnet** and the **development database**. Production projects use mainnet and
 the production database, and are created only when we go live. Keep the two sets separate: never put a
@@ -24,7 +29,7 @@ Team: `action's projects` (`actions-projects-1ed41ec1`).
 | Node.js             | 22.x                                                                                                           |
 | Install             | `pnpm install --frozen-lockfile` (from each app's `vercel.json`)                                               |
 | Build               | `pnpm run build` (from `vercel.json`); not `turbo run build`, whose strict env mode hides the Vercel variables |
-| Functions           | region `iad1` (US East), next to the Neon database in `us-east-1`                                              |
+| Functions           | region `pdx1` (US West, Oregon), next to the database server in `us-west-2`                                    |
 | Source outside root | included (the apps import `packages/*`)                                                                        |
 
 Each app has its own [`vercel.json`](../apps/ar/vercel.json). [`.vercelignore`](../.vercelignore) keeps
@@ -120,3 +125,29 @@ and the workspace packages upload with it. Check a deployment with `vercel inspe
 2. Fill them from a **production** env file (mainnet network, production database, production keys).
 3. Attach the custom domains and set `AUTH_COOKIE_DOMAIN` and the `NEXT_PUBLIC_*_URL` values to them.
 4. Add the domains to Firebase's authorized list, then deploy with `--prod`.
+
+## Production server (AWS EC2)
+
+`actiontokens-worker` (account Wadzzo, `us-west-2a`), set up like `bandcoin-worker`: Ubuntu 24.04, t3.small,
+30 GB gp3, 2 GB swap, Elastic IP `184.33.177.155`. SSH: `ssh actiontokens` (key `~/.ssh/aws/actiontokens-worker.pem`,
+copy in `/Volumes/Data/pem/`). Security group `actiontokens-worker`: 22, 80, 443, 6432 (Postgres itself is not open).
+
+| Piece       | How it runs                                                                                                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Postgres 17 | container `actiontokens-postgres`, data in `/srv/pg/data`, on `127.0.0.1:5432` only, SSL on                                                                                            |
+| PgBouncer   | container `actiontokens-pgbouncer`, port 6432, transaction pooling, SSL required (`/srv/pgb`)                                                                                          |
+| TLS         | Caddy keeps a Let's Encrypt certificate for `actiontokens.184-33-177-155.sslip.io`; `sync-db-cert.sh` (cron, daily) copies it to `/srv/pg/certs`, so clients use `sslmode=verify-full` |
+| Worker      | container `actiontokens-worker` from the `deploy-worker.yml` workflow; env in `~/actionToken/worker.env`                                                                               |
+| Cron        | `worker-watchdog.sh` (every minute), `server_monitor.py` (every 5 minutes, mails support@), cert sync                                                                                  |
+
+Secrets live only on the server: `~/actionToken/pg.env` (database password) and `worker.env`. Every app's
+`DATABASE_URL` is `postgresql://actiontokens:…@actiontokens.184-33-177-155.sslip.io:6432/actiontokens?sslmode=verify-full`.
+Migrations go straight to Postgres through an SSH tunnel, not through PgBouncer:
+
+```bash
+ssh -fN -L 55440:127.0.0.1:5432 actiontokens
+DATABASE_URL="postgresql://actiontokens:<password>@127.0.0.1:55440/actiontokens" pnpm --filter @actiontokens/db migrate:deploy
+```
+
+GitHub (`action-token/actiontokens`): environment `production` holds `EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY`
+(a deploy-only key, `/Volumes/Data/pem/actiontokens-github-deploy`); repository variable `DEPLOY_WORKER=true`.
