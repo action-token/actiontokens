@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from "react";
 
+import { ACTION_LOGO } from "@actiontokens/ui/lib/action-logo";
 import { PinGlyph } from "@actiontokens/ui/patterns/pin-glyph";
 
 import { MAPBOX_TOKEN } from "../pins/mapbox";
@@ -401,9 +402,40 @@ function WalletCard() {
 
 /* ── the map ─────────────────────────────────────────────────────────────── */
 
-/** A real map picture of Williamsburg, Brooklyn (Mapbox static images), one per theme. */
-const snapshot = (theme: "dark" | "light") =>
-  `https://api.mapbox.com/styles/v1/mapbox/${theme}-v11/static/-73.9573,40.7163,14.6,0/1280x760@2x?attribution=false&logo=false&access_token=${MAPBOX_TOKEN ?? ""}`;
+type Center = { lng: number; lat: number };
+/** Where the map opens without the visitor's location: Williamsburg, Brooklyn, NY. */
+const US_CENTER: Center = { lng: -73.9573, lat: 40.7163 };
+
+/** A real map picture (Mapbox static images) around a point, one per theme. */
+const snapshot = (theme: "dark" | "light", { lng, lat }: Center) =>
+  `https://api.mapbox.com/styles/v1/mapbox/${theme}-v11/static/${lng.toFixed(4)},${lat.toFixed(4)},14.6,0/1280x760@2x?attribution=false&logo=false&access_token=${MAPBOX_TOKEN ?? ""}`;
+
+/**
+ * The map's centre: the visitor's location once they allow it, the US fallback until then (or if
+ * they say no). The new picture is loaded first, then swapped in, so the map never blanks.
+ */
+function useMapCenter() {
+  const [center, setCenter] = useState<Center>(US_CENTER);
+  useEffect(() => {
+    if (!MAPBOX_TOKEN || !("geolocation" in navigator)) return;
+    let live = true;
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const next = { lng: coords.longitude, lat: coords.latitude };
+        const theme = document.documentElement.dataset.theme === "light" ? "light" : "dark";
+        const picture = new Image();
+        picture.onload = () => live && setCenter(next);
+        picture.src = snapshot(theme, next);
+      },
+      () => undefined, // no permission, or no fix: stay on the US map
+      { enableHighAccuracy: false, timeout: 10_000, maximumAge: 10 * 60_000 },
+    );
+    return () => {
+      live = false;
+    };
+  }, []);
+  return center;
+}
 
 const MOTIF = {
   vinyl:
@@ -429,24 +461,29 @@ const RING = {
   scheduled: "var(--color-info)",
   collected: "var(--color-warning)",
 } as const;
+/** The pins' picture: the Action logo, padded on a white tile so the pin's shape never clips it. */
+const LOGO_PIN = `data:image/svg+xml;utf8,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 100"><rect width="100" height="100" fill="#fff"/><image href="${ACTION_LOGO}" xlink:href="${ACTION_LOGO}" x="18" y="16" width="64" height="64" preserveAspectRatio="xMidYMid meet"/></svg>`,
+)}`;
+
 const PINS = [
-  { x: 52, y: 34, color: "#ff5c8a", look: "active", art: art("#ff8a3d", "#6b3dff", "sun") },
-  { x: 63, y: 54, color: "#3d9bff", look: "active", art: art("#3ef0ff", "#20124d", "ticket") },
-  { x: 71, y: 30, color: "#7cff5a", look: "active", art: art("#d4ff2a", "#04320f", "note") },
-  { x: 45, y: 62, color: "#c9c9c9", look: "scheduled", art: art("#f2f2f2", "#111111", "key") },
-  { x: 74, y: 64, color: "#b06bff", look: "collected", art: art("#b06bff", "#3d0b40", "bag") },
-  { x: 57, y: 74, color: "#2ee6a6", look: "active", art: art("#b8ffe9", "#0b3d33", "vinyl") },
-  { x: 40, y: 26, color: "#ff9f1c", look: "active", art: art("#ffe27a", "#5a2a00", "mic") },
-  { x: 36, y: 44, color: "#5b6cff", look: "scheduled", art: art("#5b6cff", "#05060f", "star") },
+  { x: 52, y: 34, color: "#ff5c8a", look: "active" },
+  { x: 63, y: 54, color: "#3d9bff", look: "active" },
+  { x: 71, y: 30, color: "#7cff5a", look: "active" },
+  { x: 45, y: 62, color: "#c9c9c9", look: "scheduled" },
+  { x: 74, y: 64, color: "#b06bff", look: "collected" },
+  { x: 57, y: 74, color: "#2ee6a6", look: "active" },
+  { x: 40, y: 26, color: "#ff9f1c", look: "active" },
+  { x: 36, y: 44, color: "#5b6cff", look: "scheduled" },
 ] as const;
 const HOTSPOTS = [
   {
-    name: "Bedford rooftop block",
+    name: "Rooftop block",
     pins: 3,
     points: "47,27 59,25 63,37 66,60 54,62 48,46",
     tag: [45, 22],
   },
-  { name: "McCarren Park", pins: 2, points: "64,24 77,23 81,38 76,48 66,42", tag: [65, 19] },
+  { name: "City park", pins: 2, points: "64,24 77,23 81,38 76,48 66,42", tag: [65, 19] },
 ] as const;
 const TRAIL = [
   [45, 62],
@@ -459,6 +496,7 @@ const AREA = "#4dff2a";
 
 /** The map, as the portal's map page draws it: hotspot areas, a fan trail and image pins. */
 function MapLayer() {
+  const center = useMapCenter();
   const trail = TRAIL.map(([x, y]) => `${x},${y}`).join(" ");
   return (
     <div className="lm-map" aria-hidden>
@@ -466,7 +504,7 @@ function MapLayer() {
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={snapshot("dark")}
+            src={snapshot("dark", center)}
             alt=""
             decoding="async"
             className="lm-map-img"
@@ -474,7 +512,7 @@ function MapLayer() {
           />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={snapshot("light")}
+            src={snapshot("light", center)}
             alt=""
             decoding="async"
             className="lm-map-img"
@@ -548,7 +586,7 @@ function MapLayer() {
           <PinGlyph
             size={50}
             color={pin.color}
-            imageUrl={pin.art}
+            imageUrl={LOGO_PIN}
             ringColor={RING[pin.look]}
             ringWidth={3}
           />
