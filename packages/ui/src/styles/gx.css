@@ -952,10 +952,10 @@ a[class*="rounded-[1.4rem]"]:hover {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 14px 2px 8px;
+  padding: 18px 2px 8px;
   color: var(--bc-primary-text);
   font-family: var(--deck-faster), var(--font-display);
-  font-size: 17px;
+  font-size: 21px;
   line-height: 1;
   white-space: nowrap;
   text-shadow: 0 0 12px var(--gx-glow-soft);
@@ -970,8 +970,8 @@ a[class*="rounded-[1.4rem]"]:hover {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 11px;
-  height: 40px;
+  gap: 12px;
+  height: 46px;
   padding: 0 10px;
   overflow: hidden;
   border-radius: 11px;
@@ -986,13 +986,33 @@ a[class*="rounded-[1.4rem]"]:hover {
 }
 .gx-row svg {
   flex: none;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
 }
+/* big condensed words, as on a poster menu */
 .gx-lbl {
-  font-family: var(--deck-bungee), var(--font-display);
-  font-size: 11.5px;
-  letter-spacing: 0.02em;
+  padding-top: 0.12em; /* Teko sits high; this centres it on the icon */
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+/* a dashed rule between rows, hidden around the current page */
+.gx-nav li + li .gx-row::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 10px;
+  left: 10px;
+  border-top: 1px dashed var(--gx-line-strong);
+}
+.gx-nav li + li .gx-row[aria-current="page"]::after,
+.gx-nav li:has(.gx-row[aria-current="page"]) + li .gx-row::after,
+.gx-nav li + li .gx-row:hover::after,
+.gx-nav li:has(.gx-row:hover) + li .gx-row::after {
+  opacity: 0;
 }
 .gx-meta {
   margin-left: auto;

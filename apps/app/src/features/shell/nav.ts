@@ -85,7 +85,7 @@ export function isActive(entry: NavItem, pathname: string, tab: string | null) {
 export function artistEntry(
   organization: { name: string; status: "PENDING" | "APPROVED" | "BANNED" | "REJECTED" } | null,
 ) {
-  if (!organization) return { title: "Become an organization", hint: "Open your page" };
+  if (!organization) return { title: "Become an org", hint: "Open your page" };
   if (organization.status === "APPROVED")
     return { title: "Organization portal", hint: organization.name };
   if (organization.status === "PENDING") return { title: "Organization portal", hint: "In review" };

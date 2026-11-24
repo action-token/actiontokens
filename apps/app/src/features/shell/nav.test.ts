@@ -42,7 +42,7 @@ describe("sidebar", () => {
 describe("artistEntry", () => {
   it("invites a fan to become an artist", () => {
     expect(artistEntry(null)).toMatchObject({
-      title: "Become an organization",
+      title: "Become an org",
       hint: "Open your page",
     });
   });
