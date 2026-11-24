@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import {
-  ArrowUpRight,
+  ArrowRight,
   ChevronLeft,
   ChevronRight,
   LogIn,
@@ -195,17 +195,20 @@ export function ControlDeck({
               {launch.length > 1 && (
                 <div>
                   <p className="gx-sec">Launch</p>
-                  <ul>
+                  <div className="flex flex-col gap-2">
                     {launch.slice(1).map(({ href, label: title, hint, icon: Icon }) => (
-                      <li key={href}>
-                        <a href={href} title={hint} className="gx-row">
-                          <Icon strokeWidth={2} />
-                          <span className="gx-lbl truncate">{title}</span>
-                          <span className="gx-meta">↗</span>
-                        </a>
-                      </li>
+                      <a key={href} href={href} title={hint} className="gx-go">
+                        <Icon className="gx-go-icon" strokeWidth={2} />
+                        <span className="min-w-0">
+                          <span className="gx-go-label">{title}</span>
+                          <span className="gx-go-hint">{hint}</span>
+                        </span>
+                        <span className="gx-go-arrow" aria-hidden>
+                          <ArrowRight className="size-4" strokeWidth={2.6} />
+                        </span>
+                      </a>
                     ))}
-                  </ul>
+                  </div>
                 </div>
               )}
 
@@ -218,12 +221,22 @@ export function ControlDeck({
             {/* the big ACT button (the first launch target, AR) and the fold */}
             <div className="gx-foot">
               {launch[0] && (
-                <a href={launch[0].href} className="gx-act" title={launch[0].hint}>
-                  <b>ACT</b>
-                  <small>{launch[0].label}</small>
-                  <kbd>
-                    <ArrowUpRight className="size-4" strokeWidth={2.6} />
-                  </kbd>
+                <a
+                  href={launch[0].href}
+                  title={launch[0].hint}
+                  className="gx-go gx-go--neon flex-1"
+                >
+                  {(() => {
+                    const Icon = launch[0].icon;
+                    return <Icon className="gx-go-icon" strokeWidth={2} />;
+                  })()}
+                  <span className="min-w-0">
+                    <span className="gx-go-label">{launch[0].label}</span>
+                    <span className="gx-go-hint">{launch[0].hint}</span>
+                  </span>
+                  <span className="gx-go-arrow" aria-hidden>
+                    <ArrowRight className="size-4" strokeWidth={2.6} />
+                  </span>
                 </a>
               )}
               <button

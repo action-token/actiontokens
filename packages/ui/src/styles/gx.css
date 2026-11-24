@@ -1040,69 +1040,12 @@ a[class*="rounded-[1.4rem]"]:hover {
   color: var(--gx-on-neon);
 }
 
-/* ACT and the fold */
+/* the foot: the AR button and the fold */
 .gx-foot {
   display: flex;
   flex: none;
   gap: 8px;
   padding: 10px 12px 12px;
-}
-.gx-act {
-  position: relative;
-  display: flex;
-  flex: 1;
-  min-width: 0;
-  align-items: center;
-  gap: 10px;
-  height: 56px;
-  padding: 0 10px 0 16px;
-  overflow: hidden;
-  border-radius: 16px;
-  background: var(--gx-neon);
-  color: var(--gx-on-neon);
-  box-shadow: 0 10px 30px -8px var(--gx-glow);
-  transition: transform 200ms ease;
-}
-.gx-act::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(-45deg, transparent 0 10px, rgb(0 0 0 / 0.06) 10px 20px);
-}
-.gx-act:hover {
-  transform: translateY(-2px);
-}
-.gx-act > * {
-  position: relative;
-}
-.gx-act b {
-  font-family: var(--deck-shade), var(--font-display);
-  font-size: 28px;
-  font-weight: 400;
-  line-height: 1;
-}
-.gx-act small {
-  margin-right: auto;
-  overflow: hidden;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  line-height: 1.35;
-  opacity: 0.75;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.gx-act kbd {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: rgb(0 0 0 / 0.85);
-  color: var(--gx-neon);
 }
 .gx-collapse {
   display: grid;
@@ -1120,11 +1063,6 @@ a[class*="rounded-[1.4rem]"]:hover {
 .gx-collapse:hover {
   border-color: var(--gx-line-strong);
   color: var(--bc-fg);
-}
-@media (prefers-reduced-motion: reduce) {
-  .gx-act {
-    transition: none;
-  }
 }
 
 /* the balance inside the account card: a slim strip */
@@ -1162,4 +1100,117 @@ a[class*="rounded-[1.4rem]"]:hover {
   color: var(--bc-fg-faint);
   font-family: var(--font-mono);
   font-size: 10px;
+}
+
+/* Launch buttons: a dark pill with a big condensed label and a round arrow badge */
+.gx-go {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  padding: 8px 8px 8px 14px;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--gx-neon) 35%, transparent);
+  border-radius: 16px;
+  background: #0b0f0b;
+  color: var(--gx-neon);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+  transition:
+    transform 200ms ease,
+    border-color 150ms ease;
+}
+.gx-go::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent 0 10px,
+    rgb(255 255 255 / 0.025) 10px 20px
+  );
+  pointer-events: none;
+}
+.gx-go > * {
+  position: relative;
+}
+.gx-go:hover {
+  transform: translateY(-2px);
+  border-color: var(--gx-neon);
+}
+.gx-go-icon {
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+.gx-go-label {
+  display: block;
+  overflow: hidden;
+  padding-top: 0.12em;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.gx-go-hint {
+  display: block;
+  overflow: hidden;
+  margin-top: 2px;
+  color: rgb(255 255 255 / 0.55);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.gx-go-arrow {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin-left: auto;
+  border-radius: 999px;
+  background: var(--gx-neon);
+  color: var(--gx-on-neon);
+  transition: transform 200ms ease;
+}
+.gx-go:hover .gx-go-arrow {
+  transform: translateX(2px) rotate(-45deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .gx-go,
+  .gx-go-arrow {
+    transition: none;
+  }
+}
+
+/* the main launch (AR): the same button, filled neon */
+.gx-go--neon {
+  border-color: transparent;
+  background: var(--gx-neon);
+  color: var(--gx-on-neon);
+  box-shadow: 0 10px 30px -8px var(--gx-glow);
+}
+.gx-go--neon::before {
+  background: repeating-linear-gradient(-45deg, transparent 0 10px, rgb(0 0 0 / 0.07) 10px 20px);
+}
+.gx-go--neon:hover {
+  border-color: transparent;
+}
+.gx-go--neon .gx-go-hint {
+  color: color-mix(in oklab, var(--gx-on-neon) 70%, transparent);
+}
+.gx-go--neon .gx-go-arrow {
+  background: rgb(0 0 0 / 0.85);
+  color: var(--gx-neon);
+}
+/* the fold button matches the button height */
+.gx-collapse {
+  height: auto;
+  min-height: 58px;
 }
