@@ -65,9 +65,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className="flex min-w-0 flex-col">
         {/* The notch hangs from the top on every page (on phones it is the top bar too): search,
-            what's playing, balance, and whatever is happening (transactions, messages, news). */}
+            what's playing, balance, and whatever is happening (transactions, messages, news). It
+            floats: pages run under it, and the page frame's top padding keeps titles clear of it
+            (--page-pad-top in globals.css); full-width banners go right to the top. */}
         <AppNotch />
-        {pathname !== "/" && <div className="h-[68px] sm:h-12" aria-hidden />}
         <main
           className={cn(
             "flex-1 pb-[calc(var(--phone-bar-space)+5rem)] sm:pl-(--side-w)",

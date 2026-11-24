@@ -94,7 +94,7 @@ function Slides({ songs }: { songs: Song[] }) {
         className="animate-in fade-in absolute inset-0 -z-10 size-full scale-125 object-cover opacity-25 blur-3xl duration-700"
       />
 
-      <div className="grid max-w-[var(--page-max,96rem)] px-4 pt-6 sm:px-8 lg:pt-8">
+      <div className="grid max-w-[var(--page-max,96rem)] px-4 pt-[var(--page-pad-top,1.5rem)] sm:px-8 lg:pt-[var(--page-pad-top-lg,2rem)]">
         <div
           key={song.id}
           role="group"
@@ -257,7 +257,7 @@ function Slides({ songs }: { songs: Song[] }) {
 function HeroSkeleton() {
   return (
     <section aria-hidden className="bleed border-b">
-      <div className="grid max-w-[var(--page-max,96rem)] items-center gap-8 px-4 pt-6 pb-6 sm:px-8 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] md:gap-10 lg:pt-8">
+      <div className="grid max-w-[var(--page-max,96rem)] items-center gap-8 px-4 pt-[var(--page-pad-top,1.5rem)] pb-6 sm:px-8 md:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] md:gap-10 lg:pt-[var(--page-pad-top-lg,2rem)]">
         <div className="order-last grid gap-4 md:order-first">
           <Skeleton className="h-5 w-48" />
           <Skeleton className="h-16 w-3/4" />

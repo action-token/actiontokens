@@ -13,6 +13,14 @@
    1920px screen fills the space instead of leaving an empty strip on the right. */
 :root {
   --page-max: 120rem;
+  /* room under the floating notch: the phone top bar is 68px, the notch from sm up 48px */
+  --page-pad-top: calc(68px + 1.25rem);
+  --page-pad-top-lg: calc(3rem + 2rem);
+}
+@media (min-width: 40rem) {
+  :root {
+    --page-pad-top: calc(3rem + 1.25rem);
+  }
 }
 
 /*

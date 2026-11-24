@@ -9,6 +9,8 @@ import { cn } from "../lib/cn";
  * Each app may set in its stylesheet:
  *
  *   --page-max            frame width              (default 96rem)
+ *   --page-pad-top        top room                 (default 1.25rem; 2rem from `lg` up via
+ *   --page-pad-top-lg     …)                       room for a floating top bar goes here)
  *   --page-pad-bottom     bottom room              (default 2.5rem)
  *   --page-pad-bottom-lg  bottom room from `lg` up (default 2.5rem)
  *   --page-pad-bottom-form / -lg  bottom room of create/edit pages (default 2.5rem)
@@ -23,7 +25,7 @@ export function pageContainerClass({
   className?: string;
 } = {}) {
   return cn(
-    "w-full max-w-[var(--page-max,96rem)] px-4 pt-5 sm:px-8 lg:pt-8",
+    "w-full max-w-[var(--page-max,96rem)] px-4 pt-[var(--page-pad-top,1.25rem)] sm:px-8 lg:pt-[var(--page-pad-top-lg,2rem)]",
     form
       ? "pb-[var(--page-pad-bottom-form,2.5rem)] lg:pb-[var(--page-pad-bottom-form-lg,2.5rem)]"
       : "pb-[var(--page-pad-bottom,2.5rem)] lg:pb-[var(--page-pad-bottom-lg,2.5rem)]",
