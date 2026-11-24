@@ -41,6 +41,7 @@ export function ControlDeck({
   label = "Main",
   home,
   tagline,
+  header = true,
   tools,
   railTools,
   groups,
@@ -55,6 +56,8 @@ export function ControlDeck({
   home: { href: string; label: string };
   /** The line under the name: "Organization portal", "Marketplace" */
   tagline: string;
+  /** Off when the app has its own top bar (the marketplace's notch carries the logo, search and bell) */
+  header?: boolean;
   /** Round buttons beside the name (search, the bell) */
   tools?: ReactNode;
   /** The same tools for the folded rail */
@@ -84,25 +87,28 @@ export function ControlDeck({
         <div className="gx-panel pointer-events-auto flex h-full flex-col overflow-hidden">
           {/* ── open ── */}
           <div className={cn("h-full min-h-0 flex-col", collapsed ? "hidden" : "hidden xl:flex")}>
-            <div className="flex shrink-0 items-center gap-2.5 px-4 pt-5 pb-3">
-              <Link
-                href={home.href}
-                aria-label={home.label}
-                className="flex min-w-0 flex-1 items-center gap-2.5"
-              >
-                <span className="gx-logo flex size-10 shrink-0 items-center justify-center rounded-[11px] bg-white">
-                  <BrandMark className="h-7" />
-                </span>
-                <span className="min-w-0">
-                  <span className="gx-brand block truncate">Action-Tokens</span>
-                  <span className="gx-mono text-primary-text mt-1 flex items-center gap-1.5 truncate">
-                    <span className="gx-live" aria-hidden />
-                    {tagline}
+            {!header && <div className="h-3 shrink-0" />}
+            {header && (
+              <div className="flex shrink-0 items-center gap-2.5 px-4 pt-5 pb-3">
+                <Link
+                  href={home.href}
+                  aria-label={home.label}
+                  className="flex min-w-0 flex-1 items-center gap-2.5"
+                >
+                  <span className="gx-logo flex size-10 shrink-0 items-center justify-center rounded-[11px] bg-white">
+                    <BrandMark className="h-7" />
                   </span>
-                </span>
-              </Link>
-              {tools && <div className="flex shrink-0 items-center gap-1.5">{tools}</div>}
-            </div>
+                  <span className="min-w-0">
+                    <span className="gx-brand block truncate">Action-Tokens</span>
+                    <span className="gx-mono text-primary-text mt-1 flex items-center gap-1.5 truncate">
+                      <span className="gx-live" aria-hidden />
+                      {tagline}
+                    </span>
+                  </span>
+                </Link>
+                {tools && <div className="flex shrink-0 items-center gap-1.5">{tools}</div>}
+              </div>
+            )}
 
             <nav
               aria-label="Sections"
@@ -230,12 +236,16 @@ export function ControlDeck({
               collapsed ? "flex" : "flex xl:hidden",
             )}
           >
-            <Link href={home.href} aria-label={home.label} className="mt-5 mb-3 shrink-0">
-              <span className="gx-logo flex size-10 items-center justify-center rounded-[11px] bg-white">
-                <BrandMark className="h-6" />
-              </span>
-            </Link>
-            {railTools && (
+            {header ? (
+              <Link href={home.href} aria-label={home.label} className="mt-5 mb-3 shrink-0">
+                <span className="gx-logo flex size-10 items-center justify-center rounded-[11px] bg-white">
+                  <BrandMark className="h-6" />
+                </span>
+              </Link>
+            ) : (
+              <div className="h-3 shrink-0" />
+            )}
+            {header && railTools && (
               <div className="mb-2 flex shrink-0 flex-col items-center gap-1.5">{railTools}</div>
             )}
             <nav

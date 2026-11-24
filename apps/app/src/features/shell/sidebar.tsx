@@ -14,11 +14,10 @@ import { Money } from "~/components/money";
 import { api } from "~/trpc/react";
 
 import { AR_URL, ORG_URL, artistEntry, GROUPS, isActive } from "./nav";
-import { HeaderTools } from "./sidebar-search";
 
 /**
- * The desktop sidebar: the shared Action-Tokens control deck (the same as the org portal's), with
- * Search and the bell beside the logo, the links in groups, launch cards to AR and the
+ * The desktop sidebar: the shared Action-Tokens control deck (the same as the org portal's),
+ * without its header (the notch above every page has the logo, search and bell): the links in groups, launch cards to AR and the
  * organization portal, the vault, then your account and the theme. The chevron folds it.
  */
 export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
@@ -84,8 +83,7 @@ function Frame({
     <ControlDeck
       home={{ href: "/", label: "Action-Tokens marketplace home" }}
       tagline="Marketplace"
-      tools={<HeaderTools />}
-      railTools={<HeaderTools />}
+      header={false}
       groups={groups}
       launch={[
         { href: AR_URL, label: "Go to AR", hint: "Collect drops", icon: ScanLine },

@@ -5,11 +5,16 @@ import {
   Check,
   Crosshair,
   Info,
+  ListMusic,
+  Loader2,
   LogIn,
+  MessageCircle,
   Package,
   Pause,
   Play,
   Search,
+  UserPlus,
+  UserRound,
   Users,
   X,
 } from "lucide-react";
@@ -29,6 +34,7 @@ import { api } from "~/trpc/react";
 
 import { openSearch } from "../shell/search-dialog";
 import { SidebarTools } from "../shell/sidebar-tools";
+import { type Activity, type ActivityKind, useActivity } from "./notch-activity";
 import { type NotchNote, useNotchFeed } from "./notch-feed";
 
 /** How long a new notification or an idle note stays open. */
@@ -40,9 +46,10 @@ const PEEK_MS = 4200;
  * first:
  *
  *   1. a transaction in progress (the flows' own toast, countdown and buttons, portalled in)
- *   2. a message (any react-hot-toast success / error, so call sites don't change)
- *   3. a new notification (community replies, new drops from orgs you follow…)
- *   4. the page's idle feed (the home page's new drops and bounties)
+ *   2. an action you just took (joining a bounty or a crew, following…): busy, then done
+ *   3. a message (any react-hot-toast success / error, so call sites don't change)
+ *   4. a new notification (community replies, new drops from orgs you follow…)
+ *   5. the page's idle feed (the home page's new drops and bounties)
  *
  * Moves are transform and opacity only.
  */
@@ -52,15 +59,18 @@ export function AppNotch({ hero = false }: { hero?: boolean }) {
   const openWallet = useConnectWalletDialogStore((state) => state.setIsOpen);
 
   const txBusy = useTxSlot();
+  const activity = useActivity();
   const message = useLatestToast();
-  const note = useNotes(signedIn, !txBusy && !message);
-  const show: "tx" | "toast" | "note" | null = txBusy
+  const note = useNotes(signedIn, !txBusy && !activity && !message);
+  const show: "tx" | "activity" | "toast" | "note" | null = txBusy
     ? "tx"
-    : message
-      ? "toast"
-      : note
-        ? "note"
-        : null;
+    : activity
+      ? "activity"
+      : message
+        ? "toast"
+        : note
+          ? "note"
+          : null;
 
   // While the notch speaks, the page's own toaster stays hidden: there is one place for messages.
   useEffect(() => {
@@ -110,6 +120,7 @@ export function AppNotch({ hero = false }: { hero?: boolean }) {
       <div className="lp-feed app-notch-drop" data-open={show ? "" : undefined} aria-live="polite">
         {/* Transaction toasts render in here (ToastViewport portals into this slot). */}
         <div id={NOTCH_TX_SLOT} className="app-notch-tx" hidden={!txBusy} />
+        {show === "activity" && activity && <ActivityRow activity={activity} />}
         {show === "toast" && message && <MessageRow message={message} />}
         {show === "note" && note && <NoteRow note={note} />}
       </div>
@@ -133,7 +144,41 @@ function useTxSlot() {
   return busy;
 }
 
-/* ── 2 · messages: the newest visible react-hot-toast ───────────────────── */
+/* ── 2 · the action you just took ───────────────────────────────────────── */
+
+const ACTIVITY_ICON: Record<ActivityKind, typeof Check> = {
+  bounty: Crosshair,
+  community: Users,
+  follow: UserPlus,
+  playlist: ListMusic,
+  profile: UserRound,
+  comment: MessageCircle,
+};
+
+function ActivityRow({ activity }: { activity: Activity }) {
+  const Icon = ACTIVITY_ICON[activity.kind];
+  const busy = activity.phase === "busy";
+  return (
+    <div
+      key={activity.id}
+      className="lp-feed-item app-notch-msg"
+      data-tone={busy ? "info" : "ok"}
+      aria-busy={busy || undefined}
+    >
+      <span className="app-notch-icon">
+        {busy ? (
+          <Loader2 className="size-[18px] animate-spin" strokeWidth={2.6} />
+        ) : (
+          <Check className="size-[18px]" strokeWidth={2.6} />
+        )}
+      </span>
+      <span className="min-w-0 flex-1 text-[13px] leading-snug font-semibold">{activity.text}</span>
+      <Icon className="text-fg-faint size-4 shrink-0" aria-hidden />
+    </div>
+  );
+}
+
+/* ── 3 · messages: the newest visible react-hot-toast ───────────────────── */
 
 type Message = { id: string; tone: "ok" | "bad" | "info"; text: string };
 
@@ -174,7 +219,7 @@ function MessageRow({ message }: { message: Message }) {
   );
 }
 
-/* ── 3 + 4 · new notifications, then the page's idle feed ───────────────── */
+/* ── 4 + 5 · new notifications, then the page's idle feed ───────────────── */
 
 const isCommunity = (type: string) => type.startsWith("COMMUNITY_");
 
