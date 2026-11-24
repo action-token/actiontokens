@@ -3,6 +3,7 @@ import {
   Home,
   Layers,
   ListMusic,
+  Music,
   Newspaper,
   Star,
   Store,
@@ -31,7 +32,8 @@ export const GROUPS: { title: string; items: NavItem[] }[] = [
     items: [
       { href: "/", icon: Home, label: "Home" },
       { href: "/feed", icon: Newspaper, label: "Feed" },
-      { href: "/marketplace", icon: Store, label: "Marketplace", also: ["/item", "/album"] },
+      { href: "/marketplace", icon: Store, label: "Marketplace", also: ["/item"] },
+      { href: "/music", icon: Music, label: "Music", also: ["/songs", "/albums", "/album"] },
       { href: "/bounties", icon: Trophy, label: "Bounties", also: ["/bounty"] },
       { href: "/communities", icon: Users, label: "Communities" },
     ],

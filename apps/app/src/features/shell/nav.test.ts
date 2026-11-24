@@ -32,6 +32,7 @@ describe("sidebar", () => {
       "Home",
       "Feed",
       "Marketplace",
+      "Music",
       "Bounties",
       "Communities",
     ]);

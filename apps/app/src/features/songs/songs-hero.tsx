@@ -36,13 +36,15 @@ const clock = (seconds: number) =>
  * type on the left, the cover as a tilted sticker on the right, dots and arrows under.
  * Nothing played this week: no hero.
  */
-export function SongsHero() {
+export function SongsHero({ fallback = [] }: { fallback?: Song[] }) {
   const top = api.music.browse.useQuery(
     { sort: "trending", playedThisWeek: true, limit: SONGS_HERO_COUNT },
     { staleTime: 60_000 },
   );
   if (top.isPending) return <HeroSkeleton />;
-  const songs = top.data?.tracks ?? [];
+  // Nothing played this week: the songs the page offers instead (the music home's newest).
+  const trending = top.data?.tracks ?? [];
+  const songs = trending.length > 0 ? trending : fallback.slice(0, SONGS_HERO_COUNT);
   if (songs.length === 0) return null;
   return <Slides songs={songs} />;
 }

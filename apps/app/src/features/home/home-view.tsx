@@ -41,7 +41,7 @@ export function HomeView({ home }: { home: Home }) {
 }
 
 /** Your last 12 different songs (or this browser's, as a guest). Hidden until there's something to show. */
-function RecentlyPlayed() {
+export function RecentlyPlayed() {
   const { status } = useSession();
   // localStorage only exists in the browser; the server renders without an id.
   const sessionId = useSyncExternalStore(noSubscribe, existingListeningSession, () => undefined);
@@ -69,7 +69,7 @@ function RecentlyPlayed() {
  * Songs played in the last 7 days, most played first. The first 12 come with the page;
  * more load from `music.browse` as you scroll. Nothing played this week: no section.
  */
-function TrendingCarousel({ home }: { home: Home }) {
+export function TrendingCarousel({ home }: { home: Home }) {
   const [started, setStarted] = useState(false);
   const more = api.music.browse.useInfiniteQuery(
     { sort: "trending", playedThisWeek: true, limit: MORE },
@@ -103,7 +103,7 @@ function TrendingCarousel({ home }: { home: Home }) {
 }
 
 /** The first 12 come with the page; more load from `music.tracks` (newest) as you scroll. */
-function NewSongsCarousel({ home }: { home: Home }) {
+export function NewSongsCarousel({ home }: { home: Home }) {
   const [started, setStarted] = useState(false);
   const more = api.music.tracks.useInfiniteQuery(
     { sort: "newest", limit: MORE },
